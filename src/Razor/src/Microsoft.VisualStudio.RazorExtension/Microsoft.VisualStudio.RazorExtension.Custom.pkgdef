@@ -38,6 +38,20 @@
 "ShowBraceCompletion"=dword:00000001
 "ShowSmartIndent"=dword:00000001
 
+// ---------------------------------------------------------------------------------------------------------------------
+// Razor Feature Flags
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Feature flags that are ON by default
+
+[$RootKey$\FeatureFlags\Razor\LSP\IncludeProjectKeyInGeneratedFilePath]
+"Description"="Enables the experimental support for Razor projects to support multi-targeting, including allowing different C# code generation per-target."
+"Value"=dword:00000001
+"Title"="Experimental Razor project multi-targeting support (requires restart)"
+"PreviewPaneChannels"="*"
+
+// Feature flags that are OFF by default
+
 [$RootKey$\FeatureFlags\Razor\LSP\LegacyEditor]
 "Description"="Uses the legacy Razor editor when editing Razor (ASP.NET Core)."
 "Value"=dword:00000000
@@ -49,12 +63,6 @@
 "Value"=dword:00000000
 "Title"="Show all C# code actions in Razor files (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
-
-[$RootKey$\FeatureFlags\Razor\LSP\IncludeProjectKeyInGeneratedFilePath]
-"Description"="Enables the experimental support for Razor projects to support multi-targeting, including allowing different C# code generation per-target."
-"Value"=dword:00000001
-"Title"="Experimental Razor project multi-targeting support (requires restart)"
-"PreviewPaneChannels"="*"
 
 [$RootKey$\FeatureFlags\Razor\LSP\UsePreciseSemanticTokenRanges]
 "Description"="Use precise semantic token ranges when requesting semantic token information on razor files. Note: This is experimental, some actions may not apply correctly, or at all!"
@@ -86,3 +94,5 @@
 "Value"=dword:00000000
 "Title"="Use project configuration LSP endpoint instead of a binary file for Razor (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
+
+// End Razor Feature Flags

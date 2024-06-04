@@ -29,8 +29,11 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
         _featureFlagService = featureFlagService;
         _lspEditorFeatureDetector = lspEditorFeatureDetector;
 
-        _showAllCSharpCodeActions = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.ShowAllCSharpCodeActions);
+        // On by default
         _includeProjectKeyInGeneratedFilePath = IsFeatureEnabledOrTrue(WellKnownFeatureFlagNames.IncludeProjectKeyInGeneratedFilePath);
+
+        // Off by default
+        _showAllCSharpCodeActions = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.ShowAllCSharpCodeActions);
         _usePreciseSemanticTokenRanges = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.UsePreciseSemanticTokenRanges);
         _useRazorCohostServer = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.UseRazorCohostServer);
         _disableRazorLanguageServer = IsFeatureEnabledOrFalse(WellKnownFeatureFlagNames.DisableRazorLanguageServer);
