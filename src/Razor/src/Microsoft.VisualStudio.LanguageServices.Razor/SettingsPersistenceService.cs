@@ -7,13 +7,17 @@ using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(ISettingsPersistenceService))]
 [method: ImportingConstructor]
-internal class SettingsPersistenceService(IAsyncServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext) : ISettingsPersistenceService
+internal class SettingsPersistenceService(
+    [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
+    JoinableTaskContext joinableTaskContext)
+    : ISettingsPersistenceService
 {
     private readonly JoinableTask<ISettingsManager> _getSettingsManagerTask = joinableTaskContext.Factory.RunAsync(
         () => GetSettingsManagerAsync(serviceProvider));

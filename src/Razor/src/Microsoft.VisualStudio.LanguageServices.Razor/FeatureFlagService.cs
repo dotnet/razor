@@ -5,13 +5,17 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(IFeatureFlagService))]
 [method: ImportingConstructor]
-internal sealed class FeatureFlagService(IAsyncServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext) : IFeatureFlagService
+internal sealed class FeatureFlagService(
+    [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
+    JoinableTaskContext joinableTaskContext)
+    : IFeatureFlagService
 {
     private readonly JoinableTask<IVsFeatureFlags> _getVsFeatureFlagsTask = joinableTaskContext.Factory.RunAsync(
         () => GetVsFeatureFlagsAsync(serviceProvider));
