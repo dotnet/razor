@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal interface IRazorProjectInfoPublisher
 {
-    ImmutableArray<RazorProjectInfo> GetLatestProjects();
+    ImmutableArray<RazorProjectInfo> GetLatestProjectInfos();
 
     void AddListener(IRazorProjectInfoListener listener);
 }

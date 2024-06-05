@@ -28,7 +28,7 @@ internal sealed class RazorProjectInfoListener(
         _publisher.AddListener(this);
 
         // Add all existing projects
-        foreach (var projectInfo in _publisher.GetLatestProjects())
+        foreach (var projectInfo in _publisher.GetLatestProjectInfos())
         {
             await AddOrUpdateProjectAsync(projectInfo, cancellationToken).ConfigureAwait(false);
         }

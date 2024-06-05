@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
-internal abstract partial class RazorProjectInfoPublisher
+internal sealed partial class VisualStudioRazorProjectInfoPublisher
 {
     private sealed class Comparer : IEqualityComparer<Work>
     {
@@ -34,4 +34,5 @@ internal abstract partial class RazorProjectInfoPublisher
             return work.ProjectKey.GetHashCode();
         }
     }
+
 }
