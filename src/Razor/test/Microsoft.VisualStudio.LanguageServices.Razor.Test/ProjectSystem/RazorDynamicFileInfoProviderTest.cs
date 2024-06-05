@@ -62,8 +62,8 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         _document1 = _project.GetDocument(hostDocument1.FilePath).AssumeNotNull();
         _document2 = _project.GetDocument(hostDocument2.FilePath).AssumeNotNull();
 
-        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
-        var filePathService = new VisualStudioFilePathService(languageServerFeatureOptions);
+        var optionsProvider = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true).GetProvider();
+        var filePathService = new VisualStudioFilePathService(optionsProvider);
 
         var serviceProvider = VsMocks.CreateServiceProvider(static b =>
             b.AddComponentModel(static b =>
@@ -75,7 +75,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         var fallbackProjectManager = new FallbackProjectManager(
             serviceProvider,
             StrictMock.Of<ProjectConfigurationFilePathStore>(),
-            languageServerFeatureOptions,
+            optionsProvider,
             _projectManager,
             WorkspaceProvider,
             NoOpTelemetryReporter.Instance);

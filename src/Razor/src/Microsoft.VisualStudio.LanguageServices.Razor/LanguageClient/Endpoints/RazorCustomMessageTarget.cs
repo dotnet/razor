@@ -32,7 +32,7 @@ internal partial class RazorCustomMessageTarget
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ITelemetryReporter _telemetryReporter;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly ILanguageServerFeatureOptionsProvider _optionsProvider;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly SnippetCache _snippetCache;
     private readonly IWorkspaceProvider _workspaceProvider;
@@ -53,40 +53,30 @@ internal partial class RazorCustomMessageTarget
         LSPDocumentSynchronizer documentSynchronizer,
         CSharpVirtualDocumentAddListener csharpVirtualDocumentAddListener,
         ITelemetryReporter telemetryReporter,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        ILanguageServerFeatureOptionsProvider optionsProvider,
         IProjectSnapshotManager projectManager,
         SnippetCache snippetCache,
         IWorkspaceProvider workspaceProvider,
         IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
         ILoggerFactory loggerFactory)
     {
-        if (documentManager is null)
-        {
-            throw new ArgumentNullException(nameof(documentManager));
-        }
-
         if (documentManager is not TrackingLSPDocumentManager trackingDocumentManager)
         {
             throw new ArgumentException($"The LSP document manager should be of type {typeof(TrackingLSPDocumentManager).FullName}", nameof(documentManager));
         }
 
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
         _documentManager = trackingDocumentManager;
         _joinableTaskFactory = joinableTaskContext.Factory;
 
-        _requestInvoker = requestInvoker ?? throw new ArgumentNullException(nameof(requestInvoker));
-        _formattingOptionsProvider = formattingOptionsProvider ?? throw new ArgumentNullException(nameof(formattingOptionsProvider));
-        _editorSettingsManager = editorSettingsManager ?? throw new ArgumentNullException(nameof(editorSettingsManager));
-        _documentSynchronizer = documentSynchronizer ?? throw new ArgumentNullException(nameof(documentSynchronizer));
-        _csharpVirtualDocumentAddListener = csharpVirtualDocumentAddListener ?? throw new ArgumentNullException(nameof(csharpVirtualDocumentAddListener));
-        _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        _projectManager = projectManager ?? throw new ArgumentNullException(nameof(projectManager));
-        _snippetCache = snippetCache ?? throw new ArgumentNullException(nameof(snippetCache));
+        _requestInvoker = requestInvoker;
+        _formattingOptionsProvider = formattingOptionsProvider;
+        _editorSettingsManager = editorSettingsManager;
+        _documentSynchronizer = documentSynchronizer;
+        _csharpVirtualDocumentAddListener = csharpVirtualDocumentAddListener;
+        _telemetryReporter = telemetryReporter;
+        _optionsProvider = optionsProvider;
+        _projectManager = projectManager;
+        _snippetCache = snippetCache;
         _workspaceProvider = workspaceProvider;
         _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
         _logger = loggerFactory.GetOrCreateLogger<RazorCustomMessageTarget>();
@@ -140,7 +130,9 @@ internal partial class RazorCustomMessageTarget
        [CallerMemberName] string? caller = null)
        where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
-        if (_languageServerFeatureOptions.UseRazorCohostServer &&
+        var options = _optionsProvider.GetOptions();
+
+        if (options.UseRazorCohostServer &&
             typeof(TVirtualDocumentSnapshot) == typeof(HtmlVirtualDocumentSnapshot))
         {
             return await TempForCohost_TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(hostDocument, cancellationToken);
@@ -148,7 +140,7 @@ internal partial class RazorCustomMessageTarget
 
         // For Html documents we don't do anything fancy, just call the standard service
         // If we're not generating unique document file names, then we can treat C# documents the same way
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath ||
+        if (!options.IncludeProjectKeyInGeneratedFilePath ||
             typeof(TVirtualDocumentSnapshot) == typeof(HtmlVirtualDocumentSnapshot))
         {
             return await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, cancellationToken).ConfigureAwait(false);
@@ -254,9 +246,11 @@ internal partial class RazorCustomMessageTarget
             throw new InvalidOperationException("Got an LSP document synchronizer I don't know how to handle.");
         }
 
+        var options = _optionsProvider.GetOptions();
+
         // If we're not generating unique document file names, then we don't need to ensure we find the right virtual document
         // as there can only be one anyway
-        if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&
+        if (options.IncludeProjectKeyInGeneratedFilePath &&
             hostDocument.GetProjectContext() is { } projectContext &&
             FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, projectContext) is { } virtualDocument)
         {

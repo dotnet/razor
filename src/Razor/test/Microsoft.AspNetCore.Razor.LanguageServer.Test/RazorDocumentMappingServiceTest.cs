@@ -28,7 +28,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
     public RazorDocumentMappingServiceTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+        _filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance.GetProvider());
     }
 
     [Fact]
@@ -392,7 +392,7 @@ public class RazorDocumentMappingServiceTest : ToolingTestBase
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inferred,
-            out var originalRange);
+            out _);
 
         // Assert
         Assert.False(result);

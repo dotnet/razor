@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Export(typeof(IFilePathService)), Shared]
 [method: ImportingConstructor]
-internal sealed class RemoteFilePathService(LanguageServerFeatureOptions options) : AbstractFilePathService(options)
+internal sealed class RemoteFilePathService(ILanguageServerFeatureOptionsProvider optionsProvider) : AbstractFilePathService(optionsProvider)
 {
 }

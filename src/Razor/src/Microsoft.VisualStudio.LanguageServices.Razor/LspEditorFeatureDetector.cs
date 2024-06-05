@@ -1,42 +1,39 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Razor.Logging;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(ILspEditorFeatureDetector))]
 [method: ImportingConstructor]
 internal sealed class LspEditorFeatureDetector(
-    IFeatureFlagService featureFlagService,
-    ISettingsPersistenceService settingsPersistenceService,
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
     IUIContextService uiContextService,
-    RazorActivityLog activityLog,
-    JoinableTaskContext joinableTaskContext) : ILspEditorFeatureDetector
+    RazorActivityLog activityLog) : ILspEditorFeatureDetector
 {
     private readonly IUIContextService _uiContextService = uiContextService;
-    private readonly AsyncLazy<bool> _useLegacyEditorLazy = new(
-        () => GetUseLegacyEditorValueAsync(featureFlagService, settingsPersistenceService, activityLog),
-        joinableTaskContext.Factory);
+    private readonly Lazy<bool> _useLegacyEditorLazy = new(() => GetUseLegacyEditorValue(serviceProvider, activityLog));
 
-    private static async Task<bool> GetUseLegacyEditorValueAsync(
-        IFeatureFlagService featureFlagService,
-        ISettingsPersistenceService settingsPersistenceService,
+    private static bool GetUseLegacyEditorValue(
+        IServiceProvider serviceProvider,
         RazorActivityLog activityLog)
     {
         activityLog.LogInfo("Checking if LSP Editor is available");
 
-        var featureFlagEnabled = await featureFlagService.IsFeatureEnabledAsync(WellKnownFeatureFlagNames.UseLegacyRazorEditor);
+        var optionsProvider = (IVisualStudioOptionsProvider)serviceProvider.GetService(typeof(IVisualStudioOptionsProvider));
+
+        var featureFlagEnabled = optionsProvider.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor);
         if (featureFlagEnabled)
         {
             activityLog.LogInfo("Using Legacy editor because the feature flag was set to true");
             return true;
         }
 
-        var useLegacyEditor = await settingsPersistenceService.GetBooleanOrDefaultAsync(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
+        var useLegacyEditor = optionsProvider.GetValueOrDefault<bool>(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
 
         if (useLegacyEditor)
         {
@@ -54,7 +51,7 @@ internal sealed class LspEditorFeatureDetector(
     /// Returns <see langword="true"/> if the LSP-based editor is available.
     /// </summary>
     public bool IsLspEditorAvailable()
-        => !_useLegacyEditorLazy.GetValue();
+        => !_useLegacyEditorLazy.Value;
 
     /// <summary>
     /// Returns <see langword="true"/> if this is a LiveShare guest or a CodeSpaces client.

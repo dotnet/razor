@@ -26,7 +26,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
 
     private readonly IProjectWorkspaceStateGenerator _generator;
     private readonly IProjectSnapshotManager _projectManager;
-    private readonly LanguageServerFeatureOptions _options;
+    private readonly ILanguageServerFeatureOptionsProvider _optionsProvider;
     private readonly CodeAnalysis.Workspace _workspace;
 
     private readonly CancellationTokenSource _disposeTokenSource;
@@ -38,22 +38,22 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
     public WorkspaceProjectStateChangeDetector(
         IProjectWorkspaceStateGenerator generator,
         IProjectSnapshotManager projectManager,
-        LanguageServerFeatureOptions options,
+        ILanguageServerFeatureOptionsProvider optionsProvider,
         IWorkspaceProvider workspaceProvider)
-        : this(generator, projectManager, options, workspaceProvider, s_delay)
+        : this(generator, projectManager, optionsProvider, workspaceProvider, s_delay)
     {
     }
 
     public WorkspaceProjectStateChangeDetector(
         IProjectWorkspaceStateGenerator generator,
         IProjectSnapshotManager projectManager,
-        LanguageServerFeatureOptions options,
+        ILanguageServerFeatureOptionsProvider optionsProvider,
         IWorkspaceProvider workspaceProvider,
         TimeSpan delay)
     {
         _generator = generator;
         _projectManager = projectManager;
-        _options = options;
+        _optionsProvider = optionsProvider;
 
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<(Project?, IProjectSnapshot)>(
@@ -260,8 +260,10 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
         if (document.FilePath is not { } filePath)
             return false;
 
+        var options = _optionsProvider.GetOptions();
+
         // Using EndsWith because Path.GetExtension will ignore everything before .cs
-        return filePath.EndsWith(_options.CSharpVirtualDocumentSuffix, FilePathComparison.Instance) ||
+        return filePath.EndsWith(options.CSharpVirtualDocumentSuffix, FilePathComparison.Instance) ||
                // Still have .cshtml.g.cs and .razor.g.cs for Razor.VSCode scenarios.
                filePath.EndsWith(".cshtml.g.cs", FilePathComparison.Instance) ||
                filePath.EndsWith(".razor.g.cs", FilePathComparison.Instance) ||

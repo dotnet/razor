@@ -10,7 +10,17 @@ internal class TestLanguageServerFeatureOptions(
     bool monitorWorkspaceFolderForConfigurationFiles = true,
     bool forceRuntimeCodeGeneration = false) : LanguageServerFeatureOptions
 {
-    public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
+    public ILanguageServerFeatureOptionsProvider GetProvider()
+    {
+        var mock = new StrictMock<ILanguageServerFeatureOptionsProvider>();
+
+        mock.Setup(x => x.GetOptions())
+            .Returns(this);
+
+        return mock.Object;
+    }
+
+    public static readonly TestLanguageServerFeatureOptions Instance = new();
 
     public override bool SupportsFileManipulation => false;
 

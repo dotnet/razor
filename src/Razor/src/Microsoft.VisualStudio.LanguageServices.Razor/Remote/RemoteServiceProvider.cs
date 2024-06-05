@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Razor.Remote;
 [method: ImportingConstructor]
 internal sealed class RemoteServiceProvider(
     IWorkspaceProvider workspaceProvider,
-    LanguageServerFeatureOptions languageServerFeatureOptions,
+    ILanguageServerFeatureOptionsProvider optionsProvider,
     IClientCapabilitiesService clientCapabilitiesService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ITelemetryReporter telemetryReporter,
@@ -30,7 +30,7 @@ internal sealed class RemoteServiceProvider(
     : IRemoteServiceProvider
 {
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly ILanguageServerFeatureOptionsProvider _optionsProvider = optionsProvider;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
@@ -108,13 +108,15 @@ internal sealed class RemoteServiceProvider(
         {
             if (_isInitializedTask is null)
             {
+                var options = _optionsProvider.GetOptions();
+
                 var initParams = new RemoteClientInitializationOptions
                 {
-                    UseRazorCohostServer = _languageServerFeatureOptions.UseRazorCohostServer,
-                    UsePreciseSemanticTokenRanges = _languageServerFeatureOptions.UsePreciseSemanticTokenRanges,
-                    CSharpVirtualDocumentSuffix = _languageServerFeatureOptions.CSharpVirtualDocumentSuffix,
-                    HtmlVirtualDocumentSuffix = _languageServerFeatureOptions.HtmlVirtualDocumentSuffix,
-                    IncludeProjectKeyInGeneratedFilePath = _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath,
+                    UseRazorCohostServer = options.UseRazorCohostServer,
+                    UsePreciseSemanticTokenRanges = options.UsePreciseSemanticTokenRanges,
+                    CSharpVirtualDocumentSuffix = options.CSharpVirtualDocumentSuffix,
+                    HtmlVirtualDocumentSuffix = options.HtmlVirtualDocumentSuffix,
+                    IncludeProjectKeyInGeneratedFilePath = options.IncludeProjectKeyInGeneratedFilePath,
                 };
 
                 _logger.LogDebug($"First OOP call, so initializing OOP service.");

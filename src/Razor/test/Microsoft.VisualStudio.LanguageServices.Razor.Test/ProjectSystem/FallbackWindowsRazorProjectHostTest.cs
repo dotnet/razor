@@ -654,7 +654,7 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             IServiceProvider serviceProvider,
             IProjectSnapshotManager projectManager,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
-            : base(commonServices, serviceProvider, projectManager, projectConfigurationFilePathStore, languageServerFeatureOptions: null)
+            : base(commonServices, serviceProvider, projectManager, projectConfigurationFilePathStore, optionsProvider: null)
         {
             SkipIntermediateOutputPathExistCheck_TestOnly = true;
         }

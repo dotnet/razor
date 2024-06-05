@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Razor;
@@ -18,6 +19,7 @@ using Microsoft.VisualStudio.Razor.Snippets;
 using Microsoft.VisualStudio.RazorExtension.Options;
 using Microsoft.VisualStudio.RazorExtension.Snippets;
 using Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -30,6 +32,7 @@ namespace Microsoft.VisualStudio.RazorExtension;
 [AboutDialogInfo(PackageGuidString, "Razor (ASP.NET Core)", "#110", "#112", IconResourceID = "#400")]
 [ProvideService(typeof(RazorLanguageService))]
 [ProvideLanguageService(typeof(RazorLanguageService), RazorConstants.RazorLSPContentTypeName, 110)]
+[ProvideService(typeof(IVisualStudioOptionsProvider), IsAsyncQueryable = true)]
 [ProvideMenuResource("Menus.ctmenu", 1)]
 [ProvideMenuResource("SyntaxVisualizerMenu.ctmenu", 1)]
 [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
@@ -59,8 +62,7 @@ internal sealed class RazorPackage : AsyncPackage
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var container = this as IServiceContainer;
-        container.AddService(typeof(RazorLanguageService), (container, type) =>
+        AddService<RazorLanguageService>(() =>
         {
             var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
             var breakpointResolver = componentModel.GetService<RazorBreakpointResolver>();
@@ -70,8 +72,27 @@ internal sealed class RazorPackage : AsyncPackage
             var lspServerActivationTracker = componentModel.GetService<ILspServerActivationTracker>();
             var joinableTaskContext = componentModel.GetService<JoinableTaskContext>();
 
-            return new RazorLanguageService(breakpointResolver, proximityExpressionResolver, lspServerActivationTracker, uiThreadOperationExecutor, editorAdaptersFactory, joinableTaskContext.Factory);
-        }, promote: true);
+            return new(
+                breakpointResolver,
+                proximityExpressionResolver,
+                lspServerActivationTracker,
+                uiThreadOperationExecutor,
+                editorAdaptersFactory,
+                joinableTaskContext.Factory);
+        },
+        makeAvailableOutsidePackage: true);
+
+        AddService<IVisualStudioOptionsProvider>(async () =>
+        {
+            var vsFeatureFlags = await this.GetFreeThreadedServiceAsync<SVsFeatureFlags, IVsFeatureFlags>();
+            Assumes.Present(vsFeatureFlags);
+
+            var settingsManager = await this.GetFreeThreadedServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>();
+            Assumes.Present(settingsManager);
+
+            return new VisualStudioOptionsProvider(vsFeatureFlags, settingsManager);
+        },
+        makeAvailableOutsidePackage: true);
 
         // Add our command handlers for menu (commands must exist in the .vsct file).
         if (await GetServiceAsync(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
@@ -92,6 +113,18 @@ internal sealed class RazorPackage : AsyncPackage
         var traceProvider = componentModel.GetService<RazorLogHubTraceProvider>();
         await traceProvider.InitializeTraceAsync("Razor", 1, cancellationToken);
     }
+
+    private void AddService<TService>(Func<Task<TService>> createService, bool makeAvailableOutsidePackage = false)
+        where TService : class
+        => AddService(typeof(TService), async (c, ct, t) => await createService(), promote: makeAvailableOutsidePackage);
+
+    private void AddService<TService>(Func<TService> createService, bool makeAvailableOutsidePackage = false)
+        where TService : class
+        => AddService(createService(), makeAvailableOutsidePackage);
+
+    private void AddService<TService>(TService service, bool makeAvailableOutsidePackage = false)
+        where TService : class
+        => AddService(typeof(TService), (c, ct, t) => Task.FromResult<object>(service), promote: makeAvailableOutsidePackage);
 
     protected override void Dispose(bool disposing)
     {

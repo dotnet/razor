@@ -63,7 +63,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
         _razorLSPBuffer = VsMocks.CreateTextBuffer(VsMocks.ContentTypes.RazorLSP);
         _nonRazorLSPBuffer = VsMocks.CreateTextBuffer(VsMocks.ContentTypes.NonRazor);
 
-        _filePathService = new VisualStudioFilePathService(TestLanguageServerFeatureOptions.Instance);
+        _filePathService = new VisualStudioFilePathService(TestLanguageServerFeatureOptions.Instance.GetProvider());
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             uriProvider,
             _filePathService,
             StrictMock.Of<IProjectSnapshotManager>(),
-            TestLanguageServerFeatureOptions.Instance,
+            TestLanguageServerFeatureOptions.Instance.GetProvider(),
             LoggerFactory,
             telemetryReporter: null!);
 
@@ -108,7 +108,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             uriProvider,
             _filePathService,
             StrictMock.Of<IProjectSnapshotManager>(),
-            TestLanguageServerFeatureOptions.Instance,
+            TestLanguageServerFeatureOptions.Instance.GetProvider(),
             LoggerFactory,
             telemetryReporter: null!);
 
@@ -146,7 +146,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             uriProvider,
             _filePathService,
             projectManager,
-            TestLanguageServerFeatureOptions.Instance,
+            TestLanguageServerFeatureOptions.Instance.GetProvider(),
             LoggerFactory,
             telemetryReporter: null!);
 
@@ -192,8 +192,8 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             updater.CreateAndAddDocument(project2, @"C:\path\to\file.razor");
         });
 
-        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
-        var filePathService = new VisualStudioFilePathService(languageServerFeatureOptions);
+        var optionsProvider = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true).GetProvider();
+        var filePathService = new VisualStudioFilePathService(optionsProvider);
         var factory = new CSharpVirtualDocumentFactory(
             _contentTypeRegistryService,
             _textBufferFactoryService,
@@ -201,7 +201,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             uriProvider,
             filePathService,
             projectManager,
-            languageServerFeatureOptions,
+            optionsProvider,
             LoggerFactory,
             telemetryReporter: null!);
 

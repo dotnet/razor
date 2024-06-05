@@ -108,7 +108,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
 
-        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance.GetProvider());
         var mappingService = new RazorDocumentMappingService(
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
@@ -169,7 +169,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
 
-        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance.GetProvider());
         var mappingService = new RazorDocumentMappingService(filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
         if (languageKind == RazorLanguageKind.Html)

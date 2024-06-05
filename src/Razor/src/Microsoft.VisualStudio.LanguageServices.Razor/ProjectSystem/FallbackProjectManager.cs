@@ -27,14 +27,14 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 internal sealed class FallbackProjectManager(
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
     ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-    LanguageServerFeatureOptions languageServerFeatureOptions,
+    ILanguageServerFeatureOptionsProvider optionsProvider,
     IProjectSnapshotManager projectManager,
     IWorkspaceProvider workspaceProvider,
     ITelemetryReporter telemetryReporter)
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly ILanguageServerFeatureOptionsProvider _optionsProvider = optionsProvider;
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
@@ -110,7 +110,9 @@ internal sealed class FallbackProjectManager(
 
         var rootNamespace = project.DefaultNamespace;
 
-        var configuration = FallbackRazorConfiguration.Latest with { LanguageServerFlags = _languageServerFeatureOptions.ToLanguageServerFlags() };
+        var options = _optionsProvider.GetOptions();
+
+        var configuration = FallbackRazorConfiguration.Latest with { LanguageServerFlags = options.ToLanguageServerFlags() };
 
         // We create this as a fallback project so that other parts of the system can reason about them - eg we don't do code
         // generation for closed files for documents in these projects. If these projects become "real", either because capabilities
@@ -124,7 +126,7 @@ internal sealed class FallbackProjectManager(
 
         AddFallbackDocument(hostProject.Key, filePath, project.FilePath, cancellationToken);
 
-        var configurationFilePath = Path.Combine(intermediateOutputPath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+        var configurationFilePath = Path.Combine(intermediateOutputPath, options.ProjectConfigurationFileName);
 
         _projectConfigurationFilePathStore.Set(hostProject.Key, configurationFilePath);
     }

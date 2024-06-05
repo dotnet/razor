@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -17,8 +18,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsLspEditorAvailable_FeatureFlagEnabled_ReturnsFalse()
     {
         // Arrange
-        var featureFlagService = CreateFeatureFlagService(useLegacyRazorEditor: true);
-        var featureDetector = CreateLspEditorFeatureDetector(featureFlagService);
+        var featureDetector = CreateLspEditorFeatureDetector(featureFlagEnabled: true);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -31,8 +31,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsLspEditorAvailable_FeatureFlagDisabled_ReturnsTrue()
     {
         // Arrange
-        var featureFlagService = CreateFeatureFlagService(useLegacyRazorEditor: false);
-        var featureDetector = CreateLspEditorFeatureDetector(featureFlagService);
+        var featureDetector = CreateLspEditorFeatureDetector(featureFlagEnabled: false);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -45,8 +44,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsLspEditorAvailable_OptionEnabled_ReturnsFalse()
     {
         // Arrange
-        var settingsPersistenceService = CreateSettingsPersistenceService(useLegacyRazorEditor: true);
-        var featureDetector = CreateLspEditorFeatureDetector(settingsPersistenceService);
+        var featureDetector = CreateLspEditorFeatureDetector(settingEnabled: true);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -59,8 +57,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     public void IsLspEditorAvailable_OptionDisabled_ReturnsTrue()
     {
         // Arrange
-        var settingsPersistenceService = CreateSettingsPersistenceService(useLegacyRazorEditor: false);
-        var featureDetector = CreateLspEditorFeatureDetector(settingsPersistenceService);
+        var featureDetector = CreateLspEditorFeatureDetector(settingEnabled: false);
 
         // Act
         var result = featureDetector.IsLspEditorAvailable();
@@ -125,28 +122,27 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         Assert.False(result);
     }
 
-    private LspEditorFeatureDetector CreateLspEditorFeatureDetector(IFeatureFlagService featureFlagService)
-        => CreateLspEditorFeatureDetector(featureFlagService, settingsPersistenceService: null, uiContextService: null);
-
-    private LspEditorFeatureDetector CreateLspEditorFeatureDetector(ISettingsPersistenceService settingsPersistenceService)
-        => CreateLspEditorFeatureDetector(featureFlagService: null, settingsPersistenceService, uiContextService: null);
-
     private LspEditorFeatureDetector CreateLspEditorFeatureDetector(IUIContextService uiContextService)
-        => CreateLspEditorFeatureDetector(featureFlagService: null, settingsPersistenceService: null, uiContextService);
+        => CreateLspEditorFeatureDetector(featureFlagEnabled: false, settingEnabled: false, uiContextService);
 
     private LspEditorFeatureDetector CreateLspEditorFeatureDetector(
-        IFeatureFlagService? featureFlagService = null,
-        ISettingsPersistenceService? settingsPersistenceService = null,
+        bool featureFlagEnabled = false,
+        bool settingEnabled = false,
         IUIContextService? uiContextService = null)
     {
-        featureFlagService ??= CreateFeatureFlagService();
-        settingsPersistenceService ??= CreateSettingsPersistenceService();
         uiContextService ??= CreateUIContextService();
+
+        var visualStudioOptionsProvider = CreateVisualStudioOptionsProvider(featureFlagEnabled, settingEnabled);
+
+        var serviceProvider = VsMocks.CreateServiceProvider(builder =>
+        {
+            builder.AddService(visualStudioOptionsProvider);
+        });
 
         var activityLog = CreateActivityLog();
         AddDisposable(activityLog);
 
-        return new(featureFlagService, settingsPersistenceService, uiContextService, activityLog, JoinableTaskContext);
+        return new(serviceProvider, uiContextService, activityLog);
     }
 
     private RazorActivityLog CreateActivityLog()
@@ -164,20 +160,15 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         return new RazorActivityLog(serviceProviderMock.Object, JoinableTaskContext);
     }
 
-    private static IFeatureFlagService CreateFeatureFlagService(bool useLegacyRazorEditor = false)
+    private static IVisualStudioOptionsProvider CreateVisualStudioOptionsProvider(bool featureFlagEnabled = false, bool settingEnabled = false)
     {
-        var mock = new StrictMock<IFeatureFlagService>();
-        mock.Setup(x => x.IsFeatureEnabledAsync(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
-            .ReturnsAsync(useLegacyRazorEditor);
+        var mock = new StrictMock<IVisualStudioOptionsProvider>();
 
-        return mock.Object;
-    }
+        mock.Setup(x => x.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
+            .Returns(featureFlagEnabled);
 
-    private static ISettingsPersistenceService CreateSettingsPersistenceService(bool useLegacyRazorEditor = false)
-    {
-        var mock = new StrictMock<ISettingsPersistenceService>();
-        mock.Setup(x => x.GetBooleanOrDefaultAsync(WellKnownSettingNames.UseLegacyASPNETCoreEditor, It.IsAny<bool>()))
-            .ReturnsAsync(useLegacyRazorEditor);
+        mock.Setup(x => x.GetValueOrDefault(WellKnownSettingNames.UseLegacyASPNETCoreEditor, It.IsAny<bool>()))
+            .Returns(settingEnabled);
 
         return mock.Object;
     }

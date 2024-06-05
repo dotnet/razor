@@ -8,12 +8,14 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-internal abstract class AbstractFilePathService(LanguageServerFeatureOptions languageServerFeatureOptions) : IFilePathService
+internal abstract class AbstractFilePathService(ILanguageServerFeatureOptionsProvider optionsProvider) : IFilePathService
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly Lazy<LanguageServerFeatureOptions> _lazyOptions = new(optionsProvider.GetOptions);
+
+    private LanguageServerFeatureOptions Options => _lazyOptions.Value;
 
     public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
-        => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
+        => GetGeneratedFilePath(projectKey, razorFilePath, Options.CSharpVirtualDocumentSuffix);
 
     public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
@@ -24,10 +26,10 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
     }
 
     public bool IsVirtualCSharpFile(Uri uri)
-        => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
+        => CheckIfFileUriAndExtensionMatch(uri, Options.CSharpVirtualDocumentSuffix);
 
     public bool IsVirtualHtmlFile(Uri uri)
-        => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
+        => CheckIfFileUriAndExtensionMatch(uri, Options.HtmlVirtualDocumentSuffix);
 
     public bool IsVirtualDocumentUri(Uri uri)
         => IsVirtualCSharpFile(uri) || IsVirtualHtmlFile(uri);
@@ -37,12 +39,12 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
 
     private string GetRazorFilePath(string filePath)
     {
-        var trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
+        var trimIndex = filePath.LastIndexOf(Options.CSharpVirtualDocumentSuffix);
         if (trimIndex == -1)
         {
-            trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
+            trimIndex = filePath.LastIndexOf(Options.HtmlVirtualDocumentSuffix);
         }
-        else if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        else if (Options.IncludeProjectKeyInGeneratedFilePath)
         {
             // If this is a C# generated file, and we're including the project suffix, then filename will be
             // <Page>.razor.<project slug><c# suffix>
@@ -70,7 +72,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
 
     private string GetProjectSuffix(ProjectKey projectKey)
     {
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        if (!Options.IncludeProjectKeyInGeneratedFilePath)
         {
             return string.Empty;
         }

@@ -44,7 +44,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         Serializer.AddVSInternalExtensionConverters();
         Serializer.AddVSExtensionConverters();
 
-        FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+        FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance.GetProvider());
     }
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()

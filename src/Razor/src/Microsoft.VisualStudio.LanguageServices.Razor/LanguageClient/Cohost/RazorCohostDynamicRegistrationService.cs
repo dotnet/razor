@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IRazorCohostDynamicRegistrationService))]
 [method: ImportingConstructor]
 internal class RazorCohostDynamicRegistrationService(
-    LanguageServerFeatureOptions languageServerFeatureOptions,
+    ILanguageServerFeatureOptionsProvider optionsProvider,
     [ImportMany] IEnumerable<Lazy<IDynamicRegistrationProvider>> lazyRegistrationProviders,
     Lazy<RazorCohostClientCapabilitiesService> lazyRazorCohostClientCapabilitiesService)
     : IRazorCohostDynamicRegistrationService
@@ -31,13 +31,14 @@ internal class RazorCohostDynamicRegistrationService(
         Pattern = "**/*.{razor,cshtml}"
     }];
 
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly ILanguageServerFeatureOptionsProvider _optionsProvider = optionsProvider;
     private readonly IEnumerable<Lazy<IDynamicRegistrationProvider>> _lazyRegistrationProviders = lazyRegistrationProviders;
     private readonly Lazy<RazorCohostClientCapabilitiesService> _lazyRazorCohostClientCapabilitiesService = lazyRazorCohostClientCapabilitiesService;
 
     public async Task RegisterAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (!_languageServerFeatureOptions.UseRazorCohostServer)
+        var options = _optionsProvider.GetOptions();
+        if (!options.UseRazorCohostServer)
         {
             return;
         }

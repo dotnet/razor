@@ -5,6 +5,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class LSPFilePathService(LanguageServerFeatureOptions options) : AbstractFilePathService(options)
+internal sealed class LSPFilePathService(ILanguageServerFeatureOptionsProvider optionsProvider) : AbstractFilePathService(optionsProvider)
 {
 }

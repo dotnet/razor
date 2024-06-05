@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 {
     private const string RootNamespaceProperty = "RootNamespace";
+
     private static readonly ImmutableHashSet<string> s_ruleNames = ImmutableHashSet.CreateRange(new string[]
         {
             Rules.RazorGeneral.SchemaName,
@@ -40,7 +41,8 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             Rules.RazorGenerateWithTargetPath.SchemaName,
             ConfigurationGeneralSchemaName,
         });
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+
+    private readonly ILanguageServerFeatureOptionsProvider _optionsProvider;
 
     [ImportingConstructor]
     public DefaultWindowsRazorProjectHost(
@@ -48,17 +50,19 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IProjectSnapshotManager projectManager,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
+        ILanguageServerFeatureOptionsProvider optionsProvider)
         : base(commonServices, serviceProvider, projectManager, projectConfigurationFilePathStore)
     {
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _optionsProvider = optionsProvider;
     }
 
     protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
 
     protected override async Task HandleProjectChangeAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
-        if (TryGetConfiguration(update.Value.CurrentState, _languageServerFeatureOptions.ToLanguageServerFlags(), out var configuration) &&
+        var options = _optionsProvider.GetOptions();
+
+        if (TryGetConfiguration(update.Value.CurrentState, options.ToLanguageServerFlags(), out var configuration) &&
             TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
@@ -98,7 +102,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
                     var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName);
 
-                    var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                    var projectConfigurationFile = Path.Combine(intermediatePath, options.ProjectConfigurationFileName);
                     ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
 
                     UpdateProject(updater, hostProject);

@@ -119,6 +119,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
 
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);
+        services.AddSingleton<ILanguageServerFeatureOptionsProvider, LspLanguageServerFeatureOptionsProvider>();
 
         services.AddSingleton<IFilePathService, LSPFilePathService>();
 

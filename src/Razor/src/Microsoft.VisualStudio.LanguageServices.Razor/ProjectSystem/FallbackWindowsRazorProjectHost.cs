@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
 {
     private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
+
     private static readonly ImmutableHashSet<string> s_ruleNames = ImmutableHashSet.CreateRange(new string[]
         {
             ResolvedCompilationReference.SchemaName,
@@ -40,7 +41,8 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             NoneItem.SchemaName,
             ConfigurationGeneralSchemaName,
         });
-    private readonly LanguageServerFeatureOptions? _languageServerFeatureOptions;
+
+    private readonly ILanguageServerFeatureOptionsProvider? _optionsProvider;
 
     [ImportingConstructor]
     public FallbackWindowsRazorProjectHost(
@@ -48,10 +50,10 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IProjectSnapshotManager projectManager,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        LanguageServerFeatureOptions? languageServerFeatureOptions)
+        ILanguageServerFeatureOptionsProvider? optionsProvider)
         : base(commonServices, serviceProvider, projectManager, projectConfigurationFilePathStore)
     {
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _optionsProvider = optionsProvider;
     }
 
     protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
@@ -148,9 +150,10 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
             var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace: null, displayName);
 
-            if (_languageServerFeatureOptions is not null)
+            if (_optionsProvider is not null)
             {
-                var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                var options = _optionsProvider.GetOptions();
+                var projectConfigurationFile = Path.Combine(intermediatePath, options.ProjectConfigurationFileName);
                 ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
             }
 

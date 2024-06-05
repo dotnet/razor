@@ -40,7 +40,7 @@ internal class RazorLanguageServerClient(
     RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
     ILoggerFactory loggerFactory,
     RazorLogHubTraceProvider traceProvider,
-    LanguageServerFeatureOptions languageServerFeatureOptions,
+    ILanguageServerFeatureOptionsProvider optionsProvider,
     ILanguageClientBroker languageClientBroker,
     ILanguageServiceBroker2 languageServiceBroker,
     ITelemetryReporter telemetryReporter,
@@ -49,20 +49,20 @@ internal class RazorLanguageServerClient(
     VisualStudioHostServicesProvider vsHostWorkspaceServicesProvider)
     : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
 {
-    private readonly ILanguageClientBroker _languageClientBroker = languageClientBroker ?? throw new ArgumentNullException(nameof(languageClientBroker));
-    private readonly ILanguageServiceBroker2 _languageServiceBroker = languageServiceBroker ?? throw new ArgumentNullException(nameof(languageServiceBroker));
-    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
-    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager ?? throw new ArgumentNullException(nameof(clientSettingsManager));
-    private readonly ILspServerActivationTracker _lspServerActivationTracker = lspServerActivationTracker ?? throw new ArgumentNullException(nameof(lspServerActivationTracker));
-    private readonly RazorCustomMessageTarget _customMessageTarget = customTarget ?? throw new ArgumentNullException(nameof(customTarget));
-    private readonly RazorLanguageClientMiddleLayer _middleLayer = middleLayer ?? throw new ArgumentNullException(nameof(middleLayer));
-    private readonly LSPRequestInvoker _requestInvoker = requestInvoker ?? throw new ArgumentNullException(nameof(requestInvoker));
-    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore ?? throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-    private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher ?? throw new ArgumentNullException(nameof(projectInfoEndpointPublisher));
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-    private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider ?? throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
-    private readonly ILoggerFactory _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
-    private readonly RazorLogHubTraceProvider _traceProvider = traceProvider ?? throw new ArgumentNullException(nameof(traceProvider));
+    private readonly ILanguageClientBroker _languageClientBroker = languageClientBroker;
+    private readonly ILanguageServiceBroker2 _languageServiceBroker = languageServiceBroker;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
+    private readonly ILspServerActivationTracker _lspServerActivationTracker = lspServerActivationTracker;
+    private readonly RazorCustomMessageTarget _customMessageTarget = customTarget;
+    private readonly RazorLanguageClientMiddleLayer _middleLayer = middleLayer;
+    private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+    private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher;
+    private readonly ILanguageServerFeatureOptionsProvider _optionsProvider = optionsProvider;
+    private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
+    private readonly ILoggerFactory _loggerFactory = loggerFactory;
+    private readonly RazorLogHubTraceProvider _traceProvider = traceProvider;
 
     private RazorLanguageServerHost? _host;
 
@@ -111,7 +111,7 @@ internal class RazorLanguageServerClient(
             _loggerFactory,
             _telemetryReporter,
             ConfigureLanguageServer,
-            _languageServerFeatureOptions,
+            _optionsProvider.GetOptions(),
             lspOptions,
             _lspServerActivationTracker,
             traceSource);
@@ -211,7 +211,8 @@ internal class RazorLanguageServerClient(
 
     private async Task ProjectConfigurationFilePathStore_ChangedAsync(ProjectConfigurationFilePathChangedEventArgs args, CancellationToken cancellationToken)
     {
-        if (_languageServerFeatureOptions.DisableRazorLanguageServer || _languageServerFeatureOptions.UseProjectConfigurationEndpoint)
+        var options = _optionsProvider.GetOptions();
+        if (options.DisableRazorLanguageServer || options.UseProjectConfigurationEndpoint)
         {
             return;
         }
@@ -262,8 +263,10 @@ internal class RazorLanguageServerClient(
 
     public Task OnLoadedAsync()
     {
+        var options = _optionsProvider.GetOptions();
+
         // If the user hasn't turned on the Cohost server, then don't disable the Razor server
-        if (_languageServerFeatureOptions.DisableRazorLanguageServer && _languageServerFeatureOptions.UseRazorCohostServer)
+        if (options.DisableRazorLanguageServer && options.UseRazorCohostServer)
         {
             return Task.CompletedTask;
         }
@@ -280,7 +283,9 @@ internal class RazorLanguageServerClient(
 
     private void ServerStarted()
     {
-        if (_languageServerFeatureOptions.UseProjectConfigurationEndpoint)
+        var options = _optionsProvider.GetOptions();
+
+        if (options.UseProjectConfigurationEndpoint)
         {
             _projectInfoEndpointPublisher.StartSending();
         }

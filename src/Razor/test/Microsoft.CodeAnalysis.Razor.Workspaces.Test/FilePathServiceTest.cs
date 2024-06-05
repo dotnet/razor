@@ -71,7 +71,7 @@ public class FilePathServiceTest
         Assert.Equal(@"C:/path/to/file.razor", result.GetAbsoluteOrUNCPath());
     }
 
-    private class TestFilePathService(TestLanguageServerFeatureOptions options) : AbstractFilePathService(options)
+    private class TestFilePathService(TestLanguageServerFeatureOptions options) : AbstractFilePathService(options.GetProvider())
     {
     }
 }

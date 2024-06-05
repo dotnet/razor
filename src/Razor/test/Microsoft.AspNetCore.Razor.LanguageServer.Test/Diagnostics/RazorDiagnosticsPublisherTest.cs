@@ -226,7 +226,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
             .Returns(Task.CompletedTask);
 
         var documentContextFactory = new TestDocumentContextFactory(_openedDocument.FilePath, codeDocument);
-        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance.GetProvider());
         var documentMappingService = new RazorDocumentMappingService(filePathService, documentContextFactory, LoggerFactory);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(documentMappingService, LoggerFactory);
 
@@ -378,7 +378,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         processedOpenDocument.With(codeDocument);
 
         var documentContextFactory = new TestDocumentContextFactory(_openedDocument.FilePath, codeDocument);
-        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance.GetProvider());
         var documentMappingService = new RazorDocumentMappingService(filePathService, documentContextFactory, LoggerFactory);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(documentMappingService, LoggerFactory);
 
