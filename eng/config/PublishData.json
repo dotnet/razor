@@ -12,7 +12,8 @@
       "rzls.osx-x64": "vs-impl",
       "rzls.win-arm64": "vs-impl",
       "rzls.win-x64": "vs-impl",
-      "rzls.win-x86": "vs-impl"
+      "rzls.win-x86": "vs-impl",
+      "Microsoft.VisualStudio.DevKit.Razor": "vs-impl"
   },
   "branches": {
     "main": {
