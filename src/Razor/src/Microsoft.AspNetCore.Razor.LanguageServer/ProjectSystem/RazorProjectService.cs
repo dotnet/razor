@@ -80,7 +80,7 @@ internal class RazorProjectService(
                 // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
                 // has been added to _any_ project. AddDocument will take care of adding to all of the necessary ones, and then below we ensure
                 // we process them all too
-                if (!_snapshotResolver.TryResolveDocumentInAnyProject(textDocumentPath, out var document))
+                if (!_projectManager.TryResolveDocumentInAnyProject(textDocumentPath, _logger, out var document))
                 {
                     // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
                     // processes and pre-initializes already open documents. We add this to the misc project, and

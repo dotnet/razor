@@ -109,7 +109,7 @@ internal sealed class DocumentContextFactory(
     {
         if (projectContext is null)
         {
-            return _snapshotResolver.TryResolveDocumentInAnyProject(filePath, out documentSnapshot);
+            return _projectManager.TryResolveDocumentInAnyProject(filePath, _logger, out documentSnapshot);
         }
 
         if (_projectManager.TryGetLoadedProject(projectContext.ToProjectKey(), out var project) &&
