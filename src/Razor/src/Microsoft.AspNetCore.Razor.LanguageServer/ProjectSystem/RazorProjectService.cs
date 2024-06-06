@@ -197,7 +197,7 @@ internal class RazorProjectService(
     private void ActOnDocumentInMultipleProjects(string filePath, Action<IProjectSnapshot, string> action)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projects))
+        if (!_projectManager.TryResolveAllProjects(textDocumentPath, out var projects))
         {
             var miscFilesProject = _projectManager.GetMiscellaneousProject();
             projects = [miscFilesProject];

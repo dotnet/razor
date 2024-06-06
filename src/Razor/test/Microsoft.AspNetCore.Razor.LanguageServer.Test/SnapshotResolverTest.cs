@@ -80,7 +80,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
 
         // Act
-        Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
+        Assert.False(projectManager.TryResolveAllProjects(documentFilePath, out _));
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
 
         // Act
-        Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
+        Assert.False(projectManager.TryResolveAllProjects(documentFilePath, out _));
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var (snapshotResolver, projectManager) = await CreateSnapshotResolverAsync(documentFilePath, addToMiscellaneous: true);
 
         // Act
-        Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
+        Assert.True(projectManager.TryResolveAllProjects(documentFilePath, out var projects));
 
         // Assert
         var miscFilesProject = projectManager.GetMiscellaneousProject();
@@ -124,7 +124,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
+        Assert.False(projectManager.TryResolveAllProjects(documentFilePath, out _));
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
+        Assert.True(projectManager.TryResolveAllProjects(documentFilePath, out var projects));
 
         // Assert
         var project = Assert.Single(projects);
@@ -173,7 +173,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
+        Assert.True(projectManager.TryResolveAllProjects(documentFilePath, out var projects));
 
         // Assert
         var project = Assert.Single(projects);
@@ -197,7 +197,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         });
 
         // Act
-        Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
+        Assert.True(projectManager.TryResolveAllProjects(documentFilePath, out var projects));
 
         // Assert
         var project = Assert.Single(projects);

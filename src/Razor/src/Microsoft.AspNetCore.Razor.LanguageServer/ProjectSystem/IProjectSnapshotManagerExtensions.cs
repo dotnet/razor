@@ -47,4 +47,32 @@ internal static class IProjectSnapshotManagerExtensions
 
         return projects.DrainToImmutable();
     }
+
+    public static bool TryResolveAllProjects(
+        this IProjectSnapshotManager projectManager,
+        string documentFilePath,
+        out ImmutableArray<IProjectSnapshot> projects)
+    {
+        var potentialProjects = projectManager.FindPotentialProjects(documentFilePath);
+
+        using var builder = new PooledArrayBuilder<IProjectSnapshot>(capacity: potentialProjects.Length);
+
+        foreach (var project in potentialProjects)
+        {
+            if (project.GetDocument(documentFilePath) is not null)
+            {
+                builder.Add(project);
+            }
+        }
+
+        var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
+        var miscProject = projectManager.GetMiscellaneousProject();
+        if (miscProject.GetDocument(normalizedDocumentPath) is not null)
+        {
+            builder.Add(miscProject);
+        }
+
+        projects = builder.DrainToImmutable();
+        return projects.Length > 0;
+    }
 }

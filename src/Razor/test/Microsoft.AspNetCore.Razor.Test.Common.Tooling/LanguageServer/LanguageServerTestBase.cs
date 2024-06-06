@@ -136,6 +136,23 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return new VersionedDocumentContext(uri, snapshot, projectContext: null, version: 0);
     }
 
+    protected static TextLoader CreateTextLoader(string filePath, string text)
+    {
+        return CreateTextLoader(filePath, SourceText.From(text));
+    }
+
+    protected static TextLoader CreateTextLoader(string filePath, SourceText text)
+    {
+        var mock = new StrictMock<TextLoader>();
+
+        var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create(), filePath);
+
+        mock.Setup(x => x.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(textAndVersion);
+
+        return mock.Object;
+    }
+
     internal static RazorLSPOptionsMonitor GetOptionsMonitor(bool enableFormatting = true, bool autoShowCompletion = true, bool autoListParams = true, bool formatOnType = true, bool autoInsertAttributeQuotes = true, bool colorBackground = false, bool codeBlockBraceOnNextLine = false, bool commitElementsWithSpace = true)
     {
         var configService = StrictMock.Of<IConfigurationSyncService>();
