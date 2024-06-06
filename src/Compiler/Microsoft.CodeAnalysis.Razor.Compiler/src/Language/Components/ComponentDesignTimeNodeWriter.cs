@@ -89,26 +89,24 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     sourceSpan.LineIndex,
                     sourceSpan.CharacterIndex,
                     usingLength));
-                context.CodeWriter.WriteLine("using");
+                context.CodeWriter.WriteLine("using ");
             }
 
             using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
-                var semicolonLength = node.HasExplicitSemicolon ? 0 : 1;
-
                 var modifiedSpan = new SourceSpan(
                     sourceSpan.FilePath,
                     sourceSpan.AbsoluteIndex + usingLength,
                     sourceSpan.LineIndex,
                     sourceSpan.CharacterIndex + usingLength,
-                    node.Content.Length + semicolonLength);
+                    node.Content.Length);
 
                 context.AddSourceMappingFor(modifiedSpan);
                 context.CodeWriter.Write(node.Content);
 
                 if (!node.HasExplicitSemicolon)
                 {
-                    context.CodeWriter.WriteLine("");
+                    context.CodeWriter.WriteLine(";");
                 }
                 else
                 {
