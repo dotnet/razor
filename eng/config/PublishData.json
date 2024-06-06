@@ -3,6 +3,7 @@
     "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
   },
   "packages": {
+    "default": {
       "rzls": "vs-impl",
       "rzls.alpine-arm64": "vs-impl",
       "rzls.alpine-x64": "vs-impl",
@@ -17,6 +18,7 @@
       "rzls.win-x64": "vs-impl",
       "rzls.win-x86": "vs-impl",
       "Microsoft.VisualStudio.DevKit.Razor": "vs-impl"
+    }
   },
   "branches": {
     "main": {
