@@ -128,6 +128,24 @@ internal class RazorLanguageServerClient(
         }
     }
 
+    private async Task EnsureCleanedUpServerAsync()
+    {
+        if (_host is null)
+        {
+            // Server was already cleaned up
+            return;
+        }
+
+        if (_host is not null)
+        {
+            // Server still hasn't shutdown, wait for it to shutdown
+            await _host.WaitForExitAsync().ConfigureAwait(false);
+
+            _host.Dispose();
+            _host = null;
+        }
+    }
+
     internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetRelevantContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
     {
         var relevantClientAndMetadata = new List<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>>();
@@ -184,21 +202,6 @@ internal class RazorLanguageServerClient(
 
         // We only want to mark the server as activated after the delegated language servers have been initialized.
         _lspServerActivationTracker.Activated();
-    }
-
-    private async Task EnsureCleanedUpServerAsync()
-    {
-        if (_host is null)
-        {
-            // Server was already cleaned up
-            return;
-        }
-
-        if (_host is not null)
-        {
-            // Server still hasn't shutdown, wait for it to shutdown
-            await _host.WaitForExitAsync().ConfigureAwait(false);
-        }
     }
 
     public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
