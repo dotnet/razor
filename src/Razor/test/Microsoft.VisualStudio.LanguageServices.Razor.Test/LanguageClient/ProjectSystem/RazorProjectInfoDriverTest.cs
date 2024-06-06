@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
@@ -19,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
-public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     private static readonly HostProject s_hostProject1 = new(
         projectFilePath: "C:/path/to/project1/project1.csproj",
@@ -38,7 +37,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
     private static readonly HostDocument s_hostDocument2 = new("C:/path/to/project2/file.razor", "file.razor");
 
     [UIFact]
-    public async Task PublishesExistingProjectsDuringInitialization()
+    public async Task ProcessesExistingProjectsDuringInitialization()
     {
         var projectManager = CreateProjectSnapshotManager();
 
@@ -51,12 +50,12 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
             updater.DocumentAdded(s_hostProject2.Key, s_hostDocument2, CreateTextLoader("<p>Hello World</p>", s_hostDocument2.FilePath));
         });
 
-        var (publisher, testAccessor) = await CreatePublisherAndInitializeAsync(projectManager);
+        var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Sort projects by project key.
-        var latestProjects = publisher
+        var latestProjects = driver
             .GetLatestProjectInfo()
             .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
 
@@ -74,29 +73,11 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
     }
 
     [UIFact]
-    public async Task NoLspEditor_DoesNotPublishExistingProjectsDuringInitialization()
+    public async Task ProcessesProjectsAddedAfterInitialization()
     {
         var projectManager = CreateProjectSnapshotManager();
 
-        await projectManager.UpdateAsync(static updater =>
-        {
-            updater.ProjectAdded(s_hostProject1);
-            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader("<p>Hello World</p>", s_hostDocument1.FilePath));
-        });
-
-        var (publisher, testAccessor) = await CreatePublisherAndInitializeAsync(projectManager, isLspEditorAvailable: false);
-
-        await testAccessor.WaitUntilCurrentBatchCompletesAsync();
-
-        Assert.Empty(publisher.GetLatestProjectInfo());
-    }
-
-    [UIFact]
-    public async Task PublishesProjectsAddedAfterInitialization()
-    {
-        var projectManager = CreateProjectSnapshotManager();
-
-        var (publisher, testAccessor) = await CreatePublisherAndInitializeAsync(projectManager);
+        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
         await projectManager.UpdateAsync(static updater =>
         {
@@ -128,25 +109,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
     }
 
     [UIFact]
-    public async Task NoLspEditor_DoesNotPublishProjectsAddedAfterInitialization()
-    {
-        var projectManager = CreateProjectSnapshotManager();
-
-        var (publisher, testAccessor) = await CreatePublisherAndInitializeAsync(projectManager, isLspEditorAvailable: false);
-
-        await projectManager.UpdateAsync(static updater =>
-        {
-            updater.ProjectAdded(s_hostProject1);
-            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader("<p>Hello World</p>", s_hostDocument1.FilePath));
-        });
-
-        await testAccessor.WaitUntilCurrentBatchCompletesAsync();
-
-        Assert.Empty(publisher.GetLatestProjectInfo());
-    }
-
-    [UIFact]
-    public async Task PublishesDocumentAddedAfterInitialization()
+    public async Task ProcessesDocumentAddedAfterInitialization()
     {
         var projectManager = CreateProjectSnapshotManager();
 
@@ -155,7 +118,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
             updater.ProjectAdded(s_hostProject1);
         });
 
-        var (publisher, testAccessor) = await CreatePublisherAndInitializeAsync(projectManager);
+        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
         await projectManager.UpdateAsync(static updater =>
         {
@@ -173,7 +136,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
     }
 
     [UIFact]
-    public async Task PublishesProjectRemovedAfterInitialization()
+    public async Task ProcessesProjectRemovedAfterInitialization()
     {
         var projectManager = CreateProjectSnapshotManager();
 
@@ -182,7 +145,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
             updater.ProjectAdded(s_hostProject1);
         });
 
-        var (publisher, testAccessor) = await CreatePublisherAndInitializeAsync(projectManager);
+        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
@@ -211,7 +174,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
             updater.ProjectAdded(s_hostProject1);
         });
 
-        var (publisher, testAccessor) = await CreatePublisherAndInitializeAsync(projectManager);
+        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
         var listener = new TestListener();
         publisher.AddListener(listener);
@@ -241,7 +204,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
             updater.ProjectAdded(s_hostProject1);
         });
 
-        var (publisher, testAccessor) = await CreatePublisherAndInitializeAsync(projectManager);
+        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
         var listener = new TestListener();
         publisher.AddListener(listener);
@@ -259,20 +222,17 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
         Assert.Empty(listener.Updates);
     }
 
-    private async Task<(RazorProjectInfoDriver, RazorProjectInfoDriver.TestAccessor)> CreatePublisherAndInitializeAsync(
-        IProjectSnapshotManager projectManager,
-        bool isLspEditorAvailable = true)
+    private async Task<(RazorProjectInfoDriver, RazorProjectInfoDriver.TestAccessor)> CreateDriverAndInitializeAsync(
+        IProjectSnapshotManager projectManager)
     {
-        var lspEditorFeatureDetector = StrictMock.Of<LSPEditorFeatureDetector>(x =>
-            x.IsLSPEditorAvailable() == isLspEditorAvailable);
+        var driver = new RazorProjectInfoDriver(projectManager, delay: TimeSpan.FromMilliseconds(5));
+        AddDisposable(driver);
 
-        var publisher = new RazorProjectInfoDriver(projectManager, lspEditorFeatureDetector, JoinableTaskContext, delay: TimeSpan.FromMilliseconds(5));
-        AddDisposable(publisher);
+        var testAccessor = driver.GetTestAccessor();
 
-        var testAccessor = publisher.GetTestAccessor();
-        await testAccessor.WaitForInitializeAsync();
+        await driver.InitializeAsync(DisposalToken);
 
-        return (publisher, testAccessor);
+        return (driver, testAccessor);
     }
 
     private static TextLoader CreateTextLoader(string content, string filePath)

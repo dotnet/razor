@@ -11,11 +11,6 @@ internal sealed partial class RazorProjectInfoDriver
 
     internal readonly struct TestAccessor(RazorProjectInfoDriver instance)
     {
-        public async Task WaitForInitializeAsync()
-        {
-            await instance._initializeTask;
-        }
-
         public Task WaitUntilCurrentBatchCompletesAsync()
             => instance._workQueue.WaitUntilCurrentBatchCompletesAsync();
     }

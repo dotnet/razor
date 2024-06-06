@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -12,12 +11,9 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
-[Export(typeof(IRazorProjectInfoDriver))]
 internal sealed partial class RazorProjectInfoDriver : IRazorProjectInfoDriver, IDisposable
 {
     private abstract record Work(ProjectKey ProjectKey);
@@ -26,49 +22,20 @@ internal sealed partial class RazorProjectInfoDriver : IRazorProjectInfoDriver, 
 
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(250);
 
+    private readonly IProjectSnapshotManager _projectManager;
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
 
     private readonly Dictionary<ProjectKey, RazorProjectInfo> _latestProjectInfoMap;
     private ImmutableArray<IRazorProjectInfoListener> _listeners;
 
-    private readonly JoinableTask _initializeTask;
-
-    [ImportingConstructor]
-    public RazorProjectInfoDriver(
-        IProjectSnapshotManager projectManager,
-        LSPEditorFeatureDetector lspEditorFeatureDetector,
-        JoinableTaskContext joinableTaskContext)
-        : this(projectManager, lspEditorFeatureDetector, joinableTaskContext, s_delay)
+    public RazorProjectInfoDriver(IProjectSnapshotManager projectManager, TimeSpan? delay = null)
     {
-    }
-
-    public RazorProjectInfoDriver(
-        IProjectSnapshotManager projectManager,
-        LSPEditorFeatureDetector lspEditorFeatureDetector,
-        JoinableTaskContext joinableTaskContext,
-        TimeSpan delay)
-    {
+        _projectManager = projectManager;
         _disposeTokenSource = new();
-        _workQueue = new AsyncBatchingWorkQueue<Work>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
+        _workQueue = new AsyncBatchingWorkQueue<Work>(delay ?? s_delay, ProcessBatchAsync, _disposeTokenSource.Token);
         _latestProjectInfoMap = [];
         _listeners = [];
-
-        var jtf = joinableTaskContext.Factory;
-
-        _initializeTask = jtf.RunAsync(async () =>
-        {
-            // Switch to the main thread because IsLSPEditorAvailable() expects to.
-            await jtf.SwitchToMainThreadAsync();
-
-            // Because this service is only consumed by the language server, we only initialize it
-            // when the LSP editor is available.
-            if (lspEditorFeatureDetector.IsLSPEditorAvailable())
-            {
-                await InitializeAsync(projectManager, _disposeTokenSource.Token);
-            }
-        });
-
     }
 
     public void Dispose()
@@ -77,19 +44,19 @@ internal sealed partial class RazorProjectInfoDriver : IRazorProjectInfoDriver, 
         _disposeTokenSource.Dispose();
     }
 
-    private async Task InitializeAsync(IProjectSnapshotManager projectManager, CancellationToken cancellationToken)
+    public async Task InitializeAsync(CancellationToken cancellationToken)
     {
         // Even though we aren't mutating the project snapshot manager, we call UpdateAsync(...) here to ensure
         // that we run on its dispatcher. That ensures that no changes will code in while we are iterating the
-        // current set of projects.
-        await projectManager.UpdateAsync(updater =>
+        // current set of projects and connected to the Changed event.
+        await _projectManager.UpdateAsync(updater =>
         {
             foreach (var project in updater.GetProjects())
             {
                 EnqueueUpdate(project.ToRazorProjectInfo());
             }
 
-            projectManager.Changed += ProjectManager_Changed;
+            _projectManager.Changed += ProjectManager_Changed;
         },
         cancellationToken);
     }

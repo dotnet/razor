@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
 using Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Razor.Settings;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
@@ -34,7 +35,7 @@ internal class RazorLanguageServerClient(
     RazorCustomMessageTarget customTarget,
     LSPRequestInvoker requestInvoker,
     RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
-    IRazorProjectInfoDriver projectInfoPublisher,
+    IProjectSnapshotManager projectManager,
     ILoggerFactory loggerFactory,
     RazorLogHubTraceProvider traceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -54,7 +55,7 @@ internal class RazorLanguageServerClient(
     private readonly RazorCustomMessageTarget _customMessageTarget = customTarget;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher;
-    private readonly IRazorProjectInfoDriver _projectInfoPublisher = projectInfoPublisher;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
@@ -101,6 +102,9 @@ internal class RazorLanguageServerClient(
 
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
+        var projectInfoDriver = new RazorProjectInfoDriver(_projectManager);
+        await projectInfoDriver.InitializeAsync(token);
+
         _host = RazorLanguageServerHost.Create(
             serverStream,
             serverStream,
@@ -114,8 +118,14 @@ internal class RazorLanguageServerClient(
 
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
         await EnsureContainedLanguageServersInitializedAsync();
-        var connection = new Connection(clientStream, clientStream);
-        return connection;
+
+        return new Connection(clientStream, clientStream);
+
+        void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<IRazorProjectInfoDriver>(projectInfoDriver);
+            services.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostServicesProvider));
+        }
     }
 
     internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetRelevantContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
@@ -174,12 +184,6 @@ internal class RazorLanguageServerClient(
 
         // We only want to mark the server as activated after the delegated language servers have been initialized.
         _lspServerActivationTracker.Activated();
-    }
-
-    private void ConfigureServices(IServiceCollection serviceCollection)
-    {
-        serviceCollection.AddSingleton<IRazorProjectInfoDriver>(_projectInfoPublisher);
-        serviceCollection.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostServicesProvider));
     }
 
     private async Task EnsureCleanedUpServerAsync()
