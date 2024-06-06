@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
-internal sealed partial class VisualStudioRazorProjectInfoPublisher
+internal sealed partial class RazorProjectInfoDriver
 {
     private sealed class Comparer : IEqualityComparer<Work>
     {
@@ -34,5 +34,4 @@ internal sealed partial class VisualStudioRazorProjectInfoPublisher
             return work.ProjectKey.GetHashCode();
         }
     }
-
 }

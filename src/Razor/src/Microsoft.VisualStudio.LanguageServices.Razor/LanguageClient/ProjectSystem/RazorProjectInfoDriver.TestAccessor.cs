@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
-internal sealed partial class VisualStudioRazorProjectInfoPublisher
+internal sealed partial class RazorProjectInfoDriver
 {
     internal TestAccessor GetTestAccessor() => new(this);
 
-    internal readonly struct TestAccessor(VisualStudioRazorProjectInfoPublisher instance)
+    internal readonly struct TestAccessor(RazorProjectInfoDriver instance)
     {
         public async Task WaitForInitializeAsync()
         {

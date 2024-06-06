@@ -17,8 +17,8 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
-[Export(typeof(IRazorProjectInfoPublisher))]
-internal sealed partial class VisualStudioRazorProjectInfoPublisher : IRazorProjectInfoPublisher, IDisposable
+[Export(typeof(IRazorProjectInfoDriver))]
+internal sealed partial class RazorProjectInfoDriver : IRazorProjectInfoDriver, IDisposable
 {
     private abstract record Work(ProjectKey ProjectKey);
     private sealed record Update(RazorProjectInfo ProjectInfo) : Work(ProjectInfo.ProjectKey);
@@ -29,13 +29,13 @@ internal sealed partial class VisualStudioRazorProjectInfoPublisher : IRazorProj
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
 
-    private readonly Dictionary<ProjectKey, RazorProjectInfo> _latestProjectInfo;
+    private readonly Dictionary<ProjectKey, RazorProjectInfo> _latestProjectInfoMap;
     private ImmutableArray<IRazorProjectInfoListener> _listeners;
 
     private readonly JoinableTask _initializeTask;
 
     [ImportingConstructor]
-    public VisualStudioRazorProjectInfoPublisher(
+    public RazorProjectInfoDriver(
         IProjectSnapshotManager projectManager,
         LSPEditorFeatureDetector lspEditorFeatureDetector,
         JoinableTaskContext joinableTaskContext)
@@ -43,7 +43,7 @@ internal sealed partial class VisualStudioRazorProjectInfoPublisher : IRazorProj
     {
     }
 
-    public VisualStudioRazorProjectInfoPublisher(
+    public RazorProjectInfoDriver(
         IProjectSnapshotManager projectManager,
         LSPEditorFeatureDetector lspEditorFeatureDetector,
         JoinableTaskContext joinableTaskContext,
@@ -51,7 +51,7 @@ internal sealed partial class VisualStudioRazorProjectInfoPublisher : IRazorProj
     {
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<Work>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
-        _latestProjectInfo = [];
+        _latestProjectInfoMap = [];
         _listeners = [];
 
         var jtf = joinableTaskContext.Factory;
@@ -134,16 +134,17 @@ internal sealed partial class VisualStudioRazorProjectInfoPublisher : IRazorProj
                 return;
             }
 
-            lock (_latestProjectInfo)
+            // Update our map first
+            lock (_latestProjectInfoMap)
             {
                 switch (work)
                 {
                     case Update(var projectInfo):
-                        _latestProjectInfo[projectInfo.ProjectKey] = projectInfo;
+                        _latestProjectInfoMap[projectInfo.ProjectKey] = projectInfo;
                         break;
 
                     case Remove(var projectKey):
-                        _latestProjectInfo.Remove(projectKey);
+                        _latestProjectInfoMap.Remove(projectKey);
                         break;
 
                     default:
@@ -152,6 +153,7 @@ internal sealed partial class VisualStudioRazorProjectInfoPublisher : IRazorProj
                 }
             }
 
+            // Now, notify listeners
             foreach (var listener in _listeners)
             {
                 if (token.IsCancellationRequested)
@@ -183,13 +185,13 @@ internal sealed partial class VisualStudioRazorProjectInfoPublisher : IRazorProj
         _workQueue.AddWork(new Remove(projectKey));
     }
 
-    public ImmutableArray<RazorProjectInfo> GetLatestProjectInfos()
+    public ImmutableArray<RazorProjectInfo> GetLatestProjectInfo()
     {
-        lock (_latestProjectInfo)
+        lock (_latestProjectInfoMap)
         {
-            using var builder = new PooledArrayBuilder<RazorProjectInfo>(capacity: _latestProjectInfo.Count);
+            using var builder = new PooledArrayBuilder<RazorProjectInfo>(capacity: _latestProjectInfoMap.Count);
 
-            foreach (var (_, projectInfo) in _latestProjectInfo)
+            foreach (var (_, projectInfo) in _latestProjectInfoMap)
             {
                 builder.Add(projectInfo);
             }

@@ -114,7 +114,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         foreach (var service in services)
         {
             // Only register RazorProjectInfoListener if an IRazorProjectInfoPublisher was registered.
-            if (service.ServiceType == typeof(IRazorProjectInfoPublisher))
+            if (service.ServiceType == typeof(IRazorProjectInfoDriver))
             {
                 services.AddSingleton<RazorProjectInfoListener>();
                 services.AddSingleton((services) => (IOnInitialized)services.GetRequiredService<RazorProjectInfoListener>());

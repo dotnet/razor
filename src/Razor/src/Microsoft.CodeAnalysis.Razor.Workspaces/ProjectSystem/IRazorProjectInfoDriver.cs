@@ -6,9 +6,12 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal interface IRazorProjectInfoPublisher
+/// <summary>
+/// Handles project changes and notifies listeners of project updates and removal.
+/// </summary>
+internal interface IRazorProjectInfoDriver
 {
-    ImmutableArray<RazorProjectInfo> GetLatestProjectInfos();
+    ImmutableArray<RazorProjectInfo> GetLatestProjectInfo();
 
     void AddListener(IRazorProjectInfoListener listener);
 }

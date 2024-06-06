@@ -17,18 +17,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal sealed class RazorProjectInfoListener(
     IRazorProjectService projectService,
-    IRazorProjectInfoPublisher publisher)
+    IRazorProjectInfoDriver publisher)
     : IRazorProjectInfoListener, IOnInitialized
 {
     private readonly IRazorProjectService _projectService = projectService;
-    private readonly IRazorProjectInfoPublisher _publisher = publisher;
+    private readonly IRazorProjectInfoDriver _publisher = publisher;
 
     public async Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
     {
         _publisher.AddListener(this);
 
         // Add all existing projects
-        foreach (var projectInfo in _publisher.GetLatestProjectInfos())
+        foreach (var projectInfo in _publisher.GetLatestProjectInfo())
         {
             await AddOrUpdateProjectAsync(projectInfo, cancellationToken).ConfigureAwait(false);
         }

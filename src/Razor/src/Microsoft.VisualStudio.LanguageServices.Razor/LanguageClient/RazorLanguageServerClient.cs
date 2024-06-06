@@ -34,7 +34,7 @@ internal class RazorLanguageServerClient(
     RazorCustomMessageTarget customTarget,
     LSPRequestInvoker requestInvoker,
     RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
-    IRazorProjectInfoPublisher projectInfoPublisher,
+    IRazorProjectInfoDriver projectInfoPublisher,
     ILoggerFactory loggerFactory,
     RazorLogHubTraceProvider traceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -54,7 +54,7 @@ internal class RazorLanguageServerClient(
     private readonly RazorCustomMessageTarget _customMessageTarget = customTarget;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher;
-    private readonly IRazorProjectInfoPublisher _projectInfoPublisher = projectInfoPublisher;
+    private readonly IRazorProjectInfoDriver _projectInfoPublisher = projectInfoPublisher;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
@@ -178,7 +178,7 @@ internal class RazorLanguageServerClient(
 
     private void ConfigureServices(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<IRazorProjectInfoPublisher>(_projectInfoPublisher);
+        serviceCollection.AddSingleton<IRazorProjectInfoDriver>(_projectInfoPublisher);
         serviceCollection.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostServicesProvider));
     }
 

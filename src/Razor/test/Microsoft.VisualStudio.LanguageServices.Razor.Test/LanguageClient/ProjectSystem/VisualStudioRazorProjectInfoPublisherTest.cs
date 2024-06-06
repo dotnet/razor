@@ -57,7 +57,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
 
         // Sort projects by project key.
         var latestProjects = publisher
-            .GetLatestProjectInfos()
+            .GetLatestProjectInfo()
             .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
 
         Assert.Equal(2, latestProjects.Length);
@@ -88,7 +88,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        Assert.Empty(publisher.GetLatestProjectInfos());
+        Assert.Empty(publisher.GetLatestProjectInfo());
     }
 
     [UIFact]
@@ -111,7 +111,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
 
         // Sort projects by project key.
         var latestProjects = publisher
-            .GetLatestProjectInfos()
+            .GetLatestProjectInfo()
             .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
 
         Assert.Equal(2, latestProjects.Length);
@@ -142,7 +142,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        Assert.Empty(publisher.GetLatestProjectInfos());
+        Assert.Empty(publisher.GetLatestProjectInfo());
     }
 
     [UIFact]
@@ -164,7 +164,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        var latestProjects = publisher.GetLatestProjectInfos();
+        var latestProjects = publisher.GetLatestProjectInfo();
 
         var projectInfo1 = Assert.Single(latestProjects);
         Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
@@ -186,7 +186,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        var latestProjects = publisher.GetLatestProjectInfos();
+        var latestProjects = publisher.GetLatestProjectInfo();
 
         var projectInfo1 = Assert.Single(latestProjects);
         Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
@@ -198,7 +198,7 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        Assert.Empty(publisher.GetLatestProjectInfos());
+        Assert.Empty(publisher.GetLatestProjectInfo());
     }
 
     [UIFact]
@@ -259,14 +259,14 @@ public class VisualStudioRazorProjectInfoPublisherTest(ITestOutputHelper testOut
         Assert.Empty(listener.Updates);
     }
 
-    private async Task<(VisualStudioRazorProjectInfoPublisher, VisualStudioRazorProjectInfoPublisher.TestAccessor)> CreatePublisherAndInitializeAsync(
+    private async Task<(RazorProjectInfoDriver, RazorProjectInfoDriver.TestAccessor)> CreatePublisherAndInitializeAsync(
         IProjectSnapshotManager projectManager,
         bool isLspEditorAvailable = true)
     {
         var lspEditorFeatureDetector = StrictMock.Of<LSPEditorFeatureDetector>(x =>
             x.IsLSPEditorAvailable() == isLspEditorAvailable);
 
-        var publisher = new VisualStudioRazorProjectInfoPublisher(projectManager, lspEditorFeatureDetector, JoinableTaskContext, delay: TimeSpan.FromMilliseconds(5));
+        var publisher = new RazorProjectInfoDriver(projectManager, lspEditorFeatureDetector, JoinableTaskContext, delay: TimeSpan.FromMilliseconds(5));
         AddDisposable(publisher);
 
         var testAccessor = publisher.GetTestAccessor();
