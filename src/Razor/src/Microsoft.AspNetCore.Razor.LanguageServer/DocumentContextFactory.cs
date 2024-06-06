@@ -122,7 +122,7 @@ internal sealed class DocumentContextFactory(
         // Couldn't find the document in a real project. Maybe the language server doesn't yet know about the project
         // that the IDE is asking us about. In that case, we might have the document in our misc files project, and we'll
         // move it to the real project when/if we find out about it.
-        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+        var miscellaneousProject = _projectManager.GetMiscellaneousProject();
         var normalizedDocumentPath = FilePathNormalizer.Normalize(filePath);
         if (miscellaneousProject.GetDocument(normalizedDocumentPath) is { } miscDocument)
         {

@@ -21,7 +21,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         // Arrange
         var documentFilePath = @"C:\path\to\document.cshtml";
         var normalizedFilePath = "C:/path/to/document.cshtml";
-        var snapshotResolver = await CreateSnapshotResolverAsync(normalizedFilePath);
+        var (snapshotResolver, _) = await CreateSnapshotResolverAsync(normalizedFilePath);
 
         // Act
         Assert.True(snapshotResolver.TryResolveDocumentInAnyProject(documentFilePath, out var document));
@@ -41,7 +41,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
         await projectManager.UpdateAsync(updater =>
         {
-            var miscProject = snapshotResolver.GetMiscellaneousProject();
+            var miscProject = projectManager.GetMiscellaneousProject();
             var hostProject = new HostProject(miscProject.FilePath, miscProject.IntermediateOutputPath, FallbackRazorConfiguration.Latest, miscProject.RootNamespace);
             updater.DocumentAdded(
                 hostProject.Key,
@@ -100,13 +100,13 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
     {
         // Arrange
         var documentFilePath = Path.Combine(MiscFilesHostProject.Instance.DirectoryPath, "document.cshtml");
-        var snapshotResolver = await CreateSnapshotResolverAsync(documentFilePath, addToMiscellaneous: true);
+        var (snapshotResolver, projectManager) = await CreateSnapshotResolverAsync(documentFilePath, addToMiscellaneous: true);
 
         // Act
         Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
 
         // Assert
-        var miscFilesProject = snapshotResolver.GetMiscellaneousProject();
+        var miscFilesProject = projectManager.GetMiscellaneousProject();
         Assert.Single(projects, miscFilesProject);
     }
 
@@ -165,7 +165,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
         var miscProject = await projectManager.UpdateAsync(updater =>
         {
-            var miscProject = (ProjectSnapshot)snapshotResolver.GetMiscellaneousProject();
+            var miscProject = (ProjectSnapshot)projectManager.GetMiscellaneousProject();
             updater.CreateAndAddDocument(miscProject, documentFilePath);
             updater.CreateAndAddProject("C:/path/to/project.csproj");
 
@@ -209,10 +209,9 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
 
         // Act
-        var project = snapshotResolver.GetMiscellaneousProject();
+        var project = projectManager.GetMiscellaneousProject();
         var inManager = projectManager.GetLoadedProject(MiscFilesHostProject.Instance.Key);
 
         // Assert
@@ -224,17 +223,16 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
 
         // Act
-        var project = snapshotResolver.GetMiscellaneousProject();
+        var project = projectManager.GetMiscellaneousProject();
 
         // Assert
         Assert.Single(projectManager.GetProjects());
         Assert.Equal(MiscFilesHostProject.Instance.FilePath, project.FilePath);
     }
 
-    private async Task<SnapshotResolver> CreateSnapshotResolverAsync(string filePath, bool addToMiscellaneous = false)
+    private async Task<(ISnapshotResolver, TestProjectSnapshotManager)> CreateSnapshotResolverAsync(string filePath, bool addToMiscellaneous = false)
     {
         filePath = FilePathNormalizer.Normalize(filePath);
 
@@ -245,7 +243,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         {
             await projectManager.UpdateAsync(updater =>
             {
-                var miscProject = (ProjectSnapshot)snapshotResolver.GetMiscellaneousProject();
+                var miscProject = (ProjectSnapshot)projectManager.GetMiscellaneousProject();
                 updater.CreateAndAddDocument(miscProject, filePath);
             });
         }
@@ -261,7 +259,7 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
             });
         }
 
-        return snapshotResolver;
+        return (snapshotResolver, projectManager);
     }
 
     private static void AssertSnapshotsEqual(IProjectSnapshot first, IProjectSnapshot second)

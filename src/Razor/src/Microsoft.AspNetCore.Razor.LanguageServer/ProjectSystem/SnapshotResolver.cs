@@ -70,7 +70,7 @@ internal sealed class SnapshotResolver(IProjectSnapshotManager projectManager, I
         }
 
         _logger.LogTrace($"Looking for {documentFilePath} in miscellaneous project.");
-        var miscellaneousProject = GetMiscellaneousProject();
+        var miscellaneousProject = _projectManager.GetMiscellaneousProject();
 
         if (miscellaneousProject.GetDocument(normalizedDocumentPath) is { } miscDocument)
         {
