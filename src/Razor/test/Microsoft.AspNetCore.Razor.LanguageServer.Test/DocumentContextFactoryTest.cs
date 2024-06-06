@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Copilot;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -189,12 +188,6 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     private sealed class TestSnapshotResolver(IDocumentSnapshot? documentSnapshot = null) : ISnapshotResolver
     {
         private readonly IDocumentSnapshot? _documentSnapshot = documentSnapshot;
-
-        public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
-            => throw new NotImplementedException();
-
-        public IProjectSnapshot GetMiscellaneousProject()
-            => throw new NotImplementedException();
 
         public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
         {

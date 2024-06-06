@@ -22,36 +22,6 @@ internal sealed class SnapshotResolver(IProjectSnapshotManager projectManager, I
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<SnapshotResolver>();
 
-    /// <inheritdoc/>
-    public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
-    {
-        var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-
-        using var projects = new PooledArrayBuilder<IProjectSnapshot>();
-
-        foreach (var project in _projectManager.GetProjects())
-        {
-            // Always exclude the miscellaneous project.
-            if (project.FilePath == MiscFilesHostProject.Instance.FilePath)
-            {
-                continue;
-            }
-
-            var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(project.FilePath);
-            if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance))
-            {
-                projects.Add(project);
-            }
-        }
-
-        return projects.DrainToImmutable();
-    }
-
-    public IProjectSnapshot GetMiscellaneousProject()
-    {
-        return _projectManager.GetLoadedProject(MiscFilesHostProject.Instance.Key);
-    }
-
     public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
         _logger.LogTrace($"Looking for {documentFilePath}.");
