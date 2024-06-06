@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -31,8 +30,6 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
-        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/MyTagHelper.razor");
@@ -54,7 +51,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
-        var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, documentVersionCache, LoggerFactory);
         Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
@@ -95,8 +92,6 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
-        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/MyTagHelper.razor");
@@ -118,7 +113,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
-        var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, documentVersionCache, LoggerFactory);
         Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
@@ -164,8 +159,6 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
-        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/fetchdata.razor");
@@ -193,7 +186,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
-        var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, documentVersionCache, LoggerFactory);
         Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
@@ -395,8 +388,6 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
-        var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/fetchdata.razor");
@@ -419,7 +410,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
-        var documentContextFactory = new DocumentContextFactory(projectManager, snapshotResolver, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, documentVersionCache, LoggerFactory);
         Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -38,9 +37,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
-        var snapshotResolver = new TestSnapshotResolver();
-
-        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
+        var factory = new DocumentContextFactory(_projectManager, _documentVersionCache, LoggerFactory);
 
         // Act
         Assert.False(factory.TryCreate(uri, out _));
@@ -53,9 +50,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var uri = new Uri(filePath);
 
-        var snapshotResolver = new TestSnapshotResolver();
-
-        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
+        var factory = new DocumentContextFactory(_projectManager, _documentVersionCache, LoggerFactory);
 
         // Act
         Assert.False(factory.TryCreateForOpenDocument(uri, out _));
@@ -75,8 +70,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
             updater.DocumentAdded(MiscFilesHostProject.Instance.Key, hostDocument, CreateTextLoader(filePath, ""));
         });
 
-        var snapshotResolver = new TestSnapshotResolver();
-        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
+        var factory = new DocumentContextFactory(_projectManager, _documentVersionCache, LoggerFactory);
 
         // Act
         Assert.False(factory.TryCreateForOpenDocument(uri, out _));
@@ -100,8 +94,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = miscFilesProject.GetDocument(filePath);
         Assert.NotNull(documentSnapshot);
 
-        var snapshotResolver = new TestSnapshotResolver();
-        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
+        var factory = new DocumentContextFactory(_projectManager, _documentVersionCache, LoggerFactory);
 
         // Act
         Assert.True(factory.TryCreate(uri, out var documentContext));
@@ -120,8 +113,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var projectFilePath = Path.Combine(s_baseDirectory, "project.csproj");
         var uri = new Uri(filePath);
 
-        var snapshotResolver = new TestSnapshotResolver();
-        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
+        var factory = new DocumentContextFactory(_projectManager, _documentVersionCache, LoggerFactory);
 
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         var hostDocument = new HostDocument(filePath, "file.cshtml");
@@ -157,9 +149,8 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = miscFilesProject.GetDocument(filePath);
         Assert.NotNull(documentSnapshot);
 
-        var snapshotResolver = new TestSnapshotResolver();
         _documentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337);
-        var factory = new DocumentContextFactory(_projectManager, snapshotResolver, _documentVersionCache, LoggerFactory);
+        var factory = new DocumentContextFactory(_projectManager, _documentVersionCache, LoggerFactory);
 
         // Act
         Assert.True(factory.TryCreateForOpenDocument(uri, out var documentContext));
@@ -168,22 +159,5 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         Assert.Equal(1337, documentContext.Version);
         Assert.Equal(uri, documentContext.Uri);
         Assert.Same(documentSnapshot, documentContext.Snapshot);
-    }
-
-    private sealed class TestSnapshotResolver(IDocumentSnapshot? documentSnapshot = null) : ISnapshotResolver
-    {
-        private readonly IDocumentSnapshot? _documentSnapshot = documentSnapshot;
-
-        public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
-        {
-            if (documentFilePath == _documentSnapshot?.FilePath)
-            {
-                document = _documentSnapshot;
-                return true;
-            }
-
-            document = null;
-            return false;
-        }
     }
 }

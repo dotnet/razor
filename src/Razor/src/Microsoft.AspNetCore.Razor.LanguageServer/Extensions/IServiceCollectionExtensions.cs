@@ -210,7 +210,6 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton((services) => (IRazorStartupService)services.GetRequiredService<IDocumentVersionCache>());
 
         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
-        services.AddSingleton<ISnapshotResolver, SnapshotResolver>();
         services.AddSingleton<IRazorProjectService, RazorProjectService>();
         services.AddSingleton<IRazorStartupService, OpenDocumentGenerator>();
         services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();

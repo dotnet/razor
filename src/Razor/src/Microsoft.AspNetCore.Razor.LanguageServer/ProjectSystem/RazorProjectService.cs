@@ -25,7 +25,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal class RazorProjectService(
     RemoteTextLoaderFactory remoteTextLoaderFactory,
-    ISnapshotResolver snapshotResolver,
     IDocumentVersionCache documentVersionCache,
     IProjectSnapshotManager projectManager,
     ILoggerFactory loggerFactory)
@@ -33,7 +32,6 @@ internal class RazorProjectService(
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory = remoteTextLoaderFactory;
-    private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorProjectService>();
 

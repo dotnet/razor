@@ -32,7 +32,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     // Each of these is initialized by InitializeAsync() below.
 #nullable disable
     private TestProjectSnapshotManager _projectManager;
-    private SnapshotResolver _snapshotResolver;
     private DocumentVersionCache _documentVersionCache;
     private TestRazorProjectService _projectService;
 #nullable enable
@@ -42,7 +41,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(optionsMonitor);
         _projectManager = CreateProjectSnapshotManager(projectEngineFactoryProvider);
-        _snapshotResolver = new SnapshotResolver(_projectManager, LoggerFactory);
         _documentVersionCache = new DocumentVersionCache(_projectManager);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
@@ -52,7 +50,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         _projectService = new TestRazorProjectService(
             remoteTextLoaderFactoryMock.Object,
-            _snapshotResolver,
             _documentVersionCache,
             _projectManager,
             LoggerFactory);
@@ -681,8 +678,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
 
-        var miscProject = _projectManager.GetMiscellaneousProject();
-
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
@@ -863,8 +858,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var ownerProjectKey = await _projectService.AddProjectAsync(
             ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
 
-        var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
-
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
@@ -879,8 +872,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         const string DocumentFilePath = "document.cshtml";
-
-        var miscProject = _projectManager.GetMiscellaneousProject();
 
         Assert.False(_projectManager.IsDocumentOpen(DocumentFilePath));
 
