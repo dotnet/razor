@@ -17,26 +17,10 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal sealed class SnapshotResolver : ISnapshotResolver, IOnInitialized
+internal sealed class SnapshotResolver(IProjectSnapshotManager projectManager, ILoggerFactory loggerFactory) : ISnapshotResolver
 {
-    private readonly IProjectSnapshotManager _projectManager;
-    private readonly ILogger _logger;
-
-    public SnapshotResolver(IProjectSnapshotManager projectManager, ILoggerFactory loggerFactory)
-    {
-        _projectManager = projectManager;
-        _logger = loggerFactory.GetOrCreateLogger<SnapshotResolver>();
-    }
-
-    public Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
-    {
-        // This is called when the language server is initialized.
-
-        return _projectManager.UpdateAsync(
-            (updater, miscHostProject) => updater.ProjectAdded(miscHostProject),
-            state: MiscFilesHostProject.Instance,
-            cancellationToken);
-    }
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<SnapshotResolver>();
 
     /// <inheritdoc/>
     public ImmutableArray<IProjectSnapshot> FindPotentialProjects(string documentFilePath)

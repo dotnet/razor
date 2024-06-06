@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
@@ -50,8 +51,13 @@ public abstract class LanguageServerTestBase : ToolingTestBase
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(projectEngineFactoryProvider, LoggerFactory, DisposalToken);
+    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(
+        IProjectEngineFactoryProvider projectEngineFactoryProvider)
+        => new(
+            projectEngineFactoryProvider,
+            LoggerFactory,
+            DisposalToken,
+            initializer: static updater => updater.ProjectAdded(MiscFilesHostProject.Instance));
 
     internal RazorRequestContext CreateRazorRequestContext(VersionedDocumentContext? documentContext, ILspServices? lspServices = null)
     {

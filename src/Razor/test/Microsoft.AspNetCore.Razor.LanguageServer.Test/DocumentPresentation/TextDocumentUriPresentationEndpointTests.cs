@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -16,8 +15,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.Copilot;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -35,7 +32,6 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
@@ -100,7 +96,6 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
@@ -170,7 +165,6 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
@@ -402,7 +396,6 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var project = await projectManager.UpdateAsync(updater => updater.CreateAndAddProject("c:/path/project.csproj"));
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");

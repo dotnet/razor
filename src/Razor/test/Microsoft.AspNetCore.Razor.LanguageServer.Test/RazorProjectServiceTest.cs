@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -38,13 +37,12 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     private TestRazorProjectService _projectService;
 #nullable enable
 
-    protected override async Task InitializeAsync()
+    protected override Task InitializeAsync()
     {
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(optionsMonitor);
         _projectManager = CreateProjectSnapshotManager(projectEngineFactoryProvider);
         _snapshotResolver = new SnapshotResolver(_projectManager, LoggerFactory);
-        await _snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
         _documentVersionCache = new DocumentVersionCache(_projectManager);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
@@ -58,6 +56,8 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             _documentVersionCache,
             _projectManager,
             LoggerFactory);
+
+        return Task.CompletedTask;
     }
 
     [Fact]

@@ -4,12 +4,10 @@
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -40,7 +38,6 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var normalizedFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -60,13 +57,12 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
     }
 
     [Fact]
-    public async Task TryResolveDocumentInAnyProject_AsksPotentialParentProjectForDocumentItsNotTrackingAndMiscellaneousProjectIsNotTrackingEither_ReturnsFalse()
+    public void TryResolveDocumentInAnyProject_AsksPotentialParentProjectForDocumentItsNotTrackingAndMiscellaneousProjectIsNotTrackingEither_ReturnsFalse()
     {
         // Arrange
         var documentFilePath = @"C:\path\to\document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         Assert.False(snapshotResolver.TryResolveDocumentInAnyProject(documentFilePath, out var document));
@@ -76,26 +72,24 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
     }
 
     [Fact]
-    public async Task TryResolveAllProjects_NoProjects_ReturnsFalse()
+    public void TryResolveAllProjects_NoProjects_ReturnsFalse()
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
     }
 
     [Fact]
-    public async Task TryResolveAllProjects_OnlyMiscellaneousProjectDoesNotContainDocument_ReturnsFalse()
+    public void TryResolveAllProjects_OnlyMiscellaneousProjectDoesNotContainDocument_ReturnsFalse()
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         Assert.False(snapshotResolver.TryResolveAllProjects(documentFilePath, out _));
@@ -107,7 +101,6 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         // Arrange
         var documentFilePath = Path.Combine(MiscFilesHostProject.Instance.DirectoryPath, "document.cshtml");
         var snapshotResolver = await CreateSnapshotResolverAsync(documentFilePath, addToMiscellaneous: true);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         Assert.True(snapshotResolver.TryResolveAllProjects(documentFilePath, out var projects));
@@ -124,7 +117,6 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "C:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -143,7 +135,6 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var projectManager = CreateProjectSnapshotManager();
 
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var expectedProject = await projectManager.UpdateAsync(updater =>
         {
@@ -171,7 +162,6 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var miscProject = await projectManager.UpdateAsync(updater =>
         {
@@ -197,7 +187,6 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
         var documentFilePath = "c:/path/to/document.cshtml";
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         var ownerProject = await projectManager.UpdateAsync(updater =>
         {
@@ -216,12 +205,11 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
     }
 
     [Fact]
-    public async Task GetMiscellaneousProject_ProjectLoaded_ReturnsExistingProject()
+    public void GetMiscellaneousProject_ProjectLoaded_ReturnsExistingProject()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         var project = snapshotResolver.GetMiscellaneousProject();
@@ -232,12 +220,11 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
     }
 
     [Fact]
-    public async Task GetMiscellaneousProject_ProjectNotLoaded_CreatesProjectAndReturnsCreatedProject()
+    public void GetMiscellaneousProject_ProjectNotLoaded_CreatesProjectAndReturnsCreatedProject()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Act
         var project = snapshotResolver.GetMiscellaneousProject();
@@ -253,7 +240,6 @@ public class SnapshotResolverTest(ITestOutputHelper testOutput) : LanguageServer
 
         var projectManager = CreateProjectSnapshotManager();
         var snapshotResolver = new SnapshotResolver(projectManager, LoggerFactory);
-        await snapshotResolver.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         if (addToMiscellaneous)
         {
