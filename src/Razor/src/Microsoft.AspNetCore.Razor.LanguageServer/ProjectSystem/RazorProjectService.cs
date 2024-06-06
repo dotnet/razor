@@ -486,7 +486,7 @@ internal class RazorProjectService(
 
         foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
         {
-            var projectSnapshot = _snapshotResolver.FindPotentialProjects(documentFilePath).FirstOrDefault();
+            var projectSnapshot = _projectManager.FindPotentialProjects(documentFilePath).FirstOrDefault();
             if (projectSnapshot is null)
             {
                 continue;

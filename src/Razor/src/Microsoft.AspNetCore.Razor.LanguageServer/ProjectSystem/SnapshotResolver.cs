@@ -57,7 +57,7 @@ internal sealed class SnapshotResolver(IProjectSnapshotManager projectManager, I
         _logger.LogTrace($"Looking for {documentFilePath}.");
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-        var potentialProjects = FindPotentialProjects(documentFilePath);
+        var potentialProjects = _projectManager.FindPotentialProjects(documentFilePath);
 
         foreach (var project in potentialProjects)
         {

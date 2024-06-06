@@ -23,11 +23,11 @@ internal class TestRazorProjectService(
     ILoggerFactory loggerFactory)
     : RazorProjectService(remoteTextLoaderFactory, snapshotResolver, documentVersionCache, projectManager, loggerFactory)
 {
-    private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
 
     public async Task AddDocumentToPotentialProjectsAsync(string textDocumentPath, CancellationToken cancellationToken)
     {
-        foreach (var projectSnapshot in _snapshotResolver.FindPotentialProjects(textDocumentPath))
+        foreach (var projectSnapshot in _projectManager.FindPotentialProjects(textDocumentPath))
         {
             var normalizedProjectPath = FilePathNormalizer.NormalizeDirectory(projectSnapshot.FilePath);
             var documents = ImmutableArray
