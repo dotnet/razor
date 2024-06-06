@@ -6,13 +6,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -44,29 +41,34 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         await projectManager.UpdateAsync(static updater =>
         {
             updater.ProjectAdded(s_hostProject1);
-            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader("<p>Hello World</p>", s_hostDocument1.FilePath));
+            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader(s_hostDocument1.FilePath, "<p>Hello World</p>"));
 
             updater.ProjectAdded(s_hostProject2);
-            updater.DocumentAdded(s_hostProject2.Key, s_hostDocument2, CreateTextLoader("<p>Hello World</p>", s_hostDocument2.FilePath));
+            updater.DocumentAdded(s_hostProject2.Key, s_hostDocument2, CreateTextLoader(s_hostDocument2.FilePath, "<p>Hello World</p>"));
         });
 
         var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        // Sort projects by project key.
-        var latestProjects = driver
-            .GetLatestProjectInfo()
+        var latestProjects = driver.GetLatestProjectInfo();
+
+        // The misc files projects project should be present.
+        Assert.Contains(latestProjects, x => x.ProjectKey == MiscFilesHostProject.Instance.Key);
+
+        // Sort the remaining projects by project key.
+        var projects = latestProjects
+            .WhereAsArray(x => x.ProjectKey != MiscFilesHostProject.Instance.Key)
             .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
 
-        Assert.Equal(2, latestProjects.Length);
+        Assert.Equal(2, projects.Length);
 
-        var projectInfo1 = latestProjects[0];
+        var projectInfo1 = projects[0];
         Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
         var document1 = Assert.Single(projectInfo1.Documents);
         Assert.Equal(s_hostDocument1.FilePath, document1.FilePath);
 
-        var projectInfo2 = latestProjects[1];
+        var projectInfo2 = projects[1];
         Assert.Equal(s_hostProject2.Key, projectInfo2.ProjectKey);
         var document2 = Assert.Single(projectInfo2.Documents);
         Assert.Equal(s_hostDocument2.FilePath, document2.FilePath);
@@ -77,32 +79,42 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
     {
         var projectManager = CreateProjectSnapshotManager();
 
-        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
+        var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
+        // The misc files projects project should be present after initialization.
+        await testAccessor.WaitUntilCurrentBatchCompletesAsync();
+
+        var initialProjects = driver.GetLatestProjectInfo();
+
+        var miscFilesProject = Assert.Single(initialProjects);
+        Assert.Equal(MiscFilesHostProject.Instance.Key, miscFilesProject.ProjectKey);
+
+        // Now add some projects
         await projectManager.UpdateAsync(static updater =>
         {
             updater.ProjectAdded(s_hostProject1);
-            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader("<p>Hello World</p>", s_hostDocument1.FilePath));
+            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader(s_hostDocument1.FilePath, "<p>Hello World</p>"));
 
             updater.ProjectAdded(s_hostProject2);
-            updater.DocumentAdded(s_hostProject2.Key, s_hostDocument2, CreateTextLoader("<p>Hello World</p>", s_hostDocument2.FilePath));
+            updater.DocumentAdded(s_hostProject2.Key, s_hostDocument2, CreateTextLoader(s_hostDocument2.FilePath, "<p>Hello World</p>"));
         });
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        // Sort projects by project key.
-        var latestProjects = publisher
+        // Sort the non-misc files projects by project key.
+        var projects = driver
             .GetLatestProjectInfo()
+            .WhereAsArray(x => x.ProjectKey != MiscFilesHostProject.Instance.Key)
             .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
 
-        Assert.Equal(2, latestProjects.Length);
+        Assert.Equal(2, projects.Length);
 
-        var projectInfo1 = latestProjects[0];
+        var projectInfo1 = projects[0];
         Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
         var document1 = Assert.Single(projectInfo1.Documents);
         Assert.Equal(s_hostDocument1.FilePath, document1.FilePath);
 
-        var projectInfo2 = latestProjects[1];
+        var projectInfo2 = projects[1];
         Assert.Equal(s_hostProject2.Key, projectInfo2.ProjectKey);
         var document2 = Assert.Single(projectInfo2.Documents);
         Assert.Equal(s_hostDocument2.FilePath, document2.FilePath);
@@ -118,18 +130,22 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
             updater.ProjectAdded(s_hostProject1);
         });
 
-        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
+        var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader("<p>Hello World</p>", s_hostDocument1.FilePath));
+            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader(s_hostDocument1.FilePath, "<p>Hello World</p>"));
         });
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        var latestProjects = publisher.GetLatestProjectInfo();
+        // Sort the non-misc files projects by project key.
+        var projects = driver
+            .GetLatestProjectInfo()
+            .WhereAsArray(x => x.ProjectKey != MiscFilesHostProject.Instance.Key)
+            .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
 
-        var projectInfo1 = Assert.Single(latestProjects);
+        var projectInfo1 = Assert.Single(projects);
         Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
         var document1 = Assert.Single(projectInfo1.Documents);
         Assert.Equal(s_hostDocument1.FilePath, document1.FilePath);
@@ -145,13 +161,17 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
             updater.ProjectAdded(s_hostProject1);
         });
 
-        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
+        var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        var latestProjects = publisher.GetLatestProjectInfo();
+        // Sort the non-misc files projects by project key.
+        var projects = driver
+            .GetLatestProjectInfo()
+            .WhereAsArray(x => x.ProjectKey != MiscFilesHostProject.Instance.Key)
+            .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
 
-        var projectInfo1 = Assert.Single(latestProjects);
+        var projectInfo1 = Assert.Single(projects);
         Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
 
         await projectManager.UpdateAsync(static updater =>
@@ -161,7 +181,8 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        Assert.Empty(publisher.GetLatestProjectInfo());
+        var miscFilesProject = Assert.Single(driver.GetLatestProjectInfo());
+        Assert.Equal(MiscFilesHostProject.Instance.Key, miscFilesProject.ProjectKey);
     }
 
     [UIFact]
@@ -174,14 +195,16 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
             updater.ProjectAdded(s_hostProject1);
         });
 
-        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
+        var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
+
+        await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         var listener = new TestListener();
-        publisher.AddListener(listener);
+        driver.AddListener(listener);
 
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader("<p>Hello World</p>", s_hostDocument1.FilePath));
+            updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, CreateTextLoader(s_hostDocument1.FilePath, "<p>Hello World</p>"));
         });
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -204,10 +227,12 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
             updater.ProjectAdded(s_hostProject1);
         });
 
-        var (publisher, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
+        var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
+
+        await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         var listener = new TestListener();
-        publisher.AddListener(listener);
+        driver.AddListener(listener);
 
         await projectManager.UpdateAsync(static updater =>
         {
@@ -235,19 +260,6 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         return (driver, testAccessor);
     }
 
-    private static TextLoader CreateTextLoader(string content, string filePath)
-    {
-        var mock = new StrictMock<TextLoader>();
-
-        var sourceText = SourceText.From(content);
-        var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
-
-        mock.Setup(x => x.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(textAndVersion);
-
-        return mock.Object;
-    }
-
     private sealed class TestListener : IRazorProjectInfoListener
     {
         private readonly ImmutableArray<ProjectKey>.Builder _removes = ImmutableArray.CreateBuilder<ProjectKey>();
@@ -256,16 +268,16 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         public ImmutableArray<ProjectKey> Removes => _removes.ToImmutable();
         public ImmutableArray<RazorProjectInfo> Updates => _updates.ToImmutable();
 
-        public ValueTask RemovedAsync(ProjectKey projectKey, CancellationToken cancellationToken)
+        public Task RemovedAsync(ProjectKey projectKey, CancellationToken cancellationToken)
         {
             _removes.Add(projectKey);
-            return default;
+            return Task.CompletedTask;
         }
 
-        public ValueTask UpdatedAsync(RazorProjectInfo projectInfo, CancellationToken cancellationToken)
+        public Task UpdatedAsync(RazorProjectInfo projectInfo, CancellationToken cancellationToken)
         {
             _updates.Add(projectInfo);
-            return default;
+            return Task.CompletedTask;
         }
     }
 }

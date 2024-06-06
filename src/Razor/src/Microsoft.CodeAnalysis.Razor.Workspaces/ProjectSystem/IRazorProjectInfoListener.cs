@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal interface IRazorProjectInfoListener
 {
-    ValueTask RemovedAsync(ProjectKey projectKey, CancellationToken cancellationToken);
-    ValueTask UpdatedAsync(RazorProjectInfo projectInfo, CancellationToken cancellationToken);
+    Task RemovedAsync(ProjectKey projectKey, CancellationToken cancellationToken);
+    Task UpdatedAsync(RazorProjectInfo projectInfo, CancellationToken cancellationToken);
 }

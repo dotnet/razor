@@ -47,6 +47,7 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
         LanguageServerFeatureOptions? featureOptions = null,
         RazorLSPOptions? razorLSPOptions = null,
         ILspServerActivationTracker? lspServerActivationTracker = null,
+        IRazorProjectInfoDriver? projectInfoDriver = null,
         TraceSource? traceSource = null)
     {
         var (jsonRpc, jsonSerializer) = CreateJsonRpc(input, output);
@@ -65,6 +66,7 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
             configureServices,
             razorLSPOptions,
             lspServerActivationTracker,
+            projectInfoDriver,
             telemetryReporter);
 
         var host = new RazorLanguageServerHost(server);

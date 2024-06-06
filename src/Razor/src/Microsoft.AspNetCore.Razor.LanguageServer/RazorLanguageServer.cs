@@ -44,6 +44,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
     private readonly Action<IServiceCollection>? _configureServices;
     private readonly RazorLSPOptions _lspOptions;
     private readonly ILspServerActivationTracker? _lspServerActivationTracker;
+    private readonly IRazorProjectInfoDriver? _projectInfoDriver;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly ClientConnection _clientConnection;
 
@@ -57,6 +58,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         Action<IServiceCollection>? configureServices,
         RazorLSPOptions? lspOptions,
         ILspServerActivationTracker? lspServerActivationTracker,
+        IRazorProjectInfoDriver? projectInfoDriver,
         ITelemetryReporter telemetryReporter)
         : base(jsonRpc, serializer, CreateILspLogger(loggerFactory, telemetryReporter))
     {
@@ -66,6 +68,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         _configureServices = configureServices;
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
         _lspServerActivationTracker = lspServerActivationTracker;
+        _projectInfoDriver = projectInfoDriver;
         _telemetryReporter = telemetryReporter;
 
         _clientConnection = new ClientConnection(_jsonRpc);
@@ -110,9 +113,6 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
             _configureServices(services);
         }
 
-        services.AddSingleton<RazorProjectInfoListener>();
-        services.AddSingleton((services) => (IOnInitialized)services.GetRequiredService<RazorProjectInfoListener>());
-
         services.AddSingleton<IClientConnection>(_clientConnection);
 
         // Add the logger as a service in case anything in CLaSP pulls it out to do logging
@@ -125,6 +125,15 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         services.AddSingleton(featureOptions);
 
         services.AddSingleton<IFilePathService, LSPFilePathService>();
+
+        if (_projectInfoDriver is { } projectInfoDriver)
+        {
+            services.AddSingleton<IRazorProjectInfoDriver>(_projectInfoDriver);
+        }
+        else
+        {
+            services.AddSingleton<IRazorProjectInfoDriver, FileWatcherBasedRazorProjectInfoDriver>();
+        }
 
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 

@@ -114,6 +114,7 @@ internal class RazorLanguageServerClient(
             _languageServerFeatureOptions,
             lspOptions,
             _lspServerActivationTracker,
+            projectInfoDriver,
             traceSource);
 
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
@@ -123,7 +124,6 @@ internal class RazorLanguageServerClient(
 
         void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IRazorProjectInfoDriver>(projectInfoDriver);
             services.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostServicesProvider));
         }
     }
