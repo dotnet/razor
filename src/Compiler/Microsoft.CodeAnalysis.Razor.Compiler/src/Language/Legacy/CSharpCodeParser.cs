@@ -1969,7 +1969,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 autoCompleteStringAccessor.CanAcceptCloseBrace = canAcceptCloseBrace;
             }
 
-            CompleteBlock(insertMarkerIfNecessary: false, captureWhitespaceToEndOfLine: false); //here
             builder.Add(OutputAsMetaCode(Output(), Context.CurrentAcceptedCharacters));
         }
     }
@@ -2640,26 +2639,9 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     }
 
     protected void CompleteBlock()
-    {
-        CompleteBlock(insertMarkerIfNecessary: true);
-    }
-
-    protected void CompleteBlock(bool insertMarkerIfNecessary)
-    {
-        CompleteBlock(insertMarkerIfNecessary, captureWhitespaceToEndOfLine: insertMarkerIfNecessary);
-    }
-
-    protected void CompleteBlock(bool insertMarkerIfNecessary, bool captureWhitespaceToEndOfLine)
-    {
-        if (insertMarkerIfNecessary)
-        {
-            AcceptMarkerTokenIfNecessary();
-        }
-
-        if (captureWhitespaceToEndOfLine)
-        {
-            CaptureWhitespaceToEndOfLine();
-        }
+    { 
+        AcceptMarkerTokenIfNecessary();
+        CaptureWhitespaceToEndOfLine();
     }
 
     private void CaptureWhitespaceToEndOfLine()
