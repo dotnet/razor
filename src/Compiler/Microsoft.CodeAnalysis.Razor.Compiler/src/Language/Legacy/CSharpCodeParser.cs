@@ -1430,6 +1430,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         {
             var directiveBuilder = pooledResult.Builder;
             RazorMetaCodeSyntax? keywordBlock = null;
+            bool shouldCaptureWhitespaceToEndOfLine = false;
 
             try
             {
@@ -1741,6 +1742,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         directiveBuilder.Add(OutputAsMarkupEphemeralLiteral());
                         break;
                     case DirectiveKind.RazorBlock:
+                        shouldCaptureWhitespaceToEndOfLine = true;
                         AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
                         SetAcceptedCharacters(AcceptedCharactersInternal.AllWhitespace);
                         directiveBuilder.Add(OutputTokensAsUnclassifiedLiteral());
@@ -1765,6 +1767,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         });
                         break;
                     case DirectiveKind.CodeBlock:
+                        shouldCaptureWhitespaceToEndOfLine = true;
                         AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
                         SetAcceptedCharacters(AcceptedCharactersInternal.AllWhitespace);
                         directiveBuilder.Add(OutputTokensAsUnclassifiedLiteral());
@@ -1806,6 +1809,12 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             }
 
             builder.Add(BuildDirective(SyntaxKind.Identifier));
+
+            if (shouldCaptureWhitespaceToEndOfLine)
+            {
+                CaptureWhitespaceToEndOfLine();
+                builder.Add(OutputAsMetaCode(Output(), Context.CurrentAcceptedCharacters));
+            }
 
             RazorDirectiveSyntax BuildDirective(SyntaxKind expectedTokenKindIfMissing)
             {
@@ -1960,7 +1969,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 autoCompleteStringAccessor.CanAcceptCloseBrace = canAcceptCloseBrace;
             }
 
-            CompleteBlock(insertMarkerIfNecessary: false, captureWhitespaceToEndOfLine: true);
+            CompleteBlock(insertMarkerIfNecessary: false, captureWhitespaceToEndOfLine: false); //here
             builder.Add(OutputAsMetaCode(Output(), Context.CurrentAcceptedCharacters));
         }
     }
@@ -2647,12 +2656,19 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             AcceptMarkerTokenIfNecessary();
         }
 
+        if (captureWhitespaceToEndOfLine)
+        {
+            CaptureWhitespaceToEndOfLine();
+        }
+    }
+
+    private void CaptureWhitespaceToEndOfLine()
+    {
         EnsureCurrent();
 
         // Read whitespace, but not newlines
         // If we're not inserting a marker span, we don't need to capture whitespace
         if (!Context.WhiteSpaceIsSignificantToAncestorBlock &&
-            captureWhitespaceToEndOfLine &&
             !Context.DesignTimeMode &&
             !IsNested)
         {
