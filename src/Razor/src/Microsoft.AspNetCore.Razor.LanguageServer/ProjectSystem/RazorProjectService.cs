@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 /// <summary>
-/// Maintains the <see cref="IProjectSnapshotManager"/> with the semantics of Razor's project model.
+/// Maintains the language server's <see cref="IProjectSnapshotManager"/> with the semantics of Razor's project model.
 /// </summary>
 /// <remarks>
 /// This service implements both <see cref="IRazorStartupService"/> to ensure it is created early and
@@ -70,12 +70,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
     private async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        // Add the MiscFilesProject
-        await _projectManager.UpdateAsync(
-            (updater, miscHostProject) => updater.ProjectAdded(miscHostProject),
-            state: MiscFilesHostProject.Instance,
-            cancellationToken)
-            .ConfigureAwait(false);
+        _logger.LogTrace($"Initializing {nameof(RazorProjectService)}...");
 
         // Register ourselves as a listener to the project driver.
         _projectInfoDriver.AddListener(this);
@@ -94,6 +89,9 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        _logger.LogTrace($"{nameof(RazorProjectService)} initialized.");
+
     }
 
     Task IOnInitialized.OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
@@ -112,6 +110,8 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         // Don't update a project during initialization.
         await WaitForInitializationAsync().ConfigureAwait(false);
 
+        _logger.LogTrace($"{nameof(IRazorProjectInfoListener)} received update for {projectInfo.ProjectKey}");
+
         await AddOrUpdateProjectCoreAsync(
             projectInfo.ProjectKey,
             projectInfo.FilePath,
@@ -128,6 +128,8 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
     {
         // Don't remove a project during initialization.
         await WaitForInitializationAsync().ConfigureAwait(false);
+
+        _logger.LogTrace($"{nameof(IRazorProjectInfoListener)} received remove for {projectKey}");
 
         await AddOrUpdateProjectCoreAsync(
             projectKey,
