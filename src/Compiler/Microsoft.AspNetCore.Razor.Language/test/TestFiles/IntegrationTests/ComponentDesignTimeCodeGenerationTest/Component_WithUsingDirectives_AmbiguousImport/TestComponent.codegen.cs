@@ -10,12 +10,24 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-using Test2;
+using 
+
+#nullable disable
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+Test2;
 
 #nullable disable
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-using Test3;
+using 
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+Test3;
 
 #line default
 #line hidden

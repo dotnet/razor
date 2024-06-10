@@ -1,16 +1,26 @@
-﻿Source Location: (1:0,1 [28] x:\dir\subdir\Test\TestComponent.cshtml)
-|using System.Threading.Tasks|
-Generated Location: (318:11,0 [28] )
-|using System.Threading.Tasks|
+﻿Source Location: (1:0,1 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|using |
+Generated Location: (318:11,0 [6] )
+|using |
 
-Source Location: (32:1,1 [41] x:\dir\subdir\Test\TestComponent.cshtml)
-|using Microsoft.AspNetCore.Components.Web|
-Generated Location: (440:16,0 [41] )
-|using Microsoft.AspNetCore.Components.Web|
+Source Location: (7:0,7 [22] x:\dir\subdir\Test\TestComponent.cshtml)
+|System.Threading.Tasks|
+Generated Location: (417:16,0 [22] )
+|System.Threading.Tasks|
+
+Source Location: (32:1,1 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|using |
+Generated Location: (533:21,0 [6] )
+|using |
+
+Source Location: (38:1,7 [35] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web|
+Generated Location: (661:28,0 [35] )
+|Microsoft.AspNetCore.Components.Web|
 
 Source Location: (92:2,17 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |OnClick|
-Generated Location: (1363:38,17 [7] )
+Generated Location: (1578:50,17 [7] )
 |OnClick|
 
 Source Location: (112:3,7 [72] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -20,7 +30,7 @@ Source Location: (112:3,7 [72] x:\dir\subdir\Test\TestComponent.cshtml)
         return Task.CompletedTask;
     }
 |
-Generated Location: (1564:48,7 [72] )
+Generated Location: (1779:60,7 [72] )
 |
     Task OnClick()
     {

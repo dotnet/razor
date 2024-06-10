@@ -10,7 +10,14 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-using Microsoft.AspNetCore.Components.Rendering;
+using 
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+Microsoft.AspNetCore.Components.Rendering;
 
 #line default
 #line hidden

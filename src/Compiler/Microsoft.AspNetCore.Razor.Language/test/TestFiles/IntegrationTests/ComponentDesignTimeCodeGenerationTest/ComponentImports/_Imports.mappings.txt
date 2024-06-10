@@ -1,20 +1,30 @@
-﻿Source Location: (1:0,1 [17] x:\dir\subdir\Test\_Imports.razor)
-|using System.Text|
-Generated Location: (355:12,0 [17] )
-|using System.Text|
+﻿Source Location: (1:0,1 [6] x:\dir\subdir\Test\_Imports.razor)
+|using |
+Generated Location: (355:12,0 [6] )
+|using |
 
-Source Location: (21:1,1 [23] x:\dir\subdir\Test\_Imports.razor)
-|using System.Reflection|
-Generated Location: (460:17,0 [23] )
-|using System.Reflection|
+Source Location: (7:0,7 [11] x:\dir\subdir\Test\_Imports.razor)
+|System.Text|
+Generated Location: (448:17,0 [11] )
+|System.Text|
+
+Source Location: (21:1,1 [6] x:\dir\subdir\Test\_Imports.razor)
+|using |
+Generated Location: (547:22,0 [6] )
+|using |
+
+Source Location: (27:1,7 [17] x:\dir\subdir\Test\_Imports.razor)
+|System.Reflection|
+Generated Location: (669:29,0 [17] )
+|System.Reflection|
 
 Source Location: (56:3,8 [10] x:\dir\subdir\Test\_Imports.razor)
 |MainLayout|
-Generated Location: (923:32,0 [10] )
+Generated Location: (1126:44,0 [10] )
 |MainLayout|
 
 Source Location: (69:4,1 [3] x:\dir\subdir\Test\_Imports.razor)
 |Foo|
-Generated Location: (1356:49,6 [3] )
+Generated Location: (1559:61,6 [3] )
 |Foo|
 

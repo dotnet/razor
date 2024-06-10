@@ -10,12 +10,18 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line (2,2)-(3,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-using Test
+using 
 
 #line default
 #line hidden
 #nullable disable
-    ;
+#nullable restore
+#line (2,2)-(3,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+Test;
+
+#line default
+#line hidden
+#nullable disable
     #nullable restore
     public partial class TestComponent<
 #nullable restore
