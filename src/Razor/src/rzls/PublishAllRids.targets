@@ -23,7 +23,7 @@
 
       <!-- Transform RuntimeIdentifierForPublish items to project items to pass to MSBuild task -->
       <ProjectToPublish Include="@(RuntimeIdentifierForPack->'$(MSBuildProjectFullPath)')">
-          <AdditionalProperties>PackRuntimeIdentifier=%(RuntimeIdentifierForPack.Identity)</AdditionalProperties>
+        <AdditionalProperties>PackRuntimeIdentifier=%(RuntimeIdentifierForPack.Identity)</AdditionalProperties>
       </ProjectToPublish>
     </ItemGroup>
 

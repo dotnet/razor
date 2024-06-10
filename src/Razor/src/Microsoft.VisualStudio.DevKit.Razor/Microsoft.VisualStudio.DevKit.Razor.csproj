@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
     <TargetFramework>$(DefaultNetCoreTargetFramework)</TargetFramework>
+    <OutputType>Library</OutputType>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the language server assets for C# DevKit.</Description>
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>true</IsShippingPackage>
@@ -16,18 +16,13 @@
     <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\TelemetryReporter.cs" Link="Telemetry\TelemetryReporter.cs" />
   </ItemGroup>
 
-    <!--
-    Additional runtime dependencies that we must include in the NuGet package as they are not a part of the main language server package.
-    Do not remove GeneratePathProperty="True" as it is required below to add the package to the package we generate.
-    -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" GeneratePathProperty="True" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" GeneratePathProperty="True" />
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(TargetPath)" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
