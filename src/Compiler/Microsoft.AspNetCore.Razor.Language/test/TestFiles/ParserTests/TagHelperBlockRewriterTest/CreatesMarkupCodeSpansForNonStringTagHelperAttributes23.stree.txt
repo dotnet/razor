@@ -1,0 +1,141 @@
+﻿RazorDocument - [0..238)::238 - [@{ LF    var item = new { Items = new System.List<string>() { "one", "two" } };LF}LF<input tuple-prefix-test='(@item. Items.Where(i=>i.Contains("one")). Count()>0, @item. Items.FirstOrDefault(i=>i.Contains("one"))?. Replace("one",""))' />]
+    MarkupBlock - [0..238)::238
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..82)::82
+            CSharpStatement - [0..82)::82
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..82)::81
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..81)::79
+                        CSharpStatementLiteral - [2..81)::79 - [ LF    var item = new { Items = new System.List<string>() { "one", "two" } };LF] - Gen<Stmt>
+                            Whitespace;[ ];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Identifier;[var];
+                            Whitespace;[ ];
+                            Identifier;[item];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Keyword;[new];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                            Whitespace;[ ];
+                            Identifier;[Items];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Keyword;[new];
+                            Whitespace;[ ];
+                            Identifier;[System];
+                            Dot;[.];
+                            Identifier;[List];
+                            LessThan;[<];
+                            Keyword;[string];
+                            GreaterThan;[>];
+                            LeftParenthesis;[(];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                            Whitespace;[ ];
+                            StringLiteral;["one"];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            StringLiteral;["two"];
+                            Whitespace;[ ];
+                            RightBrace;[}];
+                            Whitespace;[ ];
+                            RightBrace;[}];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [81..82)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [82..84)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [84..238)::154 - input[SelfClosing] - InputTagHelper
+            MarkupTagHelperStartTag - [84..238)::154 - [<input tuple-prefix-test='(@item. Items.Where(i=>i.Contains("one")). Count()>0, @item. Items.FirstOrDefault(i=>i.Contains("one"))?. Replace("one",""))' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupTagHelperAttribute - [90..235)::145 - tuple-prefix-test - SingleQuotes - Bound - [ tuple-prefix-test='(@item. Items.Where(i=>i.Contains("one")). Count()>0, @item. Items.FirstOrDefault(i=>i.Contains("one"))?. Replace("one",""))']
+                    MarkupTextLiteral - [90..91)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [91..108)::17 - [tuple-prefix-test] - Gen<Markup>
+                        Text;[tuple-prefix-test];
+                    Equals;[=];
+                    MarkupTextLiteral - [109..110)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [110..234)::124
+                        CSharpExpressionLiteral - [110..111)::1 - [(] - Gen<None>
+                            Text;[(];
+                        MarkupBlock - [111..116)::5
+                            CSharpCodeBlock - [111..116)::5
+                                CSharpImplicitExpression - [111..116)::5
+                                    CSharpTransition - [111..111)::0
+                                        Transition;[<Missing>];
+                                    CSharpImplicitExpressionBody - [111..116)::5
+                                        CSharpCodeBlock - [111..116)::5
+                                            CSharpExpressionLiteral - [111..116)::5 - [@item] - Gen<Expr>
+                                                Identifier;[@item];
+                        CSharpExpressionLiteral - [116..117)::1 - [.] - Gen<None>
+                            Text;[.];
+                        CSharpExpressionLiteral - [117..152)::35 - [ Items.Where(i=>i.Contains("one")).] - Gen<None>
+                            Whitespace;[ ];
+                            Text;[Items.Where(i];
+                            Equals;[=];
+                            CloseAngle;[>];
+                            Text;[i.Contains(];
+                            DoubleQuote;["];
+                            Text;[one];
+                            DoubleQuote;["];
+                            Text;[)).];
+                        CSharpExpressionLiteral - [152..163)::11 - [ Count()>0,] - Gen<None>
+                            Whitespace;[ ];
+                            Text;[Count()];
+                            CloseAngle;[>];
+                            Text;[0,];
+                        MarkupBlock - [163..169)::6
+                            CSharpExpressionLiteral - [163..164)::1 - [ ] - Gen<Expr>
+                                Whitespace;[ ];
+                            CSharpCodeBlock - [164..169)::5
+                                CSharpImplicitExpression - [164..169)::5
+                                    CSharpTransition - [164..164)::0
+                                        Transition;[<Missing>];
+                                    CSharpImplicitExpressionBody - [164..169)::5
+                                        CSharpCodeBlock - [164..169)::5
+                                            CSharpExpressionLiteral - [164..169)::5 - [@item] - Gen<Expr>
+                                                Identifier;[@item];
+                        CSharpExpressionLiteral - [169..170)::1 - [.] - Gen<None>
+                            Text;[.];
+                        CSharpExpressionLiteral - [170..215)::45 - [ Items.FirstOrDefault(i=>i.Contains("one"))?.] - Gen<None>
+                            Whitespace;[ ];
+                            Text;[Items.FirstOrDefault(i];
+                            Equals;[=];
+                            CloseAngle;[>];
+                            Text;[i.Contains(];
+                            DoubleQuote;["];
+                            Text;[one];
+                            DoubleQuote;["];
+                            Text;[))];
+                            QuestionMark;[?];
+                            Text;[.];
+                        CSharpExpressionLiteral - [215..234)::19 - [ Replace("one",""))] - Gen<None>
+                            Whitespace;[ ];
+                            Text;[Replace(];
+                            DoubleQuote;["];
+                            Text;[one];
+                            DoubleQuote;["];
+                            Text;[,];
+                            DoubleQuote;["];
+                            DoubleQuote;["];
+                            Text;[))];
+                    MarkupTextLiteral - [234..235)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [235..236)::1
+                    MarkupTextLiteral - [235..236)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];
