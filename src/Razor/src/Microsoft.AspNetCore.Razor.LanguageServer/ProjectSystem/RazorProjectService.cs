@@ -72,6 +72,8 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
     {
         _logger.LogTrace($"Initializing {nameof(RazorProjectService)}...");
 
+        await _projectInfoDriver.WaitForInitializationAsync().ConfigureAwait(false);
+
         // Register ourselves as a listener to the project driver.
         _projectInfoDriver.AddListener(this);
 

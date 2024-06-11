@@ -59,7 +59,7 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
         });
     }
 
-    public async Task InitializeAsync(CancellationToken cancellationToken)
+    protected override async Task InitializeAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectoryPath = _workspaceRootPathProvider.GetRootPath();
         workspaceDirectoryPath = FilePathNormalizer.Normalize(workspaceDirectoryPath);

@@ -255,7 +255,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
 
         var testAccessor = driver.GetTestAccessor();
 
-        await driver.InitializeAsync(DisposalToken);
+        await driver.WaitForInitializationAsync();
 
         return (driver, testAccessor);
     }

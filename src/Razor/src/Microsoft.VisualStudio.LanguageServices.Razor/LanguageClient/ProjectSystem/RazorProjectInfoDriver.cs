@@ -18,12 +18,12 @@ internal sealed partial class RazorProjectInfoDriver(
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
 
-    public async Task InitializeAsync(CancellationToken cancellationToken)
+    protected override Task InitializeAsync(CancellationToken cancellationToken)
     {
         // Even though we aren't mutating the project snapshot manager, we call UpdateAsync(...) here to ensure
         // that we run on its dispatcher. That ensures that no changes will code in while we are iterating the
         // current set of projects and connected to the Changed event.
-        await _projectManager.UpdateAsync(updater =>
+        return _projectManager.UpdateAsync(updater =>
         {
             foreach (var project in updater.GetProjects())
             {

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -11,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 /// </summary>
 internal interface IRazorProjectInfoDriver
 {
+    Task WaitForInitializationAsync();
+
     ImmutableArray<RazorProjectInfo> GetLatestProjectInfo();
 
     void AddListener(IRazorProjectInfoListener listener);

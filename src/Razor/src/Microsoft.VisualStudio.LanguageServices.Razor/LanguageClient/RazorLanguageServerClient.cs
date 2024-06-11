@@ -98,7 +98,6 @@ internal class RazorLanguageServerClient(
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
         var projectInfoDriver = new RazorProjectInfoDriver(_projectManager, _loggerFactory);
-        await projectInfoDriver.InitializeAsync(token);
 
         _host = RazorLanguageServerHost.Create(
             serverStream,

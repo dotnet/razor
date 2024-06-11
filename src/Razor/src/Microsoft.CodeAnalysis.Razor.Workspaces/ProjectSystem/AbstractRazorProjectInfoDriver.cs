@@ -26,9 +26,9 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
 
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
-
     private readonly Dictionary<ProjectKey, RazorProjectInfo> _latestProjectInfoMap;
     private ImmutableArray<IRazorProjectInfoListener> _listeners;
+    private readonly Task _initializeTask;
 
     protected CancellationToken DisposalToken => _disposeTokenSource.Token;
 
@@ -40,6 +40,7 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
         _workQueue = new AsyncBatchingWorkQueue<Work>(delay ?? DefaultDelay, ProcessBatchAsync, _disposeTokenSource.Token);
         _latestProjectInfoMap = [];
         _listeners = [];
+        _initializeTask = InitializeAsync(_disposeTokenSource.Token);
     }
 
     public void Dispose()
@@ -47,6 +48,15 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
     }
+
+    public Task WaitForInitializationAsync()
+    {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+        return _initializeTask;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
+    }
+
+    protected abstract Task InitializeAsync(CancellationToken cancellationToken);
 
     private async ValueTask ProcessBatchAsync(ImmutableArray<Work> items, CancellationToken token)
     {
@@ -110,6 +120,11 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
 
     public ImmutableArray<RazorProjectInfo> GetLatestProjectInfo()
     {
+        if (!_initializeTask.IsCompleted)
+        {
+            throw new InvalidOperationException($"{nameof(GetLatestProjectInfo)} cannot be called before initialization is complete.");
+        }
+
         lock (_latestProjectInfoMap)
         {
             using var builder = new PooledArrayBuilder<RazorProjectInfo>(capacity: _latestProjectInfoMap.Count);
@@ -125,6 +140,11 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
 
     public void AddListener(IRazorProjectInfoListener listener)
     {
+        if (!_initializeTask.IsCompleted)
+        {
+            throw new InvalidOperationException($"An {nameof(IRazorProjectInfoListener)} cannot be added before initialization is complete.");
+        }
+
         ImmutableInterlocked.Update(ref _listeners, array => array.Add(listener));
     }
 }
