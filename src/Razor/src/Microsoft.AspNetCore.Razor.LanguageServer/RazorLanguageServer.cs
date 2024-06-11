@@ -195,10 +195,6 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
             {
                 services.AddHandler<ProjectInfoEndpoint>();
             }
-            else
-            {
-                services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
-            }
 
             services.AddHandlerWithCapabilities<RenameEndpoint>();
             services.AddHandlerWithCapabilities<DefinitionEndpoint>();
