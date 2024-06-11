@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
 using Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Logging;
@@ -33,8 +32,6 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient;
 [method: ImportingConstructor]
 internal class RazorLanguageServerClient(
     RazorCustomMessageTarget customTarget,
-    LSPRequestInvoker requestInvoker,
-    RazorProjectInfoEndpointPublisher projectInfoEndpointPublisher,
     IProjectSnapshotManager projectManager,
     ILoggerFactory loggerFactory,
     RazorLogHubTraceProvider traceProvider,
@@ -53,8 +50,6 @@ internal class RazorLanguageServerClient(
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILspServerActivationTracker _lspServerActivationTracker = lspServerActivationTracker;
     private readonly RazorCustomMessageTarget _customMessageTarget = customTarget;
-    private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
-    private readonly RazorProjectInfoEndpointPublisher _projectInfoEndpointPublisher = projectInfoEndpointPublisher;
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly VisualStudioHostServicesProvider _vsHostServicesProvider = vsHostServicesProvider;
@@ -230,19 +225,7 @@ internal class RazorLanguageServerClient(
     }
 
     public Task OnServerInitializedAsync()
-    {
-        ServerStarted();
-
-        return Task.CompletedTask;
-    }
-
-    private void ServerStarted()
-    {
-        if (_languageServerFeatureOptions.UseProjectConfigurationEndpoint)
-        {
-            _projectInfoEndpointPublisher.StartSending();
-        }
-    }
+        => Task.CompletedTask;
 
     private sealed class HostServicesProviderAdapter(VisualStudioHostServicesProvider vsHostServicesProvider) : IHostServicesProvider
     {
