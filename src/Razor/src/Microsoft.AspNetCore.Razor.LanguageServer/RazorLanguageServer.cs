@@ -190,12 +190,6 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
             services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
 
-            // Project system info handler
-            if (featureOptions.UseProjectConfigurationEndpoint)
-            {
-                services.AddHandler<ProjectInfoEndpoint>();
-            }
-
             services.AddHandlerWithCapabilities<RenameEndpoint>();
             services.AddHandlerWithCapabilities<DefinitionEndpoint>();
 

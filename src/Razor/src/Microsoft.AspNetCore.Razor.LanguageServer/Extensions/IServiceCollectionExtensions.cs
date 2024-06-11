@@ -219,16 +219,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RazorFileChangeDetectorManager>();
         services.AddSingleton<IOnInitialized>(sp => sp.GetRequiredService<RazorFileChangeDetectorManager>());
 
-        if (featureOptions.UseProjectConfigurationEndpoint)
-        {
-            services.AddSingleton<IRazorProjectInfoFileSerializer, RazorProjectInfoFileSerializer>();
-            services.AddSingleton<ProjectConfigurationStateManager>();
-        }
-        else 
-        {
-            services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
-        }
-
+        services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
         services.AddSingleton<IRazorFileChangeListener, RazorFileSynchronizer>();
         services.AddSingleton<IFileChangeDetector, RazorFileChangeDetector>();
 
