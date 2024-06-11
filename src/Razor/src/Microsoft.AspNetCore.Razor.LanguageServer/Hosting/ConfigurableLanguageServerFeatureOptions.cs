@@ -22,7 +22,6 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly bool? _usePreciseSemanticTokenRanges;
     private readonly bool? _updateBuffersForClosedDocuments;
     private readonly bool? _includeProjectKeyInGeneratedFilePath;
-    private readonly bool? _monitorWorkspaceFolderForConfigurationFiles;
     private readonly bool? _useRazorCohostServer;
     private readonly bool? _disableRazorLanguageServer;
     private readonly bool? _forceRuntimeCodeGeneration;
@@ -39,7 +38,6 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool UsePreciseSemanticTokenRanges => _usePreciseSemanticTokenRanges ?? _defaults.UsePreciseSemanticTokenRanges;
     public override bool UpdateBuffersForClosedDocuments => _updateBuffersForClosedDocuments ?? _defaults.UpdateBuffersForClosedDocuments;
     public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath ?? _defaults.IncludeProjectKeyInGeneratedFilePath;
-    public override bool MonitorWorkspaceFolderForConfigurationFiles => _monitorWorkspaceFolderForConfigurationFiles ?? _defaults.MonitorWorkspaceFolderForConfigurationFiles;
     public override bool UseRazorCohostServer => _useRazorCohostServer ?? _defaults.UseRazorCohostServer;
     public override bool DisableRazorLanguageServer => _disableRazorLanguageServer ?? _defaults.DisableRazorLanguageServer;
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration ?? _defaults.ForceRuntimeCodeGeneration;
@@ -65,7 +63,6 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
             TryProcessBoolOption(nameof(UsePreciseSemanticTokenRanges), ref _usePreciseSemanticTokenRanges, option, args, i);
             TryProcessBoolOption(nameof(UpdateBuffersForClosedDocuments), ref _updateBuffersForClosedDocuments, option, args, i);
             TryProcessBoolOption(nameof(IncludeProjectKeyInGeneratedFilePath), ref _includeProjectKeyInGeneratedFilePath, option, args, i);
-            TryProcessBoolOption(nameof(MonitorWorkspaceFolderForConfigurationFiles), ref _monitorWorkspaceFolderForConfigurationFiles, option, args, i);
             TryProcessBoolOption(nameof(UseRazorCohostServer), ref _useRazorCohostServer, option, args, i);
             TryProcessBoolOption(nameof(DisableRazorLanguageServer), ref _disableRazorLanguageServer, option, args, i);
             TryProcessBoolOption(nameof(ForceRuntimeCodeGeneration), ref _forceRuntimeCodeGeneration, option, args, i);

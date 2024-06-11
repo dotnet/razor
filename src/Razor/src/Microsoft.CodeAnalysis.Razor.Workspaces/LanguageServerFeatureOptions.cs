@@ -37,15 +37,6 @@ internal abstract class LanguageServerFeatureOptions
     /// </summary>
     public abstract bool IncludeProjectKeyInGeneratedFilePath { get; }
 
-    /// <summary>
-    /// Whether to monitor the entire workspace folder for any project.razor.bin files
-    /// </summary>
-    /// <remarks>
-    /// When this is off, the language server won't have any project knowledge unless the
-    /// razor/monitorProjectConfigurationFilePath notification is sent.
-    /// </remarks>
-    public abstract bool MonitorWorkspaceFolderForConfigurationFiles { get; }
-
     public abstract bool UseRazorCohostServer { get; }
 
     public abstract bool DisableRazorLanguageServer { get; }

@@ -108,8 +108,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     public override bool UsePreciseSemanticTokenRanges => _usePreciseSemanticTokenRanges.Value;
 
-    public override bool MonitorWorkspaceFolderForConfigurationFiles => false;
-
     public override bool UseRazorCohostServer => _useRazorCohostServer.Value;
 
     public override bool DisableRazorLanguageServer => _disableRazorLanguageServer.Value;
