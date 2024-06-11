@@ -161,19 +161,27 @@ public class RazorWorkspaceListener : IDisposable
     // Protected for testing
     protected virtual Task SerializeProjectAsync(ProjectId projectId, CancellationToken ct)
     {
-        if (_projectInfoFileName is null || _workspace is null)
+        if (_workspace is null)
         {
+            _logger?.LogTrace("No workspace available when trying to write {projectId}", projectId);
+            return Task.CompletedTask;
+        }
+
+        if (_projectInfoFileName is null)
+        {
+            _logger?.LogTrace("Don't know what filename to use");
             return Task.CompletedTask;
         }
 
         var project = _workspace.CurrentSolution.GetProject(projectId);
         if (project is null)
         {
+            _logger?.LogTrace("Project is not in workspace");
             return Task.CompletedTask;
         }
 
-        _logger.LogTrace("{projectId} writing json file", projectId);
-        return RazorProjectInfoSerializer.SerializeAsync(project, _projectInfoFileName, ct);
+        _logger.LogTrace("{projectId} writing project info", projectId);
+        return RazorProjectInfoSerializer.SerializeAsync(project, _projectInfoFileName, _logger, cancellationToken: ct);
     }
 
     public void Dispose()

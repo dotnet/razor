@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 
@@ -29,17 +30,19 @@ internal static class RazorProjectInfoSerializer
             : StringComparison.OrdinalIgnoreCase;
     }
 
-    public static async Task SerializeAsync(Project project, string configurationFileName, CancellationToken cancellationToken)
+    public static async Task SerializeAsync(Project project, string configurationFileName, ILogger? logger, CancellationToken cancellationToken)
     {
         var projectPath = Path.GetDirectoryName(project.FilePath);
         if (projectPath is null)
         {
+            logger?.LogTrace("projectPath is null, skipping writing info for {projectId}", project.Id);
             return;
         }
 
         var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
         if (intermediateOutputPath is null)
         {
+            logger?.LogTrace("intermediatePath is null, skipping writing info for {projectId}", project.Id);
             return;
         }
 
@@ -49,6 +52,7 @@ internal static class RazorProjectInfoSerializer
         // Not a razor project
         if (documents.Length == 0)
         {
+            logger?.LogTrace("No razor documents for {projectId}", project.Id);
             return;
         }
 
@@ -93,7 +97,7 @@ internal static class RazorProjectInfoSerializer
             projectWorkspaceState: projectWorkspaceState,
             documents: documents);
 
-        WriteToFile(configurationFilePath, projectInfo);
+        WriteToFile(configurationFilePath, projectInfo, logger);
     }
 
     private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, out string defaultNamespace)
@@ -121,7 +125,7 @@ internal static class RazorProjectInfoSerializer
         return razorConfiguration;
     }
 
-    private static void WriteToFile(string configurationFilePath, RazorProjectInfo projectInfo)
+    private static void WriteToFile(string configurationFilePath, RazorProjectInfo projectInfo, ILogger? logger)
     {
         // We need to avoid having an incomplete file at any point, but our
         // project configuration is large enough that it will be written as multiple operations.
@@ -131,6 +135,7 @@ internal static class RazorProjectInfoSerializer
         if (tempFileInfo.Exists)
         {
             // This could be caused by failures during serialization or early process termination.
+            logger?.LogTrace("deleting existing file {filePath}", tempFilePath);
             tempFileInfo.Delete();
         }
 
@@ -144,9 +149,11 @@ internal static class RazorProjectInfoSerializer
         var fileInfo = new FileInfo(configurationFilePath);
         if (fileInfo.Exists)
         {
+            logger?.LogTrace("deleting existing file {filePath}", configurationFilePath);
             fileInfo.Delete();
         }
 
+        logger?.LogTrace("Moving {tmpPath} to {newPath}", tempFilePath, configurationFilePath);
         File.Move(tempFileInfo.FullName, configurationFilePath);
     }
 
