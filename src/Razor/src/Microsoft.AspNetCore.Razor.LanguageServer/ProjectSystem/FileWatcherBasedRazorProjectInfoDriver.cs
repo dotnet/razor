@@ -62,6 +62,7 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectoryPath = _workspaceRootPathProvider.GetRootPath();
+        workspaceDirectoryPath = FilePathNormalizer.Normalize(workspaceDirectoryPath);
 
         var existingConfigurationFiles = DirectoryHelper.GetFilteredFiles(
             workspaceDirectoryPath,
@@ -87,8 +88,9 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
             Directory.CreateDirectory(workspaceDirectoryPath);
         }
 
-        _logger.LogInformation($"Starting configuration file change detector for '{workspaceDirectoryPath}'");
-        _fileSystemWatcher = new FileSystemWatcher(workspaceDirectoryPath, _options.ProjectConfigurationFileName)
+        _logger.LogInformation($"Starting {nameof(FileWatcherBasedRazorProjectInfoDriver)}: '{workspaceDirectoryPath}'");
+
+        _fileSystemWatcher = new RazorFileSystemWatcher(workspaceDirectoryPath, _options.ProjectConfigurationFileName)
         {
             NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
             IncludeSubdirectories = true,
@@ -100,6 +102,22 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
         _fileSystemWatcher.Renamed += (_, args) => EnqueueRename(args.OldFullPath, args.FullPath);
 
         _fileSystemWatcher.EnableRaisingEvents = true;
+
+        void EnqueueAddOrChange(string filePath)
+        {
+            _workQueue.AddWork((filePath, ChangeKind.AddOrUpdate));
+        }
+
+        void EnqueueRemove(string filePath)
+        {
+            _workQueue.AddWork((filePath, ChangeKind.Remove));
+        }
+
+        void EnqueueRename(string oldFilePath, string newFilePath)
+        {
+            EnqueueRemove(oldFilePath);
+            EnqueueAddOrChange(newFilePath);
+        }
     }
 
     private async ValueTask ProcessBatchAsync(ImmutableArray<(string FilePath, ChangeKind Kind)> items, CancellationToken token)
@@ -140,22 +158,6 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
                     break;
             }
         }
-    }
-
-    private void EnqueueAddOrChange(string filePath)
-    {
-        _workQueue.AddWork((filePath, ChangeKind.AddOrUpdate));
-    }
-
-    private void EnqueueRemove(string filePath)
-    {
-        _workQueue.AddWork((filePath, ChangeKind.Remove));
-    }
-
-    private void EnqueueRename(string oldFilePath, string newFilePath)
-    {
-        EnqueueRemove(oldFilePath);
-        EnqueueAddOrChange(newFilePath);
     }
 
     private async ValueTask<RazorProjectInfo?> TryDeserializeAsync(string filePath, CancellationToken cancellationToken)
