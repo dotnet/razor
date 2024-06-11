@@ -73,11 +73,12 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
         {
             using var stream = File.OpenRead(filePath);
 
-            var razorProjectInfo = await RazorProjectInfo
-                .DeserializeFromAsync(stream, cancellationToken)
-                .ConfigureAwait(false);
+            var razorProjectInfo = await TryDeserializeAsync(filePath, cancellationToken).ConfigureAwait(false);
 
-            EnqueueUpdate(razorProjectInfo);
+            if (razorProjectInfo is not null)
+            {
+                EnqueueUpdate(razorProjectInfo);
+            }
         }
 
         if (!Directory.Exists(workspaceDirectoryPath))
@@ -115,11 +116,12 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
                 case ChangeKind.AddOrUpdate:
                     using (var stream = File.OpenRead(filePath))
                     {
-                        var razorProjectInfo = await RazorProjectInfo
-                            .DeserializeFromAsync(stream, token)
-                            .ConfigureAwait(false);
+                        var razorProjectInfo = await TryDeserializeAsync(filePath, token).ConfigureAwait(false);
 
-                        EnqueueUpdate(razorProjectInfo);
+                        if (razorProjectInfo is not null)
+                        {
+                            EnqueueUpdate(razorProjectInfo);
+                        }
                     }
 
                     break;
@@ -154,5 +156,23 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
     {
         EnqueueRemove(oldFilePath);
         EnqueueAddOrChange(newFilePath);
+    }
+
+    private async ValueTask<RazorProjectInfo?> TryDeserializeAsync(string filePath, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var stream = File.OpenRead(filePath);
+
+            return await RazorProjectInfo
+                .DeserializeFromAsync(stream, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error occurred while reading and deserializing '{filePath}'");
+        }
+
+        return null;
     }
 }
