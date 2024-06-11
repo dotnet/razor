@@ -247,10 +247,10 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         Assert.Empty(listener.Updates);
     }
 
-    private async Task<(RazorProjectInfoDriver, RazorProjectInfoDriver.TestAccessor)> CreateDriverAndInitializeAsync(
+    private async Task<(RazorProjectInfoDriver, AbstractRazorProjectInfoDriver.TestAccessor)> CreateDriverAndInitializeAsync(
         IProjectSnapshotManager projectManager)
     {
-        var driver = new RazorProjectInfoDriver(projectManager, delay: TimeSpan.FromMilliseconds(5));
+        var driver = new RazorProjectInfoDriver(projectManager, LoggerFactory, delay: TimeSpan.FromMilliseconds(5));
         AddDisposable(driver);
 
         var testAccessor = driver.GetTestAccessor();

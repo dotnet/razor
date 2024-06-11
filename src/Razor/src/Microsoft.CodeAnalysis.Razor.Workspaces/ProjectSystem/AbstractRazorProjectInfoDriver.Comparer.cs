@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal sealed partial class RazorProjectInfoDriver
+internal abstract partial class AbstractRazorProjectInfoDriver
 {
     private sealed class Comparer : IEqualityComparer<Work>
     {

@@ -3,13 +3,13 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal sealed partial class RazorProjectInfoDriver
+internal abstract partial class AbstractRazorProjectInfoDriver
 {
     internal TestAccessor GetTestAccessor() => new(this);
 
-    internal readonly struct TestAccessor(RazorProjectInfoDriver instance)
+    internal readonly struct TestAccessor(AbstractRazorProjectInfoDriver instance)
     {
         public Task WaitUntilCurrentBatchCompletesAsync()
             => instance._workQueue.WaitUntilCurrentBatchCompletesAsync();
