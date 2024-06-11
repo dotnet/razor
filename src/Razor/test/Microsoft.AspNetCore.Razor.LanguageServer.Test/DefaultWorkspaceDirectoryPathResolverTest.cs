@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -13,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 public class DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
-    public void Resolve_RootUriUnavailable_UsesRootPath()
+    public async Task Resolve_RootUriUnavailable_UsesRootPath()
     {
         // Arrange
         var expectedWorkspaceDirectory = "/testpath";
@@ -28,14 +29,14 @@ public class DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOut
         capabilitiesManager.SetInitializeParams(initializeParams);
 
         // Act
-        var workspaceDirectoryPath = capabilitiesManager.GetRootPath();
+        var workspaceDirectoryPath = await capabilitiesManager.GetRootPathAsync(DisposalToken);
 
         // Assert
         Assert.Equal(expectedWorkspaceDirectory, workspaceDirectoryPath);
     }
 
     [Fact]
-    public void Resolve_RootUriPrefered()
+    public async Task Resolve_RootUriPrefered()
     {
         // Arrange
         var initialWorkspaceDirectory = "C:\\testpath";
@@ -58,7 +59,7 @@ public class DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOut
         capabilitiesManager.SetInitializeParams(initializeParams);
 
         // Act
-        var workspaceDirectoryPath = capabilitiesManager.GetRootPath();
+        var workspaceDirectoryPath = await capabilitiesManager.GetRootPathAsync(DisposalToken);
 
         // Assert
         var expectedWorkspaceDirectory = "C:/testpath";

@@ -24,7 +24,7 @@ internal class RazorFileChangeDetectorManager(
     {
         // Initialized request, this occurs once the server and client have agreed on what sort of features they both support. It only happens once.
 
-        var workspaceDirectoryPath = _workspaceRootPathProvider.GetRootPath();
+        var workspaceDirectoryPath = await _workspaceRootPathProvider.GetRootPathAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var fileChangeDetector in _fileChangeDetectors)
         {

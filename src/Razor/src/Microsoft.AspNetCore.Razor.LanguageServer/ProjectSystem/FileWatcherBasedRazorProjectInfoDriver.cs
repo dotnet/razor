@@ -61,7 +61,7 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        var workspaceDirectoryPath = _workspaceRootPathProvider.GetRootPath();
+        var workspaceDirectoryPath = await _workspaceRootPathProvider.GetRootPathAsync(cancellationToken).ConfigureAwait(false);
         workspaceDirectoryPath = FilePathNormalizer.Normalize(workspaceDirectoryPath);
 
         var existingConfigurationFiles = DirectoryHelper.GetFilteredFiles(

@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -49,10 +51,28 @@ internal sealed class CapabilitiesManager(ILspServices lspServices)
 
     public void SetInitializeParams(InitializeParams request)
     {
-        _initializeParams = request;
+        _initializeParams = request ?? throw new ArgumentNullException(nameof(request));
     }
 
-    public string GetRootPath()
+    public ValueTask<string> GetRootPathAsync(CancellationToken cancellationToken)
+    {
+        return HasInitialized
+            ? new(GetRootPath())
+            : new(GetRootPathCoreAsync(this, cancellationToken));
+
+        static async Task<string> GetRootPathCoreAsync(CapabilitiesManager manager, CancellationToken cancellationToken)
+        {
+            while (!manager.HasInitialized)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await Task.Delay(millisecondsDelay: 1, cancellationToken).ConfigureAwait(false);
+            }
+
+            return manager.GetRootPath();
+        }
+    }
+
+    private string GetRootPath()
     {
         var initializeParams = GetInitializeParams();
 
