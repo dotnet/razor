@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationHandler<MonitorProjectConfigurationFilePathParams>, IDisposable
 {
     private readonly IProjectSnapshotManager _projectManager;
-    private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
+    private readonly IWorkspaceRootPathProvider _workspaceRootPathProvider;
     private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
     private readonly LanguageServerFeatureOptions _options;
     private readonly ILoggerFactory _loggerFactory;
@@ -35,13 +35,13 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationH
 
     public MonitorProjectConfigurationFilePathEndpoint(
         IProjectSnapshotManager projectManager,
-        WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
+        IWorkspaceRootPathProvider workspaceRootPathProvider,
         IEnumerable<IProjectConfigurationFileChangeListener> listeners,
         LanguageServerFeatureOptions options,
         ILoggerFactory loggerFactory)
     {
         _projectManager = projectManager;
-        _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;
+        _workspaceRootPathProvider = workspaceRootPathProvider;
         _listeners = listeners;
         _options = options;
         _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
@@ -89,7 +89,7 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IRazorNotificationH
         if (_options.MonitorWorkspaceFolderForConfigurationFiles)
         {
             var normalizedConfigurationDirectory = FilePathNormalizer.NormalizeDirectory(configurationDirectory);
-            var workspaceDirectory = _workspaceDirectoryPathResolver.Resolve();
+            var workspaceDirectory = _workspaceRootPathProvider.GetRootPath();
             var normalizedWorkspaceDirectory = FilePathNormalizer.NormalizeDirectory(workspaceDirectory);
 
             if (normalizedConfigurationDirectory.StartsWith(normalizedWorkspaceDirectory, FilePathComparison.Instance))

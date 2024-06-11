@@ -1,42 +1,34 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class DefaultWorkspaceDirectoryPathResolverTest : ToolingTestBase
+public class DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void Resolve_RootUriUnavailable_UsesRootPath()
     {
         // Arrange
         var expectedWorkspaceDirectory = "/testpath";
 #pragma warning disable CS0618 // Type or member is obsolete
-        var clientSettings = new InitializeParams()
+        var initializeParams = new InitializeParams()
         {
             RootPath = expectedWorkspaceDirectory
         };
 #pragma warning restore CS0618 // Type or member is obsolete
-        var server = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
-        server.Setup(m => m.GetInitializeParams()).Returns(clientSettings);
-        var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server.Object);
+
+        var capabilitiesManager = new CapabilitiesManager(StrictMock.Of<ILspServices>());
+        capabilitiesManager.SetInitializeParams(initializeParams);
 
         // Act
-        var workspaceDirectoryPath = workspaceDirectoryPathResolver.Resolve();
+        var workspaceDirectoryPath = capabilitiesManager.GetRootPath();
 
         // Assert
         Assert.Equal(expectedWorkspaceDirectory, workspaceDirectoryPath);
@@ -53,19 +45,20 @@ public class DefaultWorkspaceDirectoryPathResolverTest : ToolingTestBase
             Host = null,
             Path = initialWorkspaceDirectory,
         };
+
 #pragma warning disable CS0618 // Type or member is obsolete
-        var clientSettings = new InitializeParams()
+        var initializeParams = new InitializeParams()
         {
             RootPath = "/somethingelse",
             RootUri = uriBuilder.Uri,
         };
 #pragma warning restore CS0618 // Type or member is obsolete
-        var server = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
-        server.Setup(s => s.GetInitializeParams()).Returns(clientSettings);
-        var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server.Object);
+
+        var capabilitiesManager = new CapabilitiesManager(StrictMock.Of<ILspServices>());
+        capabilitiesManager.SetInitializeParams(initializeParams);
 
         // Act
-        var workspaceDirectoryPath = workspaceDirectoryPathResolver.Resolve();
+        var workspaceDirectoryPath = capabilitiesManager.GetRootPath();
 
         // Assert
         var expectedWorkspaceDirectory = "C:/testpath";

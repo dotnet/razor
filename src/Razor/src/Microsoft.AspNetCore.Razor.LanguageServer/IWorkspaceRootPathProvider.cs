@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal abstract class WorkspaceDirectoryPathResolver
+internal interface IWorkspaceRootPathProvider
 {
-    public abstract string Resolve();
+    string GetRootPath();
 }

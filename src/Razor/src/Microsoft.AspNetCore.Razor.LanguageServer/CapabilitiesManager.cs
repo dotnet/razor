@@ -2,17 +2,20 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.RpcContracts.Settings;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class CapabilitiesManager : IInitializeManager<InitializeParams, InitializeResult>, IClientCapabilitiesService
+internal sealed class CapabilitiesManager(ILspServices lspServices)
+    : IInitializeManager<InitializeParams, InitializeResult>, IClientCapabilitiesService, IWorkspaceRootPathProvider
 {
+    private readonly ILspServices _lspServices = lspServices;
     private InitializeParams? _initializeParams;
-    private readonly ILspServices _lspServices;
 
     public bool HasInitialized => _initializeParams is not null;
 
@@ -20,20 +23,9 @@ internal class CapabilitiesManager : IInitializeManager<InitializeParams, Initia
 
     public VSInternalClientCapabilities ClientCapabilities => GetInitializeParams().Capabilities.ToVSInternalClientCapabilities();
 
-    public CapabilitiesManager(ILspServices lspServices)
-    {
-        _lspServices = lspServices;
-    }
-
     public InitializeParams GetInitializeParams()
-    {
-        if (_initializeParams is null)
-        {
-            throw new InvalidOperationException($"{nameof(GetInitializeParams)} was called before '{Methods.InitializeName}'");
-        }
-
-        return _initializeParams;
-    }
+        => _initializeParams ??
+           throw new InvalidOperationException($"{nameof(GetInitializeParams)} was called before '{Methods.InitializeName}'");
 
     public InitializeResult GetInitializeResult()
     {
@@ -49,16 +41,29 @@ internal class CapabilitiesManager : IInitializeManager<InitializeParams, Initia
             provider.ApplyCapabilities(serverCapabilities, vsClientCapabilities);
         }
 
-        var initializeResult = new InitializeResult
+        return new InitializeResult
         {
             Capabilities = serverCapabilities,
         };
-
-        return initializeResult;
     }
 
     public void SetInitializeParams(InitializeParams request)
     {
         _initializeParams = request;
+    }
+
+    public string GetRootPath()
+    {
+        var initializeParams = GetInitializeParams();
+
+        if (initializeParams.RootUri is null)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            // RootUri was added in LSP3, fallback to RootPath
+            return initializeParams.RootPath.AssumeNotNull();
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        return initializeParams.RootUri.GetAbsoluteOrUNCPath();
     }
 }

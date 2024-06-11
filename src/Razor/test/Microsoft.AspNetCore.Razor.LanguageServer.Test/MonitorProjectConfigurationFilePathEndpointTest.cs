@@ -24,13 +24,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTestBase
 {
-    private readonly WorkspaceDirectoryPathResolver _directoryPathResolver;
+    private readonly IWorkspaceRootPathProvider _workspaceRootPathProvider;
 
     public MonitorProjectConfigurationFilePathEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         var path = PathUtilities.CreateRootedPath("dir");
-        _directoryPathResolver = Mock.Of<WorkspaceDirectoryPathResolver>(resolver => resolver.Resolve() == path, MockBehavior.Strict);
+        _workspaceRootPathProvider = StrictMock.Of<IWorkspaceRootPathProvider>(resolver =>
+            resolver.GetRootPath() == path);
     }
 
     [Fact]
@@ -38,12 +39,12 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>(MockBehavior.Strict);
-        directoryPathResolver.Setup(resolver => resolver.Resolve())
+        var workspaceRootPathProvider = new StrictMock<IWorkspaceRootPathProvider>();
+        workspaceRootPathProvider.Setup(resolver => resolver.GetRootPath())
             .Throws<Exception>();
         var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
             projectManager,
-            directoryPathResolver.Object,
+            workspaceRootPathProvider.Object,
             listeners: [],
             TestLanguageServerFeatureOptions.Instance,
             LoggerFactory);
@@ -69,12 +70,13 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>(MockBehavior.Strict);
-        directoryPathResolver.Setup(resolver => resolver.Resolve())
+        var workspaceRootPathProvider = new StrictMock<IWorkspaceRootPathProvider>();
+        workspaceRootPathProvider
+            .Setup(resolver => resolver.GetRootPath())
             .Throws<Exception>();
         var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
             projectManager,
-            directoryPathResolver.Object,
+            workspaceRootPathProvider.Object,
             listeners: [],
             TestLanguageServerFeatureOptions.Instance,
             LoggerFactory);
@@ -101,7 +103,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            _directoryPathResolver,
+            _workspaceRootPathProvider,
             listeners: [],
             LoggerFactory,
             projectManager);
@@ -139,7 +141,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            _directoryPathResolver,
+            _workspaceRootPathProvider,
             listeners: [],
             LoggerFactory,
             projectManager);
@@ -170,7 +172,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            _directoryPathResolver,
+            _workspaceRootPathProvider,
             listeners: [],
             LoggerFactory,
             projectManager,
@@ -202,7 +204,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            _directoryPathResolver,
+            _workspaceRootPathProvider,
             listeners: [],
             LoggerFactory,
             projectManager);
@@ -235,7 +237,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            _directoryPathResolver,
+            _workspaceRootPathProvider,
             listeners: [],
             LoggerFactory,
             projectManager);
@@ -276,7 +278,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            _directoryPathResolver,
+            _workspaceRootPathProvider,
             listeners: [],
             LoggerFactory,
             projectManager);
@@ -321,7 +323,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detectors = new[] { projectOpenDebugDetector, releaseDetector, postPublishDebugDetector };
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detectors[callCount++],
-            _directoryPathResolver,
+            _workspaceRootPathProvider,
             listeners: [],
             LoggerFactory,
             projectManager);
@@ -377,7 +379,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detectors = new[] { debug1Detector, debug2Detector, release1Detector };
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detectors[callCount++],
-            _directoryPathResolver,
+            _workspaceRootPathProvider,
             listeners: [],
             LoggerFactory,
             projectManager);
@@ -433,7 +435,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
         var detector = new TestFileChangeDetector();
         var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
             () => detector,
-            _directoryPathResolver,
+            _workspaceRootPathProvider,
             listeners: [],
             LoggerFactory,
             projectManager,
@@ -470,7 +472,7 @@ public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTes
 
     private class TestMonitorProjectConfigurationFilePathEndpoint(
         Func<IFileChangeDetector> fileChangeDetectorFactory,
-        WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
+        IWorkspaceRootPathProvider workspaceDirectoryPathResolver,
         IEnumerable<IProjectConfigurationFileChangeListener> listeners,
         ILoggerFactory loggerFactory,
         IProjectSnapshotManager projectManager,
