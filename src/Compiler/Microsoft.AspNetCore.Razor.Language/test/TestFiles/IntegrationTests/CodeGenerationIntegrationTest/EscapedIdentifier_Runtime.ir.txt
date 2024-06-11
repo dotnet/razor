@@ -8,16 +8,58 @@
             MethodDeclaration -  - public async - System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (33:1,0 [2] EscapedIdentifier.cshtml)
                     LazyIntermediateToken - (33:1,0 [2] EscapedIdentifier.cshtml) - Html - \n
-                CSharpCode - (37:2,2 [24] EscapedIdentifier.cshtml)
-                    LazyIntermediateToken - (37:2,2 [24] EscapedIdentifier.cshtml) - CSharp - \n    var count = "1";\n
-                TagHelper - (64:5,0 [39] EscapedIdentifier.cshtml) - input - TagMode.SelfClosing
+                CSharpCode - (37:2,2 [163] EscapedIdentifier.cshtml)
+                    LazyIntermediateToken - (37:2,2 [163] EscapedIdentifier.cshtml) - CSharp - \n    var count = "1";\n    var alive = true;\n    var obj = new { age = (object)1 };\n    var item = new { Items = new System.List<string>() { "one", "two" } };\n
+                TagHelper - (203:8,0 [55] EscapedIdentifier.cshtml) - input - TagMode.SelfClosing
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - InputTagHelper
-                    DefaultTagHelperProperty - (76:5,12 [23] EscapedIdentifier.cshtml) - age - int InputTagHelper.AgeProp - HtmlAttributeValueStyle.DoubleQuotes
-                        LazyIntermediateToken - (76:5,12 [16] EscapedIdentifier.cshtml) - CSharp - Convert.ToInt32(
-                        CSharpExpression - (92:5,28 [6] EscapedIdentifier.cshtml)
-                            LazyIntermediateToken - (92:5,28 [6] EscapedIdentifier.cshtml) - CSharp - @count
-                        LazyIntermediateToken - (98:5,34 [1] EscapedIdentifier.cshtml) - CSharp - )
+                    DefaultTagHelperProperty - (215:8,12 [23] EscapedIdentifier.cshtml) - age - int InputTagHelper.AgeProp - HtmlAttributeValueStyle.DoubleQuotes
+                        LazyIntermediateToken - (215:8,12 [16] EscapedIdentifier.cshtml) - CSharp - Convert.ToInt32(
+                        CSharpExpression - (231:8,28 [6] EscapedIdentifier.cshtml)
+                            LazyIntermediateToken - (231:8,28 [6] EscapedIdentifier.cshtml) - CSharp - @count
+                        LazyIntermediateToken - (237:8,34 [1] EscapedIdentifier.cshtml) - CSharp - )
+                    DefaultTagHelperProperty - (247:8,44 [7] EscapedIdentifier.cshtml) - alive - bool InputTagHelper.AliveProp - HtmlAttributeValueStyle.DoubleQuotes
+                        LazyIntermediateToken - (247:8,44 [1] EscapedIdentifier.cshtml) - CSharp - !
+                        CSharpExpression - (248:8,45 [6] EscapedIdentifier.cshtml)
+                            LazyIntermediateToken - (248:8,45 [6] EscapedIdentifier.cshtml) - CSharp - @alive
                     DefaultTagHelperExecute - 
-                HtmlContent - (103:5,39 [2] EscapedIdentifier.cshtml)
-                    LazyIntermediateToken - (103:5,39 [2] EscapedIdentifier.cshtml) - Html - \n
+                HtmlContent - (258:8,55 [2] EscapedIdentifier.cshtml)
+                    LazyIntermediateToken - (258:8,55 [2] EscapedIdentifier.cshtml) - Html - \n
+                TagHelper - (260:9,0 [55] EscapedIdentifier.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - InputTagHelper
+                    DefaultTagHelperProperty - (272:9,12 [13] EscapedIdentifier.cshtml) - age - int InputTagHelper.AgeProp - HtmlAttributeValueStyle.DoubleQuotes
+                        LazyIntermediateToken - (272:9,12 [5] EscapedIdentifier.cshtml) - CSharp - (int)
+                        CSharpExpression - (277:9,17 [8] EscapedIdentifier.cshtml)
+                            LazyIntermediateToken - (277:9,17 [8] EscapedIdentifier.cshtml) - CSharp - @obj.age
+                    DefaultTagHelperProperty - (292:9,32 [19] EscapedIdentifier.cshtml) - tag - object InputTagHelper.TagProp - HtmlAttributeValueStyle.DoubleQuotes
+                        LazyIntermediateToken - (292:9,32 [3] EscapedIdentifier.cshtml) - CSharp - new
+                        LazyIntermediateToken - (295:9,35 [2] EscapedIdentifier.cshtml) - CSharp -  {
+                        LazyIntermediateToken - (297:9,37 [1] EscapedIdentifier.cshtml) - CSharp -  
+                        CSharpExpression - (298:9,38 [7] EscapedIdentifier.cshtml)
+                            LazyIntermediateToken - (298:9,38 [7] EscapedIdentifier.cshtml) - CSharp - @params
+                        LazyIntermediateToken - (305:9,45 [2] EscapedIdentifier.cshtml) - CSharp -  =
+                        LazyIntermediateToken - (307:9,47 [2] EscapedIdentifier.cshtml) - CSharp -  1
+                        LazyIntermediateToken - (309:9,49 [2] EscapedIdentifier.cshtml) - CSharp -  }
+                    DefaultTagHelperExecute - 
+                HtmlContent - (315:9,55 [2] EscapedIdentifier.cshtml)
+                    LazyIntermediateToken - (315:9,55 [2] EscapedIdentifier.cshtml) - Html - \n
+                TagHelper - (317:10,0 [154] EscapedIdentifier.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - InputTagHelper
+                    DefaultTagHelperProperty - (343:10,26 [124] EscapedIdentifier.cshtml) - tuple-prefix-test - System.Collections.Generic.IDictionary<System.String, (System.Boolean, System.String)> InputTagHelper.DictionaryOfBoolAndStringTupleProperty - HtmlAttributeValueStyle.SingleQuotes
+                        LazyIntermediateToken - (343:10,26 [1] EscapedIdentifier.cshtml) - CSharp - (
+                        CSharpExpression - (344:10,27 [5] EscapedIdentifier.cshtml)
+                            LazyIntermediateToken - (344:10,27 [5] EscapedIdentifier.cshtml) - CSharp - @item
+                        LazyIntermediateToken - (349:10,32 [1] EscapedIdentifier.cshtml) - CSharp - .
+                        LazyIntermediateToken - (350:10,33 [35] EscapedIdentifier.cshtml) - CSharp -  Items.Where(i=>i.Contains("one")).
+                        LazyIntermediateToken - (385:10,68 [11] EscapedIdentifier.cshtml) - CSharp -  Count()>0,
+                        LazyIntermediateToken - (396:10,79 [1] EscapedIdentifier.cshtml) - CSharp -  
+                        CSharpExpression - (397:10,80 [5] EscapedIdentifier.cshtml)
+                            LazyIntermediateToken - (397:10,80 [5] EscapedIdentifier.cshtml) - CSharp - @item
+                        LazyIntermediateToken - (402:10,85 [1] EscapedIdentifier.cshtml) - CSharp - .
+                        LazyIntermediateToken - (403:10,86 [45] EscapedIdentifier.cshtml) - CSharp -  Items.FirstOrDefault(i=>i.Contains("one"))?.
+                        LazyIntermediateToken - (448:10,131 [19] EscapedIdentifier.cshtml) - CSharp -  Replace("one",""))
+                    DefaultTagHelperExecute - 
+                HtmlContent - (471:10,154 [2] EscapedIdentifier.cshtml)
+                    LazyIntermediateToken - (471:10,154 [2] EscapedIdentifier.cshtml) - Html - \n
