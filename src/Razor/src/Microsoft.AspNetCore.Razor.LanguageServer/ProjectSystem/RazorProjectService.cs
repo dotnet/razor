@@ -28,11 +28,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 /// Maintains the language server's <see cref="IProjectSnapshotManager"/> with the semantics of Razor's project model.
 /// </summary>
 /// <remarks>
-/// This service implements both <see cref="IRazorStartupService"/> to ensure it is created early and
-/// <see cref="IOnInitialized"/> to ensure that its initialization completes when the language server
-/// finishes initialization.
+/// This service implements both <see cref="IRazorStartupService"/> to ensure it is created early being initializing itself
+/// immediately.
 /// </remarks>
-internal partial class RazorProjectService : IRazorProjectService, IRazorProjectInfoListener, IRazorStartupService, IOnInitialized, IDisposable
+internal partial class RazorProjectService : IRazorProjectService, IRazorProjectInfoListener, IRazorStartupService, IDisposable
 {
     private readonly IRazorProjectInfoDriver _projectInfoDriver;
     private readonly IProjectSnapshotManager _projectManager;
@@ -95,11 +94,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         _logger.LogTrace($"{nameof(RazorProjectService)} initialized.");
 
     }
-
-    Task IOnInitialized.OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
-#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
-        => _initializeTask;
-#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
     // Call to ensure that any public IRazorProjectService methods wait for initialization to complete.
     private ValueTask WaitForInitializationAsync()
