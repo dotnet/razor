@@ -206,7 +206,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         {
         }
 
-        protected override Task SerializeProjectAsync(ProjectId projectId, CancellationToken ct)
+        protected override Task SerializeProjectAsync(ProjectId projectId, Solution solution, CancellationToken ct)
         {
             _serializeCalls.AddOrUpdate(projectId, 1, (id, curr) => curr + 1);
 

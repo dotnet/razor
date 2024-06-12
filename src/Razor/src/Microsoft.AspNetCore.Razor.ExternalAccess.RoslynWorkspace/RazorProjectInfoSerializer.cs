@@ -115,6 +115,7 @@ internal static class RazorProjectInfoSerializer
         if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
             !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
         {
+            logger?.LogTrace("Using default of latest language version");
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 

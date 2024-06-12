@@ -156,22 +156,25 @@ public class RazorWorkspaceListener : IDisposable
             return;
         }
 
+        var solution = _workspace.CurrentSolution;
+
         foreach (var projectId in projectIds.Distinct())
         {
-            await SerializeProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
+            await SerializeProjectAsync(projectId, solution, cancellationToken).ConfigureAwait(false);
         }
     }
 
     // Protected for testing
-    protected virtual Task SerializeProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+    protected virtual Task SerializeProjectAsync(ProjectId projectId, Solution solution, CancellationToken cancellationToken)
     {
-        var project = _workspace.AssumeNotNull().CurrentSolution.GetProject(projectId);
+        var project = solution.GetProject(projectId);
         if (project is null)
         {
-            _logger?.LogTrace("Project is not in workspace");
+            _logger?.LogTrace("Project {projectId} is not in workspace", projectId);
             return Task.CompletedTask;
         }
 
+        _logger?.LogTrace("Serializing information for {projectId}", projectId);
         return RazorProjectInfoSerializer.SerializeAsync(project, _projectInfoFileName.AssumeNotNull(), _logger, cancellationToken);
     }
 
