@@ -50,6 +50,11 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
 
     public void Dispose()
     {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
     }

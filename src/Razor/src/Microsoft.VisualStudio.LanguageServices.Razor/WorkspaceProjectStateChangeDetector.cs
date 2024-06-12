@@ -73,6 +73,11 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
 
     public void Dispose()
     {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         _projectManager.Changed -= ProjectManager_Changed;
         _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
 

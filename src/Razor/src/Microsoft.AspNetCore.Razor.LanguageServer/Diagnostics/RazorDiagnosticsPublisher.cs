@@ -83,6 +83,11 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
     public void Dispose()
     {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
     }
