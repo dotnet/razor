@@ -141,7 +141,7 @@ public class RazorWorkspaceListener : IDisposable
     {
         var solution = _workspace.AssumeNotNull().CurrentSolution;
 
-        foreach (var projectId in projectIds.Distinct())
+        foreach (var projectId in projectIds)
         {
             if (_disposeTokenSource.IsCancellationRequested)
             {
