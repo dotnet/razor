@@ -60,11 +60,6 @@ public class RazorWorkspaceListener : IDisposable
         {
             case WorkspaceChangeKind.SolutionChanged:
             case WorkspaceChangeKind.SolutionReloaded:
-                foreach (var project in e.OldSolution.Projects)
-                {
-                    RemoveProject(project);
-                }
-
                 foreach (var project in e.NewSolution.Projects)
                 {
                     EnqueueUpdate(project);
@@ -80,12 +75,7 @@ public class RazorWorkspaceListener : IDisposable
 
                 break;
 
-            case WorkspaceChangeKind.ProjectRemoved:
-                RemoveProject(e.OldSolution.GetProject(e.ProjectId));
-                break;
-
             case WorkspaceChangeKind.ProjectReloaded:
-                RemoveProject(e.OldSolution.GetProject(e.ProjectId));
                 EnqueueUpdate(e.NewSolution.GetProject(e.ProjectId));
                 break;
 
@@ -111,19 +101,8 @@ public class RazorWorkspaceListener : IDisposable
                 }
 
                 break;
-            case WorkspaceChangeKind.SolutionCleared:
-            case WorkspaceChangeKind.SolutionRemoved:
-                break;
             default:
                 break;
-        }
-    }
-
-    private void RemoveProject(Project? project)
-    {
-        if (project is null)
-        {
-            return;
         }
     }
 
