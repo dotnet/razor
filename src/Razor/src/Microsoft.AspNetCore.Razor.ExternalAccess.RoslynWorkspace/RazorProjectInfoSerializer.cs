@@ -59,7 +59,7 @@ internal static class RazorProjectInfoSerializer
         var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
 
         var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-        var configuration = ComputeRazorConfigurationOptions(options, out var defaultNamespace);
+        var configuration = ComputeRazorConfigurationOptions(options, logger, out var defaultNamespace);
 
         var fileSystem = RazorProjectFileSystem.Create(projectPath);
 
@@ -100,7 +100,7 @@ internal static class RazorProjectInfoSerializer
         WriteToFile(configurationFilePath, projectInfo, logger);
     }
 
-    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, out string defaultNamespace)
+    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, ILogger? logger, out string defaultNamespace)
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
