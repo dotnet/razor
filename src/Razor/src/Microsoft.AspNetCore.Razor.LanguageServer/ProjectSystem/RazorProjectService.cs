@@ -28,8 +28,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 /// Maintains the language server's <see cref="IProjectSnapshotManager"/> with the semantics of Razor's project model.
 /// </summary>
 /// <remarks>
-/// This service implements both <see cref="IRazorStartupService"/> to ensure it is created early being initializing itself
-/// immediately.
+/// This service implements <see cref="IRazorStartupService"/> to ensure it is created early so it can begin
+/// initializing immediately.
 /// </remarks>
 internal partial class RazorProjectService : IRazorProjectService, IRazorProjectInfoListener, IRazorStartupService, IDisposable
 {

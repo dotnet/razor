@@ -11,19 +11,23 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class MultiTargetProjectTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    protected override string TargetFrameworkElement => $"""<TargetFrameworks>net7.0;{TargetFramework}</TargetFrameworks>""";
+    private const string OtherTargetFramework = "net7.0";
+
+    protected override string TargetFrameworkElement => $"""<TargetFrameworks>{OtherTargetFramework};{TargetFramework}</TargetFrameworks>""";
 
     [IdeFact]
-    public async Task ValidateMultipleJsonFiles()
+    public async Task ValidateMultipleProjects()
     {
-        var solutionPath = await TestServices.SolutionExplorer.GetDirectoryNameAsync(ControlledHangMitigatingCancellationToken);
+        // This just verifies that there are actually two projects present with the same file path:
+        // one for each target framework.
 
-        // This is a little odd, but there is no "real" way to check this via VS, and one of the most important things this test can do
-        // is ensure that each target framework gets its own project.razor.bin file, and doesn't share one from a cache or anything.
-        Assert.Equal(2, GetProjectRazorJsonFileCount());
+        var projectKeyIds = await TestServices.RazorProjectSystem.GetProjectKeyIdsForProjectAsync(ProjectFilePath, ControlledHangMitigatingCancellationToken);
 
-        int GetProjectRazorJsonFileCount()
-            => Directory.EnumerateFiles(solutionPath, "project.razor.*.bin", SearchOption.AllDirectories).Count();
+        projectKeyIds = projectKeyIds.Sort();
+
+        Assert.Equal(2, projectKeyIds.Length);
+        Assert.Contains(OtherTargetFramework, projectKeyIds[0]);
+        Assert.Contains(TargetFramework, projectKeyIds[1]);
     }
 
     [IdeFact]
