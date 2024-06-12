@@ -17,13 +17,29 @@ public class RazorWorkspaceListener : IDisposable
     private string? _projectInfoFileName;
     private Workspace? _workspace;
     private ImmutableArray<ProjectId> _currentProjects = ImmutableArray<ProjectId>.Empty;
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private AsyncBatchingWorkQueue<ProjectId> _workQueue;
+    private readonly CancellationTokenSource _disposeTokenSource = new();
+    private readonly AsyncBatchingWorkQueue<ProjectId> _workQueue;
 
     public RazorWorkspaceListener(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(RazorWorkspaceListener));
-        _workQueue = new(TimeSpan.FromMilliseconds(500), UpdateCurrentProjectsAsync, _cancellationTokenSource.Token);
+        _workQueue = new(TimeSpan.FromMilliseconds(500), UpdateCurrentProjectsAsync, EqualityComparer<ProjectId>.Default, _disposeTokenSource.Token);
+    }
+
+    public void Dispose()
+    {
+        if (_workspace is not null)
+        {
+            _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
+        }
+
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
     }
 
     public void EnsureInitialized(Workspace workspace, string projectInfoFileName)
@@ -47,7 +63,7 @@ public class RazorWorkspaceListener : IDisposable
         if (_workspace is null || !_workspace.CurrentSolution.ContainsProject(projectId))
         {
             return;
-        }        
+        }
 
         // Schedule a task, in case adding a dynamic file is the last thing that happens
         _logger.LogTrace("{projectId} scheduling task due to dynamic file", projectId);
@@ -123,28 +139,21 @@ public class RazorWorkspaceListener : IDisposable
 
     private async ValueTask UpdateCurrentProjectsAsync(ImmutableArray<ProjectId> projectIds, CancellationToken cancellationToken)
     {
-        if (_workspace is null)
-        {
-            _logger?.LogTrace("No workspace available when trying to write project info");
-            return;
-        }
-
-        if (_projectInfoFileName is null)
-        {
-            _logger?.LogTrace("Don't know what filename to use");
-            return;
-        }
-
-        var solution = _workspace.CurrentSolution;
+        var solution = _workspace.AssumeNotNull().CurrentSolution;
 
         foreach (var projectId in projectIds.Distinct())
         {
+            if (_disposeTokenSource.IsCancellationRequested)
+            {
+                return;
+            }
+
             await SerializeProjectAsync(projectId, solution, cancellationToken).ConfigureAwait(false);
         }
     }
 
     // Protected for testing
-    protected virtual Task SerializeProjectAsync(ProjectId projectId, Solution solution, CancellationToken cancellationToken)
+    internal protected virtual Task SerializeProjectAsync(ProjectId projectId, Solution solution, CancellationToken cancellationToken)
     {
         var project = solution.GetProject(projectId);
         if (project is null)
@@ -155,16 +164,5 @@ public class RazorWorkspaceListener : IDisposable
 
         _logger?.LogTrace("Serializing information for {projectId}", projectId);
         return RazorProjectInfoSerializer.SerializeAsync(project, _projectInfoFileName.AssumeNotNull(), _logger, cancellationToken);
-    }
-
-    public void Dispose()
-    {
-        if (_workspace is not null)
-        {
-            _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
-        }
-
-        _cancellationTokenSource.Cancel();
-        _cancellationTokenSource.Dispose();
     }
 }
