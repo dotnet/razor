@@ -72,8 +72,6 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
 
         foreach (var filePath in existingConfigurationFiles)
         {
-            using var stream = File.OpenRead(filePath);
-
             var razorProjectInfo = await TryDeserializeAsync(filePath, cancellationToken).ConfigureAwait(false);
 
             if (razorProjectInfo is not null)
@@ -132,14 +130,11 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
             switch (changeKind)
             {
                 case ChangeKind.AddOrUpdate:
-                    using (var stream = File.OpenRead(filePath))
-                    {
-                        var razorProjectInfo = await TryDeserializeAsync(filePath, token).ConfigureAwait(false);
+                    var razorProjectInfo = await TryDeserializeAsync(filePath, token).ConfigureAwait(false);
 
-                        if (razorProjectInfo is not null)
-                        {
-                            EnqueueUpdate(razorProjectInfo);
-                        }
+                    if (razorProjectInfo is not null)
+                    {
+                        EnqueueUpdate(razorProjectInfo);
                     }
 
                     break;
