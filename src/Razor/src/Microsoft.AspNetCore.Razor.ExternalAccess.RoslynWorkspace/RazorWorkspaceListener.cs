@@ -16,7 +16,10 @@ public class RazorWorkspaceListener : IDisposable
 
     private string? _projectInfoFileName;
     private Workspace? _workspace;
-    private ImmutableArray<ProjectId> _currentProjects = ImmutableArray<ProjectId>.Empty;
+
+    // Use an immutable dictionary for ImmutableInterlocked operations. The value isn't checked, just
+    // the existance of the key so work is only done for projects with dynamic files.
+    private ImmutableDictionary<ProjectId, bool> _projectsWithDynamicFile = ImmutableDictionary<ProjectId, bool>.Empty;
     private readonly CancellationTokenSource _disposeTokenSource = new();
     private readonly AsyncBatchingWorkQueue<ProjectId> _workQueue;
 
@@ -65,6 +68,8 @@ public class RazorWorkspaceListener : IDisposable
             return;
         }
 
+        ImmutableInterlocked.GetOrAdd(ref _projectsWithDynamicFile, projectId, static (_) => true);
+
         // Schedule a task, in case adding a dynamic file is the last thing that happens
         _logger.LogTrace("{projectId} scheduling task due to dynamic file", projectId);
         _workQueue.AddWork(projectId);
@@ -95,6 +100,10 @@ public class RazorWorkspaceListener : IDisposable
                 EnqueueUpdate(e.NewSolution.GetProject(e.ProjectId));
                 break;
 
+            case WorkspaceChangeKind.ProjectRemoved:
+                RemoveProject(e.ProjectId.AssumeNotNull());
+                break;
+
             case WorkspaceChangeKind.ProjectAdded:
             case WorkspaceChangeKind.ProjectChanged:
             case WorkspaceChangeKind.DocumentAdded:
@@ -117,9 +126,24 @@ public class RazorWorkspaceListener : IDisposable
                 }
 
                 break;
+
+            case WorkspaceChangeKind.SolutionCleared:
+            case WorkspaceChangeKind.SolutionRemoved:
+                foreach (var project in e.OldSolution.Projects)
+                {
+                    RemoveProject(project.Id);
+                }
+
+                break;
+
             default:
                 break;
         }
+    }
+
+    private void RemoveProject(ProjectId projectId)
+    {
+        ImmutableInterlocked.TryRemove(ref _projectsWithDynamicFile, projectId, out var _);
     }
 
     private void EnqueueUpdate(Project? project)
@@ -129,6 +153,12 @@ public class RazorWorkspaceListener : IDisposable
             {
                 Language: LanguageNames.CSharp
             })
+        {
+            return;
+        }
+
+        // Don't queue work for projects that don't have a dynamic file
+        if (!_projectsWithDynamicFile.TryGetValue(project.Id, out var _))
         {
             return;
         }
@@ -148,21 +178,21 @@ public class RazorWorkspaceListener : IDisposable
                 return;
             }
 
-            await SerializeProjectAsync(projectId, solution, cancellationToken).ConfigureAwait(false);
+            var project = solution.GetProject(projectId);
+            if (project is null)
+            {
+                _logger?.LogTrace("Project {projectId} is not in workspace", projectId);
+                continue;
+            }
+
+            await SerializeProjectAsync(project, solution, cancellationToken).ConfigureAwait(false);
         }
     }
 
     // private protected for testing
-    private protected virtual Task SerializeProjectAsync(ProjectId projectId, Solution solution, CancellationToken cancellationToken)
+    private protected virtual Task SerializeProjectAsync(Project project, Solution solution, CancellationToken cancellationToken)
     {
-        var project = solution.GetProject(projectId);
-        if (project is null)
-        {
-            _logger?.LogTrace("Project {projectId} is not in workspace", projectId);
-            return Task.CompletedTask;
-        }
-
-        _logger?.LogTrace("Serializing information for {projectId}", projectId);
+        _logger?.LogTrace("Serializing information for {projectId}", project.Id);
         return RazorProjectInfoSerializer.SerializeAsync(project, _projectInfoFileName.AssumeNotNull(), _logger, cancellationToken);
     }
 }
