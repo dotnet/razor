@@ -8,5 +8,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal interface IWorkspaceRootPathProvider
 {
-    ValueTask<string> GetRootPathAsync(CancellationToken cancellationToken);
+    Task<string> GetRootPathAsync(CancellationToken cancellationToken);
 }

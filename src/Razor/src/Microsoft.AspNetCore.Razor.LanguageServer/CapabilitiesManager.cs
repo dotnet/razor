@@ -4,30 +4,44 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.RpcContracts.Settings;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class CapabilitiesManager(ILspServices lspServices)
-    : IInitializeManager<InitializeParams, InitializeResult>, IClientCapabilitiesService, IWorkspaceRootPathProvider
+internal sealed class CapabilitiesManager : IInitializeManager<InitializeParams, InitializeResult>, IClientCapabilitiesService, IWorkspaceRootPathProvider
 {
-    private readonly ILspServices _lspServices = lspServices;
-    private InitializeParams? _initializeParams;
+    private readonly ILspServices _lspServices;
+    private readonly TaskCompletionSource<InitializeParams> _initializeParamsTaskSource;
+    private readonly AsyncLazy<string> _lazyRootPath;
 
-    public bool HasInitialized => _initializeParams is not null;
+    public bool HasInitialized => _initializeParamsTaskSource.Task.IsCompleted;
 
     public bool CanGetClientCapabilities => HasInitialized;
 
     public VSInternalClientCapabilities ClientCapabilities => GetInitializeParams().Capabilities.ToVSInternalClientCapabilities();
 
+    public CapabilitiesManager(ILspServices lspServices)
+    {
+        _lspServices = lspServices;
+
+        _initializeParamsTaskSource = new();
+
+#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
+        _lazyRootPath = new(ComputeRootPathAsync);
+#pragma warning restore VSTHRD012
+    }
+
     public InitializeParams GetInitializeParams()
-        => _initializeParams ??
-           throw new InvalidOperationException($"{nameof(GetInitializeParams)} was called before '{Methods.InitializeName}'");
+    {
+        return _initializeParamsTaskSource.Task.VerifyCompleted();
+    }
 
     public InitializeResult GetInitializeResult()
     {
@@ -51,39 +65,32 @@ internal sealed class CapabilitiesManager(ILspServices lspServices)
 
     public void SetInitializeParams(InitializeParams request)
     {
-        _initializeParams = request ?? throw new ArgumentNullException(nameof(request));
-    }
-
-    public ValueTask<string> GetRootPathAsync(CancellationToken cancellationToken)
-    {
-        return HasInitialized
-            ? new(GetRootPath())
-            : new(GetRootPathCoreAsync(this, cancellationToken));
-
-        static async Task<string> GetRootPathCoreAsync(CapabilitiesManager manager, CancellationToken cancellationToken)
+        if (_initializeParamsTaskSource.Task.IsCompleted)
         {
-            while (!manager.HasInitialized)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Task.Delay(millisecondsDelay: 1, cancellationToken).ConfigureAwait(false);
-            }
-
-            return manager.GetRootPath();
+            throw new InvalidOperationException($"{nameof(SetInitializeParams)} already called.");
         }
+
+        _initializeParamsTaskSource.TrySetResult(request);
     }
 
-    private string GetRootPath()
+    private async Task<string> ComputeRootPathAsync()
     {
-        var initializeParams = GetInitializeParams();
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+        var initializeParams = await _initializeParamsTaskSource.Task.ConfigureAwaitRunInline();
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
-        if (initializeParams.RootUri is null)
+        if (initializeParams.RootUri is Uri rootUri)
         {
+            return rootUri.GetAbsoluteOrUNCPath();
+        }
+
+        // RootUri was added in LSP3, fall back to RootPath
+
 #pragma warning disable CS0618 // Type or member is obsolete
-            // RootUri was added in LSP3, fallback to RootPath
-            return initializeParams.RootPath.AssumeNotNull();
+        return initializeParams.RootPath.AssumeNotNull();
 #pragma warning restore CS0618 // Type or member is obsolete
-        }
-
-        return initializeParams.RootUri.GetAbsoluteOrUNCPath();
     }
+
+    public Task<string> GetRootPathAsync(CancellationToken cancellationToken)
+        => _lazyRootPath.GetValueAsync(cancellationToken);
 }
