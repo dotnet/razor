@@ -57,6 +57,8 @@ internal partial class FileWatcherBasedRazorProjectInfoDriver : AbstractRazorPro
             _fileSystemWatcher?.Dispose();
             _fileSystemWatcher = null;
         });
+
+        StartInitialization();
     }
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken)

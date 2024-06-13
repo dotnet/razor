@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Utilities;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -28,7 +29,7 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
     private readonly Dictionary<ProjectKey, RazorProjectInfo> _latestProjectInfoMap;
     private ImmutableArray<IRazorProjectInfoListener> _listeners;
-    private readonly Task _initializeTask;
+    private readonly TaskCompletionSource<bool> _initializationTaskSource;
 
     protected CancellationToken DisposalToken => _disposeTokenSource.Token;
 
@@ -40,7 +41,7 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
         _workQueue = new AsyncBatchingWorkQueue<Work>(delay ?? DefaultDelay, ProcessBatchAsync, _disposeTokenSource.Token);
         _latestProjectInfoMap = [];
         _listeners = [];
-        _initializeTask = InitializeAsync(_disposeTokenSource.Token);
+        _initializationTaskSource = new();
     }
 
     public void Dispose()
@@ -57,8 +58,27 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
     public Task WaitForInitializationAsync()
     {
 #pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
-        return _initializeTask;
+        return _initializationTaskSource.Task;
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
+    }
+
+    /// <summary>
+    /// MUST be called in the constructor of any <see cref="AbstractRazorProjectInfoDriver"/> descendent
+    /// to kick off initialization.
+    /// </summary>
+    protected void StartInitialization()
+    {
+        // Kick off initialization asynchronously and call TrySetResult(true) in the continuation.
+        InitializeAsync(_disposeTokenSource.Token)
+            .ContinueWith(
+                _ =>
+                {
+                    _initializationTaskSource.TrySetResult(true);
+                },
+                _disposeTokenSource.Token,
+                TaskContinuationOptions.OnlyOnRanToCompletion,
+                TaskScheduler.Default)
+            .Forget();
     }
 
     protected abstract Task InitializeAsync(CancellationToken cancellationToken);
@@ -125,7 +145,7 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
 
     public ImmutableArray<RazorProjectInfo> GetLatestProjectInfo()
     {
-        if (!_initializeTask.IsCompleted)
+        if (!_initializationTaskSource.Task.IsCompleted)
         {
             throw new InvalidOperationException($"{nameof(GetLatestProjectInfo)} cannot be called before initialization is complete.");
         }
@@ -145,7 +165,7 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
 
     public void AddListener(IRazorProjectInfoListener listener)
     {
-        if (!_initializeTask.IsCompleted)
+        if (!_initializationTaskSource.Task.IsCompleted)
         {
             throw new InvalidOperationException($"An {nameof(IRazorProjectInfoListener)} cannot be added before initialization is complete.");
         }

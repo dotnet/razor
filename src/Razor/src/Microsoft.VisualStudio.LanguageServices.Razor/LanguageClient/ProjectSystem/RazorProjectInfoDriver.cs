@@ -10,13 +10,19 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.ProjectSystem;
 
-internal sealed partial class RazorProjectInfoDriver(
-    IProjectSnapshotManager projectManager,
-    ILoggerFactory loggerFactory,
-    TimeSpan? delay = null)
-    : AbstractRazorProjectInfoDriver(loggerFactory, delay)
+internal sealed partial class RazorProjectInfoDriver : AbstractRazorProjectInfoDriver
 {
-    private readonly IProjectSnapshotManager _projectManager = projectManager;
+    private readonly IProjectSnapshotManager _projectManager;
+
+    public RazorProjectInfoDriver(
+        IProjectSnapshotManager projectManager,
+        ILoggerFactory loggerFactory,
+        TimeSpan? delay = null) : base(loggerFactory, delay)
+    {
+        _projectManager = projectManager;
+
+        StartInitialization();
+    }
 
     protected override Task InitializeAsync(CancellationToken cancellationToken)
     {
