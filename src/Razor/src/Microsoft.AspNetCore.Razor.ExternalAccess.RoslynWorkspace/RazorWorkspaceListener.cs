@@ -152,10 +152,8 @@ public class RazorWorkspaceListener : IDisposable
         }
     }
 
-    // Protected for testing
-#pragma warning disable RS0016 // Add public types and members to the declared API
-    internal protected virtual Task SerializeProjectAsync(ProjectId projectId, Solution solution, CancellationToken cancellationToken)
-#pragma warning restore RS0016 // Add public types and members to the declared API
+    // private protected for testing
+    private protected virtual Task SerializeProjectAsync(ProjectId projectId, Solution solution, CancellationToken cancellationToken)
     {
         var project = solution.GetProject(projectId);
         if (project is null)
