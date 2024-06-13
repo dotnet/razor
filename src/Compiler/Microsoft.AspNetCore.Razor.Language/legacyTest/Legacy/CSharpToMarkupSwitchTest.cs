@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -243,5 +244,105 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
                 }
             }
             """);
+    }
+
+    [Fact]
+    public void CodeBlocksTrailingWhitespace_01()
+    {
+        ParseDocumentTest("""
+            @code {
+            }
+
+            """, [ComponentCodeDirective.Directive]);
+    }
+
+    [Fact]
+    public void CodeBlocksTrailingWhitespace_02()
+    {
+        ParseDocumentTest("""
+            @code{
+            }                    
+
+            """, [ComponentCodeDirective.Directive]);
+    }
+
+    [Fact]
+    public void CodeBlocksTrailingWhitespace_03()
+    {
+        ParseDocumentTest("""
+            @code{
+            }                    @* comment *@
+
+            """, [ComponentCodeDirective.Directive]);
+    }
+
+    [Fact]
+    public void CodeBlocksTrailingWhitespace_04()
+    {
+        ParseDocumentTest("""
+            @code{
+            }
+            @* comment *@
+
+            """, [ComponentCodeDirective.Directive]);
+    }
+
+    [Fact]
+    public void CodeBlocksTrailingWhitespace_05()
+    {
+        ParseDocumentTest("""
+            @code {
+            }
+
+            @code {
+            }
+
+            """, [ComponentCodeDirective.Directive]);
+    }
+
+    [Fact]
+    public void CodeBlocksTrailingWhitespace_06()
+    {
+        ParseDocumentTest("""
+            @code {
+            }
+
+            <div></div>
+
+            """, [ComponentCodeDirective.Directive]);
+    }
+
+    [Fact]
+    public void CodeBlocksTrailingWhitespace_07()
+    {
+        ParseDocumentTest("""
+            @code {
+               
+            }
+            <div></div>
+
+            """, [ComponentCodeDirective.Directive]);
+    }
+
+    [Fact]
+    public void CodeBlocksTrailingWhitespace_08()
+    {
+        ParseDocumentTest("""
+            @code {
+               
+            }      <div></div>
+
+            """, [ComponentCodeDirective.Directive]);
+    }
+
+    [Fact]
+    public void CodeBlocksTrailingWhitespace_09()
+    {
+        ParseDocumentTest("""
+            @code {
+               
+            }<div></div>
+
+            """, [ComponentCodeDirective.Directive]);
     }
 }
