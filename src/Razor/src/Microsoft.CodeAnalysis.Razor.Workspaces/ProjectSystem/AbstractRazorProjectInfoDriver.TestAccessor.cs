@@ -3,13 +3,13 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal partial class ProjectConfigurationStateSynchronizer
+internal abstract partial class AbstractRazorProjectInfoDriver
 {
     internal TestAccessor GetTestAccessor() => new(this);
 
-    internal sealed class TestAccessor(ProjectConfigurationStateSynchronizer instance)
+    internal readonly struct TestAccessor(AbstractRazorProjectInfoDriver instance)
     {
         public Task WaitUntilCurrentBatchCompletesAsync()
             => instance._workQueue.WaitUntilCurrentBatchCompletesAsync();

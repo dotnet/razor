@@ -57,6 +57,11 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
     public void Dispose()
     {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
     }
