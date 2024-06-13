@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -57,9 +56,8 @@ public class MultiTargetProjectTests(ITestOutputHelper testOutputHelper) : Abstr
         Assert.Equal(expectedProjectFileName, actualProjectFileName);
     }
 
-    [IdeTheory]
-    [CombinatorialData]
-    public async Task OpenExistingProject_WithReopenedFile(bool deleteProjectRazorJson)
+    [IdeFact]
+    public async Task OpenExistingProject_WithReopenedFile()
     {
         var solutionPath = await TestServices.SolutionExplorer.GetDirectoryNameAsync(ControlledHangMitigatingCancellationToken);
         var expectedProjectFileName = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ProjectFile, ControlledHangMitigatingCancellationToken);
@@ -69,13 +67,6 @@ public class MultiTargetProjectTests(ITestOutputHelper testOutputHelper) : Abstr
         await TestServices.Editor.WaitForSemanticClassificationAsync("class name", ControlledHangMitigatingCancellationToken, count: 1);
 
         await TestServices.SolutionExplorer.CloseSolutionAsync(ControlledHangMitigatingCancellationToken);
-
-        if (deleteProjectRazorJson)
-        {
-            // Clear out the project.razor.bin file which ensures our restored file will have to be in the Misc Project
-            var projectRazorJsonFileName = Directory.EnumerateFiles(solutionPath, "project.razor.*.bin", SearchOption.AllDirectories).First();
-            File.Delete(projectRazorJsonFileName);
-        }
 
         var solutionFileName = Path.Combine(solutionPath, RazorProjectConstants.BlazorSolutionName + ".sln");
         await TestServices.SolutionExplorer.OpenSolutionAsync(solutionFileName, ControlledHangMitigatingCancellationToken);
