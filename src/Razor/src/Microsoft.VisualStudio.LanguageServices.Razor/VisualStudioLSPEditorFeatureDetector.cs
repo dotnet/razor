@@ -14,8 +14,6 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(LSPEditorFeatureDetector))]
 internal class VisualStudioLSPEditorFeatureDetector : LSPEditorFeatureDetector
 {
-    private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
-
     private static readonly Guid s_liveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
     private static readonly Guid s_liveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
 
@@ -37,11 +35,11 @@ internal class VisualStudioLSPEditorFeatureDetector : LSPEditorFeatureDetector
             var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
             Assumes.Present(settingsManager);
 
-            var useLegacyEditorSetting = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
+            var useLegacyEditorSetting = settingsManager.GetValueOrDefault<bool>(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
 
             if (useLegacyEditorSetting)
             {
-                activityLog.LogInfo($"Using Legacy Razor editor because the '{UseLegacyASPNETCoreEditorSetting}' setting is set to true.");
+                activityLog.LogInfo($"Using Legacy Razor editor because the '{WellKnownSettingNames.UseLegacyASPNETCoreEditor}' setting is set to true.");
                 return true;
             }
 
