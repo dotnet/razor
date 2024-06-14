@@ -147,7 +147,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     }
 
     private class TestLSPEditorFeatureDetector(RazorActivityLog activityLog)
-        : VisualStudioLSPEditorFeatureDetector(projectCapabilityResolver: null!, activityLog)
+        : VisualStudioLSPEditorFeatureDetector(activityLog)
     {
         public bool UseLegacyEditor { get; set; }
 
@@ -166,7 +166,5 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         private protected override bool IsLiveShareGuest() => IsLiveShareGuestValue;
 
         private protected override bool IsVSRemoteClient() => IsVSRemoteClientValue;
-
-        private protected override bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy? hierarchy) => ProjectSupportsLSPEditorValue;
     }
 }
