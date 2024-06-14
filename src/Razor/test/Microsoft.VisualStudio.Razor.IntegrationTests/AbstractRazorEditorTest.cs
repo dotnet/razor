@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
@@ -26,12 +27,15 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
     private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
     private ILogger? _testLogger;
+    private string? _projectFilePath;
 
     protected virtual bool ComponentClassificationExpected => true;
 
     protected virtual string TargetFramework => "net8.0";
 
     protected virtual string TargetFrameworkElement => $"""<TargetFramework>{TargetFramework}</TargetFramework>""";
+
+    protected string ProjectFilePath => _projectFilePath.AssumeNotNull();
 
     public override async Task InitializeAsync()
     {
@@ -43,15 +47,15 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
         VisualStudioLogging.AddCustomLoggers();
 
-        var projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
+        _projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
-        await TestServices.RazorProjectSystem.WaitForProjectFileAsync(projectFilePath, ControlledHangMitigatingCancellationToken);
+        await TestServices.RazorProjectSystem.WaitForProjectFileAsync(_projectFilePath, ControlledHangMitigatingCancellationToken);
 
         var razorFilePath = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
-        await TestServices.RazorProjectSystem.WaitForRazorFileInProjectAsync(projectFilePath, razorFilePath, ControlledHangMitigatingCancellationToken);
+        await TestServices.RazorProjectSystem.WaitForRazorFileInProjectAsync(_projectFilePath, razorFilePath, ControlledHangMitigatingCancellationToken);
 
         // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
         // way we know the LSP server is up, running, and has processed both local and library-sourced Components

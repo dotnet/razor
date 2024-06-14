@@ -59,6 +59,11 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
     public void Dispose()
     {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
     }

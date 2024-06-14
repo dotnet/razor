@@ -77,6 +77,11 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
 
     public void Dispose()
     {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
     }
