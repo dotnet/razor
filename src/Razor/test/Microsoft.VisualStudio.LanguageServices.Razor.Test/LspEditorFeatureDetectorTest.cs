@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor;
 
-public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
+public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     public static TheoryData<bool, bool, bool> IsLspEditorAvailableTestData { get; } = new()
     {
@@ -35,7 +35,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         var featureDetector = CreateLspEditorFeatureDetector(legacyEditorFeatureFlag, legacyEditorSetting);
 
         // Act
-        var result = featureDetector.IsLSPEditorAvailable();
+        var result = featureDetector.IsLspEditorAvailable();
 
         // Assert
         Assert.Equal(expectedResult, result);
@@ -110,7 +110,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     {
         uiContextService ??= CreateUIContextService();
 
-        var featureDetector = new VisualStudioLSPEditorFeatureDetector(
+        var featureDetector = new LspEditorFeatureDetector(
             CreateVsFeatureFlagsService(legacyEditorFeatureFlag),
             CreateVsSettingsManagerService(legacyEditorSetting),
             uiContextService,

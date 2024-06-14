@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(ILspEditorFeatureDetector))]
-internal sealed class VisualStudioLSPEditorFeatureDetector : ILspEditorFeatureDetector, IDisposable
+internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDisposable
 {
     private readonly IUIContextService _uiContextService;
     private readonly JoinableTaskFactory _jtf;
@@ -22,7 +22,7 @@ internal sealed class VisualStudioLSPEditorFeatureDetector : ILspEditorFeatureDe
     private readonly AsyncLazy<bool> _lazyUseLegacyEditorTask;
 
     [ImportingConstructor]
-    public VisualStudioLSPEditorFeatureDetector(
+    public LspEditorFeatureDetector(
         IVsService<SVsFeatureFlags, IVsFeatureFlags> vsFeatureFlagsService,
         IVsService<SVsSettingsPersistenceManager, ISettingsManager> vsSettingsManagerService,
         IUIContextService uiContextService,
@@ -79,7 +79,7 @@ internal sealed class VisualStudioLSPEditorFeatureDetector : ILspEditorFeatureDe
         return false;
     }
 
-    public bool IsLSPEditorAvailable()
+    public bool IsLspEditorAvailable()
     {
         // This method is first called by out IFilePathToContentTypeProvider.TryGetContentTypeForFilePath(...) implementations.
         // We call AsyncLazy<T>.GetValue() below to get the value. If the work hasn't yet completed, we guard against a hidden+

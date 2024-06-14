@@ -5,7 +5,7 @@ namespace Microsoft.VisualStudio.Razor;
 
 internal interface ILspEditorFeatureDetector
 {
-    bool IsLSPEditorAvailable();
+    bool IsLspEditorAvailable();
 
     /// <summary>
     /// A remote client is a LiveShare guest or a Codespaces instance
