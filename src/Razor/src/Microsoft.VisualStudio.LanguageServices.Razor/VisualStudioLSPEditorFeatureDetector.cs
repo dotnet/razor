@@ -47,14 +47,23 @@ internal class VisualStudioLSPEditorFeatureDetector : LSPEditorFeatureDetector
             var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, defaultValue: false);
             if (legacyEditorFeatureFlagEnabled)
             {
+                activityLog.LogInfo($"Using Legacy Razor editor because the '{LegacyRazorEditorFeatureFlag}' feature flag is enabled.");
                 return true;
             }
 
             var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
             Assumes.Present(settingsManager);
 
-            var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
-            return useLegacyEditor;
+            var useLegacyEditorSetting = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
+
+            if (useLegacyEditorSetting)
+            {
+                activityLog.LogInfo($"Using Legacy Razor editor because the '{UseLegacyASPNETCoreEditorSetting}' setting is set to true.");
+                return true;
+            }
+
+            activityLog.LogInfo($"Using LSP Razor editor.");
+            return false;
         });
 
         _activityLog = activityLog;
