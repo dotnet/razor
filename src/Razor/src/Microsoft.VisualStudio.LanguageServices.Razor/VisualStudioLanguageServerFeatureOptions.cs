@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(LanguageServerFeatureOptions))]
 internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
-    private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+    private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
@@ -21,7 +21,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _forceRuntimeCodeGeneration;
 
     [ImportingConstructor]
-    public VisualStudioLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
+    public VisualStudioLanguageServerFeatureOptions(ILspEditorFeatureDetector lspEditorFeatureDetector)
     {
         if (lspEditorFeatureDetector is null)
         {

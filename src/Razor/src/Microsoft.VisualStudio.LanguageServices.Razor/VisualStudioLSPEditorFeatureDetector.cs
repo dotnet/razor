@@ -3,7 +3,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Settings;
@@ -11,8 +10,8 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.Razor;
 
-[Export(typeof(LSPEditorFeatureDetector))]
-internal class VisualStudioLSPEditorFeatureDetector : LSPEditorFeatureDetector
+[Export(typeof(ILspEditorFeatureDetector))]
+internal class VisualStudioLSPEditorFeatureDetector : ILspEditorFeatureDetector
 {
     private static readonly Guid s_liveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
     private static readonly Guid s_liveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
@@ -48,11 +47,11 @@ internal class VisualStudioLSPEditorFeatureDetector : LSPEditorFeatureDetector
         });
     }
 
-    public override bool IsLSPEditorAvailable() => !_useLegacyEditor.Value;
+    public bool IsLSPEditorAvailable() => !_useLegacyEditor.Value;
 
-    public override bool IsRemoteClient() => IsVSRemoteClient() || IsLiveShareGuest();
+    public bool IsRemoteClient() => IsVSRemoteClient() || IsLiveShareGuest();
 
-    public override bool IsLiveShareHost()
+    public bool IsLiveShareHost()
     {
         var context = UIContext.FromUIContextGuid(s_liveShareHostUIContextGuid);
         return context.IsActive;

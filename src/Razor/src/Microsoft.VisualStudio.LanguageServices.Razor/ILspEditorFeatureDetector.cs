@@ -1,16 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.VisualStudio.Razor;
 
-internal abstract class LSPEditorFeatureDetector
+internal interface ILspEditorFeatureDetector
 {
-    public abstract bool IsLSPEditorAvailable();
+    bool IsLSPEditorAvailable();
 
     /// <summary>
     /// A remote client is a LiveShare guest or a Codespaces instance
     /// </summary>
-    public abstract bool IsRemoteClient();
+    bool IsRemoteClient();
 
-    public abstract bool IsLiveShareHost();
+    bool IsLiveShareHost();
 }
