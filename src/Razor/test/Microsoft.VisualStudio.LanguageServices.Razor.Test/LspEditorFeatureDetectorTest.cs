@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Threading;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Razor.Logging;
@@ -129,12 +129,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
             .Setup(x => x.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
             .Returns(useLegacyEditor);
 
-        var vsFeatureFlagsServiceMock = new StrictMock<IVsService<SVsFeatureFlags, IVsFeatureFlags>>();
-        vsFeatureFlagsServiceMock
-            .Setup(x => x.GetValueAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(vsFeatureFlagsMock.Object);
-
-        return vsFeatureFlagsServiceMock.Object;
+        return VsMocks.CreateVsService<SVsFeatureFlags, IVsFeatureFlags>(vsFeatureFlagsMock);
     }
 
     private static IVsService<SVsSettingsPersistenceManager, ISettingsManager> CreateVsSettingsManagerService(bool useLegacyEditor)
@@ -144,12 +139,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
             .Setup(x => x.GetValueOrDefault(WellKnownSettingNames.UseLegacyASPNETCoreEditor, It.IsAny<bool>()))
             .Returns(useLegacyEditor);
 
-        var vsSettingsManagerServiceMock = new StrictMock<IVsService<SVsSettingsPersistenceManager, ISettingsManager>>();
-        vsSettingsManagerServiceMock
-            .Setup(x => x.GetValueAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(vsSettingsManagerMock.Object);
-
-        return vsSettingsManagerServiceMock.Object;
+        return VsMocks.CreateVsService<SVsSettingsPersistenceManager, ISettingsManager>(vsSettingsManagerMock);
     }
 
     private static IUIContextService CreateUIContextService(
