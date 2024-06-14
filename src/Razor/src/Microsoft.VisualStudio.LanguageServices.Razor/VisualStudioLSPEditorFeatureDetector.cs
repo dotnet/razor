@@ -14,7 +14,6 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(LSPEditorFeatureDetector))]
 internal class VisualStudioLSPEditorFeatureDetector : LSPEditorFeatureDetector
 {
-    private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
     private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
     private static readonly Guid s_liveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
@@ -28,10 +27,10 @@ internal class VisualStudioLSPEditorFeatureDetector : LSPEditorFeatureDetector
         _useLegacyEditor = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, defaultValue: false);
+            var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, defaultValue: false);
             if (legacyEditorFeatureFlagEnabled)
             {
-                activityLog.LogInfo($"Using Legacy Razor editor because the '{LegacyRazorEditorFeatureFlag}' feature flag is enabled.");
+                activityLog.LogInfo($"Using Legacy Razor editor because the '{WellKnownFeatureFlagNames.UseLegacyRazorEditor}' feature flag is enabled.");
                 return true;
             }
 
