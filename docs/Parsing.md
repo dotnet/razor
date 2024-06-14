@@ -23,7 +23,7 @@ Using `^` to indicate whitespace:
 
 ```
 
-This would be previously be conceptually parsed as something like:
+This would previously be conceptually parsed as something like:
 
 ```text
 CSharpCode

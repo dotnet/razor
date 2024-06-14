@@ -3,8 +3,8 @@
 
 #nullable disable
 
-using System;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -246,7 +246,7 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
     public void CodeBlocksTrailingWhitespace_01()
     {
         ParseDocumentTest("""
@@ -256,7 +256,7 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """, [ComponentCodeDirective.Directive]);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
     public void CodeBlocksTrailingWhitespace_02()
     {
         ParseDocumentTest("""
@@ -266,7 +266,7 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """, [ComponentCodeDirective.Directive]);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
     public void CodeBlocksTrailingWhitespace_03()
     {
         ParseDocumentTest("""
@@ -276,7 +276,7 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """, [ComponentCodeDirective.Directive]);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
     public void CodeBlocksTrailingWhitespace_04()
     {
         ParseDocumentTest("""
@@ -287,7 +287,7 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """, [ComponentCodeDirective.Directive]);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
     public void CodeBlocksTrailingWhitespace_05()
     {
         ParseDocumentTest("""
@@ -300,7 +300,7 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """, [ComponentCodeDirective.Directive]);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
     public void CodeBlocksTrailingWhitespace_06()
     {
         ParseDocumentTest("""
@@ -312,7 +312,7 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """, [ComponentCodeDirective.Directive]);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
     public void CodeBlocksTrailingWhitespace_07()
     {
         ParseDocumentTest("""
@@ -324,7 +324,7 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """, [ComponentCodeDirective.Directive]);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
     public void CodeBlocksTrailingWhitespace_08()
     {
         ParseDocumentTest("""
@@ -335,7 +335,7 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """, [ComponentCodeDirective.Directive]);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
     public void CodeBlocksTrailingWhitespace_09()
     {
         ParseDocumentTest("""
@@ -344,5 +344,28 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             }<div></div>
 
             """, [ComponentCodeDirective.Directive]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10358")]
+    public void CodeBlocksTrailingWhitespace_10()
+    {
+        var tree1 = ParseDocument("""
+            @code{
+            }
+
+            """,
+            directives: [ComponentCodeDirective.Directive]);
+
+        var codeBlock = tree1.Root.ChildNodes()[0].ChildNodes()[1];
+        Assert.Equal("CSharpCodeBlockSyntax<CSharpCodeBlock> at 0::11", codeBlock.ToString());
+
+        var children = codeBlock.ChildNodes();
+        Assert.Equal(2, children.Count);
+
+        var directive = children[0];
+        Assert.Equal("RazorDirectiveSyntax<RazorDirective> at 0::9", directive.ToString());
+
+        var whitespace = children[1];
+        Assert.Equal("RazorMetaCodeSyntax<RazorMetaCode> at 9::2", whitespace.ToString());
     }
 }
