@@ -6,12 +6,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.CodeAnalysis.Razor.Utilities;
+namespace Microsoft.AspNetCore.Razor.Utilities;
 
 // NOTE: This code is derived from dotnet/roslyn:
 // https://github.com/dotnet/roslyn/blob/98cd097bf122677378692ebe952b71ab6e5bb013/src/Workspaces/Core/Portable/Shared/Utilities/AsyncBatchingWorkQueue%602.cs
