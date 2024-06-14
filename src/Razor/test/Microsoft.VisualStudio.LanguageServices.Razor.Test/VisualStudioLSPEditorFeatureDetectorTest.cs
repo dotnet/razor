@@ -1,8 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Threading;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Razor.Logging;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Moq;
@@ -13,51 +18,28 @@ namespace Microsoft.VisualStudio.Razor;
 
 public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    [UIFact]
-    public void IsLSPEditorAvailable_ProjectSupported_ReturnsTrue()
+    [UITheory]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    public void IsLspEditorAvailable(bool legacyEditorFeatureFlag, bool legacyEditorSetting, bool expected)
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            ProjectSupportsLSPEditorValue = true,
-        };
+        var featureDetector = CreateLspEditorFeatureDetector(legacyEditorFeatureFlag, legacyEditorSetting);
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
 
         // Assert
-        Assert.True(result);
-    }
-
-    [UIFact]
-    public void IsLSPEditorAvailable_LegacyEditorEnabled_ReturnsFalse()
-    {
-        // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            UseLegacyEditor = true,
-            ProjectSupportsLSPEditorValue = true,
-        };
-
-        // Act
-        var result = featureDetector.IsLSPEditorAvailable();
-
-        // Assert
-        Assert.False(result);
+        Assert.Equal(expected, result);
     }
 
     [UIFact]
     public void IsLSPEditorAvailable_IsVSRemoteClient_ReturnsTrue()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            IsVSRemoteClientValue = true,
-            ProjectSupportsLSPEditorValue = true,
-        };
+        var featureDetector = CreateLspEditorFeatureDetector();
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
@@ -70,11 +52,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsLSPEditorAvailable_UnsupportedProject_ReturnsFalse()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            ProjectSupportsLSPEditorValue = false,
-        };
+        var featureDetector = CreateLspEditorFeatureDetector();
 
         // Act
         var result = featureDetector.IsLSPEditorAvailable();
@@ -87,11 +65,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsRemoteClient_VSRemoteClient_ReturnsTrue()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            IsVSRemoteClientValue = true,
-        };
+        var featureDetector = CreateLspEditorFeatureDetector();
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -104,11 +78,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsRemoteClient_LiveShareGuest_ReturnsTrue()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog)
-        {
-            IsLiveShareGuestValue = true,
-        };
+        var featureDetector = CreateLspEditorFeatureDetector();
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -121,8 +91,7 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
     public void IsRemoteClient_UnknownEnvironment_ReturnsFalse()
     {
         // Arrange
-        using var activityLog = GetRazorActivityLog();
-        var featureDetector = new TestLSPEditorFeatureDetector(activityLog);
+        var featureDetector = CreateLspEditorFeatureDetector();
 
         // Act
         var result = featureDetector.IsRemoteClient();
@@ -131,11 +100,75 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
         Assert.False(result);
     }
 
-    private RazorActivityLog GetRazorActivityLog()
+    private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(bool featureFlagEnabled = false, bool useLegacyEditorSetting = false)
+    {
+        var featureDetector = new VisualStudioLSPEditorFeatureDetector(
+            CreateVsFeatureFlagsService(featureFlagEnabled),
+            CreateVsSettingsManagerService(useLegacyEditorSetting),
+            JoinableTaskContext,
+            CreateRazorActivityLog());
+
+        AddDisposable(featureDetector);
+
+        return featureDetector;
+    }
+
+    private static IVsService<SVsFeatureFlags, IVsFeatureFlags> CreateVsFeatureFlagsService(bool useLegacyEditor)
+    {
+        var vsFeatureFlagsMock = new StrictMock<IVsFeatureFlags>();
+        vsFeatureFlagsMock
+            .Setup(x => x.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
+            .Returns(useLegacyEditor);
+
+        var vsFeatureFlagsServiceMock = new StrictMock<IVsService<SVsFeatureFlags, IVsFeatureFlags>>();
+        vsFeatureFlagsServiceMock
+            .Setup(x => x.GetValueAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vsFeatureFlagsMock.Object);
+
+        return vsFeatureFlagsServiceMock.Object;
+    }
+
+    private static IVsService<SVsSettingsPersistenceManager, ISettingsManager> CreateVsSettingsManagerService(bool useLegacyEditor)
+    {
+        var vsSettingsManagerMock = new StrictMock<ISettingsManager>();
+        vsSettingsManagerMock
+            .Setup(x => x.GetValueOrDefault(WellKnownSettingNames.UseLegacyASPNETCoreEditor, It.IsAny<bool>()))
+            .Returns(useLegacyEditor);
+
+        var vsSettingsManagerServiceMock = new StrictMock<IVsService<SVsSettingsPersistenceManager, ISettingsManager>>();
+        vsSettingsManagerServiceMock
+            .Setup(x => x.GetValueAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vsSettingsManagerMock.Object);
+
+        return vsSettingsManagerServiceMock.Object;
+    }
+
+    private RazorActivityLog CreateRazorActivityLog()
     {
         var vsActivityLogMock = new StrictMock<IVsActivityLog>();
         vsActivityLogMock
             .Setup(x => x.LogEntry(It.IsAny<uint>(), "Razor", It.IsAny<string>()))
+            .Callback((uint entryType, string source, string description) =>
+            {
+                switch ((__ACTIVITYLOG_ENTRYTYPE)entryType)
+                {
+                    case __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR:
+                        Logger.LogError($"Error:{description}");
+                        break;
+
+                    case __ACTIVITYLOG_ENTRYTYPE.ALE_WARNING:
+                        Logger.LogError($"Warning:{description}");
+                        break;
+
+                    case __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION:
+                        Logger.LogError($"Info:{description}");
+                        break;
+
+                    default:
+                        Assumed.Unreachable();
+                        break;
+                }
+            })
             .Returns(VSConstants.S_OK);
 
         var serviceProviderMock = new StrictMock<IAsyncServiceProvider>();
@@ -143,28 +176,10 @@ public class VisualStudioLSPEditorFeatureDetectorTest(ITestOutputHelper testOutp
             .Setup(x => x.GetServiceAsync(typeof(SVsActivityLog)))
             .ReturnsAsync(vsActivityLogMock.Object);
 
-        return new RazorActivityLog(serviceProviderMock.Object, JoinableTaskContext);
-    }
+        var activityLog = new RazorActivityLog(serviceProviderMock.Object, JoinableTaskContext);
 
-    private class TestLSPEditorFeatureDetector(RazorActivityLog activityLog)
-        : VisualStudioLSPEditorFeatureDetector(activityLog)
-    {
-        public bool UseLegacyEditor { get; set; }
+        AddDisposable(activityLog);
 
-        public bool IsLiveShareGuestValue { get; set; }
-
-        public bool IsLiveShareHostValue { get; set; }
-
-        public bool IsVSRemoteClientValue { get; set; }
-
-        public bool ProjectSupportsLSPEditorValue { get; set; }
-
-        public override bool IsLSPEditorAvailable() => !UseLegacyEditor;
-
-        public override bool IsLiveShareHost() => IsLiveShareHostValue;
-
-        private protected override bool IsLiveShareGuest() => IsLiveShareGuestValue;
-
-        private protected override bool IsVSRemoteClient() => IsVSRemoteClientValue;
+        return activityLog;
     }
 }
