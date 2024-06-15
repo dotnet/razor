@@ -79,7 +79,7 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
         return false;
     }
 
-    public bool IsLspEditorAvailable()
+    public bool IsLspEditorEnabled()
     {
         // This method is first called by out IFilePathToContentTypeProvider.TryGetContentTypeForFilePath(...) implementations.
         // We call AsyncLazy<T>.GetValue() below to get the value. If the work hasn't yet completed, we guard against a hidden+

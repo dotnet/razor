@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor;
 
 public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public static TheoryData<bool, bool, bool> IsLspEditorAvailableTestData { get; } = new()
+    public static TheoryData<bool, bool, bool> IsLspEditorEnabledTestData { get; } = new()
     {
         // legacyEditorFeatureFlag, legacyEditorSetting, expectedResult
         { false, false, true },
@@ -28,14 +28,14 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     };
 
     [UITheory]
-    [MemberData(nameof(IsLspEditorAvailableTestData))]
-    public void IsLspEditorAvailable(bool legacyEditorFeatureFlag, bool legacyEditorSetting, bool expectedResult)
+    [MemberData(nameof(IsLspEditorEnabledTestData))]
+    public void IsLspEditorEnabled(bool legacyEditorFeatureFlag, bool legacyEditorSetting, bool expectedResult)
     {
         // Arrange
         var featureDetector = CreateLspEditorFeatureDetector(legacyEditorFeatureFlag, legacyEditorSetting);
 
         // Act
-        var result = featureDetector.IsLspEditorAvailable();
+        var result = featureDetector.IsLspEditorEnabled();
 
         // Assert
         Assert.Equal(expectedResult, result);
