@@ -16,13 +16,16 @@
     <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\TelemetryReporter.cs" Link="Telemetry\TelemetryReporter.cs" />
   </ItemGroup>
 
+  <!--
+    Additional runtime dependencies that we must include in the NuGet package as they are not a part of the main language server package.
+    Do not remove GeneratePathProperty="True" as it is required below to add the package to the package we generate.
+    -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" GeneratePathProperty="True" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(TargetPath)" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
