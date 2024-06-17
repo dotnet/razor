@@ -19,21 +19,21 @@ internal static class JsonHelpers
         {
             jObject[s_convertedFlag] = true;
             return JsonDocument.Parse(jObject.ToString()).RootElement;
-            //return JsonSerializer.SerializeToElement(JsonNode.Parse(jObject.ToString()));
+            // TODO: alternatively? return JsonSerializer.SerializeToElement(JsonNode.Parse(jObject.ToString()));
         }
 
         return data;
     }
 
     /// <summary>
-    /// Converts from JObject back to JsonElement, but only if the original conversion was done with <see cref="TryConvertFromJsonElement(object?)"/>
+    /// Converts from JObject back to JsonElement, but only if the original conversion was done with <see cref="TryConvertFromJObject(object?)"/>
     /// </summary>
     internal static object? TryConvertBackToJObject(object? data)
     {
-        if (codeAction.Data is JsonElement jsonElement &&
+        if (data is JsonElement jsonElement &&
             jsonElement.TryGetProperty(s_convertedFlag, out _))
         {
-            codeAction.Data = JObject.Parse(jsonElement.ToString());
+            data = JObject.Parse(jsonElement.ToString());
         }
 
         return data;

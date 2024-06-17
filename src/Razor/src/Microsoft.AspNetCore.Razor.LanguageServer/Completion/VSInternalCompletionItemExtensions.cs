@@ -33,10 +33,10 @@ internal static class VSInternalCompletionItemExtensions
         for (var i = 0; i < splitData.Count; i++)
         {
             var data = splitData[i];
-            if (data.TryGetPropertyValue(ResultIdKey, out var resultIdElement) &&
-                resultIdElement is not null)
+            if (data.TryGetProperty(ResultIdKey, out var resultIdElement) &&
+                resultIdElement.TryGetInt32(out var resultId))
             {
-                ids.Add(resultIdElement.GetValue<int>());
+                ids.Add(resultId);
             }
         }
 

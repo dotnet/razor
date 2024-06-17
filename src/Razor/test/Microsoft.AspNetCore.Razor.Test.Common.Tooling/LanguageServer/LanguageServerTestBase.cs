@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit.Abstractions;
 
@@ -30,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 public abstract class LanguageServerTestBase : ToolingTestBase
 {
-    private protected IRazorSpanMappingService { get; }
+    private protected IRazorSpanMappingService SpanMappingService { get; }
     private protected IFilePathService FilePathService { get; }
     private protected JsonSerializerOptions SerializerOptions { get; }
 

@@ -49,17 +49,7 @@ internal record SnippetCompletionData([property: JsonPropertyName(SnippetComplet
     {
         snippetCompletionData = data as SnippetCompletionData;
 
-        // TODO: Which one??
-        if (data is JsonObject jObject &&
-            jObject.TryGetPropertyValue(PropertyName, out _))
-        {
-            try
-            {
-                snippetCompletionData = jObject.Deserialize<SnippetCompletionData>();
-            }
-            catch { }
-        }
-        else if (data is JsonElement jElement &&
+        if (data is JsonElement jElement &&
             jElement.TryGetProperty(PropertyName, out _))
         {
             try

@@ -10,6 +10,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
@@ -78,7 +79,7 @@ internal static class CompletionListMerger
         return new MergedCompletionListData(data1, data2);
     }
 
-    public static bool TrySplit(object? data, [NotNullWhen(true)] out IReadOnlyList<JsonObject>? splitData)
+    public static bool TrySplit(object? data, [NotNullWhen(true)] out IReadOnlyList<JsonElement>? splitData)
     {
         if (data is null)
         {
@@ -86,7 +87,7 @@ internal static class CompletionListMerger
             return false;
         }
 
-        var collector = new List<JsonObject>();
+        var collector = new List<JsonElement>();
         Split(data, collector);
 
         if (collector.Count == 0)
@@ -99,7 +100,7 @@ internal static class CompletionListMerger
         return true;
     }
 
-    private static void Split(object data, List<JsonObject> collector)
+    private static void Split(object data, List<JsonElement> collector)
     {
         if (data is MergedCompletionListData mergedData)
         {
@@ -116,7 +117,7 @@ internal static class CompletionListMerger
         TrySplitJObject(data, collector);
     }
 
-    private static void TrySplitJsonElement(object data, List<JObject> collector)
+    private static void TrySplitJsonElement(object data, List<JsonElement> collector)
     {
         if (data is not JsonElement jsonElement)
         {
@@ -140,22 +141,22 @@ internal static class CompletionListMerger
         }
         else
         {
-            collector.Add((JObject)JsonHelpers.TryConvertFromJsonElement(jsonElement).AssumeNotNull());
+            collector.Add(jsonElement);
         }
     }
 
-    private static void TrySplitJObject(object data, List<JObject> collector)
+    private static void TrySplitJObject(object data, List<JsonElement> collector)
     {
-        if (data is not JObject jobject)
+        if (data is not JObject jObject)
         {
             return;
         }
 
-        if ((jobject.ContainsKey(Data1Key) || jobject.ContainsKey(Data1Key.ToLowerInvariant())) &&
-            (jobject.ContainsKey(Data2Key) || jobject.ContainsKey(Data2Key.ToLowerInvariant())))
+        if ((jObject.ContainsKey(Data1Key) || jObject.ContainsKey(Data1Key.ToLowerInvariant())) &&
+            (jObject.ContainsKey(Data2Key) || jObject.ContainsKey(Data2Key.ToLowerInvariant())))
         {
             // Merged data
-            var mergedCompletionListData = jobject.Deserialize<MergedCompletionListData>();
+            var mergedCompletionListData = jObject.ToObject<MergedCompletionListData>();
 
             if (mergedCompletionListData is null)
             {
@@ -169,7 +170,7 @@ internal static class CompletionListMerger
         else
         {
             // Normal, non-merged data
-            collector.Add(jobject);
+            collector.Add(JsonDocument.Parse(jObject.ToString()).RootElement);
         }
     }
 

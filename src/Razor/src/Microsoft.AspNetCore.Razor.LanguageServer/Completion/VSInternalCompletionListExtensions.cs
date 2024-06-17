@@ -19,10 +19,10 @@ internal static class VSInternalCompletionListExtensions
         int resultId,
         VSInternalCompletionSetting? completionSetting)
     {
-        var data = new JsonObject()
+        var data = JsonSerializer.SerializeToElement(new JsonObject()
         {
             [ResultIdKey] = resultId,
-        };
+        });
 
         if (completionSetting?.CompletionList?.Data == true)
         {

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 /// <summary>
 /// A representation of a Roslyn TextChange that can be serialized with System.Text.Json.
 /// </summary>
-internal sealed class RazorTextChange
+internal sealed record RazorTextChange
 {
     [JsonPropertyName("start")]
     public int Start { get; set; }

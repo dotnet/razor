@@ -95,13 +95,6 @@ internal sealed class InlayHintService(IRazorDocumentMappingService documentMapp
     {
         var inlayHintWrapper = inlayHint.Data as RazorInlayHintWrapper;
 
-        // TODO: Which one??
-        if (inlayHintWrapper is null &&
-            inlayHint.Data is JsonObject dataObj)
-        {
-            inlayHintWrapper = dataObj.Deserialize<RazorInlayHintWrapper>();
-        }
-
         if (inlayHintWrapper is null &&
             inlayHint.Data is JsonElement dataElement)
         {
