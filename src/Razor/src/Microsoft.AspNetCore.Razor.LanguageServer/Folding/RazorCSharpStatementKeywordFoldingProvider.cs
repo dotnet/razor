@@ -20,6 +20,12 @@ internal sealed class RazorCSharpStatementKeywordFoldingProvider : AbstractSynta
 {
     protected override string GetCollapsedText(CSharpCodeBlockSyntax node)
     {
+        if (node.Children is [_, CSharpStatementLiteralSyntax literal, ..] &&
+            literal.LiteralTokens is [var keyword, ..])
+        {
+            return $"@{keyword.GetContent()}";
+        }
+
         return "@{...}";
     }
 
