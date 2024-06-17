@@ -40,6 +40,40 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
             """);
 
     [Fact]
+    public Task LockStatement()
+        => VerifyRazorFoldsAsync("""
+            [|@lock (new object()) {
+            }|]
+            """);
+
+    [Fact]
+    public Task UsingStatement()
+      => VerifyRazorFoldsAsync("""
+            [|@using (new object()) {
+            }|]
+            """);
+
+    [Fact]
+    public Task IfElseStatements()
+        // This is not great, but I'm parking it here to demonstrate current behaviour. The Razor syntax tree is really
+        // not doing us any favours with this. The "else" token is not even the first child of its parent!
+        // Would be good to get the compiler to revisit this.
+        => VerifyRazorFoldsAsync("""
+            <div>
+              [|@if (true) {
+                <div>
+                  Hello World
+                </div>
+                else {
+                <div>
+                    Goodbye World
+                </div>
+                }
+              }|]
+            </div>
+            """);
+
+    [Fact]
     public Task Usings()
         => VerifyRazorFoldsAsync("""
             [|@using System
@@ -166,7 +200,8 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
                 new UsingsFoldingRangeProvider(),
                 new RazorCodeBlockFoldingProvider(),
                 new RazorCSharpStatementFoldingProvider(),
-                new SectionDirectiveFoldingProvider()
+                new SectionDirectiveFoldingProvider(),
+                new RazorCSharpStatementKeywordFoldingProvider(),
             ],
             LoggerFactory);
 
