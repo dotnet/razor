@@ -156,6 +156,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         // Folding Range Providers
         services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
         services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementFoldingProvider>();
+        services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementKeywordFoldingProvider>();
         services.AddSingleton<IRazorFoldingRangeProvider, SectionDirectiveFoldingProvider>();
         services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
