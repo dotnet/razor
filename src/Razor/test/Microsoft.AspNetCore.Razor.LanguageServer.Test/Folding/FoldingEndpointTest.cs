@@ -19,6 +19,61 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
     [Fact]
+    public Task IfStatements()
+        => VerifyRazorFoldsAsync("""
+            <div>
+              [|@if (true) {
+                <div>
+                  Hello World
+                </div>
+              }|]
+            </div>
+
+            [|@if (true) {
+              <div>
+                Hello World
+              </div>
+            }|]
+
+            [|@if (true) {
+            }|]
+            """);
+
+    [Fact]
+    public Task LockStatement()
+        => VerifyRazorFoldsAsync("""
+            [|@lock (new object()) {
+            }|]
+            """);
+
+    [Fact]
+    public Task UsingStatement()
+      => VerifyRazorFoldsAsync("""
+            [|@using (new object()) {
+            }|]
+            """);
+
+    [Fact]
+    public Task IfElseStatements()
+        // This is not great, but I'm parking it here to demonstrate current behaviour. The Razor syntax tree is really
+        // not doing us any favours with this. The "else" token is not even the first child of its parent!
+        // Would be good to get the compiler to revisit this.
+        => VerifyRazorFoldsAsync("""
+            <div>
+              [|@if (true) {
+                <div>
+                  Hello World
+                </div>
+                else {
+                <div>
+                    Goodbye World
+                </div>
+                }
+              }|]
+            </div>
+            """);
+
+    [Fact]
     public Task Usings()
         => VerifyRazorFoldsAsync("""
             [|@using System
@@ -35,7 +90,7 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
 
     [Fact]
     public Task CSharpStatement()
-       => VerifyRazorFoldsAsync("""
+        => VerifyRazorFoldsAsync("""
             <p>hello!</p>
 
             [|@{
@@ -50,7 +105,7 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
 
     [Fact]
     public Task CSharpStatement_Nested()
-      => VerifyRazorFoldsAsync("""
+        => VerifyRazorFoldsAsync("""
             <p>hello!</p>
 
             <div>
@@ -69,7 +124,7 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
 
     [Fact]
     public Task CSharpStatement_NotSingleLine()
-    => VerifyRazorFoldsAsync("""
+        => VerifyRazorFoldsAsync("""
             <p>hello!</p>
 
             @{ var helloWorld = ""; }
@@ -79,7 +134,7 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
 
     [Fact]
     public Task CodeBlock()
-       => VerifyRazorFoldsAsync("""
+        => VerifyRazorFoldsAsync("""
             <p>hello!</p>
 
             [|@code {
@@ -104,7 +159,7 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
 
     [Fact]
     public Task Section()
-       => VerifyRazorFoldsAsync("""
+        => VerifyRazorFoldsAsync("""
             <p>hello!</p>
 
             [|@section Hello {
@@ -113,11 +168,11 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
 
             <p>hello!</p>
             """,
-           filePath: "C:/path/to/file.cshtml");
+            filePath: "C:/path/to/file.cshtml");
 
     [Fact]
     public Task Section_Invalid()
-      => VerifyRazorFoldsAsync("""
+        => VerifyRazorFoldsAsync("""
             <p>hello!</p>
 
             @section {
@@ -126,7 +181,7 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
 
             <p>hello!</p>
             """,
-          filePath: "C:/path/to/file.cshtml");
+            filePath: "C:/path/to/file.cshtml");
 
     private async Task VerifyRazorFoldsAsync(string input, string? filePath = null)
     {
@@ -145,7 +200,8 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
                 new UsingsFoldingRangeProvider(),
                 new RazorCodeBlockFoldingProvider(),
                 new RazorCSharpStatementFoldingProvider(),
-                new SectionDirectiveFoldingProvider()
+                new SectionDirectiveFoldingProvider(),
+                new RazorCSharpStatementKeywordFoldingProvider(),
             ],
             LoggerFactory);
 
