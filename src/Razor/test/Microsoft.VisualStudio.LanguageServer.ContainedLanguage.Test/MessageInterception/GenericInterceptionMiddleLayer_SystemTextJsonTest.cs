@@ -2,22 +2,20 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.WebTools.Languages.Shared.VS.Test.LanguageServer.MiddleLayerProviders;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
-public class InterceptionMiddleLayerTest : ToolingTestBase
+public class GenericInterceptionMiddleLayer_SystemTextJsonTest : ToolingTestBase
 {
-    public InterceptionMiddleLayerTest(ITestOutputHelper testOutput)
+    public GenericInterceptionMiddleLayer_SystemTextJsonTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -25,7 +23,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
     [Fact]
     public void Ctor_NullInterceptorManager_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => new InterceptionMiddleLayer(null!, "test"));
+        Assert.Throws<ArgumentNullException>(() => new GenericInterceptionMiddleLayer<JsonElement>(null!, "test"));
     }
 
     [Theory]
@@ -34,7 +32,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
     public void Ctor_EmptyLanguageName_Throws(string? languageName)
     {
         var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
-        Assert.Throws<ArgumentException>(() => new InterceptionMiddleLayer(fakeInterceptorManager, languageName!));
+        Assert.Throws<ArgumentException>(() => new GenericInterceptionMiddleLayer<JsonElement>(fakeInterceptorManager, languageName!));
     }
 
     [Theory]
@@ -45,7 +43,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
         var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
         Mock.Get(fakeInterceptorManager).Setup(x => x.HasInterceptor("testMessage", "testLanguage"))
                                         .Returns(value);
-        var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
+        var sut = new GenericInterceptionMiddleLayer<JsonElement>(fakeInterceptorManager, "testLanguage");
 
         var result = sut.CanHandle("testMessage");
 
@@ -53,21 +51,21 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
     }
 
     [Fact]
-    public async Task HandleNotificationAsync_IfInterceptorReturnsNull_DoesNotSendNotification()
+    public async Task HandleNotificationAsync_IfInterceptorReturnsDefault_DoesNotSendNotification()
     {
         var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
         Mock.Get(fakeInterceptorManager)
             .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
             .Returns(true);
         Mock.Get(fakeInterceptorManager)
-            .Setup(x => x.ProcessInterceptorsAsync(
+            .Setup(x => x.ProcessGenericInterceptorsAsync<JsonElement>(
                 "testMethod",
-                It.IsAny<JToken>(),
+                It.IsAny<JsonElement>(),
                 "testLanguage",
                 CancellationToken.None))
-            .ReturnsAsync(value: null);
-        var token = JToken.Parse("{}");
-        var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
+            .ReturnsAsync(value: default);
+        var token = JsonDocument.Parse("{}").RootElement;
+        var sut = new GenericInterceptionMiddleLayer<JsonElement>(fakeInterceptorManager, "testLanguage");
         var sentNotification = false;
 
         await sut.HandleNotificationAsync("testMethod", token, (_) =>
@@ -82,21 +80,21 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
     [Fact]
     public async Task HandleNotificationAsync_IfInterceptorReturnsToken_SendsNotificationWithToken()
     {
-        var token = JToken.Parse("{}");
-        var expected = JToken.Parse("\"expected\"");
-        JToken? actual = null;
+        var token = JsonDocument.Parse("{}").RootElement;
+        var expected = JsonDocument.Parse("\"expected\"").RootElement;
+        JsonElement? actual = null;
         var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
         Mock.Get(fakeInterceptorManager)
             .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
             .Returns(true);
         Mock.Get(fakeInterceptorManager)
-            .Setup(x => x.ProcessInterceptorsAsync(
+            .Setup(x => x.ProcessGenericInterceptorsAsync<JsonElement>(
                 "testMethod",
-                It.IsAny<JToken>(),
+                It.IsAny<JsonElement>(),
                 "testLanguage",
                 CancellationToken.None))
             .ReturnsAsync(expected);
-        var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
+        var sut = new GenericInterceptionMiddleLayer<JsonElement>(fakeInterceptorManager, "testLanguage");
 
         await sut.HandleNotificationAsync("testMethod", token, (t) =>
         {
