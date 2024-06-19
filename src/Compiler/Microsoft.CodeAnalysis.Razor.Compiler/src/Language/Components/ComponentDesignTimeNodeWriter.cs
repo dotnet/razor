@@ -746,12 +746,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         using (context.CodeWriter.BuildLinePragma(attributeSourceSpan, context))
         {
             context.CodeWriter.WritePadding(0, attributeSourceSpan, context);
-            // Escape the property name in case it's a C# keyword
-            if (CSharpSyntaxFacts.GetKeywordKind(node.PropertyName) != CSharpSyntaxKind.None ||
-                CSharpSyntaxFacts.GetContextualKeywordKind(node.PropertyName) != CSharpSyntaxKind.None)
-            {
-                context.CodeWriter.Write("@");
-            }
+            context.CodeWriter.WriteIdentifierEscapeIfNeeded(node.PropertyName);
             context.AddSourceMappingFor(attributeSourceSpan);
             context.CodeWriter.WriteLine(node.PropertyName);
         }

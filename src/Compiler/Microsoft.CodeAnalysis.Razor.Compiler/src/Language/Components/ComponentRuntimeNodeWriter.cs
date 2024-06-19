@@ -600,7 +600,21 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.Write("(");
         context.CodeWriter.Write((_sourceSequence++).ToString(CultureInfo.InvariantCulture));
         context.CodeWriter.Write(", ");
-        context.CodeWriter.WriteStringLiteral(node.AttributeName);
+
+        if(node.BoundAttribute?.ContainingType is string containingType)
+        {
+            // nameof(containingType.PropertyName)
+            context.CodeWriter.Write("nameof(");
+            TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, containingType);
+            context.CodeWriter.Write(".");
+            context.CodeWriter.WriteIdentifierEscapeIfNeeded(node.PropertyName);
+            context.CodeWriter.Write(node.PropertyName);
+            context.CodeWriter.Write(")");
+        }
+        else
+        {
+            context.CodeWriter.WriteStringLiteral(node.AttributeName);
+        }
         context.CodeWriter.Write(", ");
 
         if (addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute)
