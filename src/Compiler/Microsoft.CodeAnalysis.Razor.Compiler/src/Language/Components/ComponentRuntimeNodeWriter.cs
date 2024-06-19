@@ -603,6 +603,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         if(node.BoundAttribute?.ContainingType is string containingType)
         {
+            containingType = node.Annotations[ComponentMetadata.Component.ConcreteContainingType] as string ?? containingType;
+
             // nameof(containingType.PropertyName)
             context.CodeWriter.Write("nameof(");
             TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, containingType);
