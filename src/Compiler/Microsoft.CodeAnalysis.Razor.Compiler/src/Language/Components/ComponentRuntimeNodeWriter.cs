@@ -530,6 +530,11 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         }
     }
 
+    public override void WriteComponentTypeInferenceMethod(CodeRenderingContext context, ComponentTypeInferenceMethodIntermediateNode node)
+    {
+        WriteComponentTypeInferenceMethod(context, node, returnComponentType: false, allowNameof: true);
+    }
+
     private void WriteTypeInferenceMethodParameterInnards(CodeRenderingContext context, TypeInferenceMethodParameter parameter)
     {
         switch (parameter.Source)
@@ -601,22 +606,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.Write((_sourceSequence++).ToString(CultureInfo.InvariantCulture));
         context.CodeWriter.Write(", ");
 
-        if(node.BoundAttribute?.ContainingType is string containingType)
-        {
-            containingType = node.Annotations[ComponentMetadata.Component.ConcreteContainingType] as string ?? containingType;
-
-            // nameof(containingType.PropertyName)
-            context.CodeWriter.Write("nameof(");
-            TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, containingType);
-            context.CodeWriter.Write(".");
-            context.CodeWriter.WriteIdentifierEscapeIfNeeded(node.PropertyName);
-            context.CodeWriter.Write(node.PropertyName);
-            context.CodeWriter.Write(")");
-        }
-        else
-        {
-            context.CodeWriter.WriteStringLiteral(node.AttributeName);
-        }
+        WriteComponentAttributeName(context, node);
         context.CodeWriter.Write(", ");
 
         if (addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute)
