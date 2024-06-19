@@ -79,7 +79,7 @@ namespace __Blazor.Test.TestComponent
         public static void CreateGrid_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, global::System.Collections.Generic.IEnumerable<TItem> __arg0, int __seq1, global::Microsoft.AspNetCore.Components.RenderFragment __arg1, int __seq2, object __arg2)
         {
         __builder.OpenComponent<global::Test.Grid<TItem>>(seq);
-        __builder.AddComponentParameter(__seq0, "Items", __arg0);
+        __builder.AddComponentParameter(__seq0, nameof(global::Test.Grid<TItem>.Items), __arg0);
         __builder.AddComponentParameter(__seq1, "ChildContent", __arg1);
         __builder.SetKey(__arg2);
         __builder.CloseComponent();

@@ -88,9 +88,9 @@ namespace __Blazor.Test.UseTestComponent
             where TItem3 : global::Image, new()
         {
         __builder.OpenComponent<global::Test.TestComponent<TItem1, TItem2, TItem3>>(seq);
-        __builder.AddComponentParameter(__seq0, "Item1", __arg0);
-        __builder.AddComponentParameter(__seq1, "Items2", __arg1);
-        __builder.AddComponentParameter(__seq2, "Item3", __arg2);
+        __builder.AddComponentParameter(__seq0, nameof(global::Test.TestComponent<TItem1, TItem2, TItem3>.Item1), __arg0);
+        __builder.AddComponentParameter(__seq1, nameof(global::Test.TestComponent<TItem1, TItem2, TItem3>.Items2), __arg1);
+        __builder.AddComponentParameter(__seq2, nameof(global::Test.TestComponent<TItem1, TItem2, TItem3>.Item3), __arg2);
         __builder.AddComponentParameter(__seq3, "ChildContent", __arg3);
         __builder.CloseComponent();
         }

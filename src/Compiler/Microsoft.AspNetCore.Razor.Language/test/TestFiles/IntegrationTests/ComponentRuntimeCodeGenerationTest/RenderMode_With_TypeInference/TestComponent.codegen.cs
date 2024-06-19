@@ -72,7 +72,7 @@ namespace __Blazor.Test.TestComponent
             where TRenderMode : global::Microsoft.AspNetCore.Components.IComponentRenderMode
         {
         __builder.OpenComponent<global::Test.TestComponent<TRenderMode>>(seq);
-        __builder.AddComponentParameter(__seq1, "RenderModeParam", __arg1);
+        __builder.AddComponentParameter(__seq1, nameof(global::Test.TestComponent<TRenderMode>.RenderModeParam), __arg1);
         __builder.AddComponentRenderMode(__arg0);
         __builder.CloseComponent();
         }

@@ -46,7 +46,7 @@ namespace __Blazor.Test.TestComponent
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
         __builder.AddComponentParameter(__seq0, "Title", __arg0);
-        __builder.AddComponentParameter(__seq1, "FieldName", __arg1);
+        __builder.AddComponentParameter(__seq1, nameof(global::Test.Column<TItem>.FieldName), __arg1);
         __builder.AddComponentParameter(__seq2, "Format", __arg2);
         __builder.AddComponentParameter(__seq3, "Width", __arg3);
         __builder.CloseComponent();

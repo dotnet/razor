@@ -71,11 +71,11 @@ namespace __Blazor.Test.TestComponent
         public static void CreateMyComponent_0<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, global::Test.MyClass<T> __arg0, int __seq1, global::System.Boolean __arg1, int __seq2, global::System.String __arg2, int __seq3, global::System.Delegate __arg3, int __seq4, global::System.Object __arg4)
         {
         __builder.OpenComponent<global::Test.MyComponent<T>>(seq);
-        __builder.AddAttribute(__seq0, "MyParameter", (object)__arg0);
-        __builder.AddAttribute(__seq1, "BoolParameter", (object)__arg1);
-        __builder.AddAttribute(__seq2, "StringParameter", (object)__arg2);
-        __builder.AddAttribute(__seq3, "DelegateParameter", (object)__arg3);
-        __builder.AddAttribute(__seq4, "ObjectParameter", (object)__arg4);
+        __builder.AddAttribute(__seq0, nameof(global::Test.MyComponent<T>.MyParameter), (object)__arg0);
+        __builder.AddAttribute(__seq1, nameof(global::Test.MyComponent<T>.BoolParameter), (object)__arg1);
+        __builder.AddAttribute(__seq2, nameof(global::Test.MyComponent<T>.StringParameter), (object)__arg2);
+        __builder.AddAttribute(__seq3, nameof(global::Test.MyComponent<T>.DelegateParameter), (object)__arg3);
+        __builder.AddAttribute(__seq4, nameof(global::Test.MyComponent<T>.ObjectParameter), (object)__arg4);
         __builder.CloseComponent();
         }
     }

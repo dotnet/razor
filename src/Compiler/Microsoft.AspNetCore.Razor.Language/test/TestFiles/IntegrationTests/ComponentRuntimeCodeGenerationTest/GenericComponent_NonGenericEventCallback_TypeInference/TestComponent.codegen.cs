@@ -52,8 +52,8 @@ namespace __Blazor.Test.TestComponent
         public static void CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0, int __seq1, global::Microsoft.AspNetCore.Components.EventCallback __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
-        __builder.AddComponentParameter(__seq0, "Item", __arg0);
-        __builder.AddComponentParameter(__seq1, "MyEvent", __arg1);
+        __builder.AddComponentParameter(__seq0, nameof(global::Test.MyComponent<TItem>.Item), __arg0);
+        __builder.AddComponentParameter(__seq1, nameof(global::Test.MyComponent<TItem>.MyEvent), __arg1);
         __builder.CloseComponent();
         }
     }

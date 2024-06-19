@@ -45,7 +45,7 @@ namespace __Blazor.Test.TestComponent
         public static void CreateGrid_0<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, global::System.Collections.Generic.Dictionary<global::X, T> __arg0, int __seq1, Microsoft.AspNetCore.Components.RenderFragment __arg1)
         {
         __builder.OpenComponent<global::Test.Grid<T>>(seq);
-        __builder.AddComponentParameter(__seq0, "Data", __arg0);
+        __builder.AddComponentParameter(__seq0, nameof(global::Test.Grid<T>.Data), __arg0);
         __builder.AddComponentParameter(__seq1, "ChildContent", __arg1);
         __builder.CloseComponent();
         }
