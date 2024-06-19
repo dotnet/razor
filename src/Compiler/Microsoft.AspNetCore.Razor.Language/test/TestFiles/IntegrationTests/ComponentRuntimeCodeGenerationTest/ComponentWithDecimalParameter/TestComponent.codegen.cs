@@ -30,7 +30,7 @@ TestDecimal
             __builder.CloseElement();
             __builder.AddMarkupContent(2, "\r\n\r\n");
             __builder.OpenComponent<global::Test.TestComponent>(3);
-            __builder.AddComponentParameter(4, "TestDecimal", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Decimal>(
+            __builder.AddComponentParameter(4, nameof(global::Test.TestComponent.TestDecimal), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Decimal>(
 #nullable restore
 #line (3,29)-(3,30) "x:\dir\subdir\Test\TestComponent.cshtml"
 4

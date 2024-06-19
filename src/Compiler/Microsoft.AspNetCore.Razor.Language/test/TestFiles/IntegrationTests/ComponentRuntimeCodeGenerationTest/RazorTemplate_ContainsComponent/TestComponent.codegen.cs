@@ -29,7 +29,7 @@ namespace Test
             (__builder2) => {
                 __builder2.OpenElement(0, "div");
                 __builder2.OpenComponent<global::Test.MyComponent>(1);
-                __builder2.AddComponentParameter(2, "Name", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
+                __builder2.AddComponentParameter(2, nameof(global::Test.MyComponent.Name), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
 #nullable restore
 #line (2,70)-(2,81) "x:\dir\subdir\Test\TestComponent.cshtml"
 person.Name

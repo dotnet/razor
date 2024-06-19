@@ -18,7 +18,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.CoolnessMeter>(0);
-            __builder.AddComponentParameter(1, "Coolness", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(
+            __builder.AddComponentParameter(1, nameof(global::Test.CoolnessMeter.Coolness), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(
 #nullable restore
 #line (1,28)-(1,39) "x:\dir\subdir\Test\TestComponent.cshtml"
 "very-cool"

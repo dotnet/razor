@@ -18,7 +18,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent>(0);
-            __builder.AddAttribute(1, "Value", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(
+            __builder.AddAttribute(1, nameof(global::Test.MyComponent.Value), (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(
 #nullable restore
 #line (1,31)-(1,42) "x:\dir\subdir\Test\TestComponent.cshtml"
 ParentValue
@@ -27,7 +27,7 @@ ParentValue
 #line hidden
 #nullable disable
             )));
-            __builder.AddAttribute(2, "ValueChanged", (object)((global::System.Action<System.Int32>)(
+            __builder.AddAttribute(2, nameof(global::Test.MyComponent.ValueChanged), (object)((global::System.Action<System.Int32>)(
 #nullable restore
 #line (1,61)-(1,72) "x:\dir\subdir\Test\TestComponent.cshtml"
 UpdateValue

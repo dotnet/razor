@@ -18,7 +18,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent>(0);
-            __builder.AddComponentParameter(1, "Message", "test");
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.Message), "test");
             __builder.AddComponentParameter(2, "mESSAGE", "test");
             __builder.CloseComponent();
         }
