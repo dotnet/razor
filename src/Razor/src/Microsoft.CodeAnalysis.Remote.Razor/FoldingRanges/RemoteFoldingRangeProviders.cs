@@ -16,6 +16,10 @@ internal sealed class RemoteRazorCSharpStatementFoldingProvider : RazorCSharpSta
 
 [Shared]
 [Export(typeof(IRazorFoldingRangeProvider))]
+internal sealed class RemoteRazorCSharpStatementKeywordFoldingProvider : RazorCSharpStatementKeywordFoldingProvider;
+
+[Shared]
+[Export(typeof(IRazorFoldingRangeProvider))]
 internal sealed class RemoteSectionDirectiveFoldingProvider : SectionDirectiveFoldingProvider;
 
 [Shared]

@@ -43,7 +43,12 @@ internal class FoldingRangeService(
 
             if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, span, out var mappedSpan))
             {
-                mappedRanges.Add(GetFoldingRange(mappedSpan, foldingRange.CollapsedText));
+                foldingRange.StartLine = mappedSpan.Start.Line;
+                foldingRange.StartCharacter = mappedSpan.Start.Character;
+                foldingRange.EndLine = mappedSpan.End.Line;
+                foldingRange.EndCharacter = mappedSpan.End.Character;
+
+                mappedRanges.Add(foldingRange);
             }
         }
 
@@ -114,14 +119,4 @@ internal class FoldingRangeService(
 
     private static LinePositionSpan GetLinePositionSpan(FoldingRange foldingRange)
         => new(new(foldingRange.StartLine, foldingRange.StartCharacter.GetValueOrDefault()), new(foldingRange.EndLine, foldingRange.EndCharacter.GetValueOrDefault()));
-
-    private static FoldingRange GetFoldingRange(LinePositionSpan range, string? collapsedText)
-        => new()
-        {
-            StartLine = range.Start.Line,
-            StartCharacter = range.Start.Character,
-            EndCharacter = range.End.Character,
-            EndLine = range.End.Line,
-            CollapsedText = collapsedText
-        };
 }
