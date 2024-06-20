@@ -111,7 +111,12 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
                 range,
                 out var mappedRange))
             {
-                mappedRanges.Add(GetFoldingRange(mappedRange, foldingRange.CollapsedText));
+                foldingRange.StartLine = mappedRange.Start.Line;
+                foldingRange.StartCharacter = mappedRange.Start.Character;
+                foldingRange.EndLine = mappedRange.End.Line;
+                foldingRange.EndCharacter = mappedRange.End.Character;
+
+                mappedRanges.Add(foldingRange);
             }
         }
 
@@ -199,14 +204,4 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
                 Line = foldingRange.EndLine
             }
         };
-
-    private static FoldingRange GetFoldingRange(Range range, string? collapsedText)
-       => new()
-       {
-           StartLine = range.Start.Line,
-           StartCharacter = range.Start.Character,
-           EndCharacter = range.End.Character,
-           EndLine = range.End.Line,
-           CollapsedText = collapsedText
-       };
 }
