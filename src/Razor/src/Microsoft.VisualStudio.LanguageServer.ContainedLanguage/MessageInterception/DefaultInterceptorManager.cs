@@ -30,7 +30,7 @@ internal sealed class DefaultInterceptorManager : InterceptorManager
         _lazyInterceptors = lazyInterceptors.ToList().AsReadOnly();
 #pragma warning restore CS0612 // Type or member is obsolete
 
-        _ = lazyGenericInterceptors ?? throw new ArgumentNullException(nameof(lazyInterceptors));
+        _ = lazyGenericInterceptors ?? throw new ArgumentNullException(nameof(lazyGenericInterceptors));
         _lazyGenericInterceptors = lazyGenericInterceptors.ToList().AsReadOnly();
     }
 
