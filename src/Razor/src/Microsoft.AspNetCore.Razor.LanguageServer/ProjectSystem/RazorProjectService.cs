@@ -19,30 +19,141 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal class RazorProjectService(
-    RemoteTextLoaderFactory remoteTextLoaderFactory,
-    ISnapshotResolver snapshotResolver,
-    IDocumentVersionCache documentVersionCache,
-    IProjectSnapshotManager projectManager,
-    ILoggerFactory loggerFactory)
-    : IRazorProjectService
+/// <summary>
+/// Maintains the language server's <see cref="IProjectSnapshotManager"/> with the semantics of Razor's project model.
+/// </summary>
+/// <remarks>
+/// This service implements <see cref="IRazorStartupService"/> to ensure it is created early so it can begin
+/// initializing immediately.
+/// </remarks>
+internal partial class RazorProjectService : IRazorProjectService, IRazorProjectInfoListener, IRazorStartupService, IDisposable
 {
-    private readonly IProjectSnapshotManager _projectManager = projectManager;
-    private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory = remoteTextLoaderFactory;
-    private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
-    private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorProjectService>();
+    private readonly IRazorProjectInfoDriver _projectInfoDriver;
+    private readonly IProjectSnapshotManager _projectManager;
+    private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
+    private readonly IDocumentVersionCache _documentVersionCache;
+    private readonly ILogger _logger;
 
-    public Task AddDocumentToMiscProjectAsync(string filePath, CancellationToken cancellationToken)
+    private readonly CancellationTokenSource _disposeTokenSource;
+    private readonly Task _initializeTask;
+
+    public RazorProjectService(
+        IProjectSnapshotManager projectManager,
+        IRazorProjectInfoDriver projectInfoDriver,
+        IDocumentVersionCache documentVersionCache,
+        RemoteTextLoaderFactory remoteTextLoaderFactory,
+        ILoggerFactory loggerFactory)
     {
-        return _projectManager.UpdateAsync(
-            updater: AddDocumentToMiscProjectCore,
-            state: filePath,
-            cancellationToken);
+        _projectInfoDriver = projectInfoDriver;
+        _projectManager = projectManager;
+        _remoteTextLoaderFactory = remoteTextLoaderFactory;
+        _documentVersionCache = documentVersionCache;
+        _logger = loggerFactory.GetOrCreateLogger<RazorProjectService>();
+
+        // We kick off initialization immediately to ensure that the IRazorProjectService
+        // is hot and ready to go when requests come in.
+        _disposeTokenSource = new();
+        _initializeTask = InitializeAsync(_disposeTokenSource.Token);
+    }
+
+    public void Dispose()
+    {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
+    }
+
+    private async Task InitializeAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogTrace($"Initializing {nameof(RazorProjectService)}...");
+
+        await _projectInfoDriver.WaitForInitializationAsync().ConfigureAwait(false);
+
+        // Register ourselves as a listener to the project driver.
+        _projectInfoDriver.AddListener(this);
+
+        // Add all existing projects from the driver.
+        foreach (var projectInfo in _projectInfoDriver.GetLatestProjectInfo())
+        {
+            await AddOrUpdateProjectCoreAsync(
+                projectInfo.ProjectKey,
+                projectInfo.FilePath,
+                projectInfo.Configuration,
+                projectInfo.RootNamespace,
+                projectInfo.DisplayName,
+                projectInfo.ProjectWorkspaceState,
+                projectInfo.Documents,
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        _logger.LogTrace($"{nameof(RazorProjectService)} initialized.");
+
+    }
+
+    // Call to ensure that any public IRazorProjectService methods wait for initialization to complete.
+    private ValueTask WaitForInitializationAsync()
+        => _initializeTask is { IsCompleted: true }
+            ? default
+            : new(_initializeTask);
+
+    async Task IRazorProjectInfoListener.UpdatedAsync(RazorProjectInfo projectInfo, CancellationToken cancellationToken)
+    {
+        // Don't update a project during initialization.
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        _logger.LogTrace($"{nameof(IRazorProjectInfoListener)} received update for {projectInfo.ProjectKey}");
+
+        await AddOrUpdateProjectCoreAsync(
+            projectInfo.ProjectKey,
+            projectInfo.FilePath,
+            projectInfo.Configuration,
+            projectInfo.RootNamespace,
+            projectInfo.DisplayName,
+            projectInfo.ProjectWorkspaceState,
+            projectInfo.Documents,
+            cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    async Task IRazorProjectInfoListener.RemovedAsync(ProjectKey projectKey, CancellationToken cancellationToken)
+    {
+        // Don't remove a project during initialization.
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        _logger.LogTrace($"{nameof(IRazorProjectInfoListener)} received remove for {projectKey}");
+
+        await AddOrUpdateProjectCoreAsync(
+            projectKey,
+            filePath: null,
+            configuration: null,
+            rootNamespace: null,
+            displayName: "",
+            ProjectWorkspaceState.Default,
+            documents: [],
+            cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task AddDocumentToMiscProjectAsync(string filePath, CancellationToken cancellationToken)
+    {
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        await _projectManager
+            .UpdateAsync(
+                updater: AddDocumentToMiscProjectCore,
+                state: filePath,
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private void AddDocumentToMiscProjectCore(ProjectSnapshotManager.Updater updater, string filePath)
@@ -50,7 +161,7 @@ internal class RazorProjectService(
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
         _logger.LogDebug($"Adding {filePath} to the miscellaneous files project, because we don't have project info (yet?)");
-        var miscFilesProject = _snapshotResolver.GetMiscellaneousProject();
+        var miscFilesProject = _projectManager.GetMiscellaneousProject();
 
         if (miscFilesProject.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not null)
         {
@@ -70,9 +181,11 @@ internal class RazorProjectService(
         updater.DocumentAdded(miscFilesProject.Key, hostDocument, textLoader);
     }
 
-    public Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
+    public async Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
     {
-        return _projectManager.UpdateAsync(
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        await _projectManager.UpdateAsync(
             updater =>
             {
                 var textDocumentPath = FilePathNormalizer.Normalize(filePath);
@@ -80,7 +193,7 @@ internal class RazorProjectService(
                 // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
                 // has been added to _any_ project. AddDocument will take care of adding to all of the necessary ones, and then below we ensure
                 // we process them all too
-                if (!_snapshotResolver.TryResolveDocumentInAnyProject(textDocumentPath, out var document))
+                if (!_projectManager.TryResolveDocumentInAnyProject(textDocumentPath, _logger, out var document))
                 {
                     // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
                     // processes and pre-initializes already open documents. We add this to the misc project, and
@@ -104,12 +217,15 @@ internal class RazorProjectService(
                         TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: true);
                     });
             },
-            cancellationToken);
+            cancellationToken)
+            .ConfigureAwait(false);
     }
 
-    public Task CloseDocumentAsync(string filePath, CancellationToken cancellationToken)
+    public async Task CloseDocumentAsync(string filePath, CancellationToken cancellationToken)
     {
-        return _projectManager.UpdateAsync(
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        await _projectManager.UpdateAsync(
             updater =>
             {
                 ActOnDocumentInMultipleProjects(
@@ -122,12 +238,15 @@ internal class RazorProjectService(
                         updater.DocumentClosed(projectSnapshot.Key, textDocumentPath, textLoader);
                     });
             },
-            cancellationToken);
+            cancellationToken)
+            .ConfigureAwait(false);
     }
 
-    public Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
+    public async Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
     {
-        return _projectManager.UpdateAsync(
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        await _projectManager.UpdateAsync(
             updater =>
             {
                 ActOnDocumentInMultipleProjects(
@@ -152,9 +271,9 @@ internal class RazorProjectService(
                         if (_projectManager.IsDocumentOpen(textDocumentPath))
                         {
                             _logger.LogInformation($"Moving document '{textDocumentPath}' from project '{projectSnapshot.Key}' to misc files because it is open.");
-                            var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
-                            if (projectSnapshot != miscellaneousProject)
+                            if (!MiscFilesHostProject.IsMiscellaneousProject(projectSnapshot))
                             {
+                                var miscellaneousProject = _projectManager.GetMiscellaneousProject();
                                 MoveDocument(updater, textDocumentPath, fromProject: projectSnapshot, toProject: miscellaneousProject);
                             }
                         }
@@ -166,12 +285,15 @@ internal class RazorProjectService(
                         }
                     });
             },
-            cancellationToken);
+            cancellationToken)
+            .ConfigureAwait(false);
     }
 
-    public Task UpdateDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
+    public async Task UpdateDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
     {
-        return _projectManager.UpdateAsync(
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        await _projectManager.UpdateAsync(
             updater =>
             {
                 ActOnDocumentInMultipleProjects(
@@ -191,15 +313,16 @@ internal class RazorProjectService(
                         TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: false);
                     });
             },
-            cancellationToken);
+            cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private void ActOnDocumentInMultipleProjects(string filePath, Action<IProjectSnapshot, string> action)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projects))
+        if (!_projectManager.TryResolveAllProjects(textDocumentPath, out var projects))
         {
-            var miscFilesProject = _snapshotResolver.GetMiscellaneousProject();
+            var miscFilesProject = _projectManager.GetMiscellaneousProject();
             projects = [miscFilesProject];
         }
 
@@ -209,7 +332,7 @@ internal class RazorProjectService(
         }
     }
 
-    public Task<ProjectKey> AddProjectAsync(
+    public async Task<ProjectKey> AddProjectAsync(
         string filePath,
         string intermediateOutputPath,
         RazorConfiguration? configuration,
@@ -217,9 +340,13 @@ internal class RazorProjectService(
         string? displayName,
         CancellationToken cancellationToken)
     {
-        return _projectManager.UpdateAsync(
-            updater => AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName),
-            cancellationToken);
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        return await _projectManager
+            .UpdateAsync(
+                updater => AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName),
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private ProjectKey AddProjectCore(ProjectSnapshotManager.Updater updater, string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace, string? displayName)
@@ -238,7 +365,7 @@ internal class RazorProjectService(
         return hostProject.Key;
     }
 
-    public Task UpdateProjectAsync(
+    public async Task UpdateProjectAsync(
         ProjectKey projectKey,
         RazorConfiguration? configuration,
         string? rootNamespace,
@@ -247,10 +374,21 @@ internal class RazorProjectService(
         ImmutableArray<DocumentSnapshotHandle> documents,
         CancellationToken cancellationToken)
     {
-        return AddOrUpdateProjectCoreAsync(projectKey, filePath: null, configuration, rootNamespace, displayName, projectWorkspaceState, documents, cancellationToken);
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        await AddOrUpdateProjectCoreAsync(
+            projectKey,
+            filePath: null,
+            configuration,
+            rootNamespace,
+            displayName,
+            projectWorkspaceState,
+            documents,
+            cancellationToken)
+            .ConfigureAwait(false);
     }
 
-    public Task AddOrUpdateProjectAsync(
+    public async Task AddOrUpdateProjectAsync(
        ProjectKey projectKey,
        string filePath,
        RazorConfiguration? configuration,
@@ -260,7 +398,18 @@ internal class RazorProjectService(
        ImmutableArray<DocumentSnapshotHandle> documents,
        CancellationToken cancellationToken)
     {
-        return AddOrUpdateProjectCoreAsync(projectKey, filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents, cancellationToken);
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        await AddOrUpdateProjectCoreAsync(
+            projectKey,
+            filePath,
+            configuration,
+            rootNamespace,
+            displayName,
+            projectWorkspaceState,
+            documents,
+            cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private Task AddOrUpdateProjectCoreAsync(
@@ -273,66 +422,68 @@ internal class RazorProjectService(
         ImmutableArray<DocumentSnapshotHandle> documents,
         CancellationToken cancellationToken)
     {
+        // Note: We specifically don't wait for initialization here because this is called *during* initialization.
+        // All other callers of this method must await WaitForInitializationAsync().
+
         return _projectManager.UpdateAsync(
-                    updater =>
+            updater =>
+            {
+                if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
+                {
+                    if (filePath is null)
                     {
-                        if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
-                        {
-                            if (filePath is null)
-                            {
-                                // Never tracked the project to begin with, noop.
-                                _logger.LogInformation($"Failed to update untracked project '{projectKey}'.");
-                                return;
+                        // Never tracked the project to begin with, noop.
+                        _logger.LogInformation($"Failed to update untracked project '{projectKey}'.");
+                        return;
+                    }
 
-                            }
+                    // If we've been given a project file path, then we have enough info to add the project ourselves, because we know
+                    // the intermediate output path from the id
+                    var intermediateOutputPath = projectKey.Id;
 
-                            // If we've been given a project file path, then we have enough info to add the project ourselves, because we know
-                            // the intermediate output path from the id
-                            var intermediateOutputPath = projectKey.Id;
+                    var newKey = AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName);
+                    Debug.Assert(newKey == projectKey);
 
-                            var newKey = AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName);
-                            Debug.Assert(newKey == projectKey);
+                    project = _projectManager.GetLoadedProject(projectKey);
+                }
 
-                            project = _projectManager.GetLoadedProject(projectKey);
-                        }
+                UpdateProjectDocuments(updater, documents, project.Key);
 
-                        UpdateProjectDocuments(updater, documents, project.Key);
+                if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
+                {
+                    _logger.LogInformation($"Updating project '{project.Key}' TagHelpers ({projectWorkspaceState.TagHelpers.Length}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).");
+                }
 
-                        if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
-                        {
-                            _logger.LogInformation($"Updating project '{project.Key}' TagHelpers ({projectWorkspaceState.TagHelpers.Length}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).");
-                        }
+                updater.ProjectWorkspaceStateChanged(project.Key, projectWorkspaceState);
 
-                        updater.ProjectWorkspaceStateChanged(project.Key, projectWorkspaceState);
+                var currentConfiguration = project.Configuration;
+                var currentRootNamespace = project.RootNamespace;
+                if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
+                    currentRootNamespace == rootNamespace)
+                {
+                    _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.");
+                    return;
+                }
 
-                        var currentConfiguration = project.Configuration;
-                        var currentRootNamespace = project.RootNamespace;
-                        if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
-                            currentRootNamespace == rootNamespace)
-                        {
-                            _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.");
-                            return;
-                        }
+                if (configuration is null)
+                {
+                    configuration = FallbackRazorConfiguration.Latest;
+                    _logger.LogInformation($"Updating project '{project.Key}' to use the latest configuration ('{configuration.ConfigurationName}')'.");
+                }
+                else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
+                {
+                    _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.");
+                }
 
-                        if (configuration is null)
-                        {
-                            configuration = FallbackRazorConfiguration.Latest;
-                            _logger.LogInformation($"Updating project '{project.Key}' to use the latest configuration ('{configuration.ConfigurationName}')'.");
-                        }
-                        else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
-                        {
-                            _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.");
-                        }
+                if (currentRootNamespace != rootNamespace)
+                {
+                    _logger.LogInformation($"Updating project '{project.Key}''s root namespace to '{rootNamespace}'.");
+                }
 
-                        if (currentRootNamespace != rootNamespace)
-                        {
-                            _logger.LogInformation($"Updating project '{project.Key}''s root namespace to '{rootNamespace}'.");
-                        }
-
-                        var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
-                        updater.ProjectConfigurationChanged(hostProject);
-                    },
-                    cancellationToken);
+                var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
+                updater.ProjectConfigurationChanged(hostProject);
+            },
+            cancellationToken);
     }
 
     private void UpdateProjectDocuments(
@@ -346,7 +497,7 @@ internal class RazorProjectService(
         var currentProjectKey = project.Key;
         var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(project.FilePath);
         var documentMap = documents.ToDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
-        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+        var miscellaneousProject = _projectManager.GetMiscellaneousProject();
 
         // "Remove" any unnecessary documents by putting them into the misc project
         foreach (var documentFilePath in project.DocumentFilePaths)
@@ -403,7 +554,7 @@ internal class RazorProjectService(
         }
 
         project = _projectManager.GetLoadedProject(project.Key);
-        miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+        miscellaneousProject = _projectManager.GetMiscellaneousProject();
 
         // Add (or migrate from misc) any new documents
         foreach (var documentKvp in documentMap)
@@ -482,11 +633,11 @@ internal class RazorProjectService(
 
     private void TryMigrateMiscellaneousDocumentsToProject(ProjectSnapshotManager.Updater updater)
     {
-        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
+        var miscellaneousProject = _projectManager.GetMiscellaneousProject();
 
         foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
         {
-            var projectSnapshot = _snapshotResolver.FindPotentialProjects(documentFilePath).FirstOrDefault();
+            var projectSnapshot = _projectManager.FindPotentialProjects(documentFilePath).FirstOrDefault();
             if (projectSnapshot is null)
             {
                 continue;
