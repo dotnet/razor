@@ -2,20 +2,17 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 
 /// <summary>
 /// Receives notification messages from the server and invokes any applicable message interception layers.
 /// </summary>
-#pragma warning disable CS0618 // Type or member is obsolete. Temporary for compatibility with ILanguageClientMiddleLayer
-[Obsolete("Please move to GenericInterceptionMiddleLayer and generic interceptors.")]
-public class InterceptionMiddleLayer : ILanguageClientMiddleLayer, ILanguageClientMiddleLayer2<JToken>
-#pragma warning restore CS0618 // Type or member is obsolete
+public class GenericInterceptionMiddleLayer<TJsonToken> : ILanguageClientMiddleLayer2<TJsonToken>
 {
     private readonly InterceptorManager _interceptorManager;
     private readonly string _contentType;
@@ -25,7 +22,7 @@ public class InterceptionMiddleLayer : ILanguageClientMiddleLayer, ILanguageClie
     /// </summary>
     /// <param name="interceptorManager">Interception manager</param>
     /// <param name="contentType">The content type name of the language for the ILanguageClient using this middle layer</param>
-    public InterceptionMiddleLayer(InterceptorManager interceptorManager, string contentType)
+    public GenericInterceptionMiddleLayer(InterceptorManager interceptorManager, string contentType)
     {
         _interceptorManager = interceptorManager ?? throw new ArgumentNullException(nameof(interceptorManager));
         _contentType = !string.IsNullOrEmpty(contentType) ? contentType : throw new ArgumentException("Cannot be empty", nameof(contentType));
@@ -36,31 +33,34 @@ public class InterceptionMiddleLayer : ILanguageClientMiddleLayer, ILanguageClie
         return _interceptorManager.HasInterceptor(methodName, _contentType);
     }
 
-    public async Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
+    public async Task HandleNotificationAsync(string methodName, TJsonToken methodParam, Func<TJsonToken, Task> sendNotification)
     {
         var payload = methodParam;
         if (CanHandle(methodName))
         {
-            payload = await _interceptorManager.ProcessInterceptorsAsync(methodName, methodParam, _contentType, CancellationToken.None);
+            payload = await _interceptorManager.ProcessGenericInterceptorsAsync(methodName, methodParam, _contentType, CancellationToken.None);
         }
 
-        if (payload is not null)
+        if (payload is not null &&
+            !EqualityComparer<TJsonToken>.Default.Equals(payload, default!))
         {
             // this completes the handshake to give the payload back to the client.
             await sendNotification(payload);
         }
     }
 
-    public async Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
+    public async Task<TJsonToken?> HandleRequestAsync(string methodName, TJsonToken methodParam, Func<TJsonToken, Task<TJsonToken?>> sendRequest)
     {
         // First send the request through.
         // We don't yet have a scenario where the request needs to be intercepted, but if one does come up, we may need to redesign the interception handshake
         // to handle both request and response interception.
         var response = await sendRequest(methodParam);
 
-        if (response is not null && CanHandle(methodName))
+        if (response is not null &&
+            !EqualityComparer<TJsonToken>.Default.Equals(response, default!) &&
+            CanHandle(methodName))
         {
-            response = await _interceptorManager.ProcessInterceptorsAsync(methodName, response, _contentType, CancellationToken.None);
+            response = await _interceptorManager.ProcessGenericInterceptorsAsync(methodName, response, _contentType, CancellationToken.None);
         }
 
         return response;
