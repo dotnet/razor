@@ -3,15 +3,12 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
@@ -42,7 +39,7 @@ public partial class OnAutoInsertEndpointTest
                 InsertSpaces = true
             },
         };
-        var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -85,7 +82,7 @@ public partial class OnAutoInsertEndpointTest
             },
         };
 
-        var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -130,7 +127,7 @@ public partial class OnAutoInsertEndpointTest
             },
         };
 
-        var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -166,7 +163,7 @@ public partial class OnAutoInsertEndpointTest
                 InsertSpaces = true
             },
         };
-        var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -201,7 +198,7 @@ public partial class OnAutoInsertEndpointTest
                 InsertSpaces = true
             },
         };
-        var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         _ = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -234,7 +231,7 @@ public partial class OnAutoInsertEndpointTest
                 InsertSpaces = true
             },
         };
-        var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         _ = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -349,21 +346,6 @@ public partial class OnAutoInsertEndpointTest
         await VerifyCSharpOnAutoInsertAsync(input, expected, character);
     }
 
-    private async Task<RazorRequestContext> CreateOnAutoInsertRequestContextAsync(VersionedDocumentContext? documentContext)
-    {
-        var lspServices = new Mock<ILspServices>(MockBehavior.Strict);
-        lspServices
-            .Setup(l => l.GetRequiredService<IAdhocWorkspaceFactory>()).Returns(TestAdhocWorkspaceFactory.Instance);
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
-        lspServices
-            .Setup(l => l.GetRequiredService<IRazorFormattingService>())
-            .Returns(formattingService);
-
-        var requestContext = CreateRazorRequestContext(documentContext, lspServices: lspServices.Object);
-
-        return requestContext;
-    }
-
     private async Task VerifyCSharpOnAutoInsertAsync(string input, string expected, string character)
     {
         TestFileMarkupParser.GetPosition(input, out input, out var cursorPosition);
@@ -391,7 +373,7 @@ public partial class OnAutoInsertEndpointTest
         };
         Assert.True(DocumentContextFactory.TryCreateForOpenDocument(@params.TextDocument, out var documentContext));
 
-        var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
