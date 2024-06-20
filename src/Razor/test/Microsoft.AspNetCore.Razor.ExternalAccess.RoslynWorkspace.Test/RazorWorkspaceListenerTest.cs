@@ -21,7 +21,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "temp.json");
+        listener.EnsureInitialized(workspace, "test");
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -37,7 +37,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "temp.json");
+        listener.EnsureInitialized(workspace, "test");
 
         var project1 = workspace.AddProject("TestProject1", LanguageNames.CSharp);
 
@@ -57,7 +57,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "temp.json");
+        listener.EnsureInitialized(workspace, "test");
 
         var project1 = workspace.AddProject("TestProject1", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project1.Id);
@@ -80,7 +80,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "temp.json");
+        listener.EnsureInitialized(workspace, "test");
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -101,7 +101,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "temp.json");
+        listener.EnsureInitialized(workspace, "test");
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -120,7 +120,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "temp.json");
+        listener.EnsureInitialized(workspace, "test");
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
 
@@ -139,7 +139,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "temp.json");
+        listener.EnsureInitialized(workspace, "test");
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -157,7 +157,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "temp.json");
+        listener.EnsureInitialized(workspace, "test");
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -184,7 +184,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         Assert.True(workspace.TryApplyChanges(newSolution));
 
         // Initialize everything now, in a deferred manner
-        listener.EnsureInitialized(workspace, "temp.json");
+        listener.EnsureInitialized(workspace, "test");
         listener.NotifyDynamicFile(project.Id);
 
         // We can't wait for debounce here, because it won't happen, but if we don't wait for _something_ we won't know
@@ -206,7 +206,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         {
         }
 
-        private protected override Task SerializeProjectAsync(Project project, Solution solution, CancellationToken ct)
+        private protected override Task UpdateProjectAsync(Project project, Solution solution, CancellationToken ct)
         {
             _serializeCalls.AddOrUpdate(project.Id, 1, (id, curr) => curr + 1);
 
