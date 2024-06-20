@@ -42,13 +42,15 @@ public sealed class RazorParserOptionsBuilder
 
     public bool ParseLeadingDirectives { get; set; }
 
+    public bool UseRoslynTokenizer { get; set; }
+
     public RazorLanguageVersion LanguageVersion { get; }
 
     internal bool EnableSpanEditHandlers { get; set; }
 
     public RazorParserOptions Build()
     {
-        return new RazorParserOptions(Directives.ToArray(), DesignTime, ParseLeadingDirectives, LanguageVersion, FileKind ?? FileKinds.Legacy, EnableSpanEditHandlers);
+        return new RazorParserOptions(Directives.ToArray(), DesignTime, ParseLeadingDirectives, UseRoslynTokenizer, LanguageVersion, FileKind ?? FileKinds.Legacy, EnableSpanEditHandlers);
     }
 
     public void SetDesignTime(bool designTime)

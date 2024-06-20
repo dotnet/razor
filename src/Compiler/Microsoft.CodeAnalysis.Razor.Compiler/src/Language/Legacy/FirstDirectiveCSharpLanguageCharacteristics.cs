@@ -13,5 +13,5 @@ internal class FirstDirectiveCSharpLanguageCharacteristics : LegacyCSharpLanguag
 
     public static new FirstDirectiveCSharpLanguageCharacteristics Instance { get; } = new FirstDirectiveCSharpLanguageCharacteristics();
 
-    public override LegacyCSharpTokenizer CreateTokenizer(SeekableTextReader source) => new DirectiveCSharpTokenizer(source);
+    public override CSharpTokenizer CreateTokenizer(SeekableTextReader source) => new DirectiveCSharpTokenizer(source);
 }

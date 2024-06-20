@@ -16,6 +16,7 @@ public sealed class RazorParserOptions
             Array.Empty<DirectiveDescriptor>(),
             designTime: false,
             parseLeadingDirectives: false,
+            useRoslynTokenizer: false,
             version: RazorLanguageVersion.Latest,
             fileKind: FileKinds.Legacy,
             enableSpanEditHandlers: false);
@@ -59,16 +60,22 @@ public sealed class RazorParserOptions
         return options;
     }
 
-    internal RazorParserOptions(DirectiveDescriptor[] directives, bool designTime, bool parseLeadingDirectives, RazorLanguageVersion version, string fileKind, bool enableSpanEditHandlers)
+    internal RazorParserOptions(DirectiveDescriptor[] directives, bool designTime, bool parseLeadingDirectives, bool useRoslynTokenizer, RazorLanguageVersion version, string fileKind, bool enableSpanEditHandlers)
     {
         if (directives == null)
         {
             throw new ArgumentNullException(nameof(directives));
         }
 
+        if (parseLeadingDirectives && useRoslynTokenizer)
+        {
+            throw new ArgumentException($"Cannot set {nameof(parseLeadingDirectives)} and {nameof(useRoslynTokenizer)} to true simultaneously.");
+        }
+
         Directives = directives;
         DesignTime = designTime;
         ParseLeadingDirectives = parseLeadingDirectives;
+        UseRoslynTokenizer = useRoslynTokenizer;
         Version = version;
         FeatureFlags = RazorParserFeatureFlags.Create(Version, fileKind);
         FileKind = fileKind;
@@ -88,6 +95,8 @@ public sealed class RazorParserOptions
     /// In a future release this may be updated to include all leading directive content.
     /// </remarks>
     public bool ParseLeadingDirectives { get; }
+
+    public bool UseRoslynTokenizer { get; }
 
     public RazorLanguageVersion Version { get; } = RazorLanguageVersion.Latest;
 

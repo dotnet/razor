@@ -42,6 +42,8 @@ internal partial class ParserContext
 
     public bool ParseLeadingDirectives { get; }
 
+    public bool UseRoslynTokenizer { get; }
+
     public bool EnableSpanEditHandlers { get; }
 
     public bool WhiteSpaceIsSignificantToAncestorBlock { get; set; }

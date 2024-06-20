@@ -33,6 +33,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         /// </summary>
         internal string? TestSuppressUniqueIds { get; set; }
 
+        internal bool UseRoslynTokenizer { get; set; } = true;
+
         public override int GetHashCode() => Configuration.GetHashCode();
     }
 }

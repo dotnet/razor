@@ -15,7 +15,7 @@ using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal class LegacyCSharpTokenizer : CSharpTokenizer
+internal class RoslynCSharpTokenizer : CSharpTokenizer
 {
     private readonly Dictionary<char, Func<SyntaxKind>> _operatorHandlers;
 
@@ -101,7 +101,7 @@ internal class LegacyCSharpTokenizer : CSharpTokenizer
             CSharpSyntaxKind.WhenKeyword,
             CSharpSyntaxKind.WhereKeyword }).ToFrozenDictionary(keySelector: k => SyntaxFacts.GetText(k));
 
-    public LegacyCSharpTokenizer(SeekableTextReader source)
+    public RoslynCSharpTokenizer(SeekableTextReader source)
         : base(source)
     {
         base.CurrentState = StartState;

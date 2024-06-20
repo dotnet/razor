@@ -26,11 +26,13 @@ public abstract class ParserTestBase : IParserTest
     // UTF-8 with BOM
     private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
     private readonly bool _validateSpanEditHandlers;
+    private readonly bool _useLegacyTokenizer;
 
-    internal ParserTestBase(TestProject.Layer layer, bool validateSpanEditHandlers = false)
+    internal ParserTestBase(TestProject.Layer layer, bool validateSpanEditHandlers = false, bool useLegacyTokenizer = false)
     {
         TestProjectRoot = TestProject.GetProjectDirectory(GetType(), layer);
         _validateSpanEditHandlers = validateSpanEditHandlers;
+        _useLegacyTokenizer = useLegacyTokenizer;
     }
 
     /// <summary>
@@ -196,7 +198,7 @@ public abstract class ParserTestBase : IParserTest
 
         var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
 
-        var options = CreateParserOptions(version, directives, designTime, _validateSpanEditHandlers, featureFlags, fileKind);
+        var options = CreateParserOptions(version, directives, designTime, _validateSpanEditHandlers, _useLegacyTokenizer, featureFlags, fileKind);
         var context = new ParserContext(source, options);
 
         var codeParser = new CSharpCodeParser(directives, context);
@@ -257,6 +259,7 @@ public abstract class ParserTestBase : IParserTest
         IEnumerable<DirectiveDescriptor> directives,
         bool designTime,
         bool enableSpanEditHandlers,
+        bool useLegacyTokenizer,
         RazorParserFeatureFlags featureFlags = null,
         string fileKind = null)
     {
@@ -265,6 +268,7 @@ public abstract class ParserTestBase : IParserTest
             directives.ToArray(),
             designTime,
             parseLeadingDirectives: false,
+            useRoslynTokenizer: !useLegacyTokenizer,
             version,
             fileKind,
             enableSpanEditHandlers)
