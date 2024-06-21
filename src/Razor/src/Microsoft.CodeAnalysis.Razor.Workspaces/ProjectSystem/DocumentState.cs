@@ -28,9 +28,11 @@ internal partial class DocumentState
     private Task<TextAndVersion>? _loaderTask;
     private SourceText? _sourceText;
     private VersionStamp? _version;
+    private readonly int _numericVersion;
 
     public static DocumentState Create(
         HostDocument hostDocument,
+        int numericVersion,
         Func<Task<TextAndVersion>>? loader)
     {
         if (hostDocument is null)
@@ -38,7 +40,19 @@ internal partial class DocumentState
             throw new ArgumentNullException(nameof(hostDocument));
         }
 
-        return new DocumentState(hostDocument, null, null, loader);
+        return new DocumentState(hostDocument, null, null, numericVersion, loader);
+    }
+
+    public static DocumentState Create(
+      HostDocument hostDocument,
+      Func<Task<TextAndVersion>>? loader)
+    {
+        if (hostDocument is null)
+        {
+            throw new ArgumentNullException(nameof(hostDocument));
+        }
+
+        return new DocumentState(hostDocument, null, null, 1, loader);
     }
 
     // Internal for testing
@@ -46,16 +60,19 @@ internal partial class DocumentState
         HostDocument hostDocument,
         SourceText? text,
         VersionStamp? version,
+        int numericVersion,
         Func<Task<TextAndVersion>>? loader)
     {
         HostDocument = hostDocument;
         _sourceText = text;
         _version = version;
+        _numericVersion = numericVersion;
         _loader = loader ?? EmptyLoader;
         _lock = new object();
     }
 
     public HostDocument HostDocument { get; }
+    public int Version => _numericVersion;
 
     public bool IsGeneratedOutputResultAvailable => ComputedState.IsResultAvailable == true;
 
@@ -152,12 +169,12 @@ internal partial class DocumentState
 
     public virtual DocumentState WithConfigurationChange()
     {
-        var state = new DocumentState(HostDocument, _sourceText, _version, _loader)
+        var state = new DocumentState(HostDocument, _sourceText, _version, _numericVersion + 1, _loader)
         {
             // The source could not have possibly changed.
             _sourceText = _sourceText,
             _version = _version,
-            _loaderTask = _loaderTask
+            _loaderTask = _loaderTask,
         };
 
         // Do not cache computed state
@@ -167,7 +184,7 @@ internal partial class DocumentState
 
     public virtual DocumentState WithImportsChange()
     {
-        var state = new DocumentState(HostDocument, _sourceText, _version, _loader)
+        var state = new DocumentState(HostDocument, _sourceText, _version, _numericVersion + 1, _loader)
         {
             // The source could not have possibly changed.
             _sourceText = _sourceText,
@@ -183,7 +200,7 @@ internal partial class DocumentState
 
     public virtual DocumentState WithProjectWorkspaceStateChange()
     {
-        var state = new DocumentState(HostDocument, _sourceText, _version, _loader)
+        var state = new DocumentState(HostDocument, _sourceText, _version, _numericVersion + 1, _loader)
         {
             // The source could not have possibly changed.
             _sourceText = _sourceText,
@@ -206,7 +223,7 @@ internal partial class DocumentState
 
         // Do not cache the computed state
 
-        return new DocumentState(HostDocument, sourceText, version, null);
+        return new DocumentState(HostDocument, sourceText, version, _numericVersion + 1, null);
     }
 
     public virtual DocumentState WithTextLoader(Func<Task<TextAndVersion>> loader)
@@ -218,7 +235,7 @@ internal partial class DocumentState
 
         // Do not cache the computed state
 
-        return new DocumentState(HostDocument, null, null, loader);
+        return new DocumentState(HostDocument, null, null, _numericVersion + 1, loader);
     }
 
     // Internal, because we are temporarily sharing code with CohostDocumentSnapshot
