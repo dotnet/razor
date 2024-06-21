@@ -32,7 +32,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     // Each of these is initialized by InitializeAsync() below.
 #nullable disable
     private TestProjectSnapshotManager _projectManager;
-    private DocumentVersionCache _documentVersionCache;
     private TestRazorProjectService _projectService;
 #nullable enable
 
@@ -41,7 +40,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         var projectEngineFactoryProvider = new LspProjectEngineFactoryProvider(optionsMonitor);
         _projectManager = CreateProjectSnapshotManager(projectEngineFactoryProvider);
-        _documentVersionCache = new DocumentVersionCache(_projectManager);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
         remoteTextLoaderFactoryMock
@@ -50,7 +48,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         _projectService = new TestRazorProjectService(
             remoteTextLoaderFactoryMock.Object,
-            _documentVersionCache,
             _projectManager,
             LoggerFactory);
 
@@ -850,13 +847,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     public async Task RemoveDocument_NoopsIfOwnerProjectDoesNotContainDocument()
     {
         // Arrange
-        const string ProjectFilePath = "C:/path/to/project.csproj";
-        const string IntermediateOutputPath = "C:/path/to/obj";
-        const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
-
-        var ownerProjectKey = await _projectService.AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
 
         using var listener = _projectManager.ListenToNotifications();
 
@@ -998,7 +989,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         listener.AssertNotifications(
             x => x.DocumentChanged(DocumentFilePath, ownerProject.Key));
 
-        var latestVersion = _documentVersionCache.GetLatestDocumentVersion(DocumentFilePath);
+        var latestVersion = _projectManager.GetLoadedProject(ownerProjectKey).GetDocument(DocumentFilePath)!.Version;// _documentVersionCache.GetLatestDocumentVersion(DocumentFilePath);
         Assert.Equal(43, latestVersion);
     }
 

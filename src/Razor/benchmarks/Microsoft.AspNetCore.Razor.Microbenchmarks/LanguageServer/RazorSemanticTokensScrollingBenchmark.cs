@@ -8,7 +8,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
@@ -22,8 +21,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmarkBase
 {
     private IRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
-
-    private IDocumentVersionCache VersionCache { get; set; }
 
     private VersionedDocumentContext DocumentContext { get; set; }
 
@@ -66,9 +63,6 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
     public async Task RazorSemanticTokensRangeScrollingAsync()
     {
         var cancellationToken = CancellationToken.None;
-        var documentVersion = 1;
-
-        VersionCache!.TrackDocumentVersion(DocumentSnapshot, documentVersion);
 
         var documentLineCount = Range.End.Line;
 
@@ -105,6 +99,5 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
     private void EnsureServicesInitialized()
     {
         RazorSemanticTokenService = RazorLanguageServerHost.GetRequiredService<IRazorSemanticTokensInfoService>();
-        VersionCache = RazorLanguageServerHost.GetRequiredService<IDocumentVersionCache>();
     }
 }

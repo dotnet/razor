@@ -624,8 +624,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
         var projectManager = CreateProjectSnapshotManager();
 
-        var documentVersionCache = new DocumentVersionCache(projectManager);
-        var documentContextFactory = new DocumentContextFactory(projectManager, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
         remoteTextLoaderFactoryMock
@@ -642,7 +641,6 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
         var projectService = new TestRazorProjectService(
             remoteTextLoaderFactoryMock.Object,
-            documentVersionCache,
             projectManager,
             LoggerFactory);
 

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -27,8 +26,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 {
     private IRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
-
-    private IDocumentVersionCache VersionCache { get; set; }
 
     private Uri DocumentUri => DocumentContext.Uri;
 
@@ -75,9 +72,6 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
     public async Task RazorSemanticTokensRangeAsync()
     {
         var cancellationToken = CancellationToken.None;
-        var documentVersion = 1;
-
-        VersionCache.TrackDocumentVersion(DocumentSnapshot, documentVersion);
 
         await RazorSemanticTokenService.GetSemanticTokensAsync(DocumentContext, Range.ToLinePositionSpan(), colorBackground: false, Guid.Empty, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
@@ -98,10 +92,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
     private void EnsureServicesInitialized()
     {
-        var capabilitiesService = new BenchmarkClientCapabilitiesService(new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
-        var legend = new RazorSemanticTokensLegendService(capabilitiesService);
         RazorSemanticTokenService = RazorLanguageServerHost.GetRequiredService<IRazorSemanticTokensInfoService>();
-        VersionCache = RazorLanguageServerHost.GetRequiredService<IDocumentVersionCache>();
     }
 
     internal class TestRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
