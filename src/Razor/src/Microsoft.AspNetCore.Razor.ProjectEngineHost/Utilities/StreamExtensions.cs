@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+
+#if !NET
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+#endif
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
@@ -73,7 +79,14 @@ internal static class StreamExtensions
         WriteProjectInfoAction(stream, ProjectInfoAction.Update);
 
         var bytes = projectInfo.Serialize();
-        var sizeBytes = BitConverter.GetBytes(bytes.Length);
+        using var _ = ArrayPool<byte>.Shared.GetPooledArray(4, out var sizeBytes);
+
+#if NET
+        BitConverter.TryWriteBytes(sizeBytes, bytes.Length);
+#else
+        // Pulled from https://github.com/dotnet/runtime/blob/4b9a1b2d956f4a10a28b8f5f3f725e76eb6fb826/src/libraries/System.Private.CoreLib/src/System/BitConverter.cs#L158C13-L158C87
+        Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(sizeBytes.AsSpan()), bytes.Length);
+#endif
 
         await stream.WriteAsync(sizeBytes, 0, sizeBytes.Length, cancellationToken).ConfigureAwait(false);
         await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
@@ -81,15 +94,14 @@ internal static class StreamExtensions
 
     public static async Task<RazorProjectInfo?> ReadProjectInfoAsync(this Stream stream, CancellationToken cancellationToken)
     {
-        var sizeBuffer = new byte[sizeof(int)];
+        using var _ = ArrayPool<byte>.Shared.GetPooledArray(4, out var sizeBytes);
+        await stream.ReadAsync(sizeBytes, 0, sizeBytes.Length, cancellationToken).ConfigureAwait(false);
 
-        await stream.ReadAsync(sizeBuffer, 0, sizeBuffer.Length, cancellationToken).ConfigureAwait(false);
+        var sizeToRead = BitConverter.ToInt32(sizeBytes, 0);
 
-        var sizeToRead = BitConverter.ToUInt32(sizeBuffer, 0);
-        var projectInfoBuffer = new byte[sizeToRead];
-
-        await stream.ReadAsync(projectInfoBuffer, 0, projectInfoBuffer.Length, cancellationToken).ConfigureAwait(false);
-        return RazorProjectInfo.DeserializeFrom(projectInfoBuffer.AsMemory());
+        using var _1 = ArrayPool<byte>.Shared.GetPooledArray(sizeToRead, out var projectInfoBytes);
+        await stream.ReadAsync(projectInfoBytes, 0, projectInfoBytes.Length, cancellationToken).ConfigureAwait(false);
+        return RazorProjectInfo.DeserializeFrom(projectInfoBytes.AsMemory());
     }
 
     private static void WriteSize(Stream stream, int length)
