@@ -243,7 +243,7 @@ internal class ProjectState
             return this;
         }
 
-        var documents = Documents.Add(hostDocument.FilePath, DocumentState.Create(hostDocument, loader));
+        var documents = Documents.Add(hostDocument.FilePath, DocumentState.Create(hostDocument, 1, loader));
 
         // Compute the effect on the import map
         var importTargetPaths = GetImportDocumentTargetPaths(hostDocument);
