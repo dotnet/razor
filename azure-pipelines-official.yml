@@ -15,11 +15,6 @@ variables:
 - name: RunIntegrationTests
   value: false
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-  - group: DotNetBuilds storage account read tokens
-  - name: _InternalRuntimeDownloadArgs
-    value: /p:DotNetRuntimeSourceFeed=https://dotnetbuilds.blob.core.windows.net/internal
-            /p:DotNetRuntimeSourceFeedKey=$(dotnetbuilds-internal-container-read-token-base64)
-
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
@@ -40,8 +35,6 @@ variables:
   - name: Codeql.Enabled
     value: true
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  - name: _InternalRuntimeDownloadArgs
-    value: ''
   - name: Codeql.Enabled
     value: false
   - name: Codeql.SkipTaskAutoInjection
@@ -123,15 +116,8 @@ extends:
                 inputs:
                   command: custom
                   arguments: 'locals all -clear'
-              - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-                - task: PowerShell@2
-                  displayName: Setup Private Feeds Credentials
-                  inputs:
-                    filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.ps1
-                    arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
-                  env:
-                    Token: $(dn-bot-dnceng-artifact-feeds-rw)
-              - powershell: ./restore.cmd -msbuildEngine dotnet -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
+
+              - powershell: ./restore.cmd -msbuildEngine dotnet -ci; ./eng/scripts/CodeCheck.ps1 -ci
                 displayName: Run eng/scripts/CodeCheck.ps1
 
       # Windows based jobs. This needs to be separate from Unix based jobs because it generates
@@ -212,14 +198,7 @@ extends:
                 devenv, xunit.console, xunit.console.x86
               displayName: Start background dump collection
 
-            - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-              - task: PowerShell@2
-                displayName: Setup Private Feeds Credentials
-                inputs:
-                  filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.ps1
-                  arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
-                env:
-                  Token: $(dn-bot-dnceng-artifact-feeds-rw)
+            - task: NuGetAuthenticate@1
 
             # Don't create a binary log until we can customize the name
             # https://github.com/dotnet/arcade/pull/12988
@@ -246,7 +225,6 @@ extends:
                 -sign
                 $(_BuildArgs)
                 $(_PublishArgs)
-                $(_InternalRuntimeDownloadArgs)
               name: Build
               displayName: Build and Deploy
               condition: succeeded()
@@ -366,7 +344,6 @@ extends:
                 --prepareMachine
                 --test
                 $(_BuildArgs)
-                $(_InternalRuntimeDownloadArgs)
               name: Build
               displayName: Restore, Build and Test
               condition: succeeded()
@@ -408,15 +385,7 @@ extends:
                   /p:OfficialBuildId=$(Build.BuildNumber)
 
             steps:
-            - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-              - task: Bash@3
-                displayName: Setup Private Feeds Credentials
-                inputs:
-                  filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
-                  arguments: $(Build.SourcesDirectory)/NuGet.config $Token
-                env:
-                  Token: $(dn-bot-dnceng-artifact-feeds-rw)
-
+            - task: NuGetAuthenticate@1
             - script: eng/cibuild.sh
                 --restore
                 --build
@@ -426,7 +395,6 @@ extends:
                 --prepareMachine
                 --test
                 $(_BuildArgs)
-                $(_InternalRuntimeDownloadArgs)
               name: Build
               displayName: Restore, Build and Test
               condition: succeeded()
