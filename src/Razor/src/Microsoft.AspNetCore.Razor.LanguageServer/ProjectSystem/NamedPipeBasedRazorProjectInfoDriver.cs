@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDriver
 {
-    NamedPipeClientStream? _stream;
+    NamedPipeClientStream? _namedPipe;
     Task? _readTask;
 
     public NamedPipeBasedRazorProjectInfoDriver(ILoggerFactory loggerFactory) : base(loggerFactory, TimeSpan.FromMilliseconds(200))
@@ -31,62 +31,52 @@ internal class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDr
     public async Task ConnectAsync(string pipeName, CancellationToken cancellationToken)
     {
         Logger.LogTrace($"Connecting to named pipe {pipeName}");
-        Debug.Assert(_stream is null);
+        Debug.Assert(_namedPipe is null);
 
 #if NET
-        _stream = new NamedPipeClientStream(".", pipeName, PipeDirection.In, PipeOptions.CurrentUserOnly);
+        _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In, PipeOptions.CurrentUserOnly);
 #else
-        _stream = new NamedPipeClientStream(".", pipeName, PipeDirection.In);
+        _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In);
 #endif
 
-        await _stream.ConnectAsync(cancellationToken).ConfigureAwait(false);
+        await _namedPipe.ConnectAsync(cancellationToken).ConfigureAwait(false);
 
-        _readTask = Task.Run(ReadFromStreamAsync);
+        _readTask = Task.Run(() => ReadFromStreamAsync(), cancellationToken);
     }
 
     protected override Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private async Task ReadFromStreamAsync()
+    private async Task ReadFromStreamAsync(CancellationToken cancellationToken = default)
     {
-        _stream.AssumeNotNull();
+        _namedPipe.AssumeNotNull();
 
         Logger?.LogTrace($"Starting read from named pipe.");
 
-        var sizeBuffer = new byte[sizeof(int)];
-        while (_stream.IsConnected)
+        while (_namedPipe.IsConnected && !cancellationToken.IsCancellationRequested)
         {
             try
             {
-                var actionByte = _stream.ReadByte();
-                if (actionByte == -1)
+                switch (_namedPipe.ReadProjectInfoAction())
                 {
-                    Logger?.LogTrace($"Named pipe is closed");
-                    return;
-                }
+                    case ProjectInfoAction.Remove:
+                        Logger?.LogTrace($"Attempting to read project id for removal");
+                        var id = await _namedPipe.ReadProjectInfoRemovalAsync(cancellationToken).ConfigureAwait(false);
+                        EnqueueRemove(new ProjectKey(id));
 
-                if (actionByte == 0)
-                {
-                    Logger?.LogTrace($"Attempting to read project id for removal");
-                    var id = await _stream.ReadStringAsync().ConfigureAwait(false);
-                    EnqueueRemove(new ProjectKey(id));
-                }
-                else
-                {
-                    Logger?.LogTrace($"Attempting to read project info for update");
-                    await _stream.ReadAsync(sizeBuffer, 0, sizeBuffer.Length).ConfigureAwait(false);
+                        break;
 
-                    var sizeToRead = BitConverter.ToUInt32(sizeBuffer, 0);
-                    Logger?.LogTrace($"Reading {sizeToRead} bytes of project info");
-                    var projectInfoBuffer = new byte[sizeToRead];
+                    case ProjectInfoAction.Update:
+                        Logger?.LogTrace($"Attempting to read project info for update");
+                        var projectInfo = await _namedPipe.ReadProjectInfoAsync(cancellationToken).ConfigureAwait(false);
+                        if (projectInfo is not null)
+                        {
+                            EnqueueUpdate(projectInfo);
+                        }
 
-                    await _stream.ReadAsync(projectInfoBuffer, 0, projectInfoBuffer.Length).ConfigureAwait(false);
-                    var projectInfo = TryDeserialize(projectInfoBuffer);
+                        break;
 
-                    Logger?.LogTrace($"Deserialized info for: {projectInfo?.FilePath ?? "null"}");
-                    if (projectInfo is not null)
-                    {
-                        EnqueueUpdate(projectInfo);
-                    }
+                    default:
+                        throw Assumes.NotReachable();
                 }
             }
             catch (Exception ex)
@@ -94,19 +84,5 @@ internal class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDr
                 Logger?.LogError(ex, $"{ex.Message}");
             }
         }
-    }
-
-    private RazorProjectInfo? TryDeserialize(byte[] bytes)
-    {
-        try
-        {
-            return RazorProjectInfo.DeserializeFrom(bytes.AsMemory());
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"Error occurred while reading and deserializing");
-        }
-
-        return null;
     }
 }

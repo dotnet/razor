@@ -229,9 +229,7 @@ public class RazorWorkspaceListener : IDisposable
     private Task ReportRemovalAsync(RemovalWork unit, CancellationToken cancellationToken)
     {
         _logger?.LogTrace("Reporting removal of {projectId}", unit.ProjectId);
-
-        _namedPipe.AssumeNotNull().WriteByte(0);
-        return _namedPipe.WriteStringAsync(unit.IntermediateOutputPath, cancellationToken: cancellationToken);
+        return _namedPipe.AssumeNotNull().WriteProjectInfoRemovalAsync(unit.IntermediateOutputPath, cancellationToken);
     }
 
     // private protected for testing
@@ -241,18 +239,10 @@ public class RazorWorkspaceListener : IDisposable
         var projectInfo = await RazorProjectInfoFactory.ConvertAsync(project, _logger, cancellationToken).ConfigureAwait(false);
         if (projectInfo is null)
         {
+            _logger?.LogTrace("Skipped writing data for {projectId}", project.Id);
             return;
         }
 
-        var bytes = projectInfo.Serialize();
-        var sizeBytes = BitConverter.GetBytes(bytes.Length);
-        _namedPipe.AssumeNotNull();
-
-        _logger?.LogTrace("Writing 1 to indicate update");
-        _namedPipe.WriteByte(1);
-
-        _logger?.LogTrace("Update size is {bytes} bytes and {tagHelpers} TagHelpers", bytes.Length, projectInfo.ProjectWorkspaceState.TagHelpers.Length);
-        await _namedPipe.WriteAsync(sizeBytes, 0, sizeBytes.Length, cancellationToken).ConfigureAwait(false);
-        await _namedPipe.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
+        await _namedPipe.AssumeNotNull().WriteProjectInfoAsync(projectInfo, cancellationToken).ConfigureAwait(false);
     }
 }

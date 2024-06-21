@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
@@ -33,6 +34,62 @@ internal static class StreamExtensions
         var encodedBytes = new byte[length];
         await stream.ReadAsync(encodedBytes, 0, encodedBytes.Length, cancellationToken).ConfigureAwait(false);
         return encoding.GetString(encodedBytes);
+    }
+
+    public static ProjectInfoAction ReadProjectInfoAction(this Stream stream)
+    {
+        var action = stream.ReadByte();
+        return action switch
+        {
+            0 => ProjectInfoAction.Update,
+            1 => ProjectInfoAction.Remove,
+            _ => throw Assumes.NotReachable()
+        };
+    }
+
+    public static void WriteProjectInfoAction(this Stream stream, ProjectInfoAction projectInfoAction)
+    {
+        stream.WriteByte(projectInfoAction switch
+        {
+            ProjectInfoAction.Update => 0,
+            ProjectInfoAction.Remove => 1,
+            _ => throw Assumes.NotReachable()
+        });
+    }
+
+    public static Task WriteProjectInfoRemovalAsync(this Stream stream, string intermediateOutputPath, CancellationToken cancellationToken)
+    {
+        WriteProjectInfoAction(stream, ProjectInfoAction.Remove);
+        return stream.WriteStringAsync(intermediateOutputPath, cancellationToken: cancellationToken);
+    }
+
+    public static Task<string> ReadProjectInfoRemovalAsync(this Stream stream, CancellationToken cancellationToken)
+    {
+        return stream.ReadStringAsync(cancellationToken: cancellationToken);
+    }
+
+    public static async Task WriteProjectInfoAsync(this Stream stream, RazorProjectInfo projectInfo, CancellationToken cancellationToken)
+    {
+        WriteProjectInfoAction(stream, ProjectInfoAction.Update);
+
+        var bytes = projectInfo.Serialize();
+        var sizeBytes = BitConverter.GetBytes(bytes.Length);
+
+        await stream.WriteAsync(sizeBytes, 0, sizeBytes.Length, cancellationToken).ConfigureAwait(false);
+        await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
+    }
+
+    public static async Task<RazorProjectInfo?> ReadProjectInfoAsync(this Stream stream, CancellationToken cancellationToken)
+    {
+        var sizeBuffer = new byte[sizeof(int)];
+
+        await stream.ReadAsync(sizeBuffer, 0, sizeBuffer.Length, cancellationToken).ConfigureAwait(false);
+
+        var sizeToRead = BitConverter.ToUInt32(sizeBuffer, 0);
+        var projectInfoBuffer = new byte[sizeToRead];
+
+        await stream.ReadAsync(projectInfoBuffer, 0, projectInfoBuffer.Length, cancellationToken).ConfigureAwait(false);
+        return RazorProjectInfo.DeserializeFrom(projectInfoBuffer.AsMemory());
     }
 
     private static void WriteSize(Stream stream, int length)
