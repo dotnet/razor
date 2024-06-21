@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -70,7 +71,8 @@ internal partial class RazorCustomMessageTarget
         var (synchronized, csharpDoc) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
             (int)semanticTokensParams.RequiredHostDocumentVersion,
             semanticTokensParams.TextDocument,
-            cancellationToken);
+            cancellationToken,
+            semanticTokensParams.Ranges.FirstOrDefault());
 
         if (csharpDoc is null)
         {
@@ -92,6 +94,8 @@ internal partial class RazorCustomMessageTarget
 
             if (csharpDoc.Snapshot.LineCount < lastGeneratedDocumentLine)
             {
+                _logger.LogWarning($"Pretending we're not synced because we're asking for line {lastGeneratedDocumentLine} but there are only {csharpDoc.Snapshot.LineCount} lines in the buffer.");
+                Debug.Fail("Rejecting!");
                 // We report this as a fail to synchronize, as that's essentially what it is: We were asked for v1, with X lines
                 // and whilst we have v1, we don't have X lines, so we need to wait for a future update to arrive and give us
                 // more content.

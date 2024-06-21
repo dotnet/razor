@@ -136,6 +136,7 @@ internal partial class RazorCustomMessageTarget
        int requiredHostDocumentVersion,
        TextDocumentIdentifier hostDocument,
        CancellationToken cancellationToken,
+       Range? _ = null,
        bool rejectOnNewerParallelRequest = true,
        [CallerMemberName] string? caller = null)
        where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
@@ -199,6 +200,21 @@ internal partial class RazorCustomMessageTarget
             result = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, virtualDocument.Uri, rejectOnNewerParallelRequest, cancellationToken).ConfigureAwait(false);
             _logger.LogDebug($"{(result.Synchronized ? "Did" : "Did NOT")} synchronize for {caller}: Version {requiredHostDocumentVersion} for {result.VirtualSnapshot?.Uri}");
         }
+
+        //if (requiredHostDocumentVersion == 1 &&
+        //    result.Synchronized &&
+        //    result.VirtualSnapshot is not null &&
+        //    range is not null)
+        //{
+        //    // If we're at version 1, and we're synced, lets make sure the buffer has enough lines to handle the request
+        //    if (range.Start.Line > result.VirtualSnapshot.Snapshot.LineCount ||
+        //        range.End.Line > result.VirtualSnapshot.Snapshot.LineCount)
+        //    {
+        //        Debug.Fail("It worked!");
+        //        _logger.LogWarning($"Requested line ({range.Start.Line} or {range.End.Line}) is out of bounds for {result.VirtualSnapshot.Uri}. Sync failed.");
+        //        return new SynchronizedResult<TVirtualDocumentSnapshot>(false, null);
+        //    }
+        //}
 
         return result;
     }

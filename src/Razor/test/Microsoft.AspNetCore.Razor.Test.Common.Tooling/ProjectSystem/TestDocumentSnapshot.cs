@@ -41,6 +41,7 @@ internal class TestDocumentSnapshot : DocumentSnapshot
             hostDocument,
             SourceText.From(text),
             version,
+            1,
             () => Task.FromResult(TextAndVersion.Create(sourceText, version)));
         var testDocument = new TestDocumentSnapshot(projectSnapshot, documentState);
 
@@ -64,6 +65,7 @@ internal class TestDocumentSnapshot : DocumentSnapshot
             hostDocument,
             SourceText.From(text),
             version,
+            1,
             () => Task.FromResult(TextAndVersion.Create(sourceText, version.Value)));
         var testDocument = new TestDocumentSnapshot(projectSnapshot, documentState);
 

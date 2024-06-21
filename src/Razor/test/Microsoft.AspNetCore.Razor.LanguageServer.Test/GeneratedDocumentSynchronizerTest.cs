@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
@@ -16,7 +15,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
 {
-    private readonly DocumentVersionCache _cache;
     private readonly GeneratedDocumentSynchronizer _synchronizer;
     private readonly TestGeneratedDocumentPublisher _publisher;
     private readonly IDocumentSnapshot _document;
@@ -25,10 +23,8 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
     public GeneratedDocumentSynchronizerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        var projectManager = StrictMock.Of<IProjectSnapshotManager>();
-        _cache = new DocumentVersionCache(projectManager);
         _publisher = new TestGeneratedDocumentPublisher();
-        _synchronizer = new GeneratedDocumentSynchronizer(_publisher, _cache, TestLanguageServerFeatureOptions.Instance);
+        _synchronizer = new GeneratedDocumentSynchronizer(_publisher, TestLanguageServerFeatureOptions.Instance);
         _document = TestDocumentSnapshot.Create("C:/path/to/file.razor");
         _codeDocument = CreateCodeDocument("<p>Hello World</p>");
     }
@@ -49,9 +45,6 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
     [Fact]
     public void DocumentProcessed_KnownVersion_Publishes()
     {
-        // Arrange
-        _cache.TrackDocumentVersion(_document, version: 1337);
-
         // Act
         _synchronizer.DocumentProcessed(_codeDocument, _document);
 

@@ -18,12 +18,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal sealed class DocumentContextFactory(
     IProjectSnapshotManager projectManager,
-    IDocumentVersionCache documentVersionCache,
     ILoggerFactory loggerFactory)
     : IDocumentContextFactory
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
-    private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentContextFactory>();
 
     public bool TryCreate(
@@ -80,13 +78,8 @@ internal sealed class DocumentContextFactory(
                 return true;
             }
 
-            if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-            {
-                documentAndVersion = new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
-                return true;
-            }
-
-            _logger.LogWarning($"Tried to create context for document {filePath} and project {projectContext?.Id} and a document was found, but version didn't match.");
+            documentAndVersion = new DocumentSnapshotAndVersion(documentSnapshot, documentSnapshot.Version);
+            return true;
         }
 
         // This is super rare, if we get here it could mean many things. Some of which:

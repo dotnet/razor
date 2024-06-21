@@ -32,11 +32,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private SemanticTokensRangeEndpoint SemanticTokensRangeEndpoint { get; set; }
 
-    private IDocumentVersionCache VersionCache { get; set; }
-
     private Uri DocumentUri => DocumentContext.Uri;
-
-    private IDocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
     private VersionedDocumentContext DocumentContext { get; set; }
 
@@ -82,9 +78,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         Range = VsLspFactory.CreateRange(
             start: (0, 0),
             end: (text.Lines.Count - 1, text.Lines[^1].Span.Length - 1));
-
-        var documentVersion = 1;
-        VersionCache.TrackDocumentVersion(DocumentSnapshot, documentVersion);
 
         RequestContext = new RazorRequestContext(DocumentContext, RazorLanguageServerHost.GetRequiredService<ILspServices>(), "lsp/method", uri: null);
 
@@ -133,7 +126,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     private void EnsureServicesInitialized()
     {
         RazorSemanticTokenService = RazorLanguageServerHost.GetRequiredService<IRazorSemanticTokensInfoService>();
-        VersionCache = RazorLanguageServerHost.GetRequiredService<IDocumentVersionCache>();
     }
 
     internal class TestCustomizableRazorSemanticTokensInfoService : RazorSemanticTokensInfoService

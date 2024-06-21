@@ -1026,7 +1026,7 @@ public class ProjectStateTest : WorkspaceTestBase
             Action? onConfigurationChange,
             Action? onImportsChange,
             Action? onProjectWorkspaceStateChange)
-            : base(hostDocument, text, version, loader)
+            : base(hostDocument, text, version, 1, loader)
         {
             _onTextChange = onTextChange;
             _onTextLoaderChange = onTextLoaderChange;

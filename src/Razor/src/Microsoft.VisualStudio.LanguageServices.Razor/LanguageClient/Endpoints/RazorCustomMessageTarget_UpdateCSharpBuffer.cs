@@ -78,7 +78,7 @@ internal partial class RazorCustomMessageTarget
             {
                 if (virtualDocument.ProjectKey.Equals(new ProjectKey(request.ProjectKeyId)))
                 {
-                    _logger.LogDebug($"UpdateCSharpBuffer virtual doc for {request.HostDocumentVersion} of {virtualDocument.Uri}");
+                    _logger.LogDebug($"UpdateCSharpBuffer virtual doc for {request.HostDocumentVersion} of {virtualDocument.Uri}. Previous lines: {virtualDocument.Snapshot.LineCount}");
 
                     _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                         hostDocumentUri,
@@ -86,6 +86,17 @@ internal partial class RazorCustomMessageTarget
                         request.Changes.Select(change => change.ToVisualStudioTextChange()).ToArray(),
                         request.HostDocumentVersion.Value,
                         state: request.PreviousWasEmpty);
+
+                    if (_documentManager.TryGetDocument(hostDocumentUri, out var newDocSnapshot))
+                    {
+                        var newDoc = newDocSnapshot.VirtualDocuments.Where(e => e.Uri == virtualDocument.Uri).FirstOrDefault();
+
+                        if (newDoc is not null)
+                        {
+                            _logger.LogDebug($"UpdateCSharpBuffer finished updating doc for {request.HostDocumentVersion} of {virtualDocument.Uri}. New lines: {newDoc.Snapshot.LineCount}");
+                        }
+                    }
+
                     return;
                 }
             }
