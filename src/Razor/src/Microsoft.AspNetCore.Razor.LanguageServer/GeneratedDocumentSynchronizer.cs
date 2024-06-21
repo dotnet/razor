@@ -9,20 +9,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class GeneratedDocumentSynchronizer(
     IGeneratedDocumentPublisher publisher,
-    IDocumentVersionCache documentVersionCache,
     LanguageServerFeatureOptions languageServerFeatureOptions) : IDocumentProcessedListener
 {
     private readonly IGeneratedDocumentPublisher _publisher = publisher;
-    private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
-        if (!_documentVersionCache.TryGetDocumentVersion(document, out var hostDocumentVersion))
-        {
-            // Could not resolve document version
-            return;
-        }
+        var hostDocumentVersion = document.Version;
 
         var filePath = document.FilePath.AssumeNotNull();
 
@@ -31,11 +25,11 @@ internal class GeneratedDocumentSynchronizer(
         {
             var htmlText = codeDocument.GetHtmlSourceText();
 
-            _publisher.PublishHtml(document.Project.Key, filePath, htmlText, hostDocumentVersion.Value);
+            _publisher.PublishHtml(document.Project.Key, filePath, htmlText, hostDocumentVersion);
         }
 
         var csharpText = codeDocument.GetCSharpSourceText();
 
-        _publisher.PublishCSharp(document.Project.Key, filePath, csharpText, hostDocumentVersion.Value);
+        _publisher.PublishCSharp(document.Project.Key, filePath, csharpText, hostDocumentVersion);
     }
 }
