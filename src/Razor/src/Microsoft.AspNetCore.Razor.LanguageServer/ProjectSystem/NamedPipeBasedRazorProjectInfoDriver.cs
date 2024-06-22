@@ -34,9 +34,9 @@ internal class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDr
         Debug.Assert(_namedPipe is null);
 
 #if NET
-        _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In, PipeOptions.CurrentUserOnly);
+        _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 #else
-        _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In);
+        _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In, PipeOptions.Asynchronous);
 #endif
 
         await _namedPipe.ConnectAsync(cancellationToken).ConfigureAwait(false);

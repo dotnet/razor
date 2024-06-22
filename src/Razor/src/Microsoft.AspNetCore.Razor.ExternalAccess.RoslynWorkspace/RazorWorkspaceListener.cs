@@ -62,7 +62,12 @@ public class RazorWorkspaceListener : IDisposable
         _workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
 
         _logger.LogTrace("Opening named pipe server: {0}", pipeName);
-        _namedPipe = new NamedPipeServerStream(pipeName, PipeDirection.Out, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.CurrentUserOnly);
+        _namedPipe = new NamedPipeServerStream(
+            pipeName,
+            PipeDirection.Out,
+            maxNumberOfServerInstances: 1,
+            PipeTransmissionMode.Byte,
+            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
     }
 
     public void NotifyDynamicFile(ProjectId projectId)
