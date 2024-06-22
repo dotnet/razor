@@ -2,9 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
+using System.IO;
+using System.IO.Pipelines;
+using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -21,7 +25,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "test");
+        listener.EnsureInitialized(workspace);
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -37,7 +41,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "test");
+        listener.EnsureInitialized(workspace);
 
         var project1 = workspace.AddProject("TestProject1", LanguageNames.CSharp);
 
@@ -57,7 +61,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "test");
+        listener.EnsureInitialized(workspace);
 
         var project1 = workspace.AddProject("TestProject1", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project1.Id);
@@ -80,7 +84,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "test");
+        listener.EnsureInitialized(workspace);
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -101,7 +105,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "test");
+        listener.EnsureInitialized(workspace);
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -120,7 +124,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "test");
+        listener.EnsureInitialized(workspace);
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
 
@@ -139,7 +143,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "test");
+        listener.EnsureInitialized(workspace);
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -157,7 +161,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
         using var listener = new TestRazorWorkspaceListener();
-        listener.EnsureInitialized(workspace, "test");
+        listener.EnsureInitialized(workspace);
 
         var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         listener.NotifyDynamicFile(project.Id);
@@ -184,7 +188,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         Assert.True(workspace.TryApplyChanges(newSolution));
 
         // Initialize everything now, in a deferred manner
-        listener.EnsureInitialized(workspace, "test");
+        listener.EnsureInitialized(workspace);
         listener.NotifyDynamicFile(project.Id);
 
         // We can't wait for debounce here, because it won't happen, but if we don't wait for _something_ we won't know
@@ -192,6 +196,57 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         await Task.Delay(500);
 
         Assert.Empty(listener.SerializeCalls);
+    }
+
+    [Fact]
+    public async Task TestSerialization()
+    {
+        using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
+
+        using var listener = new RazorWorkspaceListener(NullLoggerFactory.Instance);
+
+        var pipe = new Pipe();
+        using var writerStream = pipe.Writer.AsStream();
+        using var readerStream = pipe.Reader.AsStream();
+
+        listener.EnsureInitialized(workspace, writerStream);
+
+        var projectInfo = ProjectInfo.Create(
+            ProjectId.CreateNewId(),
+            VersionStamp.Create(),
+            "TestProject",
+            "TestProject",
+            LanguageNames.CSharp);
+
+        projectInfo = projectInfo.WithCompilationOutputInfo(projectInfo.CompilationOutputInfo.WithAssemblyPath(@"C:\test\out\test.dll"));
+        projectInfo = projectInfo.WithFilePath(@"C:\test\test.csproj");
+        projectInfo = projectInfo.WithAdditionalDocuments([DocumentInfo.Create(DocumentId.CreateNewId(projectInfo.Id), @"Page.razor", filePath: @"C:\test\Page.razor")]);
+
+        var intermediateDirectory = Path.GetDirectoryName(projectInfo.CompilationOutputInfo.AssemblyPath);
+
+        // Test update action
+        var project = workspace.AddProject(projectInfo);
+        listener.NotifyDynamicFile(project.Id);
+
+        var action = readerStream.ReadProjectInfoAction();
+        Assert.Equal(ProjectInfoAction.Update, action);
+
+        var deserializedProjectInfo = await readerStream.ReadProjectInfoAsync(CancellationToken.None);
+        Assert.NotNull(deserializedProjectInfo);
+        Assert.Single(deserializedProjectInfo.Documents);
+        Assert.Equal("TestProject", deserializedProjectInfo.DisplayName);
+        Assert.Equal("ASP", deserializedProjectInfo.RootNamespace);
+        Assert.Equal(@"C:/test/out/", deserializedProjectInfo.ProjectKey.Id);
+        Assert.Equal(@"C:\test\test.csproj", deserializedProjectInfo.FilePath);
+
+        // Test remove action
+        var newSolution = project.Solution.RemoveProject(project.Id);
+        Assert.True(workspace.TryApplyChanges(newSolution));
+
+        action = readerStream.ReadProjectInfoAction();
+        Assert.Equal(ProjectInfoAction.Remove, action);
+
+        Assert.Equal(intermediateDirectory, await readerStream.ReadProjectInfoRemovalAsync(CancellationToken.None));
     }
 
     private class TestRazorWorkspaceListener : RazorWorkspaceListener
@@ -204,6 +259,11 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         public TestRazorWorkspaceListener()
             : base(NullLoggerFactory.Instance)
         {
+        }
+
+        public void EnsureInitialized(Workspace workspace)
+        {
+            EnsureInitialized(workspace, Stream.Null);
         }
 
         private protected override Task UpdateProjectAsync(Project project, Solution solution, CancellationToken ct)

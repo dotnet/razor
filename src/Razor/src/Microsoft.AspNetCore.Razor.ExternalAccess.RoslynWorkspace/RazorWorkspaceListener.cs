@@ -26,7 +26,7 @@ public class RazorWorkspaceListener : IDisposable
     record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
     record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
 
-    private NamedPipeServerStream? _namedPipe;
+    private Stream? _stream;
 
     public RazorWorkspaceListener(ILoggerFactory loggerFactory)
     {
@@ -53,7 +53,27 @@ public class RazorWorkspaceListener : IDisposable
     public void EnsureInitialized(Workspace workspace, string pipeName)
     {
         // Make sure we don't hook up the event handler multiple times
-        if (_namedPipe is not null)
+        if (_stream is not null)
+        {
+            return;
+        }
+
+        _logger.LogTrace("Opening named pipe server: {0}", pipeName);
+        var stream = new NamedPipeServerStream(
+            pipeName,
+            PipeDirection.Out,
+            maxNumberOfServerInstances: 1,
+            PipeTransmissionMode.Byte,
+            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+
+        EnsureInitialized(workspace, stream);
+    }
+
+    // Internal for testing
+    internal void EnsureInitialized(Workspace workspace, Stream stream)
+    {
+        // Make sure we don't hook up the event handler multiple times
+        if (_stream is not null)
         {
             return;
         }
@@ -61,13 +81,7 @@ public class RazorWorkspaceListener : IDisposable
         _workspace = workspace;
         _workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
 
-        _logger.LogTrace("Opening named pipe server: {0}", pipeName);
-        _namedPipe = new NamedPipeServerStream(
-            pipeName,
-            PipeDirection.Out,
-            maxNumberOfServerInstances: 1,
-            PipeTransmissionMode.Byte,
-            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+        _stream = stream;
     }
 
     public void NotifyDynamicFile(ProjectId projectId)
@@ -170,7 +184,7 @@ public class RazorWorkspaceListener : IDisposable
 
     private void EnqueueUpdate(Project? project)
     {
-        if (_namedPipe is null ||
+        if (_stream is null ||
             project is not
             {
                 Language: LanguageNames.CSharp
@@ -192,12 +206,7 @@ public class RazorWorkspaceListener : IDisposable
     private async ValueTask UpdateCurrentProjectsAsync(ImmutableArray<Work> work, CancellationToken cancellationToken)
     {
         var solution = _workspace.AssumeNotNull().CurrentSolution;
-        _namedPipe.AssumeNotNull();
-
-        if (!_namedPipe.IsConnected)
-        {
-            await _namedPipe.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
-        }
+        _stream.AssumeNotNull();
 
         foreach (var unit in work)
         {
@@ -228,13 +237,13 @@ public class RazorWorkspaceListener : IDisposable
             }
         }
 
-        await _namedPipe.AssumeNotNull().FlushAsync(cancellationToken).ConfigureAwait(false);
+        await _stream.AssumeNotNull().FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private Task ReportRemovalAsync(RemovalWork unit, CancellationToken cancellationToken)
     {
         _logger?.LogTrace("Reporting removal of {projectId}", unit.ProjectId);
-        return _namedPipe.AssumeNotNull().WriteProjectInfoRemovalAsync(unit.IntermediateOutputPath, cancellationToken);
+        return _stream.AssumeNotNull().WriteProjectInfoRemovalAsync(unit.IntermediateOutputPath, cancellationToken);
     }
 
     // private protected for testing
@@ -248,6 +257,6 @@ public class RazorWorkspaceListener : IDisposable
             return;
         }
 
-        await _namedPipe.AssumeNotNull().WriteProjectInfoAsync(projectInfo, cancellationToken).ConfigureAwait(false);
+        await _stream.AssumeNotNull().WriteProjectInfoAsync(projectInfo, cancellationToken).ConfigureAwait(false);
     }
 }
