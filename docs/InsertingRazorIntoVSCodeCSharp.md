@@ -14,7 +14,7 @@ At a high level inserting involves:
 
 ## Permissions
 
-Before getting started you it should be noted that only Microsoft employees will have the correct access to get the right information to perform and insertion. Details on the permissions required are [somewhere](????).
+In order to pull in new packages from upstreams into the msft_consumption feed we use for restoring, you will need to be a member of the 'CSharp VS Code Extension contributors' group in the [Azure Devops instance](https://dev.azure.com/azure-public/vside/_settings/teams). This is the same as needed to [update the Roslyn language server version](https://github.com/dotnet/vscode-csharp/blob/main/CONTRIBUTING.md#updating-the-roslyn-language-server-version).
 
 ## Inserting
 
