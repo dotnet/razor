@@ -125,15 +125,16 @@ internal static class StreamExtensions
         stream.Write(sizeBytes, 0, 4);
     }
 
-    private static int ReadSize(Stream stream)
+    private unsafe static int ReadSize(Stream stream)
     {
+#if NET
+        Span<byte> bytes = stackalloc byte[4];
+        stream.Read(bytes);
+        return BitConverter.ToInt32(bytes);
+#else
         using var _  = ArrayPool<byte>.Shared.GetPooledArray(4, out var bytes);
         stream.Read(bytes, 0, 4);
-
-#if NET
-        return bytes[0..4].Sum(b => (int)b);
-#else
-        return bytes.Take(4).Sum(b => (int)b);
+        return BitConverter.ToInt32(bytes, 0);
 #endif
     }
 }
