@@ -113,16 +113,17 @@ internal static class StreamExtensions
 
     private static void WriteSize(Stream stream, int length)
     {
-        using var _ = ArrayPool<byte>.Shared.GetPooledArray(4, out var sizeBytes);
-
 #if NET
+        Span<byte> sizeBytes = stackalloc byte[4];
         BitConverter.TryWriteBytes(sizeBytes, length);
+        stream.Write(sizeBytes);
 #else
+        using var _ = ArrayPool<byte>.Shared.GetPooledArray(4, out var sizeBytes);
         // Pulled from https://github.com/dotnet/runtime/blob/4b9a1b2d956f4a10a28b8f5f3f725e76eb6fb826/src/libraries/System.Private.CoreLib/src/System/BitConverter.cs#L158C13-L158C87
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(sizeBytes.AsSpan()), length);
+        stream.Write(sizeBytes, 0, 4);
 #endif
 
-        stream.Write(sizeBytes, 0, 4);
     }
 
     private unsafe static int ReadSize(Stream stream)
