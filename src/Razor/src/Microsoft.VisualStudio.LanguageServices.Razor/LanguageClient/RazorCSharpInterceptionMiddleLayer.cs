@@ -43,9 +43,9 @@ internal class RazorCSharpInterceptionMiddleLayer : IRazorCSharpInterceptionMidd
 
         if (methodName.Equals(Methods.TextDocumentDidChangeName))
         {
-            _logger.LogDebug($"Being asked if we can handle notification {methodName} for (editor) version {methodParam["textDocument"]["version"]} of {methodParam["textDocument"]["uri"]}");
+            _logger.LogDebug($"Being asked if we can handle notification {methodName} for (editor) version {methodParam["textDocument"]?["version"]} of {methodParam["textDocument"]?["uri"]}");
             await sendNotification(methodParam).ConfigureAwait(false);
-            _logger.LogDebug($"Finished notification {methodName} for (editor) version {methodParam["textDocument"]["version"]} of {methodParam["textDocument"]["uri"]}");
+            _logger.LogDebug($"Finished notification {methodName} for (editor) version {methodParam["textDocument"]?["version"]} of {methodParam["textDocument"]?["uri"]}");
             return;
         }
 
@@ -67,9 +67,9 @@ internal class RazorCSharpInterceptionMiddleLayer : IRazorCSharpInterceptionMidd
     {
         if (methodName.Contains("textDocument/semanticTokens/range"))
         {
-            _logger.LogDebug($"Being asked if we can handle request {methodName} for version {methodParam["textDocument"]["version"]} of {methodParam["textDocument"]["uri"]}");
+            _logger.LogDebug($"Being asked if we can handle request {methodName} for version {methodParam["textDocument"]?["version"]} of {methodParam["textDocument"]?["uri"]}");
             var result = await sendRequest(methodParam).ConfigureAwait(false);
-            _logger.LogDebug($"Finished request {methodName} for version {methodParam["textDocument"]["version"]} of {methodParam["textDocument"]["uri"]}");
+            _logger.LogDebug($"Finished request {methodName} for version {methodParam["textDocument"]?["version"]} of {methodParam["textDocument"]?["uri"]}");
             return result;
         }
 
