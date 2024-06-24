@@ -16,19 +16,23 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
 
+#if !NET 
+using System.Runtime.InteropServices;
+using System.Security.Principal;
+#endif
+
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDriver
 {
     NamedPipeClientStream? _namedPipe;
-    Task? _readTask;
 
-    public NamedPipeBasedRazorProjectInfoDriver(ILoggerFactory loggerFactory) : base(loggerFactory, TimeSpan.FromMilliseconds(200))
+    public NamedPipeBasedRazorProjectInfoDriver(ILoggerFactory loggerFactory) : base(loggerFactory)
     {
         StartInitialization();
     }
 
-    public async Task ConnectAsync(string pipeName, CancellationToken cancellationToken)
+    public Task ConnectAsync(string pipeName, CancellationToken cancellationToken)
     {
         Logger.LogTrace($"Connecting to named pipe {pipeName}");
         Debug.Assert(_namedPipe is null);
@@ -37,11 +41,14 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
         _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 #else
         _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In, PipeOptions.Asynchronous);
+        CheckPipeConnectionOwnership(_namedPipe);
 #endif
 
-        await _namedPipe.ConnectAsync(cancellationToken).ConfigureAwait(false);
-
-        _readTask = Task.Run(() => ReadFromStreamAsync(), cancellationToken);
+        return _namedPipe
+            .ConnectAsync(cancellationToken)
+            .ContinueWith(
+                t => ReadFromStreamAsync(),
+                TaskScheduler.Default);
     }
 
     protected override Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -85,4 +92,26 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
             }
         }
     }
+
+#if !NET
+    /// <summary>
+    /// Check to ensure that the named pipe server we connected to is owned by the same
+    /// user. From https://github.com/dotnet/roslyn/blob/5ec8cfd6d1255e4f4e9d610dd42aa30c60303e40/src/Compilers/Shared/NamedPipeUtil.cs#L132
+    /// </summary>
+    internal static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var currentIdentity = WindowsIdentity.GetCurrent();
+            var currentOwner = currentIdentity.Owner;
+            var remotePipeSecurity = pipeStream.GetAccessControl();
+            var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
+            return currentOwner.Equals(remoteOwner);
+        }
+
+        // Client side validation isn't supported on Unix. The model relies on the server side
+        // security here.
+        return true;
+    }
+#endif
 }
