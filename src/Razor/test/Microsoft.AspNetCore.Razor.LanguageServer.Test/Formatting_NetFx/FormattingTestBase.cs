@@ -313,6 +313,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             .Setup(d => d.FileKind)
             .Returns(fileKind);
         documentSnapshot
+            .Setup(d => d.Version)
+            .Returns(1);
+        documentSnapshot
             .Setup(d => d.WithText(It.IsAny<SourceText>()))
             .Returns<SourceText>(text =>
             {

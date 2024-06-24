@@ -55,26 +55,6 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task TryCreateForOpenDocumentAsync_CanNotResolveVersion_ReturnsNull()
-    {
-        // Arrange
-        var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
-        var uri = new Uri(filePath);
-
-        var hostDocument = new HostDocument(filePath, "file.cshtml");
-
-        await _projectManager.UpdateAsync(updater =>
-        {
-            updater.DocumentAdded(MiscFilesHostProject.Instance.Key, hostDocument, TestMocks.CreateTextLoader(filePath, ""));
-        });
-
-        var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
-
-        // Act
-        Assert.False(factory.TryCreateForOpenDocument(uri, out _));
-    }
-
-    [Fact]
     public async Task TryCreateAsync_ResolvesContent()
     {
         // Arrange
@@ -153,7 +133,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         Assert.True(factory.TryCreateForOpenDocument(uri, out var documentContext));
 
         // Assert
-        Assert.Equal(1337, documentContext.Version);
+        Assert.Equal(1, documentContext.Version);
         Assert.Equal(uri, documentContext.Uri);
         Assert.Same(documentSnapshot, documentContext.Snapshot);
     }

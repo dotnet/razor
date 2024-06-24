@@ -30,19 +30,6 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void DocumentProcessed_UnknownVersion_Noops()
-    {
-        // Arrange
-
-        // Act
-        _synchronizer.DocumentProcessed(_codeDocument, _document);
-
-        // Assert
-        Assert.False(_publisher.PublishedCSharp);
-        Assert.False(_publisher.PublishedHtml);
-    }
-
-    [Fact]
     public void DocumentProcessed_KnownVersion_Publishes()
     {
         // Act
