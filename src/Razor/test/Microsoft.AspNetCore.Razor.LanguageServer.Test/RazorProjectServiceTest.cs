@@ -966,7 +966,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateDocument_TracksKnownDocumentVersion()
+    public async Task UpdateDocument_DocumentVersionUpdated()
     {
         // Arrange
         const string ProjectFilePath = "C:/path/to/project.csproj";
@@ -989,8 +989,8 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         listener.AssertNotifications(
             x => x.DocumentChanged(DocumentFilePath, ownerProject.Key));
 
-        var latestVersion = _projectManager.GetLoadedProject(ownerProjectKey).GetDocument(DocumentFilePath)!.Version;// _documentVersionCache.GetLatestDocumentVersion(DocumentFilePath);
-        Assert.Equal(43, latestVersion);
+        var latestVersion = _projectManager.GetLoadedProject(ownerProjectKey).GetDocument(DocumentFilePath)!.Version;
+        Assert.Equal(2, latestVersion);
     }
 
     [Fact]
