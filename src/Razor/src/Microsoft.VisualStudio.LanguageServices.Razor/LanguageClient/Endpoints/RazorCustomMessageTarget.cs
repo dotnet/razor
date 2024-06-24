@@ -136,7 +136,7 @@ internal partial class RazorCustomMessageTarget
        int requiredHostDocumentVersion,
        TextDocumentIdentifier hostDocument,
        CancellationToken cancellationToken,
-       Range? _ = null,
+       LanguageServer.Protocol.Range? _ = null,
        bool rejectOnNewerParallelRequest = true,
        [CallerMemberName] string? caller = null)
        where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
