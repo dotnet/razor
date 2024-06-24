@@ -317,6 +317,7 @@ extends:
                 --publish
                 --configuration $(_BuildConfig)
                 --prepareMachine
+                --test
                 $(_BuildArgs)
               name: Build
               displayName: Restore, Build and Test
@@ -360,6 +361,7 @@ extends:
                 --publish
                 --configuration $(_BuildConfig)
                 --prepareMachine
+                --test
                 $(_BuildArgs)
               name: Build
               displayName: Restore, Build and Test
