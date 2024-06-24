@@ -53,7 +53,11 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
 
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
+
+        OnDispose();
     }
+
+    protected virtual void OnDispose() { }
 
     public Task WaitForInitializationAsync()
     {

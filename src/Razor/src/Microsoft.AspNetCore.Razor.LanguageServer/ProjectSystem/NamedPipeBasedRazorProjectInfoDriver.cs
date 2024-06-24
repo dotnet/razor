@@ -53,6 +53,12 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
 
     protected override Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
+    protected override void OnDispose()
+    {
+        _namedPipe?.Dispose();
+        _namedPipe = null;
+    }
+
     private async Task ReadFromStreamAsync(CancellationToken cancellationToken = default)
     {
         _namedPipe.AssumeNotNull();
