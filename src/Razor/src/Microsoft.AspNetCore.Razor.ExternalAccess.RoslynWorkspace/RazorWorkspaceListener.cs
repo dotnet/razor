@@ -17,14 +17,14 @@ public class RazorWorkspaceListener : IDisposable
     private Workspace? _workspace;
 
     // Use an immutable dictionary for ImmutableInterlocked operations. The value isn't checked, just
-    // the existance of the key so work is only done for projects with dynamic files.
+    // the existence of the key so work is only done for projects with dynamic files.
     private ImmutableDictionary<ProjectId, bool> _projectsWithDynamicFile = ImmutableDictionary<ProjectId, bool>.Empty;
     private readonly CancellationTokenSource _disposeTokenSource = new();
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
 
-    record Work(ProjectId ProjectId);
-    record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
-    record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
+    private record Work(ProjectId ProjectId);
+    private record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
+    private record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
 
     private Stream? _stream;
 
@@ -48,6 +48,9 @@ public class RazorWorkspaceListener : IDisposable
 
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
+
+        _stream?.Dispose();
+        _stream = null;
     }
 
     public void EnsureInitialized(Workspace workspace, string pipeName)

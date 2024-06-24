@@ -25,10 +25,28 @@ internal static class StreamExtensions
         Debug.Assert(stream.CanWrite);
         encoding ??= Encoding.UTF8;
 
-        var encodedBytes = encoding.GetBytes(text);
+        var byteCount = encoding.GetMaxByteCount(text.Length);
+        using var _ = ArrayPool<byte>.Shared.GetPooledArray(byteCount, out var byteArray);
 
-        WriteSize(stream, encodedBytes.Length);
-        return stream.WriteAsync(encodedBytes, 0, encodedBytes.Length, cancellationToken);
+#if NET
+        var usedBytes = encoding.GetBytes(text, byteArray);
+#else
+        var usedBytes = GetBytes(text, encoding, byteArray);
+#endif
+
+        WriteSize(stream, usedBytes);
+        return stream.WriteAsync(byteArray, 0, usedBytes, cancellationToken);
+
+#if !NET
+        static unsafe int GetBytes(string text, Encoding encoding, byte[] byteArray)
+        {
+            fixed (char* c = text)
+            fixed (byte* b = byteArray)
+            {
+                return encoding.GetBytes(c, text.Length, b, byteArray.Length);
+            }
+        }
+#endif
     }
 
     public static async Task<string> ReadStringAsync(this Stream stream, Encoding? encoding = null, CancellationToken cancellationToken = default)
@@ -37,9 +55,10 @@ internal static class StreamExtensions
         encoding ??= Encoding.UTF8;
 
         var length = ReadSize(stream);
-        var encodedBytes = new byte[length];
-        await stream.ReadAsync(encodedBytes, 0, encodedBytes.Length, cancellationToken).ConfigureAwait(false);
-        return encoding.GetString(encodedBytes);
+
+        using var _ = ArrayPool<byte>.Shared.GetPooledArray(length, out var encodedBytes);
+        await stream.ReadAsync(encodedBytes, 0, length, cancellationToken).ConfigureAwait(false);
+        return encoding.GetString(encodedBytes, 0, length);
     }
 
     public static ProjectInfoAction ReadProjectInfoAction(this Stream stream)
@@ -79,45 +98,42 @@ internal static class StreamExtensions
         WriteProjectInfoAction(stream, ProjectInfoAction.Update);
 
         var bytes = projectInfo.Serialize();
-        using var _ = ArrayPool<byte>.Shared.GetPooledArray(4, out var sizeBytes);
-
-#if NET
-        BitConverter.TryWriteBytes(sizeBytes, bytes.Length);
-#else
-        // Pulled from https://github.com/dotnet/runtime/blob/4b9a1b2d956f4a10a28b8f5f3f725e76eb6fb826/src/libraries/System.Private.CoreLib/src/System/BitConverter.cs#L158C13-L158C87
-        Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(sizeBytes.AsSpan()), bytes.Length);
-#endif
-
-        await stream.WriteAsync(sizeBytes, 0, sizeBytes.Length, cancellationToken).ConfigureAwait(false);
+        WriteSize(stream, bytes.Length);
         await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task<RazorProjectInfo?> ReadProjectInfoAsync(this Stream stream, CancellationToken cancellationToken)
     {
-        using var _ = ArrayPool<byte>.Shared.GetPooledArray(4, out var sizeBytes);
-        await stream.ReadAsync(sizeBytes, 0, sizeBytes.Length, cancellationToken).ConfigureAwait(false);
+        var sizeToRead = ReadSize(stream);
 
-        var sizeToRead = BitConverter.ToInt32(sizeBytes, 0);
-
-        using var _1 = ArrayPool<byte>.Shared.GetPooledArray(sizeToRead, out var projectInfoBytes);
+        using var _ = ArrayPool<byte>.Shared.GetPooledArray(sizeToRead, out var projectInfoBytes);
         await stream.ReadAsync(projectInfoBytes, 0, projectInfoBytes.Length, cancellationToken).ConfigureAwait(false);
         return RazorProjectInfo.DeserializeFrom(projectInfoBytes.AsMemory());
     }
 
     private static void WriteSize(Stream stream, int length)
     {
-        var bytes = GetSizeBytes(length);
-        stream.Write(bytes, 0, bytes.Length);
+        using var _ = ArrayPool<byte>.Shared.GetPooledArray(4, out var sizeBytes);
+
+#if NET
+        BitConverter.TryWriteBytes(sizeBytes, length);
+#else
+        // Pulled from https://github.com/dotnet/runtime/blob/4b9a1b2d956f4a10a28b8f5f3f725e76eb6fb826/src/libraries/System.Private.CoreLib/src/System/BitConverter.cs#L158C13-L158C87
+        Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(sizeBytes.AsSpan()), length);
+#endif
+
+        stream.Write(sizeBytes, 0, 4);
     }
 
     private static int ReadSize(Stream stream)
     {
-        var bytes = new byte[4];
-        stream.Read(bytes, 0, bytes.Length);
+        using var _  = ArrayPool<byte>.Shared.GetPooledArray(4, out var bytes);
+        stream.Read(bytes, 0, 4);
 
-        return bytes.Sum(b => (int)b);
+#if NET
+        return bytes[0..4].Sum(b => (int)b);
+#else
+        return bytes.Take(4).Sum(b => (int)b);
+#endif
     }
-
-    private static byte[] GetSizeBytes(int length)
-        => BitConverter.GetBytes(length);
 }

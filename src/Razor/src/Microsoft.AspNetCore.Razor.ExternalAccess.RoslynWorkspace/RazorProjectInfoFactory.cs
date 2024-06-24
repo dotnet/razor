@@ -35,14 +35,14 @@ internal static class RazorProjectInfoFactory
         var projectPath = Path.GetDirectoryName(project.FilePath);
         if (projectPath is null)
         {
-            logger?.LogTrace("projectPath is null, skip conversion for {projectId}", project.Id);
+            logger?.LogInformation("projectPath is null, skip conversion for {projectId}", project.Id);
             return null;
         }
 
         var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
         if (intermediateOutputPath is null)
         {
-            logger?.LogTrace("intermediatePath is null, skip conversion for {projectId}", project.Id);
+            logger?.LogInformation("intermediatePath is null, skip conversion for {projectId}", project.Id);
             return null;
         }
 
@@ -52,7 +52,15 @@ internal static class RazorProjectInfoFactory
         // Not a razor project
         if (documents.Length == 0)
         {
-            logger?.LogTrace("No razor documents for {projectId}", project.Id);
+            if (project.Documents.Any())
+            {
+                logger?.LogInformation("No razor documents for {projectId}", project.Id);
+            }
+            else
+            {
+                logger?.LogTrace("No documents in {projectId}", project.Id);
+            }
+            
             return null;
         }
 
