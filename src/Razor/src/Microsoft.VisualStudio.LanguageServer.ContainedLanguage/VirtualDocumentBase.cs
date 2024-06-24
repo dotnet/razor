@@ -56,7 +56,9 @@ public abstract class VirtualDocumentBase<T> : VirtualDocument where T : Virtual
             edit.Replace(change.OldSpan.Start, change.OldSpan.Length, change.NewText);
         }
 
+        LSPDocumentSynchronizer.LogFunction($"About to call update for {this.Uri} for version {_hostDocumentSyncVersion}");
         edit.Apply();
+        LSPDocumentSynchronizer.LogFunction($"Finished calling update for {this.Uri} for version {_hostDocumentSyncVersion}");
         _currentSnapshot = GetUpdatedSnapshot(state);
 
         return _currentSnapshot;

@@ -57,6 +57,9 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         _projectManager = projectManager;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _logger = loggerFactory.GetOrCreateLogger<CSharpVirtualDocumentFactory>();
+
+        LSPDocumentSynchronizer.LogFunction = s => _logger.LogDebug($"{s}");
+
         _telemetryReporter = telemetryReporter;
     }
 

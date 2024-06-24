@@ -3,10 +3,10 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -19,21 +19,35 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient;
 internal class RazorCSharpInterceptionMiddleLayer : IRazorCSharpInterceptionMiddleLayer
 {
     private readonly LSPRequestInvoker _requestInvoker;
+    private readonly ILogger _logger;
 
     [ImportingConstructor]
-    public RazorCSharpInterceptionMiddleLayer(LSPRequestInvoker requestInvoker)
+    public RazorCSharpInterceptionMiddleLayer(LSPRequestInvoker requestInvoker, ILoggerFactory loggerFactory)
     {
         _requestInvoker = requestInvoker;
+        _logger = loggerFactory.GetOrCreateLogger<RazorCSharpInterceptionMiddleLayer>();
     }
 
     public bool CanHandle(string methodName)
-        => methodName.Equals(Methods.WorkspaceSemanticTokensRefreshName);
+    {
+        return methodName.Equals(Methods.WorkspaceSemanticTokensRefreshName) ||
+            methodName.Contains("textDocument/semanticTokens/range") ||
+            methodName.Equals(Methods.TextDocumentDidChangeName);
+    }
 
-    public Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
+    public async Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
     {
         // IMPORTANT: This API shape is old and the methodParam and sendNotification parameters are likely to be null
         // as Roslyn moves away from Newtonsoft.Json. Do not use these parameters without designing a new API contract.
-        Debug.Assert(CanHandle(methodName), "Got a call to intercept a message we were not expecting");
+        //Debug.Assert(CanHandle(methodName), "Got a call to intercept a message we were not expecting");
+
+        if (methodName.Equals(Methods.TextDocumentDidChangeName))
+        {
+            _logger.LogDebug($"Being asked if we can handle notification {methodName} for (editor) version {methodParam["textDocument"]["version"]} of {methodParam["textDocument"]["uri"]}");
+            await sendNotification(methodParam).ConfigureAwait(false);
+            _logger.LogDebug($"Finished notification {methodName} for (editor) version {methodParam["textDocument"]["version"]} of {methodParam["textDocument"]["uri"]}");
+            return;
+        }
 
         // Normally we use the LSPRequestInvoker when we're on the client side of things, and want
         // to send to a server, so at first glance this might seem redundant. However, we're actually
@@ -42,15 +56,25 @@ internal class RazorCSharpInterceptionMiddleLayer : IRazorCSharpInterceptionMidd
         // semantic tokens from.
 
         var refreshParams = new SemanticTokensRefreshParams();
-        return _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRefreshParams, Unit>(
+        await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRefreshParams, Unit>(
             CustomMessageNames.RazorSemanticTokensRefreshEndpoint,
             RazorLSPConstants.RazorLanguageServerName,
             refreshParams,
             CancellationToken.None);
     }
 
-    public Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
-        => throw new NotImplementedException();
+    public async Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
+    {
+        if (methodName.Contains("textDocument/semanticTokens/range"))
+        {
+            _logger.LogDebug($"Being asked if we can handle request {methodName} for version {methodParam["textDocument"]["version"]} of {methodParam["textDocument"]["uri"]}");
+            var result = await sendRequest(methodParam).ConfigureAwait(false);
+            _logger.LogDebug($"Finished request {methodName} for version {methodParam["textDocument"]["version"]} of {methodParam["textDocument"]["uri"]}");
+            return result;
+        }
+
+        return await sendRequest(methodParam);
+    }
 
     // A basic POCO which will handle the lack of data in the response.
     private class Unit

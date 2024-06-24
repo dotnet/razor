@@ -10,6 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
 internal abstract class LSPDocumentSynchronizer : LSPDocumentChangeListener
 {
+    public static Action<string> LogFunction { get; set; } = s => { };
+
     public abstract Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
         int requiredHostDocumentVersion,
         Uri hostDocumentUri,

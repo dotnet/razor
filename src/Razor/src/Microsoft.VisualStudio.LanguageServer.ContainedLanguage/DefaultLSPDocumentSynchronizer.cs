@@ -249,6 +249,8 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             return;
         }
 
+        LSPDocumentSynchronizer.LogFunction($"PostChanged for {virtualDocumentUri} at editor version {textBuffer.CurrentSnapshot.Version.VersionNumber}");
+
         lock (_documentContextLock)
         {
             if (!_virtualDocumentContexts.TryGetValue(virtualDocumentUri, out var documentContext))
@@ -261,7 +263,9 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
                 return;
             }
 
+            LSPDocumentSynchronizer.LogFunction($"Updated document seen for {virtualDocumentUri} to {hostDocumentVersion}, editor version is {textBuffer.CurrentSnapshot.Version.VersionNumber}");
             documentContext.UpdateSeenDocumentVersion(hostDocumentVersion);
+            LSPDocumentSynchronizer.LogFunction($"Updating document seen for {virtualDocumentUri} to {hostDocumentVersion}, editor version is {textBuffer.CurrentSnapshot.Version.VersionNumber}");
         }
     }
 
