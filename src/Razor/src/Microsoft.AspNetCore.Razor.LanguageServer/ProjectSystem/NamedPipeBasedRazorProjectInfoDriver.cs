@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDriver
+internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDriver
 {
     NamedPipeClientStream? _namedPipe;
     Task? _readTask;
