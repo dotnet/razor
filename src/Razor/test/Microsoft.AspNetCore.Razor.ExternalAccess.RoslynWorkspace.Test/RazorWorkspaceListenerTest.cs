@@ -4,14 +4,16 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.Test;
 
-public class RazorWorkspaceListenerTest
+public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {
     [Fact]
     public async Task ProjectAdded_SchedulesTask()
@@ -204,9 +206,9 @@ public class RazorWorkspaceListenerTest
         {
         }
 
-        protected override Task SerializeProjectAsync(ProjectId projectId, CancellationToken ct)
+        private protected override Task SerializeProjectAsync(Project project, Solution solution, CancellationToken ct)
         {
-            _serializeCalls.AddOrUpdate(projectId, 1, (id, curr) => curr + 1);
+            _serializeCalls.AddOrUpdate(project.Id, 1, (id, curr) => curr + 1);
 
             _completionSource.TrySetResult();
             _completionSource = new();

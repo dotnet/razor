@@ -1845,7 +1845,6 @@ public class DefaultTagHelperDescriptorFactoryTest
     public void CreateDescriptor_BuildsDescriptorsFromSimpleTypes()
     {
         // Arrange
-        var objectAssemblyName = typeof(Enumerable).GetTypeInfo().Assembly.GetName().Name;
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName);
         var expectedDescriptor =
@@ -2182,7 +2181,6 @@ public class DefaultTagHelperDescriptorFactoryTest
     public void CreateDescriptor_CapturesDocumentationOnTagHelperClass()
     {
         // Arrange
-        var errorSink = new ErrorSink();
         var syntaxTree = CSharpSyntaxTree.ParseText(@"
         using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -2220,7 +2218,6 @@ public class DefaultTagHelperDescriptorFactoryTest
     public void CreateDescriptor_CapturesDocumentationOnTagHelperProperties()
     {
         // Arrange
-        var errorSink = new ErrorSink();
         var syntaxTree = CSharpSyntaxTree.ParseText(@"
         using System.Collections.Generic;
 

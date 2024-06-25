@@ -53,29 +53,17 @@
                     MarkupTextLiteral - [61..62)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
                     MarkupTagHelperAttributeValue - [62..81)::19
-                        CSharpExpressionLiteral - [62..65)::3 - [new] - Gen<None>
+                        CSharpExpressionLiteral - [62..81)::19 - [new { @params = 1 }] - Gen<None>
                             Text;[new];
-                        CSharpExpressionLiteral - [65..67)::2 - [ {] - Gen<None>
                             Whitespace;[ ];
                             Text;[{];
-                        MarkupBlock - [67..75)::8
-                            CSharpExpressionLiteral - [67..68)::1 - [ ] - Gen<Expr>
-                                Whitespace;[ ];
-                            CSharpCodeBlock - [68..75)::7
-                                CSharpImplicitExpression - [68..75)::7
-                                    CSharpTransition - [68..68)::0
-                                        Transition;[<Missing>];
-                                    CSharpImplicitExpressionBody - [68..75)::7
-                                        CSharpCodeBlock - [68..75)::7
-                                            CSharpExpressionLiteral - [68..75)::7 - [@params] - Gen<Expr>
-                                                Keyword;[@params];
-                        CSharpExpressionLiteral - [75..77)::2 - [ =] - Gen<None>
+                            Whitespace;[ ];
+                            Transition;[@];
+                            Keyword;[params];
                             Whitespace;[ ];
                             Equals;[=];
-                        CSharpExpressionLiteral - [77..79)::2 - [ 1] - Gen<None>
                             Whitespace;[ ];
                             Text;[1];
-                        CSharpExpressionLiteral - [79..81)::2 - [ }] - Gen<None>
                             Whitespace;[ ];
                             Text;[}];
                     MarkupTextLiteral - [81..82)::1 - ["] - Gen<Markup>

@@ -30,12 +30,12 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var (_, serverStream) = FullDuplexStream.CreatePair();
         Logger = new NoopLogger();
         var razorLoggerFactory = new NoopLoggerFactory();
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(
+        RazorLanguageServerHost = RazorLanguageServerHost.Create(
             serverStream,
             serverStream,
             razorLoggerFactory,
             NoOpTelemetryReporter.Instance,
-            configure: (collection) =>
+            configureServices: (collection) =>
             {
                 collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
                 collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
@@ -53,7 +53,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         return null;
     }
 
-    private protected RazorLanguageServerWrapper RazorLanguageServer { get; }
+    private protected RazorLanguageServerHost RazorLanguageServerHost { get; }
 
     private protected NoopLogger Logger { get; }
 

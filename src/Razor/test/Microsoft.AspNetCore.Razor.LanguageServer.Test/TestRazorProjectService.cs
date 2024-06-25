@@ -8,26 +8,44 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Moq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal class TestRazorProjectService(
     RemoteTextLoaderFactory remoteTextLoaderFactory,
-    ISnapshotResolver snapshotResolver,
     IDocumentVersionCache documentVersionCache,
     IProjectSnapshotManager projectManager,
     ILoggerFactory loggerFactory)
-    : RazorProjectService(remoteTextLoaderFactory, snapshotResolver, documentVersionCache, projectManager, loggerFactory)
+    : RazorProjectService(
+        projectManager,
+        CreateProjectInfoDriver(),
+        documentVersionCache,
+        remoteTextLoaderFactory,
+        loggerFactory)
 {
-    private readonly ISnapshotResolver _snapshotResolver = snapshotResolver;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
+
+    private static IRazorProjectInfoDriver CreateProjectInfoDriver()
+    {
+        var mock = new StrictMock<IRazorProjectInfoDriver>();
+
+        mock.Setup(x => x.GetLatestProjectInfo())
+            .Returns([]);
+
+        mock.Setup(x => x.AddListener(It.IsAny<IRazorProjectInfoListener>()));
+
+        return mock.Object;
+    }
 
     public async Task AddDocumentToPotentialProjectsAsync(string textDocumentPath, CancellationToken cancellationToken)
     {
-        foreach (var projectSnapshot in _snapshotResolver.FindPotentialProjects(textDocumentPath))
+        foreach (var projectSnapshot in _projectManager.FindPotentialProjects(textDocumentPath))
         {
             var normalizedProjectPath = FilePathNormalizer.NormalizeDirectory(projectSnapshot.FilePath);
             var documents = ImmutableArray
@@ -39,20 +57,5 @@ internal class TestRazorProjectService(
             await this.UpdateProjectAsync(projectSnapshot.Key, projectSnapshot.Configuration, projectSnapshot.RootNamespace, projectSnapshot.DisplayName, projectSnapshot.ProjectWorkspaceState,
                 documents, cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    private static string GetTargetPath(string documentFilePath, string normalizedProjectPath)
-    {
-        var targetFilePath = FilePathNormalizer.Normalize(documentFilePath);
-        if (targetFilePath.StartsWith(normalizedProjectPath, FilePathComparison.Instance))
-        {
-            // Make relative
-            targetFilePath = documentFilePath[normalizedProjectPath.Length..];
-        }
-
-        // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
-        var normalizedTargetFilePath = targetFilePath.Replace('/', '\\').TrimStart('\\');
-
-        return normalizedTargetFilePath;
     }
 }

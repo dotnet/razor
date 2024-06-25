@@ -66,8 +66,6 @@ extends:
         name: NetCore1ESPool-Svc-Internal
         image: 1es-windows-2022
         os: windows
-      sbom:
-        enabled: false
     pool:
       name: NetCore1ESPool-Svc-Internal
       image: windows.vs2022preview.amd64
@@ -106,6 +104,7 @@ extends:
                 inputs:
                   command: custom
                   arguments: 'locals all -clear'
+              - task: NuGetAuthenticate@1
               - powershell: ./restore.cmd -msbuildEngine dotnet -ci; ./eng/scripts/CodeCheck.ps1 -ci
                 displayName: Run eng/scripts/CodeCheck.ps1
 
@@ -173,6 +172,8 @@ extends:
                 (Get-Date).AddMinutes(60)
                 devenv, xunit.console, xunit.console.x86
               displayName: Start background dump collection
+
+            - task: NuGetAuthenticate@1
 
             # Don't create a binary log until we can customize the name
             # https://github.com/dotnet/arcade/pull/12988
@@ -304,6 +305,7 @@ extends:
                 arguments: $(Build.SourcesDirectory)/NuGet.config $Token
               env:
                 Token: $(dn-bot-dnceng-artifact-feeds-rw)
+            - task: NuGetAuthenticate@1
 
             - script: eng/cibuild.sh
                 --restore
@@ -348,6 +350,7 @@ extends:
                   /p:OfficialBuildId=$(Build.BuildNumber)
 
             steps:
+            - task: NuGetAuthenticate@1
             - script: eng/cibuild.sh
                 --restore
                 --build

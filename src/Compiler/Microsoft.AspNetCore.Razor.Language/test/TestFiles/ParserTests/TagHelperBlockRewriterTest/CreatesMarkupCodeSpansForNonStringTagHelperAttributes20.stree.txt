@@ -40,17 +40,10 @@
                     MarkupTextLiteral - [47..48)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
                     MarkupTagHelperAttributeValue - [48..57)::9
-                        CSharpExpressionLiteral - [48..49)::1 - [!] - Gen<None>
+                        CSharpExpressionLiteral - [48..57)::9 - [!@isAlive] - Gen<None>
                             Bang;[!];
-                        MarkupBlock - [49..57)::8
-                            CSharpCodeBlock - [49..57)::8
-                                CSharpImplicitExpression - [49..57)::8
-                                    CSharpTransition - [49..49)::0
-                                        Transition;[<Missing>];
-                                    CSharpImplicitExpressionBody - [49..57)::8
-                                        CSharpCodeBlock - [49..57)::8
-                                            CSharpExpressionLiteral - [49..57)::8 - [@isAlive] - Gen<Expr>
-                                                Identifier;[@isAlive];
+                            Transition;[@];
+                            Identifier;[isAlive];
                     MarkupTextLiteral - [57..58)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
                 MarkupMiscAttributeContent - [58..59)::1

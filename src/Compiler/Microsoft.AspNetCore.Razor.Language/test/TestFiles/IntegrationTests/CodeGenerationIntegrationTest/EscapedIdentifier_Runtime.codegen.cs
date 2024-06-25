@@ -65,22 +65,8 @@ namespace AspNetCore
             __tagHelperExecutionContext.Add(__InputTagHelper);
             __InputTagHelper.AgeProp = 
 #nullable restore
-#line (9,13)-(9,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-Convert.ToInt32(
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (9,29)-(9,35) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-@count
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (9,35)-(9,36) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-)
+#line (9,13)-(9,36) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
+Convert.ToInt32(@count)
 
 #line default
 #line hidden
@@ -89,15 +75,8 @@ Convert.ToInt32(
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __InputTagHelper.AgeProp, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __InputTagHelper.AliveProp = 
 #nullable restore
-#line (9,45)-(9,46) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-!
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (9,46)-(9,52) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-@alive
+#line (9,45)-(9,52) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
+!@alive
 
 #line default
 #line hidden
@@ -119,15 +98,8 @@ Convert.ToInt32(
             __tagHelperExecutionContext.Add(__InputTagHelper);
             __InputTagHelper.AgeProp = 
 #nullable restore
-#line (10,13)-(10,18) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-(int)
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (10,18)-(10,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-@obj.age
+#line (10,13)-(10,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
+(int)@obj.age
 
 #line default
 #line hidden
@@ -136,50 +108,8 @@ Convert.ToInt32(
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __InputTagHelper.AgeProp, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __InputTagHelper.TagProp = 
 #nullable restore
-#line (10,33)-(10,36) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-new
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (10,36)-(10,38) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- {
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (10,38)-(10,39) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- 
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (10,39)-(10,46) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-@params
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (10,46)-(10,48) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- =
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (10,48)-(10,50) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- 1
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (10,50)-(10,52) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- }
+#line (10,33)-(10,52) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
+new { @params = 1 }
 
 #line default
 #line hidden
@@ -205,71 +135,8 @@ new
             }
             __InputTagHelper.DictionaryOfBoolAndStringTupleProperty["test"] = 
 #nullable restore
-#line (11,27)-(11,28) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-(
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (11,28)-(11,33) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-@item
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (11,33)-(11,34) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-.
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (11,34)-(11,69) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- Items.Where(i=>i.Contains("one")).
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (11,69)-(11,80) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- Count()>0,
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (11,80)-(11,81) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- 
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (11,81)-(11,86) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-@item
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (11,86)-(11,87) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
-.
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (11,87)-(11,132) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- Items.FirstOrDefault(i=>i.Contains("one"))?.
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (11,132)-(11,151) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
- Replace("one",""))
+#line (11,27)-(11,151) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml"
+(@item. Items.Where(i=>i.Contains("one")). Count()>0, @item. Items.FirstOrDefault(i=>i.Contains("one"))?. Replace("one",""))
 
 #line default
 #line hidden
