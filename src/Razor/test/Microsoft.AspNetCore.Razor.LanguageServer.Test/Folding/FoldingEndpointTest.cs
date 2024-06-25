@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.FoldingRanges;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
@@ -193,9 +194,8 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
 
         var languageServer = await CreateLanguageServerAsync(codeDocument, filePath);
 
-        var endpoint = new FoldingRangeEndpoint(
+        var foldingRangeService = new FoldingRangeService(
             DocumentMappingService,
-            languageServer,
             [
                 new UsingsFoldingRangeProvider(),
                 new RazorCodeBlockFoldingProvider(),
@@ -203,6 +203,11 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
                 new SectionDirectiveFoldingProvider(),
                 new RazorCSharpStatementKeywordFoldingProvider(),
             ],
+            LoggerFactory);
+
+        var endpoint = new FoldingRangeEndpoint(
+            languageServer,
+            foldingRangeService,
             LoggerFactory);
 
         var request = new FoldingRangeParams()

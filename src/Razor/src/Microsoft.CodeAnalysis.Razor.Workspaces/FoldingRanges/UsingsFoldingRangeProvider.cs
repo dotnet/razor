@@ -3,21 +3,16 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
 
-internal sealed class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
+internal class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
 {
-    public async Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
+    public ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument)
     {
         var builder = new List<FoldingRange>();
-
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var razorFileSyntaxWalker = new RazorFileUsingsFoldingSyntaxWalker(codeDocument.Source);
         razorFileSyntaxWalker.Visit(codeDocument.GetSyntaxTree().Root);
