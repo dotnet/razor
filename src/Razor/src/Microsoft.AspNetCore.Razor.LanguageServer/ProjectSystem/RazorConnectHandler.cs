@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 [RazorLanguageServerEndpoint(CustomMessageNames.RazorConnectEndpointName)]
-internal class RazorConnectHandler(NamedPipeBasedRazorProjectInfoDriver infoDriver) : IRazorNotificationHandler<RazorConnectParams>
+internal sealed class RazorConnectHandler(NamedPipeBasedRazorProjectInfoDriver infoDriver) : IRazorNotificationHandler<RazorConnectParams>
 {
     public bool MutatesSolutionState => false;
 
