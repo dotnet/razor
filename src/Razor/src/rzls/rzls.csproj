@@ -8,7 +8,7 @@
     <RootNamespace>Microsoft.AspNetCore.Razor.LanguageServer</RootNamespace>
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>true</IsShippingPackage>
-
+    <RollForward>LatestMajor</RollForward>
     <!--
         Build a nuget package for this project.  This is not consumed as a standard NuGet package; it just
     contains
