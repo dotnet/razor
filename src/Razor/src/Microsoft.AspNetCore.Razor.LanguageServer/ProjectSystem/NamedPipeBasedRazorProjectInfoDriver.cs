@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDriver
 {
-    NamedPipeClientStream? _namedPipe;
+    private NamedPipeClientStream? _namedPipe;
 
     public NamedPipeBasedRazorProjectInfoDriver(ILoggerFactory loggerFactory) : base(loggerFactory)
     {

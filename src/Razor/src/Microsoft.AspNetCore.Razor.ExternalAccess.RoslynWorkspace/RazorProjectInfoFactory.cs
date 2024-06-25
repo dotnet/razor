@@ -52,7 +52,7 @@ internal static class RazorProjectInfoFactory
         // Not a razor project
         if (documents.Length == 0)
         {
-            if (project.Documents.Any())
+            if (project.DocumentIds.Count == 0)
             {
                 logger?.LogInformation("No razor documents for {projectId}", project.Id);
             }
