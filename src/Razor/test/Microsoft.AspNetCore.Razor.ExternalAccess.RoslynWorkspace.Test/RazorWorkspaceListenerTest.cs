@@ -4,7 +4,6 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Pipelines;
-using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -203,13 +202,9 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
     {
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
 
-        using var listener = new RazorWorkspaceListener(NullLoggerFactory.Instance);
-
         var pipe = new Pipe();
-        using var writerStream = pipe.Writer.AsStream();
         using var readerStream = pipe.Reader.AsStream();
-
-        listener.EnsureInitialized(workspace, writerStream);
+        using var listener = new StreamBasedListener(workspace, pipe.Writer.AsStream());
 
         var projectInfo = ProjectInfo.Create(
             ProjectId.CreateNewId(),
@@ -249,7 +244,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         Assert.Equal(intermediateDirectory, await readerStream.ReadProjectInfoRemovalAsync(CancellationToken.None));
     }
 
-    private class TestRazorWorkspaceListener : RazorWorkspaceListener
+    private class TestRazorWorkspaceListener : RazorWorkspaceListenerBase
     {
         private ConcurrentDictionary<ProjectId, int> _serializeCalls = new();
         private TaskCompletionSource _completionSource = new();
@@ -257,13 +252,13 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         public ConcurrentDictionary<ProjectId, int> SerializeCalls => _serializeCalls;
 
         public TestRazorWorkspaceListener()
-            : base(NullLoggerFactory.Instance)
+            : base(NullLoggerFactory.Instance.CreateLogger(""))
         {
         }
 
         public void EnsureInitialized(Workspace workspace)
         {
-            EnsureInitialized(workspace, Stream.Null);
+            EnsureInitialized(workspace, static () => Stream.Null);
         }
 
         private protected override Task UpdateProjectAsync(Project project, Solution solution, CancellationToken ct)
@@ -280,6 +275,25 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         {
             await _completionSource.Task;
             _completionSource = new();
+        }
+
+        private protected override Task CheckConnectionAsync(Stream stream, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class StreamBasedListener : RazorWorkspaceListenerBase
+    {
+        public StreamBasedListener(Workspace workspace, Stream stream)
+            : base(NullLoggerFactory.Instance.CreateLogger(""))
+        {
+            EnsureInitialized(workspace, () => stream);
+        }
+
+        private protected override Task CheckConnectionAsync(Stream stream, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 }

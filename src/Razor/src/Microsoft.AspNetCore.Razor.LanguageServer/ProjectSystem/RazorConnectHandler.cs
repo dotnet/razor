@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -21,5 +22,8 @@ internal class RazorConnectHandler(NamedPipeBasedRazorProjectInfoDriver infoDriv
     public bool MutatesSolutionState => false;
 
     public Task HandleNotificationAsync(RazorConnectParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
-        => infoDriver.ConnectAsync(request.PipeName, cancellationToken);
+    {
+        infoDriver.ConnectAsync(request.PipeName, cancellationToken).Forget();
+        return Task.CompletedTask;
+    }
 }

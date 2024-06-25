@@ -2,12 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Pipes;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -32,10 +28,10 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
         StartInitialization();
     }
 
-    public Task ConnectAsync(string pipeName, CancellationToken cancellationToken)
+    public async Task ConnectAsync(string pipeName, CancellationToken cancellationToken)
     {
         Logger.LogTrace($"Connecting to named pipe {pipeName}");
-        Debug.Assert(_namedPipe is null);
+        Assumed.True(_namedPipe is null);
 
 #if NET
         _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
@@ -44,11 +40,8 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
         CheckPipeConnectionOwnership(_namedPipe);
 #endif
 
-        return _namedPipe
-            .ConnectAsync(cancellationToken)
-            .ContinueWith(
-                t => ReadFromStreamAsync(),
-                TaskScheduler.Default);
+        await _namedPipe.ConnectAsync(cancellationToken).ConfigureAwait(false);
+        ReadFromStreamAsync(CancellationToken.None).Forget();
     }
 
     protected override Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
