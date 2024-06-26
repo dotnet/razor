@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -85,17 +87,27 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         using var listener = new TestRazorWorkspaceListener();
         listener.EnsureInitialized(workspace);
 
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        // IntermediateOutput information is needed for project removal to be communicated properly
+        var projectInfo = ProjectInfo.Create(
+            ProjectId.CreateNewId(),
+            VersionStamp.Create(),
+            "TestProject",
+            "TestProject",
+            LanguageNames.CSharp);
+
+        projectInfo = projectInfo.WithCompilationOutputInfo(projectInfo.CompilationOutputInfo.WithAssemblyPath(@"C:\test\out\test.dll"));
+        projectInfo = projectInfo.WithFilePath(@"C:\test\test.csproj");
+
+        var project = workspace.AddProject(projectInfo);
         listener.NotifyDynamicFile(project.Id);
+        await listener.WaitForDebounceAsync();
+        Assert.Single(listener.SerializeCalls);
 
         var newSolution = project.Solution.RemoveProject(project.Id);
         Assert.True(workspace.TryApplyChanges(newSolution));
 
-        // We can't wait for debounce here, because it won't happen, but if we don't wait for _something_ we won't know
-        // if the test fails, so a delay is annoyingly necessary.
-        await Task.Delay(500);
-
-        Assert.Empty(listener.SerializeCalls);
+        await listener.WaitForDebounceAsync();
+        Assert.Single(listener.RemoveCalls);
     }
 
     [Fact]
@@ -247,9 +259,12 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
     private class TestRazorWorkspaceListener : RazorWorkspaceListenerBase
     {
         private ConcurrentDictionary<ProjectId, int> _serializeCalls = new();
+        private ConcurrentDictionary<ProjectId, int> _removeCalls = new();
+
         private TaskCompletionSource _completionSource = new();
 
         public ConcurrentDictionary<ProjectId, int> SerializeCalls => _serializeCalls;
+        public ConcurrentDictionary<ProjectId, int> RemoveCalls => _removeCalls;
 
         public TestRazorWorkspaceListener()
             : base(NullLoggerFactory.Instance.CreateLogger(""))
@@ -261,19 +276,45 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
             EnsureInitialized(workspace, static () => Stream.Null);
         }
 
-        private protected override Task UpdateProjectAsync(Project project, Solution solution, CancellationToken ct)
+        private protected override ValueTask ProcessWorkAsync(ImmutableArray<Work> work, CancellationToken cancellationToken)
         {
-            _serializeCalls.AddOrUpdate(project.Id, 1, (id, curr) => curr + 1);
+            foreach (var unit in work)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (unit is UpdateWork updateWork)
+                {
+                    UpdateProject(updateWork.ProjectId);
+                }
+
+                if (unit is RemovalWork removeWork)
+                {
+                    RemoveProject(removeWork.ProjectId);
+                }
+            }
+
+            return ValueTask.CompletedTask;
+        }
+
+        private void RemoveProject(ProjectId projectId)
+        {
+            _removeCalls.AddOrUpdate(projectId, 1, (id, curr) => curr + 1);
 
             _completionSource.TrySetResult();
             _completionSource = new();
+        }
 
-            return Task.CompletedTask;
+        private void UpdateProject(ProjectId projectId)
+        {
+            _serializeCalls.AddOrUpdate(projectId, 1, (id, curr) => curr + 1);
+
+            _completionSource.TrySetResult();
+            _completionSource = new();
         }
 
         internal async Task WaitForDebounceAsync()
         {
-            await _completionSource.Task;
+            await _completionSource.Task.WaitAsync(TimeSpan.FromSeconds(20));
             _completionSource = new();
         }
 

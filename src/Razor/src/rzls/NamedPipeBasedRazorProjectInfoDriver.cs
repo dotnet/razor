@@ -25,10 +25,12 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
     public async Task ConnectAsync(string pipeName, CancellationToken cancellationToken)
     {
         Assumed.True(_namedPipe is null);
-        Logger.LogTrace($"Connecting to named pipe {pipeName}");
+        Logger.LogTrace($"Connecting to named pipe {pipeName} on PID: {Process.GetCurrentProcess().Id}");
 
         _namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.In, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
         await _namedPipe.ConnectAsync(cancellationToken).ConfigureAwait(false);
+
+        // Don't block reading the stream on the caller of this
         ReadFromStreamAsync(CancellationToken.None).Forget();
     }
 
