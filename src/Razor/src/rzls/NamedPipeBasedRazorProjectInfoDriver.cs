@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
