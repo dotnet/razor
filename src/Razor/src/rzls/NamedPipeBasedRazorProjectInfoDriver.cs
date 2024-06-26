@@ -45,12 +45,14 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
 
     private async Task ReadFromStreamAsync(CancellationToken cancellationToken = default)
     {
-        _namedPipe.AssumeNotNull();
-
         Logger?.LogTrace($"Starting read from named pipe.");
 
-        while (_namedPipe.IsConnected && !cancellationToken.IsCancellationRequested)
+        while (
+            _namedPipe is not null &&
+            _namedPipe.IsConnected
+            && !cancellationToken.IsCancellationRequested)
         {
+
             try
             {
                 switch (_namedPipe.ReadProjectInfoAction())
