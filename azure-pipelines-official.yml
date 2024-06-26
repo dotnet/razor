@@ -76,7 +76,7 @@ extends:
         enabled: false
     pool:
       name: NetCore1ESPool-Svc-Internal
-      image: windows.vs2022preview.amd64
+      image: windows.vs2022.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -105,10 +105,10 @@ extends:
               pool:
                 ${{ if eq(variables['System.TeamProject'], 'public') }}:
                   name: $(DncEngPublicBuildPool)
-                  demands: ImageOverride -equals windows.vs2022preview.amd64.open
+                  demands: ImageOverride -equals windows.vs2022.amd64.open
                 ${{ if ne(variables['System.TeamProject'], 'public') }}:
                   name: $(DncEngInternalBuildPool)
-                  demands: ImageOverride -equals windows.vs2022preview.amd64
+                  demands: ImageOverride -equals windows.vs2022.amd64
               steps:
               - task: NuGetCommand@2
                 displayName: 'Clear NuGet caches'
@@ -142,10 +142,10 @@ extends:
             pool:
               ${{ if eq(variables['System.TeamProject'], 'public') }}:
                 name: $(DncEngPublicBuildPool)
-                demands: ImageOverride -equals windows.vs2022preview.amd64.open
+                demands: ImageOverride -equals windows.vs2022.amd64.open
               ${{ if ne(variables['System.TeamProject'], 'public') }}:
                 name: $(DncEngInternalBuildPool)
-                demands: ImageOverride -equals windows.vs2022preview.amd64
+                demands: ImageOverride -equals windows.vs2022.amd64
             strategy:
               matrix:
                 ${{ if eq(variables['System.TeamProject'], 'public') }}:
