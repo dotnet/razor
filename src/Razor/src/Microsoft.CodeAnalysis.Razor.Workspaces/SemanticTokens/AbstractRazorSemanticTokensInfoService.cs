@@ -170,6 +170,8 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
             csharpRanges = [csharpRange];
         }
 
+        _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Version}, correlation ID {correlationId}, and the server thinks there are {codeDocument.GetCSharpSourceText().Lines.Count} lines of C#");
+
         var csharpResponse = await _csharpSemanticTokensProvider.GetCSharpSemanticTokensResponseAsync(documentContext, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).

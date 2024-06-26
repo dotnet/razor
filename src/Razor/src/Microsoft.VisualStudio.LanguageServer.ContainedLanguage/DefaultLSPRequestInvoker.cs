@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,7 +82,11 @@ internal class DefaultLSPRequestInvoker : LSPRequestInvoker
             {
                 TextBuffer = textBuffer,
                 LanguageServerName = languageServerName,
-                ParameterFactory = _ => parameters,
+                ParameterFactory = snapshot =>
+                {
+                    LSPDocumentSynchronizer.LogFunction($"Creating parameters for {method} on {languageServerName} at snapshot version {snapshot.Version.VersionNumber}.");
+                    return parameters;
+                },
                 Method = method,
             },
             cancellationToken);

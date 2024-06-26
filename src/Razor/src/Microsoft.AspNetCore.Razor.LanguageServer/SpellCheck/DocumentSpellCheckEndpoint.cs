@@ -39,7 +39,7 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        serverCapabilities.SpellCheckingProvider = true;
+        //serverCapabilities.SpellCheckingProvider = true;
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams request)

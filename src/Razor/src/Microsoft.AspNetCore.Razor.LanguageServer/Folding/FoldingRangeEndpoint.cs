@@ -37,7 +37,7 @@ internal sealed class FoldingRangeEndpoint(
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        serverCapabilities.FoldingRangeProvider = new FoldingRangeOptions();
+        //serverCapabilities.FoldingRangeProvider = new FoldingRangeOptions();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request)

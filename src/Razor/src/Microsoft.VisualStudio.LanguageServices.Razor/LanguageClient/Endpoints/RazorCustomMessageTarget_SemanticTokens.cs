@@ -58,6 +58,8 @@ internal partial class RazorCustomMessageTarget
         SemanticTokensParams requestParams,
         CancellationToken cancellationToken)
     {
+        await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
         if (semanticTokensParams is null)
         {
             throw new ArgumentNullException(nameof(semanticTokensParams));
@@ -67,6 +69,8 @@ internal partial class RazorCustomMessageTarget
         {
             throw new ArgumentNullException(nameof(semanticTokensParams.Ranges));
         }
+
+        _logger.LogDebug($"Semantic tokens request for {semanticTokensParams.Ranges.Max(r=>r.End.Line)} max line number, host version {semanticTokensParams.RequiredHostDocumentVersion}, correlation ID {semanticTokensParams.CorrelationId}");
 
         var (synchronized, csharpDoc) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
             (int)semanticTokensParams.RequiredHostDocumentVersion,
@@ -119,12 +123,17 @@ internal partial class RazorCustomMessageTarget
         semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
         var textBuffer = csharpDoc.Snapshot.TextBuffer;
 
+        _logger.LogDebug($"Requesting semantic tokens for {csharpDoc.Uri} on the UI thread, for buffer version {textBuffer.CurrentSnapshot.Version.VersionNumber} and snapshot version {csharpDoc.Snapshot.Version.VersionNumber}, host version {semanticTokensParams.RequiredHostDocumentVersion}, correlation ID {semanticTokensParams.CorrelationId}");
+
         cancellationToken.ThrowIfCancellationRequested();
         var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
 
         SemanticTokens? response;
+
         using (var disposable = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId))
         {
+            try
+            {
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens?>(
                 textBuffer,
                 lspMethodName,
@@ -132,7 +141,13 @@ internal partial class RazorCustomMessageTarget
                 requestParams,
                 cancellationToken).ConfigureAwait(false);
 
-            response = result?.Response;
+                response = result?.Response;
+            }
+            catch
+            {
+                _logger.LogDebug($"Error getting semantic tokens from Roslyn for host version {semanticTokensParams.RequiredHostDocumentVersion}, correlation ID {semanticTokensParams.CorrelationId}");
+                throw;
+            }
         }
 
         if (response?.Data is null)
