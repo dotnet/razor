@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDriver, IConnectionBasedRazorProjectInfoDriver<string>
+internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjectInfoDriver, INamedPipeProjectInfoDriver
 {
     private NamedPipeClientStream? _namedPipe;
 
@@ -23,7 +23,7 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
         StartInitialization();
     }
 
-    public async Task ConnectAsync(string pipeName, CancellationToken cancellationToken)
+    public async Task CreateNamedPipeAsync(string pipeName, CancellationToken cancellationToken)
     {
         Assumed.True(_namedPipe is null);
         Logger.LogTrace($"Connecting to named pipe {pipeName} on PID: {Process.GetCurrentProcess().Id}");

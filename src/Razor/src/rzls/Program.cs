@@ -92,11 +92,8 @@ public class Program
             featureOptions: languageServerFeatureOptions,
             configureServices: static services =>
             {
-                services.AddSingleton<IConnectionBasedRazorProjectInfoDriver<string>, NamedPipeBasedRazorProjectInfoDriver>();
-                services.AddSingleton<IRazorProjectInfoDriver>(s => s.GetRequiredService<IConnectionBasedRazorProjectInfoDriver<string>>());
-#pragma warning disable RS0035 // External access to internal symbols outside the restricted namespace(s) is prohibited
-                services.AddHandler<RazorConnectHandler>();
-#pragma warning restore RS0035 // External access to internal symbols outside the restricted namespace(s) is prohibited
+                services.AddSingleton<IRazorProjectInfoDriver, NamedPipeBasedRazorProjectInfoDriver>();
+                services.AddHandler<RazorNamedPipeConnectHandler>();
             });
 
         // Now we have a server, and hence a connection, we have somewhere to log

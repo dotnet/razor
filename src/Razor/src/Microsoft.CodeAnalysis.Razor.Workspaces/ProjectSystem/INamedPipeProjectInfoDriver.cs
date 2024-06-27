@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal interface IConnectionBasedRazorProjectInfoDriver<T> : IRazorProjectInfoDriver
+internal interface INamedPipeProjectInfoDriver : IRazorProjectInfoDriver
 {
-    Task ConnectAsync(T connectionDetails, CancellationToken cancellationToken);
+    Task CreateNamedPipeAsync(string name, CancellationToken cancellationToken);
 }

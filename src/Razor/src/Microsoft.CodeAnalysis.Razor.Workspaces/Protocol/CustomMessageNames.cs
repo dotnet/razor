@@ -26,7 +26,7 @@ internal static class CustomMessageNames
     public const string RazorMapCodeEndpoint = "razor/mapCode";
 
     // VS Code only
-    public const string RazorConnectEndpointName = "razor/connect";
+    public const string RazorNamedPipeConnectEndpointName = "razor/namedPipeConnect";
 
     // VS Windows and VS Code
     public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
