@@ -135,7 +135,7 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
     }
 
     // NOTE: This code is needed for legacy Razor editor support in .Net Framework projects. Do not delete unless support for .Net Framework projects is discontinued.
-    private bool ProjectSupportsLSPEditor(string documentMoniker)
+    private bool ProjectSupportsLspEditor(string documentMoniker)
     {
         var hr = _vsUIShellOpenDocument.Value.IsDocumentInAProject(documentMoniker, out var uiHierarchy, out _, out _, out _);
         var hierarchy = uiHierarchy as IVsHierarchy;
