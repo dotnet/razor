@@ -98,7 +98,7 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
         return false;
     }
 
-    public bool IsLspEditorAvailable(string? documentMoniker)
+    public bool IsLspEditorEnabledAndAvailable(string documentMoniker)
     {
         // This method is first called by out IFilePathToContentTypeProvider.TryGetContentTypeForFilePath(...) implementations.
         // We call AsyncLazy<T>.GetValue() below to get the value. If the work hasn't yet completed, we guard against a hidden+
@@ -107,13 +107,6 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
         if (!_lazyUseLegacyEditorTask.IsValueFactoryCompleted)
         {
             _jtf.AssertUIThread();
-        }
-
-        _activityLog.LogInfo("Checking if LSP Editor is available");
-        if (documentMoniker is null)
-        {
-            _activityLog.LogWarning($"LSP Editor not available because {nameof(documentMoniker)} is null");
-            return false;
         }
         
         var isLspEditorEnabled = !_lazyUseLegacyEditorTask.GetValue(_disposeTokenSource.Token);
@@ -124,13 +117,14 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
             return false;
         }
 
-        if (!ProjectSupportsLSPEditor(documentMoniker))
+        if (!ProjectSupportsLspEditor(documentMoniker))
         {
             // Current project hierarchy doesn't support the LSP Razor editor
             _activityLog.LogInfo("Using Legacy editor because the current project does not support LSP Editor");
             return false;
         }
 
+        _activityLog.LogInfo("LSP Editor is enabled and available");
         return true;
     }
 
