@@ -5,7 +5,5 @@ namespace Microsoft.VisualStudio.Razor;
 
 internal interface IProjectCapabilityResolver
 {
-    public bool HasCapability(object project, string capability);
-
     public bool HasCapability(string documentFilePath, object project, string capability);
 }

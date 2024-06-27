@@ -15,7 +15,7 @@ internal sealed class VisualStudioProjectCapabilityResolver(ILoggerFactory logge
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<VisualStudioProjectCapabilityResolver>();
 
-    public bool HasCapability(object project, string capability)
+    public bool HasCapability(string documentFilePath, object project, string capability)
     {
         if (project is not IVsHierarchy vsHierarchy)
         {
@@ -25,9 +25,6 @@ internal sealed class VisualStudioProjectCapabilityResolver(ILoggerFactory logge
         var localHasCapability = LocalHasCapability(vsHierarchy, capability);
         return localHasCapability;
     }
-
-    public bool HasCapability(string documentFilePath, object project, string capability)
-        => HasCapability(project, capability);
 
     private bool LocalHasCapability(IVsHierarchy hierarchy, string capability)
     {

@@ -17,12 +17,6 @@ internal class LiveShareProjectCapabilityResolver(
     private readonly ILiveShareSessionAccessor _sessionAccessor = sessionAccessor;
     private readonly JoinableTaskFactory _joinableTaskFactory = joinableTaskContext.Factory;
 
-    public bool HasCapability(object project, string capability)
-    {
-        // In LiveShare scenarios we need a document file path to be able to make reasonable assumptions on if a project has a capability
-        return false;
-    }
-
     public bool HasCapability(string documentFilePath, object project, string capability)
     {
         if (!_sessionAccessor.IsGuestSessionActive)

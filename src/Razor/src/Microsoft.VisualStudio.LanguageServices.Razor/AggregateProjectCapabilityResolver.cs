@@ -17,19 +17,6 @@ internal sealed class AggregateProjectCapabilityResolver
         _projectCapabilityResolvers = projectCapabilityResolvers;
     }
 
-    public bool HasCapability(object project, string capability)
-    {
-        foreach (var capabilityResolver in _projectCapabilityResolvers)
-        {
-            if (capabilityResolver.HasCapability(project, capability))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public bool HasCapability(string documentFilePath, object project, string capability)
     {
         foreach (var capabilityResolver in _projectCapabilityResolvers)
