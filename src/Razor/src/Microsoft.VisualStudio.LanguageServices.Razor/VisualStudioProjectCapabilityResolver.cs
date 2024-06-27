@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(ProjectCapabilityResolver))]
 [method: ImportingConstructor]
-internal class VisualStudioProjectCapabilityResolver(ILoggerFactory loggerFactory) : ProjectCapabilityResolver
+internal sealed class VisualStudioProjectCapabilityResolver(ILoggerFactory loggerFactory) : ProjectCapabilityResolver
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<VisualStudioProjectCapabilityResolver>();
 
