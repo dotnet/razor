@@ -45,6 +45,8 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
         _projectCapabilityResolver = projectCapabilityResolver;
         _vsUIShellOpenDocument = new Lazy<IVsUIShellOpenDocument>(() =>
         {
+            // This method is first called by out IFilePathToContentTypeProvider.TryGetContentTypeForFilePath(...) implementations on UI thread.
+            ThreadHelper.ThrowIfNotOnUIThread();
             var shellOpenDocument = (IVsUIShellOpenDocument)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument));
             Assumes.Present(shellOpenDocument);
 
