@@ -10,12 +10,18 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line (3,2)-(4,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-using Test2
+using 
 
 #line default
 #line hidden
 #nullable disable
-    ;
+#nullable restore
+#line (3,2)-(4,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+Test2;
+
+#line default
+#line hidden
+#nullable disable
     [global::Microsoft.AspNetCore.Components.RouteAttribute(
     // language=Route,Component
 #nullable restore

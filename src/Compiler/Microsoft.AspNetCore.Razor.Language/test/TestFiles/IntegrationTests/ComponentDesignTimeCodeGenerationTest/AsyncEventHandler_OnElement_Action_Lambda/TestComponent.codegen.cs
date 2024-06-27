@@ -9,12 +9,24 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-using System.Threading.Tasks;
+using 
+
+#nullable disable
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+System.Threading.Tasks;
 
 #nullable disable
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-using Microsoft.AspNetCore.Components.Web;
+using 
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+Microsoft.AspNetCore.Components.Web;
 
 #line default
 #line hidden

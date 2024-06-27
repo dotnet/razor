@@ -10,18 +10,28 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line (1,2)-(2,1) "x:\dir\subdir\Test\_Imports.razor"
-using System.Text
+using 
 
 #nullable disable
-    ;
+#nullable restore
+#line (1,2)-(2,1) "x:\dir\subdir\Test\_Imports.razor"
+System.Text;
+
+#nullable disable
 #nullable restore
 #line (2,2)-(3,1) "x:\dir\subdir\Test\_Imports.razor"
-using System.Reflection
+using 
 
 #line default
 #line hidden
 #nullable disable
-    ;
+#nullable restore
+#line (2,2)-(3,1) "x:\dir\subdir\Test\_Imports.razor"
+System.Reflection;
+
+#line default
+#line hidden
+#nullable disable
 #nullable restore
 #line (3,12)-(3,26) "x:\dir\subdir\Test\_Imports.razor"
 [Serializable]

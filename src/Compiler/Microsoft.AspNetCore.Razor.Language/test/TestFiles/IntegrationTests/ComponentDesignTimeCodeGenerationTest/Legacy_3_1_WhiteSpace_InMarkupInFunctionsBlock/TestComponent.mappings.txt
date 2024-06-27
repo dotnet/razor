@@ -1,14 +1,19 @@
-﻿Source Location: (1:0,1 [47] x:\dir\subdir\Test\TestComponent.cshtml)
-|using Microsoft.AspNetCore.Components.Rendering|
-Generated Location: (361:12,0 [47] )
-|using Microsoft.AspNetCore.Components.Rendering|
+﻿Source Location: (1:0,1 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|using |
+Generated Location: (361:12,0 [6] )
+|using |
+
+Source Location: (7:0,7 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Rendering|
+Generated Location: (489:19,0 [41] )
+|Microsoft.AspNetCore.Components.Rendering|
 
 Source Location: (57:1,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     void MyMethod(RenderTreeBuilder __builder)
     {
         |
-Generated Location: (1174:35,7 [65] )
+Generated Location: (1296:42,7 [65] )
 |
     void MyMethod(RenderTreeBuilder __builder)
     {
@@ -18,20 +23,20 @@ Source Location: (141:5,13 [62] x:\dir\subdir\Test\TestComponent.cshtml)
 |for (var i = 0; i < 100; i++)
             {
                 |
-Generated Location: (1374:45,13 [62] )
+Generated Location: (1496:52,13 [62] )
 |for (var i = 0; i < 100; i++)
             {
                 |
 
 Source Location: (230:8,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |i|
-Generated Location: (1579:54,21 [1] )
+Generated Location: (1701:61,21 [1] )
 |i|
 
 Source Location: (254:9,21 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |
             }|
-Generated Location: (1725:61,21 [15] )
+Generated Location: (1847:68,21 [15] )
 |
             }|
 
@@ -39,7 +44,7 @@ Source Location: (284:11,13 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     }
 |
-Generated Location: (1876:69,13 [9] )
+Generated Location: (1998:76,13 [9] )
 |
     }
 |
