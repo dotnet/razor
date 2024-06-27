@@ -45,11 +45,10 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
 
     private async Task ReadFromStreamAsync(CancellationToken cancellationToken)
     {
-        Logger?.LogTrace($"Starting read from named pipe.");
+        Logger.LogTrace($"Starting read from named pipe.");
 
         while (
-            _namedPipe is not null &&
-            _namedPipe.IsConnected &&
+            _namedPipe is { IsConnected: true } &&
             !cancellationToken.IsCancellationRequested)
         {
 
@@ -58,14 +57,14 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
                 switch (_namedPipe.ReadProjectInfoAction())
                 {
                     case ProjectInfoAction.Remove:
-                        Logger?.LogTrace($"Attempting to read project id for removal");
+                        Logger.LogTrace($"Attempting to read project id for removal");
                         var id = await _namedPipe.ReadProjectInfoRemovalAsync(cancellationToken).ConfigureAwait(false);
                         EnqueueRemove(new ProjectKey(id));
 
                         break;
 
                     case ProjectInfoAction.Update:
-                        Logger?.LogTrace($"Attempting to read project info for update");
+                        Logger.LogTrace($"Attempting to read project info for update");
                         var projectInfo = await _namedPipe.ReadProjectInfoAsync(cancellationToken).ConfigureAwait(false);
                         if (projectInfo is not null)
                         {
@@ -80,7 +79,7 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
             }
             catch (Exception ex)
             {
-                Logger?.LogError(ex, $"{ex.Message}");
+                Logger.LogError(ex, $"{ex.Message}");
             }
         }
     }

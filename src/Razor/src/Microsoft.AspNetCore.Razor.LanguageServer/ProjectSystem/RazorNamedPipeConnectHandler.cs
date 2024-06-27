@@ -12,14 +12,14 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
 [RazorLanguageServerEndpoint(CustomMessageNames.RazorNamedPipeConnectEndpointName)]
-internal sealed class RazorNamedPipeConnectHandler(IRazorProjectInfoDriver infoDriver, ILoggerFactory loggerFactory) : IRazorNotificationHandler<RazorConnectParams>
+internal sealed class RazorNamedPipeConnectHandler(IRazorProjectInfoDriver infoDriver, ILoggerFactory loggerFactory) : IRazorNotificationHandler<RazorNamedPipeConnectParams>
 {
     private readonly IRazorProjectInfoDriver _infoDriver = infoDriver;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorNamedPipeConnectHandler>();
 
     public bool MutatesSolutionState => false;
 
-    public Task HandleNotificationAsync(RazorConnectParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    public Task HandleNotificationAsync(RazorNamedPipeConnectParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
         if (_infoDriver is not INamedPipeProjectInfoDriver namedPipeDriver)
         {

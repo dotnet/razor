@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
 [DataContract]
-internal class RazorConnectParams
+internal class RazorNamedPipeConnectParams
 {
     [DataMember(Name = "pipeName")]
     public required string PipeName { get; set; }
