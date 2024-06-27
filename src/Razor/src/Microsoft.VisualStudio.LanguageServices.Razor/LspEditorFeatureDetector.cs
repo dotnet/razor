@@ -18,40 +18,60 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(ILspEditorFeatureDetector))]
 internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDisposable
 {
-    private const string DotNetCoreCSharpCapability = "CSharp&CPS";
-    private const string LegacyRazorEditorCapability = "LegacyRazorEditor";
+    internal const string DotNetCoreCSharpCapability = "CSharp&CPS";
+    internal const string LegacyRazorEditorCapability = "LegacyRazorEditor";
 
     private readonly IUIContextService _uiContextService;
     private readonly JoinableTaskFactory _jtf;
     private readonly CancellationTokenSource _disposeTokenSource;
-    private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver;
+    private readonly IAggregateProjectCapabilityResolver _projectCapabilityResolver;
     private readonly Lazy<IVsUIShellOpenDocument> _vsUIShellOpenDocument;
     private readonly AsyncLazy<bool> _lazyUseLegacyEditorTask;
     private readonly RazorActivityLog _activityLog;
 
     [ImportingConstructor]
     public LspEditorFeatureDetector(
-        AggregateProjectCapabilityResolver projectCapabilityResolver,
+        IAggregateProjectCapabilityResolver projectCapabilityResolver,
         IVsService<SVsFeatureFlags, IVsFeatureFlags> vsFeatureFlagsService,
         IVsService<SVsSettingsPersistenceManager, ISettingsManager> vsSettingsManagerService,
         IUIContextService uiContextService,
         JoinableTaskContext joinableTaskContext,
         RazorActivityLog activityLog)
+        : this(
+              projectCapabilityResolver,
+              vsFeatureFlagsService,
+              vsSettingsManagerService,
+              uiContextService,
+              joinableTaskContext,
+              activityLog,
+              new Lazy<IVsUIShellOpenDocument>(() =>
+              {
+                // This method is first called by out IFilePathToContentTypeProvider.TryGetContentTypeForFilePath(...) implementations on UI thread.
+                ThreadHelper.ThrowIfNotOnUIThread();
+                var shellOpenDocument = (IVsUIShellOpenDocument)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument));
+                Assumes.Present(shellOpenDocument);
+
+                return shellOpenDocument;
+              })
+        )
+    { }
+
+    // Primarily for unit tests
+    public LspEditorFeatureDetector(
+        IAggregateProjectCapabilityResolver projectCapabilityResolver,
+        IVsService<SVsFeatureFlags, IVsFeatureFlags> vsFeatureFlagsService,
+        IVsService<SVsSettingsPersistenceManager, ISettingsManager> vsSettingsManagerService,
+        IUIContextService uiContextService,
+        JoinableTaskContext joinableTaskContext,
+        RazorActivityLog activityLog,
+        Lazy<IVsUIShellOpenDocument> vsUIShellOpenDocument)
     {
         _uiContextService = uiContextService;
         _jtf = joinableTaskContext.Factory;
         _disposeTokenSource = new();
 
         _projectCapabilityResolver = projectCapabilityResolver;
-        _vsUIShellOpenDocument = new Lazy<IVsUIShellOpenDocument>(() =>
-        {
-            // This method is first called by out IFilePathToContentTypeProvider.TryGetContentTypeForFilePath(...) implementations on UI thread.
-            ThreadHelper.ThrowIfNotOnUIThread();
-            var shellOpenDocument = (IVsUIShellOpenDocument)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument));
-            Assumes.Present(shellOpenDocument);
-
-            return shellOpenDocument;
-        });
+        _vsUIShellOpenDocument = vsUIShellOpenDocument;
 
         _lazyUseLegacyEditorTask = new(() =>
              ComputeUseLegacyEditorAsync(vsFeatureFlagsService, vsSettingsManagerService, activityLog, _disposeTokenSource.Token),
@@ -100,6 +120,11 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
         return false;
     }
 
+    /// <summary>
+    /// Checks that LSP editor is enabled via feature flag and tools/options setting, and available for document's project
+    /// </summary>
+    /// <param name="documentMoniker">Document to check for project compatibility with LSP</param>
+    /// <returns>true if LSP editor is enabled and available for document's project</returns>
     public bool IsLspEditorEnabledAndAvailable(string documentMoniker)
     {
         // This method is first called by out IFilePathToContentTypeProvider.TryGetContentTypeForFilePath(...) implementations.
@@ -119,6 +144,8 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
             return false;
         }
 
+        // Even if LSP editor is enabled via feature flag and tools/options, document's project might not support
+        // LSP editor (e.g. .Net Framework projects don't support LSP Razor editor)
         if (!ProjectSupportsLspEditor(documentMoniker))
         {
             // Current project hierarchy doesn't support the LSP Razor editor

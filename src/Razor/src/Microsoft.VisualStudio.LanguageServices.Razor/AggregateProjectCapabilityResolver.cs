@@ -6,8 +6,8 @@ using System.ComponentModel.Composition;
 
 namespace Microsoft.VisualStudio.Razor;
 
-[Export(typeof(AggregateProjectCapabilityResolver))]
-internal sealed class AggregateProjectCapabilityResolver
+[Export(typeof(IAggregateProjectCapabilityResolver))]
+internal sealed class AggregateProjectCapabilityResolver : IAggregateProjectCapabilityResolver
 {
     private readonly IEnumerable<IProjectCapabilityResolver> _projectCapabilityResolvers;
 
