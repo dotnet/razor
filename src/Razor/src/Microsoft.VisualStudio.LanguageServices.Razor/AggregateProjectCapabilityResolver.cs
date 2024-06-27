@@ -9,15 +9,15 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(AggregateProjectCapabilityResolver))]
 internal sealed class AggregateProjectCapabilityResolver
 {
-    private readonly IEnumerable<ProjectCapabilityResolver> _projectCapabilityResolvers;
+    private readonly IEnumerable<IProjectCapabilityResolver> _projectCapabilityResolvers;
 
     [ImportingConstructor]
-    public AggregateProjectCapabilityResolver([ImportMany] IEnumerable<ProjectCapabilityResolver> projectCapabilityResolvers)
+    public AggregateProjectCapabilityResolver([ImportMany] IEnumerable<IProjectCapabilityResolver> projectCapabilityResolvers)
     {
         _projectCapabilityResolvers = projectCapabilityResolvers;
     }
 
-    public override bool HasCapability(object project, string capability)
+    public bool HasCapability(object project, string capability)
     {
         foreach (var capabilityResolver in _projectCapabilityResolvers)
         {
@@ -30,7 +30,7 @@ internal sealed class AggregateProjectCapabilityResolver
         return false;
     }
 
-    public override bool HasCapability(string documentFilePath, object project, string capability)
+    public bool HasCapability(string documentFilePath, object project, string capability)
     {
         foreach (var capabilityResolver in _projectCapabilityResolvers)
         {

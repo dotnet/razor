@@ -9,13 +9,13 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.Razor;
 
-[Export(typeof(ProjectCapabilityResolver))]
+[Export(typeof(IProjectCapabilityResolver))]
 [method: ImportingConstructor]
-internal sealed class VisualStudioProjectCapabilityResolver(ILoggerFactory loggerFactory) : ProjectCapabilityResolver
+internal sealed class VisualStudioProjectCapabilityResolver(ILoggerFactory loggerFactory) : IProjectCapabilityResolver
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<VisualStudioProjectCapabilityResolver>();
 
-    public override bool HasCapability(object project, string capability)
+    public bool HasCapability(object project, string capability)
     {
         if (project is not IVsHierarchy vsHierarchy)
         {
@@ -26,7 +26,7 @@ internal sealed class VisualStudioProjectCapabilityResolver(ILoggerFactory logge
         return localHasCapability;
     }
 
-    public override bool HasCapability(string documentFilePath, object project, string capability)
+    public bool HasCapability(string documentFilePath, object project, string capability)
         => HasCapability(project, capability);
 
     private bool LocalHasCapability(IVsHierarchy hierarchy, string capability)
