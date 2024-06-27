@@ -32,7 +32,7 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
         await _namedPipe.ConnectAsync(cancellationToken).ConfigureAwait(false);
 
         // Don't block reading the stream on the caller of this
-        ReadFromStreamAsync(CancellationToken.None).Forget();
+        ReadFromStreamAsync(DisposalToken).Forget();
     }
 
     protected override Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -43,14 +43,14 @@ internal sealed class NamedPipeBasedRazorProjectInfoDriver : AbstractRazorProjec
         _namedPipe = null;
     }
 
-    private async Task ReadFromStreamAsync(CancellationToken cancellationToken = default)
+    private async Task ReadFromStreamAsync(CancellationToken cancellationToken)
     {
         Logger?.LogTrace($"Starting read from named pipe.");
 
         while (
             _namedPipe is not null &&
-            _namedPipe.IsConnected
-            && !cancellationToken.IsCancellationRequested)
+            _namedPipe.IsConnected &&
+            !cancellationToken.IsCancellationRequested)
         {
 
             try
