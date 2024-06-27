@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
@@ -22,6 +23,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
     private Stream? _stream;
     private Workspace? _workspace;
+    bool _disposed;
 
     internal record Work(ProjectId ProjectId);
     internal record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
@@ -30,7 +32,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
     private protected RazorWorkspaceListenerBase(ILogger logger)
     {
         _logger = logger;
-        _workQueue = new(TimeSpan.FromMilliseconds(500), ProcessWorkAsync, EqualityComparer<Work>.Default, _disposeTokenSource.Token);
+        _workQueue = new(s_debounceTime, ProcessWorkAsync, EqualityComparer<Work>.Default, _disposeTokenSource.Token);
     }
 
     private protected abstract Task CheckConnectionAsync(Stream stream, CancellationToken cancellationToken);
@@ -42,10 +44,14 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
             _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
         }
 
-        if (_disposeTokenSource.IsCancellationRequested)
+        if (_disposed)
         {
+            _logger?.LogInformation("Disposal was called twice");
             return;
         }
+
+        _disposed = true;
+        _logger?.LogInformation("Tearing down named pipe for pid {pid}", Process.GetCurrentProcess().Id);
 
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
@@ -75,11 +81,19 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
     /// <summary>
     /// Initializes the workspace and begins hooking up to workspace events. This is not thread safe
-    /// but may be called multiple times.
+    /// and intended to be called only once.
     /// </summary>
     private protected void EnsureInitialized(Workspace workspace, Func<Stream> createStream)
     {
+        // Early exit check. Initialization should only happen once. Handle as safely as possible but
         if (_workspace is not null)
+        {
+            _logger?.LogInformation("EnsureInitialized was called multiple times when it shouldn't have been.");
+            return;
+        }
+
+        // Early check for disposal just to reduce any work further
+        if (_disposed)
         {
             return;
         }
@@ -159,7 +173,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         //
         void EnqueueUpdate(Project? project)
         {
-            if (_stream is null ||
+            if (_disposed ||
                 project is not
                 {
                     Language: LanguageNames.CSharp
@@ -174,8 +188,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
                 return;
             }
 
-            var projectId = project.Id;
-            _workQueue.AddWork(new UpdateWork(projectId));
+            _workQueue.AddWork(new UpdateWork(project.Id));
         }
 
         void RemoveProject(Project project)
@@ -212,12 +225,14 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         var stream = _stream;
         var solution = _workspace?.CurrentSolution;
 
-        if (stream is not { CanWrite: true } || solution is null)
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Early bail check for if we are disposed or somewhere in the middle of disposal 
+        if (_disposed || stream is null || solution is null)
         {
+            _logger?.LogTrace("Skipping work due to disposal");
             return;
         }
-
-        cancellationToken.ThrowIfCancellationRequested();
 
         await CheckConnectionAsync(stream, cancellationToken).ConfigureAwait(false);
         await ProcessWorkCoreAsync(work, stream, solution, _logger, cancellationToken).ConfigureAwait(false);
@@ -251,7 +266,14 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
             }
         }
 
-        await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Encountered error flusingh stream");
+        }
     }
 
     private static async Task ReportUpdateProjectAsync(Stream stream, Project project, ILogger? logger, CancellationToken cancellationToken)

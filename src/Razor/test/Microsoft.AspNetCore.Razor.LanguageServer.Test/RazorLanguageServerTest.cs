@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -109,6 +110,9 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
             configureServices: s =>
             {
                 s.AddSingleton<IRazorProjectInfoDriver, TestProjectInfoDriver>();
+
+                // VS Code only handler is added by rzls, but add here for testing purposes
+                s.AddHandler<RazorNamedPipeConnectHandler>();
             });
     }
 
