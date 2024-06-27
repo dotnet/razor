@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal static class StreamExtensions
 {
-    public static Task WriteStringAsync(this Stream stream, string text, Encoding? encoding = null, CancellationToken cancellationToken = default)
+    public static Task WriteStringAsync(this Stream stream, string text, Encoding? encoding, CancellationToken cancellationToken)
     {
         Debug.Assert(stream.CanWrite);
         encoding ??= Encoding.UTF8;
@@ -48,7 +48,7 @@ internal static class StreamExtensions
 #endif
     }
 
-    public static async Task<string> ReadStringAsync(this Stream stream, Encoding? encoding = null, CancellationToken cancellationToken = default)
+    public static async Task<string> ReadStringAsync(this Stream stream, Encoding? encoding, CancellationToken cancellationToken)
     {
         Debug.Assert(stream.CanRead);
         encoding ??= Encoding.UTF8;
@@ -84,12 +84,12 @@ internal static class StreamExtensions
     public static Task WriteProjectInfoRemovalAsync(this Stream stream, string intermediateOutputPath, CancellationToken cancellationToken)
     {
         WriteProjectInfoAction(stream, ProjectInfoAction.Remove);
-        return stream.WriteStringAsync(intermediateOutputPath, cancellationToken: cancellationToken);
+        return stream.WriteStringAsync(intermediateOutputPath, encoding: null, cancellationToken);
     }
 
     public static Task<string> ReadProjectInfoRemovalAsync(this Stream stream, CancellationToken cancellationToken)
     {
-        return stream.ReadStringAsync(cancellationToken: cancellationToken);
+        return stream.ReadStringAsync(encoding: null, cancellationToken);
     }
 
     public static async Task WriteProjectInfoAsync(this Stream stream, RazorProjectInfo projectInfo, CancellationToken cancellationToken)

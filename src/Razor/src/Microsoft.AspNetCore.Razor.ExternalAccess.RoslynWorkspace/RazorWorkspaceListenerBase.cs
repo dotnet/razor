@@ -46,12 +46,12 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
         if (_disposed)
         {
-            _logger?.LogInformation("Disposal was called twice");
+            _logger.LogInformation("Disposal was called twice");
             return;
         }
 
         _disposed = true;
-        _logger?.LogInformation("Tearing down named pipe for pid {pid}", Process.GetCurrentProcess().Id);
+        _logger.LogInformation("Tearing down named pipe for pid {pid}", Process.GetCurrentProcess().Id);
 
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
@@ -88,7 +88,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         // Early exit check. Initialization should only happen once. Handle as safely as possible but
         if (_workspace is not null)
         {
-            _logger?.LogInformation("EnsureInitialized was called multiple times when it shouldn't have been.");
+            _logger.LogInformation("EnsureInitialized was called multiple times when it shouldn't have been.");
             return;
         }
 
@@ -201,7 +201,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
                 var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
                 if (intermediateOutputPath is null)
                 {
-                    _logger?.LogTrace("intermediatePath is null, skipping notification of removal for {projectId}", project.Id);
+                    _logger.LogTrace("intermediatePath is null, skipping notification of removal for {projectId}", project.Id);
                     return;
                 }
 
@@ -230,7 +230,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         // Early bail check for if we are disposed or somewhere in the middle of disposal 
         if (_disposed || stream is null || solution is null)
         {
-            _logger?.LogTrace("Skipping work due to disposal");
+            _logger.LogTrace("Skipping work due to disposal");
             return;
         }
 
@@ -254,7 +254,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
                 var project = solution.GetProject(unit.ProjectId);
                 if (project is null)
                 {
-                    logger?.LogTrace("Project {projectId} is not in workspace", unit.ProjectId);
+                    logger.LogTrace("Project {projectId} is not in workspace", unit.ProjectId);
                     continue;
                 }
 
@@ -262,7 +262,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                logger?.LogError(ex, "Encountered exception while processing unit: {message}", ex.Message);
+                logger.LogError(ex, "Encountered exception while processing unit: {message}", ex.Message);
             }
         }
 
@@ -272,26 +272,26 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Encountered error flusingh stream");
+            logger.LogError(ex, "Encountered error flusingh stream");
         }
     }
 
-    private static async Task ReportUpdateProjectAsync(Stream stream, Project project, ILogger? logger, CancellationToken cancellationToken)
+    private static async Task ReportUpdateProjectAsync(Stream stream, Project project, ILogger logger, CancellationToken cancellationToken)
     {
-        logger?.LogTrace("Serializing information for {projectId}", project.Id);
+        logger.LogTrace("Serializing information for {projectId}", project.Id);
         var projectInfo = await RazorProjectInfoFactory.ConvertAsync(project, logger, cancellationToken).ConfigureAwait(false);
         if (projectInfo is null)
         {
-            logger?.LogTrace("Skipped writing data for {projectId}", project.Id);
+            logger.LogTrace("Skipped writing data for {projectId}", project.Id);
             return;
         }
 
         await stream.WriteProjectInfoAsync(projectInfo, cancellationToken).ConfigureAwait(false);
     }
 
-    private static Task ReportRemovalAsync(Stream stream, RemovalWork unit, ILogger? logger, CancellationToken cancellationToken)
+    private static Task ReportRemovalAsync(Stream stream, RemovalWork unit, ILogger logger, CancellationToken cancellationToken)
     {
-        logger?.LogTrace("Reporting removal of {projectId}", unit.ProjectId);
+        logger.LogTrace("Reporting removal of {projectId}", unit.ProjectId);
         return stream.WriteProjectInfoRemovalAsync(unit.IntermediateOutputPath, cancellationToken);
     }
 }
