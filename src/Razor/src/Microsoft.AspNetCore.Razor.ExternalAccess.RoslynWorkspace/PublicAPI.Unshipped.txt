@@ -4,4 +4,3 @@ Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.RazorWorkspaceListener
 Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.RazorWorkspaceListener.RazorWorkspaceListener(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory) -> void
 Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.RazorWorkspaceListenerBase
 Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.RazorWorkspaceListenerBase.NotifyDynamicFile(Microsoft.CodeAnalysis.ProjectId! projectId) -> void
-Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.RazorWorkspaceListenerBase.RazorWorkspaceListenerBase(Microsoft.Extensions.Logging.ILogger! logger) -> void

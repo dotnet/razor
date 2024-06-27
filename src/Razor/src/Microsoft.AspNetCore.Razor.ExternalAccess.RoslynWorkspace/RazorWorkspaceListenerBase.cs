@@ -27,7 +27,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
     internal record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
     internal record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
 
-    public RazorWorkspaceListenerBase(ILogger logger)
+    private protected RazorWorkspaceListenerBase(ILogger logger)
     {
         _logger = logger;
         _workQueue = new(TimeSpan.FromMilliseconds(500), ProcessWorkAsync, EqualityComparer<Work>.Default, _disposeTokenSource.Token);
