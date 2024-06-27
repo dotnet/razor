@@ -139,17 +139,15 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
     {
         var hr = _vsUIShellOpenDocument.Value.IsDocumentInAProject(documentMoniker, out var uiHierarchy, out _, out _, out _);
         var hierarchy = uiHierarchy as IVsHierarchy;
-        if (!ErrorHandler.Succeeded(hr) || hierarchy is null)
+        if (!ErrorHandler.Succeeded(hr))
         {
-            if (!ErrorHandler.Succeeded(hr))
-            {
-                _activityLog.LogWarning($"Project does not support LSP Editor because {nameof(_vsUIShellOpenDocument.Value.IsDocumentInAProject)} failed with exit code {hr}");
-            }
-            else if (hierarchy is null)
-            {
-                _activityLog.LogWarning($"Project does not support LSP Editor because {nameof(hierarchy)} is null");
-            }
-
+            _activityLog.LogWarning($"Project does not support LSP Editor because {nameof(_vsUIShellOpenDocument.Value.IsDocumentInAProject)} failed with exit code {hr}");
+            return false;
+        }
+        
+        if (hierarchy is null)
+        {
+            _activityLog.LogWarning($"Project does not support LSP Editor because {nameof(hierarchy)} is null");
             return false;
         }
 
