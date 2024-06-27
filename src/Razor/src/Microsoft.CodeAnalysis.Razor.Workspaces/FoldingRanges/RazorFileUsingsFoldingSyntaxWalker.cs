@@ -3,11 +3,12 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
+
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal sealed class RazorFileUsingsFoldingSyntaxWalker : SyntaxWalker
 {

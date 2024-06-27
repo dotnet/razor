@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.FoldingRanges;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -139,12 +140,17 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
         services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
 
-        // Folding Range Providers
-        services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
-        services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementFoldingProvider>();
-        services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementKeywordFoldingProvider>();
-        services.AddSingleton<IRazorFoldingRangeProvider, SectionDirectiveFoldingProvider>();
-        services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
+        if (!featureOptions.UseRazorCohostServer)
+        {
+            // Folding Range Providers
+            services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
+            services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementFoldingProvider>();
+            services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementKeywordFoldingProvider>();
+            services.AddSingleton<IRazorFoldingRangeProvider, SectionDirectiveFoldingProvider>();
+            services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
+
+            services.AddSingleton<IFoldingRangeService, FoldingRangeService>();
+        }
 
         // Other
         services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
@@ -182,6 +188,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
             if (!featureOptions.UseRazorCohostServer)
             {
                 services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
+                services.AddHandlerWithCapabilities<FoldingRangeEndpoint>();
             }
 
             services.AddHandler<WrapWithTagEndpoint>();
@@ -192,7 +199,6 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
             services.AddSingleton<IDocumentColorService, DocumentColorService>();
 
             services.AddHandler<ColorPresentationEndpoint>();
-            services.AddHandlerWithCapabilities<FoldingRangeEndpoint>();
             services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
             services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
             services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
