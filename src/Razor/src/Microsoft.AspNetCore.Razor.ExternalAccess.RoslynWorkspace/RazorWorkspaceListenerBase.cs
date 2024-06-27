@@ -23,7 +23,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
     private Stream? _stream;
     private Workspace? _workspace;
-    bool _disposed;
+    private bool _disposed;
 
     internal record Work(ProjectId ProjectId);
     internal record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
