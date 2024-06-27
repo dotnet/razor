@@ -19,7 +19,6 @@ internal static class JsonHelpers
         {
             jObject[s_convertedFlag] = true;
             return JsonDocument.Parse(jObject.ToString()).RootElement;
-            // TODO: alternatively? return JsonSerializer.SerializeToElement(JsonNode.Parse(jObject.ToString()));
         }
 
         return data;
