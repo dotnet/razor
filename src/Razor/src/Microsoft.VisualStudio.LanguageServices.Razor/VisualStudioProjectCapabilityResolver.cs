@@ -26,7 +26,8 @@ internal class VisualStudioProjectCapabilityResolver(ILoggerFactory loggerFactor
         return localHasCapability;
     }
 
-    public override bool HasCapability(string documentFilePath, object project, string capability) => HasCapability(project, capability);
+    public override bool HasCapability(string documentFilePath, object project, string capability)
+        => HasCapability(project, capability);
 
     private bool LocalHasCapability(IVsHierarchy hierarchy, string capability)
     {
