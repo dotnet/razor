@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -123,26 +124,26 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         // this matches VS Code's html servers commit behaviour
         commitElementsWithSpace = false;
 
-        if (razor.TryGetPropertyValue("format", out var parsedFormat)
-            && parsedFormat is not null)
+        if (razor.TryGetPropertyValue("format", out var parsedFormatNode) &&
+            parsedFormatNode?.AsObject() is { } parsedFormat)
         {
-            if (parsedFormat.AsObject().TryGetPropertyValue("enable", out var parsedEnableFormatting) &&
+            if (parsedFormat.TryGetPropertyValue("enable", out var parsedEnableFormatting) &&
                 parsedEnableFormatting is not null)
             {
                 enableFormatting = GetObjectOrDefault(parsedEnableFormatting, enableFormatting);
             }
 
-            if (parsedFormat.AsObject().TryGetPropertyValue("codeBlockBraceOnNextLine", out var parsedCodeBlockBraceOnNextLine) &&
+            if (parsedFormat.TryGetPropertyValue("codeBlockBraceOnNextLine", out var parsedCodeBlockBraceOnNextLine) &&
                 parsedCodeBlockBraceOnNextLine is not null)
             {
                 codeBlockBraceOnNextLine = GetObjectOrDefault(parsedCodeBlockBraceOnNextLine, codeBlockBraceOnNextLine);
             }
         }
 
-        if (razor.TryGetPropertyValue("completion", out var parsedCompletion))
+        if (razor.TryGetPropertyValue("completion", out var parsedCompletionNode) &&
+            parsedCompletionNode?.AsObject() is { } parsedCompletion)
         {
-            if (parsedCompletion is not null &&
-                parsedCompletion.AsObject().TryGetPropertyValue("commitElementsWithSpace", out var parsedCommitElementsWithSpace) &&
+            if (parsedCompletion.TryGetPropertyValue("commitElementsWithSpace", out var parsedCommitElementsWithSpace) &&
                 parsedCommitElementsWithSpace is not null)
             {
                 commitElementsWithSpace = GetObjectOrDefault(parsedCommitElementsWithSpace, commitElementsWithSpace);
@@ -190,7 +191,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         }
     }
 
-    private T GetObjectOrDefault<T>(JsonNode token, T defaultValue)
+    private T GetObjectOrDefault<T>(JsonNode token, T defaultValue, [CallerArgumentExpression(nameof(defaultValue))] string? expression = null)
     {
         try
         {
@@ -200,7 +201,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Malformed option: Token {token} cannot be converted to type {typeof(T)}.");
+            _logger.LogError(ex, $"Malformed option: Token {token} cannot be converted to type {typeof(T)} for {expression}.");
             return defaultValue;
         }
     }

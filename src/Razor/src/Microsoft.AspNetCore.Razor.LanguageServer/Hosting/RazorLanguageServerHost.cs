@@ -81,7 +81,6 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
 
         // In its infinite wisdom, the LSP client has a public method that takes Newtonsoft.Json types, but an internal method that takes System.Text.Json types.
         typeof(VSInternalExtensionUtilities).GetMethod("AddVSInternalExtensionConverters", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, [messageFormatter.JsonSerializerOptions]);
-        // TODO:         messageFormatter.JsonSerializerOptions.AddVSInternalExtensionConverters();
 
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input, messageFormatter));
 
