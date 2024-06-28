@@ -173,6 +173,30 @@ stages:
           displayName: Install yarn
           condition: succeeded()
 
+        - task: npmAuthenticate@0
+          displayName: 'npm Authentication for VSCode TS/JS'
+          condition: succeeded()
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Razor\src\Microsoft.AspNetCore.Razor.VSCode\.npmrc'
+
+        - task: npmAuthenticate@0
+          displayName: 'npm Authentication for VSCode.Extension TS/JS'
+          condition: succeeded()
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Razor\src\Microsoft.AspNetCore.Razor.VSCode.Extension\.npmrc'
+
+        - task: npmAuthenticate@0
+          displayName: 'npm Authentication for VSCode.Grammar.Test TS/JS'
+          condition: succeeded()
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Razor\test\Microsoft.AspNetCore.Razor.VSCode.Grammar.Test\.npmrc'
+
+        - task: npmAuthenticate@0
+          displayName: 'npm Authentication for VSCode.Test TS/JS'
+          condition: succeeded()
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Razor\test\Microsoft.AspNetCore.Razor.VSCode.Test\.npmrc'
+
         - task: NuGetCommand@2
           displayName: 'Clear NuGet caches'
           condition: succeeded()

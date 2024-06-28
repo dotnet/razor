@@ -4,8 +4,8 @@
 module.exports = {
   globals: {
     "ts-jest": {
-      "tsConfig": "./tsconfig.json",
-      "babeConfig": true,
+      "tsconfig": "./tsconfig.json",
+      "babelConfig": true,
       "diagnostics": true
     }
   },
