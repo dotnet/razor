@@ -329,7 +329,7 @@ tsutils@^2.29.0:
   resolved "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/typescript/-/typescript-4.5.5.tgz"
   integrity sha1-2MlTgy0okkqePTfHPXKchGxYlvM=
 
-vscode-html-languageservice@^5.0.1:
+vscode-html-languageservice@~5.2.0:
   version "5.2.0"
   resolved "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/vscode-html-languageservice/-/vscode-html-languageservice-5.2.0.tgz"
   integrity sha1-Wzb5ExrMBzzrqiB03I/1PoTIDzE=
