@@ -9,5 +9,5 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 internal static class TextChangeExtensions
 {
     public static ITextChange ToVisualStudioTextChange(this RazorTextChange razorTextChange)
-        => new VisualStudioTextChange(razorTextChange.Start, razorTextChange.Length, razorTextChange.NewText!);
+        => new VisualStudioTextChange(razorTextChange.Span.Start, razorTextChange.Span.Length, razorTextChange.NewText!);
 }

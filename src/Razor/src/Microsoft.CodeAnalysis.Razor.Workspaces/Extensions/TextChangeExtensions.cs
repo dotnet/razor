@@ -32,8 +32,11 @@ internal static class TextChangeExtensions
     {
         return new RazorTextChange()
         {
-            Start = textChange.Span.Start,
-            Length = textChange.Span.Length,
+            Span = new RazorTextSpan()
+            {
+                Start = textChange.Span.Start,
+                Length = textChange.Span.Length,
+            },
             NewText = textChange.NewText
         };
     }
