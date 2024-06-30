@@ -45,7 +45,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
     private readonly Action<IServiceCollection>? _configureServices;
     private readonly RazorLSPOptions _lspOptions;
     private readonly ILspServerActivationTracker? _lspServerActivationTracker;
-    private readonly IRazorProjectInfoDriver? _projectInfoDriver;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly ClientConnection _clientConnection;
 
@@ -59,7 +58,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         Action<IServiceCollection>? configureServices,
         RazorLSPOptions? lspOptions,
         ILspServerActivationTracker? lspServerActivationTracker,
-        IRazorProjectInfoDriver? projectInfoDriver,
         ITelemetryReporter telemetryReporter)
         : base(jsonRpc, options, CreateILspLogger(loggerFactory, telemetryReporter))
     {
@@ -69,7 +67,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         _configureServices = configureServices;
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
         _lspServerActivationTracker = lspServerActivationTracker;
-        _projectInfoDriver = projectInfoDriver;
         _telemetryReporter = telemetryReporter;
 
         _clientConnection = new ClientConnection(_jsonRpc);
@@ -126,17 +123,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         services.AddSingleton(featureOptions);
 
         services.AddSingleton<IFilePathService, LSPFilePathService>();
-
-        if (_projectInfoDriver is { } projectInfoDriver)
-        {
-            services.AddSingleton<IRazorProjectInfoDriver>(_projectInfoDriver);
-        }
-        else
-        {
-            // If the language server was not created with an IRazorProjectInfoDriver,
-            // fall back to a FileWatcher-base driver.
-            services.AddSingleton<IRazorProjectInfoDriver, FileWatcherBasedRazorProjectInfoDriver>();
-        }
 
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 

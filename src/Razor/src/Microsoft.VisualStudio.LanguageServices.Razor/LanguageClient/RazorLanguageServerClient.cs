@@ -107,8 +107,6 @@ internal class RazorLanguageServerClient(
 
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
-        var projectInfoDriver = new RazorProjectInfoDriver(_projectManager, _loggerFactory);
-
         _host = RazorLanguageServerHost.Create(
             serverStream,
             serverStream,
@@ -118,7 +116,6 @@ internal class RazorLanguageServerClient(
             _languageServerFeatureOptions,
             lspOptions,
             _lspServerActivationTracker,
-            projectInfoDriver,
             traceSource);
 
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
@@ -129,6 +126,9 @@ internal class RazorLanguageServerClient(
         void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostServicesProvider));
+
+            var projectInfoDriver = new RazorProjectInfoDriver(_projectManager, _loggerFactory);
+            services.AddSingleton<IRazorProjectInfoDriver>(projectInfoDriver);
         }
     }
 
