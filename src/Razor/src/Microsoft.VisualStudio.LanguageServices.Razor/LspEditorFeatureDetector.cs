@@ -24,14 +24,14 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
     private readonly IUIContextService _uiContextService;
     private readonly JoinableTaskFactory _jtf;
     private readonly CancellationTokenSource _disposeTokenSource;
-    private readonly IAggregateProjectCapabilityResolver _projectCapabilityResolver;
+    private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver;
     private readonly Lazy<IVsUIShellOpenDocument> _vsUIShellOpenDocument;
     private readonly AsyncLazy<bool> _lazyUseLegacyEditorTask;
     private readonly RazorActivityLog _activityLog;
 
     [ImportingConstructor]
     public LspEditorFeatureDetector(
-        IAggregateProjectCapabilityResolver projectCapabilityResolver,
+        AggregateProjectCapabilityResolver projectCapabilityResolver,
         IVsService<SVsFeatureFlags, IVsFeatureFlags> vsFeatureFlagsService,
         IVsService<SVsSettingsPersistenceManager, ISettingsManager> vsSettingsManagerService,
         IUIContextService uiContextService,
@@ -58,7 +58,7 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
 
     // Primarily for unit tests
     public LspEditorFeatureDetector(
-        IAggregateProjectCapabilityResolver projectCapabilityResolver,
+        AggregateProjectCapabilityResolver projectCapabilityResolver,
         IVsService<SVsFeatureFlags, IVsFeatureFlags> vsFeatureFlagsService,
         IVsService<SVsSettingsPersistenceManager, ISettingsManager> vsSettingsManagerService,
         IUIContextService uiContextService,

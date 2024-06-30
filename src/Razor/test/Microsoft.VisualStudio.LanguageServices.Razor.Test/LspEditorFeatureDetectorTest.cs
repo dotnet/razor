@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
@@ -159,17 +158,17 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         return featureDetector;
     }
 
-    private static IAggregateProjectCapabilityResolver CreateAggregateProjectCapabilityResolver(bool hasLegacyRazorEditorCapability, bool hasDotNetCoreCSharpCapability)
+    private static AggregateProjectCapabilityResolver CreateAggregateProjectCapabilityResolver(bool hasLegacyRazorEditorCapability, bool hasDotNetCoreCSharpCapability)
     {
-        var aggregateProjectCapabilityResolverMock = new StrictMock<IAggregateProjectCapabilityResolver>();
-        aggregateProjectCapabilityResolverMock
+        var resolverMock = new StrictMock<IProjectCapabilityResolver>();
+        resolverMock
             .Setup(x => x.HasCapability(It.IsAny<string>(), It.IsAny<object>(), LspEditorFeatureDetector.LegacyRazorEditorCapability))
             .Returns(hasLegacyRazorEditorCapability);
-        aggregateProjectCapabilityResolverMock
+        resolverMock
             .Setup(x => x.HasCapability(It.IsAny<string>(), It.IsAny<object>(), LspEditorFeatureDetector.DotNetCoreCSharpCapability))
             .Returns(hasDotNetCoreCSharpCapability);
 
-        return aggregateProjectCapabilityResolverMock.Object;
+        return new AggregateProjectCapabilityResolver([resolverMock.Object]);
     }
 
     private static Lazy<IVsUIShellOpenDocument> CreateVSUIShellOpenDocument()
