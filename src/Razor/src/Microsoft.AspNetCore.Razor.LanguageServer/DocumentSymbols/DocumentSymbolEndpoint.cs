@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,11 +13,12 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbol;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbols;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentDocumentSymbolName)]
-internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParams, SymbolInformation[]?>, ICapabilitiesProvider
+internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>, ICapabilitiesProvider
 {
     private readonly IClientConnection _clientConnection;
     private readonly IRazorDocumentMappingService _documentMappingService;
@@ -52,7 +54,7 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request)
         => request.TextDocument;
 
-    public async Task<SymbolInformation[]?> HandleRequestAsync(DocumentSymbolParams request, RazorRequestContext context, CancellationToken cancellationToken)
+    public async Task<SumType<DocumentSymbol[], SymbolInformation[]>?> HandleRequestAsync(DocumentSymbolParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
         var documentContext = context.DocumentContext;
         if (documentContext is null)
@@ -62,12 +64,12 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
 
         var delegatedParams = new DelegatedDocumentSymbolParams(documentContext.Identifier);
 
-        var symbolInformations = await _clientConnection.SendRequestAsync<DelegatedDocumentSymbolParams, SymbolInformation[]?>(
+        var result = await _clientConnection.SendRequestAsync<DelegatedDocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(
             CustomMessageNames.RazorDocumentSymbolEndpoint,
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 
-        if (symbolInformations is null)
+        if (result is not { } symbols)
         {
             return Array.Empty<SymbolInformation>();
         }
@@ -75,18 +77,66 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetCSharpDocument();
 
-        using var _ = ListPool<SymbolInformation>.GetPooledObject(out var mappedSymbols);
-
-        foreach (var symbolInformation in symbolInformations)
+        if (symbols.TryGetFirst(out var documentSymbols))
         {
-            if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, symbolInformation.Location.Range, out var newRange))
+            return RemapDocumentSymbols(csharpDocument, documentSymbols);
+        }
+        else if (symbols.TryGetSecond(out var symbolInformations))
+        {
+            using var _ = ListPool<SymbolInformation>.GetPooledObject(out var mappedSymbols);
+
+            foreach (var symbolInformation in symbolInformations)
             {
-                symbolInformation.Location.Range = newRange;
-                symbolInformation.Location.Uri = documentContext.Uri;
-                mappedSymbols.Add(symbolInformation);
+                if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, symbolInformation.Location.Range, out var newRange))
+                {
+                    symbolInformation.Location.Range = newRange;
+                    symbolInformation.Location.Uri = documentContext.Uri;
+                    mappedSymbols.Add(symbolInformation);
+                }
+            }
+
+            return mappedSymbols.ToArray();
+        }
+        else
+        {
+            Debug.Fail("Unsupported response type");
+            throw new InvalidOperationException();
+        }
+    }
+
+    private DocumentSymbol[]? RemapDocumentSymbols(RazorCSharpDocument csharpDocument, DocumentSymbol[]? documentSymbols)
+    {
+        if (documentSymbols is null)
+        {
+            return null;
+        }
+
+        using var _ = ListPool<DocumentSymbol>.GetPooledObject(out var mappedSymbols);
+
+        foreach (var documentSymbol in documentSymbols)
+        {
+            if (TryRemapRanges(csharpDocument, documentSymbol))
+            {
+                documentSymbol.Children = RemapDocumentSymbols(csharpDocument, documentSymbol.Children);
+
+                mappedSymbols.Add(documentSymbol);
             }
         }
 
         return mappedSymbols.ToArray();
+
+        bool TryRemapRanges(RazorCSharpDocument csharpDocument, DocumentSymbol documentSymbol)
+        {
+            if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, documentSymbol.Range, out var newRange) &&
+                _documentMappingService.TryMapToHostDocumentRange(csharpDocument, documentSymbol.SelectionRange, out var newSelectionRange))
+            {
+                documentSymbol.Range = newRange;
+                documentSymbol.SelectionRange = newSelectionRange;
+
+                return true;
+            }
+
+            return false;
+        }
     }
 }
