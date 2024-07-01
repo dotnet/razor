@@ -5,7 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbol;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbols;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -93,10 +93,11 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var symbolsInformations = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+        var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+        Assert.NotNull(result);
 
+        var symbolsInformations = result.Value.Second;
         // Assert
-        Assert.NotNull(symbolsInformations);
         Assert.Equal(spansDict.Values.Count(), symbolsInformations.Length);
 
         var sourceText = SourceText.From(input);
