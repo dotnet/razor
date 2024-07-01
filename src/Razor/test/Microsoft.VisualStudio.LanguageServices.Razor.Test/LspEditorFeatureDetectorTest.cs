@@ -163,10 +163,10 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     {
         var aggregateProjectCapabilityResolverMock = new StrictMock<IAggregateProjectCapabilityResolver>();
         aggregateProjectCapabilityResolverMock
-            .Setup(x => x.HasCapability(It.IsAny<string>(), It.IsAny<object>(), LspEditorFeatureDetector.LegacyRazorEditorCapability))
+            .Setup(x => x.HasCapability(It.IsAny<string>(), It.IsAny<object>(), WellKnownProjectCapabilities.LegacyRazorEditor))
             .Returns(hasLegacyRazorEditorCapability);
         aggregateProjectCapabilityResolverMock
-            .Setup(x => x.HasCapability(It.IsAny<string>(), It.IsAny<object>(), LspEditorFeatureDetector.DotNetCoreCSharpCapability))
+            .Setup(x => x.HasCapability(It.IsAny<string>(), It.IsAny<object>(), WellKnownProjectCapabilities.DotNetCoreCSharp))
             .Returns(hasDotNetCoreCSharpCapability);
 
         return aggregateProjectCapabilityResolverMock.Object;
