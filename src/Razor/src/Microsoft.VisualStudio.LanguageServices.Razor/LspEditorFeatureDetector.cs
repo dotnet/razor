@@ -118,11 +118,11 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
     }
 
     /// <summary>
-    /// Checks that LSP editor is enabled via feature flag and tools/options setting, and available for document's project
+    /// Checks that LSP editor is enabled via feature flag and tools/options setting, and available for document's project.
     /// </summary>
-    /// <param name="documentMoniker">Document to check for project compatibility with LSP</param>
+    /// <param name="documentFilePath">Document to check for project compatibility with LSP</param>
     /// <returns>true if LSP editor is enabled and available for document's project</returns>
-    public bool IsLspEditorEnabledAndAvailable(string documentMoniker)
+    public bool IsLspEditorEnabledAndAvailable(string documentFilePath)
     {
         // This method is first called by out IFilePathToContentTypeProvider.TryGetContentTypeForFilePath(...) implementations.
         // We call AsyncLazy<T>.GetValue() below to get the value. If the work hasn't yet completed, we guard against a hidden+
@@ -143,7 +143,7 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
 
         // Even if LSP editor is enabled via feature flag and tools/options, document's project might not support
         // LSP editor (e.g. .Net Framework projects don't support LSP Razor editor)
-        if (!ProjectSupportsLspEditor(documentMoniker))
+        if (!ContainingProjectSupportsLspEditor(documentFilePath))
         {
             // Current project hierarchy doesn't support the LSP Razor editor
             _activityLog.LogInfo("Using Legacy editor because the current project does not support LSP Editor");
@@ -155,9 +155,9 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
     }
 
     // NOTE: This code is needed for legacy Razor editor support in .Net Framework projects. Do not delete unless support for .Net Framework projects is discontinued.
-    private bool ProjectSupportsLspEditor(string documentMoniker)
+    private bool ContainingProjectSupportsLspEditor(string documentFilePath)
     {
-        var hr = _vsUIShellOpenDocument.Value.IsDocumentInAProject(documentMoniker, out var uiHierarchy, out _, out _, out _);
+        var hr = _vsUIShellOpenDocument.Value.IsDocumentInAProject(documentFilePath, out var uiHierarchy, out _, out _, out _);
         var hierarchy = uiHierarchy as IVsHierarchy;
         if (!ErrorHandler.Succeeded(hr))
         {
@@ -174,20 +174,20 @@ internal sealed class LspEditorFeatureDetector : ILspEditorFeatureDetector, IDis
         // We allow projects to specifically opt-out of the legacy Razor editor because there are legacy scenarios which would rely on behind-the-scenes
         // opt-out mechanics to enable the .NET Core editor in non-.NET Core scenarios. Therefore, we need a similar mechanic to continue supporting
         // those types of scenarios for the new .NET Core Razor editor.
-        if (_projectCapabilityResolver.HasCapability(documentMoniker, hierarchy, WellKnownProjectCapabilities.LegacyRazorEditor))
+        if (_projectCapabilityResolver.HasCapability(documentFilePath, hierarchy, WellKnownProjectCapabilities.LegacyRazorEditor))
         {
-            _activityLog.LogInfo($"Project does not support LSP Editor because '{documentMoniker}' has Capability {WellKnownProjectCapabilities.LegacyRazorEditor}");
+            _activityLog.LogInfo($"Project does not support LSP Editor because '{documentFilePath}' has Capability {WellKnownProjectCapabilities.LegacyRazorEditor}");
             // CPS project that requires the legacy editor
             return false;
         }
 
-        if (_projectCapabilityResolver.HasCapability(documentMoniker, hierarchy, WellKnownProjectCapabilities.DotNetCoreCSharp))
+        if (_projectCapabilityResolver.HasCapability(documentFilePath, hierarchy, WellKnownProjectCapabilities.DotNetCoreCSharp))
         {
             // .NET Core project that supports C#
             return true;
         }
 
-        _activityLog.LogInfo($"Project {documentMoniker} does not support LSP Editor because it does not have the {WellKnownProjectCapabilities.DotNetCoreCSharp} capability.");
+        _activityLog.LogInfo($"Project {documentFilePath} does not support LSP Editor because it does not have the {WellKnownProjectCapabilities.DotNetCoreCSharp} capability.");
         // Not a C# .NET Core project. This typically happens for legacy Razor scenarios
         return false;
     }
