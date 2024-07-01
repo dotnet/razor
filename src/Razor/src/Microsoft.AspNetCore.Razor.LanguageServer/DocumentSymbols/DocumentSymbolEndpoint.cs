@@ -121,6 +121,13 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
 
                 mappedSymbols.Add(documentSymbol);
             }
+            else if (documentSymbol.Children is [_, ..] &&
+                RemapDocumentSymbols(csharpDocument, documentSymbol.Children) is [_, ..] mappedChildren)
+            {
+                // This range didn't map, but some/all of its children did, so we promote them to this level so we don't
+                // lose any information.
+                mappedSymbols.AddRange(mappedChildren);
+            }
         }
 
         return mappedSymbols.ToArray();
