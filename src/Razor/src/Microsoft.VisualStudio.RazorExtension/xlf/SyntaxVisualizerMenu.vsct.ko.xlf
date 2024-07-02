@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
         <source>Show Generated HTML</source>
-        <target state="new">Show Generated HTML</target>
+        <target state="translated">생성된 HTML 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidShowSourceMappingsButton|ButtonText">
