@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>$(DefaultNetCoreTargetFrameworks)</TargetFrameworks>
@@ -25,6 +25,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisWorkspacesCommonPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="Moq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
   </ItemGroup>
 
   <Target Name="CopyDepsFromShims_Build" AfterTargets="Build">
