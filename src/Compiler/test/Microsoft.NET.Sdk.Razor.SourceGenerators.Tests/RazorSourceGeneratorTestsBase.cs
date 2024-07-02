@@ -545,4 +545,18 @@ internal static class Extensions
         Assert.Equal(payload1, e.Payload[0]);
         Assert.Equal(payload2, e.Payload[1]);
     }
+
+    public static void VerifyRazor(
+        this IEnumerable<Diagnostic> diagnostics,
+        Project project,
+        params DiagnosticDescription[] expected)
+    {
+        var mappedDiagnostics = diagnostics.PretendTheseAreCSharpDiagnostics(path =>
+        {
+            var document = project.AdditionalDocuments.Single(d => d.Name == path);
+            Assert.True(document.TryGetText(out var text));
+            return text;
+        });
+        mappedDiagnostics.Verify(expected);
+    }
 }

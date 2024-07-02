@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -317,6 +318,79 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var source = Assert.Single(result.GeneratedSources);
         Assert.Contains("AddAttribute", source.SourceText.ToString());
         Assert.DoesNotContain("AddComponentParameter", source.SourceText.ToString());
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    [InlineData("8", false)]
+    [InlineData("9", true)]
+    [InlineData("10", true)]
+    [InlineData("999", true)]
+    public async Task ComponentParameter_UnnecessaryAt(string warningLevel, bool hasWarnings)
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = """
+                @{
+                    var hi = "str";
+                    var x = 21;
+                }
+                <Component2 IntParam="42" StrParam="hi" />
+                <Component2
+                    IntParam="@(43)"
+                    StrParam="@hi" />
+                <Component2
+                    IntParam="@x"
+                    StrParam="@("lit")" />
+                <Component2 IntParam="x * 3" StrParam="@(hi + "hey")" />
+                <Component2 IntParam=@x />
+                """,
+            ["Shared/Component2.razor"] = """
+                I: @(IntParam + 1), S: @StrParam?.ToUpperInvariant()
+
+                @code {
+                    [Parameter] public int IntParam { get; set; }
+                    [Parameter] public string? StrParam { get; set; }
+                }
+                """
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            if (warningLevel != null)
+            {
+                options.TestGlobalOptions["build_property.RazorWarningLevel"] = warningLevel;
+            }
+        });
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        if (hasWarnings)
+        {
+            result.Diagnostics.VerifyRazor(project,
+                // Shared/Component1.razor(7,15): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
+                //     IntParam="@(43)"
+                Diagnostic("RZ2013", "@").WithLocation(7, 15),
+                // Shared/Component1.razor(10,15): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
+                //     IntParam="@x"
+                Diagnostic("RZ2013", "@").WithLocation(10, 15),
+                // Shared/Component1.razor(13,22): warning RZ2013: The '@' prefix is not necessary for component parameters whose type is not string.
+                // <Component2 IntParam=@x />
+                Diagnostic("RZ2013", "@").WithLocation(13, 22));
+        }
+        else
+        {
+            result.Diagnostics.VerifyRazor(project);
+        }
+        Assert.Equal(3, result.GeneratedSources.Length);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8660")]

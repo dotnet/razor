@@ -3073,8 +3073,30 @@ namespace MyApp
             var result = RunGenerator(compilation!, ref driver);
 
             result.Diagnostics.Verify(
-                // error RZ3600: Invalid value '{0}'' for RazorLangVersion. Valid values include 'Latest' or a valid version in range 1.0 to 8.0.
+                // error RZ3600: Invalid value '{0}' for RazorLangVersion. Valid values include 'Latest' or a valid version in range 1.0 to 8.0.
                 Diagnostic("RZ3600").WithArguments(langVersion).WithLocation(1, 1));
+            Assert.Single(result.GeneratedSources);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task RazorWarningLevel_Incorrect(
+            [CombinatorialValues("incorrect", "1.2", "0x1")] string warningLevel)
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = "<h1>Hello world</h1>",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project, options =>
+            {
+                options.TestGlobalOptions["build_property.RazorWarningLevel"] = warningLevel;
+            });
+
+            var result = RunGenerator(compilation!, ref driver);
+
+            result.Diagnostics.Verify(
+                // error RZ3600: Invalid value '{0}' for RazorWarningLevel. Must be empty or an integer.
+                Diagnostic("RZ3601").WithArguments(warningLevel).WithLocation(1, 1));
             Assert.Single(result.GeneratedSources);
         }
 

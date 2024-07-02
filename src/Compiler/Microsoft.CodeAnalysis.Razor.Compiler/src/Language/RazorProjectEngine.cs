@@ -363,7 +363,7 @@ public class RazorProjectEngine
             NamespaceDirective.Register(builder);
             AttributeDirective.Register(builder);
 
-            AddComponentFeatures(builder, configuration.LanguageVersion);
+            AddComponentFeatures(builder, configuration);
         }
 
         configure?.Invoke(builder);
@@ -448,8 +448,10 @@ public class RazorProjectEngine
         });
     }
 
-    private static void AddComponentFeatures(RazorProjectEngineBuilder builder, RazorLanguageVersion razorLanguageVersion)
+    private static void AddComponentFeatures(RazorProjectEngineBuilder builder, RazorConfiguration configuration)
     {
+        RazorLanguageVersion razorLanguageVersion = configuration.LanguageVersion;
+
         // Project Engine Features
         builder.Features.Add(new ComponentImportProjectFeature());
 
@@ -486,7 +488,7 @@ public class RazorProjectEngine
 
         // Optimization
         builder.Features.Add(new ComponentComplexAttributeContentPass());
-        builder.Features.Add(new ComponentLoweringPass());
+        builder.Features.Add(new ComponentLoweringPass(configuration));
         builder.Features.Add(new ComponentEventHandlerLoweringPass());
         builder.Features.Add(new ComponentKeyLoweringPass());
         builder.Features.Add(new ComponentReferenceCaptureLoweringPass());

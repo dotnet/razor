@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,7 +16,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     public partial class RazorSourceGenerator
     {
-        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions(((AnalyzerConfigOptionsProvider, ParseOptions), bool) pair, CancellationToken ct)
+        private (RazorSourceGenerationOptions?, ImmutableArray<Diagnostic>) ComputeRazorSourceGeneratorOptions(((AnalyzerConfigOptionsProvider, ParseOptions), bool) pair, CancellationToken ct)
         {
             var ((options, parseOptions), isSuppressed) = pair;
             var globalOptions = options.GlobalOptions;
@@ -31,18 +33,42 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             globalOptions.TryGetValue("build_property.SupportLocalizedComponentNames", out var supportLocalizedComponentNames);
             globalOptions.TryGetValue("build_property.GenerateRazorMetadataSourceChecksumAttributes", out var generateMetadataSourceChecksumAttributes);
 
-            Diagnostic? diagnostic = null;
+            using var diagnostics = new PooledArrayBuilder<Diagnostic>();
             if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
                 !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
             {
-                diagnostic = Diagnostic.Create(
+                diagnostics.Add(Diagnostic.Create(
                     RazorDiagnostics.InvalidRazorLangVersionDescriptor,
                     Location.None,
-                    razorLanguageVersionString);
+                    razorLanguageVersionString));
                 razorLanguageVersion = RazorLanguageVersion.Latest;
             }
 
-            var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true);
+            globalOptions.TryGetValue("build_property.RazorWarningLevel", out var razorWarningLevelString);
+            int? razorWarningLevel;
+            if (string.IsNullOrEmpty(razorWarningLevelString))
+            {
+                razorWarningLevel = null;
+            }
+            else if (!int.TryParse(razorWarningLevelString, out var razorWarningLevelInt))
+            {
+                diagnostics.Add(Diagnostic.Create(
+                    RazorDiagnostics.InvalidRazorWarningLevelDescriptor,
+                    Location.None,
+                    razorWarningLevelString));
+                razorWarningLevel = null;
+            }
+            else
+            {
+                razorWarningLevel = razorWarningLevelInt;
+            }
+
+            var razorConfiguration = new RazorConfiguration(
+                razorLanguageVersion,
+                configurationName ?? "default",
+                Extensions: [],
+                UseConsolidatedMvcViews: true,
+                RazorWarningLevel: razorWarningLevel);
 
             var razorSourceGenerationOptions = new RazorSourceGenerationOptions()
             {
@@ -54,7 +80,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 TestSuppressUniqueIds = _testSuppressUniqueIds,
             };
 
-            return (razorSourceGenerationOptions, diagnostic);
+            return (razorSourceGenerationOptions, diagnostics.DrainToImmutable());
         }
 
         private static (SourceGeneratorProjectItem?, Diagnostic?) ComputeProjectItems((AdditionalText, AnalyzerConfigOptionsProvider) pair, CancellationToken ct)
