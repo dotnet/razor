@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -101,7 +101,7 @@ internal sealed class DefaultCSharpCodeActionProvider : ICSharpCodeActionProvide
                 // flag is on, any perf hit here isn't going to affect real users.
                 try
                 {
-                    if (((JToken)codeAction.Data).ToObject<RazorCodeActionResolutionParams>() is not null)
+                    if (((JsonElement)codeAction.Data).Deserialize<RazorCodeActionResolutionParams>() is not null)
                     {
                         // This code action has already been wrapped by something else, so skip it here, or it could
                         // be marked as experimental when its not, and more importantly would be duplicated in the list.
