@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
         <source>Show Generated HTML</source>
-        <target state="new">Show Generated HTML</target>
+        <target state="translated">Zobrazit vygenerovaný kód HTML</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidShowSourceMappingsButton|ButtonText">
