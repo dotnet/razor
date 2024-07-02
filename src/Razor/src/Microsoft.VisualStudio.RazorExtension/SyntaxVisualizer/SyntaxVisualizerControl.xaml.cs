@@ -19,6 +19,9 @@ using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Razor.Documents;
 using Microsoft.VisualStudio.Razor.SyntaxVisualizer;
 using Microsoft.VisualStudio.Razor;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Microsoft.CodeAnalysis.Razor.Serialization;
 
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 
@@ -153,6 +156,33 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         }
 
         OpenVirtualDocuments<HtmlVirtualDocumentSnapshot>(_activeWpfTextView.TextBuffer);
+    }
+
+    public void ShowSerializedTagHelpers(TagHelperDisplayMode displayKind)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var codeDocument = GetCodeDocument();
+        var tagHelpers = displayKind switch
+        {
+            TagHelperDisplayMode.All => codeDocument.GetTagHelpers(),
+            TagHelperDisplayMode.InScope => codeDocument.GetTagHelperContext().TagHelpers,
+            TagHelperDisplayMode.Referenced => (IEnumerable<TagHelperDescriptor>)codeDocument.GetReferencedTagHelpers(),
+            _ => []
+        };
+
+        var serializer = new JsonSerializer();
+        serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
+
+        var tempFileName = GetTempFileName(displayKind.ToString() + "TagHelpers.json");
+
+        using (var writer = new JsonTextWriter(new StreamWriter(tempFileName)))
+        {
+            writer.Formatting = Formatting.Indented;
+            serializer.Serialize(writer, tagHelpers);
+        }
+
+        VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
     }
 
     private static string GetTempFileName(string originalFilePath)
@@ -508,5 +538,12 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         }
 
         return codeDocument;
+    }
+
+    internal enum TagHelperDisplayMode
+    {
+        All,
+        InScope,
+        Referenced
     }
 }
