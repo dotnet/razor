@@ -492,16 +492,24 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
     private void treeView_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key != System.Windows.Input.Key.Enter)
+        {
             return;
+        }
 
         if (!IsVisible || _activeWpfTextView is null)
+        {
             return;
+        }
 
         if (treeView.SelectedItem is not TreeViewItem item)
+        {
             return;
+        }
 
         if (item.Tag is not RazorSyntaxNode node)
+        {
             return;
+        }
 
         var caretPoint = new SnapshotPoint(_activeWpfTextView.TextBuffer.CurrentSnapshot, node.SpanEnd);
 
