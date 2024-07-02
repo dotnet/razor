@@ -41,9 +41,10 @@ internal class TextEditResponseRewriter : DelegatedCompletionResponseRewriter
             }
             else
             {
-                // TO-DO: Handle InsertReplaceEdit type
-                // https://github.com/dotnet/razor/issues/8829
-                Debug.Fail("Unsupported edit type.");
+                var insertReplaceRange = editRange.Second.AssumeNotNull();
+
+                insertReplaceRange.Insert = TranslateRange(hostDocumentPosition, delegatedParameters.ProjectedPosition, insertReplaceRange.Insert);
+                insertReplaceRange.Replace = TranslateRange(hostDocumentPosition, delegatedParameters.ProjectedPosition, insertReplaceRange.Replace);
             }
         }
 
@@ -73,9 +74,9 @@ internal class TextEditResponseRewriter : DelegatedCompletionResponseRewriter
                 }
                 else
                 {
-                    // TO-DO: Handle InsertReplaceEdit type
-                    // https://github.com/dotnet/razor/issues/8829
-                    Debug.Fail("Unsupported edit type.");
+                    var insertReplaceEdit = edit.Second.AssumeNotNull();
+                    insertReplaceEdit.Insert = TranslateRange(hostDocumentPosition, projectedPosition, insertReplaceEdit.Insert);
+                    insertReplaceEdit.Replace = TranslateRange(hostDocumentPosition, projectedPosition, insertReplaceEdit.Replace);
                 }
             }
             else if (item.AdditionalTextEdits is not null)
