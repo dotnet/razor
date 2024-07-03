@@ -68,6 +68,10 @@ internal static class ComponentMetadata
         public const string IsInvariantCulture = "Components.Bind.IsInvariantCulture";
 
         public const string Format = "Components.Bind.Format";
+
+        public const string PropertySpan = "Components.Bind.PropertySpan";
+
+        public const string IsSynthesized = "Components.Bind.IsSynthesized";
     }
 
     public static class ChildContent

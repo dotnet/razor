@@ -343,8 +343,22 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
             context.CodeWriter.Write("nameof(");
             TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, containingType);
             context.CodeWriter.Write(".");
-            context.CodeWriter.WriteIdentifierEscapeIfNeeded(attribute.PropertyName);
-            context.CodeWriter.Write(attribute.PropertyName);
+
+            var isSynthesized = attribute.Annotations.TryGetValue(ComponentMetadata.Bind.IsSynthesized, out string _);
+            if (!isSynthesized)
+            {
+                var attributeSourceSpan = (SourceSpan)(attribute.Annotations[ComponentMetadata.Bind.PropertySpan] ?? attribute.Annotations[ComponentMetadata.Common.OriginalAttributeSpan]);
+                var requiresEscaping = attribute.PropertyName.IdentifierRequiresEscaping();
+                using (context.CodeWriter.BuildEnhancedLinePragma(attributeSourceSpan, context, characterOffset: requiresEscaping ? 1 : 0))
+                {
+                    context.CodeWriter.WriteIdentifierEscapeIfNeeded(attribute.PropertyName);
+                    context.CodeWriter.WriteLine(attribute.PropertyName);
+                }
+            }
+            else
+            {
+                context.CodeWriter.Write(attribute.PropertyName);
+            }
             context.CodeWriter.Write(")");
         }
         else
