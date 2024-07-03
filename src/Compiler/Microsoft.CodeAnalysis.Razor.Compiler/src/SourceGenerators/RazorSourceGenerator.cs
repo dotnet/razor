@@ -149,15 +149,31 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     // but ultimately represent the same underlying assembly. We compare the module version ids to determine if the references are the same
                     if (!compilationA.References.SequenceEqual(compilationB.References, new LambdaComparer<MetadataReference>((old, @new) => 
                     {
+                        if (ReferenceEquals(old, @new))
+                        {
+                            return true;
+                        }
+
                         if (old is null || @new is null)
                         {
                             return false;
                         }
 
-                        return compilationA.GetAssemblyOrModuleSymbol(old) is IAssemblySymbol oldAssembly
-                            && compilationB.GetAssemblyOrModuleSymbol(@new) is IAssemblySymbol newAssembly
-                            && oldAssembly.Modules.Select(m => m.GetMetadata()?.GetModuleVersionId() ?? Guid.Empty)
+                        var oldSymbol = compilationA.GetAssemblyOrModuleSymbol(old);
+                        var newSymbol = compilationB.GetAssemblyOrModuleSymbol(@new);
+
+                        if (oldSymbol?.Equals(newSymbol, SymbolEqualityComparer.Default) == true)
+                        {
+                            return true;
+                        }
+
+                        if (oldSymbol is IAssemblySymbol oldAssembly && newSymbol is IAssemblySymbol newAssembly)
+                        {
+                            return oldAssembly.Modules.Select(m => m.GetMetadata()?.GetModuleVersionId() ?? Guid.Empty)
                                                   .SequenceEqual(newAssembly.Modules.Select(m => m.GetMetadata()?.GetModuleVersionId() ?? Guid.Empty));
+                        }
+
+                        return false;
                     })))
                     {
                         return false;
