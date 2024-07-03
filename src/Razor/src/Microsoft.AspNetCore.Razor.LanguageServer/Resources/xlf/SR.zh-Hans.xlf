@@ -47,6 +47,11 @@
         <target state="translated">将块提取到代码隐藏中</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_ComponentBehind_Title">
+        <source>Extract element to component behind</source>
+        <target state="new">Extract element to component behind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_Externally_Modified">
         <source>File was externally modified: {0}</source>
         <target state="translated">已从外部修改了文件: {0}。</target>

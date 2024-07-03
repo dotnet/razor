@@ -33,9 +33,11 @@ internal static class LanguageServerConstants
     {
         public const string GenerateEventHandler = "GenerateEventHandler";
 
-        public const string EditBasedCodeActionCommand = "EditBasedCodeActionCommand";
+        public const string EditBasedCodeActionCommand = nameof(EditBasedCodeActionCommand);
 
         public const string ExtractToCodeBehindAction = "ExtractToCodeBehind";
+
+        public const string ExtractToComponentBehindAction = "ExtractToComponentBehind";
 
         public const string CreateComponentFromTag = "CreateComponentFromTag";
 
