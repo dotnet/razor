@@ -129,7 +129,10 @@ internal sealed class RazorPackage : AsyncPackage
         if (!window.CommandHandlersInitialized)
         {
             var mcs = (IMenuCommandService?)GetService(typeof(IMenuCommandService));
-            window.InitializeCommands(mcs.AssumeNotNull(), GuidSyntaxVisualizerMenuCmdSet);
+            if (mcs is not null)
+            {
+                window.InitializeCommands(mcs, GuidSyntaxVisualizerMenuCmdSet);
+            }
         }
 
         ErrorHandler.ThrowOnFailure(windowFrame.Show());
