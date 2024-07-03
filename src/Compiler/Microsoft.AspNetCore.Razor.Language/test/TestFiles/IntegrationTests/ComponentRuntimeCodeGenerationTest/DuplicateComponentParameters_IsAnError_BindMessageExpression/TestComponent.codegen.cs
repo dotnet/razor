@@ -18,7 +18,15 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.MessageExpression), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Action<System.String>>>(
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.
+#nullable restore
+#line (1,39)-(1,56) "x:\dir\subdir\Test\TestComponent.cshtml"
+MessageExpression
+
+#line default
+#line hidden
+#nullable disable
+            ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Action<System.String>>>(
 #nullable restore
 #line (1,60)-(1,69) "x:\dir\subdir\Test\TestComponent.cshtml"
 (s) => {}
@@ -27,7 +35,15 @@ namespace Test
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.Message), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
+            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.
+#nullable restore
+#line (1,20)-(1,27) "x:\dir\subdir\Test\TestComponent.cshtml"
+Message
+
+#line default
+#line hidden
+#nullable disable
+            ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
 #nullable restore
 #line (1,30)-(1,37) "x:\dir\subdir\Test\TestComponent.cshtml"
 message

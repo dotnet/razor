@@ -18,7 +18,15 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent<int>>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<int>.Value), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<int>(
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<int>.
+#nullable restore
+#line (1,33)-(1,38) "x:\dir\subdir\Test\TestComponent.cshtml"
+Value
+
+#line default
+#line hidden
+#nullable disable
+            ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<int>(
 #nullable restore
 #line (1,44)-(1,55) "x:\dir\subdir\Test\TestComponent.cshtml"
 ParentValue
