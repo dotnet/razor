@@ -129,7 +129,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         services.AddDiagnosticServices();
         services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
-        services.AddCompletionServices(featureOptions);
+        services.AddCompletionServices();
         services.AddFormattingServices();
         services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);
