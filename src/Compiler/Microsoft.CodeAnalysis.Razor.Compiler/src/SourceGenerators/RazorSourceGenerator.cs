@@ -169,8 +169,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                         if (oldSymbol is IAssemblySymbol oldAssembly && newSymbol is IAssemblySymbol newAssembly)
                         {
-                            return oldAssembly.Modules.Select(m => m.GetMetadata()?.GetModuleVersionId() ?? Guid.Empty)
-                                                  .SequenceEqual(newAssembly.Modules.Select(m => m.GetMetadata()?.GetModuleVersionId() ?? Guid.Empty));
+                            var oldModuleMVIDs = oldAssembly.Modules.Select(GetMVID);
+                            var newModuleMVIDs = newAssembly.Modules.Select(GetMVID);
+                            return oldModuleMVIDs.SequenceEqual(newModuleMVIDs);
+
+                            Guid GetMVID(IModuleSymbol m) => m.GetMetadata()?.GetModuleVersionId() ?? Guid.Empty;
                         }
 
                         return false;
