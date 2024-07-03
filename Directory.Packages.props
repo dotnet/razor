@@ -26,7 +26,7 @@
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(_BenchmarkDotNetPackageVersion)" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="FluentAssertions" Version="6.7.0" />
-    <PackageVersion Include="MessagePack" Version="2.5.108" />
+    <PackageVersion Include="MessagePack" Version="2.5.140" />
     <PackageVersion Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="$(_MicrosoftBuildPackageVersion)" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.4.1" />
@@ -105,7 +105,7 @@
     <PackageVersion Include="Microsoft.WebTools.Shared" Version="$(_MicrosoftWebToolsPackageVersion)" />
     <PackageVersion Include="Moq" Version="4.16.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="Nerdbank.Streams" Version="2.10.69" />
+    <PackageVersion Include="Nerdbank.Streams" Version="2.10.72" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(_MicrosoftCodeAnalysisAnalyzersPackageVersion)" />
     <PackageVersion Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutablePackageVersion)" />
