@@ -162,7 +162,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         var oldSymbol = compilationA.GetAssemblyOrModuleSymbol(old);
                         var newSymbol = compilationB.GetAssemblyOrModuleSymbol(@new);
 
-                        if (oldSymbol?.Equals(newSymbol, SymbolEqualityComparer.Default) == true)
+                        if (SymbolEqualityComparer.Default.Equals(oldSymbol, newSymbol))
                         {
                             return true;
                         }
