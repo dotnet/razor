@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 
@@ -47,7 +48,19 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             => throw new NotSupportedException("This API should not be invoked. We should instead be relying on " +
                 "the RazorSourceDocument associated with this item instead.");
 
-        public bool Equals(SourceGeneratorProjectItem? other) => other is not null && AdditionalText == other.AdditionalText;
+        public bool Equals(SourceGeneratorProjectItem? other)
+        {
+            if (ReferenceEquals(AdditionalText, other?.AdditionalText))
+            {
+                return true;
+            }
+
+            // in the compiler server when the generator driver cache is enabled the
+            // additional files are always different instances even if their content is the same
+            var thisHash = AdditionalText.GetText()?.GetChecksum() ?? [];
+            var otherHash = other?.AdditionalText.GetText()?.GetChecksum() ?? [];
+            return Enumerable.SequenceEqual(thisHash, otherHash);
+        }
 
         public override int GetHashCode() => AdditionalText.GetHashCode();
 
