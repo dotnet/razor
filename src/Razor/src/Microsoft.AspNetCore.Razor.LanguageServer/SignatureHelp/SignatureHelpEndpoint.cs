@@ -1,4 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+﻿
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading;
@@ -11,7 +12,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 
@@ -22,7 +23,7 @@ internal sealed class SignatureHelpEndpoint(
         IClientConnection clientConnection,
         RazorLSPOptionsMonitor optionsMonitor,
         ILoggerFactory loggerProvider)
-    : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>(
+    : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LSP.SignatureHelp?>(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
@@ -33,11 +34,7 @@ internal sealed class SignatureHelpEndpoint(
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        serverCapabilities.SignatureHelpProvider = new SignatureHelpOptions()
-        {
-            TriggerCharacters = new[] { "(", ",", "<" },
-            RetriggerCharacters = new[] { ">", ")" }
-        };
+        serverCapabilities.EnableSignatureHelp();
     }
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
