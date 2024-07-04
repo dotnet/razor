@@ -4,13 +4,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SignatureHelp;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
-internal interface IRemoteSignatureHelpService
+using SignatureHelp = Roslyn.LanguageServer.Protocol.SignatureHelp;
+
+internal interface IRemoteSignatureHelpService : IRemoteJsonService
 {
-    ValueTask<RemoteSignatureHelp?> GetSignatureHelpAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId id, LinePosition linePosition, SignatureHelpTriggerKind triggerKind, string? triggerCharacter, CancellationToken cancellationToken);
+    ValueTask<SignatureHelp?> GetSignatureHelpAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId documentId, Position linePosition, CancellationToken cancellationToken);
 }
