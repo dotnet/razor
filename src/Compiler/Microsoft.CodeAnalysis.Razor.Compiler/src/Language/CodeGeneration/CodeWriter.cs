@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
-public sealed partial class CodeWriter
+public sealed partial class CodeWriter : IDisposable
 {
     // This is the size of each "page", which are arrays of ReadOnlyMemory<char>.
     // This number was chosen arbitrarily as a "best guess". If changed, care should be
@@ -65,9 +66,17 @@ public sealed partial class CodeWriter
         }
 
         // If we're at the start of a page, we need to add the page first.
-        var lastPage = _pageOffset == 0
-            ? _pages.AddLast(new ReadOnlyMemory<char>[PageSize]).Value
-            : _pages.Last!.Value;
+        ReadOnlyMemory<char>[] lastPage;
+
+        if (_pageOffset == 0)
+        {
+            lastPage = ArrayPool<ReadOnlyMemory<char>>.Shared.Rent(PageSize);
+            _pages.AddLast(lastPage);
+        }
+        else
+        {
+            lastPage = _pages.Last!.Value;
+        }
 
         // Add our chunk of text (the ReadOnlyMemory<char>) and increment the offset.
         lastPage[_pageOffset] = value;
@@ -75,7 +84,7 @@ public sealed partial class CodeWriter
 
         // We've reached the end of a page, so we reset the offset to 0.
         // This will cause a new page to be added next time.
-        if (_pageOffset == PageSize)
+        if (_pageOffset == lastPage.Length)
         {
             _pageOffset = 0;
         }
@@ -369,5 +378,15 @@ public sealed partial class CodeWriter
 
             return result;
         }
+    }
+
+    public void Dispose()
+    {
+        foreach (var page in _pages)
+        {
+            ArrayPool<ReadOnlyMemory<char>>.Shared.Return(page, clearArray: false);
+        }
+
+        _pages.Clear();
     }
 }

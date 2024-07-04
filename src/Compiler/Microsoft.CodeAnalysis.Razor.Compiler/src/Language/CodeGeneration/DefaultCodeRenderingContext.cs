@@ -21,17 +21,11 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
     private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _sourceMappingsBuilder;
 
     public DefaultCodeRenderingContext(
-        CodeWriter codeWriter,
         IntermediateNodeWriter nodeWriter,
         RazorCodeDocument codeDocument,
         DocumentIntermediateNode documentNode,
         RazorCodeGenerationOptions options)
     {
-        if (codeWriter == null)
-        {
-            throw new ArgumentNullException(nameof(codeWriter));
-        }
-
         if (nodeWriter == null)
         {
             throw new ArgumentNullException(nameof(nodeWriter));
@@ -52,7 +46,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
             throw new ArgumentNullException(nameof(options));
         }
 
-        CodeWriter = codeWriter;
+        CodeWriter = new CodeWriter(Environment.NewLine, options);
         _codeDocument = codeDocument;
         _documentNode = documentNode;
         Options = options;
@@ -73,7 +67,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
         if (newLineString != null)
         {
             // Set new line character to a specific string regardless of platform, for testing purposes.
-            codeWriter.NewLine = (string)newLineString;
+            CodeWriter.NewLine = (string)newLineString;
         }
 
         Items[NewLineString] = codeDocument.Items[NewLineString];
@@ -220,6 +214,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
     public override void Dispose()
     {
         _sourceMappingsBuilder.Dispose();
+        CodeWriter.Dispose();
     }
 
     private struct ScopeInternal
