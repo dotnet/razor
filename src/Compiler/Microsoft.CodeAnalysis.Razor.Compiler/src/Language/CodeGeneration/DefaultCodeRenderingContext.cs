@@ -46,7 +46,6 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
             throw new ArgumentNullException(nameof(options));
         }
 
-        CodeWriter = new CodeWriter(Environment.NewLine, options);
         _codeDocument = codeDocument;
         _documentNode = documentNode;
         Options = options;
@@ -63,12 +62,9 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
             Diagnostics.Add(diagnostics[i]);
         }
 
-        var newLineString = codeDocument.Items[NewLineString];
-        if (newLineString != null)
-        {
-            // Set new line character to a specific string regardless of platform, for testing purposes.
-            CodeWriter.NewLine = (string)newLineString;
-        }
+        // Set new line character to a specific string regardless of platform, for testing purposes.
+        var newLineString = codeDocument.Items[NewLineString] as string ?? Environment.NewLine;
+        CodeWriter = new CodeWriter(newLineString, options);
 
         Items[NewLineString] = codeDocument.Items[NewLineString];
         Items[SuppressUniqueIds] = codeDocument.Items[SuppressUniqueIds] ?? options.SuppressUniqueIds;

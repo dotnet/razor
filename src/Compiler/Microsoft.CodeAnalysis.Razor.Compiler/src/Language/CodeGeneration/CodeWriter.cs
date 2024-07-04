@@ -384,7 +384,7 @@ public sealed partial class CodeWriter : IDisposable
     {
         foreach (var page in _pages)
         {
-            ArrayPool<ReadOnlyMemory<char>>.Shared.Return(page, clearArray: false);
+            ArrayPool<ReadOnlyMemory<char>>.Shared.Return(page, clearArray: true);
         }
 
         _pages.Clear();
