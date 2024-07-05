@@ -85,9 +85,9 @@ stages:
               demands: ImageOverride -equals windows.vs2022preview.amd64
           steps:
           - task: NodeTool@0
-            displayName: Install Node 10.x
+            displayName: Install Node 18.x
             inputs:
-              versionSpec: 10.x
+              versionSpec: 18.x
           - task: NuGetCommand@2
             displayName: 'Clear NuGet caches'
             condition: succeeded()
@@ -165,13 +165,37 @@ stages:
 
         steps:
         - task: NodeTool@0
-          displayName: Install Node 10.x
+          displayName: Install Node 18.x
           inputs:
-            versionSpec: 10.x
+            versionSpec: 18.x
 
         - powershell: npm install -g yarn
           displayName: Install yarn
           condition: succeeded()
+
+        - task: npmAuthenticate@0
+          displayName: 'npm Authentication for VSCode TS/JS'
+          condition: succeeded()
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Razor\src\Microsoft.AspNetCore.Razor.VSCode\.npmrc'
+
+        - task: npmAuthenticate@0
+          displayName: 'npm Authentication for VSCode.Extension TS/JS'
+          condition: succeeded()
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Razor\src\Microsoft.AspNetCore.Razor.VSCode.Extension\.npmrc'
+
+        - task: npmAuthenticate@0
+          displayName: 'npm Authentication for VSCode.Grammar.Test TS/JS'
+          condition: succeeded()
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Razor\test\Microsoft.AspNetCore.Razor.VSCode.Grammar.Test\.npmrc'
+
+        - task: npmAuthenticate@0
+          displayName: 'npm Authentication for VSCode.Test TS/JS'
+          condition: succeeded()
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Razor\test\Microsoft.AspNetCore.Razor.VSCode.Test\.npmrc'
 
         - task: NuGetCommand@2
           displayName: 'Clear NuGet caches'
@@ -324,9 +348,9 @@ stages:
 
         steps:
         - task: NodeTool@0
-          displayName: Install Node 10.x
+          displayName: Install Node 18.x
           inputs:
-            versionSpec: 10.x
+            versionSpec: 18.x
 
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
@@ -388,9 +412,9 @@ stages:
 
         steps:
         - task: NodeTool@0
-          displayName: Install Node 10.x
+          displayName: Install Node 18.x
           inputs:
-            versionSpec: 10.x
+            versionSpec: 18.x
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
             displayName: Setup Private Feeds Credentials
