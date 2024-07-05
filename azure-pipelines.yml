@@ -165,9 +165,9 @@ stages:
 
         steps:
         - task: NodeTool@0
-          displayName: Install Node 10.x
+          displayName: Install Node 18.x
           inputs:
-            versionSpec: 10.x
+            versionSpec: 18.x
 
         - powershell: npm install -g yarn
           displayName: Install yarn
