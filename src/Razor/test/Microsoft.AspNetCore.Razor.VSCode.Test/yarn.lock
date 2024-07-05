@@ -2049,7 +2049,7 @@ micromatch@^4.0.4:
     braces "^3.0.3"
     picomatch "^2.3.1"
 
-"microsoft.aspnetcore.razor.vscode@file:../../src/Microsoft.AspNetCore.Razor.VSCode":
+microsoft.aspnetcore.razor.vscode@../../src/Microsoft.AspNetCore.Razor.VSCode:
   version "0.0.1"
   resolved "file:../../src/Microsoft.AspNetCore.Razor.VSCode"
   dependencies:

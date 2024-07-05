@@ -27,7 +27,7 @@
     "typescript": "~4.5.4"
   },
   "dependencies": {
-    "microsoft.aspnetcore.razor.vscode": "file:../../src/Microsoft.AspNetCore.Razor.VSCode",
+    "microsoft.aspnetcore.razor.vscode": "../../src/Microsoft.AspNetCore.Razor.VSCode",
     "tar": "^6.2.1",
     "vscode-test": "^1.3.0"
   }
