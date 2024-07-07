@@ -1,4 +1,4 @@
-# EditorConfig is awesome:http://EditorConfig.org
+﻿# EditorConfig is awesome:http://EditorConfig.org
 
 # top-most EditorConfig file
 root = true
@@ -8,12 +8,13 @@ root = true
 indent_style = space
 # (Please don't specify an indent_size here; that has too many unintended consequences.)
 trim_trailing_whitespace = true
+spelling_exclusion_path = SpellingExclusions.dic
 
 # Code files
 [*.{cs,csx,vb,vbx}]
 indent_size = 4
 insert_final_newline = true
-encoding = utf-8-bom
+charset = utf-8-bom
 
 file_header_template = Copyright (c) .NET Foundation. All rights reserved.\nLicensed under the MIT license. See License.txt in the project root for license information.
 
@@ -29,10 +30,6 @@ indent_size = 2
 [*.json]
 indent_size = 2
 
-# TypeScript files
-[*.ts]
-insert_final_newline = true
-
 # Dotnet code style settings:
 [*.cs]
 # Sort using and Import directives with System.* appearing first
@@ -40,10 +37,13 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
 # IDE0005 - Remove unnecessary imports
-dotnet_diagnostic.IDE0005.severity = suggestion
+dotnet_diagnostic.IDE0005.severity = warning
 
 # IDE0046: If expression can be simplified
 dotnet_style_prefer_conditional_expression_over_return = false:silent
+
+# IDE0060 - Remove unused parameter
+dotnet_diagnostic.IDE0060.severity = warning
 
 # Don't use this. qualifier
 dotnet_style_qualification_for_field = false:suggestion
@@ -68,7 +68,6 @@ csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_after_colon_in_inheritance_clause = true
 
 # Newline settings
-dotnet_style_allow_multiple_blank_lines_experimental = false:warning
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
@@ -76,22 +75,37 @@ csharp_new_line_before_finally = true
 csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_members_in_anonymous_types = true
 
+# Roslyn experimental formatting settings
+# IDE2000, AllowMultipleBlankLines
+dotnet_style_allow_multiple_blank_lines_experimental = false:warning
+# IDE2001, AllowEmbeddedStatementsOnSameLine
+csharp_style_allow_embedded_statements_on_same_line_experimental = false:warning
+# IDE2002, AllowBlankLinesBetweenConsecutiveBraces
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:warning
+# IDE2003, AllowStatementImmediatelyAfterBlock
+dotnet_style_allow_statement_immediately_after_block_experimental = false:warning
+# IDE2004, AllowBlankLineAfterColonInConstructorInitializer
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:warning
+# IDE2005, AllowBlankLineAfterTokenInConditionalExpression
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = false:warning
+# IDE2006, AllowBlankLineAfterTokenInArrowExpressionClause
+# TODO: csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = false:warning
+
 # CA2254: The logging message template should not vary between calls to 'ILogger.Log*'
 dotnet_diagnostic.CA2254.severity = warning
-# csharp_style_allow_blank_lines_between_consecutive_braces_experimental
-dotnet_diagnostic.IDE2002.severity = warning
-# csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental
-dotnet_diagnostic.IDE2004.severity = warning
-# csharp_style_allow_embedded_statements_on_same_line_experimental
-dotnet_diagnostic.IDE2001.severity = none
-dotnet_style_allow_statement_immediately_after_block_experimental = false:warning
 
+# CA1305: Provide a value for the 'IFormatProvider' argument
+dotnet_diagnostic.CA1305.severity = none
 
 # IDE0058
 csharp_style_unused_value_expression_statement_preference = discard_variable:none
 
 # IDE0065
 csharp_using_directive_placement = outside_namespace:suggestion
+
+# Roslyn analyzers
+dotnet_diagnostic.RS0006.severity = error
+dotnet_diagnostic.RS0023.severity = error
 
 # xUnit1004: Test methods should not be skipped
 dotnet_diagnostic.xUnit1004.severity = refactoring
@@ -183,7 +197,7 @@ dotnet_diagnostic.VSTHRD101.severity = warning
 # Various settings that may not indicate desired style, but codify existing style
 csharp_prefer_simple_using_statement = true:suggestion
 csharp_prefer_braces = true:silent
-csharp_style_namespace_declarations = block_scoped:suggestion
+csharp_style_namespace_declarations = file_scoped:warning
 csharp_style_prefer_method_group_conversion = true:silent
 csharp_style_prefer_top_level_statements = true:silent
 csharp_style_expression_bodied_methods = false:silent

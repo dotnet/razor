@@ -1,4 +1,4 @@
-syntax: glob
+﻿syntax: glob
 
 ### VisualStudio ###
 
@@ -12,7 +12,6 @@ syntax: glob
 *.user
 *.userosscache
 *.sln.docstates
-launchSettings.json
 
 # Build results
 artifacts/
@@ -25,8 +24,9 @@ x86/ !eng/common/cross/x86/
 msbuild.log
 msbuild.err
 msbuild.wrn
-msbuild.binlog
 msbuild.ProjectImports.zip
+*.binlog
+*.complog
 
 # Visual Studio 2015
 .vs/
@@ -127,10 +127,6 @@ Session.vim
 config.ps1
 **/IISApplications
 
-
-# Node.js modules
-node_modules/
-
 # Python Compile Outputs
 *.pyc
 
@@ -148,11 +144,10 @@ src/Razor/test/OutOfWorkspaceFile.razor
 src/Razor/benchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks/BenchmarkDotNet.Artifacts/results/*
 src/Razor/benchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks/BenchmarkDotNet.Artifacts/*Benchmark.log
 
-# Yarn Logs
-yarn-*.log
-
 *.svclog
 
 # Bundled extension assets
-src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension/BlazorDebugProxy/
 *.vsix
+
+# testapp modifications
+src/Razor/test/testapps/ComponentApp/Components/Pages/Generated.razor

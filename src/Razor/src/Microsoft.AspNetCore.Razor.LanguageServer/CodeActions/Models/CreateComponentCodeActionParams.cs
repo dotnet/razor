@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Json.Serialization;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+
+internal sealed class CreateComponentCodeActionParams
 {
-    internal sealed class CreateComponentCodeActionParams
-    {
-        public required Uri Uri { get; set; }
-        public required string Path { get; set; }
-    }
+    [JsonPropertyName("uri")]
+    public required Uri Uri { get; set; }
+    [JsonPropertyName("path")]
+    public required string Path { get; set; }
 }

@@ -1,9 +1,8 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -61,13 +60,13 @@ namespace Test.AnotherNamespace
         Assert.Contains(bindings.TagHelpers, t =>
         {
             return t.Name == "Test.AnotherNamespace.MyComponent" &&
-                t.IsComponentFullyQualifiedNameMatch();
+                t.IsComponentFullyQualifiedNameMatch;
         });
 
         Assert.DoesNotContain(bindings.TagHelpers, t =>
         {
             return t.Name == "Test.AnotherNamespace.MyComponent" &&
-                !t.IsComponentFullyQualifiedNameMatch();
+                !t.IsComponentFullyQualifiedNameMatch;
         });
     }
 
@@ -77,7 +76,7 @@ namespace Test.AnotherNamespace
         // Arrange
 
         // Act
-        var result = CompileToCSharp("UniqueName.cshtml", string.Empty);
+        var result = CompileToCSharp("UniqueName.cshtml", cshtmlContent: string.Empty);
 
         // Assert
         var bindings = result.CodeDocument.GetTagHelperContext();
@@ -90,7 +89,7 @@ namespace Test.AnotherNamespace
         // Arrange
 
         // Act
-        var result = CompileToCSharp("UniqueName.cshtml", @"
+        var result = CompileToCSharp("UniqueName.cshtml", cshtmlContent: @"
 @typeparam TItem
 @functions {
     [Parameter] public TItem Item { get; set; }
@@ -107,7 +106,7 @@ namespace Test.AnotherNamespace
         // Arrange
 
         // Act
-        var result = CompileToCSharp("UniqueName.cshtml", @"
+        var result = CompileToCSharp("UniqueName.cshtml", cshtmlContent: @"
 @typeparam TItem;
 @functions {
     [Parameter] public TItem Item { get; set; }
@@ -124,7 +123,7 @@ namespace Test.AnotherNamespace
         // Arrange
 
         // Act
-        var result = CompileToCSharp("UniqueName.cshtml", @"
+        var result = CompileToCSharp("UniqueName.cshtml", cshtmlContent: @"
 @typeparam TItem1
 @typeparam TItem2
 @typeparam TItem3
@@ -143,7 +142,7 @@ namespace Test.AnotherNamespace
         // Arrange
 
         // Act
-        var result = CompileToCSharp("UniqueName.cshtml", @"
+        var result = CompileToCSharp("UniqueName.cshtml", cshtmlContent: @"
 @typeparam TItem1
 @typeparam TItem2;
 @typeparam TItem3

@@ -1,9 +1,8 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
-using System;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -176,20 +175,19 @@ public class InjectDirectiveTest
 
     private RazorEngine CreateEngine()
     {
-        var configuration = RazorConfiguration.Create(RazorLanguageVersion.Version_1_1, "test", Array.Empty<RazorExtension>());
+        var configuration = new RazorConfiguration(RazorLanguageVersion.Version_1_1, "test", Extensions: []);
         return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, b =>
         {
-                // Notice we're not registering the InjectDirective.Pass here so we can run it on demand.
-                b.AddDirective(InjectDirective.Directive);
+            // Notice we're not registering the InjectDirective.Pass here so we can run it on demand.
+            b.AddDirective(InjectDirective.Directive);
             b.AddDirective(ModelDirective.Directive);
         }).Engine;
     }
 
     private DocumentIntermediateNode CreateIRDocument(RazorEngine engine, RazorCodeDocument codeDocument)
     {
-        for (var i = 0; i < engine.Phases.Count; i++)
+        foreach (var phase in engine.Phases)
         {
-            var phase = engine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorDocumentClassifierPhase)
@@ -199,21 +197,6 @@ public class InjectDirectiveTest
         }
 
         return codeDocument.GetDocumentIntermediateNode();
-    }
-
-    private string GetCSharpContent(IntermediateNode node)
-    {
-        var builder = new StringBuilder();
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            var child = node.Children[i] as IntermediateToken;
-            if (child.Kind == TokenKind.CSharp)
-            {
-                builder.Append(child.Content);
-            }
-        }
-
-        return builder.ToString();
     }
 
     private class ClassNodeVisitor : IntermediateNodeWalker

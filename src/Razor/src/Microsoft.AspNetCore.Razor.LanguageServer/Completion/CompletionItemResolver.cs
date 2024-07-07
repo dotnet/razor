@@ -5,15 +5,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+
+internal abstract class CompletionItemResolver
 {
-    internal abstract class CompletionItemResolver
-    {
-        public abstract Task<VSInternalCompletionItem?> ResolveAsync(
-            VSInternalCompletionItem item,
-            VSInternalCompletionList containingCompletionlist,
-            object? originalRequestContext,
-            VSInternalClientCapabilities? clientCapabilities,
-            CancellationToken cancellationToken);
-    }
+    public abstract Task<VSInternalCompletionItem?> ResolveAsync(
+        VSInternalCompletionItem item,
+        VSInternalCompletionList containingCompletionlist,
+        object? originalRequestContext,
+        VSInternalClientCapabilities? clientCapabilities,
+        CancellationToken cancellationToken);
 }

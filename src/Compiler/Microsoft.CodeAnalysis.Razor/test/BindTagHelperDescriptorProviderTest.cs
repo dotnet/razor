@@ -1,11 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
 using System;
-using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
@@ -79,7 +79,7 @@ namespace Test
         Assert.Equal(ComponentMetadata.Bind.RuntimeName, bind.Metadata[TagHelperMetadata.Runtime.Name]);
         Assert.False(bind.IsDefaultKind());
         Assert.False(bind.KindUsesDefaultTagHelperRuntime());
-        Assert.False(bind.IsComponentOrChildContentTagHelper());
+        Assert.False(bind.IsComponentOrChildContentTagHelper);
         Assert.True(bind.CaseSensitive);
 
         Assert.Equal("MyProperty", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
@@ -97,7 +97,7 @@ namespace Test
         Assert.Equal("Test.MyComponent", bind.DisplayName);
         Assert.Equal("Test.MyComponent", bind.GetTypeName());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Length),
             rule =>
             {
                 Assert.Empty(rule.Diagnostics);
@@ -173,6 +173,85 @@ namespace Test
     }
 
     [Fact]
+    public void Execute_BindTagHelperReturnsValuesWhenProvidedNoTargetSymbol()
+    {
+        // When BindTagHelperDescriptorProvider is given a compilation that references
+        // API assemblies with "BindConverter" and "BindAttributes", but no target symbol,
+        // it will find the expected tag helpers.
+
+        // Arrange
+        var compilation = BaseCompilation;
+
+        Assert.Empty(compilation.GetDiagnostics());
+
+        var context = TagHelperDescriptorProviderContext.Create();
+        context.SetCompilation(compilation);
+
+        var bindTagHelperProvider = new BindTagHelperDescriptorProvider();
+
+        // Act
+        bindTagHelperProvider.Execute(context);
+
+        // Assert
+        var matches = context.Results.Where(t => t.IsBindTagHelper());
+        Assert.NotEmpty(matches);
+    }
+
+    [Fact]
+    public void Execute_BindTagHelperReturnsValuesWhenProvidedCorrectAssemblyTargetSymbol()
+    {
+        // When BindTagHelperDescriptorProvider is given a compilation that references
+        // API assemblies with "BindConverter", and a target symbol matching the assembly
+        // containing "BindConverter", it will find the expected tag helpers.
+
+        // Arrange
+        var compilation = BaseCompilation;
+
+        Assert.Empty(compilation.GetDiagnostics());
+
+        var context = TagHelperDescriptorProviderContext.Create();
+        context.SetCompilation(compilation);
+
+        var bindConverterSymbol = compilation.GetTypeByMetadataName(ComponentsApi.BindConverter.FullTypeName);
+        context.Items.SetTargetSymbol(bindConverterSymbol.ContainingAssembly);
+
+        var bindTagHelperProvider = new BindTagHelperDescriptorProvider();
+
+        // Act
+        bindTagHelperProvider.Execute(context);
+
+        // Assert
+        var matches = context.Results.Where(t => t.IsBindTagHelper());
+        Assert.NotEmpty(matches);
+    }
+
+    [Fact]
+    public void Execute_BindTagHelperReturnsEmptyWhenCompilationAssemblyTargetSymbol()
+    {
+        // When BindTagHelperDescriptorProvider is given a compilation that references
+        // API assemblies with "BindConverter", and a target symbol that does not match the
+        // assembly containing "BindConverter", it will NOT find the expected tag helpers.
+
+        // Arrange
+        var compilation = BaseCompilation;
+
+        Assert.Empty(compilation.GetDiagnostics());
+
+        var context = TagHelperDescriptorProviderContext.Create();
+        context.SetCompilation(compilation);
+        context.Items.SetTargetSymbol(compilation.Assembly);
+
+        var bindTagHelperProvider = new BindTagHelperDescriptorProvider();
+
+        // Act
+        bindTagHelperProvider.Execute(context);
+
+        // Assert
+        var matches = GetBindTagHelpers(context);
+        Assert.Empty(matches);
+    }
+
+    [Fact]
     public void Execute_FindsBindTagHelperOnComponentType_EventCallback_CreatesDescriptor()
     {
         // Arrange
@@ -232,7 +311,7 @@ namespace Test
         Assert.Equal(ComponentMetadata.Bind.RuntimeName, bind.Metadata[TagHelperMetadata.Runtime.Name]);
         Assert.False(bind.IsDefaultKind());
         Assert.False(bind.KindUsesDefaultTagHelperRuntime());
-        Assert.False(bind.IsComponentOrChildContentTagHelper());
+        Assert.False(bind.IsComponentOrChildContentTagHelper);
         Assert.True(bind.CaseSensitive);
 
         Assert.Equal("MyProperty", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
@@ -249,7 +328,7 @@ namespace Test
         Assert.Equal("Test.MyComponent", bind.DisplayName);
         Assert.Equal("Test.MyComponent", bind.GetTypeName());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
             rule =>
             {
                 Assert.Empty(rule.Diagnostics);
@@ -416,7 +495,7 @@ namespace Test
         Assert.Equal(ComponentMetadata.Bind.RuntimeName, bind.Metadata[TagHelperMetadata.Runtime.Name]);
         Assert.False(bind.IsDefaultKind());
         Assert.False(bind.KindUsesDefaultTagHelperRuntime());
-        Assert.False(bind.IsComponentOrChildContentTagHelper());
+        Assert.False(bind.IsComponentOrChildContentTagHelper);
         Assert.True(bind.CaseSensitive);
 
         Assert.Equal("myprop", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
@@ -436,7 +515,7 @@ namespace Test
         Assert.Equal("Test.BindAttributes", bind.GetTypeName());
 
         // The tag matching rule for a bind-Component is always the component name + the attribute name
-        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
             rule =>
             {
                 Assert.Empty(rule.Diagnostics);
@@ -519,7 +598,7 @@ namespace Test
             Assert.False(attribute.IsBooleanProperty);
             Assert.False(attribute.IsEnum);
 
-            var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+            var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -542,7 +621,7 @@ namespace Test
             Assert.False(parameter.IsBooleanProperty);
             Assert.False(parameter.IsEnum);
 
-            parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("culture"));
+            parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("culture"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -564,7 +643,7 @@ namespace Test
             Assert.False(parameter.IsBooleanProperty);
             Assert.False(parameter.IsEnum);
 
-            parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("get"));
+            parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("get"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -586,7 +665,7 @@ namespace Test
             Assert.False(parameter.IsBooleanProperty);
             Assert.False(parameter.IsEnum);
 
-            parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("set"));
+            parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("set"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -608,7 +687,7 @@ namespace Test
             Assert.False(parameter.IsBooleanProperty);
             Assert.False(parameter.IsEnum);
 
-            parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("after"));
+            parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("after"));
 
             // Invariants
             Assert.Empty(parameter.Diagnostics);
@@ -668,7 +747,7 @@ namespace Test
         Assert.False(bind.IsInputElementBindTagHelper());
         Assert.False(bind.IsInputElementFallbackBindTagHelper());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
             rule =>
             {
                 Assert.Equal("div", rule.TagName);
@@ -754,7 +833,7 @@ namespace Test
         Assert.True(bind.IsInputElementBindTagHelper());
         Assert.True(bind.IsInputElementFallbackBindTagHelper());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Length),
             rule =>
             {
                 Assert.Equal("input", rule.TagName);
@@ -787,7 +866,7 @@ namespace Test
         Assert.Equal("Bind", attribute.GetPropertyName());
         Assert.Equal("object Test.BindAttributes.Bind", attribute.DisplayName);
 
-        var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+        var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
         Assert.Equal("format", parameter.Name);
         Assert.Equal("Format_myprop", parameter.GetPropertyName());
         Assert.Equal(":format", parameter.DisplayName);
@@ -830,7 +909,7 @@ namespace Test
         Assert.True(bind.IsInputElementBindTagHelper());
         Assert.False(bind.IsInputElementFallbackBindTagHelper());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Length),
             rule =>
             {
                 Assert.Equal("input", rule.TagName);
@@ -884,7 +963,7 @@ namespace Test
         Assert.Equal("Bind", attribute.GetPropertyName());
         Assert.Equal("object Test.BindAttributes.Bind", attribute.DisplayName);
 
-        var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+        var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
         Assert.Equal("format", parameter.Name);
         Assert.Equal("Format_myprop", parameter.GetPropertyName());
         Assert.Equal(":format", parameter.DisplayName);
@@ -929,7 +1008,7 @@ namespace Test
         Assert.False(bind.IsInvariantCultureBindTagHelper());
         Assert.Null(bind.GetFormat());
 
-        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Count),
+        Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
             rule =>
             {
                 Assert.Equal("input", rule.TagName);
@@ -983,7 +1062,7 @@ namespace Test
         Assert.Equal("Bind_somevalue", attribute.GetPropertyName());
         Assert.Equal("object Test.BindAttributes.Bind_somevalue", attribute.DisplayName);
 
-        var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+        var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
         Assert.Equal("format", parameter.Name);
         Assert.Equal("Format_somevalue", parameter.GetPropertyName());
         Assert.Equal(":format", parameter.DisplayName);
@@ -1061,7 +1140,7 @@ namespace Test
         Assert.Equal(ComponentMetadata.Bind.RuntimeName, bind.Metadata[TagHelperMetadata.Runtime.Name]);
         Assert.False(bind.IsDefaultKind());
         Assert.False(bind.KindUsesDefaultTagHelperRuntime());
-        Assert.False(bind.IsComponentOrChildContentTagHelper());
+        Assert.False(bind.IsComponentOrChildContentTagHelper);
         Assert.True(bind.CaseSensitive);
 
         Assert.False(bind.Metadata.ContainsKey(ComponentMetadata.Bind.ValueAttribute));
@@ -1130,7 +1209,7 @@ namespace Test
         Assert.False(attribute.IsBooleanProperty);
         Assert.False(attribute.IsEnum);
 
-        var parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("format"));
+        var parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("format"));
 
         // Invariants
         Assert.Empty(parameter.Diagnostics);
@@ -1155,7 +1234,7 @@ namespace Test
         Assert.False(parameter.IsBooleanProperty);
         Assert.False(parameter.IsEnum);
 
-        parameter = Assert.Single(attribute.BoundAttributeParameters, a => a.Name.Equals("culture"));
+        parameter = Assert.Single(attribute.Parameters, a => a.Name.Equals("culture"));
 
         // Invariants
         Assert.Empty(parameter.Diagnostics);

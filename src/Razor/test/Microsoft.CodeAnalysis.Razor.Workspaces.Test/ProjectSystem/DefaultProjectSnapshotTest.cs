@@ -1,149 +1,141 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+public class DefaultProjectSnapshotTest : WorkspaceTestBase
 {
-    public class DefaultProjectSnapshotTest : WorkspaceTestBase
+    private readonly HostDocument[] _documents;
+    private readonly HostProject _hostProject;
+    private readonly ProjectWorkspaceState _projectWorkspaceState;
+
+    public DefaultProjectSnapshotTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly HostDocument[] _documents;
-        private readonly HostProject _hostProject;
-        private readonly ProjectWorkspaceState _projectWorkspaceState;
-        private readonly TestTagHelperResolver _tagHelperResolver;
+        _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
+        _projectWorkspaceState = ProjectWorkspaceState.Create(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()));
 
-        public DefaultProjectSnapshotTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-            _tagHelperResolver = new TestTagHelperResolver();
+        _documents =
+        [
+            TestProjectData.SomeProjectFile1,
+            TestProjectData.SomeProjectFile2,
 
-            _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
-            _projectWorkspaceState = new ProjectWorkspaceState(new[]
-            {
-                TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build(),
-            },
-            default);
+            // linked file
+            TestProjectData.AnotherProjectNestedFile3,
+        ];
+    }
 
-            _documents = new HostDocument[]
-            {
-                TestProjectData.SomeProjectFile1,
-                TestProjectData.SomeProjectFile2,
+    protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
+    {
+        builder.SetImportFeature(new TestImportProjectFeature());
+    }
 
-                // linked file
-                TestProjectData.AnotherProjectNestedFile3,
-            };
-        }
+    [Fact]
+    public void ProjectSnapshot_CachesDocumentSnapshots()
+    {
+        // Arrange
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
+            .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
+            .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader)
+            .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader);
+        var snapshot = new ProjectSnapshot(state);
 
-        protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
-        {
-            services.Add(_tagHelperResolver);
-        }
+        // Act
+        var documents = snapshot.DocumentFilePaths.ToDictionary(f => f, f => snapshot.GetDocument(f));
 
-        protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
-        {
-            builder.SetImportFeature(new TestImportProjectFeature());
-        }
+        // Assert
+        Assert.Collection(
+            documents,
+            d => Assert.Same(d.Value, snapshot.GetDocument(d.Key)),
+            d => Assert.Same(d.Value, snapshot.GetDocument(d.Key)),
+            d => Assert.Same(d.Value, snapshot.GetDocument(d.Key)));
+    }
 
-        [Fact]
-        public void ProjectSnapshot_CachesDocumentSnapshots()
-        {
-            // Arrange
-            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
-                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader);
-            var snapshot = new DefaultProjectSnapshot(state);
+    [Fact]
+    public void IsImportDocument_NonImportDocument_ReturnsFalse()
+    {
+        // Arrange
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
+            .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
+        var snapshot = new ProjectSnapshot(state);
 
-            // Act
-            var documents = snapshot.DocumentFilePaths.ToDictionary(f => f, f => snapshot.GetDocument(f));
+        var document = snapshot.GetDocument(_documents[0].FilePath);
+        Assert.NotNull(document);
 
-            // Assert
-            Assert.Collection(
-                documents,
-                d => Assert.Same(d.Value, snapshot.GetDocument(d.Key)),
-                d => Assert.Same(d.Value, snapshot.GetDocument(d.Key)),
-                d => Assert.Same(d.Value, snapshot.GetDocument(d.Key)));
-        }
+        // Act
+        var result = snapshot.IsImportDocument(document);
 
-        [Fact]
-        public void IsImportDocument_NonImportDocument_ReturnsFalse()
-        {
-            // Arrange
-            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
-                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
-            var snapshot = new DefaultProjectSnapshot(state);
+        // Assert
+        Assert.False(result);
+    }
 
-            var document = snapshot.GetDocument(_documents[0].FilePath);
+    [Fact]
+    public void IsImportDocument_ImportDocument_ReturnsTrue()
+    {
+        // Arrange
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
+            .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
+            .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
+        var snapshot = new ProjectSnapshot(state);
 
-            // Act
-            var result = snapshot.IsImportDocument(document);
+        var document = snapshot.GetDocument(TestProjectData.SomeProjectImportFile.FilePath);
+        Assert.NotNull(document);
 
-            // Assert
-            Assert.False(result);
-        }
+        // Act
+        var result = snapshot.IsImportDocument(document);
 
-        [Fact]
-        public void IsImportDocument_ImportDocument_ReturnsTrue()
-        {
-            // Arrange
-            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
-                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
-            var snapshot = new DefaultProjectSnapshot(state);
+        // Assert
+        Assert.True(result);
+    }
 
-            var document = snapshot.GetDocument(TestProjectData.SomeProjectImportFile.FilePath);
+    [Fact]
+    public void GetRelatedDocuments_NonImportDocument_ReturnsEmpty()
+    {
+        // Arrange
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
+            .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
+        var snapshot = new ProjectSnapshot(state);
 
-            // Act
-            var result = snapshot.IsImportDocument(document);
+        var document = snapshot.GetDocument(_documents[0].FilePath);
+        Assert.NotNull(document);
 
-            // Assert
-            Assert.True(result);
-        }
+        // Act
+        var documents = snapshot.GetRelatedDocuments(document);
 
-        [Fact]
-        public void GetRelatedDocuments_NonImportDocument_ReturnsEmpty()
-        {
-            // Arrange
-            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
-                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
-            var snapshot = new DefaultProjectSnapshot(state);
+        // Assert
+        Assert.Empty(documents);
+    }
 
-            var document = snapshot.GetDocument(_documents[0].FilePath);
+    [Fact]
+    public void GetRelatedDocuments_ImportDocument_ReturnsRelated()
+    {
+        // Arrange
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
+            .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
+            .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader)
+            .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
+        var snapshot = new ProjectSnapshot(state);
 
-            // Act
-            var documents = snapshot.GetRelatedDocuments(document);
+        var document = snapshot.GetDocument(TestProjectData.SomeProjectImportFile.FilePath);
+        Assert.NotNull(document);
 
-            // Assert
-            Assert.Empty(documents);
-        }
+        // Act
+        var documents = snapshot.GetRelatedDocuments(document);
 
-        [Fact]
-        public void GetRelatedDocuments_ImportDocument_ReturnsRelated()
-        {
-            // Arrange
-            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
-                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
-            var snapshot = new DefaultProjectSnapshot(state);
-
-            var document = snapshot.GetDocument(TestProjectData.SomeProjectImportFile.FilePath);
-
-            // Act
-            var documents = snapshot.GetRelatedDocuments(document);
-
-            // Assert
-            Assert.Collection(
-                documents.OrderBy(d => d.FilePath),
-                d => Assert.Equal(_documents[0].FilePath, d.FilePath),
-                d => Assert.Equal(_documents[1].FilePath, d.FilePath));
-        }
+        // Assert
+        Assert.Collection(
+            documents.OrderBy(d => d.FilePath),
+            d => Assert.Equal(_documents[0].FilePath, d.FilePath),
+            d => Assert.Equal(_documents[1].FilePath, d.FilePath));
     }
 }

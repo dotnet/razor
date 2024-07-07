@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpSpecialBlockTest : ParserTestBase
+public class CSharpSpecialBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void NonKeywordStatementInCodeBlockIsHandledCorrectly()
@@ -42,10 +42,11 @@ public class CSharpSpecialBlockTest : ParserTestBase
     [Fact]
     public void ParseBlockTerminatesSingleLineCommentAtEndOfLine()
     {
-        ParseDocumentTest(
-"@if(!false) {" + Environment.NewLine +
-"    // Foo" + Environment.NewLine +
-"\t<p>A real tag!</p>" + Environment.NewLine +
-"}");
+        ParseDocumentTest("""
+            @if(!false) {
+                // Foo
+            	<p>A real tag!</p>
+            }
+            """);
     }
 }

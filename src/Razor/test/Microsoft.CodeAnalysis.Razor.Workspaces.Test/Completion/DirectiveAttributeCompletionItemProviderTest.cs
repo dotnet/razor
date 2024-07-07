@@ -5,307 +5,289 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion
+namespace Microsoft.CodeAnalysis.Razor.Completion;
+
+public class DirectiveAttributeCompletionItemProviderTest : RazorToolingIntegrationTestBase
 {
-    public class DirectiveAttributeCompletionItemProviderTest : RazorIntegrationTestBase
+    private readonly DirectiveAttributeCompletionItemProvider _provider;
+    private readonly TagHelperDocumentContext _defaultTagHelperDocumentContext;
+
+    internal override string FileKind => FileKinds.Component;
+    internal override bool UseTwoPhaseCompilation => true;
+
+    public DirectiveAttributeCompletionItemProviderTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly DirectiveAttributeCompletionItemProvider _provider;
-        private readonly TagHelperDocumentContext _defaultTagHelperDocumentContext;
-        private readonly IEnumerable<string> _emptyAttributes;
+        _provider = new DirectiveAttributeCompletionItemProvider();
 
-        internal override string FileKind => FileKinds.Component;
-        internal override bool UseTwoPhaseCompilation => true;
+        // Most of these completions rely on stuff in the web namespace.
+        ImportItems.Add(CreateProjectItem(
+            "_Imports.razor",
+            "@using Microsoft.AspNetCore.Components.Web"));
 
-        public DirectiveAttributeCompletionItemProviderTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-            _provider = new DirectiveAttributeCompletionItemProvider(new DefaultTagHelperFactsService());
-            _emptyAttributes = Enumerable.Empty<string>();
+        var codeDocument = GetCodeDocument(string.Empty);
+        _defaultTagHelperDocumentContext = codeDocument.GetTagHelperContext();
+    }
 
-            // Most of these completions rely on stuff in the web namespace.
-            ImportItems.Add(CreateProjectItem(
-                "_Imports.razor",
-                "@using Microsoft.AspNetCore.Components.Web"));
+    private RazorCodeDocument GetCodeDocument(string content)
+    {
+        var result = CompileToCSharp(content, throwOnFailure: false);
+        return result.CodeDocument;
+    }
 
-            var codeDocument = GetCodeDocument(string.Empty);
-            _defaultTagHelperDocumentContext = codeDocument.GetTagHelperContext();
-        }
+    [Fact]
+    public void GetCompletionItems_OnNonAttributeArea_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext(absoluteIndex: 3, "<input @  />");
 
-        private RazorCodeDocument GetCodeDocument(string content)
-        {
-            var result = CompileToCSharp(content, throwOnFailure: false);
-            return result.CodeDocument;
-        }
+        // Act
+        var completions = _provider.GetCompletionItems(context);
 
-        [Fact]
-        public void GetCompletionItems_LocationHasNoOwner_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 30, "<input @  />");
+        // Assert
+        Assert.Empty(completions);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeParameter_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext(absoluteIndex: 14, "<input @bind:fo  />");
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetCompletionItems(context);
 
-        [Fact]
-        public void GetCompletionItems_OnNonAttributeArea_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 3, "<input @  />");
+        // Assert
+        Assert.Empty(completions);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeName_bind_ReturnsCompletions()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext(absoluteIndex: 8, "<input @  />");
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetCompletionItems(context);
 
-        [Fact]
-        public void GetCompletionItems_OnDirectiveAttributeParameter_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 14, "<input @bind:fo  />");
+        // Assert
+        AssertContains(completions, "bind", "@bind", ["=", ":"]);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeName_attributes_ReturnsCompletions()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext(absoluteIndex: 8, "<input @  />");
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetCompletionItems(context);
 
-        [Fact]
-        public void GetCompletionItems_OnDirectiveAttributeName_bind_ReturnsCompletions()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 8, "<input @  />");
+        // Assert
+        AssertContains(completions, "attributes", "@attributes", ["="]);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetCompletionItems_AttributeAreaEndOfSelfClosingTag_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext(absoluteIndex: 16, "<input @bind:fo  />");
 
-            // Assert
-            AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
-        }
+        // Act
+        var completions = _provider.GetCompletionItems(context);
 
-        [Fact]
-        public void GetCompletionItems_OnDirectiveAttributeName_attributes_ReturnsCompletions()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 8, "<input @  />");
+        // Assert
+        Assert.Empty(completions);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetCompletionItems_AttributeAreaEndOfOpeningTag_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext(absoluteIndex: 16, "<input @bind:fo   ></input>");
 
-            // Assert
-            AssertContains(completions, "attributes", "@attributes", new[] { "=" });
-        }
+        // Act
+        var completions = _provider.GetCompletionItems(context);
 
-        [Fact]
-        public void GetCompletionItems_AttributeAreaEndOfSelfClosingTag_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 16, "<input @bind:fo  />");
+        // Assert
+        Assert.Empty(completions);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetCompletionItems_ExistingAttribute_LeadingEdge_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext(absoluteIndex: 7, "<input src=\"xyz\" />");
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetCompletionItems(context);
 
-        [Fact]
-        public void GetCompletionItems_AttributeAreaEndOfOpeningTag_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 16, "<input @bind:fo   ></input>");
+        // Assert
+        Assert.Empty(completions);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetCompletionItems_ExistingAttribute_TrailingEdge_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext(absoluteIndex: 16, "<input src=\"xyz\" />");
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetCompletionItems(context);
 
-        [Fact]
-        public void GetCompletionItems_ExistingAttribute_LeadingEdge_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 7, "<input src=\"xyz\" />");
+        // Assert
+        Assert.Empty(completions);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetCompletionItems_ExistingAttribute_Partial_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext(absoluteIndex: 9, "<svg xml: ></svg>");
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetCompletionItems(context);
 
-        [Fact]
-        public void GetCompletionItems_ExistingAttribute_TrailingEdge_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 16, "<input src=\"xyz\" />");
+        // Assert
+        Assert.Empty(completions);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetAttributeCompletions_NoDescriptorsForTag_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var documentContext = TagHelperDocumentContext.Create(string.Empty, tagHelpers: []);
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetAttributeCompletions("@bin", "foobarbaz", [], documentContext);
 
-        [Fact]
-        public void GetCompletionItems_ExistingAttribute_Partial_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var context = CreateRazorCompletionContext(absoluteIndex: 9, "<svg xml: ></svg>");
+        // Assert
+        Assert.Empty(completions);
+    }
 
-            // Act
-            var completions = _provider.GetCompletionItems(context);
+    [Fact]
+    public void GetAttributeCompletions_NoDirectiveAttributesForTag_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var descriptor = TagHelperDescriptorBuilder.Create("CatchAll", "TestAssembly");
+        descriptor.BoundAttributeDescriptor(boundAttribute => boundAttribute.Name = "Test");
+        descriptor.TagMatchingRule(rule => rule.RequireTagName("*"));
+        var documentContext = TagHelperDocumentContext.Create(string.Empty, [descriptor.Build()]);
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetAttributeCompletions("@bin", "input", [], documentContext);
 
-        [Fact]
-        public void GetAttributeCompletions_NoDescriptorsForTag_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var documentContext = TagHelperDocumentContext.Create(string.Empty, Enumerable.Empty<TagHelperDescriptor>());
+        // Assert
+        Assert.Empty(completions);
+    }
 
-            // Act
-            var completions = _provider.GetAttributeCompletions("@bin", "foobarbaz", _emptyAttributes, documentContext);
+    [Fact]
+    public void GetAttributeCompletions_SelectedDirectiveAttribute_IsIncludedInCompletions()
+    {
+        // Arrange
+        var attributeNames = ImmutableArray.Create("@bind");
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetAttributeCompletions("@bind", "input", attributeNames, _defaultTagHelperDocumentContext);
 
-        [Fact]
-        public void GetAttributeCompletions_NoDirectiveAttributesForTag_ReturnsEmptyCollection()
-        {
-            // Arrange
-            var descriptor = TagHelperDescriptorBuilder.Create("CatchAll", "TestAssembly");
-            descriptor.BoundAttributeDescriptor(boundAttribute => boundAttribute.Name = "Test");
-            descriptor.TagMatchingRule(rule => rule.RequireTagName("*"));
-            var documentContext = TagHelperDocumentContext.Create(string.Empty, new[] { descriptor.Build() });
+        // Assert
+        AssertContains(completions, "bind", "@bind", ["=", ":"]);
+    }
 
-            // Act
-            var completions = _provider.GetAttributeCompletions("@bin", "input", _emptyAttributes, documentContext);
+    [Fact]
+    public void GetAttributeCompletions_NonIndexer_ReturnsCompletion()
+    {
+        // Arrange
 
-            // Assert
-            Assert.Empty(completions);
-        }
+        // Act
+        var completions = _provider.GetAttributeCompletions("@", "input", [], _defaultTagHelperDocumentContext);
 
-        [Fact]
-        public void GetAttributeCompletions_SelectedDirectiveAttribute_IsIncludedInCompletions()
-        {
-            // Arrange
-            var attributeNames = new string[] { "@bind" };
+        // Assert
+        AssertContains(completions, "bind", "@bind", ["=", ":"]);
+    }
 
-            // Act
-            var completions = _provider.GetAttributeCompletions("@bind", "input", attributeNames, _defaultTagHelperDocumentContext);
+    [Fact]
+    public void GetAttributeCompletions_Indexer_ReturnsCompletion()
+    {
+        // Arrange
 
-            // Assert
-            AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
-        }
+        // Act
+        var completions = _provider.GetAttributeCompletions("@", "input", [], _defaultTagHelperDocumentContext);
 
-        [Fact]
-        public void GetAttributeCompletions_NonIndexer_ReturnsCompletion()
-        {
-            // Arrange
+        // Assert
+        AssertContains(completions, "bind-", "@bind-...", []);
+    }
 
-            // Act
-            var completions = _provider.GetAttributeCompletions("@", "input", _emptyAttributes, _defaultTagHelperDocumentContext);
+    [Fact]
+    public void GetAttributeCompletions_BaseDirectiveAttributeAlreadyExists_IncludesBaseAttribute()
+    {
+        // Arrange
+        var attributeNames = ImmutableArray.Create("@bind", "@");
 
-            // Assert
-            AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
-        }
+        // Act
+        var completions = _provider.GetAttributeCompletions("@", "input", attributeNames, _defaultTagHelperDocumentContext);
 
-        [Fact]
-        public void GetAttributeCompletions_Indexer_ReturnsCompletion()
-        {
-            // Arrange
+        // Assert
+        AssertContains(completions, "bind", "@bind", ["=", ":"]);
+    }
 
-            // Act
-            var completions = _provider.GetAttributeCompletions("@", "input", _emptyAttributes, _defaultTagHelperDocumentContext);
+    [Fact]
+    public void GetAttributeCompletions_BaseDirectiveAttributeAndParameterVariationsExist_ExcludesCompletion()
+    {
+        // Arrange
+        var attributeNames = ImmutableArray.Create(
+            "@bind",
+            "@bind:format",
+            "@bind:event",
+            "@bind:culture",
+            "@bind:get",
+            "@bind:set",
+            "@bind:after",
+            "@");
 
-            // Assert
-            AssertContains(completions, "bind-", "@bind-...", Array.Empty<string>());
-        }
+        // Act
+        var completions = _provider.GetAttributeCompletions("@", "input", attributeNames, _defaultTagHelperDocumentContext);
 
-        [Fact]
-        public void GetAttributeCompletions_BaseDirectiveAttributeAlreadyExists_IncludesBaseAttribute()
-        {
-            // Arrange
-            var attributeNames = new[] { "@bind", "@" };
+        // Assert
+        AssertDoesNotContain(completions, "bind", "@bind");
+    }
 
-            // Act
-            var completions = _provider.GetAttributeCompletions("@", "input", attributeNames, _defaultTagHelperDocumentContext);
+    private static void AssertContains(IReadOnlyList<RazorCompletionItem> completions, string insertText, string displayText, IReadOnlyCollection<string> commitCharacters)
+    {
+        displayText ??= insertText;
 
-            // Assert
-            AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
-        }
+        Assert.Contains(completions, completion =>
+            insertText == completion.InsertText &&
+            displayText == completion.DisplayText &&
+            commitCharacters.SequenceEqual(completion.CommitCharacters.Select(c => c.Character)) &&
+            RazorCompletionItemKind.DirectiveAttribute == completion.Kind);
+    }
 
-        [Fact]
-        public void GetAttributeCompletions_BaseDirectiveAttributeAndParameterVariationsExist_ExcludesCompletion()
-        {
-            // Arrange
-            var attributeNames = new[]
-            {
-                "@bind",
-                "@bind:format",
-                "@bind:event",
-                "@bind:culture",
-                "@bind:get",
-                "@bind:set",
-                "@bind:after",
-                "@",
-            };
+    private static void AssertDoesNotContain(IReadOnlyList<RazorCompletionItem> completions, string insertText, string displayText)
+    {
+        displayText ??= insertText;
 
-            // Act
-            var completions = _provider.GetAttributeCompletions("@", "input", attributeNames, _defaultTagHelperDocumentContext);
+        Assert.DoesNotContain(completions, completion => insertText == completion.InsertText &&
+               displayText == completion.DisplayText &&
+               RazorCompletionItemKind.DirectiveAttribute == completion.Kind);
+    }
 
-            // Assert
-            AssertDoesNotContain(completions, "bind", "@bind");
-        }
+    private RazorCompletionContext CreateRazorCompletionContext(int absoluteIndex, string documentContent)
+    {
+        var codeDocument = GetCodeDocument(documentContent);
+        var syntaxTree = codeDocument.GetSyntaxTree();
+        var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
-        private static void AssertContains(IReadOnlyList<RazorCompletionItem> completions, string insertText, string displayText, IReadOnlyCollection<string> commitCharacters)
-        {
-            displayText ??= insertText;
-
-            Assert.Contains(completions, completion =>
-                insertText == completion.InsertText &&
-                displayText == completion.DisplayText &&
-                commitCharacters.SequenceEqual(completion.CommitCharacters.Select(c => c.Character)) &&
-                RazorCompletionItemKind.DirectiveAttribute == completion.Kind);
-        }
-
-        private static void AssertDoesNotContain(IReadOnlyList<RazorCompletionItem> completions, string insertText, string displayText)
-        {
-            displayText ??= insertText;
-
-            Assert.DoesNotContain(completions, completion => insertText == completion.InsertText &&
-                   displayText == completion.DisplayText &&
-                   RazorCompletionItemKind.DirectiveAttribute == completion.Kind);
-        }
-
-        private RazorCompletionContext CreateRazorCompletionContext(int absoluteIndex, string documentContent)
-        {
-            var codeDocument = GetCodeDocument(documentContent);
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-
-            var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(queryableChange);
-            return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
-        }
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
+        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
+        return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
     }
 }

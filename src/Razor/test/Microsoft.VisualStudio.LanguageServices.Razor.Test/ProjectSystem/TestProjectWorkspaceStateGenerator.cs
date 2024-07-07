@@ -1,42 +1,60 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using System.Threading;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Test
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
+
+internal class TestProjectWorkspaceStateGenerator : IProjectWorkspaceStateGenerator
 {
-    internal class TestProjectWorkspaceStateGenerator : ProjectWorkspaceStateGenerator
+    private readonly List<TestUpdate> _updates = [];
+
+    public IReadOnlyList<TestUpdate> Updates => _updates;
+
+    public void EnqueueUpdate(Project? workspaceProject, IProjectSnapshot projectSnapshot)
     {
-        private readonly List<TestUpdate> _updates;
+        var update = new TestUpdate(workspaceProject, projectSnapshot);
+        _updates.Add(update);
+    }
 
-        public TestProjectWorkspaceStateGenerator()
+    public void CancelUpdates()
+    {
+        foreach (var update in _updates)
         {
-            _updates = new List<TestUpdate>();
+            update.IsCancelled = true;
         }
+    }
 
-        public IReadOnlyList<TestUpdate> UpdateQueue => _updates;
+    public void Clear()
+    {
+        _updates.Clear();
+    }
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    public record TestUpdate(Project? WorkspaceProject, IProjectSnapshot ProjectSnapshot)
+    {
+        public bool IsCancelled { get; set; }
+
+        public override string ToString()
         {
-        }
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
-        {
-            var update = new TestUpdate(workspaceProject, projectSnapshot, cancellationToken);
-            _updates.Add(update);
-        }
+            builder.Append($"{{{nameof(WorkspaceProject)} = ");
 
-        public void ClearQueue()
-        {
-            _updates.Clear();
-        }
+            if (WorkspaceProject is null)
+            {
+                builder.Append("<null>");
+            }
+            else
+            {
+                builder.Append(WorkspaceProject.Name);
+            }
 
-        public record TestUpdate(Project WorkspaceProject, ProjectSnapshot ProjectSnapshot, CancellationToken CancellationToken);
+            builder.Append($", {nameof(ProjectSnapshot)} = {ProjectSnapshot.DisplayName}}}");
+
+            return builder.ToString();
+        }
     }
 }

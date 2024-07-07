@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -21,9 +21,9 @@ public class CSharpCodeWriterTest
         {
             return new object[][]
             {
-                    new object[] { "\r" },
-                    new object[] { "\n" },
-                    new object[] { "\r\n" },
+                new object[] { "\r" },
+                new object[] { "\n" },
+                new object[] { "\r\n" },
             };
         }
     }
@@ -266,6 +266,21 @@ public class CSharpCodeWriterTest
     }
 
     [Fact]
+    public void CSharpCodeWriter_LinesBreaksOutsideOfContentAreNotCounted()
+    {
+        // Arrange
+        var writer = new CodeWriter();
+
+        // Act
+        writer.Write("\r\nHello\r\nWorld\r\n", startIndex: 2, count: 12);
+        var location = writer.Location;
+
+        // Assert
+        var expected = new SourceLocation(absoluteIndex: 12, lineIndex: 1, characterIndex: 5);
+        Assert.Equal(expected, location);
+    }
+
+    [Fact]
     public void WriteLineNumberDirective_UsesFilePath_FromSourceLocation()
     {
         // Arrange
@@ -294,7 +309,10 @@ public class CSharpCodeWriterTest
 
         // Assert
         var output = writer.GenerateCode();
-        Assert.Equal("private global::System.String _myString;" + Environment.NewLine, output);
+        Assert.Equal("""
+            private global::System.String _myString;
+
+            """, output);
     }
 
     [Fact]
@@ -308,7 +326,10 @@ public class CSharpCodeWriterTest
 
         // Assert
         var output = writer.GenerateCode();
-        Assert.Equal("private readonly static global::System.String _myString;" + Environment.NewLine, output);
+        Assert.Equal("""
+            private readonly static global::System.String _myString;
+
+            """, output);
     }
 
     [Fact]
@@ -326,12 +347,14 @@ public class CSharpCodeWriterTest
 
         // Assert
         var output = writer.GenerateCode();
-        Assert.Equal(
-            "#pragma warning disable 0001" + Environment.NewLine +
-            "#pragma warning disable 0002" + Environment.NewLine +
-            "private readonly static global::System.String _myString;" + Environment.NewLine +
-            "#pragma warning restore 0002" + Environment.NewLine +
-            "#pragma warning restore 0001" + Environment.NewLine,
+        Assert.Equal("""
+            #pragma warning disable 0001
+            #pragma warning disable 0002
+            private readonly static global::System.String _myString;
+            #pragma warning restore 0002
+            #pragma warning restore 0001
+
+            """,
             output);
     }
 
@@ -346,7 +369,10 @@ public class CSharpCodeWriterTest
 
         // Assert
         var output = writer.GenerateCode();
-        Assert.Equal("public global::System.String MyString { get; set; }" + Environment.NewLine, output);
+        Assert.Equal("""
+            public global::System.String MyString { get; set; }
+
+            """, output);
     }
 
     [Fact]
@@ -360,7 +386,10 @@ public class CSharpCodeWriterTest
 
         // Assert
         var output = writer.GenerateCode();
-        Assert.Equal("public static global::System.String MyString { get; set; }" + Environment.NewLine, output);
+        Assert.Equal("""
+            public static global::System.String MyString { get; set; }
+
+            """, output);
     }
 
     [Fact]
@@ -376,12 +405,17 @@ public class CSharpCodeWriterTest
         var writer = new CodeWriter(Environment.NewLine, options);
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>());
+        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>(), context: null);
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert
         var output = writer.GenerateCode();
-        Assert.Equal("class C" + Environment.NewLine + "{" + Environment.NewLine + "\tint f;" + Environment.NewLine, output);
+        Assert.Equal("""
+            class C
+            {
+            	int f;
+
+            """, output);
     }
 
     [Fact]
@@ -397,11 +431,16 @@ public class CSharpCodeWriterTest
         var writer = new CodeWriter(Environment.NewLine, options);
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>());
+        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>(), context: null);
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert
         var output = writer.GenerateCode();
-        Assert.Equal("class C" + Environment.NewLine + "{" + Environment.NewLine + "    int f;" + Environment.NewLine, output);
+        Assert.Equal("""
+            class C
+            {
+                int f;
+
+            """, output);
     }
 }

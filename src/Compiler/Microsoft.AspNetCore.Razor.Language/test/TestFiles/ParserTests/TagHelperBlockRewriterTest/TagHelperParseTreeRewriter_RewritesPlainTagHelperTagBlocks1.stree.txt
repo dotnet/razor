@@ -1,7 +1,7 @@
-RazorDocument - [0..7)::7 - [<p></p>]
+﻿RazorDocument - [0..7)::7 - [<p></p>]
     MarkupBlock - [0..7)::7
         MarkupTagHelperElement - [0..7)::7 - p[StartTagAndEndTag] - ptaghelper
-            MarkupTagHelperStartTag - [0..3)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            MarkupTagHelperStartTag - [0..3)::3 - [<p>] - Gen<Markup>
                 OpenAngle;[<];
                 Text;[p];
                 CloseAngle;[>];
@@ -10,3 +10,4 @@ RazorDocument - [0..7)::7 - [<p></p>]
                 ForwardSlash;[/];
                 Text;[p];
                 CloseAngle;[>];
+    EndOfFile;[];

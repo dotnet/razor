@@ -4,77 +4,86 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
+
+[RazorLanguageServerEndpoint(Methods.TextDocumentDocumentHighlightName)]
+internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<DocumentHighlightParams, DocumentHighlight[]?>, ICapabilitiesProvider
 {
-    internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<DocumentHighlightParamsBridge, DocumentHighlight[]?>, IDocumentHighlightEndpoint
+    private readonly IRazorDocumentMappingService _documentMappingService;
+
+    public DocumentHighlightEndpoint(
+        LanguageServerFeatureOptions languageServerFeatureOptions,
+        IRazorDocumentMappingService documentMappingService,
+        IClientConnection clientConnection,
+        ILoggerFactory loggerFactory)
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<DocumentHighlightEndpoint>())
     {
-        private readonly RazorDocumentMappingService _documentMappingService;
+        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+    }
 
-        public DocumentHighlightEndpoint(
-            LanguageServerFeatureOptions languageServerFeatureOptions,
-            RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase languageServer,
-            ILoggerFactory loggerFactory)
-            : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<DocumentHighlightEndpoint>())
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
+    {
+        serverCapabilities.DocumentHighlightProvider = new DocumentHighlightOptions
         {
-            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            WorkDoneProgress = false
+        };
+    }
+
+    protected override string CustomMessageTarget => CustomMessageNames.RazorDocumentHighlightEndpointName;
+
+    protected override Task<DocumentHighlight[]?> TryHandleAsync(DocumentHighlightParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    {
+        // We don't handle this in any particular way for Razor, we just delegate
+        return SpecializedTasks.Null<DocumentHighlight[]>();
+    }
+
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(DocumentHighlightParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    {
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return SpecializedTasks.Null<IDelegatedParams>();
         }
 
-        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
-        {
-            const string ServerCapability = "documentHighlightProvider";
-            var options = new SumType<bool, DocumentHighlightOptions>(
-                new DocumentHighlightOptions
-                {
-                    WorkDoneProgress = false
-                });
+        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
+                documentContext.Identifier,
+                positionInfo.Position,
+                positionInfo.LanguageKind));
+    }
 
-            return new RegistrationExtensionResult(ServerCapability, options);
+    protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentHighlightParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    {
+        if (response is null)
+        {
+            return null;
         }
 
-        protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName;
-
-        protected override Task<DocumentHighlight[]?> TryHandleAsync(DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
         {
-            // We don't handle this in any particular way for Razor, we just delegate
-            return Task.FromResult<DocumentHighlight[]?>(null);
+            return null;
         }
 
-        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
-        {
-            var documentContext = requestContext.GetRequiredDocumentContext();
-            return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
-                    documentContext.Identifier,
-                    projection.Position,
-                    projection.LanguageKind));
-        }
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        var generatedDocument = codeDocument.GetGeneratedDocument(positionInfo.LanguageKind);
+        foreach (var highlight in response)
         {
-            var documentContext = requestContext.GetRequiredDocumentContext();
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-
-            if (response is null)
+            if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, highlight.Range, out var mappedRange))
             {
-                return null;
+                highlight.Range = mappedRange;
             }
-
-            foreach (var highlight in response)
-            {
-                if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, highlight.Range, out var mappedRange))
-                {
-                    highlight.Range = mappedRange;
-                }
-            }
-
-            return response;
         }
+
+        return response;
     }
 }

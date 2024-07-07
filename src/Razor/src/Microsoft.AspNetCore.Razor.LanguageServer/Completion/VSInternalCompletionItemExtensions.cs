@@ -4,79 +4,94 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+
+internal static class VSInternalCompletionItemExtensions
 {
-    internal static class VSInternalCompletionItemExtensions
+    private const string ResultIdKey = "_resultId";
+
+    private static readonly Dictionary<RazorCommitCharacter, VSInternalCommitCharacter> s_commitCharacterCache = [];
+
+    public static bool TryGetCompletionListResultIds(this VSInternalCompletionItem completion, [NotNullWhen(true)] out IReadOnlyList<int>? resultIds)
     {
-        private const string ResultIdKey = "_resultId";
-
-        public static bool TryGetCompletionListResultIds(this VSInternalCompletionItem completion, [NotNullWhen(true)] out IReadOnlyList<int>? resultIds)
+        if (completion is null)
         {
-            if (completion is null)
-            {
-                throw new ArgumentNullException(nameof(completion));
-            }
+            throw new ArgumentNullException(nameof(completion));
+        }
 
-            if (!CompletionListMerger.TrySplit(completion.Data, out var splitData))
-            {
-                resultIds = null;
-                return false;
-            }
-
-            var ids = new List<int>();
-            for (var i = 0; i < splitData.Count; i++)
-            {
-                var data = splitData[i];
-                if (data.ContainsKey(ResultIdKey))
-                {
-                    var resultId = data[ResultIdKey]?.ToObject<int>();
-                    if (resultId is not null)
-                    {
-                        ids.Add(resultId.Value);
-                    }
-                }
-            }
-
-            if (ids.Count > 0)
-            {
-                resultIds = ids;
-                return true;
-            }
-
+        if (!CompletionListMerger.TrySplit(completion.Data, out var splitData))
+        {
             resultIds = null;
             return false;
         }
 
-        public static void UseCommitCharactersFrom(
-            this VSInternalCompletionItem completionItem,
-            RazorCompletionItem razorCompletionItem,
-            VSInternalClientCapabilities clientCapabilities)
+        var ids = new List<int>();
+        for (var i = 0; i < splitData.Count; i++)
         {
-            if (razorCompletionItem.CommitCharacters is null || razorCompletionItem.CommitCharacters.Count == 0)
+            var data = splitData[i];
+            if (data.TryGetProperty(ResultIdKey, out var resultIdElement) &&
+                resultIdElement.TryGetInt32(out var resultId))
             {
-                return;
+                ids.Add(resultId);
+            }
+        }
+
+        if (ids.Count > 0)
+        {
+            resultIds = ids;
+            return true;
+        }
+
+        resultIds = null;
+        return false;
+    }
+
+    public static void UseCommitCharactersFrom(
+        this VSInternalCompletionItem completionItem,
+        RazorCompletionItem razorCompletionItem,
+        VSInternalClientCapabilities clientCapabilities)
+    {
+        var razorCommitCharacters = razorCompletionItem.CommitCharacters;
+        if (razorCommitCharacters.IsEmpty)
+        {
+            return;
+        }
+
+        var supportsVSExtensions = clientCapabilities?.SupportsVisualStudioExtensions ?? false;
+        if (supportsVSExtensions)
+        {
+            using var builder = new PooledArrayBuilder<VSInternalCommitCharacter>(capacity: razorCommitCharacters.Length);
+
+            lock (s_commitCharacterCache)
+            {
+                foreach (var c in razorCommitCharacters)
+                {
+                    if (!s_commitCharacterCache.TryGetValue(c, out var commitCharacter))
+                    {
+                        commitCharacter = new() { Character = c.Character, Insert = c.Insert };
+                        s_commitCharacterCache.Add(c, commitCharacter);
+                    }
+
+                    builder.Add(commitCharacter);
+                }
             }
 
-            var supportsVSExtensions = clientCapabilities?.SupportsVisualStudioExtensions ?? false;
-            if (supportsVSExtensions)
+            completionItem.VsCommitCharacters = builder.ToArray();
+        }
+        else
+        {
+            using var builder = new PooledArrayBuilder<string>(capacity: razorCommitCharacters.Length);
+
+            foreach (var c in razorCommitCharacters)
             {
-                var vsCommitCharacters = razorCompletionItem
-                    .CommitCharacters
-                    .Select(c => new VSInternalCommitCharacter() { Character = c.Character, Insert = c.Insert })
-                    .ToArray();
-                completionItem.VsCommitCharacters = vsCommitCharacters;
+                builder.Add(c.Character);
             }
-            else
-            {
-                completionItem.CommitCharacters = razorCompletionItem
-                    .CommitCharacters
-                    .Select(c => c.Character)
-                    .ToArray();
-            }
+
+            completionItem.CommitCharacters = builder.ToArray();
         }
     }
 }

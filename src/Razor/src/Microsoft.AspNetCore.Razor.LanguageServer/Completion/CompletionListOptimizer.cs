@@ -6,138 +6,137 @@ using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using AliasedVSCommitCharacters = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<string[], Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCommitCharacter[]>;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+
+internal static class CompletionListOptimizer
 {
-    internal static class CompletionListOptimizer
+    public static VSInternalCompletionList Optimize(VSInternalCompletionList completionList, VSInternalCompletionSetting? completionCapability)
     {
-        public static VSInternalCompletionList Optimize(VSInternalCompletionList completionList, VSInternalCompletionSetting? completionCapability)
+        if (completionCapability is not null)
         {
-            if (completionCapability is not null)
-            {
-                completionList = OptimizeCommitCharacters(completionList, completionCapability);
-            }
-
-            // We wrap the pre-existing completion list with an optimized completion list to better control serialization/deserialization
-            var optimizedCompletionList = new OptimizedVSCompletionList(completionList);
-            return optimizedCompletionList;
+            completionList = OptimizeCommitCharacters(completionList, completionCapability);
         }
 
-        private static VSInternalCompletionList OptimizeCommitCharacters(VSInternalCompletionList completionList, VSInternalCompletionSetting completionCapability)
-        {
-            var completionListCapability = completionCapability.CompletionList;
-            if (completionListCapability?.CommitCharacters != true)
-            {
-                return completionList;
-            }
+        // We wrap the pre-existing completion list with an optimized completion list to better control serialization/deserialization
+        var optimizedCompletionList = new OptimizedVSCompletionList(completionList);
+        return optimizedCompletionList;
+    }
 
-            // The commit characters capability is a VS capability with how we utilize it, therefore we want to promote onto the VS list.
-            completionList = PromoteVSCommonCommitCharactersOntoList(completionList);
+    private static VSInternalCompletionList OptimizeCommitCharacters(VSInternalCompletionList completionList, VSInternalCompletionSetting completionCapability)
+    {
+        var completionListCapability = completionCapability.CompletionList;
+        if (completionListCapability?.CommitCharacters != true)
+        {
             return completionList;
         }
 
-        private static VSInternalCompletionList PromoteVSCommonCommitCharactersOntoList(VSInternalCompletionList completionList)
+        // The commit characters capability is a VS capability with how we utilize it, therefore we want to promote onto the VS list.
+        completionList = PromoteVSCommonCommitCharactersOntoList(completionList);
+        return completionList;
+    }
+
+    private static VSInternalCompletionList PromoteVSCommonCommitCharactersOntoList(VSInternalCompletionList completionList)
+    {
+        (AliasedVSCommitCharacters VsCommitCharacters, List<VSInternalCompletionItem> AssociatedCompletionItems)? mostUsedCommitCharacterToItems = null;
+        var commitCharacterMap = new Dictionary<AliasedVSCommitCharacters, List<VSInternalCompletionItem>>(AliasedVSCommitCharactersComparer.Instance);
+        foreach (var completionItem in completionList.Items)
         {
-            (AliasedVSCommitCharacters VsCommitCharacters, List<VSInternalCompletionItem> AssociatedCompletionItems)? mostUsedCommitCharacterToItems = null;
-            var commitCharacterMap = new Dictionary<AliasedVSCommitCharacters, List<VSInternalCompletionItem>>(AliasedVSCommitCharactersComparer.Instance);
-            foreach (var completionItem in completionList.Items)
+            if (completionItem is not VSInternalCompletionItem vsCompletionItem)
             {
-                if (completionItem is not VSInternalCompletionItem vsCompletionItem)
-                {
-                    continue;
-                }
-
-                var vsCommitCharactersHolder = vsCompletionItem.VsCommitCharacters;
-                if (vsCommitCharactersHolder is null)
-                {
-                    continue;
-                }
-
-                var commitCharacters = vsCommitCharactersHolder.Value;
-                if (!commitCharacterMap.TryGetValue(commitCharacters, out var associatedCompletionItems))
-                {
-                    associatedCompletionItems = new List<VSInternalCompletionItem>();
-                    commitCharacterMap[commitCharacters] = associatedCompletionItems;
-                }
-
-                associatedCompletionItems.Add(vsCompletionItem);
-
-                if (mostUsedCommitCharacterToItems is null ||
-                    associatedCompletionItems.Count > mostUsedCommitCharacterToItems.Value.AssociatedCompletionItems.Count)
-                {
-                    mostUsedCommitCharacterToItems = (commitCharacters, associatedCompletionItems);
-                }
+                continue;
             }
 
-            if (mostUsedCommitCharacterToItems is null)
+            var vsCommitCharactersHolder = vsCompletionItem.VsCommitCharacters;
+            if (vsCommitCharactersHolder is null)
             {
-                return completionList;
+                continue;
             }
 
-            // Promote the most used commit characters onto the list and remove duplicates from child items.
-            foreach (var completionItem in mostUsedCommitCharacterToItems.Value.AssociatedCompletionItems)
+            var commitCharacters = vsCommitCharactersHolder.Value;
+            if (!commitCharacterMap.TryGetValue(commitCharacters, out var associatedCompletionItems))
             {
-                // Clear out the commit characters for all associated items
-                completionItem.CommitCharacters = null;
-                completionItem.VsCommitCharacters = null;
+                associatedCompletionItems = new List<VSInternalCompletionItem>();
+                commitCharacterMap[commitCharacters] = associatedCompletionItems;
             }
 
-            completionList.CommitCharacters = mostUsedCommitCharacterToItems.Value.VsCommitCharacters;
+            associatedCompletionItems.Add(vsCompletionItem);
+
+            if (mostUsedCommitCharacterToItems is null ||
+                associatedCompletionItems.Count > mostUsedCommitCharacterToItems.Value.AssociatedCompletionItems.Count)
+            {
+                mostUsedCommitCharacterToItems = (commitCharacters, associatedCompletionItems);
+            }
+        }
+
+        if (mostUsedCommitCharacterToItems is null)
+        {
             return completionList;
         }
 
-        private class AliasedVSCommitCharactersComparer : IEqualityComparer<AliasedVSCommitCharacters>
+        // Promote the most used commit characters onto the list and remove duplicates from child items.
+        foreach (var completionItem in mostUsedCommitCharacterToItems.Value.AssociatedCompletionItems)
         {
-            public static readonly AliasedVSCommitCharactersComparer Instance = new();
+            // Clear out the commit characters for all associated items
+            completionItem.CommitCharacters = null;
+            completionItem.VsCommitCharacters = null;
+        }
 
-            private AliasedVSCommitCharactersComparer()
+        completionList.CommitCharacters = mostUsedCommitCharacterToItems.Value.VsCommitCharacters;
+        return completionList;
+    }
+
+    private class AliasedVSCommitCharactersComparer : IEqualityComparer<AliasedVSCommitCharacters>
+    {
+        public static readonly AliasedVSCommitCharactersComparer Instance = new();
+
+        private AliasedVSCommitCharactersComparer()
+        {
+        }
+
+        public bool Equals(AliasedVSCommitCharacters a, AliasedVSCommitCharacters b)
+        {
+            if (a.TryGetFirst(out var aFirstValue) && b.TryGetFirst(out var bFirstValue))
             {
+                return Enumerable.SequenceEqual(aFirstValue, bFirstValue);
             }
-
-            public bool Equals(AliasedVSCommitCharacters a, AliasedVSCommitCharacters b)
+            else if (a.TryGetSecond(out var aSecondValue) && b.TryGetSecond(out var bSecondValue))
             {
-                if (a.TryGetFirst(out var aFirstValue) && b.TryGetFirst(out var bFirstValue))
+                if (aSecondValue.Length != bSecondValue.Length)
                 {
-                    return Enumerable.SequenceEqual(aFirstValue, bFirstValue);
+                    return false;
                 }
-                else if (a.TryGetSecond(out var aSecondValue) && b.TryGetSecond(out var bSecondValue))
+
+                for (var i = 0; i < aSecondValue.Length; i++)
                 {
-                    if (aSecondValue.Length != bSecondValue.Length)
+                    var aCommitCharacter = aSecondValue[i];
+                    var bCommitCharacter = bSecondValue[i];
+
+                    if (aCommitCharacter.Character != bCommitCharacter.Character ||
+                        aCommitCharacter.Insert != bCommitCharacter.Insert)
                     {
                         return false;
                     }
-
-                    for (var i = 0; i < aSecondValue.Length; i++)
-                    {
-                        var aCommitCharacter = aSecondValue[i];
-                        var bCommitCharacter = bSecondValue[i];
-
-                        if (aCommitCharacter.Character != bCommitCharacter.Character ||
-                            aCommitCharacter.Insert != bCommitCharacter.Insert)
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
                 }
 
-                // Mismatch in commit character types
-                return false;
+                return true;
             }
 
-            public int GetHashCode(AliasedVSCommitCharacters obj)
+            // Mismatch in commit character types
+            return false;
+        }
+
+        public int GetHashCode(AliasedVSCommitCharacters obj)
+        {
+            if (obj.TryGetFirst(out var stringVal))
             {
-                if (obj.TryGetFirst(out var stringVal))
-                {
-                    return stringVal.Length;
-                }
-                else if (obj.TryGetSecond(out var commitCharVal))
-                {
-                    return commitCharVal.Length;
-                }
-
-                return 0;
+                return stringVal.Length;
             }
+            else if (obj.TryGetSecond(out var commitCharVal))
+            {
+                return commitCharVal.Length;
+            }
+
+            return 0;
         }
     }
 }

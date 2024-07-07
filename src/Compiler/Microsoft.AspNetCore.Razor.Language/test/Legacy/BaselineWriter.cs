@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -16,7 +16,7 @@ public static class BaselineWriter
     public static void WriteBaseline(string baselineFile, string output)
     {
         var root = RecursiveFind("Razor.slnf", Path.GetFullPath("."));
-        var baselinePath = Path.Combine(root, baselineFile);
+        var baselinePath = Path.Combine(root, "src", "Razor", baselineFile);
 
         // Serialize writes to minimize contention for file handles and directory access.
         lock (baselineLock)

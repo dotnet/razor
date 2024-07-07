@@ -3,14 +3,13 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception
-{
-    internal interface IInterceptMethodMetadata
-    {
-        // this must match the name from InterceptMethodAttribute
-        IEnumerable<string> InterceptMethods { get; }
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 
-        // this must match the name from ContentTypeAttribute
-        IEnumerable<string> ContentTypes { get; }
-    }
+internal interface IInterceptMethodMetadata
+{
+    // this must match the name from InterceptMethodAttribute
+    IEnumerable<string> InterceptMethods { get; }
+
+    // this must match the name from ContentTypeAttribute
+    IEnumerable<string> ContentTypes { get; }
 }

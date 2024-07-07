@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Test.Legacy;
@@ -45,11 +44,17 @@ public class CSharpCodeParserTest
                         }
                     },
                     {
-                        "th" + Environment.NewLine,
+                        """
+                        th
+
+                        """,
                         directiveLocation,
                         new[]
                         {
-                            InvalidPrefixError(2 + Environment.NewLine.Length, Environment.NewLine[0], "th" + Environment.NewLine),
+                            InvalidPrefixError(2 + Environment.NewLine.Length, Environment.NewLine[0], """
+                            th
+
+                            """),
                         }
                     },
                     {
@@ -105,46 +110,34 @@ public class CSharpCodeParserTest
     {
         // Arrange
         var expectedDiagnostics = (IEnumerable<RazorDiagnostic>)expectedErrors;
-        var source = TestRazorSourceDocument.Create();
-        var options = RazorParserOptions.CreateDefault();
-        var context = new ParserContext(source, options);
-
-        var parser = new CSharpCodeParser(context);
         var diagnostics = new List<RazorDiagnostic>();
 
         // Act
-        parser.ValidateTagHelperPrefix(directiveText, directiveLocation, diagnostics);
+        CSharpCodeParser.ValidateTagHelperPrefix(directiveText, directiveLocation, diagnostics);
 
         // Assert
         Assert.Equal(expectedDiagnostics, diagnostics);
     }
 
     [Theory]
-    [InlineData("foo,assemblyName", 4)]
-    [InlineData("foo, assemblyName", 5)]
-    [InlineData("   foo, assemblyName", 8)]
-    [InlineData("   foo   , assemblyName", 11)]
-    [InlineData("foo,    assemblyName", 8)]
-    [InlineData("   foo   ,    assemblyName   ", 14)]
-    public void ParseAddOrRemoveDirective_CalculatesAssemblyLocationInLookupText(string text, int assemblyLocation)
+    [InlineData("foo,assemblyName")]
+    [InlineData("foo, assemblyName")]
+    [InlineData("   foo, assemblyName")]
+    [InlineData("   foo   , assemblyName")]
+    [InlineData("foo,    assemblyName")]
+    [InlineData("   foo   ,    assemblyName   ")]
+    public void ParseAddOrRemoveDirective_CalculatesAssemblyLocationInLookupText(string text)
     {
         // Arrange
-        var source = TestRazorSourceDocument.Create();
-        var options = RazorParserOptions.CreateDefault();
-        var context = new ParserContext(source, options);
-
-        var parser = new CSharpCodeParser(context);
-
         var directive = new CSharpCodeParser.ParsedDirective()
         {
             DirectiveText = text,
         };
 
         var diagnostics = new List<RazorDiagnostic>();
-        var expected = new SourceLocation(assemblyLocation, 0, assemblyLocation);
 
         // Act
-        var result = parser.ParseAddOrRemoveDirective(directive, SourceLocation.Zero, diagnostics);
+        var result = CSharpCodeParser.ParseAddOrRemoveDirective(directive, SourceLocation.Zero, diagnostics);
 
         // Assert
         Assert.Empty(diagnostics);
@@ -168,12 +161,6 @@ public class CSharpCodeParserTest
     public void ParseAddOrRemoveDirective_CreatesErrorIfInvalidLookupText_DoesNotThrow(string directiveText, int errorLength)
     {
         // Arrange
-        var source = TestRazorSourceDocument.Create();
-        var options = RazorParserOptions.CreateDefault();
-        var context = new ParserContext(source, options);
-
-        var parser = new CSharpCodeParser(context);
-
         var directive = new CSharpCodeParser.ParsedDirective()
         {
             DirectiveText = directiveText
@@ -184,7 +171,7 @@ public class CSharpCodeParserTest
             new SourceSpan(new SourceLocation(1, 2, 3), errorLength), directiveText);
 
         // Act
-        var result = parser.ParseAddOrRemoveDirective(directive, new SourceLocation(1, 2, 3), diagnostics);
+        var result = CSharpCodeParser.ParseAddOrRemoveDirective(directive, new SourceLocation(1, 2, 3), diagnostics);
 
         // Assert
         Assert.Same(directive, result);
@@ -198,7 +185,15 @@ public class CSharpCodeParserTest
     {
         // Arrange
         var expectedDiagnostic = RazorDiagnosticFactory.CreateParsing_DuplicateDirective(
-            new SourceSpan(null, 22 + Environment.NewLine.Length, 1, 0, 16), "tagHelperPrefix");
+            new SourceSpan(
+                filePath: null,
+                absoluteIndex: 22 + Environment.NewLine.Length,
+                lineIndex: 1,
+                characterIndex: 0,
+                length: 16,
+                lineCount: 1,
+                endCharacterIndex: 0),
+            "tagHelperPrefix");
         var source = TestRazorSourceDocument.Create(
             @"@tagHelperPrefix ""th:""
 @tagHelperPrefix ""th""",
@@ -208,8 +203,8 @@ public class CSharpCodeParserTest
         var document = RazorSyntaxTree.Parse(source);
 
         // Assert
-        var erroredNode = document.Root.DescendantNodes().Last(n => n.GetSpanContext()?.ChunkGenerator is TagHelperPrefixDirectiveChunkGenerator);
-        var chunkGenerator = Assert.IsType<TagHelperPrefixDirectiveChunkGenerator>(erroredNode.GetSpanContext().ChunkGenerator);
+        var erroredNode = document.Root.DescendantNodes().Last(n => n.GetChunkGenerator() is TagHelperPrefixDirectiveChunkGenerator);
+        var chunkGenerator = Assert.IsType<TagHelperPrefixDirectiveChunkGenerator>(erroredNode.GetChunkGenerator());
         var diagnostic = Assert.Single(chunkGenerator.Diagnostics);
         Assert.Equal(expectedDiagnostic, diagnostic);
     }
@@ -221,10 +216,12 @@ public class CSharpCodeParserTest
         var source = TestRazorSourceDocument.Create();
         var options = RazorParserOptions.CreateDefault();
         var context = new ParserContext(source, options);
-        var parser = new CSharpCodeParser(context);
 
         // Act & Assert (Does not throw)
-        parser.MapDirectives((b, t) => { }, "test");
-        parser.MapDirectives((b, t) => { }, "test");
+        var directiveDescriptors = new[] {
+            DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine),
+            DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine),
+        };
+        _ = new CSharpCodeParser(directiveDescriptors, context);
     }
 }

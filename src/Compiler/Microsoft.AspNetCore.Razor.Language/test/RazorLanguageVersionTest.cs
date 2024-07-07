@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -138,6 +138,34 @@ public class RazorLanguageVersionTest
     }
 
     [Fact]
+    public void TryParse80()
+    {
+        // Arrange
+        var value = "8.0";
+
+        // Act
+        var result = RazorLanguageVersion.TryParse(value, out var version);
+
+        // Assert
+        Assert.True(result);
+        Assert.Same(RazorLanguageVersion.Version_8_0, version);
+    }
+
+    [Fact]
+    public void TryParse90()
+    {
+        // Arrange
+        var value = "9.0";
+
+        // Act
+        var result = RazorLanguageVersion.TryParse(value, out var version);
+
+        // Assert
+        Assert.True(result);
+        Assert.Same(RazorLanguageVersion.Version_9_0, version);
+    }
+
+    [Fact]
     public void TryParseLatest()
     {
         // Arrange
@@ -148,7 +176,8 @@ public class RazorLanguageVersionTest
 
         // Assert
         Assert.True(result);
-        Assert.Same(RazorLanguageVersion.Version_7_0, version);
+        Assert.Same(RazorLanguageVersion.Latest, version);
+        Assert.Same(RazorLanguageVersion.Version_9_0, version);
     }
 
     [Fact]

@@ -1,0 +1,86 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(DefaultNetCoreTargetFrameworks);$(DefaultNetFxTargetFramework)</TargetFrameworks>
+    <IsShipping>false</IsShipping>
+
+    <RootNamespace>Microsoft.AspNetCore.Razor.Test.Common</RootNamespace>
+
+    <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
+    <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
+    <DefineConstants>$(DefineConstants);__RemoveThisBitTo__GENERATE_BASELINES</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Resources\**\*.*" />
+    <Compile Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Language\Legacy\SyntaxNodeWriter.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\**\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\benchmarks\Microsoft.AspNetCore.Razor.Microbenchmarks\Resources\project.razor.bin" Link="Resources\Benchmarking\project.razor.bin" />
+    <EmbeddedResource Include="..\..\benchmarks\Microsoft.AspNetCore.Razor.Microbenchmarks\Resources\project.razor.json" Link="Resources\Benchmarking\project.razor.json" />
+    <EmbeddedResource Include="..\..\benchmarks\Microsoft.AspNetCore.Razor.Microbenchmarks\Resources\taghelpers.json" Link="Resources\Benchmarking\taghelpers.json" />
+    <EmbeddedResource Include="..\..\benchmarks\Microsoft.AspNetCore.Razor.Microbenchmarks\Resources\Telerik\Kendo.Mvc.Examples.project.razor.json" Link="Resources\Benchmarking\Kendo.Mvc.Examples.project.razor.json" />
+    <EmbeddedResource Include="..\..\benchmarks\Microsoft.AspNetCore.Razor.Microbenchmarks\Resources\Telerik\Kendo.Mvc.Examples.taghelpers.json" Link="Resources\Benchmarking\Kendo.Mvc.Examples.taghelpers.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.ComponentShim\Microsoft.AspNetCore.Razor.Test.ComponentShim.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzer.Testing" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
+    <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Test.Utilities" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
+    <PackageReference Include="Microsoft.VisualStudio.Copilot" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Implementation" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="xunit.analyzers" VersionOverride="$(XUnitAnalyzersVersion)" />
+    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="Xunit.Combinatorial" />
+    <PackageReference Include="Xunit.StaFact" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'">
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.ProjectEngineHost.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LegacyEditor.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Razor.IntegrationTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="rzls" Key="$(RazorKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\Benchmarking\" />
+  </ItemGroup>
+
+  <Import Condition="'$(TargetFramework)' != '$(DefaultNetFxTargetFramework)'" Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.Serialization.Json\Microsoft.AspNetCore.Razor.Serialization.Json.projitems" Label="Shared" />
+
+</Project>

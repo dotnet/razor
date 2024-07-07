@@ -3,13 +3,12 @@
 
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
-{
-    // Used to indicate that no other entity should respond to the edit event associated with this tag.
-    internal class InviolableEditTag : IInviolableEditTag
-    {
-        private InviolableEditTag() { }
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-        public readonly static IInviolableEditTag Instance = new InviolableEditTag();
-    }
+// Used to indicate that no other entity should respond to the edit event associated with this tag.
+internal class InviolableEditTag : IInviolableEditTag
+{
+    private InviolableEditTag() { }
+
+    public readonly static IInviolableEditTag Instance = new InviolableEditTag();
 }

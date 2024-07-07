@@ -1,4 +1,5 @@
 ﻿<UserControl x:Class="Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer.SyntaxVisualizerControl"
+             x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -20,15 +21,13 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <DockPanel>
-        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" KeyUp="treeView_KeyUp">
-            <TreeView.Resources>
-                <!-- Style the inactive selection the same as active -->
-                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+    <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" KeyUp="treeView_KeyUp">
+        <TreeView.Resources>
+            <!-- Style the inactive selection the same as active -->
+            <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
                      Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />
-                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+            <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
                      Color="{DynamicResource {x:Static SystemColors.HighlightTextColorKey}}"/>
-            </TreeView.Resources>
-        </TreeView>
-    </DockPanel>
+        </TreeView.Resources>
+    </TreeView>
 </UserControl>

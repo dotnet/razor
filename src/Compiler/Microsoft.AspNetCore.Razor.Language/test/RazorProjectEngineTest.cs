@@ -1,8 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -34,7 +36,8 @@ public class RazorProjectEngineTest
             engine.Phases,
             phase => Assert.IsType<DefaultRazorParsingPhase>(phase),
             phase => Assert.IsType<DefaultRazorSyntaxTreePhase>(phase),
-            phase => Assert.IsType<DefaultRazorTagHelperBinderPhase>(phase),
+            phase => Assert.IsType<DefaultRazorTagHelperContextDiscoveryPhase>(phase),
+            phase => Assert.IsType<DefaultRazorTagHelperRewritePhase>(phase),
             phase => Assert.IsType<DefaultRazorIntermediateNodeLoweringPhase>(phase),
             phase => Assert.IsType<DefaultRazorDocumentClassifierPhase>(phase),
             phase => Assert.IsType<DefaultRazorDirectiveClassifierPhase>(phase),
@@ -54,6 +57,7 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<ComponentCssScopePass>(feature),
             feature => Assert.IsType<ComponentDocumentClassifierPass>(feature),
             feature => Assert.IsType<ComponentEventHandlerLoweringPass>(feature),
+            feature => Assert.IsType<ComponentFormNameLoweringPass>(feature),
             feature => Assert.IsType<ComponentGenericTypePass>(feature),
             feature => Assert.IsType<ComponentInjectDirectivePass>(feature),
             feature => Assert.IsType<ComponentKeyLoweringPass>(feature),
@@ -64,7 +68,8 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<ComponentMarkupEncodingPass>(feature),
             feature => Assert.IsType<ComponentPageDirectivePass>(feature),
             feature => Assert.IsType<ComponentReferenceCaptureLoweringPass>(feature),
-            feature => Assert.IsType<ComponentScriptTagPass>(feature),
+            feature => Assert.IsType<ComponentRenderModeDirectivePass>(feature),
+            feature => Assert.IsType<ComponentRenderModeLoweringPass>(feature),
             feature => Assert.IsType<ComponentSplatLoweringPass>(feature),
             feature => Assert.IsType<ComponentTemplateDiagnosticPass>(feature),
             feature => Assert.IsType<ComponentWhitespacePass>(feature),
@@ -114,5 +119,55 @@ public class RazorProjectEngineTest
             extension => Assert.IsType<DesignTimeDirectiveTargetExtension>(extension),
             extension => Assert.IsType<MetadataAttributeTargetExtension>(extension),
             extension => Assert.IsType<PreallocatedAttributeTargetExtension>(extension));
+    }
+
+    [Fact]
+    public void GetImportSourceDocuments_DoesNotIncludeNonExistentItems()
+    {
+        // Arrange
+        var existingItem = new TestRazorProjectItem("Index.cshtml");
+        var nonExistentItem = Mock.Of<RazorProjectItem>(item => item.Exists == false);
+        var items = ImmutableArray.Create(existingItem, nonExistentItem);
+
+        // Act
+        var sourceDocuments = RazorProjectEngine.GetImportSourceDocuments(items);
+
+        // Assert
+        var sourceDocument = Assert.Single(sourceDocuments);
+        Assert.Equal(existingItem.FilePath, sourceDocument.FilePath);
+    }
+
+    [Fact]
+    public void GetImportSourceDocuments_UnreadableItem_Throws()
+    {
+        // Arrange
+        var projectItem = new Mock<RazorProjectItem>(MockBehavior.Strict);
+        projectItem.SetupGet(p => p.Exists).Returns(true);
+        projectItem.SetupGet(p => p.PhysicalPath).Returns("path/to/file.cshtml");
+        projectItem.Setup(p => p.Read()).Throws(new IOException("Couldn't read file."));
+        var items = ImmutableArray.Create(projectItem.Object);
+
+        // Act & Assert
+        var exception = Assert.Throws<IOException>(() => RazorProjectEngine.GetImportSourceDocuments(items));
+        Assert.Equal("Couldn't read file.", exception.Message);
+    }
+
+    [Fact]
+    public void GetImportSourceDocuments_WithSuppressExceptions_UnreadableItem_DoesNotThrow()
+    {
+        // Arrange
+        var projectItem = new Mock<RazorProjectItem>(MockBehavior.Strict);
+        projectItem.SetupGet(p => p.Exists).Returns(true);
+        projectItem.SetupGet(p => p.PhysicalPath).Returns("path/to/file.cshtml");
+        projectItem.SetupGet(p => p.FilePath).Returns("path/to/file.cshtml");
+        projectItem.SetupGet(p => p.RelativePhysicalPath).Returns("path/to/file.cshtml");
+        projectItem.Setup(p => p.Read()).Throws(new IOException("Couldn't read file."));
+        var items = ImmutableArray.Create(projectItem.Object);
+
+        // Act
+        var sourceDocuments = RazorProjectEngine.GetImportSourceDocuments(items, suppressExceptions: true);
+
+        // Assert - Does not throw
+        Assert.Empty(sourceDocuments);
     }
 }

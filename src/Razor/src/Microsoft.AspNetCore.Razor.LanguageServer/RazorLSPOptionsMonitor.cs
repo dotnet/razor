@@ -4,81 +4,64 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class RazorLSPOptionsMonitor
 {
-    internal class RazorLSPOptionsMonitor : IOptionsMonitor<RazorLSPOptions>
+    private readonly IConfigurationSyncService _configurationService;
+    private event Action<RazorLSPOptions>? OnChangeEvent;
+    private RazorLSPOptions _currentValue;
+
+    public RazorLSPOptionsMonitor(IConfigurationSyncService configurationService, RazorLSPOptions currentOptions)
     {
-        private readonly RazorConfigurationService _configurationService;
-        private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
-        private event Action<RazorLSPOptions, string>? OnChangeEvent;
-        private RazorLSPOptions _currentValue;
-
-        public RazorLSPOptionsMonitor(RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)
+        if (configurationService is null)
         {
-            if (configurationService is null)
-            {
-                throw new ArgumentNullException(nameof(configurationService));
-            }
-
-            if (cache is null)
-            {
-                throw new ArgumentNullException(nameof(cache));
-            }
-
-            _configurationService = configurationService;
-            _cache = cache;
-            _currentValue = RazorLSPOptions.Default;
+            throw new ArgumentNullException(nameof(configurationService));
         }
 
-        public RazorLSPOptions CurrentValue => Get(Options.DefaultName);
+        _configurationService = configurationService;
+        _currentValue = currentOptions;
+    }
 
-        public RazorLSPOptions Get(string name)
+    public RazorLSPOptions CurrentValue => _currentValue;
+
+    public IDisposable OnChange(Action<RazorLSPOptions> listener)
+    {
+        var disposable = new ChangeTrackerDisposable(this, listener);
+        OnChangeEvent += disposable.OnChange;
+        return disposable;
+    }
+
+    public virtual async Task UpdateAsync(CancellationToken cancellationToken = default)
+    {
+        var latestOptions = await _configurationService.GetLatestOptionsAsync(cancellationToken).ConfigureAwait(false);
+        if (latestOptions != null)
         {
-            name ??= Options.DefaultName;
-            return _cache.GetOrAdd(name, () => _currentValue);
+            _currentValue = latestOptions;
+            InvokeChanged();
+        }
+    }
+
+    private void InvokeChanged()
+    {
+        OnChangeEvent?.Invoke(_currentValue);
+    }
+
+    internal class ChangeTrackerDisposable : IDisposable
+    {
+        private readonly Action<RazorLSPOptions> _listener;
+        private readonly RazorLSPOptionsMonitor _monitor;
+
+        public ChangeTrackerDisposable(RazorLSPOptionsMonitor monitor, Action<RazorLSPOptions> listener)
+        {
+            _listener = listener;
+            _monitor = monitor;
         }
 
-        public IDisposable OnChange(Action<RazorLSPOptions, string> listener)
-        {
-            var disposable = new ChangeTrackerDisposable(this, listener);
-            OnChangeEvent += disposable.OnChange;
-            return disposable;
-        }
+        public void OnChange(RazorLSPOptions options) => _listener.Invoke(options);
 
-        public virtual async Task UpdateAsync(CancellationToken cancellationToken = default)
-        {
-            var latestOptions = await _configurationService.GetLatestOptionsAsync(cancellationToken);
-            if (latestOptions != null)
-            {
-                _currentValue = latestOptions;
-                InvokeChanged();
-            }
-        }
-
-        private void InvokeChanged()
-        {
-            var name = Options.DefaultName;
-            _cache.TryRemove(name);
-            var options = Get(name);
-            OnChangeEvent?.Invoke(options, name);
-        }
-
-        internal class ChangeTrackerDisposable : IDisposable
-        {
-            private readonly Action<RazorLSPOptions, string> _listener;
-            private readonly RazorLSPOptionsMonitor _monitor;
-
-            public ChangeTrackerDisposable(RazorLSPOptionsMonitor monitor, Action<RazorLSPOptions, string> listener)
-            {
-                _listener = listener;
-                _monitor = monitor;
-            }
-
-            public void OnChange(RazorLSPOptions options, string name) => _listener.Invoke(options, name);
-
-            public void Dispose() => _monitor.OnChangeEvent -= OnChange;
-        }
+        public void Dispose() => _monitor.OnChangeEvent -= OnChange;
     }
 }

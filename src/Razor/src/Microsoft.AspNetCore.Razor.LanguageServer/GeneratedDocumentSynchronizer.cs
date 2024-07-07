@@ -2,49 +2,40 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class GeneratedDocumentSynchronizer(
+    IGeneratedDocumentPublisher publisher,
+    IDocumentVersionCache documentVersionCache,
+    LanguageServerFeatureOptions languageServerFeatureOptions) : IDocumentProcessedListener
 {
-    internal class GeneratedDocumentSynchronizer : DocumentProcessedListener
+    private readonly IGeneratedDocumentPublisher _publisher = publisher;
+    private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+
+    public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
-        private readonly GeneratedDocumentPublisher _publisher;
-        private readonly DocumentVersionCache _documentVersionCache;
-        private readonly ProjectSnapshotManagerDispatcher _dispatcher;
-
-        public GeneratedDocumentSynchronizer(
-            GeneratedDocumentPublisher publisher,
-            DocumentVersionCache documentVersionCache,
-            ProjectSnapshotManagerDispatcher dispatcher)
+        if (!_documentVersionCache.TryGetDocumentVersion(document, out var hostDocumentVersion))
         {
-            _publisher = publisher;
-            _documentVersionCache = documentVersionCache;
-            _dispatcher = dispatcher;
+            // Could not resolve document version
+            return;
         }
 
-        public override void Initialize(ProjectSnapshotManager projectManager)
+        var filePath = document.FilePath.AssumeNotNull();
+
+        // If cohosting is on, then it is responsible for updating the Html buffer
+        if (!_languageServerFeatureOptions.UseRazorCohostServer)
         {
-        }
-
-        public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
-        {
-            _dispatcher.AssertDispatcherThread();
-
-            if (!_documentVersionCache.TryGetDocumentVersion(document, out var hostDocumentVersion))
-            {
-                // Could not resolve document version
-                return;
-            }
-
             var htmlText = codeDocument.GetHtmlSourceText();
 
-            _publisher.PublishHtml(document.FilePath, htmlText, hostDocumentVersion.Value);
-
-            var csharpText = codeDocument.GetCSharpSourceText();
-
-            _publisher.PublishCSharp(document.FilePath, csharpText, hostDocumentVersion.Value);
+            _publisher.PublishHtml(document.Project.Key, filePath, htmlText, hostDocumentVersion.Value);
         }
+
+        var csharpText = codeDocument.GetCSharpSourceText();
+
+        _publisher.PublishCSharp(document.Project.Key, filePath, csharpText, hostDocumentVersion.Value);
     }
 }

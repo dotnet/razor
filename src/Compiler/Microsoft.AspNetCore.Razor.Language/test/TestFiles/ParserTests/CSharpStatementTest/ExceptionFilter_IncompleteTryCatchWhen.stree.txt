@@ -1,11 +1,11 @@
-RazorDocument - [0..44)::44 - [@try { someMethod(); } catch(Exception) when]
+﻿RazorDocument - [0..44)::44 - [@try { someMethod(); } catch(Exception) when]
     MarkupBlock - [0..44)::44
-        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
         CSharpCodeBlock - [0..44)::44
-            CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+            CSharpTransition - [0..1)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [1..44)::43 - [try { someMethod(); } catch(Exception) when] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [1..44)::43 - [try { someMethod(); } catch(Exception) when] - Gen<Stmt>
                 Keyword;[try];
                 Whitespace;[ ];
                 LeftBrace;[{];
@@ -23,3 +23,4 @@ RazorDocument - [0..44)::44 - [@try { someMethod(); } catch(Exception) when]
                 RightParenthesis;[)];
                 Whitespace;[ ];
                 Keyword;[when];
+    EndOfFile;[];

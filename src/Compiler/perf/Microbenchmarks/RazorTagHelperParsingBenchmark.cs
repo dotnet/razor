@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
-using static Microsoft.AspNetCore.Razor.Language.DefaultRazorTagHelperBinderPhase;
+using static Microsoft.AspNetCore.Razor.Language.DefaultRazorTagHelperContextDiscoveryPhase;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
@@ -41,7 +41,8 @@ public class RazorTagHelperParsingBenchmark
             });
         BlazorServerTagHelpersDemoFile = fileSystem.GetItem(Path.Combine(blazorServerTagHelpersFilePath), FileKinds.Component);
 
-        ComponentDirectiveVisitor = new ComponentDirectiveVisitor(blazorServerTagHelpersFilePath, tagHelpers, currentNamespace: null);
+        var matches = new HashSet<TagHelperDescriptor>();
+        ComponentDirectiveVisitor = new ComponentDirectiveVisitor(blazorServerTagHelpersFilePath, tagHelpers, currentNamespace: null, matches);
         var codeDocument = ProjectEngine.ProcessDesignTime(BlazorServerTagHelpersDemoFile);
         SyntaxTree = codeDocument.GetSyntaxTree();
     }

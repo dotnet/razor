@@ -1,47 +1,42 @@
-# Build Razor Tooling from Source
+﻿# Build Razor Tooling from Source
 
-Building Razor Tooling from source allows you to tweak and customize the Razor tooling experience for ASP.NET Core, and to contribute your improvements back to the project.
+Building Razor from source allows you to tweak and customize the Razor compiler and tooling experience for ASP.NET Core, and to contribute your improvements back to the project.
 
-See <https://github.com/dotnet/razor-tooling/issues> for known issues and to track ongoing work.
+See <https://github.com/dotnet/razor/issues> for known issues and to track ongoing work.
 
 ## Clone the source code
 
 For a new copy of the project, run:
 
 ```ps1
-git clone https://github.com/dotnet/razor-tooling.git
+git clone https://github.com/dotnet/razor.git
 ```
 
 ## Install pre-requisites
 
 ### Windows
 
-Building Razor Tooling on Windows requires:
+Building Razor on Windows requires:
 
-* Windows 10, version 1803 or newer
-* At least 10 GB of disk space and a good internet connection (our build scripts download a lot of tools and dependencies)
-* Git. <https://git-scm.org>
-* NodeJS. LTS version of 10.14.2 or newer <https://nodejs.org>.
-* Install yarn globally (`npm install -g yarn`)
-* Python (3.\*) ([available via the Microsoft store](https://www.microsoft.com/en-us/p/python-38/9mssztt1n39l?activetab=pivot:overviewtab) or from <https://www.python.org/downloads/>).
+- Windows 10, version 1803 or newer
+- At least 10 GB of disk space and a good internet connection (our build scripts download a lot of tools and dependencies)
+- Git. <https://git-scm.org>
 
 ### macOS/Linux
 
-Building Razor Tooling on macOS or Linux requires:
+Building Razor on macOS or Linux requires:
 
-* If using macOS, you need macOS Sierra or newer.
-* If using Linux, you need a machine with all .NET Core Linux prerequisites: <https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites>
-* At least 10 GB of disk space and a good internet connection (our build scripts download a lot of tools and dependencies)
-* curl <https://curl.haxx.se> or Wget <https://www.gnu.org/software/wget>
-* Git <https://git-scm.org>
-* NodeJS. LTS version of 10.14.2 or newer <https://nodejs.org>
-* Python (3.\*) <https://www.python.org/downloads/>
+- If using macOS, you need macOS Sierra or newer.
+- If using Linux, you need a machine with all .NET Core Linux prerequisites: <https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites>
+- At least 10 GB of disk space and a good internet connection (our build scripts download a lot of tools and dependencies)
+- curl <https://curl.haxx.se> or Wget <https://www.gnu.org/software/wget>
+- Git <https://git-scm.org>
 
 **NOTE** some ISPs have been know to use web filtering software that has caused issues with git repository cloning, if you experience issues cloning this repo please review <https://help.github.com/en/github/authenticating-to-github/using-ssh-over-the-https-port>
 
 ## Building in Visual Studio
 
-Before opening the `src/Razor/Razor.sln` file in Visual Studio or VS Code, you need to perform the following actions.
+Before opening the `Razor.sln` file in Visual Studio or VS Code, you need to perform the following actions.
 
 1. Executing the following on command-line:
 
@@ -55,11 +50,19 @@ Before opening the `src/Razor/Razor.sln` file in Visual Studio or VS Code, you n
    > branch, we regularly update the versions of .NET Core SDK required to build the repo.
    > You will need to restart Visual Studio every time we update the .NET Core SDK.
    > To allow executing the setup script, you may need to update the execution policy on your machine.
-   You can do so by running the `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` command
-   in PowerShell. For more information on execution policies, you can read the [execution policy docs](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy).
+   > You can do so by running the `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` command
+   > in PowerShell. For more information on execution policies, you can read the [execution policy docs](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy).
 
-2. Use the `startvs.cmd src/Razor/Razor.sln` script to open Visual Studio with the Razor solution. This script first sets the required
-environment variables.
+2. Use the `.\startvs.cmd Razor.sln` script to open Visual Studio with the Razor solution. This script first sets the required
+   environment variables. In addition, the following switches can be specified:
+
+   - `-chooseVS`: When specified, displays a list of the installed Visual Studio instances and prompts to
+     pick an instance to launch. By default, the newest recently installed instance of Visual Studio is
+     launched.
+   - `-includeRoslynDeps`: When specified, sets an environment variable that causes the Roslyn dependences
+     of Razor to be deployed. This can be useful if the latest Razor bits depend on a breaking change in
+     Roslyn that isn't available in the version of Visual Studio being targeted. If you encounter errors
+     when debugging the Razor bits that you've built and deployed, setting this switch _might_ fix them.
 
 3. Set `Microsoft.VisualStudio.RazorExtension` as the startup project.
 
@@ -74,31 +77,7 @@ In most cases, this is because the option _Use previews of the .NET Core SDK_ in
 
 ## Building with Visual Studio Code
 
-Note, the [Visual Studio Code C# Extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) is required.
-
-Using Visual Studio Code with this repo requires setting environment variables on command line first.
-Use these command to launch VS Code with the right settings.
-
-On Windows (requires PowerShell):
-
-```ps1
-# The extra dot at the beginning is required to 'dot source' this file into the right scope.
-
-. .\activate.ps1
-code .
-```
-
-On macOS/Linux:
-
-```bash
-source activate.sh
-code .
-```
-
-Note that if you are using the "Remote-WSL" extension in VSCode, the environment is not supplied
-to the process in WSL.  You can workaround this by explicitly setting the environment variables
-in `~/.vscode-server/server-env-setup`.
-See <https://code.visualstudio.com/docs/remote/wsl#_advanced-environment-setup-script> for details.
+Outside of Razor's language server and C# workspace logic, the bulk of our VS Code logic now lives in the [dotnet/vscode-csharp](https://github.com/dotnet/vscode-csharp) repo.
 
 ## Building on command-line
 
@@ -115,8 +94,6 @@ On macOS/Linux:
 ```bash
 ./build.sh
 ```
-
-By default, all of the C# projects are built. Some C# projects require NodeJS to be installed to compile JavaScript assets which are then checked in as source. If NodeJS is detected on the path, the NodeJS projects will be compiled as part of building C# projects. If NodeJS is not detected on the path, the JavaScript assets checked in previously will be used instead. To disable building NodeJS projects, specify `-noBuildNodeJS` or `--no-build-nodejs` on the command line.
 
 ### Using `dotnet` on command line in this repo
 

@@ -1,191 +1,218 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
-using System.Linq;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
+
+public class DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
+    private static readonly string s_project1BasePath = PathUtilities.CreateRootedPath("First");
+    private static readonly string s_project2BasePath = PathUtilities.CreateRootedPath("Second");
+
+    private static readonly string s_projectFilePath1 = Path.Combine(s_project1BasePath, "First.csproj");
+    private static readonly string s_projectFilePath2 = Path.Combine(s_project2BasePath, "Second.csproj");
+
+    private static readonly string s_intermediateOutputPath1 = Path.Combine(s_project1BasePath, "obj");
+    private static readonly string s_intermediateOutputPath2 = Path.Combine(s_project2BasePath, "obj");
+
+    private const string RootNamespace1 = "First.Components";
+    private const string RootNamespace2 = "Second.Components";
+
+    private static readonly string s_componentFilePath1 = Path.Combine(s_project1BasePath, "Component1.razor");
+    private static readonly string s_componentFilePath2 = Path.Combine(s_project1BasePath, "Component2.razor");
+    private static readonly string s_componentFilePath3 = Path.Combine(s_project2BasePath, "Component3.razor");
+
+#nullable disable
+    private TestProjectSnapshotManager _projectManager;
+#nullable enable
+
+    protected override async Task InitializeAsync()
     {
-        private static readonly ProjectSnapshotManagerAccessor s_projectSnapshotManager = CreateProjectSnapshotManagerAccessor();
+        _projectManager = CreateProjectSnapshotManager();
 
-        public DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+        var documentVersionCache = new DocumentVersionCache(_projectManager);
 
-        [Fact]
-        public async Task Handle_SearchFound_GenericComponent()
-        {
-            // Arrange
-            var tagHelperDescriptor1 = CreateRazorComponentTagHelperDescriptor("First", "First.Components", "Component1", typeName: "Component1<TItem>");
-            var tagHelperDescriptor2 = CreateRazorComponentTagHelperDescriptor("Second", "Second.Components", "Component3", typeName: "Component3<TItem>");
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
-
-            // Act
-            var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1);
-            var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2);
-
-            // Assert
-            Assert.NotNull(documentSnapshot1);
-            Assert.NotNull(documentSnapshot2);
-        }
-
-        [Fact]
-        public async Task Handle_SearchFound()
-        {
-            // Arrange
-            var tagHelperDescriptor1 = CreateRazorComponentTagHelperDescriptor("First", "First.Components", "Component1");
-            var tagHelperDescriptor2 = CreateRazorComponentTagHelperDescriptor("Second", "Second.Components", "Component3");
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
-
-            // Act
-            var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1);
-            var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2);
-
-            // Assert
-            Assert.NotNull(documentSnapshot1);
-            Assert.NotNull(documentSnapshot2);
-        }
-
-        [Fact]
-        public async Task Handle_SearchFound_SetNamespace()
-        {
-            // Arrange
-            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("First", "Test", "Component2");
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
-
-            // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
-
-            // Assert
-            Assert.NotNull(documentSnapshot);
-        }
-
-        [Fact]
-        public async Task Handle_SearchMissing_IncorrectAssembly()
-        {
-            // Arrange
-            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("Third", "First.Components", "Component3");
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
-
-            // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
-
-            // Assert
-            Assert.Null(documentSnapshot);
-        }
-
-        [Fact]
-        public async Task Handle_SearchMissing_IncorrectNamespace()
-        {
-            // Arrange
-            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("First", "First.Components", "Component2");
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
-
-            // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
-
-            // Assert
-            Assert.Null(documentSnapshot);
-        }
-
-        [Fact]
-        public async Task Handle_SearchMissing_IncorrectComponent()
-        {
-            // Arrange
-            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("First", "First.Components", "Component3");
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
-
-            // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
-
-            // Assert
-            Assert.Null(documentSnapshot);
-        }
-
-        [Fact]
-        public async Task Handle_FilePathAndAssemblyNameDifferent()
-        {
-            // Arrange
-            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("AssemblyName", "Test", "Component2");
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
-
-            // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
-
-            // Assert
-            Assert.NotNull(documentSnapshot);
-        }
-
-        internal static TagHelperDescriptor CreateRazorComponentTagHelperDescriptor(string assemblyName, string namespaceName, string tagName, string typeName = null)
-        {
-            typeName ??= tagName;
-            var fullyQualifiedName = $"{namespaceName}.{typeName}";
-            var builder1 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, fullyQualifiedName, assemblyName);
-            builder1.TagMatchingRule(rule => rule.TagName = tagName);
-            builder1.SetTypeNameIdentifier(typeName);
-            builder1.SetTypeNamespace(namespaceName);
-            return builder1.Build();
-        }
-
-        internal static DocumentSnapshot CreateRazorDocumentSnapshot(string text, string filePath, string rootNamespaceName)
-        {
-            var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, builder => builder.AddDirective(NamespaceDirective.Directive));
-            var codeDocument = projectEngine.Process(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
-
-            var namespaceNode = (NamespaceDeclarationIntermediateNode)codeDocument
-                .GetDocumentIntermediateNode()
-                .FindDescendantNodes<IntermediateNode>()
-                .FirstOrDefault(n => n is NamespaceDeclarationIntermediateNode);
-            namespaceNode.Content = rootNamespaceName;
-
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(d =>
-                d.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                d.FilePath == filePath &&
-                d.FileKind == FileKinds.Component, MockBehavior.Strict);
-            return documentSnapshot;
-        }
-
-        internal static ProjectSnapshotManagerAccessor CreateProjectSnapshotManagerAccessor()
-        {
-            var firstProject = Mock.Of<ProjectSnapshot>(p =>
-                p.FilePath == "c:/First/First.csproj" &&
-                p.DocumentFilePaths == new[] { "c:/First/Component1.razor", "c:/First/Component2.razor" } &&
-                p.GetDocument("c:/First/Component1.razor") == CreateRazorDocumentSnapshot("", "c:/First/Component1.razor", "First.Components") &&
-                p.GetDocument("c:/First/Component2.razor") == CreateRazorDocumentSnapshot("@namespace Test", "c:/First/Component2.razor", "Test"), MockBehavior.Strict);
-
-            var secondProject = Mock.Of<ProjectSnapshot>(p =>
-                p.FilePath == "c:/Second/Second.csproj" &&
-                p.DocumentFilePaths == new[] { "c:/Second/Component3.razor" } &&
-                p.GetDocument("c:/Second/Component3.razor") == CreateRazorDocumentSnapshot("", "c:/Second/Component3.razor", "Second.Components"), MockBehavior.Strict);
-
-            var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { firstProject, secondProject }, MockBehavior.Strict);
-            return new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
-        }
-
-        internal class TestProjectSnapshotManagerAccessor : ProjectSnapshotManagerAccessor
-        {
-            public TestProjectSnapshotManagerAccessor(ProjectSnapshotManagerBase instance)
+        var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
+        remoteTextLoaderFactoryMock
+            .Setup(x => x.Create(It.IsAny<string>()))
+            .Returns((string filePath) =>
             {
-                Instance = instance;
-            }
+                var textLoaderMock = new StrictMock<TextLoader>();
+                textLoaderMock
+                    .Setup(x => x.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create(), filePath));
 
-            public override ProjectSnapshotManagerBase Instance { get; }
-        }
+                return textLoaderMock.Object;
+            });
+
+        var projectService = new TestRazorProjectService(
+            remoteTextLoaderFactoryMock.Object,
+            documentVersionCache,
+            _projectManager,
+            LoggerFactory);
+
+        await projectService.AddProjectAsync(
+            s_projectFilePath1,
+            s_intermediateOutputPath1,
+            RazorConfiguration.Default,
+            RootNamespace1,
+            displayName: "",
+            DisposalToken);
+
+        await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath1, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath1, SourceText.From(""), version: 1, DisposalToken);
+
+        await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath2, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath2, SourceText.From("@namespace Test"), version: 1, DisposalToken);
+
+        await projectService.AddProjectAsync(
+            s_projectFilePath2,
+            s_intermediateOutputPath2,
+            RazorConfiguration.Default,
+            RootNamespace2,
+            displayName: "",
+            DisposalToken);
+
+        await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath3, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath3, SourceText.From(""), version: 1, DisposalToken);
+    }
+
+    [Fact]
+    public async Task Handle_SearchFound_GenericComponent()
+    {
+        // Arrange
+        var tagHelperDescriptor1 = CreateRazorComponentTagHelperDescriptor("First", RootNamespace1, "Component1", typeName: "Component1<TItem>");
+        var tagHelperDescriptor2 = CreateRazorComponentTagHelperDescriptor("Second", RootNamespace2, "Component3", typeName: "Component3<TItem>");
+        var searchEngine = new DefaultRazorComponentSearchEngine(_projectManager, LoggerFactory);
+
+        // Act
+        var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1);
+        var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2);
+
+        // Assert
+        Assert.NotNull(documentSnapshot1);
+        PathUtilities.AssertEquivalent(s_componentFilePath1, documentSnapshot1.FilePath);
+        Assert.NotNull(documentSnapshot2);
+        PathUtilities.AssertEquivalent(s_componentFilePath3, documentSnapshot2.FilePath);
+    }
+
+    [Fact]
+    public async Task Handle_SearchFound()
+    {
+        // Arrange
+        var tagHelperDescriptor1 = CreateRazorComponentTagHelperDescriptor("First", RootNamespace1, "Component1");
+        var tagHelperDescriptor2 = CreateRazorComponentTagHelperDescriptor("Second", RootNamespace2, "Component3");
+        var searchEngine = new DefaultRazorComponentSearchEngine(_projectManager, LoggerFactory);
+
+        // Act
+        var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1);
+        var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2);
+
+        // Assert
+        Assert.NotNull(documentSnapshot1);
+        PathUtilities.AssertEquivalent(s_componentFilePath1, documentSnapshot1.FilePath);
+        Assert.NotNull(documentSnapshot2);
+        PathUtilities.AssertEquivalent(s_componentFilePath3, documentSnapshot2.FilePath);
+    }
+
+    [Fact]
+    public async Task Handle_SearchFound_SetNamespace()
+    {
+        // Arrange
+        var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("First", "Test", "Component2");
+        var searchEngine = new DefaultRazorComponentSearchEngine(_projectManager, LoggerFactory);
+
+        // Act
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
+
+        // Assert
+        Assert.NotNull(documentSnapshot);
+        PathUtilities.AssertEquivalent(s_componentFilePath2, documentSnapshot.FilePath);
+    }
+
+    [Fact]
+    public async Task Handle_SearchMissing_IncorrectAssembly()
+    {
+        // Arrange
+        var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("Third", RootNamespace1, "Component3");
+        var searchEngine = new DefaultRazorComponentSearchEngine(_projectManager, LoggerFactory);
+
+        // Act
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
+
+        // Assert
+        Assert.Null(documentSnapshot);
+    }
+
+    [Fact]
+    public async Task Handle_SearchMissing_IncorrectNamespace()
+    {
+        // Arrange
+        var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("First", RootNamespace1, "Component2");
+        var searchEngine = new DefaultRazorComponentSearchEngine(_projectManager, LoggerFactory);
+
+        // Act
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
+
+        // Assert
+        Assert.Null(documentSnapshot);
+    }
+
+    [Fact]
+    public async Task Handle_SearchMissing_IncorrectComponent()
+    {
+        // Arrange
+        var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("First", RootNamespace1, "Component3");
+        var searchEngine = new DefaultRazorComponentSearchEngine(_projectManager, LoggerFactory);
+
+        // Act
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
+
+        // Assert
+        Assert.Null(documentSnapshot);
+    }
+
+    [Fact]
+    public async Task Handle_FilePathAndAssemblyNameDifferent()
+    {
+        // Arrange
+        var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("AssemblyName", "Test", "Component2");
+        var searchEngine = new DefaultRazorComponentSearchEngine(_projectManager, LoggerFactory);
+
+        // Act
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
+
+        // Assert
+        Assert.NotNull(documentSnapshot);
+        PathUtilities.AssertEquivalent(s_componentFilePath2, documentSnapshot.FilePath);
+    }
+
+    internal static TagHelperDescriptor CreateRazorComponentTagHelperDescriptor(string assemblyName, string namespaceName, string tagName, string? typeName = null)
+    {
+        typeName ??= tagName;
+        var fullyQualifiedName = $"{namespaceName}.{typeName}";
+        var builder1 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, fullyQualifiedName, assemblyName);
+        builder1.TagMatchingRule(rule => rule.TagName = tagName);
+        builder1.SetMetadata(
+            TypeNameIdentifier(typeName),
+            TypeNamespace(namespaceName));
+
+        return builder1.Build();
     }
 }

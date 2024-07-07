@@ -1,30 +1,25 @@
-#
+﻿#
 # See https://docs.microsoft.com/azure/devops/pipelines/yaml-schema for reference.
 #
 
 variables:
+- template: /eng/common/templates/variables/pool-providers.yml
 - name: Build.Repository.Clean
   value: true
 - name: _TeamName
   value: AspNetCore
 - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
   value: true
-- name: _PublishUsingPipelines
-  value: true
-- name: _DotNetArtifactsCategory
-  value: .NETCORE
-- name: _DotNetValidationArtifactsCategory
-  value: .NETCOREVALIDATION
+- name: LogLevel
+  value: 'All'
+- name: RunIntegrationTests
+  value: false
+- name: _InternalRuntimeDownloadArgs
+  value: ''
 - name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
   value: true
-- ${{ if ne(variables['System.TeamProject'], 'public') }}:
-  - group: DotNet-MSRC-Storage
-  - name: _InternalRuntimeDownloadArgs
-    value: /p:DotNetRuntimeSourceFeed=https://dotnetclimsrc.blob.core.windows.net/dotnet
-           /p:DotNetRuntimeSourceFeedKey=$(dotnetclimsrc-read-sas-token-base64)
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  - name: _InternalRuntimeDownloadArgs
-    value: ''
 
 trigger:
   batch: true
@@ -45,142 +40,67 @@ stages:
 - stage: build
   displayName: Build
   jobs:
-  - ${{ if and(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
-    - template: /eng/common/templates/job/onelocbuild.yml
-      parameters:
-        LclSource: lclFilesfromPackage
-        LclPackageId: 'LCL-JUNO-PROD-RAZORTOOL'
-        MirrorRepo: razor-tooling
-
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
       enablePublishBuildArtifacts: false
       enablePublishTestResults: false
       enablePublishUsingPipelines: false
+      enableSourcebuild: true
       jobs:
       # Code check
-      - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-        - job: Code_check
-          displayName: Code check
-          pool:
-            ${{ if eq(variables['System.TeamProject'], 'public') }}:
-              name: NetCore-Public
-              demands: ImageOverride -equals windows.vs2022preview.amd64.open
-            ${{ if ne(variables['System.TeamProject'], 'public') }}:
-              name: NetCore1ESPool-Internal
-              demands: ImageOverride -equals windows.vs2022preview.amd64
-          steps:
-          - task: NodeTool@0
-            displayName: Install Node 10.x
-            inputs:
-              versionSpec: 10.x
-          - task: NuGetCommand@2
-            displayName: 'Clear NuGet caches'
-            condition: succeeded()
-            inputs:
-              command: custom
-              arguments: 'locals all -clear'
-          - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-            - task: PowerShell@2
-              displayName: Setup Private Feeds Credentials
-              inputs:
-                filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.ps1
-                arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
-              env:
-                Token: $(dn-bot-dnceng-artifact-feeds-rw)
-          - powershell: ./restore.cmd -msbuildEngine dotnet -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
-            displayName: Run eng/scripts/CodeCheck.ps1
-
-
-  # Three jobs for each of the three OSes we want to run on
-  - template: /eng/common/templates/jobs/jobs.yml
-    parameters:
-      enablePublishBuildArtifacts: true
-      enablePublishTestResults: true
-      enableTelemetry: true
-      helixRepo: dotnet/razor-tooling
-      helixType: build.product/
-      # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
-      ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-        enableMicrobuild: true
-        enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
-
-      jobs:
-      - job: Windows
-        timeoutInMinutes: 120
+      - job: Code_check
+        displayName: Code check
         pool:
-          ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            name: NetCore-Public
-            demands: ImageOverride -equals windows.vs2022preview.scout.amd64.open
-          ${{ if ne(variables['System.TeamProject'], 'public') }}:
-            name: NetCore1ESPool-Internal
-            demands: ImageOverride -equals windows.vs2022preview.amd64
-        strategy:
-          matrix:
-            ${{ if eq(variables['System.TeamProject'], 'public') }}:
-              debug:
-                _BuildConfig: Debug
-                _PublishArgs: ''
-              release:
-                _BuildConfig: Release
-                _PublishArgs: ''
-            ${{ if ne(variables['System.TeamProject'], 'public') }}:
-              release:
-                _BuildConfig: Release
-                ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
-                  _PublishArgs: ''
-                ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
-                  _DotNetPublishToBlobFeed: true
-                  _PublishArgs: /p:PublishToSymbolServer=true
-                    /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                    /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-                    /p:PublishToAzure=true
-                    /p:DotNetPublishUsingPipelines=$(_PublishUsingPipelines)
-                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
-                    /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-                    /p:DotNetPublishBlobFeedUrl=$(_PublishBlobFeedUrl)
-                    /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed)
-
-        variables:
-        - _DotNetPublishToBlobFeed: false
-        - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore-tooling/index.json
-        - _BuildArgs: ''
-        - XUNIT_LOGS: '$(Build.SourcesDirectory)\artifacts\log\$(_BuildConfig)'
-        - __VSNeverShowWhatsNew: 1
-
-        # Variables for internal Official builds
-        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          - _SignType: real
-          - _BuildArgs: /p:DotNetSignType=$(_SignType) /p:TeamName=$(_TeamName)
-              /p:OfficialBuildId=$(Build.BuildNumber)
-              /p:ManifestBuildBranch=$(Build.SourceBranchName)
-              /p:ManifestBuildNumber=$(Build.BuildNumber)
-              /p:VisualStudioDropName=Products/dotnet/razor-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
-              /p:GenerateSbom=true
-
-        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          - group: DotNet-Blob-Feed
-          - group: DotNet-Symbol-Server-Pats
-
+          name: $(DncEngPublicBuildPool)
+          demands: ImageOverride -equals windows.vs2022preview.amd64.open
         steps:
-        - task: NodeTool@0
-          displayName: Install Node 10.x
-          inputs:
-            versionSpec: 10.x
-
-        - powershell: npm install -g yarn
-          displayName: Install yarn
-          condition: succeeded()
-
         - task: NuGetCommand@2
           displayName: 'Clear NuGet caches'
           condition: succeeded()
           inputs:
             command: custom
             arguments: 'locals all -clear'
+        - powershell: ./restore.cmd -msbuildEngine dotnet -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
+          displayName: Run eng/scripts/CodeCheck.ps1
 
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - template: /eng/restore-internal-tools.yml
+  # Windows based jobs. This needs to be separate from Unix based jobs because it generates
+  # TRX files. That can only be toggled at the top level template level, not at the individual
+  # job.
+  - template: /eng/common/templates/jobs/jobs.yml
+    parameters:
+      enablePublishBuildArtifacts: false
+      enablePublishTestResults: true
+      enableTelemetry: true
+      helixRepo: dotnet/razor
+      helixType: build.product/
+
+      jobs:
+      - job: Windows
+        timeoutInMinutes: 120
+        pool:
+          name: $(DncEngPublicBuildPool)
+          demands: ImageOverride -equals windows.vs2022preview.amd64.open
+        strategy:
+          matrix:
+            debug:
+              _BuildConfig: Debug
+              _PublishArgs: ''
+            release:
+              _BuildConfig: Release
+              _PublishArgs: ''
+
+        variables:
+        - _BuildArgs: ''
+        - XUNIT_LOGS: '$(Build.SourcesDirectory)\artifacts\log\$(_BuildConfig)'
+        - __VSNeverShowWhatsNew: 1
+
+        steps:
+        - task: NuGetCommand@2
+          displayName: 'Clear NuGet caches'
+          condition: succeeded()
+          inputs:
+            command: custom
+            arguments: 'locals all -clear'
 
         - powershell: ./eng/scripts/InstallProcDump.ps1
           displayName: Install ProcDump
@@ -191,278 +111,169 @@ stages:
             devenv, xunit.console, xunit.console.x86
           displayName: Start background dump collection
 
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - task: PowerShell@2
-            displayName: Setup Private Feeds Credentials
-            inputs:
-              filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.ps1
-              arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
-            env:
-              Token: $(dn-bot-dnceng-artifact-feeds-rw)
-
-        - script: eng\CIBuild.cmd
-            -restore
-            -build
-            -sign
-            -pack
-            -publish
-            -configuration $(_BuildConfig)
-            -msbuildEngine dotnet
-            -prepareMachine
-            $(_BuildArgs)
-            $(_PublishArgs)
-            $(_InternalRuntimeDownloadArgs)
-          name: Build
-          displayName: Build
-          condition: succeeded()
-
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Build BinLog
-          condition: always()
-          continueOnError: true
-          inputs:
-              pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
-              artifactName: $(Agent.Os)_$(Agent.JobName) BuildBinLog
-              artifactType: Container
-              parallel: true
-
+        # Don't create a binary log until we can customize the name
+        # https://github.com/dotnet/arcade/pull/12988
         - script: eng\cibuild.cmd
             -configuration $(_BuildConfig)
             -msbuildEngine vs
             -prepareMachine
             -restore
+            -nobl
+          name: Restore
+          displayName: Restore
+          condition: succeeded()
+
+        - powershell: eng\SetupVSHive.ps1
+          displayName: Setup VS Hive
+
+        - script: eng\cibuild.cmd
+            -configuration $(_BuildConfig)
+            -msbuildEngine vs
+            -prepareMachine
             -build
             -pack
+            -publish
             -sign
-            /p:BuildVsix=true
-            /p:BuildProjectReferences=false
             $(_BuildArgs)
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
-          name: Build_Vsix
-          displayName: Build and Deploy Vsix
+          name: Build
+          displayName: Build and Deploy
           condition: succeeded()
-
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Build VSIX BinLog
-          condition: always()
-          continueOnError: true
-          inputs:
-              pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
-              artifactName: $(Agent.Os)_$(Agent.JobName) BuildVSIXBinLog
-              artifactType: Container
-              parallel: true
 
         - script: eng\CIBuild.cmd
             -configuration $(_BuildConfig)
             -prepareMachine
             -test
-            -integrationTest
-            /p:BuildProjectReferences=false
-          name: Run_Tests
-          displayName: Run Unit and Integration tests
-          condition: succeeded()
+            -nobl
+          name: Run_Unit_Tests
+          displayName: Run Unit Tests
+          condition: and(succeeded(), in(variables['Build.Reason'], 'PullRequest'))
 
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Run tests BinLog
-          condition: always()
-          continueOnError: true
-          inputs:
-              pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
-              artifactName: $(Agent.Os)_$(Agent.JobName) RunTestsBinLog
-              artifactType: Container
-              parallel: true
+        - script: eng\CIBuild.cmd
+            -configuration $(_BuildConfig)
+            -prepareMachine
+            -integrationTest
+          name: Run_Integration_Tests
+          displayName: Run Integration Tests
+          condition: and(eq(variables['RunIntegrationTests'], true), succeeded(), in(variables['Build.Reason'], 'PullRequest'))
 
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
           continueOnError: true
           condition: always()
 
-        - powershell: |
-            $version = $(node -p "require('./package.json').version" | Out-String).Trim()
-            yarn install
-            md $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/ -ea 0
-            npx vsce@1.103.1 package -o $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/blazorwasm-companion-$version.vsix
-          displayName: Produce Blazor WASM Debugging Extension VSIX
-          workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
-          failOnStderr: true
-          condition: and(succeeded(), eq(variables['_BuildConfig'], 'Release'))
-
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Test Results
+        - publish: artifacts/log/$(_BuildConfig)
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) Logs
+          displayName: Publish Build Artifacts
           condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
 
-        # - task: PublishTestResults@2
-        #   displayName: Publish VSCode Test Results
-        #   inputs:
-        #     testResultsFormat: 'JUnit'
-        #     testResultsFiles: '*.xml'
-        #     searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
-        #   continueOnError: true
-        #   condition: always()
+        - publish: artifacts/TestResults/$(_BuildConfig)
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
+          displayName: Publish Test Artifacts
+          condition: in(variables['Build.Reason'], 'PullRequest')
 
-        - task: PublishBuildArtifacts@1
-          displayName: Publish VSIX Artifacts
-          inputs:
-            PathtoPublish: '$(Build.SourcesDirectory)/artifacts/VSSetup/$(_BuildConfig)'
-            PublishLocation: Container
-            ArtifactName: VSIX_$(Agent.Os)_$(_BuildConfig)
-          continueOnError: true
+        # Publish an artifact that the RoslynInsertionTool is able to find by its name.
+        - publish: artifacts\VSSetup\$(_BuildConfig)
+          artifact: VSSetup
+          displayName: Publish VSSetup
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
-        - task: PublishBuildArtifacts@1
-          displayName: Publish VS for Mac Artifacts
-          inputs:
-            PathtoPublish: '$(Build.SourcesDirectory)/artifacts/MPack/$(_BuildConfig)'
-            PublishLocation: Container
-            ArtifactName: MPack_$(Agent.Os)_$(_BuildConfig)
-          continueOnError: true
-          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
-
-        - task: PublishBuildArtifacts@1
+        - publish: artifacts\packages\$(_BuildConfig)
+          artifact: Packages_$(Agent.Os)_$(_BuildConfig)
           displayName: Publish package artifacts
-          inputs:
-            PathtoPublish: $(Build.SourcesDirectory)/artifacts/packages/$(_BuildConfig)
-            PublishLocation: Container
-            ArtifactName: Packages_$(Agent.Os)_$(_BuildConfig)
-          continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
-        - task: PublishBuildArtifacts@1
-          displayName: Publish VS Code extension artifacts
-          inputs:
-            PathtoPublish: $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)
-            PublishLocation: Container
-            ArtifactName: BlazorWasmDebuggingExtension
-          continueOnError: true
-          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
-
+  # Unix jobs done as a group since they share the same test results format.
+  - template: /eng/common/templates/jobs/jobs.yml
+    parameters:
+      enablePublishBuildArtifacts: false
+      enablePublishTestResults: true
+      enableTelemetry: true
+      testResultsFormat: xunit
+      helixRepo: dotnet/razor
+      helixType: build.product/
+      jobs:
       - job: macOS
         pool:
-          vmImage: macOS-11
+          vmImage: macOS-12
         strategy:
-          matrix:
-            debug:
-              _BuildConfig: Debug
-            release:
-              _BuildConfig: Release
+            matrix:
+              release:
+                _BuildConfig: Release
+              debug:
+                _BuildConfig: Debug
+
+        variables:
+        - _BuildArgs: ''
+
         steps:
-        - task: NodeTool@0
-          displayName: Install Node 10.x
-          inputs:
-            versionSpec: 10.x
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - task: Bash@3
-            displayName: Setup Private Feeds Credentials
-            inputs:
-              filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
-              arguments: $(Build.SourcesDirectory)/NuGet.config $Token
-            env:
-              Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - script: eng/common/cibuild.sh
+        - script: eng/cibuild.sh
+            --restore
+            --build
+            --pack
+            --publish
             --configuration $(_BuildConfig)
             --prepareMachine
+            --test
+            $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Build
-          displayName: Build
+          displayName: Restore, Build and Test
           condition: succeeded()
-        - task: PublishBuildArtifacts@1
-          displayName: Upload TestResults
+
+        - publish: artifacts/log/$(_BuildConfig)
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) Logs
+          displayName: Publish Build Artifacts
           condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
+
+        - publish: artifacts/TestResults/$(_BuildConfig)
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
+          displayName: Publish Test Results
+          condition: always()
 
       - job: Linux
         container:
-          image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
+          image: mcr.microsoft.com/dotnet-buildtools/prereqs:cbl-mariner-2.0
           options: --init # This ensures all the stray defunct processes are reaped.
         pool:
-          ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            vmImage: ubuntu-latest
-          ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-            name: NetCore1ESPool-Internal
-            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+          name: NetCore-Public
+          demands: ImageOverride -equals Build.Ubuntu.2004.Amd64.Open
+
+        strategy:
+          matrix:
+            release:
+              _BuildConfig: Release
+            debug:
+              _BuildConfig: Debug
 
         variables:
         - LC_ALL: 'en_US.UTF-8'
         - LANG: 'en_US.UTF-8'
         - LANGUAGE: 'en_US.UTF-8'
-        strategy:
-          matrix:
-            debug:
-              _BuildConfig: Debug
-            release:
-              _BuildConfig: Release
+        - _BuildArgs: ''
+
         steps:
-        - task: NodeTool@0
-          displayName: Install Node 10.x
-          inputs:
-            versionSpec: 10.x
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - task: Bash@3
-            displayName: Setup Private Feeds Credentials
-            inputs:
-              filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
-              arguments: $(Build.SourcesDirectory)/NuGet.config $Token
-            env:
-              Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - script: eng/common/cibuild.sh
+        - script: eng/cibuild.sh
+            --restore
+            --build
+            --pack
+            --publish
             --configuration $(_BuildConfig)
             --prepareMachine
+            --test
+            $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Build
-          displayName: Build
+          displayName: Restore, Build and Test
           condition: succeeded()
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Test Results
+
+        - publish: artifacts/log/$(_BuildConfig)
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) Logs
+          displayName: Publish Build Artifacts
           condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-  - stage: publishBuildAssets
-    displayName: Publish to Build Asset Registry
-    dependsOn: build
-    jobs:
-      # Publish to Build Asset Registry
-      - template: /eng/common/templates/job/publish-build-assets.yml
-        parameters:
-          publishUsingPipelines: true
-          pool:
-            name: NetCore1ESPool-Svc-Internal
-            demands: ImageOverride -equals windows.vs2022.amd64
-
-  - template: eng\common\templates\post-build\post-build.yml
-    parameters:
-      validateDependsOn:
-        - publishBuildAssets
-      publishingInfraVersion: 3
-      enableSigningValidation: false
-      enableNugetValidation: false
-      SDLValidationParameters:
-        enable: true
-        params: >-
-          -SourceToolsList @("policheck","credscan")
-          -TsaInstanceURL $(_TsaInstanceURL)
-          -TsaProjectName $(_TsaProjectName)
-          -TsaNotificationEmail $(_TsaNotificationEmail)
-          -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
-          -TsaBugAreaPath $(_TsaBugAreaPath)
-          -TsaIterationPath $(_TsaIterationPath)
-          -TsaRepositoryName "Razor-Tooling"
-          -TsaCodebaseName "Razor-Tooling"
-          -TsaPublish $True
+        - publish: artifacts/TestResults/$(_BuildConfig)/
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
+          displayName: Publish Test Results
+          condition: always()

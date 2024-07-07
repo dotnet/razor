@@ -1,115 +1,104 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+
+/// <summary>
+///  Removes Razor design-time helpers from a C# completion list.
+/// </summary>
+internal class DesignTimeHelperResponseRewriter : DelegatedCompletionResponseRewriter
 {
-    internal class DesignTimeHelperResponseRewriter : DelegatedCompletionResponseRewriter
+    private static readonly ImmutableHashSet<string> s_designTimeHelpers = new[]
     {
-        private static readonly IReadOnlyList<string> s_designTimeHelpers = new string[]
+        "__builder",
+        "__o",
+        "__RazorDirectiveTokenHelpers__",
+        "__tagHelperExecutionContext",
+        "__tagHelperRunner",
+        "__typeHelper",
+        "_Imports",
+        "BuildRenderTree"
+    }.ToImmutableHashSet();
+
+    public override int Order => ExecutionBehaviorOrder.FiltersCompletionItems;
+
+    public override async Task<VSInternalCompletionList> RewriteAsync(
+        VSInternalCompletionList completionList,
+        int hostDocumentIndex,
+        DocumentContext hostDocumentContext,
+        DelegatedCompletionParams delegatedParameters,
+        CancellationToken cancellationToken)
+    {
+        if (delegatedParameters.ProjectedKind != RazorLanguageKind.CSharp)
         {
-            "__builder",
-            "__o",
-            "__RazorDirectiveTokenHelpers__",
-            "__tagHelperExecutionContext",
-            "__tagHelperRunner",
-            "__typeHelper",
-            "_Imports",
-            "BuildRenderTree"
-        };
-
-        private static readonly IReadOnlyList<CompletionItem> s_designTimeHelpersCompletionItems =
-            s_designTimeHelpers
-                .Select(item => new CompletionItem { Label = item })
-                .ToArray();
-
-        public override int Order => ExecutionBehaviorOrder.FiltersCompletionItems;
-
-        public override async Task<VSInternalCompletionList> RewriteAsync(
-            VSInternalCompletionList completionList,
-            int hostDocumentIndex,
-            DocumentContext hostDocumentContext,
-            DelegatedCompletionParams delegatedParameters,
-            CancellationToken cancellationToken)
-        {
-            if (delegatedParameters.ProjectedKind != RazorLanguageKind.CSharp)
-            {
-                return completionList;
-            }
-
-            var syntaxTree = await hostDocumentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var owner = syntaxTree.GetOwner(hostDocumentIndex);
-            if (owner is null)
-            {
-                Debug.Fail("Owner should never be null.");
-                return completionList;
-            }
-
-            var sourceText = await hostDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-
-            // We should remove Razor design time helpers from C#'s completion list. If the current identifier being targeted does not start with a double
-            // underscore, we trim out all items starting with "__" from the completion list. If the current identifier does start with a double underscore
-            // (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
-
-            var filteredItems = completionList.Items.Except(s_designTimeHelpersCompletionItems, CompletionItemComparer.Instance).ToArray();
-
-            if (ShouldRemoveAllDesignTimeItems(owner, sourceText))
-            {
-                filteredItems = filteredItems.Where(item => item.Label != null && !item.Label.StartsWith("__", StringComparison.Ordinal)).ToArray();
-            }
-
-            completionList.Items = filteredItems;
             return completionList;
         }
 
-        // If the current identifier starts with "__", only trim out common design time helpers from the list.
-        // In all other cases, trim out both common design time helpers and all completion items starting with "__".
-        private static bool ShouldRemoveAllDesignTimeItems(RazorSyntaxNode owner, SourceText sourceText)
+        var syntaxTree = await hostDocumentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var owner = syntaxTree.Root.FindInnermostNode(hostDocumentIndex);
+        if (owner is null)
         {
-            if (owner.Span.Length < 2)
-            {
-                return true;
-            }
-
-            if (sourceText[owner.Span.Start] == '_' && sourceText[owner.Span.Start + 1] == '_')
-            {
-                return false;
-            }
-
-            return true;
+            Debug.Fail("Owner should never be null.");
+            return completionList;
         }
 
-        private class CompletionItemComparer : IEqualityComparer<CompletionItem>
+        var sourceText = await hostDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+
+        // We should remove Razor design-time helpers from C#'s completion list. If the current identifier
+        // being targeted does not start with a double underscore, we trim out all items starting with "__"
+        // from the completion list. If the current identifier does start with a double underscore (e.g. "__ab[||]"),
+        // we only trim out common design time helpers from the completion list.
+
+        using var _ = ListPool<CompletionItem>.GetPooledObject(out var filteredItems);
+
+        var items = completionList.Items;
+        filteredItems.SetCapacityIfLarger(items.Length);
+
+        // If the current identifier doesn't start with "__", we remove common design-time helpers *and*
+        // any item starting with "__" from the completion list. Otherwise, we only remove the common
+        // design-time helpers.
+        var removeAllDoubleUnderscoreItems = !StartsWithDoubleUnderscore(owner, sourceText);
+
+        foreach (var item in items)
         {
-            public static CompletionItemComparer Instance = new();
-
-            public bool Equals(CompletionItem x, CompletionItem y)
+            if (s_designTimeHelpers.Contains(item.Label) || (removeAllDoubleUnderscoreItems && item.Label.StartsWith("__")))
             {
-                if (x is null && y is null)
-                {
-                    return true;
-                }
-                else if (x is null || y is null)
-                {
-                    return false;
-                }
-
-                return x.Label.Equals(y.Label, StringComparison.Ordinal);
+                continue;
             }
 
-            public int GetHashCode(CompletionItem obj) => obj?.Label?.GetHashCode() ?? 0;
+            filteredItems.Add(item);
         }
+
+        // Avoid allocating array if nothing was filtered.
+        if (items.Length != filteredItems.Count)
+        {
+            completionList.Items = filteredItems.ToArray();
+        }
+
+        return completionList;
+    }
+
+    private static bool StartsWithDoubleUnderscore(RazorSyntaxNode owner, SourceText sourceText)
+    {
+        var span = owner.Span;
+        if (span.Length < 2)
+        {
+            return false;
+        }
+
+        var start = span.Start;
+        return sourceText[start] == '_' || sourceText[start + 1] == '_';
     }
 }

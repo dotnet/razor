@@ -1,11 +1,11 @@
-RazorDocument - [0..68)::68 - [<script>foo < bar && quantity.toString() !== orderQty.val()</script>]
+﻿RazorDocument - [0..68)::68 - [<script>foo < bar && quantity.toString() !== orderQty.val()</script>]
     MarkupBlock - [0..68)::68
         MarkupElement - [0..68)::68
-            MarkupStartTag - [0..8)::8 - [<script>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            MarkupStartTag - [0..8)::8 - [<script>] - Gen<Markup>
                 OpenAngle;[<];
                 Text;[script];
                 CloseAngle;[>];
-            MarkupTextLiteral - [8..59)::51 - [foo < bar && quantity.toString() !== orderQty.val()] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            MarkupTextLiteral - [8..59)::51 - [foo < bar && quantity.toString() !== orderQty.val()] - Gen<Markup>
                 Text;[foo];
                 Whitespace;[ ];
                 OpenAngle;[<];
@@ -21,8 +21,9 @@ RazorDocument - [0..68)::68 - [<script>foo < bar && quantity.toString() !== orde
                 Equals;[=];
                 Whitespace;[ ];
                 Text;[orderQty.val()];
-            MarkupEndTag - [59..68)::9 - [</script>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            MarkupEndTag - [59..68)::9 - [</script>] - Gen<Markup>
                 OpenAngle;[<];
                 ForwardSlash;[/];
                 Text;[script];
                 CloseAngle;[>];
+    EndOfFile;[];

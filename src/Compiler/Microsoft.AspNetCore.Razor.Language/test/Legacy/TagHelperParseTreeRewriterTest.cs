@@ -1,14 +1,16 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -25,21 +27,21 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
 
             // documentContent, expectedPairs
             return new TheoryData<string, IEnumerable<KeyValuePair<string, string>>>
+            {
+                { "<a>", empty },
+                { "<a @{ } href='~/home'>", empty },
+                { "<a href=\"@true\">", new[] { kvp("href", csharp) } },
+                { "<a href=\"prefix @true suffix\">", new[] { kvp("href", $"prefix{csharp} suffix") } },
+                { "<a href=~/home>", new[] { kvp("href", "~/home") } },
+                { "<a href=~/home @{ } nothing='something'>", new[] { kvp("href", "~/home") } },
                 {
-                    { "<a>", empty },
-                    { "<a @{ } href='~/home'>", empty },
-                    { "<a href=\"@true\">", new[] { kvp("href", csharp) } },
-                    { "<a href=\"prefix @true suffix\">", new[] { kvp("href", $"prefix{csharp} suffix") } },
-                    { "<a href=~/home>", new[] { kvp("href", "~/home") } },
-                    { "<a href=~/home @{ } nothing='something'>", new[] { kvp("href", "~/home") } },
-                    {
-                        "<a href=\"@DateTime.Now::0\" class='btn btn-success' random>",
-                        new[] { kvp("href", $"{csharp}::0"), kvp("class", "btn btn-success"), kvp("random", "") }
-                    },
-                    { "<a href=>", new[] { kvp("href", "") } },
-                    { "<a href='\">  ", new[] { kvp("href", "\">  ") } },
-                    { "<a href'", new[] { kvp("href'", "") } },
-                };
+                    "<a href=\"@DateTime.Now::0\" class='btn btn-success' random>",
+                    new[] { kvp("href", $"{csharp}::0"), kvp("class", "btn btn-success"), kvp("random", "") }
+                },
+                { "<a href=>", new[] { kvp("href", "") } },
+                { "<a href='\">  ", new[] { kvp("href", "\">  ") } },
+                { "<a href'", new[] { kvp("href'", "") } },
+            };
         }
     }
 
@@ -53,12 +55,6 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         var errorSink = new ErrorSink();
         var parseResult = ParseDocument(documentContent);
         var document = parseResult.Root;
-        var parseTreeRewriter = new TagHelperParseTreeRewriter.Rewriter(
-            parseResult.Source,
-            null,
-            Enumerable.Empty<TagHelperDescriptor>(),
-            parseResult.Options.FeatureFlags,
-            errorSink);
 
         // Assert - Guard
         var rootBlock = Assert.IsType<RazorDocumentSyntax>(document);
@@ -68,25 +64,25 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         Assert.Empty(errorSink.Errors);
 
         // Act
-        var pairs = parseTreeRewriter.GetAttributeNameValuePairs(element.StartTag);
+        var pairs = TagHelperParseTreeRewriter.Rewriter.GetAttributeNameValuePairs(element.StartTag);
 
         // Assert
         Assert.Equal(expectedPairs, pairs);
     }
 
-    public static TagHelperDescriptor[] PartialRequiredParentTags_Descriptors = new TagHelperDescriptor[]
-    {
-            TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("CatchALlTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                .Build(),
-    };
+    public static ImmutableArray<TagHelperDescriptor> PartialRequiredParentTags_Descriptors =
+    [
+        TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("CatchALlTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+            .Build(),
+    ];
 
     [Fact]
     public void UnderstandsPartialRequiredParentTags1()
@@ -130,31 +126,31 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         EvaluateData(PartialRequiredParentTags_Descriptors, document);
     }
 
-    public static TagHelperDescriptor[] NestedVoidSelfClosingRequiredParent_Descriptors = new TagHelperDescriptor[]
-    {
-            TagHelperDescriptorBuilder.Create("InputTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("input")
-                    .RequireTagStructure(TagStructure.WithoutEndTag))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("strong")
-                    .RequireParentTag("p"))
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("strong")
-                    .RequireParentTag("input"))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                .Build(),
-    };
+    public static ImmutableArray<TagHelperDescriptor> NestedVoidSelfClosingRequiredParent_Descriptors =
+    [
+        TagHelperDescriptorBuilder.Create("InputTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("input")
+                .RequireTagStructure(TagStructure.WithoutEndTag))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("strong")
+                .RequireParentTag("p"))
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("strong")
+                .RequireParentTag("input"))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+            .Build(),
+    ];
 
-    public static TagHelperDescriptor[] CatchAllAttribute_Descriptors = new TagHelperDescriptor[]
-    {
+    public static ImmutableArray<TagHelperDescriptor> CatchAllAttribute_Descriptors =
+    [
         TagHelperDescriptorBuilder.Create("InputTagHelper1", "SomeAssembly")
             .TagMatchingRuleDescriptor(rule => rule
                 .RequireTagName("*")
@@ -162,9 +158,9 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
                 {
                     b.Name = "onclick";
                 }))
-            .AddMetadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.EventArgsType)
+            .Metadata(SpecialKind(ComponentMetadata.EventHandler.EventArgsType))
             .Build(),
-    };
+    ];
 
     [Fact]
     public void UnderstandsInvalidHtml()
@@ -229,22 +225,22 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         EvaluateData(NestedVoidSelfClosingRequiredParent_Descriptors, document);
     }
 
-    public static TagHelperDescriptor[] NestedRequiredParent_Descriptors = new TagHelperDescriptor[]
-    {
-            TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("strong")
-                    .RequireParentTag("p"))
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("strong")
-                    .RequireParentTag("div"))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                .Build(),
-    };
+    public static ImmutableArray<TagHelperDescriptor> NestedRequiredParent_Descriptors =
+    [
+        TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("strong")
+                .RequireParentTag("p"))
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("strong")
+                .RequireParentTag("div"))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+            .Build(),
+    ];
 
     [Fact]
     public void UnderstandsNestedRequiredParent1()
@@ -286,16 +282,16 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<th:p><th:strong></th:strong></th:p>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("strong")
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
-                    .Build(),
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("strong")
+                .Build(),
+            TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
+                .Build(),
+        ];
 
         // Act & Assert
         EvaluateData(
@@ -309,16 +305,16 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<th:p><th:strong></th:strong></th:p>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("strong")
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong").RequireParentTag("p"))
-                    .Build(),
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("strong")
+                .Build(),
+            TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong").RequireParentTag("p"))
+                .Build(),
+        ];
 
         // Act & Assert
         EvaluateData(
@@ -333,16 +329,16 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         // Rewrite_InvalidStructure_UnderstandsTagHelperPrefixAndAllowedChildrenAndRequireParent
         // Arrange
         var documentContent = "<th:p></th:strong></th:p>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("strong")
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong").RequireParentTag("p"))
-                    .Build(),
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("strong")
+                .Build(),
+            TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong").RequireParentTag("p"))
+                .Build(),
+        ];
 
         // Act & Assert
         EvaluateData(
@@ -356,13 +352,13 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<th:p><strong></strong></th:p>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("strong")
-                    .Build(),
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("strong")
+                .Build(),
+        ];
 
         // Act & Assert
         EvaluateData(
@@ -431,15 +427,20 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     public void CanHandleInvalidChildrenWithWhitespace()
     {
         // Arrange
-        var documentContent = $"<p>{Environment.NewLine}    <strong>{Environment.NewLine}        Hello" +
-            $"{Environment.NewLine}    </strong>{Environment.NewLine}</p>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("br")
-                    .Build()
-        };
+        var documentContent = """
+            <p>
+                <strong>
+                    Hello
+                </strong>
+            </p>
+            """;
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("br")
+                .Build()
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -450,16 +451,16 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<strong required><strong></strong></strong>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                        .RequireTagName("strong")
-                        .RequireAttributeDescriptor(attribute => attribute.Name("required")))
-                    .AllowChildTag("br")
-                    .Build()
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                    .RequireTagName("strong")
+                    .RequireAttributeDescriptor(attribute => attribute.Name("required")))
+                .AllowChildTag("br")
+                .Build()
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -470,26 +471,26 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><strong>Hello World</strong><br></p>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("PTagHelper1", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("strong")
-                    .AllowChildTag("br")
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("PTagHelper2", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("BRTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                        .RequireTagName("br")
-                        .RequireTagStructure(TagStructure.WithoutEndTag))
-                    .Build(),
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("PTagHelper1", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("strong")
+                .AllowChildTag("br")
+                .Build(),
+            TagHelperDescriptorBuilder.Create("PTagHelper2", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .Build(),
+            TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
+                .Build(),
+            TagHelperDescriptorBuilder.Create("BRTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                    .RequireTagName("br")
+                    .RequireTagStructure(TagStructure.WithoutEndTag))
+                .Build(),
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -500,26 +501,26 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><strong>Hello World</strong><br></p>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("PTagHelper1", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("strong")
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("PTagHelper2", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("br")
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("BRTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                        .RequireTagName("br")
-                        .RequireTagStructure(TagStructure.WithoutEndTag))
-                    .Build(),
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("PTagHelper1", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("strong")
+                .Build(),
+            TagHelperDescriptorBuilder.Create("PTagHelper2", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("br")
+                .Build(),
+            TagHelperDescriptorBuilder.Create("StrongTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("strong"))
+                .Build(),
+            TagHelperDescriptorBuilder.Create("BRTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                    .RequireTagName("br")
+                    .RequireTagStructure(TagStructure.WithoutEndTag))
+                .Build(),
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -530,7 +531,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><br /></p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "br" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["br"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -540,8 +541,12 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     public void UnderstandsAllowedChildren2()
     {
         // Arrange
-        var documentContent = $"<p>{Environment.NewLine}<br />{Environment.NewLine}</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "br" });
+        var documentContent = $"""
+            <p>
+            <br />
+            </p>
+            """;
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["br"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -552,7 +557,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><br></p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -563,7 +568,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p>Hello</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -574,7 +579,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><hr /></p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "br", "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["br", "strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -585,7 +590,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><br>Hello</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -596,7 +601,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><strong>Title:</strong><br />Something</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -607,7 +612,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><strong>Title:</strong><br />Something</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "strong", "br" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong", "br"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -618,7 +623,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p>  <strong>Title:</strong>  <br />  Something</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "strong", "br" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong", "br"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -629,7 +634,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><strong>Title:<br><em>A Very Cool</em></strong><br />Something</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -640,7 +645,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><custom>Title:<br><em>A Very Cool</em></custom><br />Something</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "custom" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["custom"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -651,7 +656,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p></</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "custom" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["custom"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -662,7 +667,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><</p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "custom" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["custom"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -673,13 +678,13 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p><custom><br>:<strong><strong>Hello</strong></strong>:<input></custom></p>";
-        var descriptors = GetAllowedChildrenTagHelperDescriptors(new[] { "custom", "strong" });
+        var descriptors = GetAllowedChildrenTagHelperDescriptors(["custom", "strong"]);
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
     }
 
-    private TagHelperDescriptor[] GetAllowedChildrenTagHelperDescriptors(string[] allowedChildren)
+    private static ImmutableArray<TagHelperDescriptor> GetAllowedChildrenTagHelperDescriptors(string[] allowedChildren)
     {
         var pTagHelperBuilder = TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"));
@@ -691,19 +696,18 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
             pTagHelperBuilder.AllowChildTag(childTag);
             strongTagHelperBuilder.AllowChildTag(childTag);
         }
-        var descriptors = new TagHelperDescriptor[]
-        {
-                pTagHelperBuilder.Build(),
-                strongTagHelperBuilder.Build(),
-                TagHelperDescriptorBuilder.Create("BRTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                        .RequireTagName("br")
-                        .RequireTagStructure(TagStructure.WithoutEndTag))
-                    .Build(),
-        };
 
-        return descriptors;
+        return
+        [
+            pTagHelperBuilder.Build(),
+            strongTagHelperBuilder.Build(),
+            TagHelperDescriptorBuilder.Create("BRTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                    .RequireTagName("br")
+                    .RequireTagStructure(TagStructure.WithoutEndTag))
+                .Build(),
+        ];
     }
 
     [Fact]
@@ -723,10 +727,10 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
             pTagHelperBuilder.AllowChildTag(childTag);
         }
 
-        var descriptors = new TagHelperDescriptor[]
-        {
-                pTagHelperBuilder.Build()
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            pTagHelperBuilder.Build()
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, document);
@@ -748,10 +752,10 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
             pTagHelperBuilder.AllowChildTag(childTag);
         }
 
-        var descriptors = new TagHelperDescriptor[]
-        {
-                pTagHelperBuilder.Build()
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            pTagHelperBuilder.Build()
+        ];
 
         // Act & Assert
         EvaluateData(
@@ -778,10 +782,10 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
             pTagHelperBuilder.AllowChildTag(childTag);
         }
 
-        var descriptors = new TagHelperDescriptor[]
-        {
-                pTagHelperBuilder.Build()
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            pTagHelperBuilder.Build()
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, document);
@@ -804,10 +808,10 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
             pTagHelperBuilder.AllowChildTag(childTag);
         }
 
-        var descriptors = new TagHelperDescriptor[]
-        {
-                pTagHelperBuilder.Build()
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            pTagHelperBuilder.Build()
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, document);
@@ -833,10 +837,10 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
             pTagHelperBuilder.AllowChildTag(childTag);
         }
 
-        var descriptors = new TagHelperDescriptor[]
-        {
-                pTagHelperBuilder.Build()
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            pTagHelperBuilder.Build()
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, document);
@@ -847,16 +851,16 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<p></</p>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("custom")
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("CatchAllTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
-                    .Build(),
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("custom")
+                .Build(),
+            TagHelperDescriptorBuilder.Create("CatchAllTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
+                .Build(),
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -867,16 +871,16 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<th:p></</th:p>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .AllowChildTag("custom")
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("CatchAllTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
-                    .Build(),
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("PTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .AllowChildTag("custom")
+                .Build(),
+            TagHelperDescriptorBuilder.Create("CatchAllTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
+                .Build(),
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, documentContent, "th:");
@@ -887,15 +891,15 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<input>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("InputTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                        .RequireTagName("input")
-                        .RequireTagStructure(TagStructure.WithoutEndTag))
-                    .Build()
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("InputTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                    .RequireTagName("input")
+                    .RequireTagStructure(TagStructure.WithoutEndTag))
+                .Build()
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -906,15 +910,15 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "</input>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("InputTagHelper", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                        .RequireTagName("input")
-                        .RequireTagStructure(TagStructure.WithoutEndTag))
-                    .Build()
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("InputTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                    .RequireTagName("input")
+                    .RequireTagStructure(TagStructure.WithoutEndTag))
+                .Build()
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
@@ -925,48 +929,48 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
     {
         // Arrange
         var documentContent = "<input>";
-        var descriptors = new TagHelperDescriptor[]
-        {
-                TagHelperDescriptorBuilder.Create("InputTagHelper1", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                        .RequireTagName("input")
-                        .RequireTagStructure(TagStructure.WithoutEndTag))
-                    .Build(),
-                TagHelperDescriptorBuilder.Create("InputTagHelper2", "SomeAssembly")
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                        .RequireTagName("input")
-                        .RequireTagStructure(TagStructure.NormalOrSelfClosing))
-                    .Build()
-        };
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.Create("InputTagHelper1", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                    .RequireTagName("input")
+                    .RequireTagStructure(TagStructure.WithoutEndTag))
+                .Build(),
+            TagHelperDescriptorBuilder.Create("InputTagHelper2", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                    .RequireTagName("input")
+                    .RequireTagStructure(TagStructure.NormalOrSelfClosing))
+                .Build()
+        ];
 
         // Act & Assert
         EvaluateData(descriptors, documentContent);
     }
 
-    public static TagHelperDescriptor[] RequiredAttribute_Descriptors = new TagHelperDescriptor[]
-    {
-            TagHelperDescriptorBuilder.Create("pTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("p")
-                    .RequireAttributeDescriptor(attribute => attribute.Name("class")))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("divTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("div")
-                    .RequireAttributeDescriptor(attribute => attribute.Name("class"))
-                    .RequireAttributeDescriptor(attribute => attribute.Name("style")))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("catchAllTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("*")
-                    .RequireAttributeDescriptor(attribute => attribute.Name("catchAll")))
-                .Build()
-    };
+    public static ImmutableArray<TagHelperDescriptor> RequiredAttribute_Descriptors =
+    [
+        TagHelperDescriptorBuilder.Create("pTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("p")
+                .RequireAttributeDescriptor(attribute => attribute.Name("class")))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("divTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("div")
+                .RequireAttributeDescriptor(attribute => attribute.Name("class"))
+                .RequireAttributeDescriptor(attribute => attribute.Name("style")))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("catchAllTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("*")
+                .RequireAttributeDescriptor(attribute => attribute.Name("catchAll")))
+            .Build()
+    ];
 
     [Fact]
     public void RequiredAttributeDescriptorsCreateTagHelperBlocksCorrectly1()
@@ -1148,21 +1152,21 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         EvaluateData(RequiredAttribute_Descriptors, "<div style=\"\" class=\"btn\" catchAll=\"hi\" >words<strong>and</strong>spaces</div>");
     }
 
-    public static TagHelperDescriptor[] NestedRequiredAttribute_Descriptors = new TagHelperDescriptor[]
-    {
-            TagHelperDescriptorBuilder.Create("pTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("p")
-                    .RequireAttributeDescriptor(attribute => attribute.Name("class")))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("catchAllTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("*")
-                    .RequireAttributeDescriptor(attribute => attribute.Name("catchAll")))
-                .Build(),
-    };
+    public static ImmutableArray<TagHelperDescriptor> NestedRequiredAttribute_Descriptors =
+    [
+        TagHelperDescriptorBuilder.Create("pTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("p")
+                .RequireAttributeDescriptor(attribute => attribute.Name("class")))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("catchAllTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("*")
+                .RequireAttributeDescriptor(attribute => attribute.Name("catchAll")))
+            .Build(),
+    ];
 
     [Fact]
     public void NestedRequiredAttributeDescriptorsCreateTagHelperBlocksCorrectly1()
@@ -1224,15 +1228,15 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         EvaluateData(NestedRequiredAttribute_Descriptors, "<strong catchAll=\"hi\"><strong><strong><strong catchAll=\"hi\"><strong></strong></strong></strong></strong></strong>");
     }
 
-    public static TagHelperDescriptor[] MalformedRequiredAttribute_Descriptors = new TagHelperDescriptor[]
-    {
-            TagHelperDescriptorBuilder.Create("pTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("p")
-                    .RequireAttributeDescriptor(attribute => attribute.Name("class")))
-                .Build(),
-    };
+    public static ImmutableArray<TagHelperDescriptor> MalformedRequiredAttribute_Descriptors =
+    [
+        TagHelperDescriptorBuilder.Create("pTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("p")
+                .RequireAttributeDescriptor(attribute => attribute.Name("class")))
+            .Build(),
+    ];
 
     [Fact]
     public void RequiredAttributeDescriptorsCreateMalformedTagHelperBlocksCorrectly1()
@@ -1301,27 +1305,27 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         EvaluateData(MalformedRequiredAttribute_Descriptors, document);
     }
 
-    public static TagHelperDescriptor[] PrefixedTagHelperColon_Descriptors = new TagHelperDescriptor[]
-    {
-            TagHelperDescriptorBuilder.Create("mythTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("myth"))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("mythTagHelper2", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("myth2"))
-                .BoundAttributeDescriptor(attribute =>
-                    attribute
-                    .Name("bound")
-                    .PropertyName("Bound")
-                    .TypeName(typeof(bool).FullName))
-                .Build()
-    };
+    public static ImmutableArray<TagHelperDescriptor> PrefixedTagHelperColon_Descriptors =
+    [
+        TagHelperDescriptorBuilder.Create("mythTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("myth"))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("mythTagHelper2", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("myth2"))
+            .BoundAttributeDescriptor(attribute =>
+                attribute
+                .Name("bound")
+                .Metadata(PropertyName("Bound"))
+                .TypeName(typeof(bool).FullName))
+            .Build()
+    ];
 
-    public static TagHelperDescriptor[] PrefixedTagHelperCatchAll_Descriptors = new TagHelperDescriptor[]
-    {
-            TagHelperDescriptorBuilder.Create("mythTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
-                .Build(),
-    };
+    public static ImmutableArray<TagHelperDescriptor> PrefixedTagHelperCatchAll_Descriptors =
+    [
+        TagHelperDescriptorBuilder.Create("mythTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("*"))
+            .Build(),
+    ];
 
     [Fact]
     public void AllowsPrefixedTagHelpers1()
@@ -1911,27 +1915,27 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         RunParseTreeRewriterTest("<input>Foo</input>");
     }
 
-    public static TagHelperDescriptor[] CaseSensitive_Descriptors = new TagHelperDescriptor[]
-    {
-            TagHelperDescriptorBuilder.Create("pTagHelper", "SomeAssembly")
-                .SetCaseSensitive()
-                .BoundAttributeDescriptor(attribute =>
-                    attribute
-                    .Name("bound")
-                    .PropertyName("Bound")
-                    .TypeName(typeof(bool).FullName))
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("p")
-                    .RequireAttributeDescriptor(attribute => attribute.Name("class")))
-                .Build(),
-            TagHelperDescriptorBuilder.Create("catchAllTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule =>
-                    rule
-                    .RequireTagName("*")
-                    .RequireAttributeDescriptor(attribute => attribute.Name("catchAll")))
-                .Build(),
-    };
+    public static ImmutableArray<TagHelperDescriptor> CaseSensitive_Descriptors =
+    [
+        TagHelperDescriptorBuilder.Create("pTagHelper", "SomeAssembly")
+            .SetCaseSensitive()
+            .BoundAttributeDescriptor(attribute =>
+                attribute
+                .Name("bound")
+                .Metadata(PropertyName("Bound"))
+                .TypeName(typeof(bool).FullName))
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("p")
+                .RequireAttributeDescriptor(attribute => attribute.Name("class")))
+            .Build(),
+        TagHelperDescriptorBuilder.Create("catchAllTagHelper", "SomeAssembly")
+            .TagMatchingRuleDescriptor(rule =>
+                rule
+                .RequireTagName("*")
+                .RequireAttributeDescriptor(attribute => attribute.Name("catchAll")))
+            .Build(),
+    ];
 
     [Fact]
     public void HandlesCaseSensitiveTagHelpersCorrectly1()

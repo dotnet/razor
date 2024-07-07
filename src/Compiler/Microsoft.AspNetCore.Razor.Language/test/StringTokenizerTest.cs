@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -82,7 +82,7 @@ public class StringTokenizerTest
         var items = new List<string>();
         foreach (var token in tokenizer)
         {
-            items.Add(token.Value);
+            items.Add(token.ToString());
         }
 
         return items.ToArray();

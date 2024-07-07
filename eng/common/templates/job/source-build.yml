@@ -31,11 +31,15 @@ parameters:
   #   container and pool.
   platform: {}
 
+  # If set to true and running on a non-public project,
+  # Internal blob storage locations will be enabled.
+  # This is not enabled by default because many repositories do not need internal sources
+  # and do not need to have the required service connections approved in the pipeline.
+  enableInternalSources: false
+
 jobs:
 - job: ${{ parameters.jobNamePrefix }}_${{ parameters.platform.name }}
   displayName: Source-Build (${{ parameters.platform.name }})
-  variables:
-    - template: /eng/common/templates/variables/pool-providers.yml
 
   ${{ each property in parameters.platform.jobProperties }}:
     ${{ property.key }}: ${{ property.value }}
@@ -46,13 +50,16 @@ jobs:
   ${{ if eq(parameters.platform.pool, '') }}:
     # The default VM host AzDO pool. This should be capable of running Docker containers: almost all
     # source-build builds run in Docker, including the default managed platform.
+    # /eng/common/templates/variables/pool-providers.yml can't be used here (some customers declare variables already), so duplicate its logic
     pool:
       ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: $(DncEngPublicBuildPool)
+        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public')]
         demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-        name: $(DncEngInternalBuildPool)
+        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore1ESPool-Svc-Internal'), False, 'NetCore1ESPool-Internal')]
         demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+
   ${{ if ne(parameters.platform.pool, '') }}:
     pool: ${{ parameters.platform.pool }}
 
@@ -60,6 +67,8 @@ jobs:
     clean: all
 
   steps:
+  - ${{ if eq(parameters.enableInternalSources, true) }}:
+    - template: /eng/common/templates/steps/enable-internal-runtimes.yml
   - template: /eng/common/templates/steps/source-build.yml
     parameters:
       platform: ${{ parameters.platform }}

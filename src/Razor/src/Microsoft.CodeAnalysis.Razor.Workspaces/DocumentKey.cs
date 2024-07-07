@@ -1,43 +1,31 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal readonly record struct DocumentKey
 {
-    public readonly struct DocumentKey : IEquatable<DocumentKey>
+    public ProjectKey ProjectKey { get; }
+    public string DocumentFilePath { get; }
+
+    public DocumentKey(ProjectKey projectKey, string documentFilePath)
     {
-        public DocumentKey(string projectFilePath, string documentFilePath)
-        {
-            ProjectFilePath = projectFilePath;
-            DocumentFilePath = documentFilePath;
-        }
+        ProjectKey = projectKey;
+        DocumentFilePath = documentFilePath;
+    }
 
-        public string ProjectFilePath { get; }
+    public bool Equals(DocumentKey other)
+        => ProjectKey.Equals(other.ProjectKey) &&
+           FilePathComparer.Instance.Equals(DocumentFilePath, other.DocumentFilePath);
 
-        public string DocumentFilePath { get; }
-
-        public bool Equals(DocumentKey other)
-        {
-            return
-                FilePathComparer.Instance.Equals(ProjectFilePath, other.ProjectFilePath) &&
-                FilePathComparer.Instance.Equals(DocumentFilePath, other.DocumentFilePath);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is DocumentKey key && Equals(key);
-        }
-
-        public override int GetHashCode()
-        {
-            var hash = new HashCodeCombiner();
-            hash.Add(ProjectFilePath, FilePathComparer.Instance);
-            hash.Add(DocumentFilePath, FilePathComparer.Instance);
-            return hash;
-        }
+    public override int GetHashCode()
+    {
+        var hash = HashCodeCombiner.Start();
+        hash.Add(ProjectKey);
+        hash.Add(DocumentFilePath, FilePathComparer.Instance);
+        return hash;
     }
 }

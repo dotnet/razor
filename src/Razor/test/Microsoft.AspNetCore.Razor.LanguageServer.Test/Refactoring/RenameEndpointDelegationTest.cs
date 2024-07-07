@@ -6,32 +6,24 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
-{
-    [UseExportProvider]
-    public class RenameEndpointDelegationTest: SingleServerDelegatingEndpointTestBase
-    {
-        public RenameEndpointDelegationTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
-        [Fact]
-        public async Task Handle_Rename_SingleServer_CSharpEditsAreMapped()
-        {
-            var input = """
+[UseExportProvider]
+public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
+{
+    [Fact]
+    public async Task Handle_Rename_SingleServer_CSharpEditsAreMapped()
+    {
+        var input = """
                 <div></div>
 
                 @{
@@ -41,9 +33,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 }
                 """;
 
-            var newName = "newVar";
+        var newName = "newVar";
 
-            var expected = """
+        var expected = """
                 <div></div>
 
                 @{
@@ -53,48 +45,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 }
                 """;
 
-            // Arrange
-            TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
-            var codeDocument = CreateCodeDocument(output);
-            var razorFilePath = "C:/path/to/file.razor";
+        // Arrange
+        TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
+        var codeDocument = CreateCodeDocument(output);
+        var razorFilePath = "C:/path/to/file.razor";
 
-            await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-            var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<ProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
-            var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
-            using var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
+        var projectManager = CreateProjectSnapshotManager();
 
-            var endpoint = new RenameEndpoint(
-                projectSnapshotManagerDispatcher,
-                DocumentContextFactory,
-                searchEngine,
-                projectSnapshotManagerAccessor,
-                LanguageServerFeatureOptions,
-                DocumentMappingService,
-                LanguageServer,
-                LoggerFactory);
+        await projectManager.UpdateAsync(updater =>
+        {
+            updater.ProjectAdded(new(
+                projectFilePath: "C:/path/to/project.csproj",
+                intermediateOutputPath: "C:/path/to/obj",
+                razorConfiguration: RazorConfiguration.Default,
+                rootNamespace: "project"));
+        });
 
-            codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-            var request = new RenameParamsBridge
+        var searchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
+
+        var endpoint = new RenameEndpoint(
+            searchEngine,
+            projectManager,
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            LoggerFactory);
+
+        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var request = new RenameParams
+        {
+            TextDocument = new TextDocumentIdentifier
             {
-                TextDocument = new TextDocumentIdentifier
-                {
-                    Uri = new Uri(razorFilePath)
-                },
-                Position = new Position(line, offset),
-                NewName = newName
-            };
-            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, DisposalToken);
-            var requestContext = CreateRazorRequestContext(documentContext);
+                Uri = new Uri(razorFilePath)
+            },
+            Position = new Position(line, offset),
+            NewName = newName
+        };
+        Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
+        var requestContext = CreateRazorRequestContext(documentContext);
 
-            // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+        // Act
+        var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
-            // Assert
-            var edits = result.DocumentChanges.Value.First.FirstOrDefault().Edits.Select(e => e.AsTextChange(codeDocument.GetSourceText()));
-            var newText = codeDocument.GetSourceText().WithChanges(edits).ToString();
-            Assert.Equal(expected, newText);
-        }
+        // Assert
+        var edits = result.DocumentChanges.Value.First.FirstOrDefault().Edits.Select(e => e.ToTextChange(codeDocument.GetSourceText()));
+        var newText = codeDocument.GetSourceText().WithChanges(edits).ToString();
+        Assert.Equal(expected, newText);
     }
 }

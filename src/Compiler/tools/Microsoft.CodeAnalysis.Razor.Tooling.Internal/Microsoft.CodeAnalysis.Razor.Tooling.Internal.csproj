@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Transport package for Razor compiler binaries. For internal use only.</Description>
@@ -6,14 +6,17 @@
     <IsShipping>false</IsShipping>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReferemce Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReferemce Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" PrivateAssets="all" />
 
-    <Content Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Language\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll" PackagePath="lib\$(TargetFramework)" />
-    <Content Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.dll" PackagePath="lib\$(TargetFramework)" />
+    <Content Include="$(OutDir)Microsoft.CodeAnalysis.Razor.Compiler.dll" PackagePath="lib\$(TargetFramework)" />
+    <Content Include="$(OutDir)Microsoft.AspNetCore.Razor.Utilities.Shared.dll" PackagePath="lib\$(TargetFramework)" />
+    <Content Include="$(OutDir)Microsoft.Extensions.ObjectPool.dll" PackagePath="lib\$(TargetFramework)" />
+    <Content Include="$(OutDir)System.Collections.Immutable.dll" PackagePath="lib\$(TargetFramework)" />
   </ItemGroup>
 
 </Project>

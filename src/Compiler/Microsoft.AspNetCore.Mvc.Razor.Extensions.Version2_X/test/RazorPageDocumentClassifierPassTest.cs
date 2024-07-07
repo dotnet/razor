@@ -4,9 +4,11 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
@@ -19,11 +21,18 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_LogsErrorForImportedPageDirectives()
     {
         // Arrange
-        var sourceSpan = new SourceSpan("import.cshtml", 0, 0, 0, 5);
+        var sourceSpan = new SourceSpan(
+            filePath: "import.cshtml",
+            absoluteIndex: 0,
+            lineIndex: 0,
+            characterIndex: 0,
+            length: 5,
+            lineCount: 0,
+            endCharacterIndex: 5);
         var expectedDiagnostic = RazorExtensionsDiagnosticFactory.CreatePageDirective_CannotBeImported(sourceSpan);
         var importDocument = RazorSourceDocument.Create("@page", "import.cshtml");
         var sourceDocument = RazorSourceDocument.Create("<p>Hello World</p>", "main.cshtml");
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, new[] { importDocument });
+        var codeDocument = RazorCodeDocument.Create(sourceDocument, ImmutableArray.Create(importDocument));
         var engine = CreateProjectEngine().Engine;
         var irDocument = CreateIRDocument(engine, codeDocument);
         var pass = new RazorPageDocumentClassifierPass
@@ -50,12 +59,17 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
             absoluteIndex: 14 + Environment.NewLine.Length * 2,
             lineIndex: 2,
             characterIndex: 0,
-            length: 5 + Environment.NewLine.Length);
+            length: 5 + Environment.NewLine.Length,
+            lineCount: 1,
+            endCharacterIndex: 0);
 
         var expectedDiagnostic = RazorExtensionsDiagnosticFactory.CreatePageDirective_MustExistAtTheTopOfFile(sourceSpan);
-        var content = Environment.NewLine +
-"@somethingelse" + Environment.NewLine +
-"@page" + Environment.NewLine;
+        var content = """
+            
+            @somethingelse
+            @page
+            
+            """;
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(content, "Test.cshtml"));
 
         var engine = CreateProjectEngine().Engine;
@@ -194,7 +208,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_SetsClass()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: "ignored", relativePath: "Test.cshtml");
+        var properties = RazorSourceDocumentProperties.Create(filePath: "ignored", relativePath: "Test.cshtml");
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateProjectEngine().Engine;
@@ -219,7 +233,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_NullFilePath_SetsClass()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: null, relativePath: null);
+        var properties = RazorSourceDocumentProperties.Create(filePath: null, relativePath: null);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateProjectEngine().Engine;
@@ -237,7 +251,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
         // Assert
         Assert.Equal("global::Microsoft.AspNetCore.Mvc.RazorPages.Page", visitor.Class.BaseType);
         Assert.Equal(new[] { "public" }, visitor.Class.Modifiers);
-        Assert.Equal("AspNetCore_74fbaab062bb228ed1ab09c5ff8d6ed2417320e2", visitor.Class.ClassName);
+        AssertEx.Equal("AspNetCore_c3b458108610c1a2aa6eede0a5685ede853e036732db515609b2a23ca15359e1", visitor.Class.ClassName);
     }
 
     [Theory]
@@ -246,7 +260,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_UsesRelativePathToGenerateTypeName(string relativePath, string expected)
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: "ignored", relativePath: relativePath);
+        var properties = RazorSourceDocumentProperties.Create(filePath: "ignored", relativePath: relativePath);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateProjectEngine().Engine;
@@ -269,7 +283,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_UsesAbsolutePath_IfRelativePathIsNotSet()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: @"x::\application\Views\Home\Index.cshtml", relativePath: null);
+        var properties = RazorSourceDocumentProperties.Create(filePath: @"x::\application\Views\Home\Index.cshtml", relativePath: null);
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateProjectEngine().Engine;
@@ -292,7 +306,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_SanitizesClassName()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: @"x:\Test.cshtml", relativePath: "path.with+invalid-chars");
+        var properties = RazorSourceDocumentProperties.Create(filePath: @"x:\Test.cshtml", relativePath: "path.with+invalid-chars");
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page", properties));
 
         var engine = CreateProjectEngine().Engine;
@@ -339,7 +353,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void RazorPageDocumentClassifierPass_AddsRouteTemplateMetadata()
     {
         // Arrange
-        var properties = new RazorSourceDocumentProperties(filePath: "ignored", relativePath: "Test.cshtml");
+        var properties = RazorSourceDocumentProperties.Create(filePath: "ignored", relativePath: "Test.cshtml");
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("@page \"some-route\"", properties));
 
         var engine = CreateProjectEngine().Engine;
@@ -367,9 +381,8 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
 
     private static DocumentIntermediateNode CreateIRDocument(RazorEngine engine, RazorCodeDocument codeDocument)
     {
-        for (var i = 0; i < engine.Phases.Count; i++)
+        foreach (var phase in engine.Phases)
         {
-            var phase = engine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorIntermediateNodeLoweringPhase)

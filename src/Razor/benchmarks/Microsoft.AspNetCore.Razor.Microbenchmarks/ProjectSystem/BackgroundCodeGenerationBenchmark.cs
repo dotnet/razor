@@ -4,52 +4,61 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.Microbenchmarks
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
+
+public class BackgroundCodeGenerationBenchmark : ProjectSnapshotManagerBenchmarkBase
 {
-    public class BackgroundCodeGenerationBenchmark : ProjectSnapshotManagerBenchmarkBase
+    [IterationSetup]
+    public async Task SetupAsync()
     {
-        [IterationSetup]
-        public void Setup()
-        {
-            SnapshotManager = CreateProjectSnapshotManager();
-            SnapshotManager.ProjectAdded(HostProject);
-            SnapshotManager.Changed += SnapshotManager_Changed;
-        }
+        ProjectManager = CreateProjectSnapshotManager();
 
-        [IterationCleanup]
-        public void Cleanup()
-        {
-            SnapshotManager.Changed -= SnapshotManager_Changed;
+        await ProjectManager.UpdateAsync(
+            updater => updater.ProjectAdded(HostProject),
+            CancellationToken.None);
 
-            Tasks.Clear();
-        }
+        ProjectManager.Changed += SnapshotManager_Changed;
+    }
 
-        private List<Task> Tasks { get; } = new List<Task>();
+    [IterationCleanup]
+    public void Cleanup()
+    {
+        ProjectManager.Changed -= SnapshotManager_Changed;
 
-        private DefaultProjectSnapshotManager SnapshotManager { get; set; }
+        Tasks.Clear();
+    }
 
-        [Benchmark(Description = "Generates the code for 100 files", OperationsPerInvoke = 100)]
-        public async Task BackgroundCodeGeneration_Generate100FilesAsync()
-        {
-            for (var i = 0; i < Documents.Length; i++)
+    private List<Task> Tasks { get; } = new List<Task>();
+
+    private ProjectSnapshotManager ProjectManager { get; set; }
+
+    [Benchmark(Description = "Generates the code for 100 files", OperationsPerInvoke = 100)]
+    public async Task BackgroundCodeGeneration_Generate100FilesAsync()
+    {
+        await ProjectManager.UpdateAsync(
+            updater =>
             {
-                SnapshotManager.DocumentAdded(HostProject, Documents[i], TextLoaders[i % 4]);
-            }
+                for (var i = 0; i < Documents.Length; i++)
+                {
+                    updater.DocumentAdded(HostProject.Key, Documents[i], TextLoaders[i % 4]);
+                }
+            },
+            CancellationToken.None);
 
-            await Task.WhenAll(Tasks);
-        }
+        await Task.WhenAll(Tasks);
+    }
 
-        private void SnapshotManager_Changed(object sender, ProjectChangeEventArgs e)
-        {
-            // The real work happens here.
-            var project = SnapshotManager.GetLoadedProject(e.ProjectFilePath);
-            var document = project.GetDocument(e.DocumentFilePath);
+    private void SnapshotManager_Changed(object sender, ProjectChangeEventArgs e)
+    {
+        // The real work happens here.
+        var project = ProjectManager.GetLoadedProject(e.ProjectKey);
+        var document = project.GetDocument(e.DocumentFilePath);
 
-            Tasks.Add(document.GetGeneratedOutputAsync());
-        }
+        Tasks.Add(document.GetGeneratedOutputAsync());
     }
 }

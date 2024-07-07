@@ -3,160 +3,150 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Razor.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Razor;
+
+[Export(typeof(IRazorStartupService))]
+internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupService, IVsUpdateSolutionEvents2, IDisposable
 {
-    [Export(typeof(ProjectSnapshotChangeTrigger))]
-    internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : ProjectSnapshotChangeTrigger, IVsUpdateSolutionEvents2, IDisposable
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IProjectSnapshotManager _projectManager;
+    private readonly IProjectWorkspaceStateGenerator _workspaceStateGenerator;
+    private readonly IWorkspaceProvider _workspaceProvider;
+    private readonly JoinableTaskFactory _jtf;
+    private readonly CancellationTokenSource _disposeTokenSource;
+    private readonly JoinableTask _initializeTask;
+
+    private uint _updateCookie;
+    private IVsSolutionBuildManager? _solutionBuildManager;
+
+    private Task? _projectBuiltTask;
+
+    [ImportingConstructor]
+    public VsSolutionUpdatesProjectSnapshotChangeTrigger(
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        IProjectSnapshotManager projectManager,
+        IProjectWorkspaceStateGenerator workspaceStateGenerator,
+        IWorkspaceProvider workspaceProvider,
+        JoinableTaskContext joinableTaskContext)
     {
-        private readonly IServiceProvider _services;
-        private readonly TextBufferProjectService _projectService;
-        private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly JoinableTaskContext _joinableTaskContext;
-        private ProjectSnapshotManagerBase? _projectManager;
-        private CancellationTokenSource? _activeSolutionCancellationTokenSource;
-        private uint _updateCookie;
-        private IVsSolutionBuildManager? _solutionBuildManager;
+        _serviceProvider = serviceProvider;
+        _projectManager = projectManager;
+        _workspaceStateGenerator = workspaceStateGenerator;
+        _workspaceProvider = workspaceProvider;
+        _jtf = joinableTaskContext.Factory;
 
-        [ImportingConstructor]
-        public VsSolutionUpdatesProjectSnapshotChangeTrigger(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider services,
-            TextBufferProjectService projectService,
-            ProjectWorkspaceStateGenerator workspaceStateGenerator,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext)
+        _disposeTokenSource = new();
+
+        _projectManager.Changed += ProjectManager_Changed;
+
+        _initializeTask = _jtf.RunAsync(async () =>
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
+            await _jtf.SwitchToMainThreadAsync(_disposeTokenSource.Token);
 
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
+            // Attach the event sink to solution update events.
+            _solutionBuildManager = _serviceProvider.GetService(typeof(SVsSolutionBuildManager)) as IVsSolutionBuildManager;
+            Assumes.Present(_solutionBuildManager);
 
-            if (workspaceStateGenerator is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceStateGenerator));
-            }
+            // We expect this to be called only once. So we don't need to Unadvise.
+            var hr = _solutionBuildManager.AdviseUpdateSolutionEvents(this, out _updateCookie);
+            Marshal.ThrowExceptionForHR(hr);
+        });
+    }
 
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            _services = services;
-            _projectService = projectService;
-            _workspaceStateGenerator = workspaceStateGenerator;
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _joinableTaskContext = joinableTaskContext;
-            _activeSolutionCancellationTokenSource = new CancellationTokenSource();
+    public void Dispose()
+    {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
         }
 
-        internal Task? CurrentUpdateTaskForTests { get; private set; }
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        _jtf.AssertUIThread();
+
+        _solutionBuildManager?.UnadviseUpdateSolutionEvents(_updateCookie);
+    }
+
+    public int UpdateSolution_Begin(ref int pfCancelUpdate)
+        => VSConstants.S_OK;
+
+    public int UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+        => VSConstants.S_OK;
+
+    public int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+        => VSConstants.S_OK;
+
+    public int UpdateSolution_Cancel()
+        => VSConstants.S_OK;
+
+    public int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+        => VSConstants.S_OK;
+
+    public int UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
+        => VSConstants.S_OK;
+
+    // This gets called when the project has finished building.
+    public int UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
+    {
+        _projectBuiltTask = OnProjectBuiltAsync(pHierProj, _disposeTokenSource.Token);
+
+        return VSConstants.S_OK;
+    }
+
+    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+    {
+        if (args.SolutionIsClosing)
         {
-            _projectManager = projectManager;
-            _projectManager.Changed += ProjectManager_Changed;
+            // If the solution is closing, cancel all existing updates.
+            _workspaceStateGenerator.CancelUpdates();
+        }
+    }
 
-            _ = _joinableTaskContext.Factory.RunAsync(async () =>
+    private async Task OnProjectBuiltAsync(IVsHierarchy projectHierarchy, CancellationToken cancellationToken)
+    {
+        var projectFilePath = await projectHierarchy.GetProjectFilePathAsync(_jtf, cancellationToken);
+        if (projectFilePath is null)
+        {
+            return;
+        }
+
+        var projectKeys = _projectManager.GetAllProjectKeys(projectFilePath);
+        foreach (var projectKey in projectKeys)
+        {
+            if (_projectManager.TryGetLoadedProject(projectKey, out var projectSnapshot))
             {
-                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
-
-                // Attach the event sink to solution update events.
-                if (_services.GetService(typeof(SVsSolutionBuildManager)) is IVsSolutionBuildManager solutionBuildManager)
+                var workspace = _workspaceProvider.GetWorkspace();
+                var workspaceProject = workspace.CurrentSolution.Projects.FirstOrDefault(wp => wp.ToProjectKey() == projectSnapshot.Key);
+                if (workspaceProject is not null)
                 {
-                    _solutionBuildManager = solutionBuildManager;
-
-                    // We expect this to be called only once. So we don't need to Unadvise.
-                    var hr = _solutionBuildManager.AdviseUpdateSolutionEvents(this, out _updateCookie);
-                    Marshal.ThrowExceptionForHR(hr);
+                    // Trigger a tag helper update by forcing the project manager to see the workspace Project
+                    // from the current solution.
+                    _workspaceStateGenerator.EnqueueUpdate(workspaceProject, projectSnapshot);
                 }
-            });
-        }
-
-        public int UpdateSolution_Begin(ref int pfCancelUpdate) => VSConstants.S_OK;
-
-        public int UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand) => VSConstants.S_OK;
-
-        public int UpdateSolution_StartUpdate(ref int pfCancelUpdate) => VSConstants.S_OK;
-
-        public int UpdateSolution_Cancel() => VSConstants.S_OK;
-
-        public int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy) => VSConstants.S_OK;
-
-        public int UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel) => VSConstants.S_OK;
-
-        // This gets called when the project has finished building.
-        public int UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
-        {
-            Debug.Assert(_activeSolutionCancellationTokenSource != null, "We should not get build events when there is no active solution");
-
-            CurrentUpdateTaskForTests = OnProjectBuiltAsync(pHierProj, _activeSolutionCancellationTokenSource?.Token ?? CancellationToken.None);
-
-            return VSConstants.S_OK;
-        }
-
-        public void Dispose()
-        {
-            _solutionBuildManager?.UnadviseUpdateSolutionEvents(_updateCookie);
-            _activeSolutionCancellationTokenSource?.Cancel();
-            _activeSolutionCancellationTokenSource?.Dispose();
-            _activeSolutionCancellationTokenSource = null;
-        }
-
-        private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
-        {
-            if (args.SolutionIsClosing)
-            {
-                _activeSolutionCancellationTokenSource?.Cancel();
-                _activeSolutionCancellationTokenSource?.Dispose();
-                _activeSolutionCancellationTokenSource = null;
-            }
-            else
-            {
-                _activeSolutionCancellationTokenSource ??= new CancellationTokenSource();
             }
         }
+    }
 
-        // Internal for testing
-        internal Task OnProjectBuiltAsync(IVsHierarchy projectHierarchy, CancellationToken cancellationToken)
-        {
-            var projectFilePath = _projectService.GetProjectPath(projectHierarchy);
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                var projectSnapshot = _projectManager?.GetLoadedProject(projectFilePath);
-                if (projectSnapshot is not null)
-                {
-                    var workspaceProject = _projectManager?.Workspace.CurrentSolution.Projects.FirstOrDefault(
-                        wp => FilePathComparer.Instance.Equals(wp.FilePath, projectSnapshot.FilePath));
-                    if (workspaceProject is not null)
-                    {
-                        // Trigger a tag helper update by forcing the project manager to see the workspace Project
-                        // from the current solution.
-                        _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, cancellationToken);
-                    }
-                }
-            }, cancellationToken);
-        }
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal sealed class TestAccessor(VsSolutionUpdatesProjectSnapshotChangeTrigger instance)
+    {
+        public JoinableTask InitializeTask => instance._initializeTask;
+        public Task? OnProjectBuiltTask => instance._projectBuiltTask;
+
+        public Task OnProjectBuiltAsync(IVsHierarchy projectHierarchy, CancellationToken cancellationToken)
+            => instance.OnProjectBuiltAsync(projectHierarchy, cancellationToken);
     }
 }

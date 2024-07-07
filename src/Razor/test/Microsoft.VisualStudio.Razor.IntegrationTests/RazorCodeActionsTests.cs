@@ -1,37 +1,62 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Razor.IntegrationTests
+namespace Microsoft.VisualStudio.Razor.IntegrationTests;
+
+public class RazorCodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    public class RazorCodeActionsTests : AbstractRazorEditorTest
+    [IdeFact]
+    public async Task RazorCodeActions_AddUsing()
     {
-        [IdeFact]
-        public async Task RazorCodeActions_Show()
-        {
-            // Create Warnings by removing usings
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ImportsRazorFile, ControlledHangMitigatingCancellationToken);
-            await TestServices.Editor.SetTextAsync("", ControlledHangMitigatingCancellationToken);
+        // Create Warnings by removing usings
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ImportsRazorFile, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("", ControlledHangMitigatingCancellationToken);
 
-            // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
-            await TestServices.Editor.SetTextAsync("<SurveyPrompt></SurveyPrompt>", ControlledHangMitigatingCancellationToken);
-            await TestServices.Editor.MoveCaretAsync(3, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("<SurveyPrompt></SurveyPrompt>", ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.MoveCaretAsync(3, ControlledHangMitigatingCancellationToken);
 
-            // Act
-            var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(ControlledHangMitigatingCancellationToken);
+        // Act
+        var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(ControlledHangMitigatingCancellationToken);
 
-            // Assert
-            var codeActionSet = Assert.Single(codeActions);
-            var usingString = $"@using {RazorProjectConstants.BlazorProjectName}.Shared";
-            var codeAction = Assert.Single(codeActionSet.Actions, a => a.DisplayText.Equals(usingString));
+        // Assert
 
-            await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
+        // We expect two groups, one for Razor, one for Html
+        Assert.Equal(2, codeActions.Count());
+        // Razor should be first
+        var codeActionSet = codeActions.First();
+        var usingString = $"@using {RazorProjectConstants.BlazorProjectName}.Shared";
+        var codeAction = Assert.Single(codeActionSet.Actions, a => a.DisplayText.Equals(usingString));
 
-            await TestServices.Editor.VerifyTextContainsAsync(usingString, ControlledHangMitigatingCancellationToken);
-        }
+        await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.VerifyTextContainsAsync(usingString, ControlledHangMitigatingCancellationToken);
+    }
+
+    [IdeFact]
+    public async Task RazorCodeActions_ExtractToCodeBehind()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("@code", 1, ControlledHangMitigatingCancellationToken);
+
+        // Act
+        var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        var codeActionSet = Assert.Single(codeActions);
+        var codeAction = Assert.Single(codeActionSet.Actions, a => a.DisplayText.Equals("Extract block to code behind"));
+
+        await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.WaitForActiveWindowByFileAsync("Counter.razor.cs", ControlledHangMitigatingCancellationToken);
     }
 }

@@ -1,4 +1,4 @@
-Document - 
+﻿Document - 
     NamespaceDeclaration -  - AspNetCore
         UsingDirective -  - TModel = global::System.Object
         UsingDirective - (1:0,1 [12] ) - System
@@ -9,7 +9,7 @@ Document -
         UsingDirective - (135:5,1 [40] ) - Microsoft.AspNetCore.Mvc.Rendering
         UsingDirective - (178:6,1 [43] ) - Microsoft.AspNetCore.Mvc.ViewFeatures
         UsingDirective - (36:3,1 [41] RazorPagesWithRouteTemplate.cshtml) - Microsoft.AspNetCore.Mvc.RazorPages
-        RazorCompiledItemMetadataAttribute - 
+        RazorCompiledItemMetadataAttribute - (6:0,6 [8] RazorPagesWithRouteTemplate.cshtml)
         ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPagesWithRouteTemplate - global::Microsoft.AspNetCore.Mvc.RazorPages.Page - 
             DesignTimeDirective - 
                 DirectiveToken - (231:7,8 [62] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TModel>
@@ -30,7 +30,7 @@ Document -
             CSharpCode - 
                 IntermediateToken -  - CSharp - #pragma warning disable 0414
             CSharpCode - 
-                IntermediateToken -  - CSharp - private static System.Object __o = null;
+                IntermediateToken -  - CSharp - private static object __o = null;
             CSharpCode - 
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync

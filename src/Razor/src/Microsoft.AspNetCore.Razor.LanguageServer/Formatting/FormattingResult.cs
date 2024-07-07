@@ -2,26 +2,25 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
-{
-    internal struct FormattingResult
-    {
-        public FormattingResult(TextEdit[] edits, RazorLanguageKind kind = RazorLanguageKind.Razor)
-        {
-            if (edits is null)
-            {
-                throw new ArgumentNullException(nameof(edits));
-            }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-            Edits = edits;
-            Kind = kind;
+internal struct FormattingResult
+{
+    public FormattingResult(TextEdit[] edits, RazorLanguageKind kind = RazorLanguageKind.Razor)
+    {
+        if (edits is null)
+        {
+            throw new ArgumentNullException(nameof(edits));
         }
 
-        public TextEdit[] Edits { get; }
-
-        public RazorLanguageKind Kind { get; }
+        Edits = edits;
+        Kind = kind;
     }
+
+    public TextEdit[] Edits { get; }
+
+    public RazorLanguageKind Kind { get; }
 }

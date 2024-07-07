@@ -1,8 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
+using System.Collections.Immutable;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -29,10 +28,8 @@ public class RazorCodeDocumentTest
         // Arrange
         var source = TestRazorSourceDocument.Create();
 
-        var imports = new RazorSourceDocument[]
-        {
-                TestRazorSourceDocument.Create(),
-        };
+        var imports = ImmutableArray.Create(
+            TestRazorSourceDocument.Create());
 
         // Act
         var code = RazorCodeDocument.Create(source, imports);
@@ -41,18 +38,17 @@ public class RazorCodeDocumentTest
         Assert.Same(source, code.Source);
         Assert.NotNull(code.Items);
 
-        Assert.NotSame(imports, code.Imports);
         Assert.Collection(imports, d => Assert.Same(imports[0], d));
     }
 
     [Fact]
-    public void Create_WithImports_AllowsNull()
+    public void Create_WithImports_AllowsDefault()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create();
 
         // Act
-        var code = RazorCodeDocument.Create(source, imports: null);
+        var code = RazorCodeDocument.Create(source, imports: default);
 
         // Assert
         Assert.Same(source, code.Source);

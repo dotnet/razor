@@ -1,104 +1,114 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
+public class AddUsingsCodeActionProviderFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public class AddUsingsCodeActionProviderFactoryTest : TestBase
+    [Fact]
+    public void GetNamespaceFromFQN_Invalid_ReturnsEmpty()
     {
-        public AddUsingsCodeActionProviderFactoryTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+        // Arrange
+        var fqn = "Abc";
 
-        [Fact]
-        public void GetNamespaceFromFQN_Invalid_ReturnsEmpty()
-        {
-            // Arrange
-            var fqn = "Abc";
+        // Act
+        var namespaceName = AddUsingsCodeActionProviderHelper.GetNamespaceFromFQN(fqn);
 
-            // Act
-            var namespaceName = AddUsingsCodeActionProviderHelper.GetNamespaceFromFQN(fqn);
+        // Assert
+        Assert.Empty(namespaceName);
+    }
 
-            // Assert
-            Assert.Empty(namespaceName);
-        }
+    [Fact]
+    public void GetNamespaceFromFQN_Valid_ReturnsNamespace()
+    {
+        // Arrange
+        var fqn = "Abc.Xyz";
 
-        [Fact]
-        public void GetNamespaceFromFQN_Valid_ReturnsNamespace()
-        {
-            // Arrange
-            var fqn = "Abc.Xyz";
+        // Act
+        var namespaceName = AddUsingsCodeActionProviderHelper.GetNamespaceFromFQN(fqn);
 
-            // Act
-            var namespaceName = AddUsingsCodeActionProviderHelper.GetNamespaceFromFQN(fqn);
+        // Assert
+        Assert.Equal("Abc", namespaceName);
+    }
 
-            // Assert
-            Assert.Equal("Abc", namespaceName);
-        }
+    [Fact]
+    public void TryCreateAddUsingResolutionParams_CreatesResolutionParams()
+    {
+        // Arrange
+        var fqn = "Abc.Xyz";
+        var docUri = new Uri("c:/path");
 
-        [Fact]
-        public void TryCreateAddUsingResolutionParams_CreatesResolutionParams()
-        {
-            // Arrange
-            var fqn = "Abc.Xyz";
-            var docUri = new Uri("c:/path");
+        // Act
+        var result = AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, docUri, additionalEdit: null, out var @namespace, out var resolutionParams);
 
-            // Act
-            var result = AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, docUri, out var @namespace, out var resolutionParams);
+        // Assert
+        Assert.True(result);
+        Assert.Equal("Abc", @namespace);
+        Assert.NotNull(resolutionParams);
+    }
 
-            // Assert
-            Assert.True(result);
-            Assert.Equal("Abc", @namespace);
-            Assert.NotNull(resolutionParams);
-        }
+    [Fact]
+    public void TryExtractNamespace_Invalid_ReturnsFalse()
+    {
+        // Arrange
+        var csharpAddUsing = "Abc.Xyz;";
 
-        [Fact]
-        public void TryExtractNamespace_Invalid_ReturnsFalse()
-        {
-            // Arrange
-            var csharpAddUsing = "Abc.Xyz;";
+        // Act
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
-            // Act
-            var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace);
+        // Assert
+        Assert.False(res);
+        Assert.Empty(@namespace);
+        Assert.Empty(prefix);
+    }
 
-            // Assert
-            Assert.False(res);
-            Assert.Empty(@namespace);
-        }
+    [Fact]
+    public void TryExtractNamespace_ReturnsTrue()
+    {
+        // Arrange
+        var csharpAddUsing = "using Abc.Xyz;";
 
-        [Fact]
-        public void TryExtractNamespace_ReturnsTrue()
-        {
-            // Arrange
-            var csharpAddUsing = "using Abc.Xyz;";
+        // Act
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
-            // Act
-            var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace);
+        // Assert
+        Assert.True(res);
+        Assert.Equal("Abc.Xyz", @namespace);
+        Assert.Empty(prefix);
+    }
 
-            // Assert
-            Assert.True(res);
-            Assert.Equal("Abc.Xyz", @namespace);
-        }
+    [Fact]
+    public void TryExtractNamespace_WithStatic_ReturnsTrue()
+    {
+        // Arrange
+        var csharpAddUsing = "using static X.Y.Z;";
 
-        [Fact]
-        public void TryExtractNamespace_WithStatic_ReturnsTruue()
-        {
-            // Arrange
-            var csharpAddUsing = "using static X.Y.Z;";
+        // Act
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
-            // Act
-            var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace);
+        // Assert
+        Assert.True(res);
+        Assert.Equal("static X.Y.Z", @namespace);
+        Assert.Empty(prefix);
+    }
 
-            // Assert
-            Assert.True(res);
-            Assert.Equal("static X.Y.Z", @namespace);
-        }
+    [Fact]
+    public void TryExtractNamespace_WithTypeNameCorrection_ReturnsTrue()
+    {
+        // Arrange
+        var csharpAddUsing = "Goo - using X.Y.Z;";
+
+        // Act
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
+
+        // Assert
+        Assert.True(res);
+        Assert.Equal("X.Y.Z", @namespace);
+        Assert.Equal("Goo - ", prefix);
     }
 }

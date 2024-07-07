@@ -1,45 +1,95 @@
-# Product Layers
+﻿# Product Layers
 
-## Shared
+## High Level Overview
 
-- Target Framework: `netstandard2.0`
+![Layers](./overview.svg)
+
+<details>
+Created with https://www.sankeymatic.com/build/
+
+Input:
+```
+RoslynWorkspace [1] ProjectEngineHost
+MS.AspNetCore.Razor.LanguageServer [1] MS.AspNetCore.Razor.LanguageServer.Common
+MS.AspNetCore.Razor.LanguageServer.Common [1] Compiler
+MS.AspNetCore.Razor.LanguageServer.Common [1] Workspaces
+ProjectEngineHost [1] Compiler
+Workspaces [1] Compiler
+Workspaces [1] ProjectEngineHost
+OOP Tag Helper Discovery [1] Workspaces
+MS.VS.Editor.Razor [1] Workspaces
+MS.VS.LanguageServerClient.Razor [1] MS.AspNetCore.Razor.LanguageServer
+MS.VS.LanguageServerClient.Razor [1] MS.AspNetCore.Razor.LanguageServer.Common
+MS.VS.LanguageServerClient.Razor [1] Workspaces
+MS.VS.LanguageServerClient.Razor [1] MS.VS.Editor.Razor
+MS.VS.LanguageServerClient.Razor [1] ContainedLanguage
+LanguageServices.VS [1] MS.VS.Editor.Razor
+LiveShare [1] MS.VS.Editor.Razor
+Mac.LanguageServices [1] MS.VS.Editor.Razor
+VS Mac [1] Compiler
+VS Mac [1] MS.VS.LanguageServerClient.Razor
+VS Mac [1] Mac.LanguageServices
+VS [1] MS.AspNetCore.Razor.LanguageServer
+VS [1] MS.AspNetCore.Razor.LanguageServer.Common
+VS [1] Workspaces
+VS [1] OOP Tag Helper Discovery
+VS [1] MS.VS.Editor.Razor
+VS [1] ContainedLanguage
+VS [1] MS.VS.LanguageServerClient.Razor
+VS [1] LanguageServices.VS
+VS [1] LiveShare
+rzls [1] MS.AspNetCore.Razor.LanguageServer
+```
+</details>
+
+## Details
+
+### Shared
+
+This project is shared between all layers (both compiler and tooling) to provide language support types for modern C# language features.
+
+- Target Framework: `net8.0;netstandard2.0;net472`
 - Projects:
-  - Microsoft.AspNetCore.Razor.Common
+  - Microsoft.AspNetCore.Razor.Utilities.Shared
 
-## Compiler
+### Compiler
 
-- Target Framework: `netstandard2.0`
+- Target Framework: `net8.0;netstandard2.0`
 - Projects:
-  - Microsoft.AspNetCore.Mvc.Razor.Extensions
-  - Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X
-  - Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X
-  - Microsoft.AspNetCore.Razor.Language
-  - Microsoft.CodeAnalysis.Razor
-  - Microsoft.NET.Sdk.Razor.SourceGenerators
+  - Microsoft.CodeAnalysis.Razor.Compiler
 
-## Tooling Core
+### Tooling Core
 
-- Target Framework: `netstandard2.0`
+These projects are referenced by most Razor tooling projects. Because of this, they
+target the broadest set of frameworks.
+
+- Target Framework: `net8.0;netstandard2.0;net472`
+- Projects:
+  - Microsoft.AspNetCore.Razor.ProjectEngineHost
+  - Microsoft.CodeAnalysis.Razor.Workspaces
+
+### Razor Language Server
+
+- Target Framework: `net8.0;net472`
 - Projects:
   - Microsoft.AspNetCore.Razor.LanguageServer
   - Microsoft.AspNetCore.Razor.LanguageServer.Common
   - Microsoft.AspNetCore.Razor.LanguageServer.Protocol
-  - Microsoft.CodeAnalysis.Razor.Workspaces
 
-## Razor Language Server (rzls)
+### Razor Language Server (rzls)
 
-- Target Framework: `net7.0`
+- Target Framework: `net8.0`
 - Projects:
   - rzls
 
-## Roslyn OOP (for Visual Studio)
+### Roslyn OOP (for Visual Studio)
 
 - Target Framework: `netstandard2.0`
 - Projects:
   - Microsoft.CodeAnalysis.Remote.Razor
   - Microsoft.CodeAnalysis.Remote.Razor.CoreComponents
 
-## Visual Studio (Windows)
+### Visual Studio (Windows)
 
 - Target Framework: `net472`
 - Projects:
@@ -51,47 +101,42 @@
   - Microsoft.VisualStudio.RazorExtension.Dependencies
   - RazorDeployment
 
-## Visual Studio (Mac)
+### Miscellaneous / Test hosting
 
-- Target Framework: `net472`
+- Target Framework: net7.0
 - Projects:
-  - Microsoft.VisualStudio.Mac.LanguageServices.Razor
-  - Microsoft.VisualStudio.Mac.RazorAddin
+  - Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace
 
-## Visual Studio Code (OmniSharp Plug-in)
+## Testing Layers
 
-- Target Framework: `net472`
-- Projects:
-  - Microsoft.AspNetCore.Razor.OmniSharpPlugin
-  - Microsoft.AspNetCore.Razor.OmniSHarpPlugin.StrongNamed
+### Shared test infra
 
-# Testing Layers
+- Microsoft.AspNetCore.Razor.Test.Common (`net8.0`;`net472`)
 
-## Shared
+### API Shims
 
-- Microsoft.AspNetCore.Razor.Test.Common (`net6.0`;`netstandard2.0`;`net472`)
-
-## API Shims
-
-- Microsoft.AspNetCore.Razor.Test.ComponentShim (`netstandard2.0`;`net472`)
-- Microsoft.AspNetCore.Razor.Test.MvcShim (`net7.0`;`net472`)
+- Microsoft.AspNetCore.Razor.Test.ComponentShim (`netstandard2.0`)
+- Microsoft.AspNetCore.Razor.Test.MvcShim (`net8.0`;`net472`)
 - Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib (`netstandard2.0`)
-- Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X (`net7.0`;`netstandard2.0`)
-- Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X (`net7.0`;`netstandard2.0`)
+- Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X (`net8.0`;`net472`)
+- Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X (`net8.0`;`net4720`)
 
-## Tooling Core
+### Tooling Core Tests
 
-- Microsoft.CodeAnalysis.Razor.Workspaces.Test (`net7.0`;`net472` - only on Windows)
-- Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common (`netstandard2.0`)
-- Microsoft.AspNetCore.Razor.LanguageServer.Common.Test (`net7.0`)
-- Microsoft.AspNetCore.Razor.LanguageServer.Test (`net7.0-windows`)
-- Microsoft.AspNetCore.Razor.LanguageServer.Test.Common (`netstandard2.0`)
+- Microsoft.CodeAnalysis.Razor.Workspaces.Test (`net8.0`;`net472` - only on Windows)
+- Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common (`net8.0`;`net472`)
 
-## Roslyn OOP (for Visual Studio)
+### Language Server
 
-- Microsoft.CodeAnalysis.Remote.Razor.Test (`net7.0`;`net472` - only on Windows)
+- Microsoft.AspNetCore.Razor.LanguageServer.Common.Test (`net8.0`)
+- Microsoft.AspNetCore.Razor.LanguageServer.Test (`net8.0-windows`)
+- Microsoft.AspNetCore.Razor.LanguageServer.Test.Common (`net8.0`;`net472`)
 
-## Visual Studio Code (Windows)
+### Roslyn OOP (for Visual Studio) Tests
+
+- Microsoft.CodeAnalysis.Remote.Razor.Test (`net8.0`;`net472` - only on Windows)
+
+### Visual Studio Code (Windows)
 
 - Microsoft.VisualStudio.Editor.Razor.Test (`net472`)
 - Microsoft.VisualStudio.Editor.Razor.Test.Common (`net472`)
@@ -101,11 +146,3 @@
 - Microsoft.VisualStudio.LanguageServices.Razor.Test (`net472`)
 - Microsoft.VisualStudio.LiveShare.Razor.Test (`net472`)
 - Microsoft.VisualStudio.Razor.IntegrationTests (`net472`)
-
-## Visual Studio (Mac)
-
-- Microsoft.VisualStudio.Mac.LanguageServices.Razor.Test (`net472`)
-
-## Visual Studio Code (OmniSharp Plug-in)
-
-- Microsoft.AspNetCore.Razor.OmniSharpPlugin.Test (`net472`)

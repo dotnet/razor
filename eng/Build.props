@@ -1,24 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
-  <PropertyGroup>
-    <BuildNodeJs Condition="'$(BuildNodeJs)' == ''">true</BuildNodeJs>
-  </PropertyGroup>
-
   <ItemGroup>
-    <ProjectToBuild Condition="'$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\razor-compiler.sln" />
+    <!-- Note: It is important BuildAnalyzers.sln builds first and does not allow building in parallel.
+         Because projects in Razor.sln (or Razor.Slim.slnf) have a project reference to Razor.Diagnostics.Analyzers
+         that is treated as an analyzer, there can be file locking issues if Razor.Diagnostics.Analyzers isn't
+         built before Razor.sln. Setting "BuildInParallel" to "false" ensures that this solution will be fully
+         built first. -->
+    <ProjectToBuild Include="$(RepoRoot)BuildAnalyzers.sln" BuildInParallel="false" />
 
-    <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'=='' And '$(BuildVsix)' != 'true'" Include="$(MSBuildThisFileDirectory)..\src\Razor\Razor.sln" />
-    <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'=='' And '$(BuildVsix)' == 'true'" Include="$(MSBuildThisFileDirectory)..\src\Razor\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj" />
-    <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'=='' And '$(BuildVsix)' == 'true'" Include="$(MSBuildThisFileDirectory)..\src\Razor\src\Microsoft.VisualStudio.RazorExtension.Dependencies\Microsoft.VisualStudio.RazorExtension.Dependencies.csproj" />
-
+    <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\Razor.sln" />
 
     <!-- Exclude VSIX projects on non-Windows -->
-    <ProjectToBuild Condition="'$(OS)'!='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\src\Razor\Razor.Slim.slnf" />
-
-    <NodeJsProjects Include="$(RepoRoot)src\Razor\src\**\*.npmproj" Exclude="$(RepoRoot)src\**\node_modules\**" RestoreInParallel="false"/>
-    <NodeJsProjects Include="$(RepoRoot)src\Razor\test\**\*.npmproj" Exclude="$(RepoRoot)src\**\node_modules\**" RestoreInParallel="false" />
-
-    <ProjectToBuild Include="@(NodeJsProjects)" Condition="'$(BuildNodeJs)' == 'true'" />
+    <ProjectToBuild Condition="'$(OS)'!='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\Razor.Slim.slnf" />
   </ItemGroup>
 </Project>

@@ -3,53 +3,134 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+public class Program
 {
-    public class Program
+    public static async Task Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            MainAsync(args).Wait();
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-        }
+        var logLevel = LogLevel.Information;
+        var telemetryLevel = string.Empty;
+        var sessionId = string.Empty;
+        var telemetryExtensionPath = string.Empty;
 
-        public static async Task MainAsync(string[] args)
+        for (var i = 0; i < args.Length; i++)
         {
-            var trace = Trace.Messages;
-            for (var i = 0; i < args.Length; i++)
+            if (args[i].Contains("debug", StringComparison.OrdinalIgnoreCase))
             {
-                if (args[i].Contains("debug", StringComparison.OrdinalIgnoreCase))
+                await Console.Error.WriteLineAsync($"Server started with process ID {Environment.ProcessId}").ConfigureAwait(true);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    while (!Debugger.IsAttached)
+                    // Debugger.Launch() only works on Windows.
+                    _ = Debugger.Launch();
+                }
+                else
+                {
+                    var timeout = TimeSpan.FromMinutes(1);
+                    await Console.Error.WriteLineAsync($"Waiting {timeout:g} for a debugger to attach").ConfigureAwait(true);
+                    using var timeoutSource = new CancellationTokenSource(timeout);
+                    while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(100, CancellationToken.None).ConfigureAwait(true);
                     }
-
-                    Debugger.Break();
-                    continue;
                 }
 
-                if (args[i] == "--trace" && i + 1 < args.Length)
+                continue;
+            }
+
+            if (args[i] == "--logLevel" && i + 1 < args.Length)
+            {
+                var logLevelArg = args[++i];
+                if (!Enum.TryParse(logLevelArg, out logLevel))
                 {
-                    var traceArg = args[++i];
-                    if (!Enum.TryParse(traceArg, out trace))
-                    {
-                        trace = Trace.Messages;
-                        Console.WriteLine($"Invalid Razor trace '{traceArg}'. Defaulting to {trace}.");
-                    }
+                    logLevel = LogLevel.Information;
+                    await Console.Error.WriteLineAsync($"Invalid Razor log level '{logLevelArg}'. Defaulting to {logLevel}.").ConfigureAwait(true);
                 }
             }
 
-            var logger = new LspLogger(trace);
-            var server = RazorLanguageServerWrapper.Create(
-                Console.OpenStandardInput(),
-                Console.OpenStandardOutput(),
-                logger);
-            await server.WaitForExitAsync();
+            if (args[i] == "--telemetryLevel" && i + 1 < args.Length)
+            {
+                telemetryLevel = args[++i];
+            }
+
+            if (args[i] == "--sessionId" && i + 1 < args.Length)
+            {
+                sessionId = args[++i];
+            }
+
+            if (args[i] == "--telemetryExtensionPath" && i + 1 < args.Length)
+            {
+                telemetryExtensionPath = args[++i];
+            }
         }
+
+        var languageServerFeatureOptions = new ConfigurableLanguageServerFeatureOptions(args);
+
+        var devKitTelemetryReporter = await TryGetTelemetryReporterAsync(telemetryLevel, sessionId, telemetryExtensionPath).ConfigureAwait(true);
+
+        // Have to create a logger factory to give to the server, but can't create any logger providers until we have
+        // a server.
+        var loggerFactory = new LoggerFactory([]);
+
+        using var host = RazorLanguageServerHost.Create(
+            Console.OpenStandardInput(),
+            Console.OpenStandardOutput(),
+            loggerFactory,
+            devKitTelemetryReporter ?? NoOpTelemetryReporter.Instance,
+            featureOptions: languageServerFeatureOptions,
+            configureServices: static services =>
+            {
+                services.AddSingleton<IRazorProjectInfoDriver, NamedPipeBasedRazorProjectInfoDriver>();
+                services.AddHandler<RazorNamedPipeConnectHandler>();
+            });
+
+        // Now we have a server, and hence a connection, we have somewhere to log
+        var clientConnection = host.GetRequiredService<IClientConnection>();
+        var loggerProvider = new LoggerProvider(logLevel, clientConnection);
+        loggerFactory.AddLoggerProvider(loggerProvider);
+
+        loggerFactory.GetOrCreateLogger("RZLS").LogInformation($"Razor Language Server started successfully.");
+
+        await host.WaitForExitAsync().ConfigureAwait(true);
+    }
+
+    private static async Task<ITelemetryReporter?> TryGetTelemetryReporterAsync(string telemetryLevel, string sessionId, string telemetryExtensionPath)
+    {
+        ITelemetryReporter? devKitTelemetryReporter = null;
+        if (!telemetryExtensionPath.IsNullOrEmpty())
+        {
+            try
+            {
+                using var exportProvider = await ExportProviderBuilder
+                    .CreateExportProviderAsync(telemetryExtensionPath)
+                    .ConfigureAwait(true);
+
+                // Initialize the telemetry reporter if available
+                devKitTelemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
+
+                if (devKitTelemetryReporter is ITelemetryReporterInitializer initializer)
+                {
+                    initializer.InitializeSession(telemetryLevel, sessionId, isDefaultSession: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Console.Error.WriteLineAsync($"Failed to load telemetry extension in {telemetryExtensionPath}.").ConfigureAwait(true);
+                await Console.Error.WriteLineAsync(ex.ToString()).ConfigureAwait(true);
+            }
+        }
+
+        return devKitTelemetryReporter;
     }
 }

@@ -1,30 +1,23 @@
-<Project>
-  <ItemGroup>
-    <PackageVersion Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
-    <PackageVersion Include="DiffPlex" Version="$(DiffPlexVersion)" />
-    <PackageVersion Include="FluentAssertions" Version="$(FluentAssertionsVersion)" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="$(MicrosoftBuildUtilitiesCoreVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesVersion)" />
-    <PackageVersion Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
-    <PackageVersion Include="Microsoft.Css.Parser" Version="$(MicrosoftCssParserVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(MicrosoftExtensionsDependencyModelVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="$(MicrosoftExtensionsFileSystemGlobbingVersion)" />
-    <PackageVersion Include="Moq" Version="$(MoqVersion)" />
-    <PackageVersion Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="$(SystemDiagnosticsDiagnosticSourceVersion)" />
-    <PackageVersion Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
-    <PackageVersion Include="System.Text.Encodings.Web" Version="$(SystemTextEncodingsWebVersion)" />
-    <PackageVersion Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
-    <PackageVersion Include="xunit.assert" Version="$(XunitAssertVersion)" />
-    <PackageVersion Include="xunit.extensibility.execution" Version="$(XunitExtensibilityExecutionVersion)" />
+﻿<Project>
+  <PropertyGroup>
+    <_RoslynPackageVersion>4.9.2</_RoslynPackageVersion>
+    <_RoslynPackageVersion Condition="'$(DotNetBuildFromSource)' == 'true'">$(MicrosoftCodeAnalysisCommonPackageVersion)</_RoslynPackageVersion>
+  </PropertyGroup>
 
-    <!-- Temporarily force analyzers to match compiler version https://github.com/dotnet/razor-tooling/issues/6758 -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion)" NoWarn="NU1608" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion)" NoWarn="NU1608" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisBannedApiAnalyzersPackageVersion)" />
-    <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(Tooling_RoslynDiagnosticsAnalyzersPackageVersion)" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Packages.props, $(MSBuildThisFileDirectory)..))" />
+  <ItemGroup>
+
+    <!--
+      The compiler portion of razor is specifically pinned to an earlier version of the
+      roslyn compiler. That maximizes our compatibility with earlier versions of .NET SDK
+      inside of visual studio
+
+      https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs#lifecycle
+    -->
+
+    <PackageVersion Update="Microsoft.CodeAnalysis.Common" Version="$(_RoslynPackageVersion)" />
+    <PackageVersion Update="Microsoft.CodeAnalysis.CSharp" Version="$(_RoslynPackageVersion)" />
+    <PackageVersion Update="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(_RoslynPackageVersion)" />
+    <PackageVersion Update="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(_RoslynPackageVersion)" />
   </ItemGroup>
 </Project>

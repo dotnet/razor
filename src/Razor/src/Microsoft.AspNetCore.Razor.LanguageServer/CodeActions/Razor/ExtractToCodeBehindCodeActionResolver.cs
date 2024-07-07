@@ -2,203 +2,229 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
-using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
+internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionResolver
 {
-    internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
+    private static readonly Workspace s_workspace = new AdhocWorkspace();
+
+    private readonly IDocumentContextFactory _documentContextFactory;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly IClientConnection _clientConnection;
+
+    public ExtractToCodeBehindCodeActionResolver(
+        IDocumentContextFactory documentContextFactory,
+        LanguageServerFeatureOptions languageServerFeatureOptions,
+        IClientConnection clientConnection)
     {
-        private readonly DocumentContextFactory _documentContextFactory;
+        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
+        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
+    }
 
-        public ExtractToCodeBehindCodeActionResolver(DocumentContextFactory documentContextFactory)
+    public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
+
+    public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
+    {
+        var actionParams = data.Deserialize<ExtractToCodeBehindCodeActionParams>();
+        if (actionParams is null)
         {
-            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
+            return null;
         }
 
-        public override string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
+        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
 
-        public override async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
+        if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
         {
-            if (data is null)
+            return null;
+        }
+
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        if (codeDocument.IsUnsupported())
+        {
+            return null;
+        }
+
+        if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
+        {
+            return null;
+        }
+
+        var codeBehindPath = GenerateCodeBehindPath(path);
+
+        // VS Code in Windows expects path to start with '/'
+        var updatedCodeBehindPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !codeBehindPath.StartsWith("/")
+            ? '/' + codeBehindPath
+            : codeBehindPath;
+
+        var codeBehindUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeFile,
+            Path = updatedCodeBehindPath,
+            Host = string.Empty,
+        }.Uri;
+
+        var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        if (text is null)
+        {
+            return null;
+        }
+
+        var className = Path.GetFileNameWithoutExtension(path);
+        var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
+        var codeBehindContent = await GenerateCodeBehindClassAsync(documentContext.Project, codeBehindUri, className, actionParams.Namespace, codeBlockContent, codeDocument, cancellationToken).ConfigureAwait(false);
+
+        var start = codeDocument.Source.Text.Lines.GetLinePosition(actionParams.RemoveStart);
+        var end = codeDocument.Source.Text.Lines.GetLinePosition(actionParams.RemoveEnd);
+        var removeRange = new Range
+        {
+            Start = new Position(start.Line, start.Character),
+            End = new Position(end.Line, end.Character)
+        };
+
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
+        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = codeBehindUri };
+
+        var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+        {
+            new CreateFile { Uri = codeBehindUri },
+            new TextDocumentEdit
             {
-                return null;
-            }
-
-            var actionParams = data.ToObject<ExtractToCodeBehindCodeActionParams>();
-            if (actionParams is null)
-            {
-                return null;
-            }
-
-            var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
-
-            var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
-            {
-                return null;
-            }
-
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
-            {
-                return null;
-            }
-
-            var codeBehindPath = GenerateCodeBehindPath(path);
-            var codeBehindUri = new UriBuilder
-            {
-                Scheme = Uri.UriSchemeFile,
-                Path = codeBehindPath,
-                Host = string.Empty,
-            }.Uri;
-
-            var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            if (text is null)
-            {
-                return null;
-            }
-
-            var className = Path.GetFileNameWithoutExtension(path);
-            var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart));
-            var codeBehindContent = GenerateCodeBehindClass(className, actionParams.Namespace, codeBlockContent, codeDocument);
-
-            var start = codeDocument.Source.Lines.GetLocation(actionParams.RemoveStart);
-            var end = codeDocument.Source.Lines.GetLocation(actionParams.RemoveEnd);
-            var removeRange = new Range
-            {
-                Start = new Position(start.LineIndex, start.CharacterIndex),
-                End = new Position(end.LineIndex, end.CharacterIndex)
-            };
-
-            var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
-            var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = codeBehindUri };
-
-            var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
-            {
-                new CreateFile { Uri = codeBehindUri },
-                new TextDocumentEdit
+                TextDocument = codeDocumentIdentifier,
+                Edits = new[]
                 {
-                    TextDocument = codeDocumentIdentifier,
-                    Edits = new[]
+                    new TextEdit
                     {
-                        new TextEdit
-                        {
-                            NewText = string.Empty,
-                            Range = removeRange,
-                        }
-                    },
+                        NewText = string.Empty,
+                        Range = removeRange,
+                    }
                 },
-                new TextDocumentEdit
+            },
+            new TextDocumentEdit
+            {
+                TextDocument = codeBehindDocumentIdentifier,
+                Edits  = new[]
                 {
-                    TextDocument = codeBehindDocumentIdentifier,
-                    Edits  = new[]
+                    new TextEdit
                     {
-                        new TextEdit
-                        {
-                            NewText = codeBehindContent,
-                            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
-                        }
-                    },
-                }
-            };
+                        NewText = codeBehindContent,
+                        Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+                    }
+                },
+            }
+        };
 
-            return new WorkspaceEdit
+        return new WorkspaceEdit
+        {
+            DocumentChanges = documentChanges,
+        };
+    }
+
+    /// <summary>
+    /// Generate a file path with adjacent to our input path that has the
+    /// correct codebehind extension, using numbers to differentiate from
+    /// any collisions.
+    /// </summary>
+    /// <param name="path">The origin file path.</param>
+    /// <returns>A non-existent file path with the same base name and a codebehind extension.</returns>
+    private static string GenerateCodeBehindPath(string path)
+    {
+        var n = 0;
+        string codeBehindPath;
+        do
+        {
+            var identifier = n > 0 ? n.ToString(CultureInfo.InvariantCulture) : string.Empty;  // Make it look nice
+            var directoryName = Path.GetDirectoryName(path);
+            Assumes.NotNull(directoryName);
+
+            codeBehindPath = Path.Combine(
+                directoryName,
+                $"{Path.GetFileNameWithoutExtension(path)}{identifier}{Path.GetExtension(path)}.cs");
+            n++;
+        }
+        while (File.Exists(codeBehindPath));
+
+        return codeBehindPath;
+    }
+
+    private async Task<string> GenerateCodeBehindClassAsync(CodeAnalysis.Razor.ProjectSystem.IProjectSnapshot project, Uri codeBehindUri, string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument, CancellationToken cancellationToken)
+    {
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+        var usingDirectives = razorCodeDocument
+            .GetDocumentIntermediateNode()
+            .FindDescendantNodes<UsingDirectiveIntermediateNode>();
+        foreach (var usingDirective in usingDirectives)
+        {
+            builder.Append("using ");
+
+            var content = usingDirective.Content;
+            var startIndex = content.StartsWith("global::", StringComparison.Ordinal)
+                ? 8
+                : 0;
+
+            builder.Append(content, startIndex, content.Length - startIndex);
+            builder.Append(';');
+            builder.AppendLine();
+        }
+
+        builder.AppendLine();
+        builder.Append("namespace ");
+        builder.AppendLine(namespaceName);
+        builder.Append('{');
+        builder.AppendLine();
+        builder.Append("public partial class ");
+        builder.AppendLine(className);
+        builder.AppendLine(contents);
+        builder.Append('}');
+
+        var newFileContent = builder.ToString();
+
+        var parameters = new FormatNewFileParams()
+        {
+            Project = new TextDocumentIdentifier
             {
-                DocumentChanges = documentChanges,
-            };
-        }
-
-        /// <summary>
-        /// Generate a file path with adjacent to our input path that has the
-        /// correct codebehind extension, using numbers to differentiate from
-        /// any collisions.
-        /// </summary>
-        /// <param name="path">The origin file path.</param>
-        /// <returns>A non-existent file path with the same base name and a codebehind extension.</returns>
-        private string GenerateCodeBehindPath(string path)
-        {
-            var n = 0;
-            string codeBehindPath;
-            do
+                Uri = new Uri(project.FilePath, UriKind.Absolute)
+            },
+            Document = new TextDocumentIdentifier
             {
-                var identifier = n > 0 ? n.ToString(CultureInfo.InvariantCulture) : string.Empty;  // Make it look nice
-                codeBehindPath = Path.Combine(
-                    Path.GetDirectoryName(path),
-                    $"{Path.GetFileNameWithoutExtension(path)}{identifier}{Path.GetExtension(path)}.cs");
-                n++;
-            } while (File.Exists(codeBehindPath));
-            return codeBehindPath;
-        }
+                Uri = codeBehindUri
+            },
+            Contents = newFileContent
+        };
+        var fixedContent = await _clientConnection.SendRequestAsync<FormatNewFileParams, string?>(CustomMessageNames.RazorFormatNewFileEndpointName, parameters, cancellationToken).ConfigureAwait(false);
 
-        /// <summary>
-        /// Determine all explicit and implicit using statements in the code
-        /// document using the intermediate node.
-        /// </summary>
-        /// <param name="razorCodeDocument">The code document to analyze.</param>
-        /// <returns>An enumerable of the qualified namespaces.</returns>
-        private static IEnumerable<string> FindUsings(RazorCodeDocument razorCodeDocument)
+        if (fixedContent is null)
         {
-            return razorCodeDocument
-                .GetDocumentIntermediateNode()
-                .FindDescendantNodes<UsingDirectiveIntermediateNode>()
-                .Select(n => n.Content);
+            // Sadly we can't use a "real" workspace here, because we don't have access. If we use our workspace, it wouldn't have the right settings
+            // for C# formatting, only Razor formatting, and we have no access to Roslyn's real workspace, since it could be in another process.
+            var node = await CSharpSyntaxTree.ParseText(newFileContent).GetRootAsync(cancellationToken).ConfigureAwait(false);
+            node = Formatter.Format(node, s_workspace);
+
+            return node.ToFullString();
         }
 
-        /// <summary>
-        /// Generate a complete C# compilation unit containing a partial class
-        /// with the given name, body contents, and the namespace and all
-        /// usings from the existing code document.
-        /// </summary>
-        /// <param name="className">Name of the resultant partial class.</param>
-        /// <param name="namespaceName">Name of the namespace to put the reusltant class in.</param>
-        /// <param name="contents">Class body contents.</param>
-        /// <param name="razorCodeDocument">Existing code document we're extracting from.</param>
-        /// <returns></returns>
-        private static string GenerateCodeBehindClass(string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument)
-        {
-            var mock = (ClassDeclarationSyntax)CSharpSyntaxFactory.ParseMemberDeclaration($"class Class {contents}")!;
-            var @class = CSharpSyntaxFactory
-                .ClassDeclaration(className)
-                .AddModifiers(CSharpSyntaxFactory.Token(CSharpSyntaxKind.PublicKeyword), CSharpSyntaxFactory.Token(CSharpSyntaxKind.PartialKeyword))
-                .AddMembers(mock.Members.ToArray());
-
-            var @namespace = CSharpSyntaxFactory
-                .NamespaceDeclaration(CSharpSyntaxFactory.ParseName(namespaceName))
-                .AddMembers(@class);
-
-            var usings = FindUsings(razorCodeDocument)
-                .Select(u => CSharpSyntaxFactory.UsingDirective(CSharpSyntaxFactory.ParseName(u)))
-                .ToArray();
-            var compilationUnit = CSharpSyntaxFactory
-                .CompilationUnit()
-                .AddUsings(usings)
-                .AddMembers(@namespace);
-
-            return compilationUnit.NormalizeWhitespace().ToFullString();
-        }
+        return fixedContent;
     }
 }

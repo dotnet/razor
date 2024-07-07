@@ -1,11 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(DefaultNetCoreWindowsTargetFramework)</TargetFrameworks>
+    <TargetFrameworks>$(DefaultNetCoreTargetFrameworks);$(DefaultNetFxTargetFramework)</TargetFrameworks>
 
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
     <DefineConstants>$(DefineConstants);__RemoveThisBitTo__GENERATE_BASELINES</DefineConstants>
+
+    <!--
+      Some tests instantiate and run handlers from the webtools packages.
+      However, the webtools packages currently require the binary version of clasp (they haven't been updated yet).
+      In order to run them, we need to ensure that the clasp binary version is available.  Below we use the PackageDownload
+      feature to download the package and include it in the output (we can't use a package reference because it would conflict with the source package version).
+
+      We also reference the package in this project using an alias - some of the webtools types we instantiate take clasp binary types as parameter, which we have to create.
+
+      This should be removed once we can upgrade to new webtools package versions that use the source package version of clasp.
+    -->
+    <LegacyClaspVersion>4.7.0-1.23178.15</LegacyClaspVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,49 +25,36 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\test.taghelpers.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="..\OSSkipConditionFactAttribute.cs" LinkBase="Shared" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
-    <PackageReference Include="Microsoft.WebTools.Languages.Html" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.WebTools.Languages.LanguageServer.Server" Version="$(MicrosoftWebToolsLanguagesLanguageServerServerPackageVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.WebTools.Languages.Shared" Version="$(MicrosoftWebToolsLanguagesSharedPackageVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.WebTools.Languages.Shared.Editor" Version="$(MicrosoftWebToolsLanguagesSharedEditorPackageVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Implementation" Version="$(MicrosoftVisualStudioTextImplementationPackageVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="$(MicrosoftVisualStudioTextLogicPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Web" Version="$(MicrosoftVisualStudioWebPackageVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.WebTools.Shared" Version="$(MicrosoftWebToolsSharedPackageVersion)" NoWarn="NU1701" />
-    <!-- Included for tests only -->
-    <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="$(OmniSharpExtensionsLanguageProtocolPackageVersion)" />
-    
-    <!--
-        Nuget changed behaviour and now validates transitive references, so the NU1701 suppressions above don't affect those
-        packages dependencies. We reference them here directly in order to do so, and set ExcludeAssets and PrivateAssets so
-        the references have no other affect on build etc.
-    -->
-    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioShellPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.WebTools.Languages.Css" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.WebTools.Languages.Css.Editor" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.WebTools.Languages.Html.Editor" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+  <ItemGroup Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'">
+    <PackageReference Include="Microsoft.WebTools.Languages.Html" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Html.Editor" />
+    <PackageReference Include="Microsoft.WebTools.Languages.LanguageServer.Server" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Shared" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Shared.Editor" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Shared.VS" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" />
+    <PackageReference Include="Microsoft.VisualStudio.Web" />
+    <PackageReference Include="Microsoft.WebTools.Shared" />
+  </ItemGroup>
 
-    <!--
-      Pinning packages to avoid misaligned reference CI failures.
-      CI builds here: https://github.com/dotnet/razor-tooling/issues/4327
-      Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
-    -->
-    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsPackageVersion)" />
+  <!-- Ensure the legacy clasp binary package is available downloaded so we can drop it in the output folder. -->
+  <ItemGroup>
+    <PackageDownload Include="Microsoft.CommonLanguageServerProtocol.Framework" Version="[$(LegacyClaspVersion)]" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="$(NuGetPackageRoot)\microsoft.commonlanguageserverprotocol.framework\$(LegacyClaspVersion)\lib\netstandard2.0\Microsoft.CommonLanguageServerProtocol.Framework.dll">
+      <Private>true</Private>
+      <Aliases>LegacyClasp</Aliases>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Test.Common\Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
   </ItemGroup>
 
   <ItemGroup>

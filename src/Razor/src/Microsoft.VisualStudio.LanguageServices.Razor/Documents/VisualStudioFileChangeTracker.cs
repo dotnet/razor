@@ -3,75 +3,54 @@
 
 using System;
 using System.IO;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.VisualStudio.Razor.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents
+namespace Microsoft.VisualStudio.Razor.Documents;
+
+internal class VisualStudioFileChangeTracker : IFileChangeTracker, IVsFreeThreadedFileChangeEvents2
 {
-    internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreadedFileChangeEvents2
+    private const _VSFILECHANGEFLAGS FileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Size | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Add;
+
+    private readonly ILogger _logger;
+    private readonly IVsAsyncFileChangeEx _fileChangeService;
+    private readonly JoinableTaskContext _joinableTaskContext;
+
+    private readonly object _gate = new();
+
+    // Internal for testing
+    internal JoinableTask<uint>? _fileChangeAdviseTask;
+    internal JoinableTask? _fileChangeUnadviseTask;
+    internal JoinableTask? _fileChangedTask;
+
+    public string FilePath { get; }
+
+    public event EventHandler<FileChangeEventArgs>? Changed;
+
+    public VisualStudioFileChangeTracker(
+        string filePath,
+        ILoggerFactory loggerFactory,
+        IVsAsyncFileChangeEx fileChangeService,
+        JoinableTaskContext joinableTaskContext)
     {
-        private const _VSFILECHANGEFLAGS FileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Size | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Add;
-
-        private readonly ErrorReporter _errorReporter;
-        private readonly IVsAsyncFileChangeEx _fileChangeService;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly JoinableTaskContext _joinableTaskContext;
-
-        // Internal for testing
-        internal JoinableTask<uint>? _fileChangeAdviseTask;
-        internal JoinableTask? _fileChangeUnadviseTask;
-        internal JoinableTask? _fileChangedTask;
-
-        public override event EventHandler<FileChangeEventArgs>? Changed;
-
-        public VisualStudioFileChangeTracker(
-            string filePath,
-            ErrorReporter errorReporter,
-            IVsAsyncFileChangeEx fileChangeService,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext)
+        if (string.IsNullOrEmpty(filePath))
         {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
-            }
-
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            if (fileChangeService is null)
-            {
-                throw new ArgumentNullException(nameof(fileChangeService));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            FilePath = filePath;
-            _errorReporter = errorReporter;
-            _fileChangeService = fileChangeService;
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _joinableTaskContext = joinableTaskContext;
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
-        public override string FilePath { get; }
+        FilePath = filePath;
+        _logger = loggerFactory.GetOrCreateLogger<VisualStudioFileChangeTracker>();
+        _fileChangeService = fileChangeService;
+        _joinableTaskContext = joinableTaskContext;
+    }
 
-        public override void StartListening()
+    public void StartListening()
+    {
+        lock (_gate)
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
             if (_fileChangeAdviseTask is not null)
             {
                 // Already listening
@@ -100,17 +79,18 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 catch (Exception exception)
                 {
                     // Don't explode on actual exceptions, just report gracefully.
-                    _errorReporter.ReportError(exception);
+                    _logger.LogError(exception);
                 }
 
                 return VSConstants.VSCOOKIE_NIL;
             });
         }
+    }
 
-        public override void StopListening()
+    public void StopListening()
+    {
+        lock (_gate)
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
             if (_fileChangeAdviseTask is null || _fileChangeUnadviseTask?.IsCompleted == false)
             {
                 // Already not listening or trying to stop listening
@@ -137,60 +117,60 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     // Don't report PathTooLongExceptions but don't fault either.
                 }
-                catch (Exception exception)
+                catch (Exception ex)
                 {
                     // Don't explode on actual exceptions, just report gracefully.
-                    _errorReporter.ReportError(exception);
+                    _logger.LogError(ex);
                 }
             });
         }
+    }
 
-        public int FilesChanged(uint fileCount, string[] filePaths, uint[] fileChangeFlags)
+    public int FilesChanged(uint fileCount, string[] filePaths, uint[] fileChangeFlags)
+    {
+        // Capturing task for testing purposes
+        _fileChangedTask = _joinableTaskContext.Factory.RunAsync(async () =>
         {
-            // Capturing task for testing purposes
-            _fileChangedTask = _joinableTaskContext.Factory.RunAsync(async () =>
-            {
-                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
 
-                foreach (var fileChangeFlag in fileChangeFlags)
+            foreach (var fileChangeFlag in fileChangeFlags)
+            {
+                var fileChangeKind = FileChangeKind.Changed;
+                var changeFlag = (_VSFILECHANGEFLAGS)fileChangeFlag;
+                if ((changeFlag & _VSFILECHANGEFLAGS.VSFILECHG_Del) == _VSFILECHANGEFLAGS.VSFILECHG_Del)
                 {
-                    var fileChangeKind = FileChangeKind.Changed;
-                    var changeFlag = (_VSFILECHANGEFLAGS)fileChangeFlag;
-                    if ((changeFlag & _VSFILECHANGEFLAGS.VSFILECHG_Del) == _VSFILECHANGEFLAGS.VSFILECHG_Del)
-                    {
-                        fileChangeKind = FileChangeKind.Removed;
-                    }
-                    else if ((changeFlag & _VSFILECHANGEFLAGS.VSFILECHG_Add) == _VSFILECHANGEFLAGS.VSFILECHG_Add)
-                    {
-                        fileChangeKind = FileChangeKind.Added;
-                    }
-
-                    // Purposefully not passing through the file paths here because we know this change has to do with this trackers FilePath.
-                    // We use that FilePath instead so any path normalization the file service did does not impact callers.
-                    OnChanged(fileChangeKind);
+                    fileChangeKind = FileChangeKind.Removed;
                 }
-            });
+                else if ((changeFlag & _VSFILECHANGEFLAGS.VSFILECHG_Add) == _VSFILECHANGEFLAGS.VSFILECHG_Add)
+                {
+                    fileChangeKind = FileChangeKind.Added;
+                }
 
-            return VSConstants.S_OK;
-        }
-
-        public int DirectoryChanged(string pszDirectory) => VSConstants.S_OK;
-
-        public int DirectoryChangedEx(string pszDirectory, string pszFile) => VSConstants.S_OK;
-
-        public int DirectoryChangedEx2(string pszDirectory, uint cChanges, string[] rgpszFile, uint[] rggrfChange) => VSConstants.S_OK;
-
-        private void OnChanged(FileChangeKind changeKind)
-        {
-            _joinableTaskContext.AssertUIThread();
-
-            if (Changed is null)
-            {
-                return;
+                // Purposefully not passing through the file paths here because we know this change has to do with this trackers FilePath.
+                // We use that FilePath instead so any path normalization the file service did does not impact callers.
+                OnChanged(fileChangeKind);
             }
+        });
 
-            var args = new FileChangeEventArgs(FilePath, changeKind);
-            Changed.Invoke(this, args);
+        return VSConstants.S_OK;
+    }
+
+    public int DirectoryChanged(string pszDirectory) => VSConstants.S_OK;
+
+    public int DirectoryChangedEx(string pszDirectory, string pszFile) => VSConstants.S_OK;
+
+    public int DirectoryChangedEx2(string pszDirectory, uint cChanges, string[] rgpszFile, uint[] rggrfChange) => VSConstants.S_OK;
+
+    private void OnChanged(FileChangeKind changeKind)
+    {
+        _joinableTaskContext.AssertUIThread();
+
+        if (Changed is null)
+        {
+            return;
         }
+
+        var args = new FileChangeEventArgs(FilePath, changeKind);
+        Changed.Invoke(this, args);
     }
 }

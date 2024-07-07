@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -67,15 +67,15 @@ public class TokenizerLookaheadTest : HtmlTokenizerTestBase
 
         // Act
         var i = 3;
-        IEnumerable<SyntaxToken> previousTokens = null;
+        SyntaxToken[] previousTokens = null;
         var tokenFound = tokenizer.LookaheadUntil((s, p) =>
         {
-            previousTokens = p;
+            previousTokens = p.ToArray();
             return --i == 0;
         });
 
         // Assert
-        Assert.Equal(4, previousTokens.Count());
+        Assert.Equal(4, previousTokens.Length);
 
         // For the very first element, there will be no previous items, so null is expected
         var orderIndex = 0;

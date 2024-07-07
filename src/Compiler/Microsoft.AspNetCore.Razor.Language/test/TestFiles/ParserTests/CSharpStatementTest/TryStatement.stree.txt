@@ -1,11 +1,11 @@
-RazorDocument - [0..15)::15 - [@try { foo(); }]
+﻿RazorDocument - [0..15)::15 - [@try { foo(); }]
     MarkupBlock - [0..15)::15
-        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
         CSharpCodeBlock - [0..15)::15
-            CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+            CSharpTransition - [0..1)::1 - Gen<None>
                 Transition;[@];
-            CSharpStatementLiteral - [1..15)::14 - [try { foo(); }] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+            CSharpStatementLiteral - [1..15)::14 - [try { foo(); }] - Gen<Stmt>
                 Keyword;[try];
                 Whitespace;[ ];
                 LeftBrace;[{];
@@ -16,3 +16,4 @@ RazorDocument - [0..15)::15 - [@try { foo(); }]
                 Semicolon;[;];
                 Whitespace;[ ];
                 RightBrace;[}];
+    EndOfFile;[];

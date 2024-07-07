@@ -7,92 +7,91 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+[Shared]
+[Export(typeof(FileUriProvider))]
+internal class DefaultFileUriProvider : FileUriProvider
 {
-    [Shared]
-    [Export(typeof(FileUriProvider))]
-    internal class DefaultFileUriProvider : FileUriProvider
+    private readonly ITextDocumentFactoryService _textDocumentFactory;
+    private const string TextBufferUri = "__MsLspTextBufferUri";
+
+    [ImportingConstructor]
+    public DefaultFileUriProvider(ITextDocumentFactoryService textDocumentFactory)
     {
-        private readonly ITextDocumentFactoryService _textDocumentFactory;
-        private const string TextBufferUri = "__MsLspTextBufferUri";
-
-        [ImportingConstructor]
-        public DefaultFileUriProvider(ITextDocumentFactoryService textDocumentFactory)
+        if (textDocumentFactory is null)
         {
-            if (textDocumentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(textDocumentFactory));
-            }
-
-            _textDocumentFactory = textDocumentFactory;
+            throw new ArgumentNullException(nameof(textDocumentFactory));
         }
 
-        public override void AddOrUpdate(ITextBuffer textBuffer, Uri uri)
+        _textDocumentFactory = textDocumentFactory;
+    }
+
+    public override void AddOrUpdate(ITextBuffer textBuffer, Uri uri)
+    {
+        if (textBuffer is null)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            textBuffer.Properties[TextBufferUri] = uri;
+            throw new ArgumentNullException(nameof(textBuffer));
         }
 
-        public override Uri GetOrCreate(ITextBuffer textBuffer)
+        if (uri is null)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
+            throw new ArgumentNullException(nameof(uri));
+        }
 
-            if (TryGet(textBuffer, out var uri))
-            {
-                return uri;
-            }
+        textBuffer.Properties[TextBufferUri] = uri;
+    }
 
-            string filePath;
-            if (_textDocumentFactory.TryGetTextDocument(textBuffer, out var textDocument))
-            {
-                filePath = textDocument.FilePath;
-            }
-            else
-            {
-                // TextBuffer doesn't have a file path, we need to fabricate one.
-                filePath = Path.GetTempFileName();
-            }
+    public override Uri GetOrCreate(ITextBuffer textBuffer)
+    {
+        if (textBuffer is null)
+        {
+            throw new ArgumentNullException(nameof(textBuffer));
+        }
 
-            uri = new Uri(filePath, UriKind.Absolute);
-            AddOrUpdate(textBuffer, uri);
+        if (TryGet(textBuffer, out var uri))
+        {
             return uri;
         }
 
-        public override bool TryGet(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Uri? uri)
+        string filePath;
+        if (_textDocumentFactory.TryGetTextDocument(textBuffer, out var textDocument))
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
-            if (textBuffer.Properties.TryGetProperty(TextBufferUri, out uri!))
-            {
-                return true;
-            }
-
-            return false;
+            filePath = textDocument.FilePath;
+        }
+        else
+        {
+            // TextBuffer doesn't have a file path, we need to fabricate one.
+            filePath = Path.GetTempFileName();
         }
 
-        public override void Remove(ITextBuffer textBuffer)
-        {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
+        uri = new Uri(filePath, UriKind.Absolute);
+        AddOrUpdate(textBuffer, uri);
+        return uri;
+    }
 
-            textBuffer.Properties.RemoveProperty(TextBufferUri);
+    public override bool TryGet(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Uri? uri)
+    {
+        if (textBuffer is null)
+        {
+            throw new ArgumentNullException(nameof(textBuffer));
         }
+
+        if (textBuffer.Properties.TryGetProperty(TextBufferUri, out uri!))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public override void Remove(ITextBuffer textBuffer)
+    {
+        if (textBuffer is null)
+        {
+            throw new ArgumentNullException(nameof(textBuffer));
+        }
+
+        textBuffer.Properties.RemoveProperty(TextBufferUri);
     }
 }

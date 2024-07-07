@@ -1,14 +1,13 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
-using System;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpBlockTest : ParserTestBase
+public class CSharpBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void CSharpBlock_SingleLineControlFlowStatement_Error()
@@ -40,13 +39,26 @@ public class CSharpBlockTest : ParserTestBase
     }
 
     [Fact]
+    public void LocalFunctionsWithRazor_MissingSemicolon()
+    {
+        ParseDocumentTest(
+@"@{
+    void Foo()
+    {
+        var time = DateTime.Now
+        <strong>Hello the time is @time</strong>
+    }
+}");
+    }
+
+    [Fact]
     public void LocalFunctionsWithRazor()
     {
         ParseDocumentTest(
 @"@{
-    void Foo() 
+    void Foo()
     {
-        var time = DateTime.Now
+        var time = DateTime.Now;
         <strong>Hello the time is @time</strong>
     }
 }");
@@ -432,7 +444,10 @@ while(true);");
     [Fact]
     public void CapturesNewlineAfterUsing()
     {
-        ParseDocumentTest($"@using Foo{Environment.NewLine}");
+        ParseDocumentTest($"""
+            @using Foo
+
+            """);
     }
 
     [Fact]
@@ -567,9 +582,9 @@ catch(bar) { baz(); }");
     [Fact]
     public void SupportsTryStatementWithMultipleCatchClause()
     {
-        ParseDocumentTest(
-            "@try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) " +
-            "{ var foo = new { } } catch(Foo Bar Baz) { var foo = new { } }");
+        ParseDocumentTest("""
+            @try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } }
+            """);
     }
 
     [Fact]
@@ -581,9 +596,9 @@ catch(bar) { baz(); }");
     [Fact]
     public void SupportsMarkupWithinAdditionalCatchClauses()
     {
-        RunSimpleWrappedMarkupTest(
-            prefix: "@try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) " +
-            "{ var foo = new { } } catch(Foo Bar Baz) {",
+        RunSimpleWrappedMarkupTest(prefix: """
+            @try { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) { var foo = new { } } catch(Foo Bar Baz) {
+            """,
             markup: " <p>Foo</p> ",
             suffix: "}");
     }
@@ -664,16 +679,18 @@ catch(bar) { baz(); }");
     public void ParsersCanNestRecursively()
     {
         // Arrange
-        ParseDocumentTest("@foreach(var c in db.Categories) {" + Environment.NewLine
-                     + "            <div>" + Environment.NewLine
-                     + "                <h1>@c.Name</h1>" + Environment.NewLine
-                     + "                <ul>" + Environment.NewLine
-                     + "                    @foreach(var p in c.Products) {" + Environment.NewLine
-                     + "                        <li><a href=\"@Html.ActionUrl(\"Products\", \"Detail\", new { id = p.Id })\">@p.Name</a></li>" + Environment.NewLine
-                     + "                    }" + Environment.NewLine
-                     + "                </ul>" + Environment.NewLine
-                     + "            </div>" + Environment.NewLine
-                     + "        }");
+        ParseDocumentTest("""
+            @foreach(var c in db.Categories) {
+                        <div>
+                            <h1>@c.Name</h1>
+                            <ul>
+                                @foreach(var p in c.Products) {
+                                    <li><a href="@Html.ActionUrl("Products", "Detail", new { id = p.Id })">@p.Name</a></li>
+                                }
+                            </ul>
+                        </div>
+                    }
+            """);
     }
 
     [Fact]
@@ -735,6 +752,132 @@ catch(bar) { baz(); }");
     public void WithUnexpectedTransitionsInAttributeValue_Throws()
     {
         ParseDocumentTest("@{<span foo='@ @' />}");
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_01()
+    {
+        ParseDocumentTest("""
+            @{
+                var @string = "blah";
+            }
+
+            @(@string)
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_02()
+    {
+        ParseDocumentTest("""
+            @{
+                @string.Format("1{0}", DateTime.Now)
+                var x = 1;
+                var y = @x;
+                @string.Format("2{0}", DateTime.Now)
+            }
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_03()
+    {
+        ParseDocumentTest("""
+            @{
+                var @@class = 1;
+                var y = @@class;
+            }
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_04()
+    {
+        ParseDocumentTest("""
+            @{
+                var @string = "string test";
+                @string = "new string";
+            }
+
+            @(@string)
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_05()
+    {
+        ParseDocumentTest("""
+            @{
+                var @string = "string test";
+                @@string = "new string";
+            }
+
+            @(@string)
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_06()
+    {
+        ParseDocumentTest("""
+            @{
+                var @string = "string test";
+                {
+                    @string = "test";
+                }
+                @string = "new string";
+            }
+
+            @(@string)
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_07()
+    {
+        ParseDocumentTest("""
+            @{
+                var @string = "string test";
+                {
+                    @@string = "test";
+                }
+                @@string = "new string";
+            }
+
+            @(@string)
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_08()
+    {
+        ParseDocumentTest("""
+            @code {
+                [Parameter]
+                public Func<int, int> ChildContent { get; set; } = (context) => 1 < @context;
+            }
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_09()
+    {
+        ParseDocumentTest("""
+            @{
+                var x = "hello";
+                @x x = "world"; @x
+            }
+            """);
+    }
+
+    [Fact]
+    public void EscapedIdentifiers_10()
+    {
+        ParseDocumentTest("""
+            @{
+                @@string.Format("1{0}", DateTime.Now)
+            }
+            """);
     }
 
     private void RunRazorCommentBetweenClausesTest(string preComment, string postComment, AcceptedCharactersInternal acceptedCharacters = AcceptedCharactersInternal.Any)

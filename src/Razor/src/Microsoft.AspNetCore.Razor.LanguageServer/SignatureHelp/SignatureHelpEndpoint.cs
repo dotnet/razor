@@ -3,48 +3,62 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
+namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
+
+[RazorLanguageServerEndpoint(Methods.TextDocumentSignatureHelpName)]
+internal sealed class SignatureHelpEndpoint(
+        LanguageServerFeatureOptions languageServerFeatureOptions,
+        IRazorDocumentMappingService documentMappingService,
+        IClientConnection clientConnection,
+        RazorLSPOptionsMonitor optionsMonitor,
+        ILoggerFactory loggerProvider)
+    : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>(
+        languageServerFeatureOptions,
+        documentMappingService,
+        clientConnection,
+        loggerProvider.GetOrCreateLogger<SignatureHelpEndpoint>()),
+    ICapabilitiesProvider
 {
-    internal class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParamsBridge, LS.SignatureHelp?>, ISignatureHelpEndpoint
+    protected override string CustomMessageTarget => CustomMessageNames.RazorSignatureHelpEndpointName;
+
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        public SignatureHelpEndpoint(
-            LanguageServerFeatureOptions languageServerFeatureOptions,
-            RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase languageServer,
-            ILoggerFactory loggerProvider)
-            : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerProvider.CreateLogger<SignatureHelpEndpoint>())
+        serverCapabilities.SignatureHelpProvider = new SignatureHelpOptions()
         {
+            TriggerCharacters = new[] { "(", ",", "<" },
+            RetriggerCharacters = new[] { ">", ")" }
+        };
+    }
+
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    {
+        if (request.Context is not null &&
+            request.Context.TriggerKind != SignatureHelpTriggerKind.Invoked &&
+            !optionsMonitor.CurrentValue.AutoListParams)
+        {
+            // Return nothing if "Parameter Information" option is disabled unless signature help is invoked explicitly via command as opposed to typing or content change
+            return SpecializedTasks.Null<IDelegatedParams>();
         }
 
-        protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName;
-
-        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
         {
-            const string ServerCapability = "signatureHelpProvider";
-            var option = new SignatureHelpOptions()
-            {
-                TriggerCharacters = new[] { "(", ",", "<" },
-                RetriggerCharacters = new[] { ">", ")" }
-            };
-
-            return new RegistrationExtensionResult(ServerCapability, option);
+            return SpecializedTasks.Null<IDelegatedParams>();
         }
 
-        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
-        {
-            var documentContext = requestContext.GetRequiredDocumentContext();
-            return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
-                    documentContext.Identifier,
-                    projection.Position,
-                    projection.LanguageKind));
-        }
+        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
+                documentContext.Identifier,
+                positionInfo.Position,
+                positionInfo.LanguageKind));
     }
 }

@@ -9,137 +9,134 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.Extensions.Logging;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+
+internal class RazorCompletionListProvider(
+    IRazorCompletionFactsService completionFactsService,
+    CompletionListCache completionListCache,
+    ILoggerFactory loggerFactory)
 {
-    internal class RazorCompletionListProvider
+    private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
+    private readonly CompletionListCache _completionListCache = completionListCache;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCompletionListProvider>();
+    private static readonly Command s_retriggerCompletionCommand = new()
     {
-        private readonly RazorCompletionFactsService _completionFactsService;
-        private readonly CompletionListCache _completionListCache;
-        private readonly ILogger<RazorCompletionListProvider> _logger;
-        private static readonly Command s_retriggerCompletionCommand = new()
+        CommandIdentifier = "editor.action.triggerSuggest",
+        Title = SR.ReTrigger_Completions_Title,
+    };
+
+    // virtual for tests
+    public virtual ImmutableHashSet<string> TriggerCharacters => new[] { "@", "<", ":", " " }.ToImmutableHashSet();
+
+    // virtual for tests
+    public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
+        int absoluteIndex,
+        VSInternalCompletionContext completionContext,
+        VersionedDocumentContext documentContext,
+        VSInternalClientCapabilities clientCapabilities,
+        HashSet<string>? existingCompletions,
+        CancellationToken cancellationToken)
+    {
+        if (!IsApplicableTriggerContext(completionContext))
         {
-            CommandIdentifier = "editor.action.triggerSuggest",
-            Title = RazorLS.Resources.ReTrigger_Completions_Title,
+            return null;
+        }
+
+        var reason = completionContext.TriggerKind switch
+        {
+            CompletionTriggerKind.TriggerForIncompleteCompletions => CompletionReason.Invoked,
+            CompletionTriggerKind.Invoked => CompletionReason.Invoked,
+            CompletionTriggerKind.TriggerCharacter => CompletionReason.Typing,
+            _ => CompletionReason.Typing,
         };
 
-        public RazorCompletionListProvider(
-            RazorCompletionFactsService completionFactsService,
-            CompletionListCache completionListCache,
-            ILoggerFactory loggerFactory)
+        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
+        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelperContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
+        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
+
+        var razorCompletionContext = new RazorCompletionContext(
+            absoluteIndex,
+            owner,
+            syntaxTree,
+            tagHelperContext,
+            reason,
+            completionOptions,
+            existingCompletions);
+
+        var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
+
+        _logger.LogTrace($"Resolved {razorCompletionItems.Length} completion items.");
+
+        var completionList = CreateLSPCompletionList(razorCompletionItems, clientCapabilities);
+
+        var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
+
+        // The completion list is cached and can be retrieved via this result id to enable the resolve completion functionality.
+        var razorResolveContext = new RazorCompletionResolveContext(documentContext.FilePath, razorCompletionItems);
+        var resultId = _completionListCache.Add(completionList, razorResolveContext);
+        completionList.SetResultId(resultId, completionCapability);
+
+        return completionList;
+    }
+
+    // Internal for benchmarking and testing
+    internal static VSInternalCompletionList CreateLSPCompletionList(
+        ImmutableArray<RazorCompletionItem> razorCompletionItems,
+        VSInternalClientCapabilities clientCapabilities)
+    {
+        using var items = new PooledArrayBuilder<CompletionItem>();
+
+        foreach (var razorCompletionItem in razorCompletionItems)
         {
-            _completionFactsService = completionFactsService;
-            _completionListCache = completionListCache;
-            _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
+            if (TryConvert(razorCompletionItem, clientCapabilities, out var completionItem))
+            {
+                items.Add(completionItem);
+            }
         }
 
-        // virtual for tests
-        public virtual ImmutableHashSet<string> TriggerCharacters => new[] { "@", "<", ":", " " }.ToImmutableHashSet();
-
-        // virtual for tests
-        public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
-            int absoluteIndex,
-            VSInternalCompletionContext completionContext,
-            DocumentContext documentContext,
-            VSInternalClientCapabilities clientCapabilities,
-            HashSet<string>? existingCompletions,
-            CancellationToken cancellationToken)
+        var completionList = new VSInternalCompletionList()
         {
-            if (!IsApplicableTriggerContext(completionContext))
-            {
-                return null;
-            }
+            Items = items.ToArray(),
+            IsIncomplete = false,
+        };
 
-            var reason = completionContext.TriggerKind switch
-            {
-                CompletionTriggerKind.TriggerForIncompleteCompletions => CompletionReason.Invoked,
-                CompletionTriggerKind.Invoked => CompletionReason.Invoked,
-                CompletionTriggerKind.TriggerCharacter => CompletionReason.Typing,
-                _ => CompletionReason.Typing,
-            };
-            var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
-            var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var tagHelperContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
-            var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(queryableChange);
-            var razorCompletionContext = new RazorCompletionContext(
-                absoluteIndex,
-                owner,
-                syntaxTree,
-                tagHelperContext,
-                reason,
-                completionOptions,
-                existingCompletions);
+        var completionCapability = clientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
 
-            var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
+        return CompletionListOptimizer.Optimize(completionList, completionCapability);
+    }
 
-            _logger.LogTrace("Resolved {razorCompletionItemsCount} completion items.", razorCompletionItems.Count);
-
-            var completionList = CreateLSPCompletionList(razorCompletionItems, clientCapabilities);
-
-            var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
-
-            // The completion list is cached and can be retrieved via this result id to enable the resolve completion functionality.
-            var resultId = _completionListCache.Set(completionList, razorCompletionItems);
-            completionList.SetResultId(resultId, completionCapability);
-
-            return completionList;
+    // Internal for testing
+    internal static bool TryConvert(
+        RazorCompletionItem razorCompletionItem,
+        VSInternalClientCapabilities clientCapabilities,
+        [NotNullWhen(true)] out VSInternalCompletionItem? completionItem)
+    {
+        if (razorCompletionItem is null)
+        {
+            throw new ArgumentNullException(nameof(razorCompletionItem));
         }
 
-        // Internal for benchmarking and testing
-        internal static VSInternalCompletionList CreateLSPCompletionList(
-            IReadOnlyList<RazorCompletionItem> razorCompletionItems,
-            VSInternalClientCapabilities clientCapabilities)
+        var tagHelperCompletionItemKind = CompletionItemKind.TypeParameter;
+        var supportedItemKinds = clientCapabilities.TextDocument?.Completion?.CompletionItemKind?.ValueSet ?? Array.Empty<CompletionItemKind>();
+        if (supportedItemKinds?.Contains(CompletionItemKind.TagHelper) == true)
         {
-            var completionItems = new List<CompletionItem>();
-            foreach (var razorCompletionItem in razorCompletionItems)
-            {
-                if (TryConvert(razorCompletionItem, clientCapabilities, out var completionItem))
-                {
-                    completionItems.Add(completionItem);
-                }
-            }
-
-            var completionList = new VSInternalCompletionList()
-            {
-                Items = completionItems.ToArray(),
-                IsIncomplete = false,
-            };
-
-            var completionCapability = clientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
-            var optimizedCompletionList = CompletionListOptimizer.Optimize(completionList, completionCapability);
-            return optimizedCompletionList;
+            tagHelperCompletionItemKind = CompletionItemKind.TagHelper;
         }
 
-        // Internal for testing
-        internal static bool TryConvert(
-            RazorCompletionItem razorCompletionItem,
-            VSInternalClientCapabilities clientCapabilities,
-            [NotNullWhen(true)] out VSInternalCompletionItem? completionItem)
+        var insertTextFormat = razorCompletionItem.IsSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext;
+
+        switch (razorCompletionItem.Kind)
         {
-            if (razorCompletionItem is null)
-            {
-                throw new ArgumentNullException(nameof(razorCompletionItem));
-            }
-
-            var tagHelperCompletionItemKind = CompletionItemKind.TypeParameter;
-            var supportedItemKinds = clientCapabilities.TextDocument?.Completion?.CompletionItemKind?.ValueSet ?? Array.Empty<CompletionItemKind>();
-            if (supportedItemKinds?.Contains(CompletionItemKind.TagHelper) == true)
-            {
-                tagHelperCompletionItemKind = CompletionItemKind.TagHelper;
-            }
-
-            var insertTextFormat = razorCompletionItem.IsSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext;
-
-            switch (razorCompletionItem.Kind)
-            {
-                case RazorCompletionItemKind.Directive:
+            case RazorCompletionItemKind.Directive:
                 {
                     var directiveCompletionItem = new VSInternalCompletionItem()
                     {
@@ -148,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         FilterText = razorCompletionItem.DisplayText,
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
-                        Kind = razorCompletionItem.IsSnippet ? CompletionItemKind.Snippet : CompletionItemKind.Struct, // TODO: Make separate CompletionItemKind for razor directives. See https://github.com/dotnet/razor-tooling/issues/6504 and https://github.com/dotnet/razor-tooling/issues/6505
+                        Kind = razorCompletionItem.IsSnippet ? CompletionItemKind.Snippet : CompletionItemKind.Keyword,
                     };
 
                     directiveCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
@@ -162,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     completionItem = directiveCompletionItem;
                     return true;
                 }
-                case RazorCompletionItemKind.DirectiveAttribute:
+            case RazorCompletionItemKind.DirectiveAttribute:
                 {
                     var directiveAttributeCompletionItem = new VSInternalCompletionItem()
                     {
@@ -179,7 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     completionItem = directiveAttributeCompletionItem;
                     return true;
                 }
-                case RazorCompletionItemKind.DirectiveAttributeParameter:
+            case RazorCompletionItemKind.DirectiveAttributeParameter:
                 {
                     var parameterCompletionItem = new VSInternalCompletionItem()
                     {
@@ -196,7 +193,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     completionItem = parameterCompletionItem;
                     return true;
                 }
-                case RazorCompletionItemKind.MarkupTransition:
+            case RazorCompletionItemKind.MarkupTransition:
                 {
                     var markupTransitionCompletionItem = new VSInternalCompletionItem()
                     {
@@ -213,7 +210,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     completionItem = markupTransitionCompletionItem;
                     return true;
                 }
-                case RazorCompletionItemKind.TagHelperElement:
+            case RazorCompletionItemKind.TagHelperElement:
                 {
                     var tagHelperElementCompletionItem = new VSInternalCompletionItem()
                     {
@@ -230,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     completionItem = tagHelperElementCompletionItem;
                     return true;
                 }
-                case RazorCompletionItemKind.TagHelperAttribute:
+            case RazorCompletionItemKind.TagHelperAttribute:
                 {
                     var tagHelperAttributeCompletionItem = new VSInternalCompletionItem()
                     {
@@ -247,36 +244,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     completionItem = tagHelperAttributeCompletionItem;
                     return true;
                 }
-            }
+        }
 
-            completionItem = null;
+        completionItem = null;
+        return false;
+    }
+
+    // Internal for testing
+    internal static bool IsApplicableTriggerContext(CompletionContext context)
+    {
+        if (context is not VSInternalCompletionContext vsCompletionContext)
+        {
+            Debug.Fail("Completion context should always be converted into a VSCompletionContext (even in VSCode).");
+
+            // We do not support providing completions on delete.
             return false;
         }
 
-        // Internal for testing
-        internal static bool IsApplicableTriggerContext(CompletionContext context)
+        if (vsCompletionContext.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions)
         {
-            if (context is not VSInternalCompletionContext vsCompletionContext)
-            {
-                Debug.Fail("Completion context should always be converted into a VSCompletionContext (even in VSCode).");
-
-                // We do not support providing completions on delete.
-                return false;
-            }
-
-            if (vsCompletionContext.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions)
-            {
-                // For incomplete completions we want to re-provide information if we would have originally.
-                return true;
-            }
-
-            if (vsCompletionContext.InvokeKind == VSInternalCompletionInvokeKind.Deletion)
-            {
-                // We do not support providing completions on delete.
-                return false;
-            }
-
+            // For incomplete completions we want to re-provide information if we would have originally.
             return true;
         }
+
+        if (vsCompletionContext.InvokeKind == VSInternalCompletionInvokeKind.Deletion)
+        {
+            // We do not support providing completions on delete.
+            return false;
+        }
+
+        return true;
     }
 }

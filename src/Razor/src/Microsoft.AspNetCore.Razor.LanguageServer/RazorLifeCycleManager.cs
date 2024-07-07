@@ -2,34 +2,34 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class RazorLifeCycleManager(RazorLanguageServer languageServer, ILspServerActivationTracker? lspServerActivationTracker) : ILifeCycleManager
 {
-    internal class RazorLifeCycleManager : ILifeCycleManager
+    private readonly RazorLanguageServer _languageServer = languageServer;
+    private readonly ILspServerActivationTracker? _lspServerActivationTracker = lspServerActivationTracker;
+    private readonly TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
+
+    public Task ExitAsync()
     {
-        private readonly RazorLanguageServer _languageServer;
-        private readonly TaskCompletionSource<int> _tcs = new TaskCompletionSource<int>();
+        _lspServerActivationTracker?.Deactivated();
 
-        public RazorLifeCycleManager(RazorLanguageServer languageServer)
-        {
-            _languageServer = languageServer;
-        }
+        var services = _languageServer.GetLspServices();
+        services.Dispose();
+        _tcs.TrySetResult(0);
 
-        public Task ExitAsync()
-        {
-            var services = _languageServer.GetLspServices();
-            services.Dispose();
-            _tcs.TrySetResult(0);
-
-            return Task.CompletedTask;
-        }
-
-        public Task ShutdownAsync(string message = "Shutting down")
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task WaitForExit => _tcs.Task;
+        return Task.CompletedTask;
     }
+
+    public Task ShutdownAsync(string message = "Shutting down")
+    {
+        _lspServerActivationTracker?.Deactivated();
+
+        return Task.CompletedTask;
+    }
+
+    public Task WaitForExit => _tcs.Task;
 }

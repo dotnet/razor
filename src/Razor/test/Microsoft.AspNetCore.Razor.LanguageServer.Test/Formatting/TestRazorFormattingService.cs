@@ -1,24 +1,23 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Threading;
+#if NET
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+[Obsolete($"{nameof(TestRazorFormattingService)} is only available on .NET Framework", error: true)]
+internal static class TestRazorFormattingService
 {
-    internal class TestRazorFormattingService
-    {
-        private TestRazorFormattingService()
-        {
-        }
+#pragma warning disable IDE0060 // Remove unused parameter
 
         public static async Task<RazorFormattingService> CreateWithFullSupportAsync(
             RazorCodeDocument? codeDocument = null,
@@ -59,5 +58,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             return new DefaultRazorFormattingService(passes, loggerFactory, TestAdhocWorkspaceFactory.Instance);
         }
+    public static Task<IRazorFormattingService> CreateWithFullSupportAsync(
+        ILoggerFactory loggerFactory,
+        RazorCodeDocument? codeDocument = null,
+        IDocumentSnapshot? documentSnapshot = null,
+        RazorLSPOptions? razorLSPOptions = null)
+    {
+        return Task.FromResult<IRazorFormattingService>(null!);
     }
 }
+#endif

@@ -3,237 +3,240 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Xunit;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+
+public class DefaultLSPTagHelperTooltipFactoryTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public class DefaultLSPTagHelperTooltipFactoryTest : TestBase
+    [Fact]
+    public void CleanSummaryContent_Markup_ReplacesSeeCrefs()
     {
-        public DefaultLSPTagHelperTooltipFactoryTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+        // Arrange
+        var summary = "Accepts <see cref=\"T:System.Collections.List{System.String}\" />s";
 
-        [Fact]
-        public void CleanSummaryContent_Markup_ReplacesSeeCrefs()
-        {
-            // Arrange
-            var summary = "Accepts <see cref=\"T:System.Collections.List{System.String}\" />s";
+        // Act
+        var cleanedSummary = DefaultLSPTagHelperTooltipFactory.CleanSummaryContent(summary);
 
-            // Act
-            var cleanedSummary = DefaultLSPTagHelperTooltipFactory.CleanSummaryContent(summary);
+        // Assert
+        Assert.Equal("Accepts `List<System.String>`s", cleanedSummary);
+    }
 
-            // Assert
-            Assert.Equal("Accepts `List<System.String>`s", cleanedSummary);
-        }
+    [Fact]
+    public void CleanSummaryContent_Markup_ReplacesSeeAlsoCrefs()
+    {
+        // Arrange
+        var summary = "Accepts <seealso cref=\"T:System.Collections.List{System.String}\" />s";
 
-        [Fact]
-        public void CleanSummaryContent_Markup_ReplacesSeeAlsoCrefs()
-        {
-            // Arrange
-            var summary = "Accepts <seealso cref=\"T:System.Collections.List{System.String}\" />s";
+        // Act
+        var cleanedSummary = DefaultLSPTagHelperTooltipFactory.CleanSummaryContent(summary);
 
-            // Act
-            var cleanedSummary = DefaultLSPTagHelperTooltipFactory.CleanSummaryContent(summary);
+        // Assert
+        Assert.Equal("Accepts `List<System.String>`s", cleanedSummary);
+    }
 
-            // Assert
-            Assert.Equal("Accepts `List<System.String>`s", cleanedSummary);
-        }
-
-        [Fact]
-        public void CleanSummaryContent_Markup_TrimsSurroundingWhitespace()
-        {
-            // Arrange
-            var summary = @"
+    [Fact]
+    public void CleanSummaryContent_Markup_TrimsSurroundingWhitespace()
+    {
+        // Arrange
+        var summary = @"
             Hello
 
     World
 
 ";
 
-            // Act
-            var cleanedSummary = DefaultLSPTagHelperTooltipFactory.CleanSummaryContent(summary);
+        // Act
+        var cleanedSummary = DefaultLSPTagHelperTooltipFactory.CleanSummaryContent(summary);
 
-            // Assert
-            Assert.Equal(@"Hello
+        // Assert
+        Assert.Equal(@"Hello
 
 World", cleanedSummary);
-        }
+    }
 
-        [Fact]
-        public void TryCreateTooltip_Markup_NoAssociatedTagHelperDescriptions_ReturnsFalse()
+    [Fact]
+    public async Task TryCreateTooltip_Markup_NoAssociatedTagHelperDescriptions_ReturnsFalse()
+    {
+        // Arrange
+        var projectManager = CreateProjectSnapshotManager();
+        var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(projectManager);
+        var elementDescription = AggregateBoundElementDescription.Empty;
+
+        // Act
+        var markdown = await descriptionFactory.TryCreateTooltipAsync("file.razor", elementDescription, MarkupKind.Markdown, CancellationToken.None);
+
+        // Assert
+        Assert.Null(markdown);
+    }
+
+    [Fact]
+    public async Task TryCreateTooltip_Markup_Element_SingleAssociatedTagHelper_ReturnsTrue()
+    {
+        // Arrange
+        var projectManager = CreateProjectSnapshotManager();
+        var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(projectManager);
+        var associatedTagHelperInfos = new[]
         {
-            // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
-            var elementDescription = AggregateBoundElementDescription.Default;
+            new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
+        };
+        var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
+        // Act
+        var markdown = await descriptionFactory.TryCreateTooltipAsync("file.razor", elementDescription, MarkupKind.Markdown, CancellationToken.None);
 
-            // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, MarkupKind.Markdown,  out var markdown);
-
-            // Assert
-            Assert.False(result);
-            Assert.Null(markdown);
-        }
-
-        [Fact]
-        public void TryCreateTooltip_Markup_Element_SingleAssociatedTagHelper_ReturnsTrue()
-        {
-            // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
-            var associatedTagHelperInfos = new[]
-            {
-                new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
-            };
-            var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
-            // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, MarkupKind.Markdown, out var markdown);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(@"**SomeTagHelper**
+        // Assert
+        Assert.NotNull(markdown);
+        Assert.Equal(@"Microsoft.AspNetCore.**SomeTagHelper**
 
 Uses `List<System.String>`s", markdown.Value);
-            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
-        }
+        Assert.Equal(MarkupKind.Markdown, markdown.Kind);
+    }
 
-        [Fact]
-        public void TryCreateTooltip_Markup_Element_PlainText_NoBold()
+    [Fact]
+    public async Task TryCreateTooltip_Markup_Element_PlainText_NoBold()
+    {
+        // Arrange
+        var projectManager = CreateProjectSnapshotManager();
+        var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(projectManager);
+        var associatedTagHelperInfos = new[]
         {
-            // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
-            var associatedTagHelperInfos = new[]
-            {
-                new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
-            };
-            var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
+            new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
+        };
+        var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
-            // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, MarkupKind.PlainText, out var markdown);
+        // Act
+        var markdown = await descriptionFactory.TryCreateTooltipAsync("file.razor", elementDescription, MarkupKind.PlainText, CancellationToken.None);
 
-            // Assert
-            Assert.True(result, "TryCreateTooltip should have succeeded");
-            Assert.Equal(@"SomeTagHelper
+        // Assert
+        Assert.NotNull(markdown);
+        Assert.Equal(@"Microsoft.AspNetCore.SomeTagHelper
 
 Uses `List<System.String>`s", markdown.Value);
-            Assert.Equal(MarkupKind.PlainText, markdown.Kind);
-        }
+        Assert.Equal(MarkupKind.PlainText, markdown.Kind);
+    }
 
-        [Fact]
-        public void TryCreateTooltip_Markup_Attribute_PlainText_NoBold()
+    [Fact]
+    public void TryCreateTooltip_Markup_Attribute_PlainText_NoBold()
+    {
+        // Arrange
+        var projectManager = CreateProjectSnapshotManager();
+        var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(projectManager);
+        var associatedAttributeDescriptions = new[]
         {
-            // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
-            var associatedAttributeDescriptions = new[]
-            {
-                new BoundAttributeDescriptionInfo(
-                    returnTypeName: "System.String",
-                    typeName: "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName",
-                    propertyName: "SomeProperty",
-                    documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>")
-            };
-            var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
+            new BoundAttributeDescriptionInfo(
+                ReturnTypeName: "System.String",
+                TypeName: "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName",
+                PropertyName: "SomeProperty",
+                Documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>")
+        };
+        var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
-            // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, MarkupKind.PlainText, out var markdown);
+        // Act
+        var result = descriptionFactory.TryCreateTooltip(attributeDescription, MarkupKind.PlainText, out var markdown);
 
-            // Assert
-            Assert.True(result);
-            Assert.Equal(@"string SomeTypeName.SomeProperty
+        // Assert
+        Assert.True(result);
+        Assert.Equal(@"string SomeTypeName.SomeProperty
 
 Uses `List<System.String>`s", markdown.Value);
-            Assert.Equal(MarkupKind.PlainText, markdown.Kind);
-        }
+        Assert.Equal(MarkupKind.PlainText, markdown.Kind);
+    }
 
-        [Fact]
-        public void TryCreateTooltip_Markup_Element_MultipleAssociatedTagHelpers_ReturnsTrue()
+    [Fact]
+    public async Task TryCreateTooltip_Markup_Element_MultipleAssociatedTagHelpers_ReturnsTrue()
+    {
+        // Arrange
+        var projectManager = CreateProjectSnapshotManager();
+        var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(projectManager);
+        var associatedTagHelperInfos = new[]
         {
-            // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
-            var associatedTagHelperInfos = new[]
-            {
-                new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
-                new BoundElementDescriptionInfo("Microsoft.AspNetCore.OtherTagHelper", "<summary>\nAlso uses <see cref=\"T:System.Collections.List{System.String}\" />s\n\r\n\r\r</summary>"),
-            };
-            var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
+            new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
+            new BoundElementDescriptionInfo("Microsoft.AspNetCore.OtherTagHelper", "<summary>\nAlso uses <see cref=\"T:System.Collections.List{System.String}\" />s\n\r\n\r\r</summary>"),
+        };
+        var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
-            // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, MarkupKind.Markdown, out var markdown);
+        // Act
+        var markdown = await descriptionFactory.TryCreateTooltipAsync("file.razor", elementDescription, MarkupKind.Markdown, CancellationToken.None);
 
-            // Assert
-            Assert.True(result);
-            Assert.Equal(@"**SomeTagHelper**
+        // Assert
+        Assert.NotNull(markdown);
+        Assert.Equal(@"Microsoft.AspNetCore.**SomeTagHelper**
 
 Uses `List<System.String>`s
 ---
-**OtherTagHelper**
+Microsoft.AspNetCore.**OtherTagHelper**
 
 Also uses `List<System.String>`s", markdown.Value);
-            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
-        }
+        Assert.Equal(MarkupKind.Markdown, markdown.Kind);
+    }
 
-        [Fact]
-        public void TryCreateTooltip_Markup_Attribute_SingleAssociatedAttribute_ReturnsTrue()
+    [Fact]
+    public void TryCreateTooltip_Markup_Attribute_SingleAssociatedAttribute_ReturnsTrue()
+    {
+        // Arrange
+        var projectManager = CreateProjectSnapshotManager();
+        var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(projectManager);
+        var associatedAttributeDescriptions = new[]
         {
-            // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
-            var associatedAttributeDescriptions = new[]
-            {
-                new BoundAttributeDescriptionInfo(
-                    returnTypeName: "System.String",
-                    typeName: "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName",
-                    propertyName: "SomeProperty",
-                    documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>")
-            };
-            var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
+            new BoundAttributeDescriptionInfo(
+                ReturnTypeName: "System.String",
+                TypeName: "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName",
+                PropertyName: "SomeProperty",
+                Documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>")
+        };
+        var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
-            // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
+        // Act
+        var result = descriptionFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
 
-            // Assert
-            Assert.True(result);
-            Assert.Equal(@"**string** SomeTypeName.**SomeProperty**
+        // Assert
+        Assert.True(result);
+        Assert.Equal(@"**string** SomeTypeName.**SomeProperty**
 
 Uses `List<System.String>`s", markdown.Value);
-            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
-        }
+        Assert.Equal(MarkupKind.Markdown, markdown.Kind);
+    }
 
-        [Fact]
-        public void TryCreateTooltip_Markup_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
+    [Fact]
+    public void TryCreateTooltip_Markup_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
+    {
+        // Arrange
+        var projectManager = CreateProjectSnapshotManager();
+        var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(projectManager);
+        var associatedAttributeDescriptions = new[]
         {
-            // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
-            var associatedAttributeDescriptions = new[]
-            {
-                new BoundAttributeDescriptionInfo(
-                    returnTypeName: "System.String",
-                    typeName: "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName",
-                    propertyName: "SomeProperty",
-                    documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
-                new BoundAttributeDescriptionInfo(
-                    propertyName: "AnotherProperty",
-                    typeName: "Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName",
-                    returnTypeName: "System.Boolean?",
-                    documentation: "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
-            };
-            var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
+            new BoundAttributeDescriptionInfo(
+                ReturnTypeName: "System.String",
+                TypeName: "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName",
+                PropertyName: "SomeProperty",
+                Documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
+            new BoundAttributeDescriptionInfo(
+                PropertyName: "AnotherProperty",
+                TypeName: "Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName",
+                ReturnTypeName: "System.Boolean?",
+                Documentation: "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
+        };
+        var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
-            // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
+        // Act
+        var result = descriptionFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
 
-            // Assert
-            Assert.True(result);
-            Assert.Equal(@"**string** SomeTypeName.**SomeProperty**
+        // Assert
+        Assert.True(result);
+        Assert.Equal(@"**string** SomeTypeName.**SomeProperty**
 
 Uses `List<System.String>`s
 ---
 **Boolean?** AnotherTypeName.**AnotherProperty**
 
 Uses `List<System.String>`s", markdown.Value);
-            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
-        }
+        Assert.Equal(MarkupKind.Markdown, markdown.Kind);
     }
 }

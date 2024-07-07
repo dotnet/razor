@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -10,29 +10,35 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpSectionTest : ParserTestBase
+public class CSharpSectionTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void CapturesNewlineImmediatelyFollowing()
     {
-        ParseDocumentTest(
-            "@section" + Environment.NewLine,
+        ParseDocumentTest("""
+            @section
+
+            """,
             new[] { SectionDirective.Directive });
     }
 
     [Fact]
     public void CapturesWhitespaceToEndOfLineInSectionStatementMissingOpenBrace()
     {
-        ParseDocumentTest(
-            "@section Foo         " + Environment.NewLine + "    ",
+        ParseDocumentTest("""
+            @section Foo         
+                
+            """,
             new[] { SectionDirective.Directive });
     }
 
     [Fact]
     public void CapturesWhitespaceToEndOfLineInSectionStatementMissingName()
     {
-        ParseDocumentTest(
-            "@section         " + Environment.NewLine + "    ",
+        ParseDocumentTest("""
+            @section         
+                
+            """,
             new[] { SectionDirective.Directive });
     }
 
@@ -160,25 +166,27 @@ public class CSharpSectionTest : ParserTestBase
     public void ReportsErrorAndAcceptsWhitespaceToEOLIfSectionNotFollowedByOpenBrace()
     {
         // ParseSectionBlockReportsErrorAndAcceptsWhitespaceToEndOfLineIfSectionNotFollowedByOpenBrace
-        ParseDocumentTest(
-            "@section foo      " + Environment.NewLine,
+        ParseDocumentTest("""
+            @section foo      
+
+            """,
             new[] { SectionDirective.Directive });
     }
 
     [Fact]
     public void AcceptsOpenBraceMultipleLinesBelowSectionName()
     {
-        ParseDocumentTest(
-            "@section foo      "
-            + Environment.NewLine
-            + Environment.NewLine
-            + Environment.NewLine
-            + Environment.NewLine
-            + Environment.NewLine
-            + Environment.NewLine
-            + "{" + Environment.NewLine
-            + "<p>Foo</p>" + Environment.NewLine
-            + "}",
+        ParseDocumentTest("""
+            @section foo      
+
+
+
+
+
+            {
+            <p>Foo</p>
+            }
+            """,
             new[] { SectionDirective.Directive });
     }
 
@@ -217,11 +225,12 @@ public class CSharpSectionTest : ParserTestBase
     [Fact]
     public void SectionIsCorrectlyTerminatedWhenCloseBraceImmediatelyFollowsCodeBlock()
     {
-        ParseDocumentTest(
-            "@section Foo {" + Environment.NewLine
-            + "@if(true) {" + Environment.NewLine
-            + "}" + Environment.NewLine
-            + "}",
+        ParseDocumentTest("""
+            @section Foo {
+            @if(true) {
+            }
+            }
+            """,
             new[] { SectionDirective.Directive });
     }
 
@@ -229,10 +238,11 @@ public class CSharpSectionTest : ParserTestBase
     public void SectionCorrectlyTerminatedWhenCloseBraceFollowsCodeBlockNoWhitespace()
     {
         // SectionIsCorrectlyTerminatedWhenCloseBraceImmediatelyFollowsCodeBlockNoWhitespace
-        ParseDocumentTest(
-            "@section Foo {" + Environment.NewLine
-            + "@if(true) {" + Environment.NewLine
-            + "}}",
+        ParseDocumentTest("""
+            @section Foo {
+            @if(true) {
+            }}
+            """,
             new[] { SectionDirective.Directive });
     }
 
@@ -265,8 +275,11 @@ public class CSharpSectionTest : ParserTestBase
     [Fact]
     public void CommentRecoversFromUnclosedTag()
     {
-        ParseDocumentTest(
-            "@section s {" + Environment.NewLine + "<a" + Environment.NewLine + "<!--  > \" '-->}",
+        ParseDocumentTest("""
+            @section s {
+            <a
+            <!--  > " '-->}
+            """,
             new[] { SectionDirective.Directive });
     }
 

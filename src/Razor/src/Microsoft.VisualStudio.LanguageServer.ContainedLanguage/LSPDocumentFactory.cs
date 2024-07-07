@@ -3,10 +3,15 @@
 
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+internal abstract class LSPDocumentFactory
 {
-    internal abstract class LSPDocumentFactory
+    public abstract LSPDocument Create(ITextBuffer buffer);
+
+    internal virtual bool TryRefreshVirtualDocuments(LSPDocument document)
     {
-        public abstract LSPDocument Create(ITextBuffer buffer);
+        // No-op in the default implementation.
+        return false;
     }
 }

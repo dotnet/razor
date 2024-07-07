@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -37,7 +37,7 @@ public class KeyTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTes
         Assert.Equal(ComponentMetadata.Key.RuntimeName, item.Metadata[TagHelperMetadata.Runtime.Name]);
         Assert.False(item.IsDefaultKind());
         Assert.False(item.KindUsesDefaultTagHelperRuntime());
-        Assert.False(item.IsComponentOrChildContentTagHelper());
+        Assert.False(item.IsComponentOrChildContentTagHelper);
         Assert.True(item.CaseSensitive);
 
         Assert.Equal(

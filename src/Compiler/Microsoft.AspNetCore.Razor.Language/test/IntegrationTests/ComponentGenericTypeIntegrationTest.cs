@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -93,11 +93,11 @@ namespace Test
 <GenericContext />");
 
         // Assert
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
-        Assert.Equal(
-            "The type of component 'GenericContext' cannot be inferred based on the values provided. Consider " +
-            "specifying the type arguments directly using the following attributes: 'TItem'.",
+        Assert.Equal("""
+            The type of component 'GenericContext' cannot be inferred based on the values provided. Consider specifying the type arguments directly using the following attributes: 'TItem'.
+            """,
             diagnostic.GetMessage(CultureInfo.CurrentCulture));
     }
 
@@ -112,11 +112,11 @@ namespace Test
 <MultipleGenericParameter TItem1=int />");
 
         // Assert
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.GenericComponentMissingTypeArgument.Id, diagnostic.Id);
-        Assert.Equal(
-            "The component 'MultipleGenericParameter' is missing required type arguments. " +
-            "Specify the missing types using the attributes: 'TItem2', 'TItem3'.",
+        Assert.Equal("""
+            The component 'MultipleGenericParameter' is missing required type arguments. Specify the missing types using the attributes: 'TItem2', 'TItem3'.
+            """,
             diagnostic.GetMessage(CultureInfo.CurrentCulture));
     }
 }

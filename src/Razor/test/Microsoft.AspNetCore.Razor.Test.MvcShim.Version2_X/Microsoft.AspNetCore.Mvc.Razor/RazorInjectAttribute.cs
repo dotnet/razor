@@ -5,13 +5,12 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Internal;
+
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+public class RazorInjectAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class RazorInjectAttribute : Attribute
+    public RazorInjectAttribute ()
     {
-        public RazorInjectAttribute ()
-        {
-        }
     }
 }

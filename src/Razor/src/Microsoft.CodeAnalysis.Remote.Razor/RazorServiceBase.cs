@@ -2,84 +2,31 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.Remote.Razor
+namespace Microsoft.CodeAnalysis.Remote.Razor;
+
+internal abstract class RazorServiceBase : IDisposable
 {
-    internal abstract class RazorServiceBase : IDisposable
+    private readonly ServiceBrokerClient _serviceBrokerClient;
+
+    public RazorServiceBase(IServiceBroker serviceBroker)
     {
-        protected readonly ServiceBrokerClient ServiceBrokerClient;
+        _serviceBrokerClient = new ServiceBrokerClient(serviceBroker, joinableTaskFactory: null);
+    }
 
-        public RazorServiceBase(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter)
-        {
-            RazorServices = new RazorServices(telemetryReporter);
+    protected ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
+        => RazorBrokeredServiceImplementation.RunServiceAsync(implementation, cancellationToken);
 
-#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
-            ServiceBrokerClient = new ServiceBrokerClient(serviceBroker);
-#pragma warning restore
-        }
+    protected ValueTask<T> RunServiceAsync<T>(RazorPinnedSolutionInfoWrapper solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+        => RazorBrokeredServiceImplementation.RunServiceAsync(solutionInfo, _serviceBrokerClient, implementation, cancellationToken);
 
-        protected RazorServices RazorServices { get; }
-
-        public void Dispose()
-        {
-            ServiceBrokerClient.Dispose();
-        }
-
-        protected virtual Task<ProjectSnapshot> GetProjectSnapshotAsync(ProjectSnapshotHandle projectHandle, CancellationToken cancellationToken)
-        {
-            if (projectHandle is null)
-            {
-                throw new ArgumentNullException(nameof(projectHandle));
-            }
-
-            var snapshot = new SerializedProjectSnapshot(projectHandle.FilePath, projectHandle.Configuration, projectHandle.RootNamespace);
-            return Task.FromResult<ProjectSnapshot>(snapshot);
-        }
-
-        private class SerializedProjectSnapshot : ProjectSnapshot
-        {
-            public SerializedProjectSnapshot(string filePath, RazorConfiguration? configuration, string? rootNamespace)
-            {
-                FilePath = filePath;
-                Configuration = configuration;
-                RootNamespace = rootNamespace;
-
-                Version = VersionStamp.Default;
-            }
-
-            public override RazorConfiguration? Configuration { get; }
-
-            public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
-
-            public override string FilePath { get; }
-
-            public override string? RootNamespace { get; }
-
-            public override VersionStamp Version { get; }
-
-            public override DocumentSnapshot? GetDocument(string filePath)
-            {
-                if (filePath is null)
-                {
-                    throw new ArgumentNullException(nameof(filePath));
-                }
-
-                return null;
-            }
-
-            public override bool IsImportDocument(DocumentSnapshot document) => throw new NotImplementedException();
-
-            public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document) => throw new NotImplementedException();
-
-            public override RazorProjectEngine GetProjectEngine() => throw new NotImplementedException();
-        }
+    public void Dispose()
+    {
+        _serviceBrokerClient.Dispose();
     }
 }

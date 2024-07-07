@@ -1,15 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -18,19 +16,46 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
-{
-    public class ValidateBreakpointRangeEndpointTest : SingleServerDelegatingEndpointTestBase
-    {
-        public ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
-        [Fact]
-        public async Task Handle_CSharp_ValidBreakpoint()
-        {
-            var input = """
+public class ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
+{
+    [Fact]
+    public async Task Handle_CSharpInHtml_ValidBreakpoint()
+    {
+        var input = """
+                <div></div>
+
+                @{
+                    var currentCount = 1;
+                }
+
+                <p>@{|breakpoint:{|expected:currentCount|}|}</p>
+                """;
+
+        await VerifyBreakpointRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Handle_CSharpInAttribute_ValidBreakpoint()
+    {
+        var input = """
+                <div></div>
+
+                @{
+                    var currentCount = 1;
+                }
+
+                <button class="btn btn-primary" disabled="@({|breakpoint:{|expected:currentCount > 3|}|})">Click me</button>
+                """;
+
+        await VerifyBreakpointRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Handle_CSharp_ValidBreakpoint()
+    {
+        var input = """
                 <div></div>
 
                 @{
@@ -38,13 +63,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 }
                 """;
 
-            await VerifyBreakpointRangeAsync(input);
-        }
+        await VerifyBreakpointRangeAsync(input);
+    }
 
-        [Fact]
-        public async Task Handle_CSharp_InvalidBreakpointRemoved()
-        {
-            var input = """
+    [Fact]
+    public async Task Handle_CSharp_InvalidBreakpointRemoved()
+    {
+        var input = """
                 <div></div>
 
                 @{
@@ -52,28 +77,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 }
                 """;
 
-            await VerifyBreakpointRangeAsync(input);
-        }
+        await VerifyBreakpointRangeAsync(input);
+    }
 
-        [Fact]
-        public async Task Handle_CSharp_ValidBreakpointMoved()
-        {
-            var input = """
+    [Fact]
+    public async Task Handle_CSharp_ValidBreakpointMoved()
+    {
+        var input = """
                 <div></div>
 
                 @{
-                    {|breakpoint:{|expected:var x = Goo;|}
-                    Goo;|}
+                    {|breakpoint:var x = Goo;
+                    {|expected:Goo;|}|}
                 }
                 """;
 
-            await VerifyBreakpointRangeAsync(input);
-        }
+        await VerifyBreakpointRangeAsync(input);
+    }
 
-        [Fact]
-        public async Task Handle_Html_BreakpointRemoved()
-        {
-            var input = """
+    [Fact]
+    public async Task Handle_Html_BreakpointRemoved()
+    {
+        var input = """
                 {|breakpoint:<div></div>|}
 
                 @{
@@ -81,69 +106,64 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 }
                 """;
 
-            await VerifyBreakpointRangeAsync(input);
+        await VerifyBreakpointRangeAsync(input);
+    }
+
+    private async Task VerifyBreakpointRangeAsync(string input)
+    {
+        // Arrange
+        TestFileMarkupParser.GetSpans(input, out var output, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+
+        Assert.True(spans.TryGetValue("breakpoint", out var breakpointSpans), "Test authoring failure: Expected at least one span named 'breakpoint'.");
+        Assert.True(breakpointSpans.Length == 1, "Test authoring failure: Expected only one 'breakpoint' span.");
+
+        var codeDocument = CreateCodeDocument(output);
+        var razorFilePath = "C:/path/to/file.razor";
+
+        // Act
+        var result = await GetBreakpointRangeAsync(codeDocument, razorFilePath, breakpointSpans[0]);
+
+        // Assert
+        if (result is null)
+        {
+            Assert.False(spans.ContainsKey("expected"), "No breakpoint was returned from LSP, but there is a span named 'expected'.");
+            return;
         }
 
-        private async Task VerifyBreakpointRangeAsync(string input)
+        Assert.True(spans.TryGetValue("expected", out var expectedSpans), "Expected at least one span named 'expected'.");
+        Assert.True(expectedSpans.Length == 1, "Expected only one 'expected' span.");
+
+        var expectedRange = expectedSpans[0].ToRange(codeDocument.GetSourceText());
+        Assert.Equal(expectedRange, result);
+    }
+
+    private async Task<Range?> GetBreakpointRangeAsync(RazorCodeDocument codeDocument, string razorFilePath, TextSpan breakpointSpan)
+    {
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
+
+        var endpoint = new ValidateBreakpointRangeEndpoint(DocumentMappingService, LanguageServerFeatureOptions, languageServer, LoggerFactory);
+
+        var request = new ValidateBreakpointRangeParams
         {
-            // Arrange
-            TestFileMarkupParser.GetSpans(input, out var output, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
-
-            Assert.True(spans.TryGetValue("breakpoint", out var breakpointSpans), "Test authoring failure: Expected at least one span named 'breakpoint'.");
-            Assert.True(breakpointSpans.Length == 1, "Test authoring failure: Expected only one 'breakpoint' span.");
-
-            var codeDocument = CreateCodeDocument(output);
-            var razorFilePath = "C:/path/to/file.razor";
-
-            // Act
-            var result = await GetBreakpointRangeAsync(codeDocument, razorFilePath, breakpointSpans[0]);
-
-            // Assert
-            if (result is null)
+            TextDocument = new TextDocumentIdentifier
             {
-                Assert.False(spans.ContainsKey("expected"), "No breakpoint was returned from LSP, but there is a span named 'expected'.");
-                return;
-            }
+                Uri = new Uri(razorFilePath)
+            },
+            Range = breakpointSpan.ToRange(codeDocument.GetSourceText())
+        };
 
-            Assert.True(spans.TryGetValue("expected", out var expectedSpans), "Expected at least one span named 'expected'.");
-            Assert.True(expectedSpans.Length == 1, "Expected only one 'expected' span.");
+        Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
+        var requestContext = CreateValidateBreakpointRangeRequestContext(documentContext);
 
-            var expectedRange = expectedSpans[0].AsRange(codeDocument.GetSourceText());
-            Assert.Equal(expectedRange, result);
-        }
+        return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+    }
 
-        private async Task<Range> GetBreakpointRangeAsync(RazorCodeDocument codeDocument, string razorFilePath, TextSpan breakpointSpan)
-        {
-            await CreateLanguageServerAsync(codeDocument, razorFilePath);
+    private RazorRequestContext CreateValidateBreakpointRangeRequestContext(VersionedDocumentContext documentContext)
+    {
+        var lspServices = new Mock<ILspServices>(MockBehavior.Strict);
 
-            var endpoint = new ValidateBreakpointRangeEndpoint(DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
+        var requestContext = CreateRazorRequestContext(documentContext, lspServices: lspServices.Object);
 
-            var request = new ValidateBreakpointRangeParamsBridge
-            {
-                TextDocument = new TextDocumentIdentifier
-                {
-                    Uri = new Uri(razorFilePath)
-                },
-                Range = breakpointSpan.AsRange(codeDocument.GetSourceText())
-            };
-
-            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, DisposalToken);
-            var requestContext = CreateValidateBreakpointRangeRequestContext(documentContext);
-
-            return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
-        }
-
-        private RazorRequestContext CreateValidateBreakpointRangeRequestContext(DocumentContext documentContext)
-        {
-            var lspServices = new Mock<ILspServices>(MockBehavior.Strict);
-            //lspServices
-            //    .Setup(l => l.GetRequiredService<AdhocWorkspaceFactory>()).Returns(TestAdhocWorkspaceFactory.Instance);
-            //lspServices
-            //    .Setup(l => l.GetRequiredService<RazorFormattingService>()).Returns(TestRazorFormattingService.Instance);
-
-            var requestContext = CreateRazorRequestContext(documentContext, lspServices: lspServices.Object);
-
-            return requestContext;
-        }
+        return requestContext;
     }
 }

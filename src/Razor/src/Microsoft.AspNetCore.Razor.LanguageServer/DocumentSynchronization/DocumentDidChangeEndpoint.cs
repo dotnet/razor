@@ -1,0 +1,101 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
+
+[RazorLanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
+internal class DocumentDidChangeEndpoint(
+    IRazorProjectService razorProjectService,
+    ILoggerFactory loggerFactory)
+    : IRazorNotificationHandler<DidChangeTextDocumentParams>, ITextDocumentIdentifierHandler<DidChangeTextDocumentParams, TextDocumentIdentifier>, ICapabilitiesProvider
+{
+    public bool MutatesSolutionState => true;
+
+    private readonly IRazorProjectService _projectService = razorProjectService;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentDidChangeEndpoint>();
+
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
+    {
+        serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions()
+        {
+            Change = TextDocumentSyncKind.Incremental,
+            OpenClose = true,
+            Save = new SaveOptions()
+            {
+                IncludeText = true,
+            },
+            WillSave = false,
+            WillSaveWaitUntil = false,
+        };
+    }
+
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DidChangeTextDocumentParams request)
+    {
+        return request.TextDocument;
+    }
+
+    public async Task HandleNotificationAsync(DidChangeTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    {
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            _logger.LogError($"Could not find a document context for didChange on '{request.TextDocument.Uri}'");
+            Debug.Fail($"Could not find a document context for didChange on '{request.TextDocument.Uri}'");
+            throw new InvalidOperationException($"Could not find a document context for didChange on '{request.TextDocument.Uri}'");
+        }
+
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        sourceText = ApplyContentChanges(request.ContentChanges, sourceText);
+
+        await _projectService
+            .UpdateDocumentAsync(documentContext.FilePath, sourceText, request.TextDocument.Version, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    // Internal for testing
+    internal SourceText ApplyContentChanges(IEnumerable<TextDocumentContentChangeEvent> contentChanges, SourceText sourceText)
+    {
+        foreach (var change in contentChanges)
+        {
+            if (change.Range is null)
+            {
+                throw new ArgumentNullException(nameof(change.Range), "Range of change should not be null.");
+            }
+
+            if (!change.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var startPosition))
+            {
+                continue;
+            }
+
+            if (!change.Range.End.TryGetAbsoluteIndex(sourceText, _logger, out var endPosition))
+            {
+                continue;
+            }
+
+            var textSpan = new TextSpan(startPosition, change.RangeLength ?? endPosition - startPosition);
+            var textChange = new TextChange(textSpan, change.Text);
+
+            _logger.LogInformation($"Applying {textChange}");
+
+            // If there happens to be multiple text changes we generate a new source text for each one. Due to the
+            // differences in VSCode and Roslyn's representation we can't pass in all changes simultaneously because
+            // ordering may differ.
+            sourceText = sourceText.WithChanges(textChange);
+        }
+
+        return sourceText;
+    }
+}

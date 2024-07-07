@@ -2,85 +2,111 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.TextDifferencing;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.Formatting;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal class HtmlFormatter
 {
-    internal class HtmlFormatter
+    private readonly IDocumentVersionCache _documentVersionCache;
+    private readonly IClientConnection _clientConnection;
+
+    public HtmlFormatter(
+        IClientConnection clientConnection,
+        IDocumentVersionCache documentVersionCache)
     {
-        private readonly DocumentVersionCache _documentVersionCache;
-        private readonly ClientNotifierServiceBase _server;
+        _clientConnection = clientConnection;
+        _documentVersionCache = documentVersionCache;
+    }
 
-        public HtmlFormatter(
-            ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache)
+    public async Task<TextEdit[]> FormatAsync(
+        FormattingContext context,
+        CancellationToken cancellationToken)
+    {
+        if (context is null)
         {
-            _server = languageServer;
-            _documentVersionCache = documentVersionCache;
+            throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<TextEdit[]> FormatAsync(
-            FormattingContext context,
-            CancellationToken cancellationToken)
+        if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            var documentVersion = await _documentVersionCache.TryGetDocumentVersionAsync(context.OriginalSnapshot, cancellationToken).ConfigureAwait(false);
-            if (documentVersion is null)
-            {
-                return Array.Empty<TextEdit>();
-            }
-
-            var @params = new VersionedDocumentFormattingParams()
-            {
-                TextDocument = new TextDocumentIdentifier {
-                    Uri = FilePathNormalizer.Normalize(context.Uri),
-                },
-                HostDocumentVersion = documentVersion.Value,
-                Options = context.Options
-            };
-
-            var result = await _server.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
-                LanguageServerConstants.RazorDocumentFormattingEndpoint,
-                @params,
-                cancellationToken);
-
-            return result?.Edits ?? Array.Empty<TextEdit>();
+            return Array.Empty<TextEdit>();
         }
 
-        public async Task<TextEdit[]> FormatOnTypeAsync(
-           FormattingContext context,
-           CancellationToken cancellationToken)
+        var @params = new RazorDocumentFormattingParams()
         {
-            var documentVersion = await _documentVersionCache.TryGetDocumentVersionAsync(context.OriginalSnapshot, cancellationToken).ConfigureAwait(false);
-            if (documentVersion == null)
+            TextDocument = new TextDocumentIdentifier
             {
-                return Array.Empty<TextEdit>();
-            }
+                Uri = context.Uri,
+            },
+            HostDocumentVersion = documentVersion.Value,
+            Options = context.Options
+        };
 
-            context.SourceText.GetLineAndOffset(context.HostDocumentIndex, out var line, out var col);
-            var @params = new RazorDocumentOnTypeFormattingParams()
-            {
-                Position = new Position(line, col),
-                Character = context.TriggerCharacter.ToString(),
-                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Normalize(context.Uri) },
-                Options = context.Options,
-                HostDocumentVersion = documentVersion.Value,
-            };
+        var result = await _clientConnection.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
+            CustomMessageNames.RazorHtmlFormattingEndpoint,
+            @params,
+            cancellationToken).ConfigureAwait(false);
 
-            var result = await _server.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(
-                LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint,
-                @params,
-                cancellationToken);
+        return result?.Edits ?? Array.Empty<TextEdit>();
+    }
 
-            return result?.Edits ?? Array.Empty<TextEdit>();
+    public async Task<TextEdit[]> FormatOnTypeAsync(
+       FormattingContext context,
+       CancellationToken cancellationToken)
+    {
+        if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
+        {
+            return Array.Empty<TextEdit>();
         }
+
+        context.SourceText.GetLineAndOffset(context.HostDocumentIndex, out var line, out var col);
+        var @params = new RazorDocumentOnTypeFormattingParams()
+        {
+            Position = new Position(line, col),
+            Character = context.TriggerCharacter.ToString(),
+            TextDocument = new TextDocumentIdentifier { Uri = context.Uri },
+            Options = context.Options,
+            HostDocumentVersion = documentVersion.Value,
+        };
+
+        var result = await _clientConnection.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(
+            CustomMessageNames.RazorHtmlOnTypeFormattingEndpoint,
+            @params,
+            cancellationToken).ConfigureAwait(false);
+
+        return result?.Edits ?? Array.Empty<TextEdit>();
+    }
+
+    /// <summary>
+    /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
+    /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
+    /// minimal text edits
+    /// </summary>
+    // Internal for testing
+    public static TextEdit[] FixHtmlTestEdits(SourceText htmlSourceText, TextEdit[] edits)
+    {
+        // Avoid computing a minimal diff if we don't need to
+        if (!edits.Any(e => e.NewText.Contains("~")))
+            return edits;
+
+        // First we apply the edits that the Html language server wanted, to the Html document
+        var textChanges = edits.Select(e => e.ToTextChange(htmlSourceText));
+        var changedText = htmlSourceText.WithChanges(textChanges);
+
+        // Now we use our minimal text differ algorithm to get the bare minimum of edits
+        var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, changedText, DiffKind.Char);
+        var minimalEdits = minimalChanges.Select(f => f.ToTextEdit(htmlSourceText)).ToArray();
+
+        return minimalEdits;
     }
 }

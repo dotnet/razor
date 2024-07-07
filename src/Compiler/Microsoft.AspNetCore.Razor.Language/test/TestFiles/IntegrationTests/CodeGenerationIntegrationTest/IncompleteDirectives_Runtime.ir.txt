@@ -1,9 +1,18 @@
-Document - 
+﻿Document - 
     RazorCompiledItemAttribute - 
-    NamespaceDeclaration -  - Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
+    NamespaceDeclaration -  - AspNetCore
+        UsingDirective - (1:0,1 [22] ) - global::System
+        UsingDirective - (24:1,1 [42] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [27] ) - global::System.Linq
+        UsingDirective - (95:3,1 [38] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [40] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [50] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [53] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
         RazorSourceChecksumAttribute - 
-        ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives_Runtime -  - 
-            MethodDeclaration -  - public async - System.Threading.Tasks.Task - ExecuteAsync
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (85:1,0 [2] IncompleteDirectives.cshtml)
                     LazyIntermediateToken - (85:1,0 [2] IncompleteDirectives.cshtml) - Html - \n
                 MalformedDirective - (100:2,13 [2] IncompleteDirectives.cshtml) - addTagHelper
@@ -31,6 +40,8 @@ Document -
                 HtmlContent - (253:13,0 [2] IncompleteDirectives.cshtml)
                     LazyIntermediateToken - (253:13,0 [2] IncompleteDirectives.cshtml) - Html - \n
                 MalformedDirective - (255:14,0 [9] IncompleteDirectives.cshtml) - inherits
+                    CSharpCode - (264:14,9 [0] IncompleteDirectives.cshtml)
+                        LazyIntermediateToken - (264:14,9 [0] IncompleteDirectives.cshtml) - CSharp - 
                 HtmlContent - (264:14,9 [2] IncompleteDirectives.cshtml)
                     LazyIntermediateToken - (264:14,9 [2] IncompleteDirectives.cshtml) - Html - \n
                 MalformedDirective - (266:15,0 [10] IncompleteDirectives.cshtml) - inherits
@@ -40,6 +51,8 @@ Document -
                 MalformedDirective - (280:17,0 [12] IncompleteDirectives.cshtml) - functions
                 MalformedDirective - (292:18,0 [15] IncompleteDirectives.cshtml) - functions
                 MalformedDirective - (307:20,0 [8] IncompleteDirectives.cshtml) - section
+                    CSharpCode - (315:20,8 [0] IncompleteDirectives.cshtml)
+                        LazyIntermediateToken - (315:20,8 [0] IncompleteDirectives.cshtml) - CSharp - 
                 HtmlContent - (315:20,8 [2] IncompleteDirectives.cshtml)
                     LazyIntermediateToken - (315:20,8 [2] IncompleteDirectives.cshtml) - Html - \n
                 MalformedDirective - (317:21,0 [9] IncompleteDirectives.cshtml) - section
@@ -52,3 +65,8 @@ Document -
                 MalformedDirective - (342:24,0 [12] IncompleteDirectives.cshtml) - functions
                     CSharpCode - (354:24,12 [0] IncompleteDirectives.cshtml)
                         LazyIntermediateToken - (354:24,12 [0] IncompleteDirectives.cshtml) - CSharp - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

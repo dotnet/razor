@@ -3,14 +3,12 @@
 
 #nullable disable
 
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 
@@ -42,7 +40,9 @@ public class ViewComponentTagHelperDescriptorProviderTest
             ViewComponentTagHelperConventions.Kind,
             "__Generated__StringParameterViewComponentTagHelper",
             TestCompilation.AssemblyName)
-            .TypeName("__Generated__StringParameterViewComponentTagHelper")
+            .Metadata(
+                TypeName("__Generated__StringParameterViewComponentTagHelper"),
+                new(ViewComponentTagHelperMetadata.Name, "StringParameter"))
             .DisplayName("StringParameterViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule =>
                 rule
@@ -52,22 +52,21 @@ public class ViewComponentTagHelperDescriptorProviderTest
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("foo")
-                .PropertyName("foo")
+                .Metadata(PropertyName("foo"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string StringParameterViewComponentTagHelper.foo"))
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("bar")
-                .PropertyName("bar")
+                .Metadata(PropertyName("bar"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string StringParameterViewComponentTagHelper.bar"))
-            .AddMetadata(ViewComponentTagHelperMetadata.Name, "StringParameter")
             .Build();
 
         // Act
         provider.Execute(context);
 
         // Assert
-        Assert.Single(context.Results, d => TagHelperDescriptorComparer.Default.Equals(d, expectedDescriptor));
+        Assert.Single(context.Results, d => d.Equals(expectedDescriptor));
     }
 }

@@ -1,24 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
-{
-    public class CloseTextTagOnAutoInsertProviderTest : RazorOnAutoInsertProviderTestBase
-    {
-        public CloseTextTagOnAutoInsertProviderTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-        [Fact]
-        public void OnTypeCloseAngle_ClosesTextTag()
-        {
-            RunAutoInsertTest(
+public class CloseTextTagOnAutoInsertProviderTest(ITestOutputHelper testOutput) : RazorOnAutoInsertProviderTestBase(testOutput)
+{
+    [Fact]
+    public void OnTypeCloseAngle_ClosesTextTag()
+    {
+        RunAutoInsertTest(
 input: @"
 @{
     <text>$$
@@ -29,27 +25,26 @@ expected: @"
     <text>$0</text>
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void OnTypeCloseAngle_OutsideRazorBlock_DoesNotCloseTextTag()
-        {
-            RunAutoInsertTest(
+    [Fact]
+    public void OnTypeCloseAngle_OutsideRazorBlock_DoesNotCloseTextTag()
+    {
+        RunAutoInsertTest(
 input: @"
     <text>$$
 ",
 expected: @"
     <text>
 ");
-        }
+    }
 
-        internal override RazorOnAutoInsertProvider CreateProvider()
-        {
-            var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
-            optionsMonitor.SetupGet(o => o.CurrentValue).Returns(RazorLSPOptions.Default);
-            var provider = new CloseTextTagOnAutoInsertProvider(optionsMonitor.Object, LoggerFactory);
+    internal override IOnAutoInsertProvider CreateProvider()
+    {
+        var configService = StrictMock.Of<IConfigurationSyncService>();
+        var optionsMonitor = new RazorLSPOptionsMonitor(configService, RazorLSPOptions.Default);
 
-            return provider;
-        }
+        var provider = new CloseTextTagOnAutoInsertProvider(optionsMonitor, LoggerFactory);
+        return provider;
     }
 }

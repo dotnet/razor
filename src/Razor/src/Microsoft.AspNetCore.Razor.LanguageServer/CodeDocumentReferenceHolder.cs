@@ -6,60 +6,77 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class CodeDocumentReferenceHolder : IDocumentProcessedListener
 {
-    internal class CodeDocumentReferenceHolder : DocumentProcessedListener
+    private readonly IProjectSnapshotManager _projectManager;
+    private readonly Dictionary<DocumentKey, RazorCodeDocument> _codeDocumentCache;
+
+    public CodeDocumentReferenceHolder(IProjectSnapshotManager projectManager)
     {
-        private Dictionary<string, RazorCodeDocument> _codeDocumentCache;
-        private ProjectSnapshotManager? _projectManager;
+        _projectManager = projectManager;
+        _codeDocumentCache = [];
 
-        public CodeDocumentReferenceHolder()
+        _projectManager.Changed += ProjectManager_Changed;
+    }
+
+    public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot documentSnapshot)
+    {
+        // We capture a reference to the code document after a document has been processed in order to ensure that
+        // latest document state information is readily available without re-computation. The DocumentState type
+        // (brains of DocumentSnapshot) will garbage collect its generated output aggressively and due to the
+        // nature of LSP being heavily asynchronous (multiple requests for single keystrokes) we don't want to cause
+        // multiple parses/regenerations across LSP requests that are all for the same document version.
+        lock (_codeDocumentCache)
         {
-            _codeDocumentCache = new(FilePathComparer.Instance);
+            var key = new DocumentKey(documentSnapshot.Project.Key, documentSnapshot.FilePath.AssumeNotNull());
+            _codeDocumentCache[key] = codeDocument;
         }
+    }
 
-        public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot documentSnapshot)
+    private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
+    {
+        // Goal here is to evict cache entries (really just references to code documents) of known documents when
+        // related information changes for them
+
+        switch (args.Kind)
         {
-            // We capture a reference to the code document after a document has been processed in order to ensure that
-            // latest document state information is readily available without re-computation. The DocumentState type
-            // (brains of DocumentSnapshot) will garbage collect its generated output aggressively and due to the
-            // nature of LSP being heavily asynchronous (multiple requests for single keystrokes) we don't want to cause
-            // multiple parses/regenerations across LSP requests that are all for the same document version.
-            _codeDocumentCache[documentSnapshot.FilePath] = codeDocument;
-        }
-
-        public override void Initialize(ProjectSnapshotManager projectManager)
-        {
-            _projectManager = projectManager;
-            _projectManager.Changed += ProjectManager_Changed;
-        }
-
-        private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
-        {
-            // Goal here is to evict cache entries (really just references to code documents) of known documents when
-            // related information changes for them
-
-            switch (args.Kind)
-            {
-                case ProjectChangeKind.ProjectChanged:
-                    foreach (var documentFilePath in args.Newer!.DocumentFilePaths)
+            case ProjectChangeKind.ProjectChanged:
+                foreach (var documentFilePath in args.Newer!.DocumentFilePaths)
+                {
+                    lock (_codeDocumentCache)
                     {
-                        _codeDocumentCache.Remove(documentFilePath);
+                        var key = new DocumentKey(args.Newer.Key, documentFilePath);
+                        _codeDocumentCache.Remove(key);
                     }
+                }
 
-                    break;
-                case ProjectChangeKind.ProjectRemoved:
-                    foreach (var documentFilePath in args.Older!.DocumentFilePaths)
+                break;
+
+            case ProjectChangeKind.ProjectRemoved:
+                foreach (var documentFilePath in args.Older!.DocumentFilePaths)
+                {
+                    lock (_codeDocumentCache)
                     {
-                        _codeDocumentCache.Remove(documentFilePath);
+                        var key = new DocumentKey(args.Older.Key, documentFilePath);
+                        _codeDocumentCache.Remove(key);
                     }
+                }
 
-                    break;
-                case ProjectChangeKind.DocumentChanged:
-                case ProjectChangeKind.DocumentRemoved:
-                    _codeDocumentCache.Remove(args.DocumentFilePath!);
-                    break;
-            }
+                break;
+
+            case ProjectChangeKind.DocumentChanged:
+            case ProjectChangeKind.DocumentRemoved:
+                {
+                    lock (_codeDocumentCache)
+                    {
+                        var key = new DocumentKey(args.ProjectKey, args.DocumentFilePath.AssumeNotNull());
+                        _codeDocumentCache.Remove(key);
+                    }
+                }
+
+                break;
         }
     }
 }

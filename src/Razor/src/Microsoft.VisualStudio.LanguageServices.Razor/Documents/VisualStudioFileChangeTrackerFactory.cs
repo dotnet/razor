@@ -2,60 +2,44 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Razor;
+using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents
+namespace Microsoft.VisualStudio.Razor.Documents;
+
+[Export(typeof(IFileChangeTrackerFactory))]
+internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
 {
-    internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
+    private readonly JoinableTaskContext _joinableTaskContext;
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly JoinableTask<IVsAsyncFileChangeEx> _getFileChangeServiceTask;
+
+    [ImportingConstructor]
+    public VisualStudioFileChangeTrackerFactory(
+        [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
+        JoinableTaskContext joinableTaskContext,
+        ILoggerFactory loggerFactory)
     {
-        private readonly ErrorReporter _errorReporter;
-        private readonly IVsAsyncFileChangeEx _fileChangeService;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly JoinableTaskContext _joinableTaskContext;
+        _joinableTaskContext = joinableTaskContext;
+        _loggerFactory = loggerFactory;
 
-        public VisualStudioFileChangeTrackerFactory(
-            ErrorReporter errorReporter,
-            IVsAsyncFileChangeEx fileChangeService,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext)
+        var jtf = _joinableTaskContext.Factory;
+        _getFileChangeServiceTask = jtf.RunAsync(serviceProvider.GetServiceAsync<SVsFileChangeEx, IVsAsyncFileChangeEx>);
+    }
+
+    public IFileChangeTracker Create(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
         {
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            if (fileChangeService is null)
-            {
-                throw new ArgumentNullException(nameof(fileChangeService));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            _errorReporter = errorReporter;
-            _fileChangeService = fileChangeService;
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _joinableTaskContext = joinableTaskContext;
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
-        public override FileChangeTracker Create(string filePath)
-        {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
-            }
+        // TODO: Make IFileChangeTrackerFactory.Create(...) asynchronous to avoid blocking here.
+        var fileChangeService = _getFileChangeServiceTask.Join();
 
-            var fileChangeTracker = new VisualStudioFileChangeTracker(filePath, _errorReporter, _fileChangeService, _projectSnapshotManagerDispatcher, _joinableTaskContext);
-            return fileChangeTracker;
-        }
+        return new VisualStudioFileChangeTracker(filePath, _loggerFactory, fileChangeService, _joinableTaskContext);
     }
 }

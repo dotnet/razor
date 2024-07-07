@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
@@ -330,7 +330,11 @@
 
       <dict>
         <key>scope</key>
-        <string>source.js storage.type, source.js keyword.operator.new</string>
+        <string>
+          source.js storage.type,
+          source.js keyword.operator.new,
+          source.js constant.language
+        </string>
         <key>settings</key>
         <dict>
           <key>vsclassificationtype</key>
@@ -345,6 +349,16 @@
         <dict>
           <key>vsclassificationtype</key>
           <string>string</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>source.js keyword.control</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>keyword - control</string>
         </dict>
       </dict>
 

@@ -1,14 +1,14 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
-using System;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class HtmlBlockTest : ParserTestBase
+public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void HandlesUnbalancedTripleDashHTMLComments()
@@ -22,24 +22,30 @@ public class HtmlBlockTest : ParserTestBase
     [Fact]
     public void HandlesOpenAngleAtEof()
     {
-        ParseDocumentTest("@{" + Environment.NewLine
-                        + "<");
+        ParseDocumentTest("""
+            @{
+            <
+            """);
     }
 
     [Fact]
     public void HandlesOpenAngleWithProperTagFollowingIt()
     {
-        ParseDocumentTest("@{" + Environment.NewLine
-                        + "<" + Environment.NewLine
-                        + "</html>",
+        ParseDocumentTest("""
+            @{
+            <
+            </html>
+            """,
                         designTime: true);
     }
 
     [Fact]
     public void TagWithoutCloseAngleDoesNotTerminateBlock()
     {
-        ParseDocumentTest("@{<                      " + Environment.NewLine
-                     + "   ");
+        ParseDocumentTest("""
+            @{<                      
+               
+            """);
     }
 
     [Fact]
@@ -51,8 +57,10 @@ public class HtmlBlockTest : ParserTestBase
     [Fact]
     public void ReadsToEndOfLineIfFirstCharacterAfterTransitionIsColon()
     {
-        ParseDocumentTest("@{@:<li>Foo Bar Baz" + Environment.NewLine
-                     + "bork}");
+        ParseDocumentTest("""
+            @{@:<li>Foo Bar Baz
+            bork}
+            """);
     }
 
     [Fact]
@@ -252,6 +260,56 @@ public class HtmlBlockTest : ParserTestBase
     public void DoesNotConsiderPsuedoTagWithinMarkupBlock()
     {
         ParseDocumentTest("@{<foo><text><bar></bar></foo>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public void TextAfterCodeBlockInMarkupTransition_01()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{ <i>x y z </i> }
+                <text>a b c</text>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public void TextAfterCodeBlockInMarkupTransition_02()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{ <i>x y z </i> }
+                <text><b>a b c</b></text>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public void TextAfterCodeBlockInMarkupTransition_03()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{ <i>x y z </i> }
+                <b>a b c</b>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public void TextAfterCodeBlockInMarkupTransition_04()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{
+                    <i>x
+                    y
+                    z </i>
+                }
+                <text>a
+                b
+                c</text>
+            }
+            """);
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -197,7 +197,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "/Views/Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "/Views/Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act
@@ -244,7 +244,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "/Views/Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "/Views/Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act
@@ -297,7 +297,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "\\test\\\"Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "\\test\\\"Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act
@@ -356,7 +356,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "/Views/Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "/Views/Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act
@@ -411,7 +411,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Engine = CreateProjectEngine().Engine,
         };
 
-        var source = TestRazorSourceDocument.Create("test", new RazorSourceDocumentProperties(filePath: null, relativePath: "test\\\"Index.cshtml"));
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "test\\\"Index.cshtml"));
         var document = RazorCodeDocument.Create(source);
 
         // Act
@@ -427,21 +427,5 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
                 Assert.Equal(expectedAttribute, token.Content);
             },
             node => Assert.Same(@namespace, node));
-    }
-
-    private DocumentIntermediateNode CreateIRDocument(RazorEngine engine, RazorCodeDocument codeDocument)
-    {
-        for (var i = 0; i < engine.Phases.Count; i++)
-        {
-            var phase = engine.Phases[i];
-            phase.Execute(codeDocument);
-
-            if (phase is IRazorDocumentClassifierPhase)
-            {
-                break;
-            }
-        }
-
-        return codeDocument.GetDocumentIntermediateNode();
     }
 }

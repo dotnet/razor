@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(DefaultNetCoreTargetFramework)</TargetFrameworks>
+    <TargetFrameworks>$(DefaultNetCoreTargetFrameworks)</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(DefaultNetFxTargetFramework)</TargetFrameworks>
     <DefaultItemExcludes>$(DefaultItemExcludes);TestFiles\**\*</DefaultItemExcludes>
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
@@ -16,9 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Microsoft.AspNetCore.Razor.Language.csproj" />
-    <ProjectReference Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.Compiler.csproj" />
-    <ProjectReference Include="..\..\test\Microsoft.AspNetCore.Razor.Test.ComponentShim\Microsoft.AspNetCore.Razor.Test.ComponentShim.Compiler.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
 
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Moq" />
@@ -28,11 +27,16 @@
     <Compile Include="..\..\shared\JsonReaderExtensions.cs" LinkBase="Shared" />
     <Compile Include="..\..\shared\RazorDiagnosticJsonConverter.cs" LinkBase="Shared" />
     <Compile Include="..\..\shared\TagHelperDescriptorJsonConverter.cs" LinkBase="Shared" />
+    <Compile Include="..\..\..\Razor\test\OSSkipConditionFactAttribute.cs" LinkBase="Shared" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\**\*" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
   </ItemGroup>
 
 </Project>

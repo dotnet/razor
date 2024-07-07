@@ -1,154 +1,67 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Razor.Extensions;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Logging;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Serialization;
-using Microsoft.CodeAnalysis.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.Microbenchmarks
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
+
+public abstract partial class ProjectSnapshotManagerBenchmarkBase
 {
-    public class ProjectSnapshotManagerBenchmarkBase
+    internal HostProject HostProject { get; }
+    internal ImmutableArray<HostDocument> Documents { get; }
+    internal ImmutableArray<TextLoader> TextLoaders { get; }
+    protected string RepoRoot { get; }
+
+    protected ProjectSnapshotManagerBenchmarkBase(int documentCount = 100)
     {
-        public ProjectSnapshotManagerBenchmarkBase()
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        while (current is not null && !File.Exists(Path.Combine(current.FullName, "Razor.sln")))
         {
-            var current = new DirectoryInfo(AppContext.BaseDirectory);
-            while (current != null && !File.Exists(Path.Combine(current.FullName, "src", "Razor", "Razor.sln")))
-            {
-                current = current.Parent;
-            }
-
-            var root = current;
-            var projectRoot = Path.Combine(root.FullName, "src", "Razor", "test", "testapps", "LargeProject");
-
-            HostProject = new HostProject(Path.Combine(projectRoot, "LargeProject.csproj"), FallbackRazorConfiguration.MVC_2_1, rootNamespace: null);
-
-            TextLoaders = new TextLoader[4];
-            for (var i = 0; i < 4; i++)
-            {
-                var filePath = Path.Combine(projectRoot, "Views", "Home", $"View00{i % 4}.cshtml");
-                var text = SourceText.From(filePath, encoding: null);
-                TextLoaders[i] = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
-            }
-
-            Documents = new HostDocument[100];
-            for (var i = 0; i < Documents.Length; i++)
-            {
-                var filePath = Path.Combine(projectRoot, "Views", "Home", $"View00{i % 4}.cshtml");
-                Documents[i] = new HostDocument(filePath, $"/Views/Home/View00{i}.cshtml", FileKinds.Legacy);
-            }
-
-            var tagHelpers = Path.Combine(root.FullName, "src", "Razor", "benchmarks", "Microsoft.AspNetCore.Razor.Microbenchmarks", "taghelpers.json");
-            TagHelperResolver = new StaticTagHelperResolver(ReadTagHelpers(tagHelpers), NoOpTelemetryReporter.Instance);
+            current = current.Parent;
         }
 
-        internal HostProject HostProject { get; }
+        RepoRoot = current?.FullName ?? throw new InvalidOperationException("Could not find Razor.sln");
+        var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "LargeProject");
 
-        internal HostDocument[] Documents { get; }
+        HostProject = new HostProject(Path.Combine(projectRoot, "LargeProject.csproj"), Path.Combine(projectRoot, "obj"), FallbackRazorConfiguration.MVC_2_1, rootNamespace: null);
 
-        internal TextLoader[] TextLoaders { get; }
+        using var _1 = ArrayBuilderPool<TextLoader>.GetPooledObject(out var textLoaders);
 
-        internal TagHelperResolver TagHelperResolver { get; }
-
-        internal DefaultProjectSnapshotManager CreateProjectSnapshotManager()
+        for (var i = 0; i < 4; i++)
         {
-            var services = TestServices.Create(
-                new IWorkspaceService[]
-                {
-                    TagHelperResolver,
-                    new StaticProjectSnapshotProjectEngineFactory(),
-                },
-                Array.Empty<ILanguageService>());
-
-            return new DefaultProjectSnapshotManager(
-                new TestProjectSnapshotManagerDispatcher(),
-                new TestErrorReporter(),
-                Array.Empty<ProjectSnapshotChangeTrigger>(),
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                new AdhocWorkspace(services));
-#pragma warning restore CA2000 // Dispose objects before losing scope
+            var filePath = Path.Combine(projectRoot, "Views", "Home", $"View00{i % 4}.cshtml");
+            var fileText = File.ReadAllText(filePath);
+            var text = SourceText.From(fileText);
+            textLoaders.Add(
+                TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), filePath)));
         }
 
-        private static IReadOnlyList<TagHelperDescriptor> ReadTagHelpers(string filePath)
-        {
-            var serializer = new JsonSerializer();
-            serializer.Converters.Add(new RazorDiagnosticJsonConverter());
-            serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
+        TextLoaders = textLoaders.ToImmutable();
 
-            using (var reader = new JsonTextReader(File.OpenText(filePath)))
-            {
-                return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
-            }
+        using var _2 = ArrayBuilderPool<HostDocument>.GetPooledObject(out var documents);
+
+        for (var i = 0; i < documentCount; i++)
+        {
+            var filePath = Path.Combine(projectRoot, "Views", "Home", $"View00{i % 4}.cshtml");
+            documents.Add(
+                new HostDocument(filePath, $"/Views/Home/View00{i}.cshtml", FileKinds.Legacy));
         }
 
-        private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
-        {
-            public override bool IsDispatcherThread => true;
+        Documents = documents.ToImmutable();
+    }
 
-            public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
-        }
-
-        private class TestErrorReporter : ErrorReporter
-        {
-            public override void ReportError(Exception exception)
-            {
-            }
-
-            public override void ReportError(Exception exception, ProjectSnapshot project)
-            {
-            }
-
-            public override void ReportError(Exception exception, Project workspaceProject)
-            {
-            }
-        }
-
-        private class StaticTagHelperResolver : TagHelperResolver
-        {
-            private readonly IReadOnlyList<TagHelperDescriptor> _tagHelpers;
-
-            public StaticTagHelperResolver(IReadOnlyList<TagHelperDescriptor> tagHelpers, ITelemetryReporter telemetryReporter)
-                : base(telemetryReporter)
-            {
-                _tagHelpers = tagHelpers;
-            }
-
-            public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project project, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(new TagHelperResolutionResult(_tagHelpers, Array.Empty<RazorDiagnostic>()));
-            }
-        }
-
-        private class StaticProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectEngineFactory
-        {
-            public override IProjectEngineFactory FindFactory(ProjectSnapshot project)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
-            {
-                return RazorProjectEngine.Create(configuration, fileSystem, b => RazorExtensions.Register(b));
-            }
-        }
+    internal ProjectSnapshotManager CreateProjectSnapshotManager()
+    {
+        return new ProjectSnapshotManager(
+            projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
+            loggerFactory: EmptyLoggingFactory.Instance);
     }
 }

@@ -7,33 +7,27 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+
+public class BoundAttributeDescriptionInfoTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public class BoundAttributeDescriptionInfoTest : TestBase
+    [Fact]
+    public void ResolveTagHelperTypeName_ExtractsTypeName_SimpleReturnType()
     {
-        public BoundAttributeDescriptionInfoTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+        // Arrange & Act
+        var typeName = BoundAttributeDescriptionInfo.ResolveTagHelperTypeName("SomePropertyName", "string SomeTypeName.SomePropertyName");
 
-        [Fact]
-        public void ResolveTagHelperTypeName_ExtractsTypeName_SimpleReturnType()
-        {
-            // Arrange & Act
-            var typeName = BoundAttributeDescriptionInfo.ResolveTagHelperTypeName("System.String", "SomePropertyName", "string SomeTypeName.SomePropertyName");
+        // Assert
+        Assert.Equal("SomeTypeName", typeName);
+    }
 
-            // Assert
-            Assert.Equal("SomeTypeName", typeName);
-        }
+    [Fact]
+    public void ResolveTagHelperTypeName_ExtractsTypeName_ComplexReturnType()
+    {
+        // Arrange & Act
+        var typeName = BoundAttributeDescriptionInfo.ResolveTagHelperTypeName("SomePropertyName", "SomeReturnTypeName SomeTypeName.SomePropertyName");
 
-        [Fact]
-        public void ResolveTagHelperTypeName_ExtractsTypeName_ComplexReturnType()
-        {
-            // Arrange & Act
-            var typeName = BoundAttributeDescriptionInfo.ResolveTagHelperTypeName("SomeReturnTypeName", "SomePropertyName", "SomeReturnTypeName SomeTypeName.SomePropertyName");
-
-            // Assert
-            Assert.Equal("SomeTypeName", typeName);
-        }
+        // Assert
+        Assert.Equal("SomeTypeName", typeName);
     }
 }

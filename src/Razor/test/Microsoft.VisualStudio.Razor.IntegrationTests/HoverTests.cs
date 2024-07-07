@@ -2,28 +2,47 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Razor.IntegrationTests
+namespace Microsoft.VisualStudio.Razor.IntegrationTests;
+
+public class HoverTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    public class HoverTests : AbstractRazorEditorTest
+    [IdeFact]
+    public async Task Hover_OverTagHelperElementAsync()
     {
-        [IdeFact]
-        public async Task Hover_OverTagHelperElementAsync()
-        {
-            // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
-            await TestServices.Editor.PlaceCaretAsync("PageTitle", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("PageTitle", charsOffset: -1, ControlledHangMitigatingCancellationToken);
 
-            var position = await TestServices.Editor.GetCaretPositionAsync(ControlledHangMitigatingCancellationToken);
+        var position = await TestServices.Editor.GetCaretPositionAsync(ControlledHangMitigatingCancellationToken);
 
-            // Act
-            var hoverString = await TestServices.Editor.GetHoverStringAsync(position, ControlledHangMitigatingCancellationToken);
+        // Act
+        var hoverString = await TestServices.Editor.GetHoverStringAsync(position, ControlledHangMitigatingCancellationToken);
 
-            // Assert
-            const string ExpectedResult = "Microsoft.AspNetCore.Components.Web.PageTitleEnables rendering an HTML <title> to a HeadOutlet component.";
-            Assert.Equal(ExpectedResult, hoverString);
-        }
+        // Assert
+        const string ExpectedResult = "Microsoft.AspNetCore.Components.Web.PageTitleEnables rendering an HTML <title> to a HeadOutlet component.";
+        AssertEx.EqualOrDiff(ExpectedResult, hoverString);
+    }
+
+    [IdeFact]
+    public async Task Hover_OverComponentAttribute()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("Title=", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+
+        var position = await TestServices.Editor.GetCaretPositionAsync(ControlledHangMitigatingCancellationToken);
+
+        // Act
+        var hoverString = await TestServices.Editor.GetHoverStringAsync(position, ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        const string ExpectedResult = "string? SurveyPrompt.Title { get; set; }";
+        AssertEx.EqualOrDiff(ExpectedResult, hoverString);
     }
 }
