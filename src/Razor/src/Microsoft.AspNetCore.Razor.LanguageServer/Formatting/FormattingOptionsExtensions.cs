@@ -4,14 +4,13 @@
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal static class FormattingOptionsExtensions
 {
-    internal static class FormattingOptionsExtensions
-    {
-        public static RazorIndentationOptions GetIndentationOptions(this FormattingOptions options)
-            => new(
-                UseTabs: !options.InsertSpaces,
-                TabSize: options.TabSize,
-                IndentationSize: options.TabSize);
-    }
+    public static RazorIndentationOptions GetIndentationOptions(this FormattingOptions options)
+        => new(
+            UseTabs: !options.InsertSpaces,
+            TabSize: options.TabSize,
+            IndentationSize: options.TabSize);
 }

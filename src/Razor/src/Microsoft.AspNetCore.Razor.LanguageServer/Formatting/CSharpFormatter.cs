@@ -7,15 +7,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -79,22 +77,23 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
         return actualEdits;
     }
 
-        private static async Task<TextEdit[]> FormatOnServerAsync(
-            FormattingContext context,
-            Range projectedRange,
-            CancellationToken cancellationToken)
-        {
-            var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
-            var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
-            var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken);
-            Assumes.NotNull(root);
+    private static async Task<TextEdit[]> GetFormattingEditsAsync(
+        FormattingContext context,
+        Range projectedRange,
+        CancellationToken cancellationToken)
+    {
+        var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
+        var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
+        var csharpDocument = context.CSharpWorkspaceDocument;
+        var root = await csharpDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        Assumes.NotNull(root);
 
-            var services = csharpDocument.Project.Solution.Workspace.Services;
-            var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(services, root, spanToFormat, context.Options.GetIndentationOptions(), cancellationToken);
+        var services = csharpDocument.Project.Solution.Workspace.Services;
+        var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(services, root, spanToFormat, context.Options.GetIndentationOptions(), cancellationToken);
 
-            var edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
-            return edits;
-        }
+        var edits = changes.Select(c => c.ToTextEdit(csharpSourceText)).ToArray();
+        return edits;
+    }
 
     private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(FormattingContext context, List<int> projectedDocumentLocations, CancellationToken cancellationToken)
     {
@@ -110,11 +109,11 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
 
         root = AttachAnnotations(indentationMap, projectedDocumentLocations, root);
 
-            // At this point, we have added all the necessary markers and attached annotations.
-            // Let's invoke the C# formatter and hope for the best.
-            var services = context.CSharpWorkspaceDocument.Project.Solution.Workspace.Services;
-            var formattedRoot = RazorCSharpFormattingInteractionService.Format(services, root, context.Options.GetIndentationOptions(), cancellationToken);
-            var formattedText = formattedRoot.GetText();
+        // At this point, we have added all the necessary markers and attached annotations.
+        // Let's invoke the C# formatter and hope for the best.
+        var services = context.CSharpWorkspaceDocument.Project.Solution.Workspace.Services;
+        var formattedRoot = RazorCSharpFormattingInteractionService.Format(services, root, context.Options.GetIndentationOptions(), cancellationToken);
+        var formattedText = formattedRoot.GetText();
 
         var desiredIndentationMap = new Dictionary<int, int>();
 

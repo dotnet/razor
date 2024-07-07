@@ -5,9 +5,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -19,45 +16,6 @@ internal static class TestRazorFormattingService
 {
 #pragma warning disable IDE0060 // Remove unused parameter
 
-        public static async Task<RazorFormattingService> CreateWithFullSupportAsync(
-            RazorCodeDocument? codeDocument = null,
-            DocumentSnapshot? documentSnapshot = null,
-            ILoggerFactory? loggerFactory = null)
-        {
-            codeDocument ??= TestRazorCodeDocument.CreateEmpty();
-            loggerFactory ??= NullLoggerFactory.Instance;
-
-            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
-
-            var dispatcher = new LSPProjectSnapshotManagerDispatcher(loggerFactory);
-            var versionCache = new DefaultDocumentVersionCache(dispatcher);
-
-            var workspaceFactory = TestAdhocWorkspaceFactory.Instance;
-            var globalOptions = RazorGlobalOptions.GetGlobalOptions(workspaceFactory.Create());
-
-            if (documentSnapshot is not null)
-            {
-                await dispatcher.RunOnDispatcherThreadAsync(() =>
-                {
-                    versionCache.TrackDocumentVersion(documentSnapshot, version: 1);
-                }, CancellationToken.None);
-            }
-
-            var client = new FormattingLanguageServerClient();
-            client.AddCodeDocument(codeDocument);
-
-            var passes = new List<IFormattingPass>()
-            {
-                new HtmlFormattingPass(mappingService, client, versionCache, loggerFactory),
-                new CSharpFormattingPass(mappingService, client, loggerFactory),
-                new CSharpOnTypeFormattingPass(mappingService, client, globalOptions, loggerFactory),
-                new RazorFormattingPass(mappingService, client, loggerFactory),
-                new FormattingDiagnosticValidationPass(mappingService, client, loggerFactory),
-                new FormattingContentValidationPass(mappingService, client, loggerFactory),
-            };
-
-            return new DefaultRazorFormattingService(passes, loggerFactory, TestAdhocWorkspaceFactory.Instance);
-        }
     public static Task<IRazorFormattingService> CreateWithFullSupportAsync(
         ILoggerFactory loggerFactory,
         RazorCodeDocument? codeDocument = null,

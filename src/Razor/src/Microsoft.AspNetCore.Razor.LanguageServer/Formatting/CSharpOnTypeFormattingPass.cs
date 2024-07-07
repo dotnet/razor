@@ -31,6 +31,7 @@ internal sealed class CSharpOnTypeFormattingPass(
     : CSharpFormattingPassBase(documentMappingService)
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
+
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
         if (!context.IsFormatOnType || result.Kind != RazorLanguageKind.CSharp)
@@ -52,14 +53,16 @@ internal sealed class CSharpOnTypeFormattingPass(
                 return result;
             }
 
-                // Ask C# for formatting changes.
-                
-                var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
+            // Ask C# for formatting changes.
+            var autoFormattingOptions = new RazorAutoFormattingOptions(
+               formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
+
+            var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
                     context.CSharpWorkspaceDocument,
                     typedChar: context.TriggerCharacter,
                     projectedIndex,
                     context.Options.GetIndentationOptions(),
-                    _globalOptions.GetAutoFormattingOptions(),
+                    autoFormattingOptions,
                     indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
                     cancellationToken).ConfigureAwait(false);
 
