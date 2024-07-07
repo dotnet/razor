@@ -80,7 +80,7 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
     private static async Task<TextEdit[]> GetFormattingEditsAsync(FormattingContext context, Range projectedRange, CancellationToken cancellationToken)
     {
         var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
-        var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
+        var spanToFormat = projectedRange.ToTextSpan(csharpSourceText);
         var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         Assumes.NotNull(root);
 
