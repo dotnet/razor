@@ -111,7 +111,7 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
 
         // At this point, we have added all the necessary markers and attached annotations.
         // Let's invoke the C# formatter and hope for the best.
-        var services = context.CSharpWorkspaceDocument.Project.Solution.Workspace.Services;
+        var services = context.CSharpWorkspace.Services;
         var formattedRoot = RazorCSharpFormattingInteractionService.Format(services, root, context.Options.GetIndentationOptions(), cancellationToken);
         var formattedText = formattedRoot.GetText();
 
