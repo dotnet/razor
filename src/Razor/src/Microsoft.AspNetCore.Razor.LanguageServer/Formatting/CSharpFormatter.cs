@@ -77,19 +77,14 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
         return actualEdits;
     }
 
-    private static async Task<TextEdit[]> GetFormattingEditsAsync(
-        FormattingContext context,
-        Range projectedRange,
-        CancellationToken cancellationToken)
+    private static async Task<TextEdit[]> GetFormattingEditsAsync(FormattingContext context, Range projectedRange, CancellationToken cancellationToken)
     {
         var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
         var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
-        var csharpDocument = context.CSharpWorkspaceDocument;
-        var root = await csharpDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         Assumes.NotNull(root);
 
-        var services = csharpDocument.Project.Solution.Workspace.Services;
-        var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(services, root, spanToFormat, context.Options.GetIndentationOptions(), cancellationToken);
+        var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(context.CSharpWorkspace.Services, root, spanToFormat, context.Options.GetIndentationOptions(), cancellationToken);
 
         var edits = changes.Select(c => c.ToTextEdit(csharpSourceText)).ToArray();
         return edits;
@@ -111,8 +106,7 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
 
         // At this point, we have added all the necessary markers and attached annotations.
         // Let's invoke the C# formatter and hope for the best.
-        var services = context.CSharpWorkspace.Services;
-        var formattedRoot = RazorCSharpFormattingInteractionService.Format(services, root, context.Options.GetIndentationOptions(), cancellationToken);
+        var formattedRoot = RazorCSharpFormattingInteractionService.Format(context.CSharpWorkspace.Services, root, context.Options.GetIndentationOptions(), cancellationToken);
         var formattedText = formattedRoot.GetText();
 
         var desiredIndentationMap = new Dictionary<int, int>();

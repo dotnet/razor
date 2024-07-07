@@ -55,16 +55,16 @@ internal sealed class CSharpOnTypeFormattingPass(
 
             // Ask C# for formatting changes.
             var autoFormattingOptions = new RazorAutoFormattingOptions(
-               formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
+                formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
 
             var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                    context.CSharpWorkspaceDocument,
-                    typedChar: context.TriggerCharacter,
-                    projectedIndex,
-                    context.Options.GetIndentationOptions(),
-                    autoFormattingOptions,
-                    indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
-                    cancellationToken).ConfigureAwait(false);
+                context.CSharpWorkspaceDocument,
+                typedChar: context.TriggerCharacter,
+                projectedIndex,
+                context.Options.GetIndentationOptions(),
+                autoFormattingOptions,
+                indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
+                cancellationToken).ConfigureAwait(false);
 
             if (formattingChanges.IsEmpty)
             {
