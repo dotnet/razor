@@ -18,18 +18,15 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
-internal sealed class ExtractToComponentBehindCodeActionProvider : IRazorCodeActionProvider
+internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeActionProvider
 {
     private readonly ILogger _logger;
 
-    public ExtractToComponentBehindCodeActionProvider(ILoggerFactory loggerFactory)
+    public ExtractToNewComponentCodeActionProvider(ILoggerFactory loggerFactory)
     {
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
 
-        _logger = loggerFactory.GetOrCreateLogger<ExtractToComponentBehindCodeActionProvider>();
+
+        _logger = loggerFactory.GetOrCreateLogger<ExtractToNewComponentCodeActionProvider>();
     }
     public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
@@ -61,7 +58,7 @@ internal sealed class ExtractToComponentBehindCodeActionProvider : IRazorCodeAct
             return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
         }
 
-        var componentNode = owner?.FirstAncestorOrSelf<MarkupElementSyntax>();
+        var componentNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
 
         // Make sure we've found tag
         if (componentNode is null || componentNode.Kind != SyntaxKind.MarkupElement)
@@ -69,7 +66,7 @@ internal sealed class ExtractToComponentBehindCodeActionProvider : IRazorCodeAct
             return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
         }
 
-        // Do not provide code action if the cursor is not inside a tag
+        // Do not provide code action if the cursor is inside proper html content (i.e. page text)
         if (context.Location.AbsoluteIndex > componentNode.StartTag.Span.End &&
             context.Location.AbsoluteIndex < componentNode.EndTag.SpanStart)
         {
@@ -81,7 +78,7 @@ internal sealed class ExtractToComponentBehindCodeActionProvider : IRazorCodeAct
             return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
         }
 
-        var actionParams = new ExtractToComponentBehindCodeActionParams()
+        var actionParams = new ExtractToNewComponentCodeActionParams()
         {
             Uri = context.Request.TextDocument.Uri,
             ExtractStart = componentNode.Span.Start,
@@ -91,12 +88,12 @@ internal sealed class ExtractToComponentBehindCodeActionProvider : IRazorCodeAct
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
-            Action = LanguageServerConstants.CodeActions.ExtractToComponentBehindAction,
+            Action = LanguageServerConstants.CodeActions.ExtractToNewComponentAction,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = actionParams,
         };
 
-        var codeAction = RazorCodeActionFactory.CreateExtractToComponentBehind(resolutionParams);
+        var codeAction = RazorCodeActionFactory.CreateExtractToNewComponent(resolutionParams);
         var codeActions = new List<RazorVSInternalCodeAction> { codeAction };
 
         return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
@@ -111,9 +108,6 @@ internal sealed class ExtractToComponentBehindCodeActionProvider : IRazorCodeAct
 
     private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
     {
-        return node.DescendantNodes().Any(n =>
-            n is MarkupBlockSyntax ||
-            n is CSharpTransitionSyntax ||
-            n is RazorCommentBlockSyntax);
+        return node.DescendantNodes().Any(static n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
     }
 }

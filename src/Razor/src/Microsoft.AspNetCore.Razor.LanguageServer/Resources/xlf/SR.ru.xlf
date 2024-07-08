@@ -47,9 +47,9 @@
         <target state="translated">Извлечь блок в код программной части</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExtractTo_ComponentBehind_Title">
-        <source>Extract element to component behind</source>
-        <target state="new">Extract element to component behind</target>
+      <trans-unit id="ExtractTo_NewComponent_Title">
+        <source>Extract element to new component</source>
+        <target state="new">Extract element to new component</target>
         <note />
       </trans-unit>
       <trans-unit id="File_Externally_Modified">

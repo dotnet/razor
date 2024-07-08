@@ -21,16 +21,17 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
-internal sealed class ExtractToComponentBehindCodeActionResolver : IRazorCodeActionResolver
+internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeActionResolver
 {
     private static readonly Workspace s_workspace = new AdhocWorkspace();
 
     private readonly IDocumentContextFactory _documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly IClientConnection _clientConnection;
-    public ExtractToComponentBehindCodeActionResolver(
+    public ExtractToNewComponentCodeActionResolver(
         IDocumentContextFactory documentContextFactory,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IClientConnection clientConnection)
@@ -39,15 +40,16 @@ internal sealed class ExtractToComponentBehindCodeActionResolver : IRazorCodeAct
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     }
-    public string Action => LanguageServerConstants.CodeActions.ExtractToComponentBehindAction;
-    public async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
+    public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponentAction;
+    public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
     {
-        if (data is null)
+        if (data.ValueKind == JsonValueKind.Undefined)
         {
             return null;
         }
 
-        var actionParams = data.ToObject<ExtractToComponentBehindCodeActionParams>();
+        var actionParams = JsonSerializer.Deserialize<ExtractToNewComponentCodeActionParams>(data.GetRawText());
+
         if (actionParams is null)
         {
             return null;
@@ -71,17 +73,17 @@ internal sealed class ExtractToComponentBehindCodeActionResolver : IRazorCodeAct
             return null;
         }
 
-        var componentBehindPath = GenerateComponentBehindPath(path);
+        var componentPath = GenerateComponentBehindPath(path);
 
         // VS Code in Windows expects path to start with '/'
-        var updatedComponentBehindPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !componentBehindPath.StartsWith("/")
-            ? '/' + componentBehindPath
-            : componentBehindPath;
+        var updatedComponentPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !componentPath.StartsWith("/")
+            ? '/' + componentPath
+            : componentPath;
 
-        var componentBehindUri = new UriBuilder
+        var newComponentUri = new UriBuilder
         {
             Scheme = Uri.UriSchemeFile,
-            Path = updatedComponentBehindPath,
+            Path = updatedComponentPath,
             Host = string.Empty,
         }.Uri;
 
@@ -91,8 +93,8 @@ internal sealed class ExtractToComponentBehindCodeActionResolver : IRazorCodeAct
             return null;
         }
 
-        var componentName = Path.GetFileNameWithoutExtension(componentBehindPath);
-        var componentBehindContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
+        var componentName = Path.GetFileNameWithoutExtension(componentPath);
+        var newComponentContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
 
         var start = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractStart);
         var end = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractEnd);
@@ -103,11 +105,11 @@ internal sealed class ExtractToComponentBehindCodeActionResolver : IRazorCodeAct
         };
 
         var componentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
-        var componentBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = componentBehindUri };
+        var newComponentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {
-            new CreateFile { Uri = componentBehindUri },
+            new CreateFile { Uri = newComponentUri },
             new TextDocumentEdit
             {
                 TextDocument = componentDocumentIdentifier,
@@ -122,12 +124,12 @@ internal sealed class ExtractToComponentBehindCodeActionResolver : IRazorCodeAct
             },
             new TextDocumentEdit
             {
-                TextDocument = componentBehindDocumentIdentifier,
+                TextDocument = newComponentDocumentIdentifier,
                 Edits  = new[]
                 {
                     new TextEdit
                     {
-                        NewText = componentBehindContent,
+                        NewText = newComponentContent,
                         Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
                     }
                 },
