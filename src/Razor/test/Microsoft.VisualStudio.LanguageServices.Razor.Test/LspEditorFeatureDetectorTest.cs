@@ -23,8 +23,6 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         // legacyEditorSetting, expectedResult
         { false, true },
         { true, false },
-        { false, false },
-        { true, false }
     };
 
     [UITheory]
