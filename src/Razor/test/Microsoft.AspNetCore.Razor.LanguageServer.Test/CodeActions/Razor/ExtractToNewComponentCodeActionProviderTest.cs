@@ -178,6 +178,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         // Arrange
         var documentPath = "c:/Test.razor";
         var contents = """
+            @namespace MarketApp.Pages.Product.Home
             @page "/"
 
             <PageTitle>Home</PageTitle>
