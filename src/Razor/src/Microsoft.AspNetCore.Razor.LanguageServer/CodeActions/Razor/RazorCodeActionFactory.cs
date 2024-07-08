@@ -71,7 +71,7 @@ internal static class RazorCodeActionFactory
     public static RazorVSInternalCodeAction CreateExtractToNewComponent(RazorCodeActionResolutionParams resolutionParams)
     {
         var title = SR.ExtractTo_NewComponent_Title;
-        var data = JToken.FromObject(resolutionParams);
+        var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
             Title = title,
