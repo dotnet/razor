@@ -2,13 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Json;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbol;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbols;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
@@ -32,12 +33,11 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorRequestContext>, IDisposable
+internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorRequestContext>, IDisposable
 {
     private readonly JsonRpc _jsonRpc;
     private readonly ILoggerFactory _loggerFactory;
@@ -45,7 +45,6 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
     private readonly Action<IServiceCollection>? _configureServices;
     private readonly RazorLSPOptions _lspOptions;
     private readonly ILspServerActivationTracker? _lspServerActivationTracker;
-    private readonly IRazorProjectInfoDriver? _projectInfoDriver;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly ClientConnection _clientConnection;
 
@@ -53,15 +52,14 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
-        JsonSerializer serializer,
+        JsonSerializerOptions options,
         ILoggerFactory loggerFactory,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServices,
         RazorLSPOptions? lspOptions,
         ILspServerActivationTracker? lspServerActivationTracker,
-        IRazorProjectInfoDriver? projectInfoDriver,
         ITelemetryReporter telemetryReporter)
-        : base(jsonRpc, serializer, CreateILspLogger(loggerFactory, telemetryReporter))
+        : base(jsonRpc, options, CreateILspLogger(loggerFactory, telemetryReporter))
     {
         _jsonRpc = jsonRpc;
         _loggerFactory = loggerFactory;
@@ -69,7 +67,6 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         _configureServices = configureServices;
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
         _lspServerActivationTracker = lspServerActivationTracker;
-        _projectInfoDriver = projectInfoDriver;
         _telemetryReporter = telemetryReporter;
 
         _clientConnection = new ClientConnection(_jsonRpc);
@@ -127,23 +124,12 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
 
         services.AddSingleton<IFilePathService, LSPFilePathService>();
 
-        if (_projectInfoDriver is { } projectInfoDriver)
-        {
-            services.AddSingleton<IRazorProjectInfoDriver>(_projectInfoDriver);
-        }
-        else
-        {
-            // If the language server was not created with an IRazorProjectInfoDriver,
-            // fall back to a FileWatcher-base driver.
-            services.AddSingleton<IRazorProjectInfoDriver, FileWatcherBasedRazorProjectInfoDriver>();
-        }
-
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 
         services.AddDiagnosticServices();
         services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
-        services.AddCompletionServices(featureOptions);
+        services.AddCompletionServices();
         services.AddFormattingServices();
         services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);

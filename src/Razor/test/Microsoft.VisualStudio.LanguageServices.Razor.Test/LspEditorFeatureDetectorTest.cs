@@ -41,6 +41,36 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         Assert.Equal(expectedResult, result);
     }
 
+    public static TheoryData<bool, bool, bool, bool, bool> IsLspEditorEnabledAndSupportedTestData { get; } = new()
+    {
+        // legacyEditorFeatureFlag, legacyEditorSetting, hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability, expectedResult
+        { false, false, true, false, false }, // .Net Framework project - always non-LSP
+        { false, false, false, true, true },  // .Net Core project
+        { false, false, true, true, false },  // .Net Core project opts-in into legacy razor editor (exists in reality?)
+        { true, false, false, true, false },  // .Net Core project but legacy editor via feature flag
+        { false, true, false, true, false },  // .Net Core project but legacy editor via editor option
+    };
+
+    [UITheory]
+    [MemberData(nameof(IsLspEditorEnabledAndSupportedTestData))]
+    public void IsLspEditorEnabledAndSupported(
+        bool legacyEditorFeatureFlag,
+        bool legacyEditorSetting,
+        bool hasLegacyRazorEditorCapability,
+        bool hasDotNetCoreCSharpCapability,
+        bool expectedResult)
+    {
+        // Arrange
+        var featureDetector = CreateLspEditorFeatureDetector(legacyEditorFeatureFlag, legacyEditorSetting, hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability);
+
+        // Act
+        var result = featureDetector.IsLspEditorEnabled() &&
+                     featureDetector.IsLspEditorSupported(@"c:\TestProject\TestFile.cshtml");
+
+        // Assert
+        Assert.Equal(expectedResult, result);
+    }
+
     public static TheoryData<bool, bool, bool, bool> IsRemoteClientTestData { get; } = new()
     {
         // isLiveShareHostActive, isLiveShareGuestActive, cloudEnvironmentConnectedActive, expectedResult
@@ -94,19 +124,23 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     }
 
     private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(IUIContextService uiContextService)
-        => CreateLspEditorFeatureDetector(legacyEditorFeatureFlag: false, legacyEditorSetting: false, uiContextService);
+        => CreateLspEditorFeatureDetector(legacyEditorFeatureFlag: false, legacyEditorSetting: false, uiContextService, hasLegacyRazorEditorCapability: false, hasDotNetCoreCSharpCapability: true);
 
     private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(
         bool legacyEditorFeatureFlag = false,
-        bool legacyEditorSetting = false)
+        bool legacyEditorSetting = false,
+        bool hasLegacyRazorEditorCapability = false,
+        bool hasDotNetCoreCSharpCapability = true)
     {
-        return CreateLspEditorFeatureDetector(legacyEditorFeatureFlag, legacyEditorSetting, CreateUIContextService());
+        return CreateLspEditorFeatureDetector(legacyEditorFeatureFlag, legacyEditorSetting, CreateUIContextService(), hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability);
     }
 
     private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(
         bool legacyEditorFeatureFlag,
         bool legacyEditorSetting,
-        IUIContextService uiContextService)
+        IUIContextService uiContextService,
+        bool hasLegacyRazorEditorCapability,
+        bool hasDotNetCoreCSharpCapability)
     {
         uiContextService ??= CreateUIContextService();
 
@@ -114,6 +148,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
             CreateVsFeatureFlagsService(legacyEditorFeatureFlag),
             CreateVsSettingsManagerService(legacyEditorSetting),
             uiContextService,
+            CreateProjectCapabilityResolver(hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability),
             JoinableTaskContext,
             CreateRazorActivityLog());
 
@@ -160,6 +195,21 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
 
         return mock.Object;
     }
+
+    private static IProjectCapabilityResolver CreateProjectCapabilityResolver(bool hasLegacyRazorEditorCapability, bool hasDotNetCoreCSharpCapability)
+    {
+        var projectCapabilityResolverMock = new StrictMock<IProjectCapabilityResolver>();
+
+        projectCapabilityResolverMock
+            .Setup(x => x.ResolveCapability(WellKnownProjectCapabilities.LegacyRazorEditor, It.IsAny<string>()))
+            .Returns(hasLegacyRazorEditorCapability);
+        projectCapabilityResolverMock
+            .Setup(x => x.ResolveCapability(WellKnownProjectCapabilities.DotNetCoreCSharp, It.IsAny<string>()))
+            .Returns(hasDotNetCoreCSharpCapability);
+
+        return projectCapabilityResolverMock.Object;
+    }
+
     private RazorActivityLog CreateRazorActivityLog()
     {
         var vsActivityLogMock = new StrictMock<IVsActivityLog>();

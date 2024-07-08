@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Json;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
@@ -21,7 +21,7 @@ internal static class RazorCodeActionFactory
     public static RazorVSInternalCodeAction CreateAddComponentUsing(string @namespace, string? newTagName, RazorCodeActionResolutionParams resolutionParams)
     {
         var title = $"@using {@namespace}";
-        var data = JToken.FromObject(resolutionParams);
+        var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction
         {
             Title = newTagName is null ? title : $"{newTagName} - {title}",
@@ -45,7 +45,7 @@ internal static class RazorCodeActionFactory
     public static RazorVSInternalCodeAction CreateComponentFromTag(RazorCodeActionResolutionParams resolutionParams)
     {
         var title = SR.Create_Component_FromTag_Title;
-        var data = JToken.FromObject(resolutionParams);
+        var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
             Title = title,
@@ -58,7 +58,7 @@ internal static class RazorCodeActionFactory
     public static RazorVSInternalCodeAction CreateExtractToCodeBehind(RazorCodeActionResolutionParams resolutionParams)
     {
         var title = SR.ExtractTo_CodeBehind_Title;
-        var data = JToken.FromObject(resolutionParams);
+        var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
             Title = title,
@@ -98,7 +98,7 @@ internal static class RazorCodeActionFactory
         };
 
         var title = SR.FormatGenerate_Event_Handler_Title(methodName);
-        var data = JToken.FromObject(resolutionParams);
+        var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
             Title = title,
@@ -125,7 +125,7 @@ internal static class RazorCodeActionFactory
         };
 
         var title = SR.FormatGenerate_Async_Event_Handler_Title(methodName);
-        var data = JToken.FromObject(resolutionParams);
+        var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
             Title = title,

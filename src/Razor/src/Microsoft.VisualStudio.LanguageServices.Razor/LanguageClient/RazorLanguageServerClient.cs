@@ -42,7 +42,7 @@ internal class RazorLanguageServerClient(
     IClientSettingsManager clientSettingsManager,
     ILspServerActivationTracker lspServerActivationTracker,
     VisualStudioHostServicesProvider vsHostServicesProvider)
-    : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
+    : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority, IPropertyOwner
 {
     private readonly ILanguageClientBroker _languageClientBroker = languageClientBroker;
     private readonly ILanguageServiceBroker2 _languageServiceBroker = languageServiceBroker;
@@ -84,6 +84,16 @@ internal class RazorLanguageServerClient(
 
     public bool ShowNotificationOnInitializeFailed => true;
 
+    public PropertyCollection Properties { get; } = CreateStjPropertyCollection();
+
+    private static PropertyCollection CreateStjPropertyCollection()
+    {
+        // Opt in to System.Text.Json serialization on the client
+        var collection = new PropertyCollection();
+        collection.AddProperty("lsp-serialization", "stj");
+        return collection;
+    }
+
     public async Task<Connection?> ActivateAsync(CancellationToken token)
     {
         // Swap to background thread, nothing below needs to be done on the UI thread.
@@ -97,8 +107,6 @@ internal class RazorLanguageServerClient(
 
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
-        var projectInfoDriver = new RazorProjectInfoDriver(_projectManager, _loggerFactory);
-
         _host = RazorLanguageServerHost.Create(
             serverStream,
             serverStream,
@@ -108,7 +116,6 @@ internal class RazorLanguageServerClient(
             _languageServerFeatureOptions,
             lspOptions,
             _lspServerActivationTracker,
-            projectInfoDriver,
             traceSource);
 
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
@@ -119,6 +126,9 @@ internal class RazorLanguageServerClient(
         void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IHostServicesProvider>(new HostServicesProviderAdapter(_vsHostServicesProvider));
+
+            var projectInfoDriver = new RazorProjectInfoDriver(_projectManager, _loggerFactory);
+            services.AddSingleton<IRazorProjectInfoDriver>(projectInfoDriver);
         }
     }
 
