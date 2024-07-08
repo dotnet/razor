@@ -56,6 +56,23 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
         var componentNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
 
+        var selectionStart = context.Request.Range.Start;
+        var selectionEnd = context.Request.Range.End;
+
+        // If user selects range from end to beginning (i.e., bottom-to-top, right-to-left), simply get the effective start and end.
+        if (selectionEnd.Line < selectionStart.Line ||
+           (selectionEnd.Line == selectionStart.Line && selectionEnd.Character < selectionStart.Character))
+        {
+            (selectionEnd, selectionStart) = (selectionStart, selectionEnd);
+        }
+
+        var isSelection = selectionStart != selectionEnd;
+
+        if (isSelection)
+        {
+            //var startOwner = syntaxTree.Root.FindInnermostNode(selectionStart.ToSourceSpan(), true);
+        }
+
         // Make sure we've found tag
         if (componentNode is null)
         {
