@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor;
 
 public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public static TheoryData< bool, bool> IsLspEditorEnabledTestData { get; } = new()
+    public static TheoryData<bool, bool> IsLspEditorEnabledTestData { get; } = new()
     {
         // legacyEditorSetting, expectedResult
         { false, true },
