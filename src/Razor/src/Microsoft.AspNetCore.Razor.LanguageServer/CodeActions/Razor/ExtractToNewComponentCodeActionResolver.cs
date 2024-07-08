@@ -55,8 +55,6 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
             return null;
         }
 
-        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
-
         if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
         {
             return null;
@@ -73,6 +71,7 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
             return null;
         }
 
+        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
         var componentPath = GenerateComponentBehindPath(path);
 
         // VS Code in Windows expects path to start with '/'
