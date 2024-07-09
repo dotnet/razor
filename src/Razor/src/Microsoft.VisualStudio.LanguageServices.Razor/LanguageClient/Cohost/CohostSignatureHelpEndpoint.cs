@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
+using Microsoft.VisualStudio.Razor.Settings;
 using RLSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
@@ -27,12 +28,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 #pragma warning restore RS0030 // Do not use banned APIs
 internal class CohostSignatureHelpEndpoint(
     IRemoteServiceProvider remoteServiceProvider,
+    IClientSettingsManager clientSettingsManager,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<SignatureHelpParams, SumType<SignatureHelp, RLSP.SignatureHelp>?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceProvider _remoteServiceProvider = remoteServiceProvider;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostFoldingRangeEndpoint>();
@@ -66,6 +69,13 @@ internal class CohostSignatureHelpEndpoint(
     //       care. Ideally eventually we will be able to move all of this to just Roslyn LSP types, but we might have to wait for Web Tools
     protected async override Task<SumType<SignatureHelp, RLSP.SignatureHelp>?> HandleRequestAsync(SignatureHelpParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
+        // Return nothing if "Parameter Information" option is disabled unless signature help is invoked explicitly via command as opposed to typing or content change
+        if (request.Context is { TriggerKind: not SignatureHelpTriggerKind.Invoked } &&
+            !_clientSettingsManager.GetClientSettings().ClientCompletionSettings.AutoListParams)
+        {
+            return null;
+        }
+
         var razorDocument = context.TextDocument.AssumeNotNull();
 
         var data = await _remoteServiceProvider.TryInvokeAsync<IRemoteSignatureHelpService, RLSP.SignatureHelp?>(
