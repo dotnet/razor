@@ -105,7 +105,7 @@ internal sealed class RemoteServiceProvider(
         // so we get the regular (MessagePack) client too.
         if (!_fullyInitialized)
         {
-            _ = await TryGetClientAsync(cancellationToken);
+            _ = await TryGetClientAsync(cancellationToken).ConfigureAwait(false);
         }
 
         var workspace = _workspaceProvider.GetWorkspace();

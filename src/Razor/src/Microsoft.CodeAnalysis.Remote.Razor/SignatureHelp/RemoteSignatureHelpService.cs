@@ -44,7 +44,7 @@ internal sealed class RemoteSignatureHelpService(
 
         if (_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), absoluteIndex, out var mappedPosition, out _))
         {
-            return await ExternalAccess.Razor.Cohost.Handlers.SignatureHelp.GetSignatureHelpAsync(generatedDocument, mappedPosition, supportsVisualStudioExtensions: true, cancellationToken);
+            return await ExternalAccess.Razor.Cohost.Handlers.SignatureHelp.GetSignatureHelpAsync(generatedDocument, mappedPosition, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
         }
 
         return null;
