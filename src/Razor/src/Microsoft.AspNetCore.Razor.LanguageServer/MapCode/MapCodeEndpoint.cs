@@ -189,7 +189,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                var razorNodesToMap = new List<SyntaxNode>();
+                using var _ = ArrayBuilderPool<SyntaxNode>.GetPooledObject(out var razorNodesToMap);
                 foreach (var nodeToMap in nodesToMap)
                 {
                     // If node is C#, we send it to their language server to handle and ignore it from our end.
@@ -263,10 +263,10 @@ internal sealed class MapCodeEndpoint(
         return false;
     }
 
-    private static List<SyntaxNode> ExtractValidNodesToMap(SyntaxNode rootNode)
+    private static ImmutableArray<SyntaxNode> ExtractValidNodesToMap(SyntaxNode rootNode)
     {
-        var validNodesToMap = new List<SyntaxNode>();
-        var stack = new Stack<SyntaxNode>();
+        using var _1 = ArrayBuilderPool<SyntaxNode>.GetPooledObject(out var validNodesToMap);
+        using var _2 = StackPool<SyntaxNode>.GetPooledObject(out var stack);
         stack.Push(rootNode);
 
         while (stack.Count > 0)
@@ -286,7 +286,7 @@ internal sealed class MapCodeEndpoint(
             }
         }
 
-        return validNodesToMap;
+        return validNodesToMap.ToImmutableArray();
     }
 
     // These are the nodes that we currently support for mapping. We should update
@@ -344,10 +344,12 @@ internal sealed class MapCodeEndpoint(
     {
         // If the focus locations are in a C# context, map them to the C# document.
         var csharpFocusLocations = new Location[focusLocations.Length][];
+        using var _ = ListPool<Location>.GetPooledObject(out var csharpLocations);
         for (var i = 0; i < focusLocations.Length; i++)
         {
+            csharpLocations.Clear();
+
             var locations = focusLocations[i];
-            var csharpLocations = new List<Location>();
             foreach (var potentialLocation in locations)
             {
                 if (potentialLocation is null)
