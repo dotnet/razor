@@ -32,4 +32,47 @@ internal static class ReadOnlyListExtensions
             return results.DrainToImmutable();
         }
     }
+
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> source) => new(source);
+
+    public readonly struct Enumerable<T>(IReadOnlyList<T> source) : IEnumerable<T>
+    {
+        public Enumerator<T> GetEnumerator() => new(source);
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    public struct Enumerator<T>(IReadOnlyList<T> source) : IEnumerator<T>
+    {
+        private int _index;
+        private T _current;
+
+        public readonly T Current => _current!;
+
+        readonly object IEnumerator.Current => _current!;
+
+        public readonly void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            if (_index < source.Count)
+            {
+                _current = source[_index];
+                _index++;
+                return true;
+            }
+
+            return false;
+        }
+
+        public void Reset()
+        {
+            _index = 0;
+            _current = default!;
+        }
+    }
 }
