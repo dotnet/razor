@@ -40,7 +40,9 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     }
+
     public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponentAction;
+
     public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
     {
         if (data.ValueKind == JsonValueKind.Undefined)
@@ -49,13 +51,10 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
         }
 
         var actionParams = JsonSerializer.Deserialize<ExtractToNewComponentCodeActionParams>(data.GetRawText());
-
         if (actionParams is null)
         {
             return null;
         }
-
-        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
 
         if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
         {
@@ -73,7 +72,9 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
             return null;
         }
 
-        var componentPath = GenerateComponentBehindPath(path);
+        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
+        var templatePath = Path.Combine(Path.GetDirectoryName(path), "Component");
+        var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
 
         // VS Code in Windows expects path to start with '/'
         var updatedComponentPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !componentPath.StartsWith("/")
@@ -151,12 +152,13 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
     /// <returns>A non-existent file path with the same base name and a code-behind extension.</returns>
     private static string GenerateComponentBehindPath(string path)
     {
+        var directoryName = Path.GetDirectoryName(path);
+
         var n = 0;
         string componentBehindPath;
         do
         {
             var identifier = n > 0 ? n.ToString(CultureInfo.InvariantCulture) : string.Empty;  // Make it look nice
-            var directoryName = Path.GetDirectoryName(path);
             Assumes.NotNull(directoryName);
 
             componentBehindPath = Path.Combine(

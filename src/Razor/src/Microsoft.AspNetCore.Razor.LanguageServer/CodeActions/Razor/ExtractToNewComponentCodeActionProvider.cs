@@ -24,10 +24,9 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
 
     public ExtractToNewComponentCodeActionProvider(ILoggerFactory loggerFactory)
     {
-
-
         _logger = loggerFactory.GetOrCreateLogger<ExtractToNewComponentCodeActionProvider>();
     }
+
     public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         if (context is null)
@@ -61,7 +60,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         var componentNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
 
         // Make sure we've found tag
-        if (componentNode is null || componentNode.Kind != SyntaxKind.MarkupElement)
+        if (componentNode is null)
         {
             return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
         }
@@ -106,8 +105,8 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         // good namespace to extract to
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
 
-    private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
-    {
-        return node.DescendantNodes().Any(static n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
-    }
+    //private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
+    //{
+    //    return node.DescendantNodes().Any(static n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
+    //}
 }
