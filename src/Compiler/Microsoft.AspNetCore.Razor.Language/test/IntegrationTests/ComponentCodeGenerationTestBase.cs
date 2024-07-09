@@ -1744,7 +1744,7 @@ namespace Test
         CompileToAssembly(generated, designTime ? [] : [
                 // (21,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.Value'
                 //             __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.\n#nullable restore\n#line (1,20)-(1,25) \"x:\\dir\\subdir\\Test\\TestComponent.cshtml\"\nValue".Replace("\n", Environment.NewLine)).WithArguments("Test.MyComponent.Value").WithLocation(21, 55),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.\r\n#nullable restore\r\n#line (1,20)-(1,25) \"x:\\dir\\subdir\\Test\\TestComponent.cshtml\"\r\nValue").WithArguments("Test.MyComponent.Value").WithLocation(21, 55),
                 // (38,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.ValueChanged'
                 //             __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.ValueChanged), (global::System.Action<System.Int32>)(__value => ParentValue = __value));
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.ValueChanged").WithArguments("Test.MyComponent.ValueChanged").WithLocation(38, 55)
