@@ -55,8 +55,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return true;
             }
 
-            // in the compiler server when the generator driver cache is enabled the
-            // additional files are always different instances even if their content is the same
+            // In the compiler server when the generator driver cache is enabled the
+            // additional files are always different instances even if their content is the same.
+            // It's technically possible for these hashes to collide, but other things would
+            // also break in those cases, so for now we're okay with this.
             var thisHash = AdditionalText.GetText()?.GetContentHash() ?? [];
             var otherHash = other?.AdditionalText.GetText()?.GetContentHash() ?? [];
             return Enumerable.SequenceEqual(thisHash, otherHash);
