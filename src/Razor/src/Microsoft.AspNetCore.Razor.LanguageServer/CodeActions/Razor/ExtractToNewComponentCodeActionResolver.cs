@@ -142,32 +142,4 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
             DocumentChanges = documentChanges,
         };
     }
-
-    /// <summary>
-    /// Generate a file path with adjacent to our input path that has the
-    /// correct code-behind extension, using numbers to differentiate from
-    /// any collisions.
-    /// </summary>
-    /// <param name="path">The origin file path.</param>
-    /// <returns>A non-existent file path with the same base name and a code-behind extension.</returns>
-    private static string GenerateComponentBehindPath(string path)
-    {
-        var directoryName = Path.GetDirectoryName(path);
-
-        var n = 0;
-        string componentBehindPath;
-        do
-        {
-            var identifier = n > 0 ? n.ToString(CultureInfo.InvariantCulture) : string.Empty;  // Make it look nice
-            Assumes.NotNull(directoryName);
-
-            componentBehindPath = Path.Combine(
-                directoryName,
-                $"Component{identifier}.razor");
-            n++;
-        }
-        while (File.Exists(componentBehindPath));
-
-        return componentBehindPath;
-    }
 }

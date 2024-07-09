@@ -71,7 +71,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
             return null;
         }
 
-        var codeBehindPath = GenerateCodeBehindPath(path);
+        var codeBehindPath = FileUtilities.GenerateUniquePath(path, $"{Path.GetExtension(path)}.cs");
 
         // VS Code in Windows expects path to start with '/'
         var updatedCodeBehindPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !codeBehindPath.StartsWith("/")
