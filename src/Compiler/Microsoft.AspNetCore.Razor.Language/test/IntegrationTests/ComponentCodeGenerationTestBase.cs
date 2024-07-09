@@ -1710,6 +1710,48 @@ namespace Test
     }
 
     [IntegrationTestFact]
+    public void BindToComponent_SpecifiesValue_WithMatchingProperties_WithNameof()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public int Value { get; set; }
+
+        [Parameter]
+        public Action<int> ValueChanged { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent @bind-Value=""ParentValue"" />
+@code {
+    public int ParentValue { get; set; } = 42;
+
+    public string nameof(string s) => string.Empty;
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, designTime ? [] : [
+                // (21,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.Value'
+                //             __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.\n#nullable restore\n#line (1,20)-(1,25) \"x:\\dir\\subdir\\Test\\TestComponent.cshtml\"\nValue".Replace("\n", Environment.NewLine)).WithArguments("Test.MyComponent.Value").WithLocation(21, 55),
+                // (38,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.ValueChanged'
+                //             __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.ValueChanged), (global::System.Action<System.Int32>)(__value => ParentValue = __value));
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.ValueChanged").WithArguments("Test.MyComponent.ValueChanged").WithLocation(38, 55)
+            ]);
+    }
+
+    [IntegrationTestFact]
     public void BindToComponent_WithStringAttribute_DoesNotUseStringSyntax()
     {
         // Arrange
