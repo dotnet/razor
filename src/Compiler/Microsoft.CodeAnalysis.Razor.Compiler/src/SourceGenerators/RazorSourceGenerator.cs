@@ -145,7 +145,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var ((compilationA, razorSourceGeneratorOptionsA), hasRazorFilesA) = a;
                     var ((compilationB, razorSourceGeneratorOptionsB), hasRazorFilesB) = b;
 
-                    // When using the generator cache in the compiler its possible to encounter metadata references that are different instances
+                    // When using the generator cache in the compiler it's possible to encounter metadata references that are different instances
                     // but ultimately represent the same underlying assembly. We compare the module version ids to determine if the references are the same
                     if (!compilationA.References.SequenceEqual(compilationB.References, new LambdaComparer<MetadataReference>((old, @new) => 
                     {

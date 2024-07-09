@@ -3195,7 +3195,8 @@ namespace MyApp
 
             eventListener.Events.Clear();
 
-            result = RunGenerator(compilation!, ref driver);
+            result = RunGenerator(compilation!, ref driver)
+                        .VerifyOutputsMatch(result);
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
@@ -3236,7 +3237,8 @@ namespace MyApp
 
             eventListener.Events.Clear();
 
-            result = RunGenerator(compilation!, ref driver);
+            result = RunGenerator(compilation!, ref driver)
+                .VerifyOutputsMatch(result);
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
@@ -3249,7 +3251,8 @@ namespace MyApp
 
             compilation = await project.GetCompilationAsync();
 
-            result = RunGenerator(compilation!, ref driver);
+            result = RunGenerator(compilation!, ref driver)
+                .VerifyOutputsMatch(result);
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);

@@ -61,7 +61,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             // also break in those cases, so for now we're okay with this.
             var thisHash = AdditionalText.GetText()?.GetContentHash() ?? [];
             var otherHash = other?.AdditionalText.GetText()?.GetContentHash() ?? [];
-            return Enumerable.SequenceEqual(thisHash, otherHash);
+            return thisHash.SequenceEqual(otherHash);
         }
 
         public override int GetHashCode() => AdditionalText.GetHashCode();
