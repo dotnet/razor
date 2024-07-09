@@ -60,9 +60,9 @@ internal class CohostLinkedEditingRangeEndpoint(IRemoteServiceProvider remoteSer
     private async Task<LinkedEditingRanges?> HandleRequestAsync(LinkedEditingRangeParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var linkedRanges = await _remoteServiceProvider.TryInvokeAsync<IRemoteLinkedEditingRangeService, LinePositionSpan[]?>(
-                    razorDocument.Project.Solution,
-                    (service, solutionInfo, cancellationToken) => service.GetRangesAsync(solutionInfo, razorDocument.Id, request.Position.ToLinePosition(), cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
+            razorDocument.Project.Solution,
+            (service, solutionInfo, cancellationToken) => service.GetRangesAsync(solutionInfo, razorDocument.Id, request.Position.ToLinePosition(), cancellationToken),
+            cancellationToken).ConfigureAwait(false);
 
         if (linkedRanges is [{ } span1, { } span2])
         {
