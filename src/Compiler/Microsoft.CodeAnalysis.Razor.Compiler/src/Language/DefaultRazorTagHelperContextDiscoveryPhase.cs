@@ -1,12 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -24,13 +22,13 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
         var descriptors = codeDocument.GetTagHelpers();
         if (descriptors == null)
         {
-            if (!Engine.TryGetFeature(out ITagHelperFeature feature))
+            if (!Engine.TryGetFeature(out ITagHelperFeature? tagHelperFeature))
             {
                 // No feature, nothing to do.
                 return;
             }
 
-            descriptors = feature.GetDescriptors();
+            descriptors = tagHelperFeature.GetDescriptors();
         }
 
         var parserOptions = codeDocument.GetParserOptions();
@@ -46,7 +44,8 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
             (parserOptions == null || parserOptions.FeatureFlags.AllowComponentFileKind))
         {
             codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var currentNamespace);
-            visitor = new ComponentDirectiveVisitor(codeDocument.Source.FilePath, descriptors, currentNamespace, matches);
+            var filePath = codeDocument.Source.FilePath.AssumeNotNull();
+            visitor = new ComponentDirectiveVisitor(filePath, descriptors, currentNamespace, matches);
         }
         else
         {
@@ -68,7 +67,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
             // This will always be null for a component document.
             var tagHelperPrefix = visitor.TagHelperPrefix;
 
-            var context = TagHelperDocumentContext.Create(tagHelperPrefix, matches.ToImmutableArray());
+            var context = TagHelperDocumentContext.Create(tagHelperPrefix, [.. matches]);
             codeDocument.SetTagHelperContext(context);
             codeDocument.SetPreTagHelperSyntaxTree(syntaxTree);
         }
@@ -113,7 +112,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
     {
         protected readonly HashSet<TagHelperDescriptor> Matches = matches;
 
-        public abstract string TagHelperPrefix { get; }
+        public abstract string? TagHelperPrefix { get; }
 
         public abstract void Visit(RazorSyntaxTree tree);
 
@@ -122,8 +121,8 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
 
     internal sealed class TagHelperDirectiveVisitor : DirectiveVisitor
     {
-        private List<TagHelperDescriptor> _tagHelpers;
-        private string _tagHelperPrefix;
+        private List<TagHelperDescriptor>? _tagHelpers;
+        private string? _tagHelperPrefix;
 
         public TagHelperDirectiveVisitor(IReadOnlyList<TagHelperDescriptor> tagHelpers, HashSet<TagHelperDescriptor> matches)
             : base(matches)
@@ -141,7 +140,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
             }
         }
 
-        public override string TagHelperPrefix => _tagHelperPrefix;
+        public override string? TagHelperPrefix => _tagHelperPrefix;
 
         public override void Visit(RazorSyntaxTree tree)
         {
@@ -193,7 +192,6 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                             continue;
                         }
 
-
                         if (!AssemblyContainsTagHelpers(removeTagHelper.AssemblyName, _tagHelpers))
                         {
                             // No tag helpers in the assembly.
@@ -222,8 +220,13 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
             }
         }
 
-        private static bool AssemblyContainsTagHelpers(string assemblyName, List<TagHelperDescriptor> tagHelpers)
+        private static bool AssemblyContainsTagHelpers(string assemblyName, [NotNullWhen(true)] List<TagHelperDescriptor>? tagHelpers)
         {
+            if (tagHelpers is null)
+            {
+                return false;
+            }
+
             foreach (var tagHelper in tagHelpers)
             {
                 if (tagHelper.AssemblyName == assemblyName)
@@ -247,9 +250,9 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
 
     internal sealed class ComponentDirectiveVisitor : DirectiveVisitor
     {
-        private List<TagHelperDescriptor> _notFullyQualifiedComponents;
+        private List<TagHelperDescriptor>? _notFullyQualifiedComponents;
         private readonly string _filePath;
-        private RazorSourceDocument _source;
+        private RazorSourceDocument? _source;
 
         public ComponentDirectiveVisitor(string filePath, IReadOnlyList<TagHelperDescriptor> tagHelpers, string currentNamespace, HashSet<TagHelperDescriptor> matches)
             : base(matches)
@@ -299,7 +302,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
         }
 
         // There is no support for tag helper prefix in component documents.
-        public override string TagHelperPrefix => null;
+        public override string? TagHelperPrefix => null;
 
         public override void Visit(RazorSyntaxTree tree)
         {
@@ -324,7 +327,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                         continue;
                     case AddTagHelperChunkGenerator addTagHelper:
                         // Make sure this node exists in the file we're parsing and not in its imports.
-                        if (_filePath.Equals(_source.FilePath, StringComparison.Ordinal))
+                        if (_filePath.Equals(_source.AssumeNotNull().FilePath, StringComparison.Ordinal))
                         {
                             addTagHelper.Diagnostics.Add(
                                 ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(_source)));
@@ -332,7 +335,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                         break;
                     case RemoveTagHelperChunkGenerator removeTagHelper:
                         // Make sure this node exists in the file we're parsing and not in its imports.
-                        if (_filePath.Equals(_source.FilePath, StringComparison.Ordinal))
+                        if (_filePath.Equals(_source.AssumeNotNull().FilePath, StringComparison.Ordinal))
                         {
                             removeTagHelper.Diagnostics.Add(
                                 ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(_source)));
@@ -340,7 +343,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                         break;
                     case TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix:
                         // Make sure this node exists in the file we're parsing and not in its imports.
-                        if (_filePath.Equals(_source.FilePath, StringComparison.Ordinal))
+                        if (_filePath.Equals(_source.AssumeNotNull().FilePath, StringComparison.Ordinal))
                         {
                             tagHelperPrefix.Diagnostics.Add(
                                 ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(_source)));
@@ -349,13 +352,13 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                     case AddImportChunkGenerator { IsStatic: false } usingStatement:
                         // Get the namespace from the using statement.
                         var @namespace = usingStatement.ParsedNamespace;
-                        if (@namespace.IndexOf('=') != -1)
+                        if (@namespace.Contains('='))
                         {
                             // We don't support usings with alias.
                             continue;
                         }
 
-                        foreach (var tagHelper in _notFullyQualifiedComponents)
+                        foreach (var tagHelper in _notFullyQualifiedComponents.AssumeNotNull())
                         {
                             Debug.Assert(!tagHelper.IsComponentFullyQualifiedNameMatch, "We've already processed these.");
 
