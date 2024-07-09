@@ -65,18 +65,12 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         var typePatternSpan = RemoveGlobalPrefix(typePattern.AsSpan());
 
-        if (typePatternSpan[^1] == '*')
+        return typePatternSpan switch
         {
-            if (typePatternSpan.Length == 1)
-            {
-                // TypePattern is "*".
-                return true;
-            }
-
-            return descriptor.Name.AsSpan().StartsWith(typePatternSpan[..^1], StringComparison.Ordinal);
-        }
-
-        return descriptor.Name.AsSpan().Equals(typePatternSpan, StringComparison.Ordinal);
+            ['*'] => true,
+            [.. var pattern, '*'] => descriptor.Name.AsSpan().StartsWith(pattern, StringComparison.Ordinal),
+            var pattern => descriptor.Name.AsSpan().Equals(pattern, StringComparison.Ordinal)
+        };
     }
 
     private static ReadOnlySpan<char> RemoveGlobalPrefix(in ReadOnlySpan<char> span)
