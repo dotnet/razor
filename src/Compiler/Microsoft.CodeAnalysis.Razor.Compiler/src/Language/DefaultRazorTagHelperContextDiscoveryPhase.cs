@@ -128,31 +128,53 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
     internal sealed class TagHelperDirectiveVisitor : DirectiveVisitor
     {
-        private readonly List<TagHelperDescriptor> _tagHelpers = [];
+        private readonly List<TagHelperDescriptor> _nonComponentTagHelpers = [];
+
+        private IReadOnlyList<TagHelperDescriptor>? _tagHelpers;
+        private bool _nonComponentTagHelpersComputed;
         private string? _tagHelperPrefix;
 
         public override string? TagHelperPrefix => _tagHelperPrefix;
+
+        private List<TagHelperDescriptor> NonComponentTagHelpers
+        {
+            get
+            {
+                if (!_nonComponentTagHelpersComputed)
+                {
+                    var tagHelpers = _tagHelpers.AssumeNotNull();
+
+                    // We don't want to consider components in a view document.
+                    for (var i = 0; i < tagHelpers.Count; i++)
+                    {
+                        var tagHelper = tagHelpers[i];
+                        if (!tagHelper.IsAnyComponentDocumentTagHelper())
+                        {
+                            _nonComponentTagHelpers.Add(tagHelper);
+                        }
+                    }
+
+                    _nonComponentTagHelpersComputed = true;
+                }
+
+                return _nonComponentTagHelpers;
+            }
+        }
 
         public void Initialize(IReadOnlyList<TagHelperDescriptor> tagHelpers)
         {
             Debug.Assert(!IsInitialized);
 
-            // We don't want to consider components in a view document.
-            for (var i = 0; i < tagHelpers.Count; i++)
-            {
-                var tagHelper = tagHelpers[i];
-                if (!tagHelper.IsAnyComponentDocumentTagHelper())
-                {
-                    _tagHelpers.Add(tagHelper);
-                }
-            }
+            _tagHelpers = tagHelpers;
 
             base.Initialize();
         }
 
         public override void Reset()
         {
-            _tagHelpers.Clear();
+            _nonComponentTagHelpers.Clear();
+            _nonComponentTagHelpersComputed = false;
+            _tagHelpers = null;
             _tagHelperPrefix = null;
 
             base.Reset();
@@ -185,13 +207,13 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                             continue;
                         }
 
-                        if (!AssemblyContainsTagHelpers(addTagHelper.AssemblyName, _tagHelpers))
+                        if (!AssemblyContainsTagHelpers(addTagHelper.AssemblyName, NonComponentTagHelpers))
                         {
                             // No tag helpers in the assembly.
                             continue;
                         }
 
-                        foreach (var tagHelper in _tagHelpers)
+                        foreach (var tagHelper in NonComponentTagHelpers)
                         {
                             if (MatchesDirective(tagHelper, addTagHelper.TypePattern, addTagHelper.AssemblyName))
                             {
@@ -208,13 +230,13 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                             continue;
                         }
 
-                        if (!AssemblyContainsTagHelpers(removeTagHelper.AssemblyName, _tagHelpers))
+                        if (!AssemblyContainsTagHelpers(removeTagHelper.AssemblyName, NonComponentTagHelpers))
                         {
                             // No tag helpers in the assembly.
                             continue;
                         }
 
-                        foreach (var tagHelper in _tagHelpers)
+                        foreach (var tagHelper in NonComponentTagHelpers)
                         {
                             if (MatchesDirective(tagHelper, removeTagHelper.TypePattern, removeTagHelper.AssemblyName))
                             {
