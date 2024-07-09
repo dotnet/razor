@@ -145,7 +145,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         // For all the matches, add options for add @using and fully qualify
         foreach (var tagHelperPair in matching)
         {
-            if (tagHelperPair._fullyQualified is null)
+            if (tagHelperPair.FullyQualified is null)
             {
                 continue;
             }
@@ -215,7 +215,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         {
             if (SatisfiesRules(tagHelper.TagMatchingRules, tagName.AsSpan(), parentTagName.AsSpan(), attributes, out var caseInsensitiveMatch))
             {
-                matching.Add(tagHelper.Name, new TagHelperPair(@short: tagHelper, caseInsensitiveMatch));
+                matching.Add(tagHelper.Name, new TagHelperPair(tagHelper, caseInsensitiveMatch));
             }
         }
 
@@ -226,7 +226,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             {
                 if (tagHelperPair != null && tagHelper != tagHelperPair.Short)
                 {
-                    tagHelperPair._fullyQualified = tagHelper;
+                    tagHelperPair.FullyQualified = tagHelper;
                 }
             }
         }
@@ -328,10 +328,8 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         return false;
     }
 
-    private class TagHelperPair(TagHelperDescriptor @short, bool caseInsensitiveMatch)
+    private sealed record class TagHelperPair(TagHelperDescriptor Short, bool CaseInsensitiveMatch)
     {
-        public readonly TagHelperDescriptor Short = @short;
-        public readonly bool CaseInsensitiveMatch = caseInsensitiveMatch;
-        public TagHelperDescriptor? _fullyQualified = null;
+        public TagHelperDescriptor? FullyQualified { get; set; }
     }
 }

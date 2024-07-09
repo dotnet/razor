@@ -9,20 +9,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal sealed class RazorCodeActionContext(
-    VSCodeActionParams request,
-    IDocumentSnapshot documentSnapshot,
-    RazorCodeDocument codeDocument,
-    SourceLocation location,
-    SourceText sourceText,
-    bool supportsFileCreation,
-    bool supportsCodeActionResolve)
-{
-    public VSCodeActionParams Request { get; } = request;
-    public IDocumentSnapshot DocumentSnapshot { get; } = documentSnapshot;
-    public RazorCodeDocument CodeDocument { get; } = codeDocument;
-    public SourceLocation Location { get; } = location;
-    public SourceText SourceText { get; } = sourceText;
-    public bool SupportsFileCreation { get; } = supportsFileCreation;
-    public bool SupportsCodeActionResolve { get; } = supportsCodeActionResolve;
-}
+internal sealed record class RazorCodeActionContext(
+    VSCodeActionParams Request,
+    IDocumentSnapshot DocumentSnapshot,
+    RazorCodeDocument CodeDocument,
+    SourceLocation Location,
+    SourceText SourceText,
+    bool SupportsFileCreation,
+    bool SupportsCodeActionResolve);

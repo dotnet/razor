@@ -223,9 +223,5 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         return false;
     }
 
-    private readonly struct RazorUsingDirective(RazorDirectiveSyntax node, AddImportChunkGenerator statement)
-    {
-        public readonly RazorDirectiveSyntax Node { get; } = node;
-        public readonly AddImportChunkGenerator Statement { get; } = statement;
-    }
+    private readonly record struct RazorUsingDirective(RazorDirectiveSyntax Node, AddImportChunkGenerator Statement);
 }

@@ -41,12 +41,12 @@ internal sealed class GenerateMethodCodeActionResolver(
     private const string ReturnType = "$$ReturnType$$";
     private const string MethodName = "$$MethodName$$";
     private const string EventArgs = "$$EventArgs$$";
-    private static readonly string s_beginningIndents = $"{FormattingUtilities.InitialIndent}{FormattingUtilities.Indent}";
+    private const string BeginningIndents = $"{FormattingUtilities.InitialIndent}{FormattingUtilities.Indent}";
     private static readonly string s_generateMethodTemplate =
-        $"{s_beginningIndents}private {ReturnType} {MethodName}({EventArgs}){Environment.NewLine}" +
-        s_beginningIndents + "{" + Environment.NewLine +
-        $"{s_beginningIndents}{FormattingUtilities.Indent}throw new global::System.NotImplementedException();{Environment.NewLine}" +
-        s_beginningIndents + "}";
+        $"{BeginningIndents}private {ReturnType} {MethodName}({EventArgs}){Environment.NewLine}" +
+        BeginningIndents + "{" + Environment.NewLine +
+        $"{BeginningIndents}{FormattingUtilities.Indent}throw new global::System.NotImplementedException();{Environment.NewLine}" +
+        BeginningIndents + "}";
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
