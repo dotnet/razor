@@ -333,19 +333,22 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
     internal sealed class ComponentDirectiveVisitor : DirectiveVisitor
     {
-        private readonly List<TagHelperDescriptor> _notFullyQualifiedComponents = [];
+        private readonly List<TagHelperDescriptor> _nonFullyQualifiedComponents = [];
+
         private string? _filePath;
         private RazorSourceDocument? _source;
 
-        public void Initialize(string filePath, IReadOnlyList<TagHelperDescriptor> tagHelpers, string currentNamespace)
+        private string FilePath => _filePath.AssumeNotNull();
+        private RazorSourceDocument Source => _source.AssumeNotNull();
+
+        public void Initialize(string filePath, IReadOnlyList<TagHelperDescriptor> tagHelpers, string? currentNamespace)
         {
             Debug.Assert(!IsInitialized);
 
             _filePath = filePath;
 
-            for (var i = 0; i < tagHelpers.Count; i++)
+            foreach (var tagHelper in tagHelpers.AsEnumerable())
             {
-                var tagHelper = tagHelpers[i];
                 // We don't want to consider non-component tag helpers in a component document.
                 if (!tagHelper.IsAnyComponentDocumentTagHelper() || IsTagHelperFromMangledClass(tagHelper))
                 {
@@ -359,7 +362,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                     continue;
                 }
 
-                _notFullyQualifiedComponents.Add(tagHelper);
+                _nonFullyQualifiedComponents.Add(tagHelper);
 
                 if (currentNamespace is null)
                 {
@@ -387,7 +390,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         public override void Reset()
         {
-            _notFullyQualifiedComponents.Clear();
+            _nonFullyQualifiedComponents.Clear();
             _filePath = null;
             _source = null;
 
@@ -413,33 +416,35 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
                 switch (literal.ChunkGenerator)
                 {
-                    case null:
-                        // We can't find a chunk generator.
-                        continue;
                     case AddTagHelperChunkGenerator addTagHelper:
-                        // Make sure this node exists in the file we're parsing and not in its imports.
-                        if (_filePath.AssumeNotNull().Equals(_source.AssumeNotNull().FilePath, StringComparison.Ordinal))
+                        if (FilePath == Source.FilePath)
                         {
                             addTagHelper.Diagnostics.Add(
-                                ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(_source)));
+                                ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(Source)));
                         }
+
                         break;
+
                     case RemoveTagHelperChunkGenerator removeTagHelper:
                         // Make sure this node exists in the file we're parsing and not in its imports.
-                        if (_filePath.AssumeNotNull().Equals(_source.AssumeNotNull().FilePath, StringComparison.Ordinal))
+                        if (FilePath == Source.FilePath)
                         {
                             removeTagHelper.Diagnostics.Add(
-                                ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(_source)));
+                                ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(Source)));
                         }
+
                         break;
+
                     case TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix:
                         // Make sure this node exists in the file we're parsing and not in its imports.
-                        if (_filePath.AssumeNotNull().Equals(_source.AssumeNotNull().FilePath, StringComparison.Ordinal))
+                        if (FilePath == Source.FilePath)
                         {
                             tagHelperPrefix.Diagnostics.Add(
-                                ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(_source)));
+                                ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(Source)));
                         }
+
                         break;
+
                     case AddImportChunkGenerator { IsStatic: false } usingStatement:
                         // Get the namespace from the using statement.
                         var @namespace = usingStatement.ParsedNamespace;
@@ -449,7 +454,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                             continue;
                         }
 
-                        foreach (var tagHelper in _notFullyQualifiedComponents.AssumeNotNull())
+                        foreach (var tagHelper in _nonFullyQualifiedComponents)
                         {
                             Debug.Assert(!tagHelper.IsComponentFullyQualifiedNameMatch, "We've already processed these.");
 
@@ -468,6 +473,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                                 AddMatch(tagHelper);
                             }
                         }
+
                         break;
                 }
             }
@@ -475,21 +481,18 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         internal static bool IsTypeInNamespace(TagHelperDescriptor tagHelper, string @namespace)
         {
-            return IsTypeInNamespace(tagHelper.GetTypeNamespace(), @namespace);
+            var typeNamespace = tagHelper.GetTypeNamespace();
 
-            static bool IsTypeInNamespace(string typeNamespace, string @namespace)
+            if (typeNamespace.IsNullOrEmpty())
             {
-                if (string.IsNullOrEmpty(typeNamespace))
-                {
-                    // Either the typeName is not the full type name or this type is at the top level.
-                    return true;
-                }
-
-                // Remove global:: prefix from namespace.
-                var normalizedNamespace = GetSpanWithoutGlobalPrefix(@namespace);
-
-                return normalizedNamespace.Equals(typeNamespace.AsSpan(), StringComparison.Ordinal);
+                // Either the typeName is not the full type name or this type is at the top level.
+                return true;
             }
+
+            // Remove global:: prefix from namespace.
+            var normalizedNamespaceSpan = GetSpanWithoutGlobalPrefix(@namespace);
+
+            return normalizedNamespaceSpan.Equals(typeNamespace.AsSpan(), StringComparison.Ordinal);
         }
 
         // Check if the given type is already in scope given the namespace of the current document.
@@ -497,27 +500,24 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         // If the namespace of the document is `MyComponents.Components.Shared`,
         // then the types `MyComponents.FooComponent`, `MyComponents.Components.BarComponent`, `MyComponents.Components.Shared.BazComponent` are all in scope.
         // Whereas `MyComponents.SomethingElse.OtherComponent` is not in scope.
-        internal static bool IsTypeInScope(TagHelperDescriptor descriptor, string currentNamespace)
+        internal static bool IsTypeInScope(TagHelperDescriptor tagHelper, string @namespace)
         {
-            return IsTypeInScopeCore(currentNamespace, descriptor.GetTypeNamespace());
-        }
+            var typeNamespace = tagHelper.GetTypeNamespace();
 
-        private static bool IsTypeInScopeCore(string currentNamespace, string typeNamespace)
-        {
-            if (string.IsNullOrEmpty(typeNamespace))
+            if (typeNamespace.IsNullOrEmpty())
             {
                 // Either the typeName is not the full type name or this type is at the top level.
                 return true;
             }
 
-            if (!currentNamespace.StartsWith(typeNamespace, StringComparison.Ordinal))
+            if (!@namespace.StartsWith(typeNamespace, StringComparison.Ordinal))
             {
                 // typeName: MyComponents.Shared.SomeCoolNamespace
                 // currentNamespace: MyComponents.Shared
                 return false;
             }
 
-            if (typeNamespace.Length > currentNamespace.Length && typeNamespace[currentNamespace.Length] != '.')
+            if (typeNamespace.Length > @namespace.Length && typeNamespace[@namespace.Length] != '.')
             {
                 // typeName: MyComponents.SharedFoo
                 // currentNamespace: MyComponent.Shared
