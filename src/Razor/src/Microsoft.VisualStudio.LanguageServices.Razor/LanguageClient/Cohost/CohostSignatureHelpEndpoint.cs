@@ -9,13 +9,12 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SignatureHelp;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
+using RLSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 
@@ -31,7 +30,7 @@ internal class CohostSignatureHelpEndpoint(
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<SignatureHelpParams, SignatureHelp?>, IDynamicRegistrationProvider
+    : AbstractRazorCohostDocumentRequestHandler<SignatureHelpParams, SumType<SignatureHelp, RLSP.SignatureHelp>?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceProvider _remoteServiceProvider = remoteServiceProvider;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
@@ -60,21 +59,24 @@ internal class CohostSignatureHelpEndpoint(
     }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(SignatureHelpParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+        => new RazorTextDocumentIdentifier(request.TextDocument.Uri, (request.TextDocument as VSTextDocumentIdentifier)?.ProjectContext?.Id);
 
-    protected async override Task<SignatureHelp?> HandleRequestAsync(SignatureHelpParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    // NOTE: The use of SumType here is a little odd, but it allows us to return Roslyn LSP types from the Roslyn call, and VS LSP types from the Html
+    //       call. It works because both sets of types are attributed the right way, so the Json ends up looking the same and the client doesn't
+    //       care. Ideally eventually we will be able to move all of this to just Roslyn LSP types, but we might have to wait for Web Tools
+    protected async override Task<SumType<SignatureHelp, RLSP.SignatureHelp>?> HandleRequestAsync(SignatureHelpParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
         var razorDocument = context.TextDocument.AssumeNotNull();
 
-        var data = await _remoteServiceProvider.TryInvokeAsync<IRemoteSignatureHelpService, RemoteSignatureHelp?>(
+        var data = await _remoteServiceProvider.TryInvokeAsync<IRemoteSignatureHelpService, RLSP.SignatureHelp?>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetSignatureHelpAsync(solutionInfo, razorDocument.Id, request.Position.ToLinePosition(), request.Context.TriggerKind, request.Context.TriggerCharacter, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetSignatureHelpAsync(solutionInfo, razorDocument.Id, new RLSP.Position(request.Position.Line, request.Position.Character), cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         // If we got a response back, then either Razor or C# wants to do something with this, so we're good to go
         if (data is { } signatureHelp)
         {
-            return signatureHelp.ToSignatureHelp();
+            return signatureHelp;
         }
 
         // If we didn't get anything from Razor or Roslyn, lets ask Html what they want to do
