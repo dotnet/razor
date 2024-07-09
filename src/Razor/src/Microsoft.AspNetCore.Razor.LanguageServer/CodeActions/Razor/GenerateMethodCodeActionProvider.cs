@@ -19,7 +19,7 @@ using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
-internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
+internal sealed class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 {
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
@@ -30,8 +30,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         }
 
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var owner = syntaxTree.Root.FindToken(context.Location.AbsoluteIndex).Parent;
-        Assumes.NotNull(owner);
+        var owner = syntaxTree.Root.FindToken(context.Location.AbsoluteIndex).Parent.AssumeNotNull();
 
         if (IsGenerateEventHandlerValid(owner, out var methodName, out var eventName))
         {
@@ -73,7 +72,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return false;
         }
 
-        // MarkupTagHelperElement > MarkupTagHelperStartTag > MarkupTagHelperDirectiveAttribute 
+        // MarkupTagHelperElement > MarkupTagHelperStartTag > MarkupTagHelperDirectiveAttribute
         if (commonParent.Parent.Parent is not MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
         {
             return false;

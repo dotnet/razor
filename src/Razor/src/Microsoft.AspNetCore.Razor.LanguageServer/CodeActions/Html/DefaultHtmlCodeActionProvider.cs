@@ -15,14 +15,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal sealed class DefaultHtmlCodeActionProvider : IHtmlCodeActionProvider
+internal sealed class DefaultHtmlCodeActionProvider(IRazorDocumentMappingService documentMappingService) : IHtmlCodeActionProvider
 {
-    private readonly IRazorDocumentMappingService _documentMappingService;
-
-    public DefaultHtmlCodeActionProvider(IRazorDocumentMappingService documentMappingService)
-    {
-        _documentMappingService = documentMappingService;
-    }
+    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
 
     public async Task<ImmutableArray<RazorVSInternalCodeAction>?> ProvideAsync(
         RazorCodeActionContext context,

@@ -43,11 +43,6 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         ImmutableArray<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
         if (context.Request?.Context?.Diagnostics is null)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -273,7 +268,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         var fqnWorkspaceEditDocumentChange = new TextDocumentEdit()
         {
             TextDocument = codeDocumentIdentifier,
-            Edits = new[] { fqnTextEdit },
+            Edits = [fqnTextEdit],
         };
 
         var fqnWorkspaceEdit = new WorkspaceEdit()

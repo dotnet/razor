@@ -49,7 +49,7 @@ internal static class AddUsingsCodeActionProviderHelper
             edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
         }
 
-        return edits.ToArray();
+        return [.. edits];
     }
 
     private static async Task<IEnumerable<string>> FindUsingDirectiveStringsAsync(SourceText originalCSharpText, CancellationToken cancellationToken)
