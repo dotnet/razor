@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using IServiceProvider = System.IServiceProvider;
 
@@ -42,6 +43,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
     private readonly ILspEditorFeatureDetector _editorFeatureDetector;
     private readonly IEditorOptionsFactoryService _editorOptionsFactory;
     private readonly IClientSettingsManager _editorSettingsManager;
+    private readonly JoinableTaskContext _joinableTaskContext;
     private IVsTextManager4? _textManager;
 
     /// <summary>
@@ -62,19 +64,28 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
         IVsEditorAdaptersFactoryService editorAdaptersFactory,
         ILspEditorFeatureDetector editorFeatureDetector,
         IEditorOptionsFactoryService editorOptionsFactory,
-        IClientSettingsManager editorSettingsManager)
+        IClientSettingsManager editorSettingsManager,
+        JoinableTaskContext joinableTaskContext)
     {
         _serviceProvider = serviceProvider;
         _editorAdaptersFactory = editorAdaptersFactory;
         _editorFeatureDetector = editorFeatureDetector;
         _editorOptionsFactory = editorOptionsFactory;
         _editorSettingsManager = editorSettingsManager;
+        _joinableTaskContext = joinableTaskContext;
     }
 
     /// <summary>
     /// Gets instance of <see cref="IVsTextManager4"/>. This accesses COM object and requires to be called on the UI thread.
     /// </summary>
-    private IVsTextManager4 TextManager => _textManager ??= (IVsTextManager4)_serviceProvider.GetService(typeof(SVsTextManager));
+    private IVsTextManager4 TextManager
+    {
+        get
+        {
+            _joinableTaskContext.AssertUIThread();
+            return _textManager ??= (IVsTextManager4)_serviceProvider.GetService(typeof(SVsTextManager));
+        }
+    }
 
     public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
     {
