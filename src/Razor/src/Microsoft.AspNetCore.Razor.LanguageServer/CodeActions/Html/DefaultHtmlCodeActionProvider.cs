@@ -2,11 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -22,12 +24,12 @@ internal sealed class DefaultHtmlCodeActionProvider : IHtmlCodeActionProvider
         _documentMappingService = documentMappingService;
     }
 
-    public async Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+    public async Task<ImmutableArray<RazorVSInternalCodeAction>?> ProvideAsync(
         RazorCodeActionContext context,
-        IEnumerable<RazorVSInternalCodeAction> codeActions,
+        ImmutableArray<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
     {
-        var results = new List<RazorVSInternalCodeAction>();
+        using var _ = ArrayBuilderPool<RazorVSInternalCodeAction>.GetPooledObject(out var results);
 
         foreach (var codeAction in codeActions)
         {
@@ -43,7 +45,7 @@ internal sealed class DefaultHtmlCodeActionProvider : IHtmlCodeActionProvider
             }
         }
 
-        return results;
+        return results.ToImmutableArray();
     }
 
     public static async Task RemapAndFixHtmlCodeActionEditAsync(IRazorDocumentMappingService documentMappingService, RazorCodeDocument codeDocument, CodeAction codeAction, CancellationToken cancellationToken)

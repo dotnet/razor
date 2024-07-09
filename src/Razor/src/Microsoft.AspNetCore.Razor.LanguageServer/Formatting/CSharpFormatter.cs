@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -280,7 +281,7 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
         var indentationMap = new Dictionary<int, IndentationMapData>();
         var marker = "/*__marker__*/";
         var markerString = $"{context.NewLineString}{marker}{context.NewLineString}";
-        var changes = new List<TextChange>();
+        using var _ = ArrayBuilderPool<TextChange>.GetPooledObject(out var changes);
 
         var previousMarkerOffset = 0;
         foreach (var projectedDocumentIndex in projectedDocumentLocations)

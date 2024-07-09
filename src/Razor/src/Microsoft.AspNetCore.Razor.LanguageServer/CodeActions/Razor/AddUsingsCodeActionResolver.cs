@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -90,7 +91,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         }
 
         var usingDirectives = FindUsingDirectives(codeDocument);
-        if (usingDirectives.Count > 0)
+        if (usingDirectives.Length > 0)
         {
             // Interpolate based on existing @using statements
             var edits = GenerateSingleUsingEditsInterpolated(codeDocument, codeDocumentIdentifier, @namespace, usingDirectives);
@@ -113,9 +114,9 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         RazorCodeDocument codeDocument,
         OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
         string newUsingNamespace,
-        List<RazorUsingDirective> existingUsingDirectives)
+        ImmutableArray<RazorUsingDirective> existingUsingDirectives)
     {
-        var edits = new List<TextEdit>();
+        using var _ = ArrayBuilderPool<TextEdit>.GetPooledObject(out var edits);
         var newText = $"@using {newUsingNamespace}{Environment.NewLine}";
 
         foreach (var usingDirective in existingUsingDirectives)
@@ -201,9 +202,10 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         }
     }
 
-    private static List<RazorUsingDirective> FindUsingDirectives(RazorCodeDocument codeDocument)
+    private static ImmutableArray<RazorUsingDirective> FindUsingDirectives(RazorCodeDocument codeDocument)
     {
-        var directives = new List<RazorUsingDirective>();
+        using var _ = ArrayBuilderPool<RazorUsingDirective>.GetPooledObject(out var directives);
+
         var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
         foreach (var node in syntaxTreeRoot.DescendantNodes())
         {
@@ -219,7 +221,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
             }
         }
 
-        return directives;
+        return directives.ToImmutableArray();
     }
 
     private static bool IsNamespaceOrPageDirective(SyntaxNode node)

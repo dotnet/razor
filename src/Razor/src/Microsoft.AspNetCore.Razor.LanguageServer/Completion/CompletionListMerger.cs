@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -87,7 +89,7 @@ internal static class CompletionListMerger
             return false;
         }
 
-        var collector = new List<JsonElement>();
+        using var _ = ListPool<JsonElement>.GetPooledObject(out var collector);
         Split(data, collector);
 
         if (collector.Count == 0)
@@ -209,7 +211,7 @@ internal static class CompletionListMerger
             VSInternalCompletionList? completionListToStopInheriting;
 
             // Decide which completion list has more items that benefit from "inheriting" commit characters.
-            if (inheritableCommitCharacterCompletionsA.Count >= inheritableCommitCharacterCompletionsB.Count)
+            if (inheritableCommitCharacterCompletionsA.Length >= inheritableCommitCharacterCompletionsB.Length)
             {
                 completionListToStopInheriting = completionListB;
                 completionItemsToStopInheriting = inheritableCommitCharacterCompletionsB;
@@ -241,10 +243,9 @@ internal static class CompletionListMerger
         }
     }
 
-    private static IReadOnlyList<VSInternalCompletionItem> GetCompletionsThatDoNotSpecifyCommitCharacters(VSInternalCompletionList completionList)
+    private static ImmutableArray<VSInternalCompletionItem> GetCompletionsThatDoNotSpecifyCommitCharacters(VSInternalCompletionList completionList)
     {
-        var inheritableCompletions = new List<VSInternalCompletionItem>();
-
+        using var _ = ArrayBuilderPool<VSInternalCompletionItem>.GetPooledObject(out var inheritableCompletions);
         for (var i = 0; i < completionList.Items.Length; i++)
         {
             var completionItem = completionList.Items[i] as VSInternalCompletionItem;
@@ -259,7 +260,7 @@ internal static class CompletionListMerger
             inheritableCompletions.Add(completionItem);
         }
 
-        return inheritableCompletions;
+        return inheritableCompletions.ToImmutableArray();
     }
 
     private record MergedCompletionListData(object Data1, object Data2);

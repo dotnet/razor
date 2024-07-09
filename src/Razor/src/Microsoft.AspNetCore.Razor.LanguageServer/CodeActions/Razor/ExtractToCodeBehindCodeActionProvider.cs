@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -34,34 +35,34 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
         _logger = loggerFactory.GetOrCreateLogger<ExtractToCodeBehindCodeActionProvider>();
     }
 
-    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+    public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         if (context is null)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (!context.SupportsFileCreation)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (!FileKinds.IsComponent(context.CodeDocument.GetFileKind()))
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
         if (syntaxTree?.Root is null)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex);
         if (owner is null)
         {
             _logger.LogWarning($"Owner should never be null.");
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var directiveNode = owner?.Parent switch
@@ -76,42 +77,42 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
         };
         if (directiveNode is null)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // Make sure we've found a @code or @functions
         if (directiveNode.DirectiveDescriptor != ComponentCodeDirective.Directive &&
             directiveNode.DirectiveDescriptor != FunctionsDirective.Directive)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // No code action if malformed
         if (directiveNode.GetDiagnostics().Any(d => d.Severity == RazorDiagnosticSeverity.Error))
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var csharpCodeBlockNode = (directiveNode.Body as RazorDirectiveBodySyntax)?.CSharpCode;
         if (csharpCodeBlockNode is null)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // Do not provide code action if the cursor is inside the code block
         if (context.Location.AbsoluteIndex > csharpCodeBlockNode.SpanStart)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (HasUnsupportedChildren(csharpCodeBlockNode))
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (!TryGetNamespace(context.CodeDocument, out var @namespace))
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var actionParams = new ExtractToCodeBehindCodeActionParams()
@@ -132,9 +133,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
         };
 
         var codeAction = RazorCodeActionFactory.CreateExtractToCodeBehind(resolutionParams);
-        var codeActions = new List<RazorVSInternalCodeAction> { codeAction };
-
-        return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
+        return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
     private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)

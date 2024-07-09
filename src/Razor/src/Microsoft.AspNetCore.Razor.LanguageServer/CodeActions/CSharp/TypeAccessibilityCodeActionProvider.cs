@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -36,9 +38,9 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         "IDE1007"
     };
 
-    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+    public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(
         RazorCodeActionContext context,
-        IEnumerable<RazorVSInternalCodeAction> codeActions,
+        ImmutableArray<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
     {
         if (context is null)
@@ -46,32 +48,27 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             throw new ArgumentNullException(nameof(context));
         }
 
-        if (codeActions is null)
-        {
-            throw new ArgumentNullException(nameof(codeActions));
-        }
-
         if (context.Request?.Context?.Diagnostics is null)
         {
-            return SpecializedTasks.AsNullable(SpecializedTasks.EmptyReadOnlyList<RazorVSInternalCodeAction>());
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (codeActions is null || !codeActions.Any())
+        if (codeActions.IsEmpty)
         {
-            return SpecializedTasks.AsNullable(SpecializedTasks.EmptyReadOnlyList<RazorVSInternalCodeAction>());
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var results = context.SupportsCodeActionResolve
             ? ProcessCodeActionsVS(context, codeActions)
             : ProcessCodeActionsVSCode(context, codeActions);
 
-        var orderedResults = results.OrderBy(codeAction => codeAction.Title).ToArray();
-        return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(orderedResults);
+        var orderedResults = results.OrderBy(codeAction => codeAction.Title).ToImmutableArray();
+        return Task.FromResult(orderedResults);
     }
 
-    private static IEnumerable<RazorVSInternalCodeAction> ProcessCodeActionsVSCode(
+    private static ImmutableArray<RazorVSInternalCodeAction> ProcessCodeActionsVSCode(
         RazorCodeActionContext context,
-        IEnumerable<RazorVSInternalCodeAction> codeActions)
+        ImmutableArray<RazorVSInternalCodeAction> codeActions)
     {
         var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
             diagnostic is { Severity: DiagnosticSeverity.Error, Code: { } code } &&
@@ -80,10 +77,10 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
         if (diagnostics is null || !diagnostics.Any())
         {
-            return Array.Empty<RazorVSInternalCodeAction>();
+            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
         }
 
-        var typeAccessibilityCodeActions = new List<RazorVSInternalCodeAction>();
+        using var _ = ArrayBuilderPool<RazorVSInternalCodeAction>.GetPooledObject(out var typeAccessibilityCodeActions);
 
         foreach (var diagnostic in diagnostics)
         {
@@ -152,14 +149,14 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             }
         }
 
-        return typeAccessibilityCodeActions;
+        return typeAccessibilityCodeActions.ToImmutableArray();
     }
 
-    private static IEnumerable<RazorVSInternalCodeAction> ProcessCodeActionsVS(
+    private static ImmutableArray<RazorVSInternalCodeAction> ProcessCodeActionsVS(
         RazorCodeActionContext context,
-        IEnumerable<RazorVSInternalCodeAction> codeActions)
+        ImmutableArray<RazorVSInternalCodeAction> codeActions)
     {
-        var typeAccessibilityCodeActions = new List<RazorVSInternalCodeAction>(1);
+        using var _ = ArrayBuilderPool<RazorVSInternalCodeAction>.GetPooledObject(out var typeAccessibilityCodeActions);
 
         foreach (var codeAction in codeActions)
         {
@@ -209,7 +206,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             }
         }
 
-        return typeAccessibilityCodeActions;
+        return typeAccessibilityCodeActions.ToImmutableArray();
 
         static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode? owner)
         {

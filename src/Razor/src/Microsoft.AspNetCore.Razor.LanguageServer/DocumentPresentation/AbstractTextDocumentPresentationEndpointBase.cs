@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -136,7 +137,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
 
         if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
         {
-            var documentEditList = new List<TextDocumentEdit>();
+            using var _ = ArrayBuilderPool<TextDocumentEdit>.GetPooledObject(out var documentEditList);
             foreach (var sumType in sumTypeArray)
             {
                 if (sumType.Value is TextDocumentEdit textDocumentEdit)
@@ -187,7 +188,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
 
     private TextDocumentEdit[] MapDocumentChanges(TextDocumentEdit[] documentEdits, bool mapRanges, RazorCodeDocument codeDocument, int hostDocumentVersion)
     {
-        var remappedDocumentEdits = new List<TextDocumentEdit>();
+        using var _ = ArrayBuilderPool<TextDocumentEdit>.GetPooledObject(out var remappedDocumentEdits);
         foreach (var entry in documentEdits)
         {
             var uri = entry.TextDocument.Uri;
@@ -229,7 +230,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
             return edits.ToArray();
         }
 
-        var mappedEdits = new List<TextEdit>();
+        using var _ = ArrayBuilderPool<TextEdit>.GetPooledObject(out var mappedEdits);
         foreach (var edit in edits)
         {
             if (!_razorDocumentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))

@@ -195,7 +195,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         }
     }
 
-    private async Task<List<TagHelperPair>> FindMatchingTagHelpersAsync(RazorCodeActionContext context, IStartTagSyntaxNode startTag, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<TagHelperPair>> FindMatchingTagHelpersAsync(RazorCodeActionContext context, IStartTagSyntaxNode startTag, CancellationToken cancellationToken)
     {
         // Get all data necessary for matching
         var tagName = startTag.Name.Content;
@@ -236,7 +236,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             }
         }
 
-        return new List<TagHelperPair>(matching.Values);
+        return [matching.Values];
     }
 
     private bool SatisfiesRules(ImmutableArray<TagMatchingRuleDescriptor> tagMatchingRules, ReadOnlySpan<char> tagNameWithoutPrefix, ReadOnlySpan<char> parentTagNameWithoutPrefix, ImmutableArray<KeyValuePair<string, string>> tagAttributes, out bool caseInsensitiveMatch)

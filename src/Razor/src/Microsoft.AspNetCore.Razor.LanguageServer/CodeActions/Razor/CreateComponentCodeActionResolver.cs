@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -65,10 +66,7 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
             Host = string.Empty,
         }.Uri;
 
-        var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>
-        {
-            new CreateFile() { Uri = newComponentUri },
-        };
+        ImmutableArray<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges = [new CreateFile() { Uri = newComponentUri }];
 
         TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);
 
@@ -78,7 +76,7 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
         };
     }
 
-    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, ImmutableArray<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         var namespaceDirective = syntaxTree.Root.DescendantNodes()

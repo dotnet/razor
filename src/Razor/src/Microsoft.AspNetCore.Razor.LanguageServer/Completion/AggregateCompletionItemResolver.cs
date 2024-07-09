@@ -2,10 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -29,7 +31,7 @@ internal class AggregateCompletionItemResolver
         VSInternalClientCapabilities? clientCapabilities,
         CancellationToken cancellationToken)
     {
-        var completionItemResolverTasks = new List<Task<VSInternalCompletionItem?>>(_completionItemResolvers.Count);
+        using var _ = ArrayBuilderPool<Task<VSInternalCompletionItem?>>.GetPooledObject(out var completionItemResolverTasks);
 
         foreach (var completionItemResolver in _completionItemResolvers)
         {
@@ -44,7 +46,7 @@ internal class AggregateCompletionItemResolver
             }
         }
 
-        var resolvedCompletionItems = new Queue<VSInternalCompletionItem>();
+        using var _1 = ListPool<VSInternalCompletionItem>.GetPooledObject(out var resolvedCompletionItems);
         foreach (var completionItemResolverTask in completionItemResolverTasks)
         {
             try
@@ -52,7 +54,7 @@ internal class AggregateCompletionItemResolver
                 var resolvedCompletionItem = await completionItemResolverTask.ConfigureAwait(false);
                 if (resolvedCompletionItem is not null)
                 {
-                    resolvedCompletionItems.Enqueue(resolvedCompletionItem);
+                    resolvedCompletionItems.Add(resolvedCompletionItem);
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
