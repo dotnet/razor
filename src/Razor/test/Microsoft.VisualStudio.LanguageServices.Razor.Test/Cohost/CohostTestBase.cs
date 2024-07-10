@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -14,17 +13,15 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost;
 
-public class CohostTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
+public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
 {
-    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
-
     private IRemoteServiceProvider? _remoteServiceProvider;
 
-    internal IRemoteServiceProvider RemoteServiceProvider => _remoteServiceProvider.AssumeNotNull();
+    private protected IRemoteServiceProvider RemoteServiceProvider => _remoteServiceProvider.AssumeNotNull();
 
     protected override Task InitializeAsync()
     {
-        _remoteServiceProvider = new ShortCircuitingRemoteServiceProvider(_testOutputHelper);
+        _remoteServiceProvider = new ShortCircuitingRemoteServiceProvider(TestOutputHelper);
 
         return base.InitializeAsync();
     }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -25,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost;
 /// </summary>
 internal class ShortCircuitingRemoteServiceProvider(ITestOutputHelper testOutputHelper) : IRemoteServiceProvider
 {
-    private static Dictionary<Type, IServiceHubServiceFactory> _factoryMap = BuildFactoryMap();
+    private static readonly Dictionary<Type, IServiceHubServiceFactory> s_factoryMap = BuildFactoryMap();
 
     private readonly IServiceProvider _serviceProvider = new TestTraceSourceProvider(testOutputHelper);
 
@@ -38,7 +37,7 @@ internal class ShortCircuitingRemoteServiceProvider(ITestOutputHelper testOutput
             if (!type.IsAbstract &&
                 typeof(IServiceHubServiceFactory).IsAssignableFrom(type))
             {
-                Debug.Assert(type.BaseType.GetGenericTypeDefinition() == typeof(RazorServiceFactoryBase<>));
+                Assert.Equal(typeof(RazorServiceFactoryBase<>), type.BaseType.GetGenericTypeDefinition());
 
                 var genericType = type.BaseType.GetGenericArguments().FirstOrDefault();
                 if (genericType != null)
@@ -53,9 +52,15 @@ internal class ShortCircuitingRemoteServiceProvider(ITestOutputHelper testOutput
         return result;
     }
 
-    public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
+    public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
+        Solution solution,
+        Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerMemberName] string? callerMemberName = null)
+        where TService : class
     {
-        Assert.True(_factoryMap.TryGetValue(typeof(TService), out var factory));
+        Assert.True(s_factoryMap.TryGetValue(typeof(TService), out var factory));
 
         var testServiceBroker = new InterceptingServiceBroker(solution);
 

@@ -21,7 +21,8 @@ internal class InterceptingServiceBroker(Solution solution) : IServiceBroker, IB
         throw new NotImplementedException();
     }
 
-    public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options = default, CancellationToken cancellationToken = default) where T : class
+    public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options = default, CancellationToken cancellationToken = default)
+        where T : class
     {
         throw new NotImplementedException();
     }
