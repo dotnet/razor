@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Xunit;
 
@@ -33,20 +32,24 @@ public class PooledArrayBuilderTests
         }
     }
 
-    public static IEnumerable<object[]> RemoveAtIndex_Data
+    public static TheoryData<int, int> RemoveAtIndex_Data
     {
         get
         {
+            var data = new TheoryData<int, int>();
+
             for (var count = 0; count < 8; count++)
             {
                 for (var removeIndex = 0; removeIndex < 8; removeIndex++)
                 {
                     if (removeIndex < count)
                     {
-                        yield return new object[] { count, removeIndex };
+                        data.Add(count, removeIndex);
                     }
                 }
             }
+
+            return data;
         }
     }
 
