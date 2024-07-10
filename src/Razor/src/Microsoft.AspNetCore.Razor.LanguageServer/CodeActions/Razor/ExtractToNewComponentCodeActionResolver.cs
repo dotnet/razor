@@ -73,13 +73,10 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
         }
 
         var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
-<<<<<<< HEAD
-        var componentPath = GenerateComponentBehindPath(path);
-=======
+
         var directoryName = Path.GetDirectoryName(path) ?? throw new InvalidOperationException($"Unable to determine the directory name for the path: {path}");
         var templatePath = Path.Combine(directoryName, "Component");
         var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
->>>>>>> dev/t-hearroyo/ExtractToComponent
 
         // VS Code in Windows expects path to start with '/'
         var updatedComponentPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !componentPath.StartsWith("/")
