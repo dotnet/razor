@@ -40,7 +40,9 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     }
+
     public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponentAction;
+
     public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
     {
         if (data.ValueKind == JsonValueKind.Undefined)
@@ -49,7 +51,6 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
         }
 
         var actionParams = JsonSerializer.Deserialize<ExtractToNewComponentCodeActionParams>(data.GetRawText());
-
         if (actionParams is null)
         {
             return null;
@@ -72,7 +73,13 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
         }
 
         var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
+<<<<<<< HEAD
         var componentPath = GenerateComponentBehindPath(path);
+=======
+        var directoryName = Path.GetDirectoryName(path) ?? throw new InvalidOperationException($"Unable to determine the directory name for the path: {path}");
+        var templatePath = Path.Combine(directoryName, "Component");
+        var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
+>>>>>>> dev/t-hearroyo/ExtractToComponent
 
         // VS Code in Windows expects path to start with '/'
         var updatedComponentPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !componentPath.StartsWith("/")
@@ -139,32 +146,5 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
         {
             DocumentChanges = documentChanges,
         };
-    }
-
-    /// <summary>
-    /// Generate a file path with adjacent to our input path that has the
-    /// correct code-behind extension, using numbers to differentiate from
-    /// any collisions.
-    /// </summary>
-    /// <param name="path">The origin file path.</param>
-    /// <returns>A non-existent file path with the same base name and a code-behind extension.</returns>
-    private static string GenerateComponentBehindPath(string path)
-    {
-        var n = 0;
-        string componentBehindPath;
-        do
-        {
-            var identifier = n > 0 ? n.ToString(CultureInfo.InvariantCulture) : string.Empty;  // Make it look nice
-            var directoryName = Path.GetDirectoryName(path);
-            Assumes.NotNull(directoryName);
-
-            componentBehindPath = Path.Combine(
-                directoryName,
-                $"Component{identifier}.razor");
-            n++;
-        }
-        while (File.Exists(componentBehindPath));
-
-        return componentBehindPath;
     }
 }

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+
 internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeActionProvider
 {
     private readonly ILogger _logger;
@@ -122,8 +123,8 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         // good namespace to extract to
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
 
-    private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
-    {
-        return node.DescendantNodes().Any(static n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
-    }
+    //private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
+    //{
+    //    return node.DescendantNodes().Any(static n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
+    //}
 }
