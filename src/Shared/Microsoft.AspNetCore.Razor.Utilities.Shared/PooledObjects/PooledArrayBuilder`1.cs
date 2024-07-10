@@ -472,6 +472,23 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     public readonly T Last() => this[^1];
     public readonly T? LastOrDefault() => Count > 0 ? this[^1] : default;
 
+    public readonly T Single()
+    {
+        if (Count == 0)
+        {
+            ThrowInvalidOperation(SR.Contains_no_elements);
+        }
+        else if (Count > 1)
+        {
+            ThrowInvalidOperation(SR.Contains_more_than_one_element);
+        }
+
+        return this[0];
+    }
+
+    public readonly T? SingleOrDefault()
+        => Count == 1 ? this[0] : default;
+
     /// <summary>
     ///  This is present to help the JIT inline methods that need to throw
     ///  a <see cref="IndexOutOfRangeException"/>.
@@ -479,6 +496,14 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     [DoesNotReturn]
     private static void ThrowIndexOutOfRangeException()
         => throw new IndexOutOfRangeException();
+
+    /// <summary>
+    ///  This is present to help the JIT inline methods that need to throw
+    ///  a <see cref="InvalidOperationException"/>.
+    /// </summary>
+    [DoesNotReturn]
+    private static void ThrowInvalidOperation(string message)
+        => throw new InvalidOperationException(message);
 
     [MemberNotNull(nameof(_builder))]
     private void MoveInlineItemsToBuilder()
