@@ -1,7 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Threading;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace System.Collections.Immutable;
@@ -204,5 +208,124 @@ internal static class ImmutableArrayExtensions
         }
 
         return ~min;
+    }
+
+    public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array)
+        => array.OrderAsArrayCore(GetComparer<T>(comparer: null, descending: false));
+
+    public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array, IComparer<T> comparer)
+        => array.OrderAsArrayCore(GetComparer(comparer, descending: false));
+
+    public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array, Comparison<T> comparison)
+        => array.OrderAsArrayCore(GetComparer(comparison, descending: false));
+
+    public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array)
+        => array.OrderAsArrayCore(GetComparer<T>(comparer: null, descending: true));
+
+    public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array, IComparer<T> comparer)
+        => array.OrderAsArrayCore(GetComparer(comparer, descending: true));
+
+    public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array, Comparison<T> comparison)
+        => array.OrderAsArrayCore(GetComparer(comparison, descending: true));
+
+    public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
+        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector)
+        => array.OrderByAsArrayCore(keySelector, GetComparer<TKey>(comparer: null, descending: false));
+
+    public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
+        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
+        => array.OrderByAsArrayCore(keySelector, GetComparer(comparer, descending: false));
+
+    public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
+        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
+        => array.OrderByAsArrayCore(keySelector, GetComparer(comparison, descending: false));
+
+    public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
+        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector)
+        => array.OrderByAsArrayCore(keySelector, GetComparer<TKey>(comparer: null, descending: true));
+
+    public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
+        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
+        => array.OrderByAsArrayCore(keySelector, GetComparer(comparer, descending: true));
+
+    public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
+        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
+        => array.OrderByAsArrayCore(keySelector, GetComparer(comparison, descending: true));
+
+    private static IComparer<T> GetComparer<T>(IComparer<T>? comparer, bool descending)
+    {
+        if (comparer is null)
+        {
+            return descending
+                ? DescendingComparer<T>.Default
+                : Comparer<T>.Default;
+        }
+
+        return descending
+            ? new DescendingComparer<T>(comparer)
+            : comparer;
+    }
+
+    private static IComparer<T> GetComparer<T>(Comparison<T> comparison, bool descending)
+    {
+        var comparer = Comparer<T>.Create(comparison);
+
+        return descending
+            ? new DescendingComparer<T>(comparer)
+            : comparer;
+    }
+
+    private sealed class DescendingComparer<T>(IComparer<T> comparer) : IComparer<T>
+    {
+        private static IComparer<T>? s_default;
+
+        public static IComparer<T> Default => s_default ??= new DescendingComparer<T>(Comparer<T>.Default);
+
+        public int Compare(T? x, T? y)
+            => comparer.Compare(y!, x!);
+    }
+
+    private static ImmutableArray<T> OrderAsArrayCore<T>(this ImmutableArray<T> array, IComparer<T> comparer)
+    {
+        if (array.IsEmpty)
+        {
+            return array;
+        }
+
+        var span = array.AsSpan();
+
+        var length = span.Length;
+        var items = new T[length];
+        span.CopyTo(items);
+
+        Array.Sort(items, comparer);
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(items);
+    }
+
+    private static ImmutableArray<TElement> OrderByAsArrayCore<TElement, TKey>(
+        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
+    {
+        if (array.IsEmpty)
+        {
+            return array;
+        }
+
+        var span = array.AsSpan();
+
+        var length = span.Length;
+        var items = new TElement[length];
+        span.CopyTo(items);
+
+        using var _ = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length, out var keys);
+
+        for (var i = 0; i < length; i++)
+        {
+            keys[i] = keySelector(items[i]);
+        }
+
+        Array.Sort(keys, items, 0, length, comparer);
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(items);
     }
 }
