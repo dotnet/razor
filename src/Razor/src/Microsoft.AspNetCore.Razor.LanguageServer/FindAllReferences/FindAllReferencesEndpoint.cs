@@ -74,7 +74,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
 
     protected override async Task<VSInternalReferenceItem[]> HandleDelegatedResponseAsync(VSInternalReferenceItem[] delegatedResponse, ReferenceParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilderPool<VSInternalReferenceItem>.GetPooledObject(out var remappedLocations);
+        using var remappedLocations = new PooledArrayBuilder<VSInternalReferenceItem>();
 
         foreach (var referenceItem in delegatedResponse)
         {

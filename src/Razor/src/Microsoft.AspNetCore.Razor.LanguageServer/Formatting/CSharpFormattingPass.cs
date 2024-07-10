@@ -83,7 +83,8 @@ internal sealed class CSharpFormattingPass(
     private async Task<ImmutableArray<TextEdit>> FormatCSharpAsync(FormattingContext context, CancellationToken cancellationToken)
     {
         var sourceText = context.SourceText;
-        using var _ = ArrayBuilderPool<TextEdit>.GetPooledObject(out var csharpEdits);
+
+        using var csharpEdits = new PooledArrayBuilder<TextEdit>();
         foreach (var mapping in context.CodeDocument.GetCSharpDocument().SourceMappings)
         {
             var span = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
@@ -99,6 +100,6 @@ internal sealed class CSharpFormattingPass(
             csharpEdits.AddRange(edits.Where(e => range.Contains(e.Range)));
         }
 
-        return csharpEdits.ToImmutableArray();
+        return csharpEdits.ToImmutable();
     }
 }

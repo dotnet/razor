@@ -281,7 +281,8 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
         var indentationMap = new Dictionary<int, IndentationMapData>();
         var marker = "/*__marker__*/";
         var markerString = $"{context.NewLineString}{marker}{context.NewLineString}";
-        using var _ = ArrayBuilderPool<TextChange>.GetPooledObject(out var changes);
+
+        using var changes = new PooledArrayBuilder<TextChange>();
 
         var previousMarkerOffset = 0;
         foreach (var projectedDocumentIndex in projectedDocumentLocations)
@@ -319,7 +320,7 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
             }
         }
 
-        var changedText = context.CSharpSourceText.WithChanges(changes);
+        var changedText = context.CSharpSourceText.WithChanges(changes.ToImmutable());
         var syntaxTree = CSharpSyntaxTree.ParseText(changedText, cancellationToken: cancellationToken);
         return (indentationMap, syntaxTree);
     }
