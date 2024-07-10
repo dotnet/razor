@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+
 internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeActionProvider
 {
     private readonly ILogger _logger;

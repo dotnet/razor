@@ -141,33 +141,6 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         };
     }
 
-    /// <summary>
-    /// Generate a file path with adjacent to our input path that has the
-    /// correct codebehind extension, using numbers to differentiate from
-    /// any collisions.
-    /// </summary>
-    /// <param name="path">The origin file path.</param>
-    /// <returns>A non-existent file path with the same base name and a codebehind extension.</returns>
-    private static string GenerateCodeBehindPath(string path)
-    {
-        var n = 0;
-        string codeBehindPath;
-        do
-        {
-            var identifier = n > 0 ? n.ToString(CultureInfo.InvariantCulture) : string.Empty;  // Make it look nice
-            var directoryName = Path.GetDirectoryName(path);
-            Assumes.NotNull(directoryName);
-
-            codeBehindPath = Path.Combine(
-                directoryName,
-                $"{Path.GetFileNameWithoutExtension(path)}{identifier}{Path.GetExtension(path)}.cs");
-            n++;
-        }
-        while (File.Exists(codeBehindPath));
-
-        return codeBehindPath;
-    }
-
     private async Task<string> GenerateCodeBehindClassAsync(CodeAnalysis.Razor.ProjectSystem.IProjectSnapshot project, Uri codeBehindUri, string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument, CancellationToken cancellationToken)
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
