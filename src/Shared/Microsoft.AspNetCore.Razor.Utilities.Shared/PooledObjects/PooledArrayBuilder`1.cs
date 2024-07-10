@@ -434,8 +434,6 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         };
     }
 
-    public readonly bool Any() => Count > 0;
-
     public void Push(T item)
     {
         Add(item);
@@ -467,27 +465,329 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         return true;
     }
 
-    public readonly T First() => this[0];
-    public readonly T? FirstOrDefault() => Count > 0 ? this[0] : default;
-    public readonly T Last() => this[^1];
-    public readonly T? LastOrDefault() => Count > 0 ? this[^1] : default;
+    /// <summary>
+    ///  Determines whether this builder contains any elements.
+    /// </summary>
+    /// <returns>
+    ///  <see langword="true"/> if this builder contains any elements; otherwise, <see langword="false"/>.
+    /// </returns>
+    public readonly bool Any()
+        => Count > 0;
 
-    public readonly T Single()
+    /// <summary>
+    ///  Determines whether any element in this builder satisfies a condition.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  <see langword="true"/> if this builder is not empty and at least one of its elements passes
+    ///  the test in the specified predicate; otherwise, <see langword="false"/>.
+    /// </returns>
+    public readonly bool Any(Func<T, bool> predicate)
     {
-        if (Count == 0)
+        foreach (var item in this)
         {
-            ThrowInvalidOperation(SR.Contains_no_elements);
-        }
-        else if (Count > 1)
-        {
-            ThrowInvalidOperation(SR.Contains_more_than_one_element);
+            if (predicate(item))
+            {
+                return true;
+            }
         }
 
-        return this[0];
+        return false;
     }
 
+    /// <summary>
+    ///  Determines whether all elements in this builder satisfy a condition.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  <see langword="true"/> if every element in this builder passes the test
+    ///  in the specified predicate, or if the builder is empty; otherwise,
+    ///  <see langword="false"/>.</returns>
+    public readonly bool All(Func<T, bool> predicate)
+    {
+        foreach (var item in this)
+        {
+            if (!predicate(item))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    ///  Returns the first element in this builder.
+    /// </summary>
+    /// <returns>
+    ///  The first element in this builder.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  The builder is empty.
+    /// </exception>
+    public readonly T First()
+        => Count > 0 ? this[0] : ThrowInvalidOperation(SR.Contains_no_elements);
+
+    /// <summary>
+    ///  Returns the first element in this builder that satisfies a specified condition.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  The first element in this builder that passes the test in the specified predicate function.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  No element satisfies the condition in <paramref name="predicate"/>.
+    /// </exception>
+    public readonly T First(Func<T, bool> predicate)
+    {
+        foreach (var item in this)
+        {
+            if (predicate(item))
+            {
+                return item;
+            }
+        }
+
+        return ThrowInvalidOperation(SR.Contains_no_matching_elements);
+    }
+
+    /// <summary>
+    ///  Returns the first element in this builder, or a default value if the builder is empty.
+    /// </summary>
+    /// <returns>
+    ///  <see langword="default"/>(<typeparamref name="T"/>) if this builder is empty; otherwise,
+    ///  the first element in this builder.
+    /// </returns>
+    public readonly T? FirstOrDefault()
+        => Count > 0 ? this[0] : default;
+
+    /// <summary>
+    ///  Returns the first element in this builder that satisfies a condition, or a default value
+    ///  if no such element is found.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  <see langword="default"/>(<typeparamref name="T"/>) if this builder is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the first element in this
+    ///  builder that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public readonly T? FirstOrDefault(Func<T, bool> predicate)
+    {
+        foreach (var item in this)
+        {
+            if (predicate(item))
+            {
+                return item;
+            }
+        }
+
+        return default;
+    }
+
+    /// <summary>
+    ///  Returns the last element in this builder.
+    /// </summary>
+    /// <returns>
+    ///  The value at the last position in this builder.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  The builder is empty.
+    /// </exception>
+    public readonly T Last()
+        => Count > 0 ? this[^1] : ThrowInvalidOperation(SR.Contains_no_elements);
+
+    /// <summary>
+    ///  Returns the last element in this builder that satisfies a specified condition.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  The last element in this builder that passes the test in the specified predicate function.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  No element satisfies the condition in <paramref name="predicate"/>.
+    /// </exception>
+    public readonly T Last(Func<T, bool> predicate)
+    {
+        for (var i = Count - 1; i >= 0; i--)
+        {
+            var item = this[i];
+            if (predicate(item))
+            {
+                return item;
+            }
+        }
+
+        return ThrowInvalidOperation(SR.Contains_no_matching_elements);
+    }
+
+    /// <summary>
+    ///  Returns the last element in this builder, or a default value if the builder is empty.
+    /// </summary>
+    /// <returns>
+    ///  <see langword="default"/>(<typeparamref name="T"/>) if this builder is empty; otherwise,
+    ///  the last element in this builder.
+    /// </returns>
+    public readonly T? LastOrDefault()
+        => Count > 0 ? this[^1] : default;
+
+    /// <summary>
+    ///  Returns the last element in this builder that satisfies a condition, or a default value
+    ///  if no such element is found.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  <see langword="default"/>(<typeparamref name="T"/>) if this builder is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the last element in this
+    ///  builder that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public readonly T? LastOrDefault(Func<T, bool> predicate)
+    {
+        for (var i = Count - 1; i >= 0; i--)
+        {
+            var item = this[i];
+            if (predicate(item))
+            {
+                return item;
+            }
+        }
+
+        return default;
+    }
+
+    /// <summary>
+    ///  Returns the only element in this builder, and throws an exception if there is not exactly one element.
+    /// </summary>
+    /// <returns>
+    ///  The single element in this builder.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  The builder is empty.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///  The builder contains more than one element.
+    /// </exception>
+    public readonly T Single()
+    {
+        return Count switch
+        {
+            1 => this[0],
+            0 => ThrowInvalidOperation(SR.Contains_no_elements),
+            _ => ThrowInvalidOperation(SR.Contains_more_than_one_element)
+        };
+    }
+
+    /// <summary>
+    ///  Returns the only element in this builder that satisfies a specified condition,
+    ///  and throws an exception if more than one such element exists.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test an element for a condition.
+    /// </param>
+    /// <returns>
+    ///  The single element in this builder that satisfies a condition.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  No element satisfies the condition in <paramref name="predicate"/>.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///  More than one element satisfies the condition in <paramref name="predicate"/>.
+    /// </exception>
+    public readonly T Single(Func<T, bool> predicate)
+    {
+        var firstSeen = false;
+        T? result = default;
+
+        foreach (var item in this)
+        {
+            if (predicate(item))
+            {
+                if (firstSeen)
+                {
+                    return ThrowInvalidOperation(SR.Contains_more_than_one_matching_element);
+                }
+
+                firstSeen = true;
+                result = item;
+            }
+        }
+
+        if (!firstSeen)
+        {
+            return ThrowInvalidOperation(SR.Contains_no_matching_elements);
+        }
+
+        return result!;
+    }
+
+    /// <summary>
+    ///  Returns the only element in this builder, or a default value if the builder is empty;
+    ///  this method throws an exception if there is more than one element in the builder.
+    /// </summary>
+    /// <returns>
+    ///  The single element in this builder, or <see langword="default"/>(<typeparamref name="T"/>)
+    ///  if this builder contains no elements.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  The builder contains more than one element.
+    /// </exception>
     public readonly T? SingleOrDefault()
-        => Count == 1 ? this[0] : default;
+    {
+        return Count switch
+        {
+            1 => this[0],
+            0 => default,
+            _ => ThrowInvalidOperation(SR.Contains_more_than_one_element)
+        };
+    }
+
+    /// <summary>
+    ///  Returns the only element in this builder that satisfies a specified condition or a default
+    ///  value if no such element exists; this method throws an exception if more than one element
+    ///  satisfies the condition.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test an element for a condition.
+    /// </param>
+    /// <returns>
+    ///  The single element in this builder that satisfies the condition, or
+    ///  <see langword="default"/>(<typeparamref name="T"/>) if no such element is found.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  More than one element satisfies the condition in predicate.
+    /// </exception>
+    public readonly T? SingleOrDefault(Func<T, bool> predicate)
+    {
+        var firstSeen = false;
+        T? result = default;
+
+        foreach (var item in this)
+        {
+            if (predicate(item))
+            {
+                if (firstSeen)
+                {
+                    return ThrowInvalidOperation(SR.Contains_more_than_one_matching_element);
+                }
+
+                firstSeen = true;
+                result = item;
+            }
+        }
+
+        return result;
+    }
 
     /// <summary>
     ///  This is present to help the JIT inline methods that need to throw an <see cref="IndexOutOfRangeException"/>.
@@ -500,7 +800,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     ///  This is present to help the JIT inline methods that need to throw an <see cref="InvalidOperationException"/>.
     /// </summary>
     [DoesNotReturn]
-    private static void ThrowInvalidOperation(string message)
+    private static T ThrowInvalidOperation(string message)
         => throw new InvalidOperationException(message);
 
     [MemberNotNull(nameof(_builder))]
