@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
@@ -63,18 +64,40 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         var selectionStart = context.Request.Range.Start;
         var selectionEnd = context.Request.Range.End;
 
-        // If user selects range from end to beginning (i.e., bottom-to-top, right-to-left), simply get the effective start and end.
+        // If user selects range from end to beginning (i.e., bottom-to-top or right-to-left), get the effective start and end.
         if (selectionEnd.Line < selectionStart.Line ||
            (selectionEnd.Line == selectionStart.Line && selectionEnd.Character < selectionStart.Character))
         {
             (selectionEnd, selectionStart) = (selectionStart, selectionEnd);
         }
 
+        var selectionEndIndex = new SourceLocation(0, 0, 0);
+        var endOwner = owner;
+        var endComponentNode = componentNode;
+
         var isSelection = selectionStart != selectionEnd;
 
         if (isSelection)
         {
-            //var startOwner = syntaxTree.Root.FindInnermostNode(selectionStart.ToSourceSpan(), true);
+            if (!selectionEnd.TryGetSourceLocation(context.CodeDocument.GetSourceText(), _logger, out var location))
+            {
+                return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            }
+            // Print selectionEndIndex to see if it is correct
+            if (location is null)
+            {
+                return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            }
+
+            selectionEndIndex = location.Value;
+            endOwner = syntaxTree.Root.FindInnermostNode(selectionEndIndex.AbsoluteIndex, true);
+
+            if (endOwner is null)
+            {
+                return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            }
+
+            endComponentNode = endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
         }
 
         // Make sure we've found tag
@@ -102,6 +125,11 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             ExtractEnd = componentNode.Span.End,
             Namespace = @namespace
         };
+
+        if (isSelection && endComponentNode is not null)
+        {
+            actionParams.ExtractEnd = endComponentNode.Span.End;
+        }
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
