@@ -490,16 +490,14 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         => Count == 1 ? this[0] : default;
 
     /// <summary>
-    ///  This is present to help the JIT inline methods that need to throw
-    ///  a <see cref="IndexOutOfRangeException"/>.
+    ///  This is present to help the JIT inline methods that need to throw an <see cref="IndexOutOfRangeException"/>.
     /// </summary>
     [DoesNotReturn]
     private static void ThrowIndexOutOfRangeException()
         => throw new IndexOutOfRangeException();
 
     /// <summary>
-    ///  This is present to help the JIT inline methods that need to throw
-    ///  a <see cref="InvalidOperationException"/>.
+    ///  This is present to help the JIT inline methods that need to throw an <see cref="InvalidOperationException"/>.
     /// </summary>
     [DoesNotReturn]
     private static void ThrowInvalidOperation(string message)
