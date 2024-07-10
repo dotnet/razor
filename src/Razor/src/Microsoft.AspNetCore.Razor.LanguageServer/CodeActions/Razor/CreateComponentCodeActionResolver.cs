@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -60,9 +61,10 @@ internal sealed class CreateComponentCodeActionResolver(IDocumentContextFactory 
             Host = string.Empty,
         }.Uri;
 
-        ImmutableArray<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges = [new CreateFile() { Uri = newComponentUri }];
+        using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+        documentChanges.Add(new CreateFile() { Uri = newComponentUri });
 
-        TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);
+        TryAddNamespaceDirective(codeDocument, newComponentUri, ref documentChanges.AsRef());
 
         return new WorkspaceEdit()
         {
@@ -70,7 +72,7 @@ internal sealed class CreateComponentCodeActionResolver(IDocumentContextFactory 
         };
     }
 
-    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, ImmutableArray<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, ref PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         var namespaceDirective = syntaxTree.Root.DescendantNodes()
