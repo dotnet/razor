@@ -81,7 +81,8 @@ internal class CohostSignatureHelpEndpoint(
         var data = await _remoteServiceProvider.TryInvokeAsync<IRemoteSignatureHelpService, RLSP.SignatureHelp?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetSignatureHelpAsync(solutionInfo, razorDocument.Id, new RLSP.Position(request.Position.Line, request.Position.Character), cancellationToken),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken)
+            .ConfigureAwait(false);
 
         // If we got a response back, then either Razor or C# wants to do something with this, so we're good to go
         if (data is { } signatureHelp)
@@ -103,7 +104,8 @@ internal class CohostSignatureHelpEndpoint(
             Methods.TextDocumentSignatureHelpName,
             RazorLSPConstants.HtmlLanguageServerName,
             request,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken)
+            .ConfigureAwait(false);
 
         return result?.Response;
     }
