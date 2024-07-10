@@ -1672,6 +1672,115 @@ namespace Test
         }
     }
 
+    [IntegrationTestFact]
+    public void AddComponentParameter_GlobalNamespace()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+public class MyComponent : ComponentBase
+{
+    [Parameter]
+    public string Value { get; set; }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"<MyComponent Value=""Hello"" />");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void AddComponentParameter_WithNameof()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public string Value { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent Value=""Hello"" />
+@code {
+    public string nameof(string s) => string.Empty;
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, designTime ? [] : [
+                    // (21,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.Value'
+                    //             __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.\r\n#nullable restore\r\n#line (1,14)-(1,19) \"x:\\dir\\subdir\\Test\\TestComponent.cshtml\"\r\nValue").WithArguments("Test.MyComponent.Value").WithLocation(21, 55)
+            ]);
+    }
+
+    [IntegrationTestFact]
+    public void AddComponentParameter_EscapedComponentName()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class @int : ComponentBase
+    {
+        [Parameter]
+        public string Value { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"<int Value=""Hello"" />");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void AddComponentParameter_DynamicComponentName()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class dynamic : ComponentBase
+    {
+        [Parameter]
+        public string Value { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"<dynamic Value=""Hello"" />");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Bind
