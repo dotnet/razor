@@ -19,13 +19,12 @@ internal sealed class DefaultHtmlCodeActionProvider(IRazorDocumentMappingService
 {
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
 
-    public async Task<ImmutableArray<RazorVSInternalCodeAction>?> ProvideAsync(
+    public async Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(
         RazorCodeActionContext context,
         ImmutableArray<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilderPool<RazorVSInternalCodeAction>.GetPooledObject(out var results);
-
+        using var results = new PooledArrayBuilder<RazorVSInternalCodeAction>(codeActions.Length);
         foreach (var codeAction in codeActions)
         {
             if (codeAction.Edit is not null)
@@ -40,7 +39,7 @@ internal sealed class DefaultHtmlCodeActionProvider(IRazorDocumentMappingService
             }
         }
 
-        return results.ToImmutableArray();
+        return results.ToImmutable();
     }
 
     public static async Task RemapAndFixHtmlCodeActionEditAsync(IRazorDocumentMappingService documentMappingService, RazorCodeDocument codeDocument, CodeAction codeAction, CancellationToken cancellationToken)

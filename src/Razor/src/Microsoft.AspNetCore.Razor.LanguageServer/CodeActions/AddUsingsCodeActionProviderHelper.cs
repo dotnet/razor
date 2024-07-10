@@ -39,7 +39,7 @@ internal static class AddUsingsCodeActionProviderHelper
         var oldUsings = await FindUsingDirectiveStringsAsync(originalCSharpText, cancellationToken).ConfigureAwait(false);
         var newUsings = await FindUsingDirectiveStringsAsync(changedCSharpText, cancellationToken).ConfigureAwait(false);
 
-        using var _ = ListPool<TextEdit>.GetPooledObject(out var edits);
+        using var edits = new PooledArrayBuilder<TextEdit>();
         foreach (var usingStatement in newUsings.Except(oldUsings))
         {
             // This identifier will be eventually thrown away.
@@ -49,7 +49,7 @@ internal static class AddUsingsCodeActionProviderHelper
             edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
         }
 
-        return [.. edits];
+        return edits.ToArray();
     }
 
     private static async Task<IEnumerable<string>> FindUsingDirectiveStringsAsync(SourceText originalCSharpText, CancellationToken cancellationToken)

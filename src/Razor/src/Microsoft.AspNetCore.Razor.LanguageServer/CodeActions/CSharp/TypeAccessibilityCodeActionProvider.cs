@@ -75,7 +75,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             return ImmutableArray<RazorVSInternalCodeAction>.Empty;
         }
 
-        using var _ = ArrayBuilderPool<RazorVSInternalCodeAction>.GetPooledObject(out var typeAccessibilityCodeActions);
+        using var typeAccessibilityCodeActions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
         foreach (var diagnostic in diagnostics)
         {
@@ -144,14 +144,14 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             }
         }
 
-        return typeAccessibilityCodeActions.ToImmutableArray();
+        return typeAccessibilityCodeActions.ToImmutable();
     }
 
     private static ImmutableArray<RazorVSInternalCodeAction> ProcessCodeActionsVS(
         RazorCodeActionContext context,
         ImmutableArray<RazorVSInternalCodeAction> codeActions)
     {
-        using var _ = ArrayBuilderPool<RazorVSInternalCodeAction>.GetPooledObject(out var typeAccessibilityCodeActions);
+        using var typeAccessibilityCodeActions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
         foreach (var codeAction in codeActions)
         {
@@ -201,7 +201,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             }
         }
 
-        return typeAccessibilityCodeActions.ToImmutableArray();
+        return typeAccessibilityCodeActions.ToImmutable();
 
         static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode? owner)
         {

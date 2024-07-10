@@ -31,7 +31,7 @@ internal class AggregateCompletionItemResolver
         VSInternalClientCapabilities? clientCapabilities,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilderPool<Task<VSInternalCompletionItem?>>.GetPooledObject(out var completionItemResolverTasks);
+        using var completionItemResolverTasks = new PooledArrayBuilder<Task<VSInternalCompletionItem?>>(_completionItemResolvers.Count);
 
         foreach (var completionItemResolver in _completionItemResolvers)
         {
@@ -46,7 +46,7 @@ internal class AggregateCompletionItemResolver
             }
         }
 
-        using var _1 = ListPool<VSInternalCompletionItem>.GetPooledObject(out var resolvedCompletionItems);
+        using var resolvedCompletionItems = new PooledArrayBuilder<VSInternalCompletionItem>();
         foreach (var completionItemResolverTask in completionItemResolverTasks)
         {
             try
@@ -72,7 +72,6 @@ internal class AggregateCompletionItemResolver
 
         // We don't currently handle merging completion items because it's very rare for more than one resolution to take place.
         // Instead we'll prioritized the last completion item resolved.
-        var finalCompletionItem = resolvedCompletionItems.Last();
-        return finalCompletionItem;
+        return resolvedCompletionItems[^1];
     }
 }

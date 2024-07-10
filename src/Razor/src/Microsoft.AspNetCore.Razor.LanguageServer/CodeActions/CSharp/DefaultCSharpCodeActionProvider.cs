@@ -56,7 +56,7 @@ internal sealed class DefaultCSharpCodeActionProvider(LanguageServerFeatureOptio
 
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(
         RazorCodeActionContext context,
-        IEnumerable<RazorVSInternalCodeAction> codeActions,
+        ImmutableArray<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
     {
         // Used to identify if this is VSCode which doesn't support
@@ -74,7 +74,7 @@ internal sealed class DefaultCSharpCodeActionProvider(LanguageServerFeatureOptio
             ? SupportedImplicitExpressionCodeActionNames
             : SupportedDefaultCodeActionNames;
 
-        using var _ = ArrayBuilderPool<RazorVSInternalCodeAction>.GetPooledObject(out var results);
+        using var results = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
         foreach (var codeAction in codeActions)
         {
@@ -96,7 +96,7 @@ internal sealed class DefaultCSharpCodeActionProvider(LanguageServerFeatureOptio
             }
         }
 
-        return Task.FromResult(results.ToImmutableArray());
+        return Task.FromResult(results.ToImmutable());
 
         static bool CanDeserializeTo<T>(object? data)
         {

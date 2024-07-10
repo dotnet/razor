@@ -245,7 +245,7 @@ internal static class CompletionListMerger
 
     private static ImmutableArray<VSInternalCompletionItem> GetCompletionsThatDoNotSpecifyCommitCharacters(VSInternalCompletionList completionList)
     {
-        using var _ = ArrayBuilderPool<VSInternalCompletionItem>.GetPooledObject(out var inheritableCompletions);
+        using var inheritableCompletions = new PooledArrayBuilder<VSInternalCompletionItem>();
         for (var i = 0; i < completionList.Items.Length; i++)
         {
             var completionItem = completionList.Items[i] as VSInternalCompletionItem;
@@ -260,7 +260,7 @@ internal static class CompletionListMerger
             inheritableCompletions.Add(completionItem);
         }
 
-        return inheritableCompletions.ToImmutableArray();
+        return inheritableCompletions.ToImmutable();
     }
 
     private record MergedCompletionListData(object Data1, object Data2);
