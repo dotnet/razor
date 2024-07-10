@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Xunit;
+using SR = Microsoft.AspNetCore.Razor.Utilities.Shared.Resources.SR;
 
 namespace Microsoft.AspNetCore.Razor.Utilities.Shared.Test.PooledObjects;
 
@@ -82,5 +84,43 @@ public class PooledArrayBuilderTests
                 Assert.Equal(newValue + (j - removeIndex), builder[j]);
             }
         }
+    }
+
+    [Fact]
+    public void FirstAndLast()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(19);
+        builder.Add(23);
+
+        Assert.Equal(19, builder.First());
+        Assert.Equal(19, builder.FirstOrDefault());
+        Assert.Equal(23, builder.Last());
+        Assert.Equal(23, builder.LastOrDefault());
+
+        builder.Clear();
+        Assert.Equal(default, builder.FirstOrDefault());
+        Assert.Equal(default, builder.LastOrDefault());
+    }
+
+    [Fact]
+    public void Single()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        var exception1 = Assert.Throws<InvalidOperationException>(() => builder.Single());
+        Assert.Equal(SR.Contains_no_elements, exception1.Message);
+        Assert.Equal(default, builder.SingleOrDefault());
+
+        builder.Add(19);
+
+        Assert.Equal(19, builder.Single());
+        Assert.Equal(19, builder.SingleOrDefault());
+
+        builder.Add(23);
+
+        var exception2 = Assert.Throws<InvalidOperationException>(() => builder.Single());
+        Assert.Equal(SR.Contains_more_than_one_element, exception2.Message);
+        Assert.Equal(default, builder.SingleOrDefault());
     }
 }
