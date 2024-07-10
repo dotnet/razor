@@ -30,7 +30,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         var node = context.CodeDocument.GetSyntaxTree().Root.FindInnermostNode(context.Location.AbsoluteIndex);
         if (node is null)
         {
-            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
+            return [];
         }
 
         // Find start tag. We allow this code action to work from anywhere in the start tag, which includes
@@ -41,7 +41,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         var startTag = (IStartTagSyntaxNode?)node.FirstAncestorOrSelf<SyntaxNode>(n => n is IStartTagSyntaxNode);
         if (startTag is null)
         {
-            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
+            return [];
         }
 
         if (context.Location.AbsoluteIndex < startTag.SpanStart)
@@ -49,30 +49,30 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             // Cursor is before the start tag, so we shouldn't show a light bulb. This can happen
             // in cases where the cursor is in whitespace at the beginning of the document
             // eg: $$ <Component></Component>
-            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
+            return [];
         }
 
         // Ignore if start tag has dots, as we only handle short tags
         if (startTag.Name.Content.Contains("."))
         {
-            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
+            return [];
         }
 
         if (!IsApplicableTag(startTag))
         {
-            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
+            return [];
         }
 
         if (!IsTagUnknown(startTag, context))
         {
-            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
+            return [];
         }
 
         using var _ = ListPool<RazorVSInternalCodeAction>.GetPooledObject(out var codeActions);
         await AddComponentAccessFromTagAsync(context, startTag, codeActions, cancellationToken).ConfigureAwait(false);
         AddCreateComponentFromTag(context, startTag, codeActions);
 
-        return codeActions.ToImmutableArray();
+        return [.. codeActions];
     }
 
     private static bool IsApplicableTag(IStartTagSyntaxNode startTag)

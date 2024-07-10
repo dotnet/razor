@@ -344,7 +344,7 @@ internal sealed class MapCodeEndpoint(
     {
         // If the focus locations are in a C# context, map them to the C# document.
         var csharpFocusLocations = new Location[focusLocations.Length][];
-        using var _ = ListPool<Location>.GetPooledObject(out var csharpLocations);
+        using var csharpLocations = new PooledArrayBuilder<Location>();
         for (var i = 0; i < focusLocations.Length; i++)
         {
             csharpLocations.Clear();
@@ -381,7 +381,7 @@ internal sealed class MapCodeEndpoint(
                 }
             }
 
-            csharpFocusLocations[i] = [.. csharpLocations];
+            csharpFocusLocations[i] = csharpLocations.ToArray();
         }
 
         return csharpFocusLocations;

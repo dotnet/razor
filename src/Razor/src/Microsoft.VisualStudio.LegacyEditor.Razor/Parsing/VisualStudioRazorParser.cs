@@ -549,7 +549,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
                 return;
             }
 
-            using var _ = ArrayBuilderPool<CodeDocumentRequest>.GetPooledObject(out var matchingRequests);
+            using var matchingRequests = new PooledArrayBuilder<CodeDocumentRequest>();
             for (var i = _codeDocumentRequests.Count - 1; i >= 0; i--)
             {
                 var request = _codeDocumentRequests[i];
@@ -562,10 +562,10 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
             }
 
             // The matching requests are in reverse order so we need to invoke them from the back to front.
-            foreach (var request in matchingRequests)
+            for (var i = matchingRequests.Count - 1; i >= 0; i--)
             {
                 // At this point it's possible these requests have been cancelled, if that's the case Complete noops.
-                request.Complete(codeDocument);
+                matchingRequests[i].Complete(codeDocument);
             }
         }
     }

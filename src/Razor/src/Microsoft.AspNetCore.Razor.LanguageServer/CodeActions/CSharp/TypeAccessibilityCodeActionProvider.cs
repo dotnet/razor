@@ -57,7 +57,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             ? ProcessCodeActionsVS(context, codeActions)
             : ProcessCodeActionsVSCode(context, codeActions);
 
-        var orderedResults = results.OrderBy(codeAction => codeAction.Title).ToImmutableArray();
+        var orderedResults = results.Sort(static (x, y) => StringComparer.CurrentCulture.Compare(x.Title, y.Title));
         return Task.FromResult(orderedResults);
     }
 
@@ -72,7 +72,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
         if (diagnostics is null || !diagnostics.Any())
         {
-            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
+            return [];
         }
 
         using var typeAccessibilityCodeActions = new PooledArrayBuilder<RazorVSInternalCodeAction>();

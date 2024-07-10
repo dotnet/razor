@@ -81,45 +81,45 @@ internal static class CompletionListMerger
         return new MergedCompletionListData(data1, data2);
     }
 
-    public static bool TrySplit(object? data, [NotNullWhen(true)] out IReadOnlyList<JsonElement>? splitData)
+    public static bool TrySplit(object? data, out ImmutableArray<JsonElement> splitData)
     {
         if (data is null)
         {
-            splitData = null;
+            splitData = default;
             return false;
         }
 
-        using var _ = ListPool<JsonElement>.GetPooledObject(out var collector);
-        Split(data, collector);
+        using var collector = new PooledArrayBuilder<JsonElement>();
+        Split(data, ref collector.AsRef());
 
         if (collector.Count == 0)
         {
-            splitData = null;
+            splitData = default;
             return false;
         }
 
-        splitData = collector;
+        splitData = collector.ToImmutable();
         return true;
     }
 
-    private static void Split(object data, List<JsonElement> collector)
+    private static void Split(object data, ref PooledArrayBuilder<JsonElement> collector)
     {
         if (data is MergedCompletionListData mergedData)
         {
             // Merged data adds an extra object wrapper around the original data, so remove
             // that to restore to the original form.
-            Split(mergedData.Data1, collector);
-            Split(mergedData.Data2, collector);
+            Split(mergedData.Data1, ref collector);
+            Split(mergedData.Data2, ref collector);
             return;
         }
 
         // We have to be agnostic to which serialization method the delegated servers use, including
         // the scenario where they use different ones, so we normalize the data to JObject.
-        TrySplitJsonElement(data, collector);
-        TrySplitJObject(data, collector);
+        TrySplitJsonElement(data, ref collector);
+        TrySplitJObject(data, ref collector);
     }
 
-    private static void TrySplitJsonElement(object data, List<JsonElement> collector)
+    private static void TrySplitJsonElement(object data, ref PooledArrayBuilder<JsonElement> collector)
     {
         if (data is not JsonElement jsonElement)
         {
@@ -138,8 +138,8 @@ internal static class CompletionListMerger
                 return;
             }
 
-            Split(mergedCompletionListData.Data1, collector);
-            Split(mergedCompletionListData.Data2, collector);
+            Split(mergedCompletionListData.Data1, ref collector);
+            Split(mergedCompletionListData.Data2, ref collector);
         }
         else
         {
@@ -147,7 +147,7 @@ internal static class CompletionListMerger
         }
     }
 
-    private static void TrySplitJObject(object data, List<JsonElement> collector)
+    private static void TrySplitJObject(object data, ref PooledArrayBuilder<JsonElement> collector)
     {
         if (data is not JObject jObject)
         {
@@ -166,8 +166,8 @@ internal static class CompletionListMerger
                 return;
             }
 
-            Split(mergedCompletionListData.Data1, collector);
-            Split(mergedCompletionListData.Data2, collector);
+            Split(mergedCompletionListData.Data1, ref collector);
+            Split(mergedCompletionListData.Data2, ref collector);
         }
         else
         {

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -79,11 +80,12 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
             documentChanges.Add(additionalEdit);
         }
 
-        var usingDirectives = FindUsingDirectives(codeDocument);
-        if (usingDirectives.Length > 0)
+        using var usingDirectives = new PooledArrayBuilder<RazorUsingDirective>();
+        CollectUsingDirectives(codeDocument, ref usingDirectives.AsRef());
+        if (usingDirectives.Count > 0)
         {
             // Interpolate based on existing @using statements
-            var edits = GenerateSingleUsingEditsInterpolated(codeDocument, codeDocumentIdentifier, @namespace, usingDirectives);
+            var edits = GenerateSingleUsingEditsInterpolated(codeDocument, codeDocumentIdentifier, @namespace, in usingDirectives);
             documentChanges.Add(edits);
         }
         else
@@ -103,8 +105,10 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         RazorCodeDocument codeDocument,
         OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
         string newUsingNamespace,
-        ImmutableArray<RazorUsingDirective> existingUsingDirectives)
+        ref readonly PooledArrayBuilder<RazorUsingDirective> existingUsingDirectives)
     {
+        Debug.Assert(existingUsingDirectives.Count > 0);
+
         using var edits = new PooledArrayBuilder<TextEdit>();
         var newText = $"@using {newUsingNamespace}{Environment.NewLine}";
 
@@ -130,7 +134,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         // If we haven't actually found a place to insert the using directive, do so at the end
         if (edits.Count == 0)
         {
-            var endIndex = existingUsingDirectives.Last().Node.Span.End;
+            var endIndex = existingUsingDirectives[^1].Node.Span.End;
             var lineIndex = GetLineIndexOrEnd(codeDocument, endIndex - 1) + 1;
             var head = new Position(lineIndex, 0);
             var edit = new TextEdit() { Range = new Range { Start = head, End = head }, NewText = newText };
@@ -191,10 +195,8 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         }
     }
 
-    private static ImmutableArray<RazorUsingDirective> FindUsingDirectives(RazorCodeDocument codeDocument)
+    private static void CollectUsingDirectives(RazorCodeDocument codeDocument, ref PooledArrayBuilder<RazorUsingDirective> directives)
     {
-        using var directives = new PooledArrayBuilder<RazorUsingDirective>();
-
         var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
         foreach (var node in syntaxTreeRoot.DescendantNodes())
         {
@@ -209,8 +211,6 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
                 }
             }
         }
-
-        return directives.ToImmutable();
     }
 
     private static bool IsNamespaceOrPageDirective(SyntaxNode node)

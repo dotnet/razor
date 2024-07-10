@@ -26,10 +26,13 @@ internal abstract class IntraTextAdornmentTagger<TData, TAdornment>
     : ITagger<IntraTextAdornmentTag>
     where TAdornment : UIElement
 {
-    protected readonly IWpfTextView view;
-    private Dictionary<SnapshotSpan, TAdornment> _adornmentCache = new Dictionary<SnapshotSpan, TAdornment>();
-    protected ITextSnapshot snapshot { get; private set; }
     private readonly List<SnapshotSpan> _invalidatedSpans = new List<SnapshotSpan>();
+
+    // not readonly because it's updated in AsyncUpdate
+    private Dictionary<SnapshotSpan, TAdornment> _adornmentCache = new Dictionary<SnapshotSpan, TAdornment>();
+
+    protected readonly IWpfTextView view;
+    protected ITextSnapshot snapshot { get; private set; }
 
     protected IntraTextAdornmentTagger(IWpfTextView view)
     {

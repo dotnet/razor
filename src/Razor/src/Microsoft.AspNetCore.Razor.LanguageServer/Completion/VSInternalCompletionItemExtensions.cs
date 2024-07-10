@@ -31,7 +31,7 @@ internal static class VSInternalCompletionItemExtensions
         }
 
         using var ids = new PooledArrayBuilder<int>();
-        for (var i = 0; i < splitData.Count; i++)
+        for (var i = 0; i < splitData.Length; i++)
         {
             var data = splitData[i];
             if (data.TryGetProperty(ResultIdKey, out var resultIdElement) &&

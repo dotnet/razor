@@ -46,7 +46,9 @@ internal class AggregateCompletionItemResolver
             }
         }
 
-        using var resolvedCompletionItems = new PooledArrayBuilder<VSInternalCompletionItem>();
+        // We don't currently handle merging completion items because it's very rare for more than one resolution to take place.
+        // Instead we'll prioritized the last completion item resolved.
+        VSInternalCompletionItem? lastResolved = null;
         foreach (var completionItemResolverTask in completionItemResolverTasks)
         {
             try
@@ -54,7 +56,7 @@ internal class AggregateCompletionItemResolver
                 var resolvedCompletionItem = await completionItemResolverTask.ConfigureAwait(false);
                 if (resolvedCompletionItem is not null)
                 {
-                    resolvedCompletionItems.Add(resolvedCompletionItem);
+                    lastResolved = resolvedCompletionItem;
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -65,13 +67,6 @@ internal class AggregateCompletionItemResolver
             }
         }
 
-        if (resolvedCompletionItems.Count == 0)
-        {
-            return null;
-        }
-
-        // We don't currently handle merging completion items because it's very rare for more than one resolution to take place.
-        // Instead we'll prioritized the last completion item resolved.
-        return resolvedCompletionItems[^1];
+        return lastResolved;
     }
 }

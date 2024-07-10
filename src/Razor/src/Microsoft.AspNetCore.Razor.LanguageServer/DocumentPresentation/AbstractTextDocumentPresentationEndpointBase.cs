@@ -130,26 +130,26 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
 
     private static bool TryGetDocumentChanges(WorkspaceEdit workspaceEdit, [NotNullWhen(true)] out TextDocumentEdit[]? documentChanges)
     {
-        if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
+        if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEditArray)
         {
-            documentChanges = documentEdits;
+            documentChanges = documentEditArray;
             return true;
         }
 
         if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
         {
-            using var documentEditList = new PooledArrayBuilder<TextDocumentEdit>();
+            using var documentEdits = new PooledArrayBuilder<TextDocumentEdit>();
             foreach (var sumType in sumTypeArray)
             {
                 if (sumType.Value is TextDocumentEdit textDocumentEdit)
                 {
-                    documentEditList.Add(textDocumentEdit);
+                    documentEdits.Add(textDocumentEdit);
                 }
             }
 
-            if (documentEditList.Count > 0)
+            if (documentEdits.Count > 0)
             {
-                documentChanges = documentEditList.ToArray();
+                documentChanges = documentEdits.ToArray();
                 return true;
             }
         }
