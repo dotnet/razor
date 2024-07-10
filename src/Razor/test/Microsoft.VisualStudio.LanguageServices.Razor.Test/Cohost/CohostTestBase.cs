@@ -26,29 +26,28 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
         return base.InitializeAsync();
     }
 
-    protected TextDocument CreateRazorDocument(string input)
+    protected TextDocument CreateRazorDocument(string contents)
     {
-        var hostProject = TestProjectData.SomeProject;
-        var hostDocument = TestProjectData.SomeProjectComponentFile1;
-
-        var sourceText = SourceText.From(input);
+        var projectFilePath = TestProjectData.SomeProject.FilePath;
+        var documentFilePath = TestProjectData.SomeProjectComponentFile1.FilePath;
+        var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
+        var projectId = ProjectId.CreateNewId(debugName: projectName);
+        var documentId = DocumentId.CreateNewId(projectId, debugName: documentFilePath);
 
         var solution = Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
-            ProjectId.CreateNewId(Path.GetFileNameWithoutExtension(hostProject.FilePath)),
+            projectId,
             VersionStamp.Create(),
-            Path.GetFileNameWithoutExtension(hostDocument.FilePath),
-            Path.GetFileNameWithoutExtension(hostDocument.FilePath),
+            name: projectName,
+            assemblyName: projectName,
             LanguageNames.CSharp,
-            hostDocument.FilePath));
+            documentFilePath));
 
         solution = solution.AddAdditionalDocument(
-            DocumentId.CreateNewId(solution.ProjectIds.Single(), hostDocument.FilePath),
-            hostDocument.FilePath,
-            sourceText,
-            filePath: hostDocument.FilePath);
+            documentId,
+            documentFilePath,
+            SourceText.From(contents),
+            filePath: documentFilePath);
 
-        var document = solution.Projects.Single().AdditionalDocuments.Single();
-
-        return document;
+        return solution.GetAdditionalDocument(documentId).AssumeNotNull();
     }
 }
