@@ -434,7 +434,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         };
     }
 
-    public bool Any() => Count > 0;
+    public readonly bool Any() => Count > 0;
 
     public void Push(T item)
     {
