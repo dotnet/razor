@@ -17,13 +17,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost;
 
 public class CohostLinkedEditingRangeTest(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
 {
-    [Fact]
-    public async Task StartTag()
+    [Theory]
+    [InlineData("$$div")]
+    [InlineData("di$$v")]
+    [InlineData("div$$")]
+    public async Task Html_StartTag(string startTagAndCursorLocation)
     {
-        var input = """
+        var input = $"""
             This is a Razor document.
 
-            <[|$$div|]>
+            <[|{startTagAndCursorLocation}|]>
                 Here is some content.
             </[|div|]>
 
@@ -33,15 +36,101 @@ public class CohostLinkedEditingRangeTest(ITestOutputHelper testOutputHelper) : 
         await VerifyLinkedEditingRangeAsync(input);
     }
 
-    [Fact]
-    public async Task EndTag()
+    [Theory]
+    [InlineData("$$div")]
+    [InlineData("di$$v")]
+    [InlineData("div$$")]
+    public async Task Html_EndTag(string endTagAndCursorLocation)
     {
-        var input = """
+        var input = $"""
             This is a Razor document.
 
             <[|div|]>
                 Here is some content.
-            </[|d$$iv|]>
+            </[|{endTagAndCursorLocation}|]>
+
+            The end.
+            """;
+
+        await VerifyLinkedEditingRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Html_EndTag_BeforeSlash()
+    {
+        var input = $"""
+            This is a Razor document.
+
+            <div>
+                Here is some content.
+            <$$/div>
+
+            The end.
+            """;
+
+        await VerifyLinkedEditingRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Html_NotATag()
+    {
+        var input = $"""
+            This is a $$Razor document.
+
+            <div>
+                Here is some content.
+            </div>
+
+            The end.
+            """;
+
+        await VerifyLinkedEditingRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Html_NestedTags_Outer()
+    {
+        var input = $"""
+            This is a Razor document.
+
+            <[|d$$iv|]>
+                <div>
+                    Here is some content.
+                </div>
+            </[|div|]>
+
+            The end.
+            """;
+
+        await VerifyLinkedEditingRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Html_NestedTags_Inner()
+    {
+        var input = $"""
+            This is a Razor document.
+
+            <div>
+                <[|d$$iv|]>
+                    Here is some content.
+                </[|div|]>
+            </div>
+
+            The end.
+            """;
+
+        await VerifyLinkedEditingRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Html_SelfClosingTag()
+    {
+        var input = $"""
+            This is a Razor document.
+
+            <b$$r />
+            Here is some content.
 
             The end.
             """;
@@ -72,6 +161,12 @@ public class CohostLinkedEditingRangeTest(ITestOutputHelper testOutputHelper) : 
         };
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+
+        if (spans.Length == 0)
+        {
+            Assert.Null(result);
+            return;
+        }
 
         Assert.NotNull(result);
         Assert.Equal(LinkedEditingRangeHelper.WordPattern, result.WordPattern);
