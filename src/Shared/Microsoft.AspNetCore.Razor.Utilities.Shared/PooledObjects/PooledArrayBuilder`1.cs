@@ -409,11 +409,11 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         return _inlineCount switch
         {
-            0 => ImmutableArray<T>.Empty,
-            1 => ImmutableArray.Create(_element0),
-            2 => ImmutableArray.Create(_element0, _element1),
-            3 => ImmutableArray.Create(_element0, _element1, _element2),
-            _ => ImmutableArray.Create(_element0, _element1, _element2, _element3)
+            0 => [],
+            1 => [_element0],
+            2 => [_element0, _element1],
+            3 => [_element0, _element1, _element2],
+            _ => [_element0, _element1, _element2, _element3]
         };
     }
 
@@ -427,10 +427,10 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         return _inlineCount switch
         {
             0 => [],
-            1 => new[] { _element0 },
-            2 => new[] { _element0, _element1 },
-            3 => new[] { _element0, _element1, _element2 },
-            _ => new[] { _element0, _element1, _element2, _element3 }
+            1 => [_element0],
+            2 => [_element0, _element1],
+            3 => [_element0, _element1, _element2],
+            _ => [_element0, _element1, _element2, _element3]
         };
     }
 
