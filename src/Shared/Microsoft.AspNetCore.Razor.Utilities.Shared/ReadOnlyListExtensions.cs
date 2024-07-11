@@ -33,11 +33,36 @@ internal static class ReadOnlyListExtensions
         }
     }
 
-    public static bool Any<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
+    /// <summary>
+    ///  Determines whether a list contains any elements.
+    /// </summary>
+    /// <param name="list">
+    ///  The <see cref="IReadOnlyList{T}"/> to check for emptiness.
+    /// </param>
+    /// <returns>
+    ///  <see langword="true"/> if the list contains any elements; otherwise, <see langword="false"/>.
+    /// </returns>
+    public static bool Any<T>(this IReadOnlyList<T> list)
+        => list.Count > 0;
+
+    /// <summary>
+    ///  Determines whether any element of a list satisfies a condition.
+    /// </summary>
+    /// <param name="list">
+    ///  An <see cref="IReadOnlyList{T}"/> whose elements to apply the predicate to.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  <see langword="true"/> if the list is not empty and at least one of its elements passes
+    ///  the test in the specified predicate; otherwise, <see langword="false"/>.
+    /// </returns>
+    public static bool Any<T>(this IReadOnlyList<T> list, Func<T, bool> predicate)
     {
-        for (var i = 0; i < list.Count; i++)
+        foreach (var item in list.AsEnumerable())
         {
-            if (predicate(list[i], arg))
+            if (predicate(item))
             {
                 return true;
             }
@@ -46,16 +71,130 @@ internal static class ReadOnlyListExtensions
         return false;
     }
 
-    public static bool All<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
+    /// <summary>
+    ///  Determines whether any element of a list satisfies a condition.
+    /// </summary>
+    /// <param name="list">
+    ///  An <see cref="IReadOnlyList{T}"/> whose elements to apply the predicate to.
+    /// </param>
+    /// <param name="arg">
+    ///  An argument to pass to <paramref name="predicate"/>.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  <see langword="true"/> if the list is not empty and at least one of its elements passes
+    ///  the test in the specified predicate; otherwise, <see langword="false"/>.
+    /// </returns>
+    public static bool Any<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
-        for (var i = 0; i < list.Count; i++)
+        foreach (var item in list.AsEnumerable())
         {
-            if (!predicate(list[i], arg))
+            if (predicate(item, arg))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///  Determines whether all elements of a list satisfy a condition.
+    /// </summary>
+    /// <param name="list">
+    ///  An <see cref="IReadOnlyList{T}"/> whose elements to apply the predicate to.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  <see langword="true"/> if every element of the list passes the test
+    ///  in the specified predicate, or if the list is empty; otherwise,
+    ///  <see langword="false"/>.</returns>
+    public static bool All<T>(this IReadOnlyList<T> list, Func<T, bool> predicate)
+    {
+        foreach (var item in list.AsEnumerable())
+        {
+            if (!predicate(item))
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /// <summary>
+    ///  Determines whether all elements of a list satisfy a condition.
+    /// </summary>
+    /// <param name="list">
+    ///  An <see cref="IReadOnlyList{T}"/> whose elements to apply the predicate to.
+    /// </param>
+    /// <param name="arg">
+    ///  An argument to pass to <paramref name="predicate"/>.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <returns>
+    ///  <see langword="true"/> if every element of the list passes the test
+    ///  in the specified predicate, or if the list is empty; otherwise,
+    ///  <see langword="false"/>.</returns>
+    public static bool All<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
+    {
+        foreach (var item in list.AsEnumerable())
+        {
+            if (!predicate(item, arg))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> source) => new(source);
+
+    public readonly struct Enumerable<T>(IReadOnlyList<T> source) : IEnumerable<T>
+    {
+        public Enumerator<T> GetEnumerator() => new(source);
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    public struct Enumerator<T>(IReadOnlyList<T> source) : IEnumerator<T>
+    {
+        private int _index;
+        private T _current;
+
+        public readonly T Current => _current!;
+
+        readonly object IEnumerator.Current => _current!;
+
+        public readonly void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            if (_index < source.Count)
+            {
+                _current = source[_index];
+                _index++;
+                return true;
+            }
+
+            return false;
+        }
+
+        public void Reset()
+        {
+            _index = 0;
+            _current = default!;
+        }
     }
 }

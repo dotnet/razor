@@ -801,7 +801,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     /// </summary>
     [DoesNotReturn]
     private static T ThrowInvalidOperation(string message)
-        => throw new InvalidOperationException(message);
+        => ThrowHelper.ThrowInvalidOperation<T>(message);
 
     [MemberNotNull(nameof(_builder))]
     private void MoveInlineItemsToBuilder()
