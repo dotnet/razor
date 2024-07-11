@@ -48,7 +48,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
-            return ImmutableArray<RazorCompletionItem>.Empty;
+            return [];
         }
 
         owner = owner switch
@@ -59,6 +59,12 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             // Either the parent is a context we can handle, or it's not and we shouldn't show completions.
             _ => owner.Parent
         };
+
+        if (owner is null)
+        {
+            Debug.Assert(context.Owner is RazorDocumentSyntax, $"Expecting null parent only on {nameof(RazorDocumentSyntax)}");
+            return [];
+        }
 
         if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
@@ -118,7 +124,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         }
 
         // Invalid location for TagHelper completions.
-        return ImmutableArray<RazorCompletionItem>.Empty;
+        return [];
     }
 
     private ImmutableArray<RazorCompletionItem> GetAttributeCompletions(
