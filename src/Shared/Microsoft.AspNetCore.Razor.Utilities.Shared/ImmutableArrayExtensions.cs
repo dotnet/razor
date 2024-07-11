@@ -221,174 +221,129 @@ internal static class ImmutableArrayExtensions
 
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array, IComparer<T> comparer)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<T>(comparer, descending: false);
-            return array.OrderAsArrayCore(in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<T>(comparer, descending: false);
+        return array.OrderAsArrayCore(in compareHelper);
     }
 
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array, Comparison<T> comparison)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<T>(comparison, descending: false);
-            return array.OrderAsArrayCore(in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<T>(comparison, descending: false);
+        return array.OrderAsArrayCore(in compareHelper);
     }
 
     public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<T>(comparer: null, descending: true);
-            return array.OrderAsArrayCore(in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<T>(comparer: null, descending: true);
+        return array.OrderAsArrayCore(in compareHelper);
     }
 
     public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array, IComparer<T> comparer)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<T>(comparer, descending: true);
-            return array.OrderAsArrayCore(in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<T>(comparer, descending: true);
+        return array.OrderAsArrayCore(in compareHelper);
     }
 
     public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array, Comparison<T> comparison)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<T>(comparison, descending: true);
-            return array.OrderAsArrayCore(in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<T>(comparison, descending: true);
+        return array.OrderAsArrayCore(in compareHelper);
     }
 
     public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<TKey>(comparer: null, descending: false);
-            return array.OrderByAsArrayCore(keySelector, in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<TKey>(comparer: null, descending: false);
+        return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
     public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<TKey>(comparer, descending: false);
-            return array.OrderByAsArrayCore(keySelector, in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<TKey>(comparer, descending: false);
+        return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
     public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<TKey>(comparison, descending: false);
-            return array.OrderByAsArrayCore(keySelector, in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<TKey>(comparison, descending: false);
+        return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
     public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<TKey>(comparer: null, descending: true);
-            return array.OrderByAsArrayCore(keySelector, in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<TKey>(comparer: null, descending: true);
+        return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
     public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<TKey>(comparer, descending: true);
-            return array.OrderByAsArrayCore(keySelector, in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<TKey>(comparer, descending: true);
+        return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
     public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<TKey>(comparison, descending: true);
-            return array.OrderByAsArrayCore(keySelector, in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<TKey>(comparison, descending: true);
+        return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
     private static ImmutableArray<T> OrderAsArrayCore<T>(this ImmutableArray<T> array, ref readonly CompareHelper<T> compareHelper)
     {
-        var items = array.AsSpan();
-
-        if (AreOrdered(items, in compareHelper))
+        if (array.Length > 1)
         {
-            // No need to sort - items are already ordered.
-            return array;
+            var items = array.AsSpan();
+
+            if (AreOrdered(items, in compareHelper))
+            {
+                // No need to sort - items are already ordered.
+                return array;
+            }
+
+            var length = items.Length;
+            var newArray = new T[length];
+            items.CopyTo(newArray);
+
+            var comparer = compareHelper.GetOrCreateComparer();
+
+            Array.Sort(newArray, comparer);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
         }
 
-        var length = items.Length;
-        var newArray = new T[length];
-        items.CopyTo(newArray);
-
-        var comparer = compareHelper.GetOrCreateComparer();
-
-        Array.Sort(newArray, comparer);
-
-        return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
+        return array;
     }
 
     private static ImmutableArray<TElement> OrderByAsArrayCore<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, ref readonly CompareHelper<TKey> compareHelper)
     {
-        var items = array.AsSpan();
-        var length = items.Length;
-
-        using var _ = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length, out var keys);
-
-        if (SelectKeys(items, keySelector, compareHelper, keys.AsSpan(0, length)))
+        if (array.Length > 1)
         {
-            // No need to sort - keys are already ordered.
-            return array;
+            var items = array.AsSpan();
+            var length = items.Length;
+
+            using var _ = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length, out var keys);
+
+            if (SelectKeys(items, keySelector, compareHelper, keys.AsSpan(0, length)))
+            {
+                // No need to sort - keys are already ordered.
+                return array;
+            }
+
+            var newArray = new TElement[length];
+            items.CopyTo(newArray);
+
+            var comparer = compareHelper.GetOrCreateComparer();
+
+            Array.Sort(keys, newArray, 0, length, comparer);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
         }
 
-        var newArray = new TElement[length];
-        items.CopyTo(newArray);
-
-        var comparer = compareHelper.GetOrCreateComparer();
-
-        Array.Sort(keys, newArray, 0, length, comparer);
-
-        return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
+        return array;
     }
 
     /// <summary>

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Utilities.Shared.Test;
@@ -193,5 +194,125 @@ public class ImmutableArrayExtensionsTests
     {
         var sorted = data.OrderByDescendingAsArray(static x => x.Value, OddBeforeEven);
         Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Fact]
+    public void OrderAsArray_EmptyArrayReturnsSameArray()
+    {
+        var array = ImmutableCollectionsMarshal.AsArray(ImmutableArray<int>.Empty);
+        var immutableArray = ImmutableArray<int>.Empty;
+
+        immutableArray = immutableArray.OrderAsArray();
+        Assert.Same(array, ImmutableCollectionsMarshal.AsArray(immutableArray));
+    }
+
+    [Fact]
+    public void OrderAsArray_SingleElementArrayReturnsSameArray()
+    {
+        var array = new int[] { 42 };
+        var immutableArray = ImmutableCollectionsMarshal.AsImmutableArray(array);
+
+        immutableArray = immutableArray.OrderAsArray();
+        Assert.Same(array, ImmutableCollectionsMarshal.AsArray(immutableArray));
+    }
+
+    [Fact]
+    public void OrderAsArray_SortedArrayReturnsSameArray()
+    {
+        var values = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var immutableArray = ImmutableCollectionsMarshal.AsImmutableArray(values);
+
+        immutableArray = immutableArray.OrderAsArray();
+        Assert.Same(values, ImmutableCollectionsMarshal.AsArray(immutableArray));
+    }
+
+    [Fact]
+    public void OrderDescendingAsArray_EmptyArrayReturnsSameArray()
+    {
+        var array = ImmutableCollectionsMarshal.AsArray(ImmutableArray<int>.Empty);
+        var immutableArray = ImmutableArray<int>.Empty;
+
+        immutableArray = immutableArray.OrderDescendingAsArray();
+        Assert.Same(array, ImmutableCollectionsMarshal.AsArray(immutableArray));
+    }
+
+    [Fact]
+    public void OrderDescendingAsArray_SingleElementArrayReturnsSameArray()
+    {
+        var array = new int[] { 42 };
+        var immutableArray = ImmutableCollectionsMarshal.AsImmutableArray(array);
+
+        immutableArray = immutableArray.OrderDescendingAsArray();
+        Assert.Same(array, ImmutableCollectionsMarshal.AsArray(immutableArray));
+    }
+
+    [Fact]
+    public void OrderDescendingAsArray_SortedArrayReturnsSameArray()
+    {
+        var values = new int[] { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+        var presortedArray = ImmutableCollectionsMarshal.AsImmutableArray(values);
+
+        presortedArray = presortedArray.OrderDescendingAsArray();
+        Assert.Same(values, ImmutableCollectionsMarshal.AsArray(presortedArray));
+    }
+
+    [Fact]
+    public void OrderByAsArray_EmptyArrayReturnsSameArray()
+    {
+        var array = ImmutableCollectionsMarshal.AsArray(ImmutableArray<ValueHolder>.Empty);
+        var immutableArray = ImmutableArray<ValueHolder>.Empty;
+
+        immutableArray = immutableArray.OrderByAsArray(static x => x.Value);
+        Assert.Same(array, ImmutableCollectionsMarshal.AsArray(immutableArray));
+    }
+
+    [Fact]
+    public void OrderByAsArray_SingleElementArrayReturnsSameArray()
+    {
+        var array = new ValueHolder[] { 42 };
+        var immutableArray = ImmutableCollectionsMarshal.AsImmutableArray(array);
+
+        immutableArray = immutableArray.OrderByAsArray(static x => x.Value);
+        Assert.Same(array, ImmutableCollectionsMarshal.AsArray(immutableArray));
+    }
+
+    [Fact]
+    public void OrderByAsArray_SortedArrayReturnsSameArray()
+    {
+        var values = new ValueHolder[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var presortedArray = ImmutableCollectionsMarshal.AsImmutableArray(values);
+
+        presortedArray = presortedArray.OrderByAsArray(static x => x.Value);
+        Assert.Same(values, ImmutableCollectionsMarshal.AsArray(presortedArray));
+    }
+
+    [Fact]
+    public void OrderByDescendingAsArray_EmptyArrayReturnsSameArray()
+    {
+        var array = ImmutableCollectionsMarshal.AsArray(ImmutableArray<ValueHolder>.Empty);
+        var immutableArray = ImmutableArray<ValueHolder>.Empty;
+
+        immutableArray = immutableArray.OrderByDescendingAsArray(static x => x.Value);
+        Assert.Same(array, ImmutableCollectionsMarshal.AsArray(immutableArray));
+    }
+
+    [Fact]
+    public void OrderByDescendingAsArray_SingleElementArrayReturnsSameArray()
+    {
+        var array = new ValueHolder[] { 42 };
+        var immutableArray = ImmutableCollectionsMarshal.AsImmutableArray(array);
+
+        immutableArray = immutableArray.OrderByDescendingAsArray(static x => x.Value);
+        Assert.Same(array, ImmutableCollectionsMarshal.AsArray(immutableArray));
+    }
+
+    [Fact]
+    public void OrderByDescendingAsArray_SortedArrayReturnsSameArray()
+    {
+        var values = new ValueHolder[] { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+        var presortedArray = ImmutableCollectionsMarshal.AsImmutableArray(values);
+
+        presortedArray = presortedArray.OrderByDescendingAsArray(static x => x.Value);
+        Assert.Same(values, ImmutableCollectionsMarshal.AsArray(presortedArray));
     }
 }
