@@ -12,11 +12,11 @@ internal static class ReadOnlyListExtensions
     {
         return source switch
         {
-            [] => ImmutableArray<TResult>.Empty,
-            [var item] => ImmutableArray.Create(selector(item)),
-            [var item1, var item2] => ImmutableArray.Create(selector(item1), selector(item2)),
-            [var item1, var item2, var item3] => ImmutableArray.Create(selector(item1), selector(item2), selector(item3)),
-            [var item1, var item2, var item3, var item4] => ImmutableArray.Create(selector(item1), selector(item2), selector(item3), selector(item4)),
+            [] => [],
+            [var item] => [selector(item)],
+            [var item1, var item2] => [selector(item1), selector(item2)],
+            [var item1, var item2, var item3] => [selector(item1), selector(item2), selector(item3)],
+            [var item1, var item2, var item3, var item4] => [selector(item1), selector(item2), selector(item3), selector(item4)],
             var items => BuildResult(items, selector)
         };
 
@@ -35,16 +35,6 @@ internal static class ReadOnlyListExtensions
 
     public static bool Any<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
-        if (list is null)
-        {
-            throw new ArgumentNullException(nameof(list));
-        }
-
-        if (predicate is null)
-        {
-            throw new ArgumentNullException(nameof(predicate));
-        }
-
         for (var i = 0; i < list.Count; i++)
         {
             if (predicate(list[i], arg))
@@ -58,16 +48,6 @@ internal static class ReadOnlyListExtensions
 
     public static bool All<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
-        if (list is null)
-        {
-            throw new ArgumentNullException(nameof(list));
-        }
-
-        if (predicate is null)
-        {
-            throw new ArgumentNullException(nameof(predicate));
-        }
-
         for (var i = 0; i < list.Count; i++)
         {
             if (!predicate(list[i], arg))
