@@ -55,16 +55,12 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         {
             // This provider is trying to find the nearest Start or End tag. Most of the time, that's a level up, but if the index the user is typing at
             // is a token of a start or end tag directly, we already have the node we want.
-            MarkupStartTagSyntax or MarkupEndTagSyntax or MarkupTagHelperStartTagSyntax or MarkupTagHelperEndTagSyntax or MarkupTagHelperAttributeSyntax => owner,
+            MarkupStartTagSyntax or MarkupEndTagSyntax or MarkupTagHelperStartTagSyntax or MarkupTagHelperEndTagSyntax or MarkupTagHelperAttributeSyntax,
+            // Invoking completion in an empty file will give us RazorDocumentSyntax which always has null parent
+            RazorDocumentSyntax => owner,
             // Either the parent is a context we can handle, or it's not and we shouldn't show completions.
             _ => owner.Parent
         };
-
-        if (owner is null)
-        {
-            Debug.Assert(context.Owner is RazorDocumentSyntax, $"Expecting null parent only on {nameof(RazorDocumentSyntax)}");
-            return [];
-        }
 
         if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
