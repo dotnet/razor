@@ -66,11 +66,11 @@ internal static class ImmutableArrayExtensions
     {
         return source switch
         {
-        [] => [],
-        [var item] => [selector(item)],
-        [var item1, var item2] => [selector(item1), selector(item2)],
-        [var item1, var item2, var item3] => [selector(item1), selector(item2), selector(item3)],
-        [var item1, var item2, var item3, var item4] => [selector(item1), selector(item2), selector(item3), selector(item4)],
+            [] => [],
+            [var item] => [selector(item)],
+            [var item1, var item2] => [selector(item1), selector(item2)],
+            [var item1, var item2, var item3] => [selector(item1), selector(item2), selector(item3)],
+            [var item1, var item2, var item3, var item4] => [selector(item1), selector(item2), selector(item3), selector(item4)],
             var items => BuildResult(items, selector)
         };
 
