@@ -285,7 +285,7 @@ internal static class ImmutableArrayExtensions
 
     private static ImmutableArray<T> OrderAsArrayCore<T>(this ImmutableArray<T> array, IComparer<T> comparer)
     {
-        if (array.IsEmpty)
+        if (array.IsEmpty || array.Length == 1)
         {
             return array;
         }
@@ -304,7 +304,7 @@ internal static class ImmutableArrayExtensions
     private static ImmutableArray<TElement> OrderByAsArrayCore<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
-        if (array.IsEmpty)
+        if (array.IsEmpty || array.Length == 1)
         {
             return array;
         }
