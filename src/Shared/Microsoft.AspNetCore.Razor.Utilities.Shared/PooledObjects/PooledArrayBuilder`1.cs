@@ -648,6 +648,19 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         => Count > 0 ? this[0] : default;
 
     /// <summary>
+    ///  Returns the first element in this builder, or a specified default value if the builder is empty.
+    /// </summary>
+    /// <param name="defaultValue">
+    ///  The default value to return if this builder is empty.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if this builder is empty; otherwise,
+    ///  the first element in this builder.
+    /// </returns>
+    public readonly T FirstOrDefault(T defaultValue)
+        => Count > 0 ? this[0] : defaultValue;
+
+    /// <summary>
     ///  Returns the first element in this builder that satisfies a condition, or a default value
     ///  if no such element is found.
     /// </summary>
@@ -670,6 +683,34 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         }
 
         return default;
+    }
+
+    /// <summary>
+    ///  Returns the first element in this builder that satisfies a condition, or a specified default value
+    ///  if no such element is found.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if this builder is empty.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if this builder is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the first element in this
+    ///  builder that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public readonly T FirstOrDefault(Func<T, bool> predicate, T defaultValue)
+    {
+        foreach (var item in this)
+        {
+            if (predicate(item))
+            {
+                return item;
+            }
+        }
+
+        return defaultValue;
     }
 
     /// <summary>
@@ -698,6 +739,37 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         }
 
         return default;
+    }
+
+    /// <summary>
+    ///  Returns the first element in this builder that satisfies a condition, or a default value
+    ///  if no such element is found.
+    /// </summary>
+    /// <param name="arg">
+    ///  An argument to pass to <paramref name="predicate"/>.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if this builder is empty.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if this builder is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the first element in this
+    ///  builder that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public readonly T FirstOrDefault<TArg>(TArg arg, Func<T, TArg, bool> predicate, T defaultValue)
+    {
+        foreach (var item in this)
+        {
+            if (predicate(item, arg))
+            {
+                return item;
+            }
+        }
+
+        return defaultValue;
     }
 
     /// <summary>
@@ -778,6 +850,19 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         => Count > 0 ? this[^1] : default;
 
     /// <summary>
+    ///  Returns the last element in this builder, or a specified default value if the builder is empty.
+    /// </summary>
+    /// <param name="defaultValue">
+    ///  The default value to return if this builder is empty.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if this builder is empty; otherwise,
+    ///  the last element in this builder.
+    /// </returns>
+    public readonly T LastOrDefault(T defaultValue)
+        => Count > 0 ? this[^1] : defaultValue;
+
+    /// <summary>
     ///  Returns the last element in this builder that satisfies a condition, or a default value
     ///  if no such element is found.
     /// </summary>
@@ -801,6 +886,35 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         }
 
         return default;
+    }
+
+    /// <summary>
+    ///  Returns the last element in this builder that satisfies a condition, or a specified default value
+    ///  if no such element is found.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if this builder is empty.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if this builder is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the last element in this
+    ///  builder that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public readonly T LastOrDefault(Func<T, bool> predicate, T defaultValue)
+    {
+        for (var i = Count - 1; i >= 0; i--)
+        {
+            var item = this[i];
+            if (predicate(item))
+            {
+                return item;
+            }
+        }
+
+        return defaultValue;
     }
 
     /// <summary>
@@ -830,6 +944,38 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         }
 
         return default;
+    }
+
+    /// <summary>
+    ///  Returns the last element in this builder that satisfies a condition, or a default value
+    ///  if no such element is found.
+    /// </summary>
+    /// <param name="arg">
+    ///  An argument to pass to <paramref name="predicate"/>.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if this builder is empty.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if this builder is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the last element in this
+    ///  builder that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public readonly T LastOrDefault<TArg>(TArg arg, Func<T, TArg, bool> predicate, T defaultValue)
+    {
+        for (var i = Count - 1; i >= 0; i--)
+        {
+            var item = this[i];
+            if (predicate(item, arg))
+            {
+                return item;
+            }
+        }
+
+        return defaultValue;
     }
 
     /// <summary>
@@ -965,6 +1111,30 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     }
 
     /// <summary>
+    ///  Returns the only element in this builder, or a specified default value if the builder is empty;
+    ///  this method throws an exception if there is more than one element in the builder.
+    /// </summary>
+    /// <param name="defaultValue">
+    ///  The default value to return if this builder is empty.
+    /// </param>
+    /// <returns>
+    ///  The single element in this builder, or <paramref name="defaultValue"/>
+    ///  if this builder contains no elements.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  The builder contains more than one element.
+    /// </exception>
+    public readonly T SingleOrDefault(T defaultValue)
+    {
+        return Count switch
+        {
+            1 => this[0],
+            0 => defaultValue,
+            _ => ThrowInvalidOperation(SR.Contains_more_than_one_element)
+        };
+    }
+
+    /// <summary>
     ///  Returns the only element in this builder that satisfies a specified condition or a default
     ///  value if no such element exists; this method throws an exception if more than one element
     ///  satisfies the condition.
@@ -983,6 +1153,46 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     {
         var firstSeen = false;
         T? result = default;
+
+        foreach (var item in this)
+        {
+            if (predicate(item))
+            {
+                if (firstSeen)
+                {
+                    return ThrowInvalidOperation(SR.Contains_more_than_one_matching_element);
+                }
+
+                firstSeen = true;
+                result = item;
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Returns the only element in this builder that satisfies a specified condition or a specified default
+    ///  value if no such element exists; this method throws an exception if more than one element
+    ///  satisfies the condition.
+    /// </summary>
+    /// <param name="predicate">
+    ///  A function to test an element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if this builder is empty.
+    /// </param>
+    /// <returns>
+    ///  The single element in this builder that satisfies the condition, or
+    ///  <paramref name="defaultValue"/> if no such element is found.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  More than one element satisfies the condition in predicate.
+    /// </exception>
+    public readonly T SingleOrDefault(Func<T, bool> predicate, T defaultValue)
+    {
+        var firstSeen = false;
+        var result = defaultValue;
 
         foreach (var item in this)
         {
@@ -1023,6 +1233,49 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     {
         var firstSeen = false;
         T? result = default;
+
+        foreach (var item in this)
+        {
+            if (predicate(item, arg))
+            {
+                if (firstSeen)
+                {
+                    return ThrowInvalidOperation(SR.Contains_more_than_one_matching_element);
+                }
+
+                firstSeen = true;
+                result = item;
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Returns the only element in this builder that satisfies a specified condition or a specified default
+    ///  value if no such element exists; this method throws an exception if more than one element
+    ///  satisfies the condition.
+    /// </summary>
+    /// <param name="arg">
+    ///  An argument to pass to <paramref name="predicate"/>.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test an element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if this builder is empty.
+    /// </param>
+    /// <returns>
+    ///  The single element in this builder that satisfies the condition, or
+    ///  <paramref name="defaultValue"/> if no such element is found.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///  More than one element satisfies the condition in predicate.
+    /// </exception>
+    public readonly T SingleOrDefault<TArg>(TArg arg, Func<T, TArg, bool> predicate, T defaultValue)
+    {
+        var firstSeen = false;
+        var result = defaultValue;
 
         foreach (var item in this)
         {
