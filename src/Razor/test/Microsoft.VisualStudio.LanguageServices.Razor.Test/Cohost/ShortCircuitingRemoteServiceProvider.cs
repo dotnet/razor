@@ -73,6 +73,7 @@ internal class ShortCircuitingRemoteServiceProvider(ITestOutputHelper testOutput
         var solutionInfo = new RazorPinnedSolutionInfoWrapper();
 
         testOutputHelper.WriteLine($"Pretend OOP call for {typeof(TService).Name}, invocation: {Path.GetFileNameWithoutExtension(callerFilePath)}.{callerMemberName}");
+        testOutputHelper.WriteLine($"Project assembly path: `{solution.Projects.First().CompilationOutputInfo.AssemblyPath ?? "null"}`");
         return await invocation(service, solutionInfo, cancellationToken);
     }
 }
