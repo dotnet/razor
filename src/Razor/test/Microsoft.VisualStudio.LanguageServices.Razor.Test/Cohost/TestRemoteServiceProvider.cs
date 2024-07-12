@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -15,16 +14,15 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.ServiceHub.Framework;
-using Nerdbank.Streams;
+using Microsoft.VisualStudio.Composition;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost;
 
 /// <summary>
 /// An implementation of IRemoteServiceProvider that doesn't actually do anything remote, but rather directly calls service methods
 /// </summary>
-internal class ShortCircuitingRemoteServiceProvider(ITestOutputHelper testOutputHelper) : IRemoteServiceProvider
+internal class TestRemoteServiceProvider(ExportProvider exportProvider) : IRemoteServiceProvider
 {
     private static readonly Dictionary<Type, IServiceHubServiceFactory> s_factoryMap = BuildFactoryMap();
 
@@ -60,22 +58,17 @@ internal class ShortCircuitingRemoteServiceProvider(ITestOutputHelper testOutput
         CancellationToken cancellationToken,
         [CallerFilePath] string? callerFilePath = null,
         [CallerMemberName] string? callerMemberName = null)
-        where TService : class
+        where TService : class, IDisposable
     {
         Assert.True(s_factoryMap.TryGetValue(typeof(TService), out var factory));
 
-        var testServiceBroker = new InterceptingServiceBroker(solution);
+        var testServiceBroker = new TestServiceBroker(solution);
 
-        // We don't ever use this stream, because we never really use ServiceHub, but going through its factory method means the
-        // remote services under test are using their full MEF composition etc. so we get excellent coverage.
-        var (stream, _) = FullDuplexStream.CreatePair();
-        using var service = (IDisposable)await factory.CreateAsync(stream, _serviceProvider, serviceActivationOptions: default, testServiceBroker, authorizationServiceClient: default!);
+        var serviceFactory = (RazorServiceFactoryBase<TService>)factory;
+        using var service = serviceFactory.GetTestAccessor().CreateService(testServiceBroker, exportProvider);
 
-        // This is never used, we short-circuited things by passing the solution direct to the InterceptingServiceBroker
+        // This is never used, we short-circuited things by passing the solution direct to the TestServiceBroker
         var solutionInfo = new RazorPinnedSolutionInfoWrapper();
-
-        testOutputHelper.WriteLine($"Pretend OOP call for {typeof(TService).Name}, invocation: {Path.GetFileNameWithoutExtension(callerFilePath)}.{callerMemberName}");
-        testOutputHelper.WriteLine($"Project assembly path: `{solution.Projects.First().CompilationOutputInfo.AssemblyPath ?? "null"}`");
-        return await invocation((TService)service, solutionInfo, cancellationToken);
+        return await invocation(service, solutionInfo, cancellationToken);
     }
 }
