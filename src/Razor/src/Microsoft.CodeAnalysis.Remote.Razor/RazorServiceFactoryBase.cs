@@ -35,11 +35,11 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
     }
 
     public async Task<object> CreateAsync(
-       Stream stream,
-       IServiceProvider hostProvidedServices,
-       ServiceActivationOptions serviceActivationOptions,
-       IServiceBroker serviceBroker,
-       AuthorizationServiceClient? authorizationServiceClient)
+        Stream stream,
+        IServiceProvider hostProvidedServices,
+        ServiceActivationOptions serviceActivationOptions,
+        IServiceBroker serviceBroker,
+        AuthorizationServiceClient? authorizationServiceClient)
     {
         // Dispose the AuthorizationServiceClient since we won't be using it
         authorizationServiceClient?.Dispose();
