@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -26,7 +28,7 @@ internal class ShortCircuitingRemoteServiceProvider(ITestOutputHelper testOutput
 {
     private static readonly Dictionary<Type, IServiceHubServiceFactory> s_factoryMap = BuildFactoryMap();
 
-    private readonly IServiceProvider _serviceProvider = new TestTraceSourceProvider(testOutputHelper);
+    private readonly IServiceProvider _serviceProvider = VsMocks.CreateServiceProvider(b => b.AddService<TraceSource>(serviceInstance: null));
 
     private static Dictionary<Type, IServiceHubServiceFactory> BuildFactoryMap()
     {
