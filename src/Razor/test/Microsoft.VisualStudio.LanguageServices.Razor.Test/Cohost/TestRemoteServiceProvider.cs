@@ -3,53 +3,35 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Remote.Razor;
-using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
-using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost;
 
 /// <summary>
 /// An implementation of IRemoteServiceProvider that doesn't actually do anything remote, but rather directly calls service methods
 /// </summary>
-internal class TestRemoteServiceProvider(ExportProvider exportProvider) : IRemoteServiceProvider
+internal class TestRemoteServiceProvider(ExportProvider exportProvider) : IRemoteServiceProvider, IDisposable
 {
-    private static readonly Dictionary<Type, IServiceHubServiceFactory> s_factoryMap = BuildFactoryMap();
+    private readonly TestServiceBroker _testServiceBroker = new TestServiceBroker();
+    private readonly Dictionary<Type, IDisposable> _services = new Dictionary<Type, IDisposable>();
 
-    private readonly IServiceProvider _serviceProvider = VsMocks.CreateServiceProvider(b => b.AddService<TraceSource>(serviceInstance: null));
-
-    private static Dictionary<Type, IServiceHubServiceFactory> BuildFactoryMap()
+    private TService GetOrCreateService<TService>()
+        where TService : class, IDisposable
     {
-        var result = new Dictionary<Type, IServiceHubServiceFactory>();
-
-        foreach (var type in typeof(RazorServiceFactoryBase<>).Assembly.GetTypes())
+        if (!_services.TryGetValue(typeof(TService), out var service))
         {
-            if (!type.IsAbstract &&
-                typeof(IServiceHubServiceFactory).IsAssignableFrom(type))
-            {
-                Assert.Equal(typeof(RazorServiceFactoryBase<>), type.BaseType.GetGenericTypeDefinition());
-
-                var genericType = type.BaseType.GetGenericArguments().FirstOrDefault();
-                if (genericType != null)
-                {
-                    // ServiceHub requires a parameterless constructor, so we can safely rely on it existing too
-                    var factory = (IServiceHubServiceFactory)Activator.CreateInstance(type);
-                    result.Add(genericType, factory);
-                }
-            }
+            var factory = ServiceFactoryMap.GetServiceFactory<TService>();
+            service = factory.GetTestAccessor().CreateService(_testServiceBroker, exportProvider);
+            _services.Add(typeof(TService), service);
         }
 
-        return result;
+        return (TService)service;
     }
 
     public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
@@ -60,15 +42,21 @@ internal class TestRemoteServiceProvider(ExportProvider exportProvider) : IRemot
         [CallerMemberName] string? callerMemberName = null)
         where TService : class, IDisposable
     {
-        Assert.True(s_factoryMap.TryGetValue(typeof(TService), out var factory));
+        var service = GetOrCreateService<TService>();
 
-        var testServiceBroker = new TestServiceBroker(solution);
-
-        var serviceFactory = (RazorServiceFactoryBase<TService>)factory;
-        using var service = serviceFactory.GetTestAccessor().CreateService(testServiceBroker, exportProvider);
-
-        // This is never used, we short-circuited things by passing the solution direct to the TestServiceBroker
+        // In an ideal world we'd be able to maintain a dictionary of solution checksums in TestServiceBroker, and use
+        // the RazorPinnedSolutionInfoWrapper properly, but we need Roslyn changes for that. For now, this works fine
+        // as we don't have any code that makes multiple parallel calls to TryInvokeAsync in the same test.
         var solutionInfo = new RazorPinnedSolutionInfoWrapper();
+        _testServiceBroker.UpdateSolution(solution);
         return await invocation(service, solutionInfo, cancellationToken);
+    }
+
+    public void Dispose()
+    {
+        foreach (var service in _services.Values)
+        {
+            service.Dispose();
+        }
     }
 }

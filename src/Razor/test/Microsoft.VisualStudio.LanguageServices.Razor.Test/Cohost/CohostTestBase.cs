@@ -10,14 +10,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Composition;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost;
 
 public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
 {
-    private ExportProvider? _exportProvider;
     private IRemoteServiceProvider? _remoteServiceProvider;
 
     private protected IRemoteServiceProvider RemoteServiceProvider => _remoteServiceProvider.AssumeNotNull();
@@ -26,16 +24,8 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
     {
         await base.InitializeAsync();
 
-        _exportProvider = await RemoteMefComposition.CreateExportProviderAsync();
-
-        _remoteServiceProvider = new TestRemoteServiceProvider(_exportProvider);
-    }
-
-    protected override async Task DisposeAsync()
-    {
-        _exportProvider?.Dispose();
-
-        await base.DisposeAsync();
+        var exportProvider = AddDisposable(await RemoteMefComposition.CreateExportProviderAsync());
+        _remoteServiceProvider = AddDisposable(new TestRemoteServiceProvider(exportProvider));
     }
 
     protected TextDocument CreateRazorDocument(string contents)

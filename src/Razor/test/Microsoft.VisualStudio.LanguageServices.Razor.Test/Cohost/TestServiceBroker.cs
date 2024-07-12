@@ -4,14 +4,22 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost;
 
-internal class TestServiceBroker(Solution solution) : IRazorServiceBroker
+internal class TestServiceBroker : IRazorServiceBroker
 {
+    private Solution? _solution;
+
+    public void UpdateSolution(Solution solution)
+    {
+        _solution = solution;
+    }
+
     public ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
     {
         return implementation(cancellationToken);
@@ -19,7 +27,7 @@ internal class TestServiceBroker(Solution solution) : IRazorServiceBroker
 
     public ValueTask<T> RunServiceAsync<T>(RazorPinnedSolutionInfoWrapper solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
     {
-        return implementation(solution);
+        return implementation(_solution.AssumeNotNull());
     }
 
     public void Dispose()
