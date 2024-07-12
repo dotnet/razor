@@ -1,0 +1,36 @@
+﻿RazorDocument - [0..19)::19 - [<p @x class="@c" />]
+    MarkupBlock - [0..19)::19
+        MarkupElement - [0..19)::19
+            MarkupStartTag - [0..19)::19 - [<p @x class="@c" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupMiscAttributeContent - [2..17)::15
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    CSharpCodeBlock - [3..5)::2
+                        CSharpImplicitExpression - [3..5)::2
+                            CSharpTransition - [3..4)::1 - Gen<None>
+                                Transition;[@];
+                            CSharpImplicitExpressionBody - [4..5)::1
+                                CSharpCodeBlock - [4..5)::1
+                                    CSharpExpressionLiteral - [4..5)::1 - [x] - Gen<Expr>
+                                        Identifier;[x];
+                    MarkupTextLiteral - [5..13)::8 - [ class="] - Gen<Markup>
+                        Whitespace;[ ];
+                        Text;[class];
+                        Equals;[=];
+                        DoubleQuote;["];
+                    CSharpCodeBlock - [13..15)::2
+                        CSharpImplicitExpression - [13..15)::2
+                            CSharpTransition - [13..14)::1 - Gen<None>
+                                Transition;[@];
+                            CSharpImplicitExpressionBody - [14..15)::1
+                                CSharpCodeBlock - [14..15)::1
+                                    CSharpExpressionLiteral - [14..15)::1 - [c] - Gen<Expr>
+                                        Identifier;[c];
+                    MarkupTextLiteral - [15..17)::2 - [" ] - Gen<Markup>
+                        DoubleQuote;["];
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

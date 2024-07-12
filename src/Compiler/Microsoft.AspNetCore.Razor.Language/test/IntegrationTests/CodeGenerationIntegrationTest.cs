@@ -155,6 +155,9 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     [IntegrationTestFact]
     public void ConditionalAttributes() => RunTest();
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10586")]
+    public void ConditionalAttributes2() => RunTest();
+
     [IntegrationTestFact]
     public void CodeBlockWithTextElement() => RunTest();
 
