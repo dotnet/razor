@@ -53,7 +53,9 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
 
         var exportProvider = await RemoteMefComposition.GetExportProviderAsync().ConfigureAwait(false);
 
-        var service = CreateService(serviceBroker, exportProvider);
+        var razorServiceBroker = new RazorServiceBroker(serviceBroker);
+
+        var service = CreateService(razorServiceBroker, exportProvider);
 
         serverConnection.AddLocalRpcTarget(service);
         serverConnection.StartListening();
@@ -61,5 +63,16 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
         return service;
     }
 
-    protected abstract TService CreateService(IServiceBroker serviceBroker, ExportProvider exportProvider);
+    protected abstract TService CreateService(IRazorServiceBroker serviceBroker, ExportProvider exportProvider);
+
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal readonly struct TestAccessor(RazorServiceFactoryBase<TService> instance)
+    {
+        public TService CreateService(IRazorServiceBroker serviceBroker, ExportProvider exportProvider)
+            => instance.CreateService(serviceBroker, exportProvider);
+    }
 }
