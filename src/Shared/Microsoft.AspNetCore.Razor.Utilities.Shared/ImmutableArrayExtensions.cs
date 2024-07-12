@@ -210,13 +210,8 @@ internal static class ImmutableArrayExtensions
 
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array)
     {
-        if (array.Length > 1)
-        {
-            var compareHelper = new CompareHelper<T>(comparer: null, descending: false);
-            return array.OrderAsArrayCore(in compareHelper);
-        }
-
-        return array;
+        var compareHelper = new CompareHelper<T>(comparer: null, descending: false);
+        return array.OrderAsArrayCore(in compareHelper);
     }
 
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array, IComparer<T> comparer)
