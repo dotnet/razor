@@ -69,13 +69,13 @@ internal class ShortCircuitingRemoteServiceProvider(ITestOutputHelper testOutput
         // We don't ever use this stream, because we never really use ServiceHub, but going through its factory method means the
         // remote services under test are using their full MEF composition etc. so we get excellent coverage.
         var (stream, _) = FullDuplexStream.CreatePair();
-        var service = (TService)await factory.CreateAsync(stream, _serviceProvider, serviceActivationOptions: default, testServiceBroker, authorizationServiceClient: default!);
+        using var service = (IDisposable)await factory.CreateAsync(stream, _serviceProvider, serviceActivationOptions: default, testServiceBroker, authorizationServiceClient: default!);
 
         // This is never used, we short-circuited things by passing the solution direct to the InterceptingServiceBroker
         var solutionInfo = new RazorPinnedSolutionInfoWrapper();
 
         testOutputHelper.WriteLine($"Pretend OOP call for {typeof(TService).Name}, invocation: {Path.GetFileNameWithoutExtension(callerFilePath)}.{callerMemberName}");
         testOutputHelper.WriteLine($"Project assembly path: `{solution.Projects.First().CompilationOutputInfo.AssemblyPath ?? "null"}`");
-        return await invocation(service, solutionInfo, cancellationToken);
+        return await invocation((TService)service, solutionInfo, cancellationToken);
     }
 }
