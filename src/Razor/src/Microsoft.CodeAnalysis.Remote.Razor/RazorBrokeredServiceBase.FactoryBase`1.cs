@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -31,14 +32,24 @@ internal abstract partial class RazorBrokeredServiceBase
             // Dispose the AuthorizationServiceClient since we won't be using it
             authorizationServiceClient?.Dispose();
 
-            var traceSource = RemoteLoggerFactory.Initialize(hostProvidedServices);
+            var traceSource = (TraceSource?)hostProvidedServices.GetService(typeof(TraceSource));
+            var brokeredServiceData = (RazorBrokeredServiceData?)hostProvidedServices.GetService(typeof(RazorBrokeredServiceData));
+
+            var exportProvider = brokeredServiceData?.ExportProvider
+                ?? await RemoteMefComposition.GetExportProviderAsync().ConfigureAwait(false);
+
+            var targetLoggerFactory = brokeredServiceData?.LoggerFactory
+                ?? (traceSource is not null
+                    ? SimpleLoggerFactory.CreateWithTraceSource(traceSource)
+                    : SimpleLoggerFactory.Empty);
+
+            var remoteLoggerFactory = exportProvider.GetExportedValue<RemoteLoggerFactory>();
+            remoteLoggerFactory.SetTargetLoggerFactory(targetLoggerFactory);
 
             var pipe = stream.UsePipe();
 
             var descriptor = RazorServices.Descriptors.GetDescriptorForServiceFactory(typeof(TService));
             var serverConnection = descriptor.WithTraceSource(traceSource).ConstructRpcConnection(pipe);
-
-            var exportProvider = await RemoteMefComposition.GetExportProviderAsync().ConfigureAwait(false);
 
             var razorServiceBroker = new RazorServiceBroker(serviceBroker);
             var args = new ServiceArgs(razorServiceBroker, exportProvider);

@@ -3,34 +3,42 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Logging;
 
-[Export(typeof(ILoggerFactory)), Shared]
-[method: ImportingConstructor]
-internal partial class RemoteLoggerFactory() : ILoggerFactory
+[Shared]
+[Export(typeof(ILoggerFactory))]
+[Export(typeof(RemoteLoggerFactory))]
+internal sealed class RemoteLoggerFactory : ILoggerFactory
 {
-    private static TraceSource? s_traceSource;
+    private ILoggerFactory? _targetLoggerFactory;
 
-    internal static TraceSource Initialize(IServiceProvider hostProvidedServices)
+    private ILoggerFactory TargetLoggerFactory => _targetLoggerFactory.AssumeNotNull();
+
+    internal void SetTargetLoggerFactory(ILoggerFactory loggerFactory)
     {
-        s_traceSource ??= (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
-        return s_traceSource;
+        if (_targetLoggerFactory is not null)
+        {
+            throw new InvalidOperationException($"{nameof(_targetLoggerFactory)} is already set.");
+        }
+
+        _targetLoggerFactory = loggerFactory;
     }
 
     public void AddLoggerProvider(ILoggerProvider provider)
     {
-        throw new NotImplementedException();
+        TargetLoggerFactory.AddLoggerProvider(provider);
     }
 
     public ILogger GetOrCreateLogger(string categoryName)
     {
-        return new Logger(categoryName);
+        return TargetLoggerFactory.GetOrCreateLogger(categoryName);
     }
 
     public void Dispose()
     {
+        // Don't dispose the inner ILoggerFactory because we don't own it.
     }
 }
