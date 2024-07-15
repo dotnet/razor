@@ -47,7 +47,7 @@ internal sealed class RemoteServiceInvoker(
         CancellationToken cancellationToken,
         [CallerFilePath] string? callerFilePath = null,
         [CallerMemberName] string? callerMemberName = null)
-        where TService : class, IDisposable
+        where TService : class
     {
         var client = await TryGetClientAsync(cancellationToken).ConfigureAwait(false);
         if (client is null)

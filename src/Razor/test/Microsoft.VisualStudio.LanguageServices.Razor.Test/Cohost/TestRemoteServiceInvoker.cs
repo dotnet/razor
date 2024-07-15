@@ -21,10 +21,10 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class TestRemoteServiceInvoker(ExportProvider exportProvider) : IRemoteServiceInvoker, IDisposable
 {
     private readonly TestServiceBroker _serviceBroker = new();
-    private readonly Dictionary<Type, IDisposable> _services = [];
+    private readonly Dictionary<Type, object> _services = [];
 
     private TService GetOrCreateService<TService>()
-        where TService : class, IDisposable
+        where TService : class
     {
         if (!_services.TryGetValue(typeof(TService), out var service))
         {
@@ -42,7 +42,7 @@ internal sealed class TestRemoteServiceInvoker(ExportProvider exportProvider) : 
         CancellationToken cancellationToken,
         [CallerFilePath] string? callerFilePath = null,
         [CallerMemberName] string? callerMemberName = null)
-        where TService : class, IDisposable
+        where TService : class
     {
         var service = GetOrCreateService<TService>();
 
@@ -58,7 +58,10 @@ internal sealed class TestRemoteServiceInvoker(ExportProvider exportProvider) : 
     {
         foreach (var service in _services.Values)
         {
-            service.Dispose();
+            if (service is IDisposable d)
+            {
+                d.Dispose();
+            }
         }
     }
 }
