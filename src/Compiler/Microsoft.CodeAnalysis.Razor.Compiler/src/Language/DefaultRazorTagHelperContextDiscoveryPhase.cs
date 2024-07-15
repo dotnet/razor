@@ -174,7 +174,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                                 if (!_nonComponentTagHelperMap.TryGetValue(currentAssemblyName, out currentTagHelpers))
                                 {
                                     currentTagHelpers = s_pool.Get();
-                                    _nonComponentTagHelperMap.Add(tagHelper.AssemblyName, currentTagHelpers);
+                                    _nonComponentTagHelperMap.Add(currentAssemblyName, currentTagHelpers);
                                 }
                             }
 
