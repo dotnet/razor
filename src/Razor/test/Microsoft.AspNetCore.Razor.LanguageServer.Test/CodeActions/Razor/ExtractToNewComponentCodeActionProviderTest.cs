@@ -251,10 +251,10 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
                     <h1>Div b title</h1>
                     <p>Div b par</p>
                 </div>
-            </div
-            
+            </div>
+
             <h1>Hello, world!</h1>
-            
+
             Welcome to your new app.
             """;
         TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
