@@ -8,23 +8,18 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal abstract class RazorServiceBase : IDisposable
+internal abstract class RazorBrokeredServiceBase(IRazorServiceBroker serviceBroker) : IDisposable
 {
-    private readonly IRazorServiceBroker _razorServiceBroker;
-
-    public RazorServiceBase(IRazorServiceBroker razorServiceBroker)
-    {
-        _razorServiceBroker = razorServiceBroker;
-    }
+    private readonly IRazorServiceBroker _serviceBroker = serviceBroker;
 
     protected ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
-        => _razorServiceBroker.RunServiceAsync(implementation, cancellationToken);
+        => _serviceBroker.RunServiceAsync(implementation, cancellationToken);
 
     protected ValueTask<T> RunServiceAsync<T>(RazorPinnedSolutionInfoWrapper solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
-        => _razorServiceBroker.RunServiceAsync(solutionInfo, implementation, cancellationToken);
+        => _serviceBroker.RunServiceAsync(solutionInfo, implementation, cancellationToken);
 
     public void Dispose()
     {
-        _razorServiceBroker.Dispose();
+        _serviceBroker.Dispose();
     }
 }

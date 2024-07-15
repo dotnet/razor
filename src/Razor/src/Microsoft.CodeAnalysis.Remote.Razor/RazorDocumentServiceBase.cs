@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal abstract class RazorDocumentServiceBase(
     IRazorServiceBroker serviceBroker,
     DocumentSnapshotFactory documentSnapshotFactory)
-    : RazorServiceBase(serviceBroker)
+    : RazorBrokeredServiceBase(serviceBroker)
 {
     protected DocumentSnapshotFactory DocumentSnapshotFactory { get; } = documentSnapshotFactory;
 

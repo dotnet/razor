@@ -17,7 +17,7 @@ internal sealed class RemoteTagHelperProviderService(
     IRazorServiceBroker serviceBroker,
     RemoteTagHelperResolver tagHelperResolver,
     RemoteTagHelperDeltaProvider tagHelperDeltaProvider)
-    : RazorServiceBase(serviceBroker), IRemoteTagHelperProviderService
+    : RazorBrokeredServiceBase(serviceBroker), IRemoteTagHelperProviderService
 {
     private readonly RemoteTagHelperResolver _tagHelperResolver = tagHelperResolver;
     private readonly RemoteTagHelperDeltaProvider _tagHelperDeltaProvider = tagHelperDeltaProvider;

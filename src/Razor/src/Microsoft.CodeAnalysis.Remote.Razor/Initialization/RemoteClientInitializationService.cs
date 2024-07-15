@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal sealed class RemoteClientInitializationService(
     IRazorServiceBroker serviceBroker)
-    : RazorServiceBase(serviceBroker), IRemoteClientInitializationService
+    : RazorBrokeredServiceBase(serviceBroker), IRemoteClientInitializationService
 {
     public ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(ct =>
