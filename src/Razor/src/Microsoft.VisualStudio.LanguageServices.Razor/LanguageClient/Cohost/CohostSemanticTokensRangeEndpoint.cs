@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 using Microsoft.VisualStudio.Razor.Settings;
@@ -68,11 +70,16 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(SemanticTokensRangeParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
         var razorDocument = context.TextDocument.AssumeNotNull();
         var span = request.Range.ToLinePositionSpan();
 
+        return HandleRequestAsync(razorDocument, span, cancellationToken);
+    }
+
+    private async Task<SemanticTokens?> HandleRequestAsync(TextDocument razorDocument, LinePositionSpan span, CancellationToken cancellationToken)
+    {
         var colorBackground = _clientSettingsManager.GetClientSettings().AdvancedSettings.ColorBackground;
 
         var correlationId = Guid.NewGuid();
@@ -92,5 +99,13 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
         }
 
         return null;
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostSemanticTokensRangeEndpoint instance)
+    {
+        public Task<SemanticTokens?> HandleRequestAsync(TextDocument razorDocument, LinePositionSpan span, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(razorDocument, span, cancellationToken);
     }
 }

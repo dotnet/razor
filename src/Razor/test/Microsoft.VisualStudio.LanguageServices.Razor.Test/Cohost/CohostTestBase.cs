@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
@@ -18,6 +19,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
 {
+    private const string CSharpVirtualDocumentSuffix = ".g.cs";
     private IRemoteServiceProvider? _remoteServiceProvider;
 
     private protected IRemoteServiceProvider RemoteServiceProvider => _remoteServiceProvider.AssumeNotNull();
@@ -28,12 +30,27 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
 
         var exportProvider = AddDisposable(await RemoteMefComposition.CreateExportProviderAsync());
         _remoteServiceProvider = AddDisposable(new TestRemoteServiceProvider(exportProvider));
+
+        RemoteLanguageServerFeatureOptions.SetOptions(new()
+        {
+            CSharpVirtualDocumentSuffix = CSharpVirtualDocumentSuffix,
+            HtmlVirtualDocumentSuffix = ".g.html",
+            IncludeProjectKeyInGeneratedFilePath = false,
+            UsePreciseSemanticTokenRanges = false,
+            UseRazorCohostServer = true
+        });
     }
 
-    protected TextDocument CreateProjectAndRazorDocument(string contents)
+    protected TextDocument CreateProjectAndRazorDocument(string contents, string? fileKind = null)
     {
+        // Using IsLegacy means null == component, so easier for test authors
+        var isComponent = !FileKinds.IsLegacy(fileKind);
+
+        var documentFilePath = isComponent
+            ? TestProjectData.SomeProjectComponentFile1.FilePath
+            : TestProjectData.SomeProjectFile1.FilePath;
+
         var projectFilePath = TestProjectData.SomeProject.FilePath;
-        var documentFilePath = TestProjectData.SomeProjectComponentFile1.FilePath;
         var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
         var projectId = ProjectId.CreateNewId(debugName: projectName);
         var documentId = DocumentId.CreateNewId(projectId, debugName: documentFilePath);
@@ -56,16 +73,29 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
                 documentFilePath,
                 SourceText.From(contents),
                 filePath: documentFilePath)
+            .AddDocument(
+                DocumentId.CreateNewId(projectId),
+                name: documentFilePath + CSharpVirtualDocumentSuffix,
+                SourceText.From(""),
+                filePath: documentFilePath + CSharpVirtualDocumentSuffix)
             .AddAdditionalDocument(
                 DocumentId.CreateNewId(projectId),
-                name: "_Imports.razor",
+                name: TestProjectData.SomeProjectComponentImportFile1.FilePath,
                 text: SourceText.From("""
                     @using Microsoft.AspNetCore.Components
                     @using Microsoft.AspNetCore.Components.Authorization
+                    @using Microsoft.AspNetCore.Components.Forms
                     @using Microsoft.AspNetCore.Components.Routing
                     @using Microsoft.AspNetCore.Components.Web
                     """),
-                filePath: TestProjectData.SomeProjectComponentImportFile1.FilePath);
+                filePath: TestProjectData.SomeProjectComponentImportFile1.FilePath)
+            .AddAdditionalDocument(
+                DocumentId.CreateNewId(projectId),
+                name: "_ViewImports.cshtml",
+                text: SourceText.From("""
+                    @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+                    """),
+                filePath: TestProjectData.SomeProjectImportFile.FilePath);
 
         return solution.GetAdditionalDocument(documentId).AssumeNotNull();
     }
