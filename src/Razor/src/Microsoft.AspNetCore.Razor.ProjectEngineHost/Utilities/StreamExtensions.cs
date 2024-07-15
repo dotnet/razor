@@ -56,12 +56,8 @@ internal static class StreamExtensions
         var length = ReadSize(stream);
 
         using var _ = ArrayPool<byte>.Shared.GetPooledArray(length, out var encodedBytes);
-        var bytesRead = await stream.ReadAsync(encodedBytes, 0, length, cancellationToken).ConfigureAwait(false);
-        if (bytesRead == 0)
-        {
-            return string.Empty;
-        }
 
+        await ReadExactlyAsync(stream, encodedBytes, length, cancellationToken).ConfigureAwait(false);
         return encoding.GetString(encodedBytes, 0, length);
     }
 
@@ -109,15 +105,7 @@ internal static class StreamExtensions
         var sizeToRead = ReadSize(stream);
 
         using var _ = ArrayPool<byte>.Shared.GetPooledArray(sizeToRead, out var projectInfoBytes);
-        var readBytes = await stream.ReadAsync(projectInfoBytes, 0, sizeToRead, cancellationToken).ConfigureAwait(false);
-
-        if (readBytes == 0)
-        {
-            // End of stream
-            return null;
-        }
-
-        Debug.Assert(readBytes == sizeToRead);
+        await ReadExactlyAsync(stream, projectInfoBytes, sizeToRead, cancellationToken).ConfigureAwait(false);
 
         // The array may be larger than the bytes read so make sure to trim accordingly.
         var projectInfoMemory = projectInfoBytes.AsMemory(0, sizeToRead);
@@ -152,4 +140,24 @@ internal static class StreamExtensions
         return BitConverter.ToInt32(bytes, 0);
 #endif
     }
+
+#if NET
+    private static ValueTask ReadExactlyAsync(Stream stream, byte[] buffer, int length, CancellationToken cancellationToken)
+        => stream.ReadExactlyAsync(buffer, 0, length, cancellationToken);
+#else
+    private static async ValueTask ReadExactlyAsync(Stream stream, byte[] buffer, int length, CancellationToken cancellationToken)
+    {
+        var bytesRead = 0;
+        while (bytesRead < length)
+        {
+            var read = await stream.ReadAsync(buffer, bytesRead, length - bytesRead, cancellationToken);
+            if (read == 0)
+            {
+                throw new EndOfStreamException();
+            }
+
+            bytesRead += read;
+        }
+    }
+#endif
 }
