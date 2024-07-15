@@ -3,13 +3,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -32,18 +35,24 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         // Arrange
         var documentPath = "c:/Test.razor";
         var contents = """
-            @page "/test"
-            <div>
-                <h1>This is my title!</h1>
-                <p>This is my paragraph!</p>
-                <button class="btn btn-primary">Click me</button>
-                <div class="sampleClass">
-                    <p>This is my other paragraph!</p>
-                    <img src="https://th.bing.com/th/id/OIP.3xPWxl3Dn6pMYuBKt9zp3QHaG5?w=1185&h=1104&rs=1&pid=ImgDetMain"
-                         alt="Alternate Text" />
+            @page "/"
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                <div>
+                    <h1>Div a title</h1>
+                    <p>Div $$a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
                 </div>
             </div>
-            @$$code {}
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
             """;
         TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
 
@@ -65,6 +74,127 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
+    }
+
+    [Fact]
+    public async Task Handle_InProperMarkup_ReturnsNull()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = """
+            page "/"
+            
+            <PageTitle>Home</PageTitle>
+            
+            <div id="parent">
+                <div>
+                    <h1>Div a title</h1>
+                    <p>Div $$a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>
+            </div
+            
+            <h1>Hello, world!</h1>
+            
+            Welcome to your new app.
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range(),
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var location = new SourceLocation(cursorPosition, -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+
+        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.Null(commandOrCodeActionContainer);
+    }
+
+    [Theory]
+    [InlineData("""
+    <div id="parent">
+        [|<div>
+            <h1>Div a title</h1>
+            <p>Div a par</p>
+        </div>|]
+        <div>
+            <h1>Div b title</h1>
+            <p>Div b par</p>
+        </div>
+    </div>
+    """)]
+    [InlineData("""
+    <div id="parent">
+        <div>
+            <h1>Div a title</h1>
+            [|<p>Div a par</p>|]
+        </div>
+        <div>
+            <h1>Div b title</h1>
+            <p>Div b par</p>
+        </div>
+    </div>
+    """)]
+    [InlineData("""
+    <div id="parent">
+        <div>
+            <h1>Div a title</h1>
+            [|<p>Div a par</p>
+        </div>
+        <div>
+            <h1>Div b title</h1>
+            <p>Div b par</p>|]
+        </div>
+    </div>
+    """)]
+    public async Task Handle_ValidElementSelection_ReturnsNotNull(string markupElementSelection)
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = $$"""
+            page "/"
+            
+            <PageTitle>Home</PageTitle>
+            
+            {{markupElementSelection}}
+      
+            <h1>Hello, world!</h1>
+            
+            Welcome to your new app.
+            """;
+
+        TestFileMarkupParser.GetPositionAndSpans(
+            contents, out contents, out int cursorPosition, out ImmutableArray<TextSpan> spans);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range(),
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var location = new SourceLocation(cursorPosition, -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+
+        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
     }
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
