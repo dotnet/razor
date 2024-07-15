@@ -56,7 +56,12 @@ internal static class StreamExtensions
         var length = ReadSize(stream);
 
         using var _ = ArrayPool<byte>.Shared.GetPooledArray(length, out var encodedBytes);
-        await stream.ReadAsync(encodedBytes, 0, length, cancellationToken).ConfigureAwait(false);
+        var bytesRead = await stream.ReadAsync(encodedBytes, 0, length, cancellationToken).ConfigureAwait(false);
+        if (bytesRead == 0)
+        {
+            return string.Empty;
+        }
+
         return encoding.GetString(encodedBytes, 0, length);
     }
 
@@ -94,8 +99,6 @@ internal static class StreamExtensions
 
     public static async Task WriteProjectInfoAsync(this Stream stream, RazorProjectInfo projectInfo, CancellationToken cancellationToken)
     {
-        WriteProjectInfoAction(stream, ProjectInfoAction.Update);
-
         var bytes = projectInfo.Serialize();
         WriteSize(stream, bytes.Length);
         await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
@@ -106,11 +109,23 @@ internal static class StreamExtensions
         var sizeToRead = ReadSize(stream);
 
         using var _ = ArrayPool<byte>.Shared.GetPooledArray(sizeToRead, out var projectInfoBytes);
-        await stream.ReadAsync(projectInfoBytes, 0, projectInfoBytes.Length, cancellationToken).ConfigureAwait(false);
-        return RazorProjectInfo.DeserializeFrom(projectInfoBytes.AsMemory());
+        var readBytes = await stream.ReadAsync(projectInfoBytes, 0, sizeToRead, cancellationToken).ConfigureAwait(false);
+
+        if (readBytes == 0)
+        {
+            // End of stream
+            return null;
+        }
+
+        Debug.Assert(readBytes == sizeToRead);
+
+        // The array may be larger than the bytes read so make sure to trim accordingly.
+        var projectInfoMemory = projectInfoBytes.AsMemory(0, sizeToRead);
+
+        return RazorProjectInfo.DeserializeFrom(projectInfoMemory);
     }
 
-    private static void WriteSize(Stream stream, int length)
+    public static void WriteSize(this Stream stream, int length)
     {
 #if NET
         Span<byte> sizeBytes = stackalloc byte[4];
@@ -125,7 +140,7 @@ internal static class StreamExtensions
 
     }
 
-    private unsafe static int ReadSize(Stream stream)
+    public unsafe static int ReadSize(this Stream stream)
     {
 #if NET
         Span<byte> bytes = stackalloc byte[4];
