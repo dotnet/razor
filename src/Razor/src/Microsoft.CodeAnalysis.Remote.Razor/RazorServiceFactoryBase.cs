@@ -13,26 +13,14 @@ using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-/// <summary>
-/// </summary>
-/// <typeparam name="TService"></typeparam>
 /// <remarks>
-/// Implementors of <see cref="IServiceHubServiceFactory" /> (and thus this class) MUST provide a parameterless constructor or ServiceHub will fail to construct them.
+/// Implementors of <see cref="IServiceHubServiceFactory" /> (and thus this class) MUST provide a parameterless constructor
+/// or ServiceHub will fail to construct them.
 /// </remarks>
-internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFactory where TService : class
+internal abstract class RazorServiceFactoryBase<TService>(RazorServiceDescriptorsWrapper serviceDescriptors) : IServiceHubServiceFactory
+    where TService : class
 {
-    private readonly RazorServiceDescriptorsWrapper _razorServiceDescriptors;
-
-    /// <summary>
-    /// </summary>
-    /// <param name="razorServiceDescriptors"></param>
-    /// <remarks>
-    /// Implementors of <see cref="IServiceHubServiceFactory" /> (and thus this class) MUST provide a parameterless constructor or ServiceHub will fail to construct them.
-    /// </remarks>
-    public RazorServiceFactoryBase(RazorServiceDescriptorsWrapper razorServiceDescriptors)
-    {
-        _razorServiceDescriptors = razorServiceDescriptors;
-    }
+    private readonly RazorServiceDescriptorsWrapper _serviceDescriptors = serviceDescriptors;
 
     public async Task<object> CreateAsync(
         Stream stream,
@@ -48,7 +36,7 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
 
         var pipe = stream.UsePipe();
 
-        var descriptor = _razorServiceDescriptors.GetDescriptorForServiceFactory(typeof(TService));
+        var descriptor = _serviceDescriptors.GetDescriptorForServiceFactory(typeof(TService));
         var serverConnection = descriptor.WithTraceSource(traceSource).ConstructRpcConnection(pipe);
 
         var exportProvider = await RemoteMefComposition.GetExportProviderAsync().ConfigureAwait(false);
@@ -65,10 +53,7 @@ internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFa
 
     protected abstract TService CreateService(IRazorServiceBroker serviceBroker, ExportProvider exportProvider);
 
-    internal TestAccessor GetTestAccessor()
-    {
-        return new TestAccessor(this);
-    }
+    internal TestAccessor GetTestAccessor() => new(this);
 
     internal readonly struct TestAccessor(RazorServiceFactoryBase<TService> instance)
     {
