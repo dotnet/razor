@@ -8,32 +8,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 /// <summary>
 /// An implementation of <see cref="IRemoteServiceInvoker"/> that doesn't actually do anything remote,
-/// but rather directly calls service methods
+/// but rather directly calls service methods.
 /// </summary>
-internal sealed class TestRemoteServiceInvoker(ExportProvider exportProvider) : IRemoteServiceInvoker, IDisposable
+internal sealed class TestRemoteServiceInvoker(
+    JoinableTaskContext joinableTaskContext,
+    ExportProvider exportProvider,
+    ILoggerFactory loggerFactory) : IRemoteServiceInvoker, IDisposable
 {
     private readonly TestServiceBroker _serviceBroker = new();
     private readonly Dictionary<Type, object> _services = [];
+    private readonly ReentrantSemaphore _reentrantSemaphore = ReentrantSemaphore.Create(initialCount: 1, joinableTaskContext);
 
-    private TService GetOrCreateService<TService>()
+    private async Task<TService> GetOrCreateServiceAsync<TService>()
         where TService : class
     {
-        if (!_services.TryGetValue(typeof(TService), out var service))
+        return await _reentrantSemaphore.ExecuteAsync(async () =>
         {
-            var args = new ServiceArgs(_serviceBroker, exportProvider);
-            service = BrokeredServiceFactory.CreateService<TService>(in args);
-            _services.Add(typeof(TService), service);
-        }
+            if (!_services.TryGetValue(typeof(TService), out var service))
+            {
+                var args = new ServiceArgs(_serviceBroker, exportProvider);
+                service = await BrokeredServiceFactory.CreateServiceAsync<TService>(_serviceBroker, exportProvider, loggerFactory);
+                _services.Add(typeof(TService), service);
+            }
 
-        return (TService)service;
+            return (TService)service;
+        });
     }
 
     public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
@@ -44,7 +53,7 @@ internal sealed class TestRemoteServiceInvoker(ExportProvider exportProvider) : 
         [CallerMemberName] string? callerMemberName = null)
         where TService : class
     {
-        var service = GetOrCreateService<TService>();
+        var service = await GetOrCreateServiceAsync<TService>();
 
         // In an ideal world we'd be able to maintain a dictionary of solution checksums in TestServiceBroker, and use
         // the RazorPinnedSolutionInfoWrapper properly, but we need Roslyn changes for that. For now, this works fine
@@ -56,6 +65,8 @@ internal sealed class TestRemoteServiceInvoker(ExportProvider exportProvider) : 
 
     public void Dispose()
     {
+        _reentrantSemaphore.Dispose();
+
         foreach (var service in _services.Values)
         {
             if (service is IDisposable d)

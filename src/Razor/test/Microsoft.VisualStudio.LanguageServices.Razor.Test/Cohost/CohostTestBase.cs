@@ -9,25 +9,33 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
 {
-    private IRemoteServiceInvoker? _remoteServiceInvoker;
+    private TestRemoteServiceInvoker? _remoteServiceInvoker;
 
-    private protected IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
+    private protected TestRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
 
     protected override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
-        var exportProvider = AddDisposable(await RemoteMefComposition.CreateExportProviderAsync());
-        _remoteServiceInvoker = AddDisposable(new TestRemoteServiceInvoker(exportProvider));
+        // Create a new isolated MEF composition but use the cached configuration for performance.
+        var configuration = await RemoteMefComposition.GetConfigurationAsync(DisposalToken);
+        var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+        var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
+        var exportProvider = exportProviderFactory.CreateExportProvider();
+
+        AddDisposable(exportProvider);
+
+        _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, exportProvider, LoggerFactory);
+        AddDisposable(_remoteServiceInvoker);
     }
 
     protected TextDocument CreateProjectAndRazorDocument(string contents)

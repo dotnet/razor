@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Threading;
@@ -13,25 +14,34 @@ internal static class RemoteMefComposition
 {
     internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies = [typeof(RemoteMefComposition).Assembly];
 
-#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
-    private static readonly AsyncLazy<ExportProvider> s_exportProviderLazy = new(CreateExportProviderAsync);
-#pragma warning restore VSTHRD012 // Provide JoinableTaskFactory where allowed
+    private static readonly AsyncLazy<CompositionConfiguration> s_lazyConfiguration = new(CreateConfigurationAsync, joinableTaskFactory: null);
 
-    public static Task<ExportProvider> GetExportProviderAsync()
-        => s_exportProviderLazy.GetValueAsync();
+    private static readonly AsyncLazy<ExportProvider> s_lazyExportProvider = new(CreateExportProviderAsync, joinableTaskFactory: null);
 
-    // Internal for testing
-    // Inspired by https://github.com/dotnet/roslyn/blob/25aa74d725e801b8232dbb3e5abcda0fa72da8c5/src/Workspaces/Remote/ServiceHub/Host/RemoteWorkspaceManager.cs#L77
-    internal static async Task<ExportProvider> CreateExportProviderAsync()
+    public static Task<CompositionConfiguration> GetConfigurationAsync(CancellationToken cancellationToken = default)
+        => s_lazyConfiguration.GetValueAsync(cancellationToken);
+
+    public static Task<ExportProvider> GetExportProviderAsync(CancellationToken cancellationToken = default)
+        => s_lazyExportProvider.GetValueAsync(cancellationToken);
+
+    private static async Task<CompositionConfiguration> CreateConfigurationAsync()
     {
         var resolver = new Resolver(SimpleAssemblyLoader.Instance);
         var discovery = new AttributedPartDiscovery(resolver, isNonPublicSupported: true); // MEFv2 only
         var parts = await discovery.CreatePartsAsync(RemoteHostAssemblies).ConfigureAwait(false);
         var catalog = ComposableCatalog.Create(resolver).AddParts(parts);
 
-        var configuration = CompositionConfiguration.Create(catalog).ThrowOnErrors();
+        return CompositionConfiguration.Create(catalog).ThrowOnErrors();
+    }
+
+    // Internal for testing
+    // Inspired by https://github.com/dotnet/roslyn/blob/25aa74d725e801b8232dbb3e5abcda0fa72da8c5/src/Workspaces/Remote/ServiceHub/Host/RemoteWorkspaceManager.cs#L77
+    private static async Task<ExportProvider> CreateExportProviderAsync()
+    {
+        var configuration = await s_lazyConfiguration.GetValueAsync();
         var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
         var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
+
         return exportProviderFactory.CreateExportProvider();
     }
 

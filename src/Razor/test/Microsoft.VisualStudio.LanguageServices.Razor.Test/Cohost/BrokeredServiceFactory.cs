@@ -3,9 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Composition;
+using Nerdbank.Streams;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -45,19 +51,27 @@ internal static class BrokeredServiceFactory
         return result;
     }
 
-    private static RazorBrokeredServiceBase.FactoryBase<TService> GetServiceFactory<TService>()
+    public static async Task<TService> CreateServiceAsync<TService>(
+        TestServiceBroker serviceBroker, ExportProvider exportProvider, ILoggerFactory loggerFactory)
         where TService : class
     {
         Assert.True(s_factoryMap.TryGetValue(typeof(TService), out var factory));
 
-        return (RazorBrokeredServiceBase.FactoryBase<TService>)factory;
-    }
+        var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+        var brokeredServiceData = new RazorBrokeredServiceData(exportProvider, loggerFactory, serviceBroker);
+        var hostProvidedServices = VsMocks.CreateServiceProvider(b =>
+        {
+            b.AddService(brokeredServiceData);
 
-    public static TService CreateService<TService>(in ServiceArgs args)
-        where TService : class
-    {
-        var factory = GetServiceFactory<TService>();
+            // Don't provide a trace source. Brokered services and MEF components will rely on ILoggerFactory.
+            b.AddService<TraceSource>((object?)null);
+        });
 
-        return factory.GetTestAccessor().CreateService(in args);
+        return (TService)await factory.CreateAsync(
+            serverStream,
+            hostProvidedServices,
+            serviceActivationOptions: default,
+            serviceBroker,
+            authorizationServiceClient: default!);
     }
 }

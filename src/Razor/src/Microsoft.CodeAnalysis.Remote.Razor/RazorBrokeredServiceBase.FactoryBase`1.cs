@@ -51,8 +51,7 @@ internal abstract partial class RazorBrokeredServiceBase
             var descriptor = RazorServices.Descriptors.GetDescriptorForServiceFactory(typeof(TService));
             var serverConnection = descriptor.WithTraceSource(traceSource).ConstructRpcConnection(pipe);
 
-            var razorServiceBroker = new RazorServiceBroker(serviceBroker, serverConnection);
-            var args = new ServiceArgs(razorServiceBroker, exportProvider);
+            var args = new ServiceArgs(serviceBroker, exportProvider, serverConnection, brokeredServiceData?.Interceptor);
 
             var service = CreateService(in args);
 
@@ -63,13 +62,5 @@ internal abstract partial class RazorBrokeredServiceBase
         }
 
         protected abstract TService CreateService(in ServiceArgs args);
-
-        internal TestAccessor GetTestAccessor() => new(this);
-
-        internal readonly struct TestAccessor(FactoryBase<TService> instance)
-        {
-            public TService CreateService(in ServiceArgs args)
-                => instance.CreateService(in args);
-        }
     }
 }

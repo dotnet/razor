@@ -5,32 +5,43 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal abstract partial class RazorBrokeredServiceBase : IDisposable
 {
-    private readonly IRazorServiceBroker _serviceBroker;
+    private readonly ServiceBrokerClient _serviceBrokerClient;
+    private readonly ServiceRpcDescriptor.RpcConnection? _serverConnection;
+    private readonly IRazorBrokeredServiceInterceptor? _interceptor;
 
     protected readonly ILogger Logger;
 
     protected RazorBrokeredServiceBase(in ServiceArgs args)
     {
-        _serviceBroker = args.ServiceBroker;
+        _serviceBrokerClient = new ServiceBrokerClient(args.ServiceBroker, joinableTaskFactory: null);
+        _serverConnection = args.ServerConnection;
+        _interceptor = args.Interceptor;
 
         var loggerFactory = args.ExportProvider.GetExportedValue<ILoggerFactory>();
         Logger = loggerFactory.GetOrCreateLogger(GetType());
     }
 
     protected ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
-        => _serviceBroker.RunServiceAsync(implementation, cancellationToken);
+        => _interceptor is not null
+            ? _interceptor.RunServiceAsync(implementation, cancellationToken)
+            : RazorBrokeredServiceImplementation.RunServiceAsync(implementation, cancellationToken);
 
     protected ValueTask<T> RunServiceAsync<T>(RazorPinnedSolutionInfoWrapper solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
-        => _serviceBroker.RunServiceAsync(solutionInfo, implementation, cancellationToken);
+        => _interceptor is not null
+            ? _interceptor.RunServiceAsync(solutionInfo, implementation, cancellationToken)
+            : RazorBrokeredServiceImplementation.RunServiceAsync(solutionInfo, _serviceBrokerClient, implementation, cancellationToken);
 
     public void Dispose()
     {
-        _serviceBroker.Dispose();
+        _serviceBrokerClient.Dispose();
+        _serverConnection?.Dispose();
     }
 }

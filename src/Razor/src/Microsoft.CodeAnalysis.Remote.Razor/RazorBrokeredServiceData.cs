@@ -6,4 +6,7 @@ using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed record class RazorBrokeredServiceData(ExportProvider? ExportProvider, ILoggerFactory? LoggerFactory);
+internal sealed record class RazorBrokeredServiceData(
+    ExportProvider? ExportProvider,
+    ILoggerFactory? LoggerFactory,
+    IRazorBrokeredServiceInterceptor? Interceptor);
