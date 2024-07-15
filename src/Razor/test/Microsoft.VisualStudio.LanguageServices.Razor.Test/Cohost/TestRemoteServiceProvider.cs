@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -18,16 +19,16 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 /// </summary>
 internal sealed class TestRemoteServiceProvider(ExportProvider exportProvider) : IRemoteServiceProvider, IDisposable
 {
-    private readonly TestServiceBroker _testServiceBroker = new TestServiceBroker();
-    private readonly Dictionary<Type, IDisposable> _services = new Dictionary<Type, IDisposable>();
+    private readonly TestServiceBroker _serviceBroker = new();
+    private readonly Dictionary<Type, IDisposable> _services = [];
 
     private TService GetOrCreateService<TService>()
         where TService : class, IDisposable
     {
         if (!_services.TryGetValue(typeof(TService), out var service))
         {
-            var factory = ServiceFactoryMap.GetServiceFactory<TService>();
-            service = factory.GetTestAccessor().CreateService(_testServiceBroker, exportProvider);
+            var args = new ServiceArgs(_serviceBroker, exportProvider);
+            service = BrokeredServiceFactory.CreateService<TService>(in args);
             _services.Add(typeof(TService), service);
         }
 
@@ -48,7 +49,7 @@ internal sealed class TestRemoteServiceProvider(ExportProvider exportProvider) :
         // the RazorPinnedSolutionInfoWrapper properly, but we need Roslyn changes for that. For now, this works fine
         // as we don't have any code that makes multiple parallel calls to TryInvokeAsync in the same test.
         var solutionInfo = new RazorPinnedSolutionInfoWrapper();
-        _testServiceBroker.UpdateSolution(solution);
+        _serviceBroker.UpdateSolution(solution);
         return await invocation(service, solutionInfo, cancellationToken);
     }
 

@@ -10,7 +10,16 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal static class ServiceFactoryMap
+/// <summary>
+///  Creates Razor brokered services.
+/// </summary>
+/// <remarks>
+///  This class holds <see cref="RazorBrokeredServiceBase.FactoryBase{TService}"/> instances in a static
+///  field. This should work fine in tests, since brokered service factories are intended to be stateless.
+///  However, if a factory is introduced that maintains state, this class will need to be revisited to
+///  avoid holding onto state across tests.
+/// </remarks>
+internal static class BrokeredServiceFactory
 {
     private static readonly Dictionary<Type, IServiceHubServiceFactory> s_factoryMap = BuildFactoryMap();
 
@@ -36,11 +45,19 @@ internal static class ServiceFactoryMap
         return result;
     }
 
-    public static RazorBrokeredServiceBase.FactoryBase<TService> GetServiceFactory<TService>()
+    private static RazorBrokeredServiceBase.FactoryBase<TService> GetServiceFactory<TService>()
         where TService : class
     {
         Assert.True(s_factoryMap.TryGetValue(typeof(TService), out var factory));
 
         return (RazorBrokeredServiceBase.FactoryBase<TService>)factory;
+    }
+
+    public static TService CreateService<TService>(in ServiceArgs args)
+        where TService : class
+    {
+        var factory = GetServiceFactory<TService>();
+
+        return factory.GetTestAccessor().CreateService(in args);
     }
 }

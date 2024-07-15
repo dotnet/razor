@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
-using Microsoft.VisualStudio.Composition;
 using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -58,8 +57,8 @@ internal abstract partial class RazorBrokeredServiceBase
 
         internal readonly struct TestAccessor(FactoryBase<TService> instance)
         {
-            public TService CreateService(IRazorServiceBroker serviceBroker, ExportProvider exportProvider)
-                => instance.CreateService(new(serviceBroker, exportProvider));
+            public TService CreateService(in ServiceArgs args)
+                => instance.CreateService(in args);
         }
     }
 }
