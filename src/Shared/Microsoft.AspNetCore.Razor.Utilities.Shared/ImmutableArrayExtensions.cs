@@ -468,23 +468,23 @@ internal static class ImmutableArrayExtensions
     {
         private static IComparer<T>? s_default;
 
-        public static IComparer<T> Default => s_default ??= new WrappedComparer(Comparer<T>.Default);
+        public static IComparer<T> Default => s_default ??= new ReversedComparer(Comparer<T>.Default);
 
         public static IComparer<T> Create(IComparer<T> comparer)
-            => new WrappedComparer(comparer);
+            => new ReversedComparer(comparer);
 
         public static IComparer<T> Create(Comparison<T> comparison)
-            => new WrappedComparison(comparison);
+            => new ReversedComparison(comparison);
 
         public abstract int Compare(T? x, T? y);
 
-        private sealed class WrappedComparer(IComparer<T> comparer) : DescendingComparer<T>
+        private sealed class ReversedComparer(IComparer<T> comparer) : DescendingComparer<T>
         {
             public override int Compare(T? x, T? y)
                 => comparer.Compare(y!, x!);
         }
 
-        private sealed class WrappedComparison(Comparison<T> comparison) : DescendingComparer<T>
+        private sealed class ReversedComparison(Comparison<T> comparison) : DescendingComparer<T>
         {
             public override int Compare(T? x, T? y)
                 => comparison(y!, x!);
