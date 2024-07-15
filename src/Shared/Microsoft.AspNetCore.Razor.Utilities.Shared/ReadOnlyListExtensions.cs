@@ -880,30 +880,20 @@ internal static class ReadOnlyListExtensions
 
     public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list) => new(list);
 
-    public readonly struct Enumerable<T>(IReadOnlyList<T> list) : IEnumerable<T>
+    public readonly ref struct Enumerable<T>(IReadOnlyList<T> list)
     {
         public Enumerator<T> GetEnumerator() => new(list);
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public ReverseEnumerable<T> Reverse() => new(list);
     }
 
-    public struct Enumerator<T>(IReadOnlyList<T> list) : IEnumerator<T>
+    public ref struct Enumerator<T>(IReadOnlyList<T> list)
     {
         private readonly IReadOnlyList<T> _list = list;
         private int _index = 0;
         private T _current = default!;
 
-        public readonly T Current => _current!;
-
-        readonly object IEnumerator.Current => _current!;
-
-        public readonly void Dispose()
-        {
-        }
+        public readonly T Current => _current;
 
         public bool MoveNext()
         {
@@ -924,34 +914,24 @@ internal static class ReadOnlyListExtensions
         }
     }
 
-    public readonly struct ReverseEnumerable<T>(IReadOnlyList<T> list) : IEnumerable<T>
+    public readonly ref struct ReverseEnumerable<T>(IReadOnlyList<T> list)
     {
         public ReverseEnumerator<T> GetEnumerator() => new(list);
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    public struct ReverseEnumerator<T> : IEnumerator<T>
+    public ref struct ReverseEnumerator<T>
     {
         private readonly IReadOnlyList<T> _list;
         private int _index;
         private T _current;
 
-        public readonly T Current => _current!;
-
-        readonly object IEnumerator.Current => _current!;
+        public readonly T Current => _current;
 
         public ReverseEnumerator(IReadOnlyList<T> list)
         {
             _list = list;
             _index = _list.Count - 1;
             _current = default!;
-        }
-
-        public readonly void Dispose()
-        {
         }
 
         public bool MoveNext()
