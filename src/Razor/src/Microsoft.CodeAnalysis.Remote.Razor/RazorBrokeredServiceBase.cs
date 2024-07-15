@@ -5,12 +5,23 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal abstract class RazorBrokeredServiceBase(IRazorServiceBroker serviceBroker) : IDisposable
+internal abstract partial class RazorBrokeredServiceBase : IDisposable
 {
-    private readonly IRazorServiceBroker _serviceBroker = serviceBroker;
+    private readonly IRazorServiceBroker _serviceBroker;
+
+    protected readonly ILogger Logger;
+
+    protected RazorBrokeredServiceBase(in ServiceArgs args)
+    {
+        _serviceBroker = args.ServiceBroker;
+
+        var loggerFactory = args.ExportProvider.GetExportedValue<ILoggerFactory>();
+        Logger = loggerFactory.GetOrCreateLogger(GetType());
+    }
 
     protected ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         => _serviceBroker.RunServiceAsync(implementation, cancellationToken);

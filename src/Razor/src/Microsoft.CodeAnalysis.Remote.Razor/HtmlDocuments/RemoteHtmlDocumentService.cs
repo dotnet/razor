@@ -10,12 +10,12 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed class RemoteHtmlDocumentService(
-    IRazorServiceBroker serviceBroker,
-    DocumentSnapshotFactory documentSnapshotFactory)
-    : RazorDocumentServiceBase(serviceBroker, documentSnapshotFactory), IRemoteHtmlDocumentService
+internal sealed partial class RemoteHtmlDocumentService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteHtmlDocumentService
 {
-    public ValueTask<string?> GetHtmlDocumentTextAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken)
+    public ValueTask<string?> GetHtmlDocumentTextAsync(
+        RazorPinnedSolutionInfoWrapper solutionInfo,
+        DocumentId razorDocumentId,
+        CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
