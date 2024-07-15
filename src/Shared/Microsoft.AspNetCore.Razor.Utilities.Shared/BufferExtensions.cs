@@ -13,4 +13,11 @@ internal static class BufferExtensions
         array = result.Array;
         return result;
     }
+
+    public static PooledArray<T> GetPooledArraySpan<T>(this ArrayPool<T> pool, int minimumLength, out Span<T> span)
+    {
+        var result = new PooledArray<T>(pool, minimumLength);
+        span = result.Span;
+        return result;
+    }
 }

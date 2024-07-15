@@ -9,6 +9,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 internal struct PooledArray<T> : IDisposable
 {
     private readonly ArrayPool<T> _pool;
+    private readonly int _minimumLength;
     private T[]? _array;
 
     // Because of how this API is intended to be used, we don't want the consumption code to have
@@ -16,10 +17,13 @@ internal struct PooledArray<T> : IDisposable
     // non-null until this is disposed.
     public readonly T[] Array => _array!;
 
+    public readonly Span<T> Span => _array!.AsSpan(0, _minimumLength);
+
     public PooledArray(ArrayPool<T> pool, int minimumLength)
         : this()
     {
         _pool = pool;
+        _minimumLength = minimumLength;
         _array = pool.Rent(minimumLength);
     }
 
