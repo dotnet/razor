@@ -25,8 +25,7 @@ internal abstract partial class RazorBrokeredServiceBase : IDisposable
         _serverConnection = args.ServerConnection;
         _interceptor = args.Interceptor;
 
-        var loggerFactory = args.ExportProvider.GetExportedValue<ILoggerFactory>();
-        Logger = loggerFactory.GetOrCreateLogger(GetType());
+        Logger = args.ServiceLoggerFactory.GetOrCreateLogger(GetType());
     }
 
     protected ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)

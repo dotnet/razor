@@ -6,10 +6,11 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Logging;
 
-internal partial class TraceSourceLoggerProvider(TraceSource traceSource) : ILoggerProvider
+internal sealed partial class TraceSourceLoggerFactory
 {
-    public ILogger CreateLogger(string categoryName)
+    private sealed class LoggerProvider(TraceSource traceSource) : ILoggerProvider
     {
-        return new Logger(traceSource, categoryName);
+        public ILogger CreateLogger(string categoryName)
+            => new Logger(traceSource, categoryName);
     }
 }

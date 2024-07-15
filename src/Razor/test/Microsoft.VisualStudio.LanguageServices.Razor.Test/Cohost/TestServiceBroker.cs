@@ -17,7 +17,7 @@ internal sealed class TestServiceBroker : IServiceBroker, IRazorBrokeredServiceI
 {
     private Solution? _solution;
 
-    public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged;
+    public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged { add { } remove { } }
 
     public void UpdateSolution(Solution solution)
     {

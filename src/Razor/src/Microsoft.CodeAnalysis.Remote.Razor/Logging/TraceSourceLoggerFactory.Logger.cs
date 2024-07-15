@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Logging;
 
-internal partial class TraceSourceLoggerProvider
+internal sealed partial class TraceSourceLoggerFactory
 {
-    private class Logger(TraceSource traceSource, string categoryName) : ILogger
+    private sealed class Logger(TraceSource traceSource, string categoryName) : ILogger
     {
         public bool IsEnabled(LogLevel logLevel) => true;
 

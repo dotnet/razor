@@ -22,6 +22,8 @@ internal abstract partial class RazorBrokeredServiceBase
     internal abstract class FactoryBase<TService> : IServiceHubServiceFactory
         where TService : class
     {
+        protected abstract TService CreateService(in ServiceArgs args);
+
         public async Task<object> CreateAsync(
             Stream stream,
             IServiceProvider hostProvidedServices,
@@ -33,16 +35,27 @@ internal abstract partial class RazorBrokeredServiceBase
             authorizationServiceClient?.Dispose();
 
             var traceSource = (TraceSource?)hostProvidedServices.GetService(typeof(TraceSource));
+
+            // RazorBrokeredServiceData is a hook that can be provided for different host scenarios, such as testing.
             var brokeredServiceData = (RazorBrokeredServiceData?)hostProvidedServices.GetService(typeof(RazorBrokeredServiceData));
 
             var exportProvider = brokeredServiceData?.ExportProvider
                 ?? await RemoteMefComposition.GetExportProviderAsync().ConfigureAwait(false);
 
+            // There are three logging cases:
+            //
+            // 1. We've been provided an ILoggerFactory from the host.
+            // 2. We've been provided a TraceSource and create an ILoggerFactory for that.
+            // 3. We don't have anything and just use the empty ILoggerFactory.
+
             var targetLoggerFactory = brokeredServiceData?.LoggerFactory
                 ?? (traceSource is not null
-                    ? SimpleLoggerFactory.CreateWithTraceSource(traceSource)
-                    : SimpleLoggerFactory.Empty);
+                    ? new TraceSourceLoggerFactory(traceSource)
+                    : EmptyLoggerFactory.Instance);
 
+            // Update the MEF composition's ILoggerFactory the target ILoggerFactory.
+            // Note that this means that the first non-empty ILoggerFactory that we use
+            // will be used for MEF component logging for the lifetime of all services.
             var remoteLoggerFactory = exportProvider.GetExportedValue<RemoteLoggerFactory>();
             remoteLoggerFactory.SetTargetLoggerFactory(targetLoggerFactory);
 
@@ -51,7 +64,7 @@ internal abstract partial class RazorBrokeredServiceBase
             var descriptor = RazorServices.Descriptors.GetDescriptorForServiceFactory(typeof(TService));
             var serverConnection = descriptor.WithTraceSource(traceSource).ConstructRpcConnection(pipe);
 
-            var args = new ServiceArgs(serviceBroker, exportProvider, serverConnection, brokeredServiceData?.Interceptor);
+            var args = new ServiceArgs(serviceBroker, exportProvider, targetLoggerFactory, serverConnection, brokeredServiceData?.Interceptor);
 
             var service = CreateService(in args);
 
@@ -60,7 +73,5 @@ internal abstract partial class RazorBrokeredServiceBase
 
             return service;
         }
-
-        protected abstract TService CreateService(in ServiceArgs args);
     }
 }
