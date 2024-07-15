@@ -15,9 +15,10 @@ using Microsoft.VisualStudio.Composition;
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 /// <summary>
-/// An implementation of IRemoteServiceProvider that doesn't actually do anything remote, but rather directly calls service methods
+/// An implementation of <see cref="IRemoteServiceInvoker"/> that doesn't actually do anything remote,
+/// but rather directly calls service methods
 /// </summary>
-internal sealed class TestRemoteServiceProvider(ExportProvider exportProvider) : IRemoteServiceProvider, IDisposable
+internal sealed class TestRemoteServiceInvoker(ExportProvider exportProvider) : IRemoteServiceInvoker, IDisposable
 {
     private readonly TestServiceBroker _serviceBroker = new();
     private readonly Dictionary<Type, IDisposable> _services = [];

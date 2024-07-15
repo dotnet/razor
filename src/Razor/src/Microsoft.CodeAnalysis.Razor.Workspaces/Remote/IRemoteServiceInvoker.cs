@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
-internal interface IRemoteServiceProvider
+internal interface IRemoteServiceInvoker
 {
     ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
         Solution solution,

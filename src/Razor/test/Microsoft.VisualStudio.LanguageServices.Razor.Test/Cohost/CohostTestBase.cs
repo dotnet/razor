@@ -18,16 +18,16 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
 {
-    private IRemoteServiceProvider? _remoteServiceProvider;
+    private IRemoteServiceInvoker? _remoteServiceInvoker;
 
-    private protected IRemoteServiceProvider RemoteServiceProvider => _remoteServiceProvider.AssumeNotNull();
+    private protected IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
 
     protected override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
         var exportProvider = AddDisposable(await RemoteMefComposition.CreateExportProviderAsync());
-        _remoteServiceProvider = AddDisposable(new TestRemoteServiceProvider(exportProvider));
+        _remoteServiceInvoker = AddDisposable(new TestRemoteServiceInvoker(exportProvider));
     }
 
     protected TextDocument CreateProjectAndRazorDocument(string contents)

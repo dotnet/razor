@@ -164,7 +164,7 @@ public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHe
         var sourceText = await document.GetTextAsync(DisposalToken);
         sourceText.GetLineAndOffset(cursorPosition, out var lineIndex, out var characterIndex);
 
-        var endpoint = new CohostLinkedEditingRangeEndpoint(RemoteServiceProvider, LoggerFactory);
+        var endpoint = new CohostLinkedEditingRangeEndpoint(RemoteServiceInvoker, LoggerFactory);
 
         var request = new LinkedEditingRangeParams()
         {
