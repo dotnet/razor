@@ -25,15 +25,15 @@
                                                     Identifier;[c];
                     MarkupTextLiteral - [12..13)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
-                MarkupMiscAttributeContent - [13..28)::15
-                    MarkupTextLiteral - [13..14)::1 - [ ] - Gen<Markup>
-                        Whitespace;[ ];
-                    RazorComment - [14..27)::13
-                        RazorCommentTransition;[@];
-                        RazorCommentStar;[*];
-                        RazorCommentLiteral;[ comment ];
-                        RazorCommentStar;[*];
-                        RazorCommentTransition;[@];
+                MarkupTextLiteral - [13..14)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                RazorComment - [14..27)::13
+                    RazorCommentTransition;[@];
+                    RazorCommentStar;[*];
+                    RazorCommentLiteral;[ comment ];
+                    RazorCommentStar;[*];
+                    RazorCommentTransition;[@];
+                MarkupMiscAttributeContent - [27..28)::1
                     MarkupTextLiteral - [27..28)::1 - [ ] - Gen<Markup>
                         Whitespace;[ ];
                 ForwardSlash;[/];

@@ -21,6 +21,27 @@ namespace AspNetCore
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ConditionalAttributes2 : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
+        #line hidden
+        #pragma warning disable 0649
+        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperExecutionContext __tagHelperExecutionContext;
+        #pragma warning restore 0649
+        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner __tagHelperRunner = new global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner();
+        #pragma warning disable 0169
+        private string __tagHelperStringValueBuffer;
+        #pragma warning restore 0169
+        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager __backed__tagHelperScopeManager = null;
+        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager __tagHelperScopeManager
+        {
+            get
+            {
+                if (__backed__tagHelperScopeManager == null)
+                {
+                    __backed__tagHelperScopeManager = new global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager(StartTagHelperWritingScope, EndTagHelperWritingScope);
+                }
+                return __backed__tagHelperScopeManager;
+            }
+        }
+        private global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper __Microsoft_AspNetCore_Mvc_Razor_TagHelpers_UrlResolutionTagHelper;
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
@@ -55,8 +76,8 @@ s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" class=\"");
-            Write(
+            BeginWriteAttribute("class", " class=\"", 98, "\"", 110, 1);
+            WriteAttributeValue("", 106, 
 #nullable restore
 #line (6,19)-(6,22) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 cls
@@ -64,8 +85,9 @@ cls
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\" />\r\n    <p ");
+            , 106, 4, false);
+            EndWriteAttribute();
+            WriteLiteral(" />\r\n    <p ");
             Write(
 #nullable restore
 #line (7,9)-(7,10) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
@@ -75,8 +97,9 @@ s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" class=\"x ");
-            Write(
+            BeginWriteAttribute("class", " class=\"", 125, "\"", 139, 2);
+            WriteAttributeValue("", 133, "x", 133, 1, true);
+            WriteAttributeValue(" ", 134, 
 #nullable restore
 #line (7,21)-(7,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 cls
@@ -84,8 +107,9 @@ cls
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\" />\r\n    <p ");
+            , 135, 4, false);
+            EndWriteAttribute();
+            WriteLiteral(" />\r\n    <p ");
             Write(
 #nullable restore
 #line (8,9)-(8,10) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
@@ -95,8 +119,8 @@ s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" class=\"");
-            Write(
+            BeginWriteAttribute("class", " class=\"", 154, "\"", 168, 2);
+            WriteAttributeValue("", 162, 
 #nullable restore
 #line (8,19)-(8,22) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 cls
@@ -104,8 +128,10 @@ cls
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral(" x\" />\r\n    <input type=\"checkbox\" ");
+            , 162, 4, false);
+            WriteAttributeValue(" ", 166, "x", 167, 2, true);
+            EndWriteAttribute();
+            WriteLiteral(" />\r\n    <input type=\"checkbox\" ");
             Write(
 #nullable restore
 #line (9,29)-(9,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
@@ -115,8 +141,8 @@ s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" checked=\"");
-            Write(
+            BeginWriteAttribute("checked", " checked=\"", 203, "\"", 216, 1);
+            WriteAttributeValue("", 213, 
 #nullable restore
 #line (9,41)-(9,43) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 ch
@@ -124,8 +150,9 @@ ch
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\" />\r\n    <input type=\"checkbox\" ");
+            , 213, 3, false);
+            EndWriteAttribute();
+            WriteLiteral(" />\r\n    <input type=\"checkbox\" ");
             Write(
 #nullable restore
 #line (10,29)-(10,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
@@ -135,8 +162,9 @@ s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" checked=\"x ");
-            Write(
+            BeginWriteAttribute("checked", " checked=\"", 251, "\"", 266, 2);
+            WriteAttributeValue("", 261, "x", 261, 1, true);
+            WriteAttributeValue(" ", 262, 
 #nullable restore
 #line (10,43)-(10,45) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 ch
@@ -144,8 +172,9 @@ ch
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\" />\r\n    <p ");
+            , 263, 3, false);
+            EndWriteAttribute();
+            WriteLiteral(" />\r\n    <p ");
             Write(
 #nullable restore
 #line (11,9)-(11,10) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
@@ -155,7 +184,9 @@ s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" class=\"");
+            BeginWriteAttribute("class", " class=\"", 281, "\"", 314, 1);
+            WriteAttributeValue("", 289, new Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_attribute_value_writer) => {
+                PushWriter(__razor_attribute_value_writer);
 #nullable restore
 #line (11,19)-(11,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 if(cls != null) { 
@@ -163,8 +194,7 @@ if(cls != null) {
 #line default
 #line hidden
 #nullable disable
-
-            Write(
+                Write(
 #nullable restore
 #line (11,38)-(11,41) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 cls
@@ -172,7 +202,7 @@ cls
 #line default
 #line hidden
 #nullable disable
-            );
+                );
 #nullable restore
 #line (11,41)-(11,43) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
  }
@@ -180,18 +210,24 @@ cls
 #line default
 #line hidden
 #nullable disable
-
-            WriteLiteral("\" />\r\n    <a ");
-            Write(
-#nullable restore
-#line (12,9)-(12,10) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
-s
-
-#line default
-#line hidden
-#nullable disable
+                PopWriter();
+            }
+            ), 289, 25, false);
+            EndWriteAttribute();
+            WriteLiteral(" />\r\n    ");
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("a", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
+            }
             );
-            WriteLiteral(" href=\"~/x\" />\r\n    <script ");
+            __Microsoft_AspNetCore_Mvc_Razor_TagHelpers_UrlResolutionTagHelper = CreateTagHelper<global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper>();
+            __tagHelperExecutionContext.Add(__Microsoft_AspNetCore_Mvc_Razor_TagHelpers_UrlResolutionTagHelper);
+            await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+            if (!__tagHelperExecutionContext.Output.IsContentModified)
+            {
+                await __tagHelperExecutionContext.SetOutputContentAsync();
+            }
+            Write(__tagHelperExecutionContext.Output);
+            __tagHelperExecutionContext = __tagHelperScopeManager.End();
+            WriteLiteral("\r\n    <script ");
             Write(
 #nullable restore
 #line (13,14)-(13,15) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
@@ -201,8 +237,8 @@ s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" src=\"");
-            Write(
+            BeginWriteAttribute("src", " src=\"", 359, "\"", 410, 1);
+            WriteAttributeValue("", 365, 
 #nullable restore
 #line (13,22)-(13,66) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 Url.Content("~/Scripts/jquery-1.6.2.min.js")
@@ -210,8 +246,9 @@ Url.Content("~/Scripts/jquery-1.6.2.min.js")
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <p ");
+            , 365, 45, false);
+            EndWriteAttribute();
+            WriteLiteral(" type=\"text/javascript\"></script>\r\n    <p ");
             Write(
 #nullable restore
 #line (14,9)-(14,10) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
@@ -221,8 +258,8 @@ s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" class=\"");
-            Write(
+            BeginWriteAttribute("class", " class=\"", 455, "\"", 468, 1);
+            WriteAttributeValue("", 463, 
 #nullable restore
 #line (14,19)-(14,23) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 null
@@ -230,8 +267,9 @@ null
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\" />\r\n    <p");
+            , 463, 5, false);
+            EndWriteAttribute();
+            WriteLiteral(" />\r\n    <p");
             BeginWriteAttribute("class", " class=\"", 480, "\"", 493, 1);
             WriteAttributeValue("", 488, 
 #nullable restore
@@ -265,8 +303,8 @@ s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" style=\"");
-            Write(
+            BeginWriteAttribute("style", " style=\"", 527, "\"", 540, 1);
+            WriteAttributeValue("", 535, 
 #nullable restore
 #line (17,33)-(17,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 null
@@ -274,8 +312,9 @@ null
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\">x</p>\r\n");
+            , 535, 5, false);
+            EndWriteAttribute();
+            WriteLiteral(">x</p>\r\n");
             WriteLiteral("    <p ");
             Write(
 #nullable restore
@@ -286,8 +325,8 @@ s + s
 #line hidden
 #nullable disable
             );
-            WriteLiteral(" style=\"");
-            Write(
+            BeginWriteAttribute("style", " style=\"", 566, "\"", 579, 1);
+            WriteAttributeValue("", 574, 
 #nullable restore
 #line (19,25)-(19,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 null
@@ -295,8 +334,9 @@ null
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\">x</p>\r\n    <p ");
+            , 574, 5, false);
+            EndWriteAttribute();
+            WriteLiteral(">x</p>\r\n    <p ");
 #nullable restore
 #line (20,10)-(20,31) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 if (s.Length != 0) { 
@@ -322,8 +362,8 @@ s
 #line hidden
 #nullable disable
 
-            WriteLiteral(" style=\"");
-            Write(
+            BeginWriteAttribute("style", " style=\"", 623, "\"", 636, 1);
+            WriteAttributeValue("", 631, 
 #nullable restore
 #line (20,45)-(20,49) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 null
@@ -331,10 +371,12 @@ null
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\">x</p>\r\n    <p ");
-            WriteLiteral("@s style=\"");
-            Write(
+            , 631, 5, false);
+            EndWriteAttribute();
+            WriteLiteral(">x</p>\r\n    <p ");
+            WriteLiteral("@s");
+            BeginWriteAttribute("style", " style=\"", 655, "\"", 668, 1);
+            WriteAttributeValue("", 663, 
 #nullable restore
 #line (21,20)-(21,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ConditionalAttributes2.cshtml"
 null
@@ -342,8 +384,9 @@ null
 #line default
 #line hidden
 #nullable disable
-            );
-            WriteLiteral("\">x</p>\r\n");
+            , 663, 5, false);
+            EndWriteAttribute();
+            WriteLiteral(">x</p>\r\n");
         }
         #pragma warning restore 1998
         #nullable restore

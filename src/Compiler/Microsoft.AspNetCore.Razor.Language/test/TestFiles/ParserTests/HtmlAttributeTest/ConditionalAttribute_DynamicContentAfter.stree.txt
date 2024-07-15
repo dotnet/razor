@@ -25,7 +25,7 @@
                                                     Identifier;[c];
                     MarkupTextLiteral - [12..13)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
-                MarkupMiscAttributeContent - [13..17)::4
+                MarkupMiscAttributeContent - [13..16)::3
                     MarkupTextLiteral - [13..14)::1 - [ ] - Gen<Markup>
                         Whitespace;[ ];
                     CSharpCodeBlock - [14..16)::2
@@ -36,6 +36,7 @@
                                 CSharpCodeBlock - [15..16)::1
                                     CSharpExpressionLiteral - [15..16)::1 - [x] - Gen<Expr>
                                         Identifier;[x];
+                MarkupMiscAttributeContent - [16..17)::1
                     MarkupTextLiteral - [16..17)::1 - [ ] - Gen<Markup>
                         Whitespace;[ ];
                 ForwardSlash;[/];

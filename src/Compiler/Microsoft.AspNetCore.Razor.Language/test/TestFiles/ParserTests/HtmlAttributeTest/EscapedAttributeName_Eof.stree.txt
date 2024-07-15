@@ -4,11 +4,11 @@
             MarkupStartTag - [0..5)::5 - [<p @@] - Gen<Markup>
                 OpenAngle;[<];
                 Text;[p];
-                MarkupMiscAttributeContent - [2..5)::3
-                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
-                        Whitespace;[ ];
-                    MarkupEphemeralTextLiteral - [3..4)::1 - [@] - Gen<None>
-                        Transition;[@];
+                MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupEphemeralTextLiteral - [3..4)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupMinimizedAttributeBlock - [4..5)::1 - [@]
                     MarkupTextLiteral - [4..5)::1 - [@] - Gen<Markup>
                         Transition;[@];
                 CloseAngle;[<Missing>];
