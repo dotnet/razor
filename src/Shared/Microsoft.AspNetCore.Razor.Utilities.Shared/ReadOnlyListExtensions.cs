@@ -33,35 +33,26 @@ internal static class ReadOnlyListExtensions
         }
     }
 
-    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> source) => new(source);
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list) => new(list);
 
-    public readonly struct Enumerable<T>(IReadOnlyList<T> source) : IEnumerable<T>
+    public readonly ref struct Enumerable<T>(IReadOnlyList<T> list)
     {
-        public Enumerator<T> GetEnumerator() => new(source);
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public Enumerator<T> GetEnumerator() => new(list);
     }
 
-    public struct Enumerator<T>(IReadOnlyList<T> source) : IEnumerator<T>
+    public ref struct Enumerator<T>(IReadOnlyList<T> list)
     {
-        private int _index;
-        private T _current;
+        private readonly IReadOnlyList<T> _list = list;
+        private int _index = 0;
+        private T _current = default!;
 
-        public readonly T Current => _current!;
-
-        readonly object IEnumerator.Current => _current!;
-
-        public readonly void Dispose()
-        {
-        }
+        public readonly T Current => _current;
 
         public bool MoveNext()
         {
-            if (_index < source.Count)
+            if (_index < _list.Count)
             {
-                _current = source[_index];
+                _current = _list[_index];
                 _index++;
                 return true;
             }
