@@ -25,13 +25,11 @@ internal static class ServiceFactoryMap
             {
                 Assert.Equal(typeof(RazorBrokeredServiceBase.FactoryBase<>), type.BaseType.GetGenericTypeDefinition());
 
-                var genericType = type.BaseType.GetGenericArguments().FirstOrDefault();
-                if (genericType != null)
-                {
-                    // ServiceHub requires a parameterless constructor, so we can safely rely on it existing too
-                    var factory = (IServiceHubServiceFactory)Activator.CreateInstance(type);
-                    result.Add(genericType, factory);
-                }
+                var genericType = type.BaseType.GetGenericArguments().Single();
+
+                // ServiceHub requires a parameterless constructor, so we can safely rely on it existing too
+                var factory = (IServiceHubServiceFactory)Activator.CreateInstance(type);
+                result.Add(genericType, factory);
             }
         }
 
