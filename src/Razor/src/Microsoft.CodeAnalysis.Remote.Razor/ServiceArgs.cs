@@ -5,8 +5,6 @@ using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal readonly struct ServiceArgs(IRazorServiceBroker serviceBroker, ExportProvider exportProvider)
-{
-    public readonly IRazorServiceBroker ServiceBroker = serviceBroker;
-    public readonly ExportProvider ExportProvider = exportProvider;
-}
+internal readonly record struct ServiceArgs(
+    IRazorServiceBroker ServiceBroker,
+    ExportProvider ExportProvider);

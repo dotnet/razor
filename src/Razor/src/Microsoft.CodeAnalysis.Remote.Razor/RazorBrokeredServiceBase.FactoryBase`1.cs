@@ -51,7 +51,7 @@ internal abstract partial class RazorBrokeredServiceBase
             var descriptor = RazorServices.Descriptors.GetDescriptorForServiceFactory(typeof(TService));
             var serverConnection = descriptor.WithTraceSource(traceSource).ConstructRpcConnection(pipe);
 
-            var razorServiceBroker = new RazorServiceBroker(serviceBroker);
+            var razorServiceBroker = new RazorServiceBroker(serviceBroker, serverConnection);
             var args = new ServiceArgs(razorServiceBroker, exportProvider);
 
             var service = CreateService(in args);

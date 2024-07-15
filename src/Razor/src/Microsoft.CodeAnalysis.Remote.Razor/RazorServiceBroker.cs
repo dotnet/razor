@@ -13,10 +13,12 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal class RazorServiceBroker : IRazorServiceBroker
 {
     private readonly ServiceBrokerClient _serviceBrokerClient;
+    private readonly ServiceRpcDescriptor.RpcConnection _serverConnection;
 
-    public RazorServiceBroker(IServiceBroker serviceBroker)
+    public RazorServiceBroker(IServiceBroker serviceBroker, ServiceRpcDescriptor.RpcConnection serverConnection)
     {
         _serviceBrokerClient = new ServiceBrokerClient(serviceBroker, joinableTaskFactory: null);
+        _serverConnection = serverConnection;
     }
 
     public ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
@@ -28,5 +30,6 @@ internal class RazorServiceBroker : IRazorServiceBroker
     public void Dispose()
     {
         _serviceBrokerClient.Dispose();
+        _serverConnection.Dispose();
     }
 }
