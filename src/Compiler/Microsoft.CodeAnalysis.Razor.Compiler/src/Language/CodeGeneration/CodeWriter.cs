@@ -17,7 +17,7 @@ public sealed partial class CodeWriter : IDisposable
     // This number was chosen arbitrarily as a "best guess". If changed, care should be
     // taken to ensure that pages are not allocated on the LOH. ReadOnlyMemory<char>
     // takes up 16 bytes, so a page size of 1000 is 16k.
-    private const int PageSize = 1000;
+    private const int MinimumPageSize = 1000;
 
     // Rather than using a StringBuilder, we maintain a linked list of pages, which are arrays
     // of "chunks of text", represented by ReadOnlyMemory<char>. This avoids copying strings
@@ -70,7 +70,7 @@ public sealed partial class CodeWriter : IDisposable
 
         if (_pageOffset == 0)
         {
-            lastPage = ArrayPool<ReadOnlyMemory<char>>.Shared.Rent(PageSize);
+            lastPage = ArrayPool<ReadOnlyMemory<char>>.Shared.Rent(MinimumPageSize);
             _pages.AddLast(lastPage);
         }
         else
@@ -84,6 +84,8 @@ public sealed partial class CodeWriter : IDisposable
 
         // We've reached the end of a page, so we reset the offset to 0.
         // This will cause a new page to be added next time.
+        // _pageOffset is checked against the lastPage.Length as the Rent call that
+        // return that array may return an array longer that MinimumPageSize.
         if (_pageOffset == lastPage.Length)
         {
             _pageOffset = 0;
