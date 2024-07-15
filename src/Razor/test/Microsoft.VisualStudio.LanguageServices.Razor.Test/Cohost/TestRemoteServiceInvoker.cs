@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Threading;
 
@@ -36,7 +35,6 @@ internal sealed class TestRemoteServiceInvoker(
         {
             if (!_services.TryGetValue(typeof(TService), out var service))
             {
-                var args = new ServiceArgs(_serviceBroker, exportProvider);
                 service = await BrokeredServiceFactory.CreateServiceAsync<TService>(_serviceBroker, exportProvider, loggerFactory);
                 _services.Add(typeof(TService), service);
             }
