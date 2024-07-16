@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal sealed partial class RemoteSemanticTokensService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteSemanticTokensService
 {
+    internal sealed class Factory : FactoryBase<IRemoteSemanticTokensService>
+    {
+        protected override IRemoteSemanticTokensService CreateService(in ServiceArgs args)
+            => new RemoteSemanticTokensService(in args);
+    }
 
     private readonly IRazorSemanticTokensInfoService _semanticTokensInfoService = args.ExportProvider.GetExportedValue<IRazorSemanticTokensInfoService>();
 

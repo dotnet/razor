@@ -8,8 +8,14 @@ using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed partial class RemoteClientInitializationService(in ServiceArgs args) : RazorBrokeredServiceBase(in args), IRemoteClientInitializationService
+internal sealed class RemoteClientInitializationService(in ServiceArgs args) : RazorBrokeredServiceBase(in args), IRemoteClientInitializationService
 {
+    internal sealed class Factory : FactoryBase<IRemoteClientInitializationService>
+    {
+        protected override IRemoteClientInitializationService CreateService(in ServiceArgs args)
+            => new RemoteClientInitializationService(in args);
+    }
+
     public ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(ct =>
             {

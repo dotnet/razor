@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal sealed partial class RemoteTagHelperProviderService(in ServiceArgs args) : RazorBrokeredServiceBase(in args), IRemoteTagHelperProviderService
 {
+    internal sealed class Factory : FactoryBase<IRemoteTagHelperProviderService>
+    {
+        protected override IRemoteTagHelperProviderService CreateService(in ServiceArgs args)
+            => new RemoteTagHelperProviderService(in args);
+    }
+
     private readonly RemoteTagHelperResolver _tagHelperResolver = args.ExportProvider.GetExportedValue<RemoteTagHelperResolver>();
     private readonly RemoteTagHelperDeltaProvider _tagHelperDeltaProvider = args.ExportProvider.GetExportedValue<RemoteTagHelperDeltaProvider>();
 

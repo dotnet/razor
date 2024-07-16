@@ -10,8 +10,14 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed partial class RemoteHtmlDocumentService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteHtmlDocumentService
+internal sealed class RemoteHtmlDocumentService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteHtmlDocumentService
 {
+    internal sealed class Factory : FactoryBase<IRemoteHtmlDocumentService>
+    {
+        protected override IRemoteHtmlDocumentService CreateService(in ServiceArgs args)
+            => new RemoteHtmlDocumentService(in args);
+    }
+
     public ValueTask<string?> GetHtmlDocumentTextAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,

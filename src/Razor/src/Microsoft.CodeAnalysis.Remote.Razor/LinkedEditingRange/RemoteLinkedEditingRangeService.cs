@@ -11,8 +11,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed partial class RemoteLinkedEditingRangeService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteLinkedEditingRangeService
+internal sealed class RemoteLinkedEditingRangeService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteLinkedEditingRangeService
 {
+    internal sealed class Factory : FactoryBase<IRemoteLinkedEditingRangeService>
+    {
+        protected override IRemoteLinkedEditingRangeService CreateService(in ServiceArgs args)
+            => new RemoteLinkedEditingRangeService(in args);
+    }
+
     public ValueTask<LinePositionSpan[]?> GetRangesAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,

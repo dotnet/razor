@@ -17,6 +17,12 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteUriPresentationService
 {
+    internal sealed class Factory : FactoryBase<IRemoteUriPresentationService>
+    {
+        protected override IRemoteUriPresentationService CreateService(in ServiceArgs args)
+            => new RemoteUriPresentationService(in args);
+    }
+
     private readonly IRazorDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IRazorDocumentMappingService>();
 
     public ValueTask<TextChange?> GetPresentationAsync(

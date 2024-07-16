@@ -16,8 +16,14 @@ using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Hand
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed partial class RemoteFoldingRangeService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteFoldingRangeService
+internal sealed class RemoteFoldingRangeService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteFoldingRangeService
 {
+    internal sealed class Factory : FactoryBase<IRemoteFoldingRangeService>
+    {
+        protected override IRemoteFoldingRangeService CreateService(in ServiceArgs args)
+            => new RemoteFoldingRangeService(in args);
+    }
+
     private readonly IFoldingRangeService _foldingRangeService = args.ExportProvider.GetExportedValue<IFoldingRangeService>();
     private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
 
