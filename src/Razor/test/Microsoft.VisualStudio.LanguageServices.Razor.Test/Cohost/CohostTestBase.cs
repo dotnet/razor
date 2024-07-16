@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Xunit.Abstractions;
@@ -18,16 +17,21 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
 {
-    private IRemoteServiceProvider? _remoteServiceProvider;
+    private TestRemoteServiceInvoker? _remoteServiceInvoker;
 
-    private protected IRemoteServiceProvider RemoteServiceProvider => _remoteServiceProvider.AssumeNotNull();
+    private protected TestRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
 
     protected override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
-        var exportProvider = AddDisposable(await RemoteMefComposition.CreateExportProviderAsync());
-        _remoteServiceProvider = AddDisposable(new TestRemoteServiceProvider(exportProvider));
+        // Create a new isolated MEF composition.
+        // Note that this uses a cached catalog and configuration for performance.
+        var exportProvider = await RemoteMefComposition.CreateExportProviderAsync(DisposalToken);
+        AddDisposable(exportProvider);
+
+        _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, exportProvider, LoggerFactory);
+        AddDisposable(_remoteServiceInvoker);
     }
 
     protected TextDocument CreateProjectAndRazorDocument(string contents)
