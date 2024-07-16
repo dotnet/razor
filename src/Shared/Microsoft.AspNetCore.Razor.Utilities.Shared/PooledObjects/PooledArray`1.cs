@@ -10,6 +10,7 @@ internal struct PooledArray<T> : IDisposable
 {
     private readonly ArrayPool<T> _pool;
     private readonly int _minimumLength;
+    private readonly bool _clearOnReturn;
     private T[]? _array;
 
     /// <summary>
@@ -29,11 +30,12 @@ internal struct PooledArray<T> : IDisposable
     /// </exception>
     public readonly Span<T> Span => _array!.AsSpan(0, _minimumLength);
 
-    public PooledArray(ArrayPool<T> pool, int minimumLength)
+    public PooledArray(ArrayPool<T> pool, int minimumLength, bool clearOnReturn)
         : this()
     {
         _pool = pool;
         _minimumLength = minimumLength;
+        _clearOnReturn = clearOnReturn;
         _array = pool.Rent(minimumLength);
     }
 
@@ -41,7 +43,7 @@ internal struct PooledArray<T> : IDisposable
     {
         if (_array is T[] array)
         {
-            _pool.Return(array);
+            _pool.Return(array, clearArray: _clearOnReturn);
             _array = null;
         }
     }
