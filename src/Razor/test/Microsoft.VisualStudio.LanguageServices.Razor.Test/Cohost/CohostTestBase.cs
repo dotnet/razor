@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Composition;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -26,12 +25,9 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
     {
         await base.InitializeAsync();
 
-        // Create a new isolated MEF composition but use the cached configuration for performance.
-        var configuration = await RemoteMefComposition.GetConfigurationAsync(DisposalToken);
-        var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-        var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
-        var exportProvider = exportProviderFactory.CreateExportProvider();
-
+        // Create a new isolated MEF composition.
+        // Note that this uses a cached catalog and configuration for performance.
+        var exportProvider = await RemoteMefComposition.CreateExportProviderAsync(DisposalToken);
         AddDisposable(exportProvider);
 
         _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, exportProvider, LoggerFactory);

@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
@@ -40,7 +41,7 @@ internal abstract partial class RazorBrokeredServiceBase
             var brokeredServiceData = (RazorBrokeredServiceData?)hostProvidedServices.GetService(typeof(RazorBrokeredServiceData));
 
             var exportProvider = brokeredServiceData?.ExportProvider
-                ?? await RemoteMefComposition.GetExportProviderAsync().ConfigureAwait(false);
+                ?? await RemoteMefComposition.GetSharedExportProviderAsync(CancellationToken.None).ConfigureAwait(false);
 
             // There are three logging cases:
             //
