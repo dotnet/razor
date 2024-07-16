@@ -11,18 +11,64 @@ namespace System;
 
 internal static class StringExtensions
 {
-    public static bool IsNullOrEmpty([NotNullWhen(false)] this string? s)
-        => string.IsNullOrEmpty(s);
+    /// <summary>
+    ///  Indicates whether the specified string is <see langword="null"/> or an empty string ("").
+    /// </summary>
+    /// <param name="value">
+    ///  The string to test.
+    /// </param>
+    /// <returns>
+    ///  <see langword="true"/> if the <paramref name="value"/> parameter is <see langword="null"/>
+    ///  or an empty string (""); otherwise, <see langword="false"/>.
+    /// </returns>
+    /// <remarks>
+    ///  This extension method is useful on .NET Framework and .NET Standard 2.0 where
+    ///  <see cref="string.IsNullOrEmpty(string?)"/> is not annotated for nullability.
+    /// </remarks>
+    public static bool IsNullOrEmpty([NotNullWhen(false)] this string? value)
+        => string.IsNullOrEmpty(value);
 
-    public static bool IsNullOrWhiteSpace([NotNullWhen(false)] this string? s)
-        => string.IsNullOrWhiteSpace(s);
+    /// <summary>
+    ///  Indicates whether a specified string is <see langword="null"/>, empty, or consists only
+    ///  of white-space characters.
+    /// </summary>
+    /// <param name="value">
+    ///  The string to test.
+    /// </param>
+    /// <returns>
+    ///  <see langword="true"/> if the <paramref name="value"/> parameter is <see langword="null"/>
+    ///  or <see cref="string.Empty"/>, or if <paramref name="value"/> consists exclusively of
+    ///  white-space characters.
+    /// </returns>
+    /// <remarks>
+    ///  This extension method is useful on .NET Framework and .NET Standard 2.0 where
+    ///  <see cref="string.IsNullOrWhiteSpace(string?)"/> is not annotated for nullability.
+    /// </remarks>
+    public static bool IsNullOrWhiteSpace([NotNullWhen(false)] this string? value)
+        => string.IsNullOrWhiteSpace(value);
 
-    public static ReadOnlySpan<char> AsSpan(this string? s, Index startIndex)
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlySpan{T}"/> over a portion of the target string from
+    ///  a specified position to the end of the string.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="startIndex">
+    ///  The index at which to begin this slice.
+    /// </param>
+    /// <remarks>
+    ///  This uses Razor's <see cref="Index"/> type, which is type-forwarded on .NET.
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="startIndex"/> is less than 0 or greater than <paramref name="text"/>.Length.
+    /// </exception>
+    public static ReadOnlySpan<char> AsSpan(this string? text, Index startIndex)
     {
 #if NET
-        return MemoryExtensions.AsSpan(s, startIndex);
+        return MemoryExtensions.AsSpan(text, startIndex);
 #else
-        if (s is null)
+        if (text is null)
         {
             if (!startIndex.Equals(Index.Start))
             {
@@ -32,74 +78,175 @@ internal static class StringExtensions
             return default;
         }
 
-        return s.AsSpan(startIndex.GetOffset(s.Length));
+        return text.AsSpan(startIndex.GetOffset(text.Length));
 #endif
     }
 
-    public static ReadOnlySpan<char> AsSpan(this string? s, Range range)
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlySpan{T}"/> over a portion of a target string using
+    ///  the range start and end indexes.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="range">
+    ///  The range that has start and end indexes to use for slicing the string.
+    /// </param>
+    /// <remarks>
+    ///  This uses Razor's <see cref="Range"/> type, which is type-forwarded on .NET.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">
+    ///  <paramref name="range"/>'s start or end index is not within the bounds of the string.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="range"/>'s start index is greater than its end index.
+    /// </exception>
+    public static ReadOnlySpan<char> AsSpan(this string? text, Range range)
     {
 #if NET
-        return MemoryExtensions.AsSpan(s, range);
+        return MemoryExtensions.AsSpan(text, range);
 #else
-        if (s is null)
+        if (text is null)
         {
             if (!range.Start.Equals(Index.Start) || !range.End.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentNull(nameof(s));
+                ThrowHelper.ThrowArgumentNull(nameof(text));
             }
 
             return default;
         }
 
-        var (start, length) = range.GetOffsetAndLength(s.Length);
-        return s.AsSpan(start, length);
+        var (start, length) = range.GetOffsetAndLength(text.Length);
+        return text.AsSpan(start, length);
 #endif
     }
 
-    public static ReadOnlySpan<char> AsSpanOrDefault(this string? s)
-        => s is not null ? s.AsSpan() : default;
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlySpan{T}"/> over a string. If the target string
+    ///  is <see langword="null"/> a <see langword="default"/>(<see cref="ReadOnlySpan{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    public static ReadOnlySpan<char> AsSpanOrDefault(this string? text)
+        => text is not null ? text.AsSpan() : default;
 
-    public static ReadOnlySpan<char> AsSpanOrDefault(this string? s, int start)
-        => s is not null ? s.AsSpan(start) : default;
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlySpan{T}"/> over a portion of the target string from
+    ///  a specified position to the end of the string. If the target string is <see langword="null"/>
+    ///  a <see langword="default"/>(<see cref="ReadOnlySpan{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="start">
+    ///  The index at which to begin this slice.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="start"/> is less than 0 or greater than <paramref name="text"/>.Length.
+    /// </exception>
+    public static ReadOnlySpan<char> AsSpanOrDefault(this string? text, int start)
+        => text is not null ? text.AsSpan(start) : default;
 
-    public static ReadOnlySpan<char> AsSpanOrDefault(this string? s, int start, int length)
-        => s is not null ? s.AsSpan(start, length) : default;
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlySpan{T}"/> over a portion of the target string from
+    ///  a specified position for a specified number of characters. If the target string is
+    ///  <see langword="null"/> a <see langword="default"/>(<see cref="ReadOnlySpan{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="start">
+    ///  The index at which to begin this slice.
+    /// </param>
+    /// <param name="length">
+    ///  The desired length for the slice.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="start"/>, <paramref name="length"/>, or <paramref name="start"/> + <paramref name="length"/>
+    ///  is not in the range of <paramref name="text"/>.
+    /// </exception>
+    public static ReadOnlySpan<char> AsSpanOrDefault(this string? text, int start, int length)
+        => text is not null ? text.AsSpan(start, length) : default;
 
-    public static ReadOnlySpan<char> AsSpanOrDefault(this string? s, Index startIndex)
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlySpan{T}"/> over a portion of the target string from
+    ///  a specified position to the end of the string. If the target string is <see langword="null"/>
+    ///  a <see langword="default"/>(<see cref="ReadOnlySpan{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="startIndex">
+    ///  The index at which to begin this slice.
+    /// </param>
+    public static ReadOnlySpan<char> AsSpanOrDefault(this string? text, Index startIndex)
     {
-        if (s is null)
+        if (text is null)
         {
             return default;
         }
 
 #if NET
-        return MemoryExtensions.AsSpan(s, startIndex);
+        return MemoryExtensions.AsSpan(text, startIndex);
 #else
-        return s.AsSpan(startIndex.GetOffset(s.Length));
+        return text.AsSpan(startIndex.GetOffset(text.Length));
 #endif
     }
 
-    public static ReadOnlySpan<char> AsSpanOrDefault(this string? s, Range range)
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlySpan{T}"/> over a portion of the target string using the range
+    ///  start and end indexes. If the target string is <see langword="null"/> a
+    ///  <see langword="default"/>(<see cref="ReadOnlySpan{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="range">
+    ///  The range that has start and end indexes to use for slicing the string.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="range"/>'s start or end index is not within the bounds of the string.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="range"/>'s start index is greater than its end index.
+    /// </exception>
+    public static ReadOnlySpan<char> AsSpanOrDefault(this string? text, Range range)
     {
-        if (s is null)
+        if (text is null)
         {
             return default;
         }
 
 #if NET
-        return MemoryExtensions.AsSpan(s, range);
+        return MemoryExtensions.AsSpan(text, range);
 #else
-        var (start, length) = range.GetOffsetAndLength(s.Length);
-        return s.AsSpan(start, length);
+        var (start, length) = range.GetOffsetAndLength(text.Length);
+        return text.AsSpan(start, length);
 #endif
     }
 
-    public static ReadOnlyMemory<char> AsMemory(this string? s, Index startIndex)
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlyMemory{T}"/> over a portion of a target string starting at a specified index.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="startIndex">
+    ///  The index at which to begin this slice.
+    /// </param>
+    /// <remarks>
+    ///  This uses Razor's <see cref="Index"/> type, which is type-forwarded on .NET.
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="startIndex"/> is less than 0 or greater than <paramref name="text"/>.Length.
+    /// </exception>
+    public static ReadOnlyMemory<char> AsMemory(this string? text, Index startIndex)
     {
 #if NET
-        return MemoryExtensions.AsMemory(s, startIndex);
+        return MemoryExtensions.AsMemory(text, startIndex);
 #else
-        if (s is null)
+        if (text is null)
         {
             if (!startIndex.Equals(Index.Start))
             {
@@ -109,65 +256,151 @@ internal static class StringExtensions
             return default;
         }
 
-        return s.AsMemory(startIndex.GetOffset(s.Length));
+        return text.AsMemory(startIndex.GetOffset(text.Length));
 #endif
     }
 
-    public static ReadOnlyMemory<char> AsMemory(this string? s, Range range)
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlyMemory{T}"/> over a portion of a target string using
+    ///  the range start and end indexes.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="range">
+    ///  The range that has start and end indexes to use for slicing the string.
+    /// </param>
+    /// <remarks>
+    ///  This uses Razor's <see cref="Range"/> type, which is type-forwarded on .NET.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">
+    ///  <paramref name="range"/>'s start or end index is not within the bounds of the string.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="range"/>'s start index is greater than its end index.
+    /// </exception>
+    public static ReadOnlyMemory<char> AsMemory(this string? text, Range range)
     {
 #if NET
-        return MemoryExtensions.AsMemory(s, range);
+        return MemoryExtensions.AsMemory(text, range);
 #else
-        if (s is null)
+        if (text is null)
         {
             if (!range.Start.Equals(Index.Start) || !range.End.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentNull(nameof(s));
+                ThrowHelper.ThrowArgumentNull(nameof(text));
             }
 
             return default;
         }
 
-        var (start, length) = range.GetOffsetAndLength(s.Length);
-        return s.AsMemory(start, length);
+        var (start, length) = range.GetOffsetAndLength(text.Length);
+        return text.AsMemory(start, length);
 #endif
     }
 
-    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? s)
-        => s is not null ? s.AsMemory() : default;
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlyMemory{T}"/> over a string. If the target string
+    ///  is <see langword="null"/> a <see langword="default"/>(<see cref="ReadOnlyMemory{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? text)
+        => text is not null ? text.AsMemory() : default;
 
-    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? s, int start)
-        => s is not null ? s.AsMemory(start) : default;
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlyMemory{T}"/> over a portion of the target string from
+    ///  a specified position to the end of the string. If the target string is <see langword="null"/>
+    ///  a <see langword="default"/>(<see cref="ReadOnlyMemory{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="start">
+    ///  The index at which to begin this slice.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="start"/> is less than 0 or greater than <paramref name="text"/>.Length.
+    /// </exception>
+    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? text, int start)
+        => text is not null ? text.AsMemory(start) : default;
 
-    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? s, int start, int length)
-        => s is not null ? s.AsMemory(start, length) : default;
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlyMemory{T}"/> over a portion of the target string from
+    ///  a specified position for a specified number of characters. If the target string is
+    ///  <see langword="null"/> a <see langword="default"/>(<see cref="ReadOnlyMemory{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="start">
+    ///  The index at which to begin this slice.
+    /// </param>
+    /// <param name="length">
+    ///  The desired length for the slice.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="start"/>, <paramref name="length"/>, or <paramref name="start"/> + <paramref name="length"/>
+    ///  is not in the range of <paramref name="text"/>.
+    /// </exception>
+    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? text, int start, int length)
+        => text is not null ? text.AsMemory(start, length) : default;
 
-    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? s, Index startIndex)
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlyMemory{T}"/> over a portion of the target string from
+    ///  a specified position to the end of the string. If the target string is <see langword="null"/>
+    ///  a <see langword="default"/>(<see cref="ReadOnlyMemory{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="startIndex">
+    ///  The index at which to begin this slice.
+    /// </param>
+    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? text, Index startIndex)
     {
-        if (s is null)
+        if (text is null)
         {
             return default;
         }
 
 #if NET
-        return MemoryExtensions.AsMemory(s, startIndex);
+        return MemoryExtensions.AsMemory(text, startIndex);
 #else
-        return s.AsMemory(startIndex.GetOffset(s.Length));
+        return text.AsMemory(startIndex.GetOffset(text.Length));
 #endif
     }
 
-    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? s, Range range)
+    /// <summary>
+    ///  Creates a new <see cref="ReadOnlyMemory{T}"/> over a portion of the target string using the range
+    ///  start and end indexes. If the target string is <see langword="null"/> a
+    ///  <see langword="default"/>(<see cref="ReadOnlyMemory{T}"/>) is returned.
+    /// </summary>
+    /// <param name="text">
+    ///  The target string.
+    /// </param>
+    /// <param name="range">
+    ///  The range that has start and end indexes to use for slicing the string.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="range"/>'s start or end index is not within the bounds of the string.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  <paramref name="range"/>'s start index is greater than its end index.
+    /// </exception>
+    public static ReadOnlyMemory<char> AsMemoryOrDefault(this string? text, Range range)
     {
-        if (s is null)
+        if (text is null)
         {
             return default;
         }
 
 #if NET
-        return MemoryExtensions.AsMemory(s, range);
+        return MemoryExtensions.AsMemory(text, range);
 #else
-        var (start, length) = range.GetOffsetAndLength(s.Length);
-        return s.AsMemory(start, length);
+        var (start, length) = range.GetOffsetAndLength(text.Length);
+        return text.AsMemory(start, length);
 #endif
     }
 
