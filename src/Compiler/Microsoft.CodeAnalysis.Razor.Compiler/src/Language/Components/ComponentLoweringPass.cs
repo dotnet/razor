@@ -207,6 +207,13 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                 {
                     return true;
                 }
+                if (child is TagHelperDirectiveAttributeParameterIntermediateNode { } parameterNode &&
+                    parameterNode.OriginalAttributeName?.StartsWith(bindPrefix, StringComparison.Ordinal) == true &&
+                    parameterNode.AttributeNameWithoutParameter?.AsSpan()[(bindPrefix.Length - 1)..].Equals(attributeName.AsSpan(), StringComparison.Ordinal) == true)
+                {
+                    // `@bind-Value:get` or `@bind-Value:set` is specified.
+                    return true;
+                }
             }
 
             return false;
