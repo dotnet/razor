@@ -47,10 +47,20 @@ internal sealed class RazorActivityLog : IDisposable
 
     private async ValueTask ProcessBatchAsync(ImmutableArray<(EntryType, string)> items, CancellationToken token)
     {
+        if (token.IsCancellationRequested)
+        {
+            return;
+        }
+
         _vsActivityLog ??= await _serviceProvider.GetServiceAsync<SVsActivityLog, IVsActivityLog>(token).ConfigureAwait(false);
 
         foreach (var (entryType, message) in items)
         {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
             var vsEntryType = entryType switch
             {
                 EntryType.Error => __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
