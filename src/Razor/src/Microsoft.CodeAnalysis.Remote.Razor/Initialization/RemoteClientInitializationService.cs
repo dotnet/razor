@@ -8,14 +8,16 @@ using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed class RemoteClientInitializationService(
-    IRazorServiceBroker serviceBroker,
-    RemoteLanguageServerFeatureOptions remoteLanguageServerFeatureOptions,
-    RemoteSemanticTokensLegendService remoteSemanticTokensLegendService)
-    : RazorServiceBase(serviceBroker), IRemoteClientInitializationService
+internal sealed class RemoteClientInitializationService(in ServiceArgs args) : RazorBrokeredServiceBase(in args), IRemoteClientInitializationService
 {
-    private readonly RemoteLanguageServerFeatureOptions _remoteLanguageServerFeatureOptions = remoteLanguageServerFeatureOptions;
-    private readonly RemoteSemanticTokensLegendService _remoteSemanticTokensLegendService = remoteSemanticTokensLegendService;
+    internal sealed class Factory : FactoryBase<IRemoteClientInitializationService>
+    {
+        protected override IRemoteClientInitializationService CreateService(in ServiceArgs args)
+            => new RemoteClientInitializationService(in args);
+    }
+
+    private readonly RemoteLanguageServerFeatureOptions _remoteLanguageServerFeatureOptions = args.ExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
+    private readonly RemoteSemanticTokensLegendService _remoteSemanticTokensLegendService = args.ExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
 
     public ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(ct =>

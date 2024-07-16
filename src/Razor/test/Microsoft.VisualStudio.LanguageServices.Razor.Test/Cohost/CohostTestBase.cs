@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -21,11 +20,11 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
 {
     private const string CSharpVirtualDocumentSuffix = ".g.cs";
-    private IRemoteServiceProvider? _remoteServiceProvider;
     private ExportProvider? _exportProvider;
-    private protected RemoteClientInitializationOptions _clientInitializationOptions;
+    private TestRemoteServiceInvoker? _remoteServiceInvoker;
 
-    private protected IRemoteServiceProvider RemoteServiceProvider => _remoteServiceProvider.AssumeNotNull();
+    private protected RemoteClientInitializationOptions _clientInitializationOptions;
+    private protected TestRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
 
     /// <summary>
     /// The export provider for Razor OOP services (not Roslyn)
@@ -36,8 +35,13 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
     {
         await base.InitializeAsync();
 
-        _exportProvider = AddDisposable(await RemoteMefComposition.CreateExportProviderAsync());
-        _remoteServiceProvider = AddDisposable(new TestRemoteServiceProvider(_exportProvider));
+        // Create a new isolated MEF composition.
+        // Note that this uses a cached catalog and configuration for performance.
+        var exportProvider = await RemoteMefComposition.CreateExportProviderAsync(DisposalToken);
+        AddDisposable(exportProvider);
+
+        _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, exportProvider, LoggerFactory);
+        AddDisposable(_remoteServiceInvoker);
 
         var featureOptions = OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
         _clientInitializationOptions = new()

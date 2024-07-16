@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -165,7 +164,7 @@ public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHe
         var sourceText = await document.GetTextAsync(DisposalToken);
         sourceText.GetLineAndOffset(cursorPosition, out var lineIndex, out var characterIndex);
 
-        var endpoint = new CohostLinkedEditingRangeEndpoint(RemoteServiceProvider, LoggerFactory);
+        var endpoint = new CohostLinkedEditingRangeEndpoint(RemoteServiceInvoker, LoggerFactory);
 
         var request = new LinkedEditingRangeParams()
         {
