@@ -38,7 +38,7 @@ public class StreamExtensionTests
 
     public static TheoryData<string, Encoding?> StringFunctionData = new TheoryData<string, Encoding?>
     {
-        {"", null },
+        { "", null },
         { "hello", null },
         { "", Encoding.UTF8 },
         { "hello", Encoding.UTF8 },
