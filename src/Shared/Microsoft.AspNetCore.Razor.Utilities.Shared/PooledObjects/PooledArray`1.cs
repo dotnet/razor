@@ -12,11 +12,21 @@ internal struct PooledArray<T> : IDisposable
     private readonly int _minimumLength;
     private T[]? _array;
 
-    // Because of how this API is intended to be used, we don't want the consumption code to have
-    // to deal with Array being a nullable reference type. Instead, the guarantee is that this is
-    // non-null until this is disposed.
+    /// <summary>
+    ///  Returns the array that was rented from <see cref="ArrayPool{T}.Shared"/>.
+    /// </summary>
+    /// <remarks>
+    ///  Returns a non-null array until <see cref="PooledArray{T}"/> is disposed.
+    /// </remarks>
     public readonly T[] Array => _array!;
 
+    /// <summary>
+    ///  Returns a <see cref="Span{T}"/> representing a portion of the rented array
+    ///  from its start to the minimum length.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///  The array has been returned to the pool.
+    /// </exception>
     public readonly Span<T> Span => _array!.AsSpan(0, _minimumLength);
 
     public PooledArray(ArrayPool<T> pool, int minimumLength)
