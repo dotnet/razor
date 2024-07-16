@@ -54,7 +54,7 @@ internal abstract partial class RazorBrokeredServiceBase
                     ? new TraceSourceLoggerFactory(traceSource)
                     : EmptyLoggerFactory.Instance);
 
-            // Update the MEF composition's ILoggerFactory the target ILoggerFactory.
+            // Update the MEF composition's ILoggerFactory to the target ILoggerFactory.
             // Note that this means that the first non-empty ILoggerFactory that we use
             // will be used for MEF component logging for the lifetime of all services.
             var remoteLoggerFactory = exportProvider.GetExportedValue<RemoteLoggerFactory>();

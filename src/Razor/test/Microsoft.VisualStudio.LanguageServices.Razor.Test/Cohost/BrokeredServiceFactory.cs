@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Remote.Razor;
@@ -52,13 +53,13 @@ internal static class BrokeredServiceFactory
     }
 
     public static async Task<TService> CreateServiceAsync<TService>(
-        TestServiceBroker serviceBroker, ExportProvider exportProvider, ILoggerFactory loggerFactory)
+        TestBrokeredServiceInterceptor brokeredServiceInterceptor, ExportProvider exportProvider, ILoggerFactory loggerFactory)
         where TService : class
     {
         Assert.True(s_factoryMap.TryGetValue(typeof(TService), out var factory));
 
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-        var brokeredServiceData = new RazorBrokeredServiceData(exportProvider, loggerFactory, serviceBroker);
+        var brokeredServiceData = new RazorBrokeredServiceData(exportProvider, loggerFactory, brokeredServiceInterceptor);
         var hostProvidedServices = VsMocks.CreateServiceProvider(b =>
         {
             b.AddService(brokeredServiceData);
@@ -71,7 +72,7 @@ internal static class BrokeredServiceFactory
             serverStream,
             hostProvidedServices,
             serviceActivationOptions: default,
-            serviceBroker,
+            StrictMock.Of<IServiceBroker>(),
             authorizationServiceClient: default!);
     }
 }

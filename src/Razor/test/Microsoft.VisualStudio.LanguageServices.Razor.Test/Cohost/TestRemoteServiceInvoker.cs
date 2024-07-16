@@ -24,7 +24,7 @@ internal sealed class TestRemoteServiceInvoker(
     ExportProvider exportProvider,
     ILoggerFactory loggerFactory) : IRemoteServiceInvoker, IDisposable
 {
-    private readonly TestServiceBroker _serviceBroker = new();
+    private readonly TestBrokeredServiceInterceptor _serviceInterceptor = new();
     private readonly Dictionary<Type, object> _services = [];
     private readonly ReentrantSemaphore _reentrantSemaphore = ReentrantSemaphore.Create(initialCount: 1, joinableTaskContext);
 
@@ -35,7 +35,7 @@ internal sealed class TestRemoteServiceInvoker(
         {
             if (!_services.TryGetValue(typeof(TService), out var service))
             {
-                service = await BrokeredServiceFactory.CreateServiceAsync<TService>(_serviceBroker, exportProvider, loggerFactory);
+                service = await BrokeredServiceFactory.CreateServiceAsync<TService>(_serviceInterceptor, exportProvider, loggerFactory);
                 _services.Add(typeof(TService), service);
             }
 
@@ -57,7 +57,7 @@ internal sealed class TestRemoteServiceInvoker(
         // the RazorPinnedSolutionInfoWrapper properly, but we need Roslyn changes for that. For now, this works fine
         // as we don't have any code that makes multiple parallel calls to TryInvokeAsync in the same test.
         var solutionInfo = new RazorPinnedSolutionInfoWrapper();
-        _serviceBroker.UpdateSolution(solution);
+        _serviceInterceptor.UpdateSolution(solution);
         return await invocation(service, solutionInfo, cancellationToken);
     }
 
