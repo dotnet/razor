@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 [method: ImportingConstructor]
 internal class DocumentSnapshotFactory(Lazy<ProjectSnapshotFactory> projectSnapshotFactory)
 {
-    private static readonly ConditionalWeakTable<TextDocument, RemoteDocumentSnapshot> _documentSnapshots = new();
+    private readonly ConditionalWeakTable<TextDocument, RemoteDocumentSnapshot> _documentSnapshots = new();
 
     private readonly Lazy<ProjectSnapshotFactory> _projectSnapshotFactory = projectSnapshotFactory;
 
