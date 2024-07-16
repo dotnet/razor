@@ -47,7 +47,7 @@ internal sealed class RemoteServiceProvider(
         CancellationToken cancellationToken,
         [CallerFilePath] string? callerFilePath = null,
         [CallerMemberName] string? callerMemberName = null)
-        where TService : class
+        where TService : class, IDisposable
     {
         var client = await TryGetClientAsync(cancellationToken).ConfigureAwait(false);
         if (client is null)
@@ -71,7 +71,7 @@ internal sealed class RemoteServiceProvider(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             var approximateCallingClassName = Path.GetFileNameWithoutExtension(callerFilePath);
-            _logger.LogError(ex, $"Error calling remote method for {typeof(TService).Name} service, invocation: ${approximateCallingClassName}.{callerMemberName}");
+            _logger.LogError(ex, $"Error calling remote method for {typeof(TService).Name} service, invocation: {approximateCallingClassName}.{callerMemberName}");
             _telemetryReporter.ReportFault(ex, "Exception calling remote method for {service}, invocation: {class}.{method}", typeof(TService).FullName, approximateCallingClassName, callerMemberName);
             return default;
         }
