@@ -73,6 +73,11 @@ internal partial class TestOutputLogger : ILogger
         try
         {
             _provider.TestOutputHelper.WriteLine(finalMessage);
+
+            if (exception is not null)
+            {
+                _provider.TestOutputHelper.WriteLine(exception.ToString());
+            }
         }
         catch (Exception ex)
         {
