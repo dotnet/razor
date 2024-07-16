@@ -117,7 +117,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
         AddSourceMappingFor(node.Source.Value);
     }
 
-    public override void AddSourceMappingFor(SourceSpan source)
+    public override void AddSourceMappingFor(SourceSpan source, int offset = 0)
     {
         if (SourceDocument.FilePath != null &&
             !string.Equals(SourceDocument.FilePath, source.FilePath, StringComparison.OrdinalIgnoreCase))
@@ -126,7 +126,9 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
             return;
         }
 
-        var generatedLocation = new SourceSpan(CodeWriter.Location, source.Length);
+        var currentLocation = CodeWriter.Location with { AbsoluteIndex = CodeWriter.Location.AbsoluteIndex + offset, CharacterIndex = CodeWriter.Location.CharacterIndex + offset };
+
+        var generatedLocation = new SourceSpan(currentLocation, source.Length);
         var sourceMapping = new SourceMapping(source, generatedLocation);
 
         SourceMappings.Add(sourceMapping);
