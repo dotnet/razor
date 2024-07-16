@@ -40,14 +40,14 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
             Locale = "de-DE"
         };
 
-        await queue.ExecuteAsync<InitializeParams, InitializeResult>(initializeParams, Methods.InitializeName, LanguageServerConstants.DefaultLanguageName, server.GetLspServices(), DisposalToken);
+        await queue.ExecuteAsync(initializeParams, Methods.InitializeName, server.GetLspServices(), DisposalToken);
 
         // We have to send one more request, because culture is set before any request starts, but the first initialize request has to
         // be started in order to set the culture.
         // The request isn't actually valid, so we wrap it in a try catch, but we don't care for this test
         try
         {
-            await queue.ExecuteAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(new(), VSInternalMethods.DocumentPullDiagnosticName, LanguageServerConstants.DefaultLanguageName, server.GetLspServices(), DisposalToken);
+            await queue.ExecuteAsync(new(), VSInternalMethods.DocumentPullDiagnosticName, server.GetLspServices(), DisposalToken);
         }
         catch { }
 
