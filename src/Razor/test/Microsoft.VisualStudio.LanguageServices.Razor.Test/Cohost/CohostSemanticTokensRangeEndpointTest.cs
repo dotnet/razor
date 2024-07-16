@@ -101,13 +101,13 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         var legendService = OOPExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
         legendService.SetLegend(legend.TokenTypes.All, legend.TokenModifiers.All);
 
-        var featureOptions = OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
-        featureOptions.SetOptions(_clientInitializationOptions with { UsePreciseSemanticTokenRanges = precise });
+        // Update the client initialization options to control the precise ranges option
+        UpdateClientInitializationOptions(c => c with { UsePreciseSemanticTokenRanges = precise });
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);
         clientSettingsManager.Update(ClientAdvancedSettings.Default with { ColorBackground = colorBackground });
 
-        var endpoint = new CohostSemanticTokensRangeEndpoint(RemoteServiceProvider, clientSettingsManager, legend, NoOpTelemetryReporter.Instance, LoggerFactory);
+        var endpoint = new CohostSemanticTokensRangeEndpoint(RemoteServiceInvoker, clientSettingsManager, legend, NoOpTelemetryReporter.Instance, LoggerFactory);
 
         var span = new LinePositionSpan(new(0, 0), new(sourceText.Lines.Count, 0));
 

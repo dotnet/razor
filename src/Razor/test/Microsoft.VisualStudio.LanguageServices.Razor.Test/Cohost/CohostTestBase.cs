@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -22,8 +24,8 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
     private const string CSharpVirtualDocumentSuffix = ".g.cs";
     private ExportProvider? _exportProvider;
     private TestRemoteServiceInvoker? _remoteServiceInvoker;
+    private RemoteClientInitializationOptions _clientInitializationOptions;
 
-    private protected RemoteClientInitializationOptions _clientInitializationOptions;
     private protected TestRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
 
     /// <summary>
@@ -37,13 +39,12 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
 
         // Create a new isolated MEF composition.
         // Note that this uses a cached catalog and configuration for performance.
-        var exportProvider = await RemoteMefComposition.CreateExportProviderAsync(DisposalToken);
-        AddDisposable(exportProvider);
+        _exportProvider = await RemoteMefComposition.CreateExportProviderAsync(DisposalToken);
+        AddDisposable(_exportProvider);
 
-        _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, exportProvider, LoggerFactory);
+        _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, _exportProvider, LoggerFactory);
         AddDisposable(_remoteServiceInvoker);
 
-        var featureOptions = OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
         _clientInitializationOptions = new()
         {
             CSharpVirtualDocumentSuffix = CSharpVirtualDocumentSuffix,
@@ -52,7 +53,13 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
             UsePreciseSemanticTokenRanges = false,
             UseRazorCohostServer = true
         };
+        UpdateClientInitializationOptions(c => c);
+    }
 
+    private protected void UpdateClientInitializationOptions(Func<RemoteClientInitializationOptions, RemoteClientInitializationOptions> mutation)
+    {
+        _clientInitializationOptions = mutation(_clientInitializationOptions);
+        var featureOptions = OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
         featureOptions.SetOptions(_clientInitializationOptions);
     }
 
