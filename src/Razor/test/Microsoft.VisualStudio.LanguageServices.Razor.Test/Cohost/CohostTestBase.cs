@@ -23,6 +23,7 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
     private const string CSharpVirtualDocumentSuffix = ".g.cs";
     private IRemoteServiceProvider? _remoteServiceProvider;
     private ExportProvider? _exportProvider;
+    private protected RemoteClientInitializationOptions _clientInitializationOptions;
 
     private protected IRemoteServiceProvider RemoteServiceProvider => _remoteServiceProvider.AssumeNotNull();
 
@@ -39,14 +40,16 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
         _remoteServiceProvider = AddDisposable(new TestRemoteServiceProvider(_exportProvider));
 
         var featureOptions = OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
-        featureOptions.SetOptions(new()
+        _clientInitializationOptions = new()
         {
             CSharpVirtualDocumentSuffix = CSharpVirtualDocumentSuffix,
             HtmlVirtualDocumentSuffix = ".g.html",
             IncludeProjectKeyInGeneratedFilePath = false,
             UsePreciseSemanticTokenRanges = false,
             UseRazorCohostServer = true
-        });
+        };
+
+        featureOptions.SetOptions(_clientInitializationOptions);
     }
 
     protected TextDocument CreateProjectAndRazorDocument(string contents, string? fileKind = null)

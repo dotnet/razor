@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.Settings;
@@ -24,7 +25,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
 {
     [Theory]
     [CombinatorialData]
-    public async Task Razor(bool colorBackground)
+    public async Task Razor(bool colorBackground, bool precise)
     {
         var input = """
             @page "/"
@@ -59,12 +60,12 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
             }
             """;
 
-        await VerifySemanticTokensAsync(input, colorBackground);
+        await VerifySemanticTokensAsync(input, colorBackground, precise);
     }
 
     [Theory]
     [CombinatorialData]
-    public async Task Legacy(bool colorBackground)
+    public async Task Legacy(bool colorBackground, bool precise)
     {
         var input = """
             @page "/"
@@ -86,10 +87,10 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
             }
             """;
 
-        await VerifySemanticTokensAsync(input, colorBackground, fileKind: FileKinds.Legacy);
+        await VerifySemanticTokensAsync(input, colorBackground, precise, fileKind: FileKinds.Legacy);
     }
 
-    private async Task VerifySemanticTokensAsync(string input, bool colorBackground, string? fileKind = null, [CallerMemberName] string? testName = null)
+    private async Task VerifySemanticTokensAsync(string input, bool colorBackground, bool precise, string? fileKind = null, [CallerMemberName] string? testName = null)
     {
         var document = CreateProjectAndRazorDocument(input, fileKind);
         var sourceText = await document.GetTextAsync(DisposalToken);
@@ -99,6 +100,9 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         // We need to manually initialize the OOP service so we can get semantic token info later
         var legendService = OOPExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
         legendService.SetLegend(legend.TokenTypes.All, legend.TokenModifiers.All);
+
+        var featureOptions = OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
+        featureOptions.SetOptions(_clientInitializationOptions with { UsePreciseSemanticTokenRanges = precise });
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);
         clientSettingsManager.Update(ClientAdvancedSettings.Default with { ColorBackground = colorBackground });
