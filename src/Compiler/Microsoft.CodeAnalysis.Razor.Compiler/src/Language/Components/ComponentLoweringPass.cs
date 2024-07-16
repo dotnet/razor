@@ -12,8 +12,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
+    private readonly int? _razorWarningLevel;
+
     // This pass runs earlier than our other passes that 'lower' specific kinds of attributes.
     public override int Order => 0;
+
+    public ComponentLoweringPass(RazorConfiguration configuration)
+    {
+        _razorWarningLevel = configuration.RazorWarningLevel;
+    }
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
@@ -137,7 +144,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
         }
     }
 
-    private static ComponentIntermediateNode RewriteAsComponent(TagHelperIntermediateNode node, TagHelperDescriptor tagHelper)
+    private ComponentIntermediateNode RewriteAsComponent(TagHelperIntermediateNode node, TagHelperDescriptor tagHelper)
     {
         var component = new ComponentIntermediateNode()
         {
@@ -163,6 +170,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
         }
 
         ValidateRequiredAttributes(node, tagHelper, component);
+        WarnForUnnecessaryAt(component);
 
         return component;
     }
@@ -210,6 +218,27 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
             }
 
             return false;
+        }
+    }
+
+    private void WarnForUnnecessaryAt(ComponentIntermediateNode component)
+    {
+        if (_razorWarningLevel is not >= 9)
+        {
+            return;
+        }
+
+        foreach (var attribute in component.Attributes)
+        {
+            // IntParam="@x" has unnecessary `@`, can just use IntParam="x" -> warn
+            // StrParam="@x" is different than StrParam="x" -> don't warn
+            if (!attribute.BoundAttribute.IsStringProperty &&
+                attribute.Source is { } originalSource &&
+                attribute.Children is [CSharpExpressionIntermediateNode])
+            {
+                var source = originalSource.With(length: 1, endCharacterIndex: originalSource.CharacterIndex + 1);
+                attribute.Diagnostics.Add(RazorDiagnosticFactory.CreateComponentParameter_UnnecessaryAt(source));
+            }
         }
     }
 

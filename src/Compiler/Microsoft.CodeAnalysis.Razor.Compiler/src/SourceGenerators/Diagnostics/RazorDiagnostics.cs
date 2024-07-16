@@ -20,6 +20,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor InvalidRazorWarningLevelDescriptor = new DiagnosticDescriptor(
+            DiagnosticIds.InvalidRazorWarningLevelRuleId,
+            new LocalizableResourceString(nameof(RazorSourceGeneratorResources.InvalidRazorWarningLevelTitle), RazorSourceGeneratorResources.ResourceManager, typeof(RazorSourceGeneratorResources)),
+            new LocalizableResourceString(nameof(RazorSourceGeneratorResources.InvalidRazorWarningLevelMessage), RazorSourceGeneratorResources.ResourceManager, typeof(RazorSourceGeneratorResources)),
+            "RazorSourceGenerator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
         public static readonly DiagnosticDescriptor ReComputingTagHelpersDescriptor = new DiagnosticDescriptor(
             DiagnosticIds.ReComputingTagHelpersRuleId,
             new LocalizableResourceString(nameof(RazorSourceGeneratorResources.RecomputingTagHelpersTitle), RazorSourceGeneratorResources.ResourceManager, typeof(RazorSourceGeneratorResources)),

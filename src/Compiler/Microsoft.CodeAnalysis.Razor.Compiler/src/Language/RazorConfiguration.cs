@@ -12,7 +12,8 @@ public sealed record class RazorConfiguration(
     string ConfigurationName,
     ImmutableArray<RazorExtension> Extensions,
     LanguageServerFlags? LanguageServerFlags = null,
-    bool UseConsolidatedMvcViews = false)
+    bool UseConsolidatedMvcViews = false,
+    int? RazorWarningLevel = null)
 {
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
@@ -27,6 +28,7 @@ public sealed record class RazorConfiguration(
            ConfigurationName == other.ConfigurationName &&
            LanguageServerFlags == other.LanguageServerFlags &&
            UseConsolidatedMvcViews == other.UseConsolidatedMvcViews &&
+           RazorWarningLevel == other.RazorWarningLevel &&
            Extensions.SequenceEqual(other.Extensions);
 
     public override int GetHashCode()
@@ -37,6 +39,7 @@ public sealed record class RazorConfiguration(
         hash.Add(Extensions);
         hash.Add(UseConsolidatedMvcViews);
         hash.Add(LanguageServerFlags);
+        hash.Add(RazorWarningLevel);
         return hash;
     }
 }
