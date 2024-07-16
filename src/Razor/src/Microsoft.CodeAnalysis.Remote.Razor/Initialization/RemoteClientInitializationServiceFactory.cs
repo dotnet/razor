@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -16,6 +17,8 @@ internal sealed class RemoteClientInitializationServiceFactory : RazorServiceFac
 
     protected override IRemoteClientInitializationService CreateService(IRazorServiceBroker serviceBroker, ExportProvider exportProvider)
     {
-        return new RemoteClientInitializationService(serviceBroker);
+        var languageServerFeatureOptions = exportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
+        var semanticTokensLegendService = exportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
+        return new RemoteClientInitializationService(serviceBroker, languageServerFeatureOptions, semanticTokensLegendService);
     }
 }

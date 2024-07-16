@@ -97,7 +97,8 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         var legend = TestRazorSemanticTokensLegendService.Instance;
 
         // We need to manually initialize the OOP service so we can get semantic token info later
-        RemoteSemanticTokensLegendService.SetLegend(legend.TokenTypes.All, legend.TokenModifiers.All);
+        var legendService = OOPExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
+        legendService.SetLegend(legend.TokenTypes.All, legend.TokenModifiers.All);
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);
         clientSettingsManager.Update(ClientAdvancedSettings.Default with { ColorBackground = colorBackground });

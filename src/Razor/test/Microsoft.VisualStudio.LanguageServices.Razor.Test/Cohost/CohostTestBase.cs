@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -21,17 +22,24 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Works
 {
     private const string CSharpVirtualDocumentSuffix = ".g.cs";
     private IRemoteServiceProvider? _remoteServiceProvider;
+    private ExportProvider? _exportProvider;
 
     private protected IRemoteServiceProvider RemoteServiceProvider => _remoteServiceProvider.AssumeNotNull();
+
+    /// <summary>
+    /// The export provider for Razor OOP services (not Roslyn)
+    /// </summary>
+    private protected ExportProvider OOPExportProvider => _exportProvider.AssumeNotNull();
 
     protected override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
-        var exportProvider = AddDisposable(await RemoteMefComposition.CreateExportProviderAsync());
-        _remoteServiceProvider = AddDisposable(new TestRemoteServiceProvider(exportProvider));
+        _exportProvider = AddDisposable(await RemoteMefComposition.CreateExportProviderAsync());
+        _remoteServiceProvider = AddDisposable(new TestRemoteServiceProvider(_exportProvider));
 
-        RemoteLanguageServerFeatureOptions.SetOptions(new()
+        var featureOptions = OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
+        featureOptions.SetOptions(new()
         {
             CSharpVirtualDocumentSuffix = CSharpVirtualDocumentSuffix,
             HtmlVirtualDocumentSuffix = ".g.html",
