@@ -1193,7 +1193,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                                       attributeSourceSpan.LineCount,
                                       attributeSourceSpan.EndCharacterIndex);
             }
-           return null;
+            return null;
         }
     }
 }

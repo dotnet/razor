@@ -69,8 +69,22 @@ internal static class ComponentMetadata
 
         public const string Format = "Components.Bind.Format";
 
+        /// <summary>
+        /// Represents the sub-span of the bind node that actually represents the property
+        /// </summary>
+        /// <remarks>
+        /// <pre>
+        /// @bind-Value:get=""
+        /// ^----------------^ Regular node span
+        ///       ^---^        Property span
+        /// </pre>
+        /// </remarks>
         public const string PropertySpan = "Components.Bind.PropertySpan";
 
+        /// <summary>
+        /// Used to track if this node was synthesized by the compiler and
+        /// not explicitly written by a user.
+        /// </summary>
         public const string IsSynthesized = "Components.Bind.IsSynthesized";
     }
 
@@ -131,6 +145,10 @@ internal static class ComponentMetadata
 
         public const string InitOnlyProperty = "Components.InitOnlyProperty";
 
+        /// <summary>
+        /// When a generic component is re-written with its concrete implementation type
+        /// We use this metadata on its bound attributes to track the updated type.
+        /// </summary>
         public const string ConcreteContainingType = "Components.ConcreteContainingType";
     }
 

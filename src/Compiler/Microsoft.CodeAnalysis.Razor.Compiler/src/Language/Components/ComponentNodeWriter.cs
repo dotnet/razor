@@ -340,11 +340,12 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
             containingType = attribute.Annotations[ComponentMetadata.Component.ConcreteContainingType] as string ?? containingType;
 
             // nameof(containingType.PropertyName)
+            // This allows things like Find All References to work in the IDE as we have an actual reference to the parameter
             context.CodeWriter.Write("nameof(");
             TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, containingType);
             context.CodeWriter.Write(".");
 
-            var isSynthesized = attribute.Annotations.TryGetValue(ComponentMetadata.Bind.IsSynthesized, out string _);
+            var isSynthesized = attribute.Annotations.TryGetValue(ComponentMetadata.Bind.IsSynthesized, out string synthesizedString) && synthesizedString == bool.TrueString;
             if (!isSynthesized)
             {
                 var attributeSourceSpan = (SourceSpan)(attribute.Annotations[ComponentMetadata.Bind.PropertySpan] ?? attribute.Annotations[ComponentMetadata.Common.OriginalAttributeSpan]);

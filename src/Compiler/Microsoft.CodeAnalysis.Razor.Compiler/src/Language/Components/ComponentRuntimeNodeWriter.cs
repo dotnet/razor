@@ -598,7 +598,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         var addAttributeMethod = node.Annotations[ComponentMetadata.Common.AddAttributeMethodName] as string ?? GetAddComponentParameterMethodName(context);
 
-        // _builder.AddComponentParameter(1, "Foo", 42);
+        // _builder.AddComponentParameter(1, nameof(Component.Property), 42);
         context.CodeWriter.Write(_scopeStack.BuilderVarName);
         context.CodeWriter.Write(".");
         context.CodeWriter.Write(addAttributeMethod);
