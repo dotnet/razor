@@ -27,14 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal class CohostSignatureHelpEndpoint(
-    IRemoteServiceProvider remoteServiceProvider,
+    IRemoteServiceInvoker remoteServiceInvoker,
     IClientSettingsManager clientSettingsManager,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<SignatureHelpParams, SumType<SignatureHelp, RLSP.SignatureHelp>?>, IDynamicRegistrationProvider
 {
-    private readonly IRemoteServiceProvider _remoteServiceProvider = remoteServiceProvider;
+    private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
@@ -78,7 +78,7 @@ internal class CohostSignatureHelpEndpoint(
 
         var razorDocument = context.TextDocument.AssumeNotNull();
 
-        var data = await _remoteServiceProvider.TryInvokeAsync<IRemoteSignatureHelpService, RLSP.SignatureHelp?>(
+        var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteSignatureHelpService, RLSP.SignatureHelp?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetSignatureHelpAsync(solutionInfo, razorDocument.Id, new RLSP.Position(request.Position.Line, request.Position.Character), cancellationToken),
             cancellationToken)
