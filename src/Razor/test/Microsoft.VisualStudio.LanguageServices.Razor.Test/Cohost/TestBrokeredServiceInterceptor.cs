@@ -34,8 +34,4 @@ internal sealed class TestBrokeredServiceInterceptor : IRazorBrokeredServiceInte
 
         return implementation(solution);
     }
-
-    public void Dispose()
-    {
-    }
 }
