@@ -245,6 +245,11 @@ internal partial class DocumentState
 
         foreach (var item in importItems)
         {
+            if (item is NotFoundProjectItem)
+            {
+                continue;
+            }
+
             if (item.PhysicalPath is null)
             {
                 // This is a default import.
