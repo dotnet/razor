@@ -18,7 +18,7 @@ internal static class FilePathNormalizer
 
     public static string NormalizeDirectory(string? directoryFilePath)
     {
-        if (directoryFilePath.IsNullOrEmpty())
+        if (directoryFilePath.IsNullOrEmpty() || directoryFilePath == "/")
         {
             return "/";
         }
@@ -76,7 +76,7 @@ internal static class FilePathNormalizer
     /// </summary>
     public static string GetNormalizedDirectoryName(string? filePath)
     {
-        if (filePath.IsNullOrEmpty())
+        if (filePath.IsNullOrEmpty() || filePath == "/")
         {
             return "/";
         }
