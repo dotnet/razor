@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -34,11 +35,11 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
         server.Initialize();
         var queue = server.GetTestAccessor().GetRequestExecutionQueue();
 
-        var initializeParams = new InitializeParams
+        var initializeParams = JsonSerializer.SerializeToElement(new InitializeParams
         {
             Capabilities = new(),
             Locale = "de-DE"
-        };
+        });
 
         await queue.ExecuteAsync(initializeParams, Methods.InitializeName, server.GetLspServices(), DisposalToken);
 
@@ -47,7 +48,7 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
         // The request isn't actually valid, so we wrap it in a try catch, but we don't care for this test
         try
         {
-            await queue.ExecuteAsync(new(), VSInternalMethods.DocumentPullDiagnosticName, server.GetLspServices(), DisposalToken);
+            await queue.ExecuteAsync(JsonSerializer.SerializeToElement(new object()), VSInternalMethods.DocumentPullDiagnosticName, server.GetLspServices(), DisposalToken);
         }
         catch { }
 
