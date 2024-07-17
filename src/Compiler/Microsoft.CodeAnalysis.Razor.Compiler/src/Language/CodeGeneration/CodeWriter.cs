@@ -101,10 +101,7 @@ public sealed partial class CodeWriter : IDisposable
         get => _indentSize;
         set
         {
-            if (value < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(value));
-            }
+            ArgHelper.ThrowIfNegative(value);
 
             if (_indentSize != value)
             {
@@ -127,10 +124,7 @@ public sealed partial class CodeWriter : IDisposable
     [MemberNotNull(nameof(_newLine))]
     private void SetNewLine(string value)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgHelper.ThrowIfNull(value);
 
         if (value != "\r\n" && value != "\n")
         {
@@ -220,10 +214,7 @@ public sealed partial class CodeWriter : IDisposable
 
     public CodeWriter Write(string value)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgHelper.ThrowIfNull(value);
 
         return WriteCore(value.AsMemory());
     }
@@ -233,25 +224,10 @@ public sealed partial class CodeWriter : IDisposable
 
     public CodeWriter Write(string value, int startIndex, int count)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
-
-        if (startIndex < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(startIndex));
-        }
-
-        if (count < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count));
-        }
-
-        if (startIndex > value.Length - count)
-        {
-            throw new ArgumentOutOfRangeException(nameof(startIndex));
-        }
+        ArgHelper.ThrowIfNull(value);
+        ArgHelper.ThrowIfNegative(startIndex);
+        ArgHelper.ThrowIfNegative(count);
+        ArgHelper.ThrowIfGreaterThan(startIndex, value.Length - count);
 
         return WriteCore(value.AsMemory(startIndex, count));
     }
@@ -324,10 +300,7 @@ public sealed partial class CodeWriter : IDisposable
 
     public CodeWriter WriteLine(string value)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgHelper.ThrowIfNull(value);
 
         return WriteCore(value.AsMemory()).WriteLine();
     }
