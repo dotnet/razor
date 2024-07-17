@@ -62,10 +62,11 @@ internal class CohostFoldingRangeEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(FoldingRangeParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-    {
-        var razorDocument = context.TextDocument.AssumeNotNull();
+    protected override Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+        => HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken);
 
+    private async Task<FoldingRange[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    {
         _logger.LogDebug($"Getting folding ranges for {razorDocument.FilePath}");
         // TODO: Should we have a separate method/service for getting C# ranges, so we can kick off both tasks in parallel? Or are we better off transition to OOP once?
         var htmlRangesResult = await GetHtmlFoldingRangesAsync(razorDocument, cancellationToken).ConfigureAwait(false);
@@ -122,6 +123,14 @@ internal class CohostFoldingRangeEndpoint(
         }
 
         return result.Response.SelectAsArray(RemoteFoldingRange.FromLspFoldingRange);
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostFoldingRangeEndpoint instance)
+    {
+        public Task<FoldingRange[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(razorDocument, cancellationToken);
     }
 }
 

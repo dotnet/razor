@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
+public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Theory]
     [CombinatorialData]
