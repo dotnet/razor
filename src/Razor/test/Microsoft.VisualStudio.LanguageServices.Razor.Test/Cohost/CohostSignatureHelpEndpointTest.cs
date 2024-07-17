@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
+public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
     public async Task CSharpMethod()
@@ -37,7 +37,7 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task AutoListParamsOff()
+    public async Task AutoListParamsOff_Invoked_ReturnsResult()
     {
         var input = """
                 <div></div>
@@ -52,11 +52,11 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
                 }
                 """;
 
-        await VerifySignatureHelpAsync(input, "", autoListParams: false);
+        await VerifySignatureHelpAsync(input, "", autoListParams: false, triggerKind: SignatureHelpTriggerKind.Invoked);
     }
 
     [Fact]
-    public async Task TriggerKind()
+    public async Task AutoListParamsOff_NotInvoked_ReturnsNoResult()
     {
         var input = """
                 <div></div>
@@ -71,7 +71,7 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
                 }
                 """;
 
-        await VerifySignatureHelpAsync(input, "", triggerKind: SignatureHelpTriggerKind.TriggerCharacter);
+        await VerifySignatureHelpAsync(input, "", autoListParams: false, triggerKind: SignatureHelpTriggerKind.ContentChange);
     }
 
     private async Task VerifySignatureHelpAsync(string input, string expected, bool autoListParams = true, SignatureHelpTriggerKind? triggerKind = null)
@@ -84,7 +84,9 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
         var clientSettingsManager = new ClientSettingsManager([], null, null);
         clientSettingsManager.Update(ClientCompletionSettings.Default with { AutoListParams = autoListParams });
 
-        var endpoint = new CohostSignatureHelpEndpoint(RemoteServiceInvoker, clientSettingsManager, htmlDocumentSynchronizer, requestInvoker, LoggerFactory);
+        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentSignatureHelpName, null)]);
+
+        var endpoint = new CohostSignatureHelpEndpoint(RemoteServiceInvoker, clientSettingsManager, TestHtmlDocumentSynchronizer.Instance, requestInvoker, LoggerFactory);
 
         var signatureHelpContext = new SignatureHelpContext()
         {
