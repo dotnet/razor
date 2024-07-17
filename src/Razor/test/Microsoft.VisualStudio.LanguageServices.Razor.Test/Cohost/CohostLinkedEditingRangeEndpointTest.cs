@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
+public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Theory]
     [InlineData("$$PageTitle", "PageTitle")]

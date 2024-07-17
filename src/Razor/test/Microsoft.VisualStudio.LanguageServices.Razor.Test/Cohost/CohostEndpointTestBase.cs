@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
+public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
 {
     private const string CSharpVirtualDocumentSuffix = ".g.cs";
     private ExportProvider? _exportProvider;
