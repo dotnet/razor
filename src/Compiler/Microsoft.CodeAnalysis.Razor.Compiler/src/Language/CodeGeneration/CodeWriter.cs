@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using static System.StringExtensions;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -259,7 +260,7 @@ public sealed partial class CodeWriter : IDisposable
         => this;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe CodeWriter WriteCore(ReadOnlyMemory<char> value, bool allowIndent = true)
+    private CodeWriter WriteCore(ReadOnlyMemory<char> value, bool allowIndent = true)
     {
         if (value.IsEmpty)
         {
@@ -336,50 +337,26 @@ public sealed partial class CodeWriter : IDisposable
 
     public string GenerateCode()
     {
-        unsafe
+        return CreateString(Length, _pages, static (span, pages) =>
         {
-            // This might look a bit scary, but it's pretty simple. We allocate our string
-            // with the correct length up front and then use simple pointer math to copy
-            // the pages of ReadOnlyMemory<char> directly into it.
-
-            // Eventually, we need to remove this and not return a giant string, which can
-            // easily be allocated on the LOH. The work to remove this is tracked by
-            // https://github.com/dotnet/razor/issues/8076.
-
-            var length = Length;
-            var result = new string('\0', length);
-
-            fixed (char* stringPtr = result)
+            foreach (var page in pages)
             {
-                var destination = stringPtr;
-
-                // destinationSize and sourceSize track the number of bytes (not chars).
-                var destinationSize = length * sizeof(char);
-
-                foreach (var page in _pages)
+                foreach (var chars in page)
                 {
-                    foreach (var chars in page)
+                    if (chars.IsEmpty)
                     {
-                        var source = chars.Span;
-                        var sourceSize = source.Length * sizeof(char);
-
-                        fixed (char* srcPtr = source)
-                        {
-                            Buffer.MemoryCopy(srcPtr, destination, destinationSize, sourceSize);
-                        }
-
-                        destination += source.Length;
-                        destinationSize -= sourceSize;
-
-                        Debug.Assert(destinationSize >= 0);
+                        return;
                     }
-                }
 
-                Debug.Assert(destinationSize == 0, "We didn't exhaust our destination pointer!");
+                    chars.Span.CopyTo(span);
+                    span = span[chars.Length..];
+
+                    Debug.Assert(span.Length >= 0);
+                }
             }
 
-            return result;
-        }
+            Debug.Assert(span.Length == 0, "We didn't fill the whole span!");
+        });
     }
 
     public void Dispose()
