@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.TextDifferencing;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -40,7 +41,7 @@ internal class RazorFormattingService : IRazorFormattingService
         FormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var codeDocument = await GetCodeDocumentAsync(documentContext).ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -83,6 +84,34 @@ internal class RazorFormattingService : IRazorFormattingService
             : result.Edits.Where(e => range.LineOverlapsWith(e.Range));
 
         return GetMinimalEdits(originalText, filteredEdits);
+    }
+
+    private static Task<RazorCodeDocument> GetCodeDocumentAsync(VersionedDocumentContext documentContext)
+    {
+        var snapshot = documentContext.Snapshot;
+        var forceRuntimeCodeGeneration = documentContext.Project.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
+        if (!forceRuntimeCodeGeneration)
+        {
+            return snapshot.GetGeneratedOutputAsync();
+        }
+
+        // if forceRuntimeCodeGeneration is on, GetGeneratedOutputAsync will get runtime code. As of now
+        // the formatting service doesn't expect the form of code generated to be what the compiler does with
+        // runtime. For now force usage of design time and avoid the cache. There may be a slight perf hit
+        // but either the user is typing (which will invalidate the cache) or the user is manually attempting to
+        // format. We expect formatting to invalidate the cache if it changes things and consider this an
+        // acceptable overhead for now.
+        return GetDesignTimeDocumentAsync(documentContext);
+    }
+
+    private static async Task<RazorCodeDocument> GetDesignTimeDocumentAsync(VersionedDocumentContext documentContext)
+    {
+        var snapshot = documentContext.Snapshot;
+        var project = documentContext.Project;
+        var tagHelpers = await project.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
+        var projectEngine = project.GetProjectEngine();
+        var imports = await DocumentState.GetImportsAsync(snapshot, projectEngine).ConfigureAwait(false);
+        return await DocumentState.GenerateCodeDocumentAsync(tagHelpers, project.GetProjectEngine(), snapshot, imports, false).ConfigureAwait(false);
     }
 
     private static TextEdit[] GetMinimalEdits(SourceText originalText, IEnumerable<TextEdit> filteredEdits)
