@@ -58,11 +58,8 @@ internal class OutputWindowLoggerProvider(
         {
             if (IsEnabled(logLevel))
             {
-                _outputPane.WriteLine($"{DateTime.Now:h:mm:ss.fff} [{_categoryName}] {message}");
-                if (exception is not null)
-                {
-                    _outputPane.WriteLine(exception.ToString());
-                }
+                var formattedMessage = LogMessageFormatter.FormatMessage(message, _categoryName, exception);
+                _outputPane.WriteLine(formattedMessage);
             }
         }
     }
