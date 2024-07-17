@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
+public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
     public Task IfStatements()
