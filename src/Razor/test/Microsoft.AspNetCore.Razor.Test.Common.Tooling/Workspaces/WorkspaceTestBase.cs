@@ -88,7 +88,17 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
             Configure = ConfigureProjectEngine,
         };
 
-        _hostServices = MefHostServices.DefaultHost;
+        var assemblies = MefHostServices.DefaultAssemblies
+            // Uncomment to fail on JoinableTaskContext instead of a Lazy<IPythia...>!
+                //.AddRange(
+                //    Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"),
+                //    Assembly.LoadFrom("Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll"),
+                //    Assembly.LoadFrom("Microsoft.CodeAnalysis.EditorFeatures.dll"),
+                //    Assembly.LoadFrom("Microsoft.CodeAnalysis.ExternalAccess.Razor.dll"),
+                //    Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"))
+            ;
+
+        _hostServices = MefHostServices.Create(assemblies);
         _workspace = TestWorkspace.Create(_hostServices, ConfigureWorkspace);
         AddDisposable(_workspace);
         _workspaceProvider = new TestWorkspaceProvider(_workspace);
