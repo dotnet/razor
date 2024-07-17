@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -197,27 +197,66 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             }|]
             """);
 
+    [Fact]
+    public Task HtmlAndCSharp()
+      => VerifyFoldingRangesAsync("""
+            <div>{|html:
+              Hello @_name
+
+                <div>{|html:
+                    Nests aren't just for birds!
+                </div>|}
+            </div>|}
+
+            @code {[|
+                private string _name = "Dave";
+
+                public void M() {[|
+                }|]
+            }|]
+            """);
+
     private async Task VerifyFoldingRangesAsync(string input, string? fileKind = null)
     {
-        TestFileMarkupParser.GetSpans(input, out var source, out ImmutableArray<TextSpan> expected);
+        TestFileMarkupParser.GetSpans(input, out var source, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
         var document = CreateProjectAndRazorDocument(source, fileKind);
+        var inputText = await document.GetTextAsync(DisposalToken);
 
-        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentFoldingRangeName, Array.Empty<FoldingRange>())]);
+        var htmlSpans = spans.GetValueOrDefault("html").NullToEmpty();
+        var htmlRanges = htmlSpans
+            .Select(span =>
+                {
+                    inputText.GetLineAndOffset(span.Start, out var startLine, out var startCharacter);
+                    inputText.GetLineAndOffset(span.End, out var endLine, out var endCharacter);
+                    return new FoldingRange()
+                    {
+                        StartLine = startLine,
+                        StartCharacter = startCharacter,
+                        EndLine = endLine,
+                        EndCharacter = endCharacter
+                    };
+                })
+            .ToArray();
+
+        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentFoldingRangeName, htmlRanges)]);
 
         var endpoint = new CohostFoldingRangeEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, LoggerFactory);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, DisposalToken);
 
-        if (expected.Length == 0)
+        if (spans.Count == 0)
         {
             Assert.Null(result);
             return;
         }
 
-        // Rather than comparing numbers and spans, its nicer to reconstruct the test input data and use string comparisons so we can
-        // more easily understand what went wrong.
+        var actual = GenerateTestInput(inputText, htmlSpans, result.AssumeNotNull());
 
-        var inputText = SourceText.From(source);
+        AssertEx.EqualOrDiff(input, actual);
+    }
+
+    private static string GenerateTestInput(SourceText inputText, ImmutableArray<TextSpan> htmlSpans, FoldingRange[] result)
+    {
         var markerPositions = result
             .SelectMany(r =>
                 new[] {
@@ -225,12 +264,26 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                     (index: inputText.GetRequiredAbsoluteIndex(r.EndLine, r.EndCharacter.AssumeNotNull()), isStart: false)
                 });
 
-        var actual = new StringBuilder(source);
+        var actual = new StringBuilder(inputText.ToString());
         foreach (var marker in markerPositions.OrderByDescending(p => p.index))
         {
-            actual.Insert(marker.index, marker.isStart ? "[|" : "|]");
+            actual.Insert(marker.index, GetMarker(marker.index, marker.isStart, htmlSpans));
         }
 
-        AssertEx.EqualOrDiff(input, actual.ToString());
+        static string GetMarker(int index, bool isStart, ImmutableArray<TextSpan> htmlSpans)
+        {
+            if (isStart)
+            {
+                return htmlSpans.Any(r => r.Start == index)
+                    ? "{|html:"
+                    : "[|";
+            }
+
+            return htmlSpans.Any(r => r.End == index)
+                ? "|}"
+                : "|]";
+        }
+
+        return actual.ToString();
     }
 }
