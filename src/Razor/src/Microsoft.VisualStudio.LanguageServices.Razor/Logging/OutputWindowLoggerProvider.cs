@@ -21,7 +21,7 @@ internal class OutputWindowLoggerProvider(
     // or used anything that does logging, so make sure everything of ours is imported lazily
     Lazy<IClientSettingsManager> clientSettingsManager,
     JoinableTaskContext joinableTaskContext)
-    : ILoggerProvider
+    : ILoggerProvider, IDisposable
 {
     private readonly Lazy<IClientSettingsManager> _clientSettingsManager = clientSettingsManager;
     private readonly OutputPane _outputPane = new OutputPane(joinableTaskContext);
