@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
-    public async Task CSharpMethod()
+    public async Task CSharpMethodCSharp()
     {
         var input = """
                 <div></div>
@@ -37,6 +37,20 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task CSharpMethodInRazor()
+    {
+        var input = """
+                <div>@GetDiv($$)</div>
+
+                @{
+                    string GetDiv() => "";
+                }
+                """;
+
+        await VerifySignatureHelpAsync(input, "string GetDiv()");
+    }
+
+    [Fact]
     public async Task AutoListParamsOff_Invoked_ReturnsResult()
     {
         var input = """
@@ -52,7 +66,7 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
                 }
                 """;
 
-        await VerifySignatureHelpAsync(input, "", autoListParams: false, triggerKind: SignatureHelpTriggerKind.Invoked);
+        await VerifySignatureHelpAsync(input, "string M1(int i)", autoListParams: false, triggerKind: SignatureHelpTriggerKind.Invoked);
     }
 
     [Fact]

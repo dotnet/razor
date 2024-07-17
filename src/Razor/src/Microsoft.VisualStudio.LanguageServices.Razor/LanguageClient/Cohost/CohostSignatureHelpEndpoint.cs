@@ -119,6 +119,8 @@ internal class CohostSignatureHelpEndpoint(
     {
         internal async Task<string[]?> HandleRequestAndGetLabelsAsync(SignatureHelpParams request, TextDocument document, CancellationToken cancellationToken)
         {
+            // Our tests don't have IVT to Roslyn.LanguageServer.Protocol (yet!?) so we can't expose the return from HandleRequestAsync directly,
+            // but rather need to do a little test code here.
             var result = await instance.HandleRequestAsync(request, document, cancellationToken);
 
             if (result is not { } signatureHelp)
