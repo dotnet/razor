@@ -85,7 +85,7 @@ internal static class StreamExtensions
         var sizeToRead = ReadSize(stream);
 
         using var _ = ArrayPool<byte>.Shared.GetPooledArray(sizeToRead, out var projectInfoBytes);
-        await stream.ReadExactlyAsync(projectInfoBytes, 0,sizeToRead, cancellationToken).ConfigureAwait(false);
+        await stream.ReadExactlyAsync(projectInfoBytes, 0, sizeToRead, cancellationToken).ConfigureAwait(false);
 
         // The array may be larger than the bytes read so make sure to trim accordingly.
         var projectInfoMemory = projectInfoBytes.AsMemory(0, sizeToRead);
