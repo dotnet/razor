@@ -253,7 +253,8 @@ internal static class FilePathNormalizer
             {
                 writeSlot = '/';
 
-                if (Unsafe.Add(ref readSlot, 1) is '/' or '\\')
+                // Be careful not to read past the end of the span.
+                if (read < charsWritten - 1 && Unsafe.Add(ref readSlot, 1) is '/' or '\\')
                 {
                     // We found two slashes in a row. If we are at the start of the path,
                     // we we are at '\\network' paths, so want to leave them alone. Otherwise
