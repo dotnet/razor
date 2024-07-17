@@ -4,6 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 
 #if !NET
+using ArgHelper = Microsoft.AspNetCore.Razor.ArgHelper;
 using ThrowHelper = Microsoft.AspNetCore.Razor.Utilities.ThrowHelper;
 #endif
 
@@ -552,6 +553,31 @@ internal static class StringExtensions
         return text.EndsWith(value);
 #else
         return text.Length > 0 && text[^1] == value;
+#endif
+    }
+
+    public delegate void SpanAction<T, in TArg>(Span<T> span, TArg arg);
+
+    public unsafe static string CreateString<TState>(int length, TState state, SpanAction<char, TState> action)
+    {
+#if NET
+        return string.Create(length, (action, state), (span, state) => state.action(span, state.state));
+#else
+        ArgHelper.ThrowIfNegative(length);
+
+        if (length == 0)
+        {
+            return string.Empty;
+        }
+
+        var result = new string('\0', length);
+
+        fixed (char* ptr = result)
+        {
+            action(new Span<char>(ptr, length), state);
+        }
+
+        return result;
 #endif
     }
 }
