@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,7 +49,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -80,7 +79,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -109,7 +108,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -138,7 +137,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -187,7 +185,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -238,7 +235,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -281,7 +277,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -330,7 +325,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         var command = Assert.Single(commandOrCodeActionContainer);
         Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
@@ -362,7 +356,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         var command = Assert.Single(commandOrCodeActionContainer);
         Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
@@ -394,7 +387,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Empty(commandOrCodeActionContainer);
     }
 
@@ -424,7 +416,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -480,7 +471,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
 
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve: true);
+        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
 
         return context;
     }
