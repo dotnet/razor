@@ -13,6 +13,7 @@ internal static partial class LogMessageFormatter
     {
         // The leading whitespace matches the time space length            "[hh:mm:ss.fffffff] "
         private static readonly ReadOnlyMemory<char> s_leadingWhiteSpace = "                   ".AsMemory();
+        private static readonly ReadOnlyMemory<char> s_newLine = Environment.NewLine.AsMemory();
 
         private readonly ReadOnlyMemory<char> _message;
         private readonly ReadOnlyMemory<Range> _messageLineRanges;
@@ -99,7 +100,7 @@ internal static partial class LogMessageFormatter
             ref MemoryBuilder<Range> exceptionLineRangeBuilder)
         {
             var messageText = message.AsMemory();
-            var newLine = Environment.NewLine.AsMemory();
+            var newLine = s_newLine;
 
             var categoryNamePart = ('[' + categoryName + "] ").AsMemory();
 
