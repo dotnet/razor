@@ -5,6 +5,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -58,14 +59,15 @@ internal class CohostUriPresentationEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalUriPresentationParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalUriPresentationParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-    {
-        var razorDocument = context.TextDocument.AssumeNotNull();
+    protected override Task<WorkspaceEdit?> HandleRequestAsync(VSInternalUriPresentationParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+        => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
 
+    private async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalUriPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteUriPresentationService, TextChange?>(
-            razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetPresentationAsync(solutionInfo, razorDocument.Id, request.Range.ToLinePositionSpan(), request.Uris, cancellationToken),
-            cancellationToken).ConfigureAwait(false);
+                    razorDocument.Project.Solution,
+                    (service, solutionInfo, cancellationToken) => service.GetPresentationAsync(solutionInfo, razorDocument.Id, request.Range.ToLinePositionSpan(), request.Uris, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
         // If we got a response back, then either Razor or C# wants to do something with this, so we're good to go
         if (data is { } textChange)
@@ -133,5 +135,13 @@ internal class CohostUriPresentationEndpoint(
         }
 
         return workspaceEdit;
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostUriPresentationEndpoint instance)
+    {
+        public Task<WorkspaceEdit?> HandleRequestAsync(VSInternalUriPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }

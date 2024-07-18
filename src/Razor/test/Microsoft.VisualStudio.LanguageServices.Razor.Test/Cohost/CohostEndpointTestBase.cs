@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -25,8 +26,11 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private ExportProvider? _exportProvider;
     private TestRemoteServiceInvoker? _remoteServiceInvoker;
     private RemoteClientInitializationOptions _clientInitializationOptions;
+    private IFilePathService? _filePathService;
 
     private protected TestRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
+    private protected IFilePathService FilePathService => _filePathService.AssumeNotNull();
+    private protected RemoteLanguageServerFeatureOptions FeatureOptions => OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
 
     /// <summary>
     /// The export provider for Razor OOP services (not Roslyn)
@@ -54,13 +58,14 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             UseRazorCohostServer = true
         };
         UpdateClientInitializationOptions(c => c);
+
+        _filePathService = new RemoteFilePathService(FeatureOptions);
     }
 
     private protected void UpdateClientInitializationOptions(Func<RemoteClientInitializationOptions, RemoteClientInitializationOptions> mutation)
     {
         _clientInitializationOptions = mutation(_clientInitializationOptions);
-        var featureOptions = OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
-        featureOptions.SetOptions(_clientInitializationOptions);
+        FeatureOptions.SetOptions(_clientInitializationOptions);
     }
 
     protected TextDocument CreateProjectAndRazorDocument(string contents, string? fileKind = null)
