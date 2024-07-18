@@ -310,6 +310,9 @@ public sealed partial class CodeWriter : IDisposable
 
     public string GenerateCode()
     {
+        // Eventually, we need to remove this and not return a giant string, which can
+        // easily be allocated on the LOH. The work to remove this is tracked by
+        // https://github.com/dotnet/razor/issues/8076.
         return CreateString(Length, _pages, static (span, pages) =>
         {
             foreach (var page in pages)
