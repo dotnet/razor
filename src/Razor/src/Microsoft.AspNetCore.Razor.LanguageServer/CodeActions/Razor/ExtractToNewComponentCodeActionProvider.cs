@@ -54,14 +54,14 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
         }
 
-        var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex, true);
-        if (owner is null)
+        var startOwner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex, true);
+        if (startOwner is null)
         {
             _logger.LogWarning($"Owner should never be null.");
             return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
         }
 
-        var startComponentNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
+        var startComponentNode = startOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
 
         var selectionStart = context.Request.Range.Start;
         var selectionEnd = context.Request.Range.End;
@@ -75,8 +75,10 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         }
 
         var selectionEndIndex = new SourceLocation(0, 0, 0);
-        var endOwner = owner;
+        var endOwner = startOwner;
         var endComponentNode = startComponentNode;
+
+        string specialEndToken;
 
         if (isSelection)
         {
@@ -99,6 +101,14 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             }
 
             endComponentNode = endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
+
+            // When range ends immediately after a closing tag, the subsequent node is selected. This ensures the current node is selected.
+            if (endOwner.ToFullString().Trim().IsNullOrEmpty())
+            {
+                endOwner.TryGetPreviousSibling(out endOwner);
+                endComponentNode = endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
+
+            }
         }
 
         // Make sure we've found tag
@@ -124,20 +134,25 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             Uri = context.Request.TextDocument.Uri,
             ExtractStart = startComponentNode.Span.Start,
             ExtractEnd = startComponentNode.Span.End,
-            Namespace = @namespace
+            Namespace = @namespace,
+            Dependencies = new List<string>()
         };
+
+        bool selectionStartHasParentElement = false;
+        SyntaxNode? extractStart = null;
+        SyntaxNode? extractEnd = null;
 
         if (isSelection && endComponentNode is not null)
         {
             // If component @ start of the selection includes a parent element of the component @ end of selection, then proceed as usual.
             // If not, limit extraction to end of component @ end of selection (in the simplest case)
-            var selectionStartHasParentElement = endComponentNode.Ancestors().Any(node => node == startComponentNode);
+            selectionStartHasParentElement = endComponentNode.Ancestors().Any(node => node == startComponentNode);
             actionParams.ExtractEnd = selectionStartHasParentElement ? actionParams.ExtractEnd : endComponentNode.Span.End;
 
             // Handle other case: Either start/end of selection is nested within a component
             if (!selectionStartHasParentElement)
             {
-                var (extractStart, extractEnd) = FindContainingSiblingPair(startComponentNode, endComponentNode);
+                (extractStart, extractEnd) = FindContainingSiblingPair(startComponentNode, endComponentNode);
                 if (extractStart != null && extractEnd != null)
                 {
                     actionParams.ExtractStart = extractStart.Span.Start;
@@ -145,6 +160,11 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
                 }
             }
         }
+
+        var componentsInRange = IdentifyComponentsInRange(FindLowestCommonAncestor(startComponentNode, endComponentNode),
+                                                          actionParams.ExtractStart, actionParams.ExtractEnd);
+        if (componentsInRange.Count > 0)
+            actionParams.Dependencies = GetAllUsingStatements(syntaxTree.Root);
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
@@ -166,7 +186,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         // good namespace to extract to
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
 
-    public (SyntaxNode Start, SyntaxNode End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
+    private static (SyntaxNode Start, SyntaxNode End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
     {
         // Find the lowest common ancestor of both nodes
         var lowestCommonAncestor = FindLowestCommonAncestor(startNode, endNode);
@@ -203,7 +223,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         return (startContainingNode, endContainingNode);
     }
 
-    public SyntaxNode? FindLowestCommonAncestor(SyntaxNode node1, SyntaxNode node2)
+    private static SyntaxNode? FindLowestCommonAncestor(SyntaxNode node1, SyntaxNode node2)
     {
         var current = node1;
 
@@ -217,6 +237,34 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         }
 
         return null;
+    }
+    private static HashSet<SyntaxNode> IdentifyComponentsInRange(SyntaxNode root, int extractStart, int extractEnd)
+    {
+        var components = new HashSet<SyntaxNode>();
+        var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
+
+        foreach (var node in root.DescendantNodes())
+        {
+            if (node is MarkupTagHelperElementSyntax markupElement &&
+                extractSpan.Contains(markupElement.Span))
+            {
+                components.Add(markupElement);
+            }
+        }
+
+        return components;
+    }
+
+    private static List<string> GetAllUsingStatements(SyntaxNode root)
+    {
+        return root.DescendantNodes()
+                   .OfType<CSharpCodeBlockSyntax>()
+                   .SelectMany(cSharpBlock => cSharpBlock.ChildNodes())
+                   .OfType<RazorDirectiveSyntax>()
+                   .Select(directive => directive.ToFullString().TrimStart())
+                   .Where(directiveString => directiveString.StartsWith("@using"))
+                   .Select(directiveString => directiveString.Trim())
+                   .ToList();
     }
 
     //private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
