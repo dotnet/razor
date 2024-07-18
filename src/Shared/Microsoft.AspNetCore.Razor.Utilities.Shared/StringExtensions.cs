@@ -561,7 +561,7 @@ internal static class StringExtensions
     public unsafe static string CreateString<TState>(int length, TState state, SpanAction<char, TState> action)
     {
 #if NET
-        return string.Create(length, (action, state), (span, state) => state.action(span, state.state));
+        return string.Create(length, (action, state), static (span, state) => state.action(span, state.state));
 #else
         ArgHelper.ThrowIfNegative(length);
 
