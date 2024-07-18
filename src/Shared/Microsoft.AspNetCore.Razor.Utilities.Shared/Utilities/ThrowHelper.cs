@@ -12,6 +12,34 @@ internal static class ThrowHelper
     ///  This is present to help the JIT inline methods that need to throw an <see cref="InvalidOperationException"/>.
     /// </summary>
     [DoesNotReturn]
+    public static void ThrowArgumentNull(string paramName)
+        => throw new ArgumentNullException(paramName);
+
+    /// <summary>
+    ///  This is present to help the JIT inline methods that need to throw an <see cref="InvalidOperationException"/>.
+    /// </summary>
+    [DoesNotReturn]
+    public static T ThrowArgumentNull<T>(string paramName)
+        => throw new ArgumentNullException(paramName);
+
+    /// <summary>
+    ///  This is present to help the JIT inline methods that need to throw an <see cref="InvalidOperationException"/>.
+    /// </summary>
+    [DoesNotReturn]
+    public static void ThrowArgumentOutOfRange(string paramName)
+        => throw new ArgumentOutOfRangeException(paramName);
+
+    /// <summary>
+    ///  This is present to help the JIT inline methods that need to throw an <see cref="InvalidOperationException"/>.
+    /// </summary>
+    [DoesNotReturn]
+    public static T ThrowArgumentOutOfRange<T>(string paramName)
+        => throw new ArgumentOutOfRangeException(paramName);
+
+    /// <summary>
+    ///  This is present to help the JIT inline methods that need to throw an <see cref="InvalidOperationException"/>.
+    /// </summary>
+    [DoesNotReturn]
     public static T ThrowInvalidOperation<T>(string message)
         => throw new InvalidOperationException(message);
 }
