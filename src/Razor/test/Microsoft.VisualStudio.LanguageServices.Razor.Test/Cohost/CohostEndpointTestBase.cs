@@ -68,7 +68,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         FeatureOptions.SetOptions(_clientInitializationOptions);
     }
 
-    protected TextDocument CreateProjectAndRazorDocument(string contents, string? fileKind = null)
+    protected TextDocument CreateProjectAndRazorDocument(string contents, string? fileKind = null, (string fileName, string contents)[]? additionalFiles = null)
     {
         // Using IsLegacy means null == component, so easier for test authors
         var isComponent = !FileKinds.IsLegacy(fileKind);
@@ -90,6 +90,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                 assemblyName: projectName,
                 LanguageNames.CSharp,
                 documentFilePath)
+            .WithDefaultNamespace(TestProjectData.SomeProject.RootNamespace)
             .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference));
 
         var solution = Workspace.CurrentSolution.AddProject(projectInfo);
@@ -123,6 +124,16 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                     @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
                     """),
                 filePath: TestProjectData.SomeProjectImportFile.FilePath);
+
+        if (additionalFiles is not null)
+        {
+            foreach (var file in additionalFiles)
+            {
+                solution = Path.GetExtension(file.fileName) == ".cs"
+                    ? solution.AddDocument(DocumentId.CreateNewId(projectId), name: file.fileName, text: SourceText.From(file.contents), filePath: file.fileName)
+                    : solution.AddAdditionalDocument(DocumentId.CreateNewId(projectId), name: file.fileName, text: SourceText.From(file.contents), filePath: file.fileName);
+            }
+        }
 
         return solution.GetAdditionalDocument(documentId).AssumeNotNull();
     }
