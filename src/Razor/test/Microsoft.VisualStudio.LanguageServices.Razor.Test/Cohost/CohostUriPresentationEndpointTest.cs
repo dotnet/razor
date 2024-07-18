@@ -38,7 +38,8 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
     [Fact]
     public async Task HtmlResponse_TranslatesVirtualDocumentUri()
     {
-        var htmlTag = """<link src="file:///C:/path/to/site.css" rel="stylesheet" />""";
+        var siteCssFileUriString = "file:///C:/path/to/site.css";
+        var htmlTag = $"""<link src="{siteCssFileUriString}" rel="stylesheet" />""";
 
         await VerifyUriPresentationAsync(
             input: """
@@ -50,7 +51,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
 
                 The end.
                 """,
-            uris: [new("file:///C:/path/to/site.css")],
+            uris: [new(siteCssFileUriString)],
             htmlResponse: new WorkspaceEdit
             {
                 DocumentChanges = new TextDocumentEdit[]
@@ -112,7 +113,6 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 }
                 """,
             additionalFiles: [
-                // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
                 (File("Component.cs"), """
                     namespace SomeProject;
 
@@ -120,7 +120,6 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                     {
                     }
                     """),
-                // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
                 (File("Component.razor"), "")
             ],
             uris: [FileUri("Component.razor")],
