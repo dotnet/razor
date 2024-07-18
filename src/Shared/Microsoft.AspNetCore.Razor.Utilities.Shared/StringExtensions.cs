@@ -4,8 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 
 #if !NET
-using ArgHelper = Microsoft.AspNetCore.Razor.ArgHelper;
-using ThrowHelper = Microsoft.AspNetCore.Razor.Utilities.ThrowHelper;
+using Microsoft.AspNetCore.Razor;
 #endif
 
 namespace System;
@@ -73,7 +72,7 @@ internal static class StringExtensions
         {
             if (!startIndex.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex));
+                ThrowHelper.ThrowArgumentOutOfRangeException(nameof(startIndex));
             }
 
             return default;
@@ -111,7 +110,7 @@ internal static class StringExtensions
         {
             if (!range.Start.Equals(Index.Start) || !range.End.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentNull(nameof(text));
+                ThrowHelper.ThrowArgumentNullException(nameof(text));
             }
 
             return default;
@@ -251,7 +250,7 @@ internal static class StringExtensions
         {
             if (!startIndex.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex));
+                ThrowHelper.ThrowArgumentOutOfRangeException(nameof(startIndex));
             }
 
             return default;
@@ -289,7 +288,7 @@ internal static class StringExtensions
         {
             if (!range.Start.Equals(Index.Start) || !range.End.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentNull(nameof(text));
+                ThrowHelper.ThrowArgumentNullException(nameof(text));
             }
 
             return default;
