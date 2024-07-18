@@ -123,6 +123,8 @@ internal ref struct MemoryBuilder<T>
                 _memory.Length);
         }
 
+        Debug.Assert(nextCapacity > _memory.Length);
+
         var newArray = ArrayPool<T>.Shared.Rent(nextCapacity);
         _memory.Span.CopyTo(newArray);
 
