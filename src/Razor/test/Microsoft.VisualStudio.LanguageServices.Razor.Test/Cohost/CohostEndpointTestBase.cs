@@ -86,7 +86,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                 documentFilePath)
             .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference));
 
-        // Importantly, we use Roslyns remote workspace here so that when our OOP services call into Roslyn, their code
+        // Importantly, we use Roslyn's remote workspace here so that when our OOP services call into Roslyn, their code
         // will be able to access their services.
         var workspace = RemoteWorkspaceAccessor.GetWorkspace();
         var solution = workspace.CurrentSolution.AddProject(projectInfo);
