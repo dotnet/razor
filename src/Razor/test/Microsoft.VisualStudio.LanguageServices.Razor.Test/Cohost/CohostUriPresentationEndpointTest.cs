@@ -29,7 +29,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
 
                 The end.
                 """,
-            uris: [new("file:///C:/path/to/SomeRandomFile.txt")],
+            uris: [FileUri("SomeRandomFile.txt")],
             // In reality this would actual insert the full path, but the Html server does that for us, and we
             // have other tests that validate that we insert what the Html server tells us
             expected: null);
@@ -59,7 +59,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                     {
                         TextDocument = new()
                         {
-                            Uri = new("file:///c:/users/example/src/SomeProject/File1.razor.g.html")
+                            Uri = FileUri("File1.razor.g.html")
                         },
                         Edits = [new() { NewText = htmlTag}]
                     }
@@ -83,7 +83,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 """,
             additionalFiles: [
                 // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.cs"), """
+                (File("Component.cs"), """
                     namespace SomeProject;
 
                     public class Component : Microsoft.AspNetCore.Components.ComponentBase
@@ -91,11 +91,9 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                     }
                     """),
                 // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.razor"), """
-                    This doesn't matter
-                    """)
+                (File("Component.razor"), "")
             ],
-            uris: [new(Path.Combine(TestProjectData.SomeProjectPath, "Component.razor"))],
+            uris: [FileUri("Component.razor")],
             expected: "<Component />");
     }
 
@@ -115,7 +113,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 """,
             additionalFiles: [
                 // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.cs"), """
+                (File("Component.cs"), """
                     namespace SomeProject;
 
                     public class Component : Microsoft.AspNetCore.Components.ComponentBase
@@ -123,11 +121,9 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                     }
                     """),
                 // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.razor"), """
-                    This doesn't matter
-                    """)
+                (File("Component.razor"), "")
             ],
-            uris: [new(Path.Combine(TestProjectData.SomeProjectPath, "Component.razor"))],
+            uris: [FileUri("Component.razor")],
             expected: null);
     }
 
@@ -145,21 +141,19 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 The end.
                 """,
             additionalFiles: [
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.cs"), """
+                (File("Component.cs"), """
                     namespace SomeProject;
 
                     public class Component : Microsoft.AspNetCore.Components.ComponentBase
                     {
                     }
                     """),
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.razor"), """
-                    This doesn't matter
-                    """)
+                (File("Component.razor"), "")
             ],
             uris: [
-                new(Path.Combine(TestProjectData.SomeProjectPath, "Component.razor")),
-                new(Path.Combine(TestProjectData.SomeProjectPath, "Component.razor.css")),
-                new(Path.Combine(TestProjectData.SomeProjectPath, "Component.razor.js"))
+                FileUri("Component.razor"),
+                FileUri("Component.razor.css"),
+                FileUri("Component.razor.js")
             ],
             expected: "<Component />");
     }
@@ -178,21 +172,19 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 The end.
                 """,
             additionalFiles: [
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.cs"), """
+                (File("Component.cs"), """
                     namespace SomeProject;
 
                     public class Component : Microsoft.AspNetCore.Components.ComponentBase
                     {
                     }
                     """),
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.razor"), """
-                    This doesn't matter
-                    """)
+                (File("Component.razor"), "")
             ],
             uris: [
-                new(Path.Combine(TestProjectData.SomeProjectPath, "Component.razor.css")),
-                new(Path.Combine(TestProjectData.SomeProjectPath, "Component.razor")),
-                new(Path.Combine(TestProjectData.SomeProjectPath, "Component.razor.js"))
+                FileUri("Component.razor.css"),
+                FileUri("Component.razor"),
+                FileUri("Component.razor.js")
             ],
             expected: "<Component />");
     }
@@ -211,7 +203,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 The end.
                 """,
             additionalFiles: [
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.cs"), """
+                (File("Component.cs"), """
                     using Microsoft.AspNetCore.Components;
 
                     namespace SomeProject;
@@ -226,13 +218,17 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                         public string NormalParameter { get; set; }
                     }
                     """),
-                (Path.Combine(TestProjectData.SomeProjectPath, "Component.razor"), """
-                    This doesn't matter
-                    """)
+                (File("Component.razor"), "")
             ],
-            uris: [new(Path.Combine(TestProjectData.SomeProjectPath, "Component.razor"))],
+            uris: [FileUri("Component.razor")],
             expected: """<Component RequiredParameter="" />""");
     }
+
+    private static Uri FileUri(string projectRelativeFileName)
+        => new(File(projectRelativeFileName));
+
+    private static string File(string projectRelativeFileName)
+        => Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName);
 
     private async Task VerifyUriPresentationAsync(string input, Uri[] uris, string? expected, WorkspaceEdit? htmlResponse = null, (string fileName, string contents)[]? additionalFiles = null)
     {
@@ -256,14 +252,16 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
-        if (result is null)
+        if (expected is null)
         {
-            Assert.Null(expected);
+            Assert.Null(result);
         }
         else
         {
-            Assert.Equal(expected, result!.DocumentChanges!.Value.First[0].Edits[0].NewText);
-            Assert.Equal(document.CreateUri(), result?.DocumentChanges?.First[0].TextDocument.Uri);
+            Assert.NotNull(result);
+            Assert.NotNull(result.DocumentChanges);
+            Assert.Equal(expected, result.DocumentChanges.Value.First[0].Edits[0].NewText);
+            Assert.Equal(document.CreateUri(), result.DocumentChanges.Value.First[0].TextDocument.Uri);
         }
     }
 }
