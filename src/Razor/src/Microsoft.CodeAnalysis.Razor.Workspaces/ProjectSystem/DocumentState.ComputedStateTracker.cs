@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal partial class DocumentState
 {
-    // Internal, because we are temporarily sharing code with CohostDocumentSnapshot
     private class ComputedStateTracker
     {
         private readonly object _lock;
