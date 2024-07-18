@@ -99,6 +99,41 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
+    public async Task Html_IntoCSharp_NoTag()
+    {
+        var siteCssFileUriString = "file:///C:/path/to/site.css";
+        var htmlTag = $"""<link src="{siteCssFileUriString}" rel="stylesheet" />""";
+
+        await VerifyUriPresentationAsync(
+            input: """
+                This is a Razor document.
+
+                <div>
+                </div>
+
+                @code {
+                    [||]
+                }
+                """,
+            uris: [new(siteCssFileUriString)],
+            htmlResponse: new WorkspaceEdit
+            {
+                DocumentChanges = new TextDocumentEdit[]
+                {
+                    new()
+                    {
+                        TextDocument = new()
+                        {
+                            Uri = FileUri("File1.razor.g.html")
+                        },
+                        Edits = [new() { NewText = htmlTag}]
+                    }
+                }
+            },
+            expected: null);
+    }
+
+    [Fact]
     public async Task Component_IntoCSharp_NoTag()
     {
         await VerifyUriPresentationAsync(
