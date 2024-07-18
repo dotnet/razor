@@ -90,7 +90,15 @@ internal sealed class ExtractToNewComponentCodeActionResolver(
         }
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentContent = text.GetSubTextString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
+        var newComponentContent = string.Empty;
+
+        newComponentContent += string.Join(Environment.NewLine, actionParams.Dependencies);
+        if (actionParams.Dependencies.Count > 0)
+        {
+            newComponentContent += Environment.NewLine + Environment.NewLine; // Ensure there's a newline after the dependencies if any exist.
+        }
+
+        newComponentContent = newComponentContent + text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
 
         var start = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractStart);
         var end = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractEnd);
@@ -100,7 +108,9 @@ internal sealed class ExtractToNewComponentCodeActionResolver(
             End = new Position(end.Line, end.Character)
         };
 
-        var componentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
+
+
+            var componentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
         var newComponentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]

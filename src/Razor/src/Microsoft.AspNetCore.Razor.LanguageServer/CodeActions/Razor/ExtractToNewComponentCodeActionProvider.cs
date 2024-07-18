@@ -257,4 +257,37 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
         return null;
     }
+    private static HashSet<SyntaxNode> IdentifyComponentsInRange(SyntaxNode root, int extractStart, int extractEnd)
+    {
+        var components = new HashSet<SyntaxNode>();
+        var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
+
+        foreach (var node in root.DescendantNodes())
+        {
+            if (node is MarkupTagHelperElementSyntax markupElement &&
+                extractSpan.Contains(markupElement.Span))
+            {
+                components.Add(markupElement);
+            }
+        }
+
+        return components;
+    }
+
+    private static List<string> GetAllUsingStatements(SyntaxNode root)
+    {
+        return root.DescendantNodes()
+                   .OfType<CSharpCodeBlockSyntax>()
+                   .SelectMany(cSharpBlock => cSharpBlock.ChildNodes())
+                   .OfType<RazorDirectiveSyntax>()
+                   .Select(directive => directive.ToFullString().TrimStart())
+                   .Where(directiveString => directiveString.StartsWith("@using"))
+                   .Select(directiveString => directiveString.Trim())
+                   .ToList();
+    }
+
+    //private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
+    //{
+    //    return node.DescendantNodes().Any(static n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
+    //}
 }
