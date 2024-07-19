@@ -243,38 +243,30 @@ internal static class SourceTextExtensions
     }
 
     public static int GetRequiredAbsoluteIndex(this SourceText text, int line, int character, ILogger? logger = null)
-    {
-        if (!text.TryGetAbsoluteIndex(line, character, logger, out var absolutePosition))
-        {
-            throw new ArgumentOutOfRangeException($"({line},{character}) matches or exceeds SourceText boundary {text.Lines.Count}.");
-        }
-
-        return absolutePosition;
-    }
+        => text.TryGetAbsoluteIndex(line, character, logger, out var absolutionPosition)
+            ? absolutionPosition
+            : ThrowHelper.ThrowInvalidOperationException<int>($"({line},{character}) matches or exceeds SourceText boundary {text.Lines.Count}.");
 
     public static TextSpan GetTextSpan(this SourceText text, int startLine, int startCharacter, int endLine, int endCharacter)
     {
         ArgHelper.ThrowIfNull(text);
 
-        var start = GetAbsoluteIndex(startLine, startCharacter, text, "Start");
-        var end = GetAbsoluteIndex(endLine, endCharacter, text, "End");
+        var start = GetAbsoluteIndex("Start", startLine, startCharacter, text);
+        var end = GetAbsoluteIndex("End", endLine, endCharacter, text);
 
         var length = end - start;
         if (length < 0)
         {
-            throw new ArgumentOutOfRangeException($"({startLine},{startCharacter})-({endLine},{endCharacter}) resolved to zero or negative length.");
+            return ThrowHelper.ThrowInvalidOperationException<TextSpan>($"({startLine},{startCharacter})-({endLine},{endCharacter}) resolved to zero or negative length.");
         }
 
         return new TextSpan(start, length);
 
-        static int GetAbsoluteIndex(int line, int character, SourceText sourceText, string argName)
+        static int GetAbsoluteIndex(string name, int line, int character, SourceText text)
         {
-            if (!sourceText.TryGetAbsoluteIndex(line, character, out var absolutePosition))
-            {
-                throw new ArgumentOutOfRangeException($"{argName} ({line},{character}) matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
-            }
-
-            return absolutePosition;
+            return text.TryGetAbsoluteIndex(line, character, out var absolutePosition)
+                ? absolutePosition
+                : ThrowHelper.ThrowInvalidOperationException<int>($"{name}: ({line},{character}) matches or exceeds SourceText boundary {text.Lines.Count}.");
         }
     }
 }
