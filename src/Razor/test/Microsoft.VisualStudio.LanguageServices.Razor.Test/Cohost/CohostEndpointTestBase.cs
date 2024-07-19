@@ -9,7 +9,6 @@ using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
@@ -19,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper) : WorkspaceTestBase(testOutputHelper)
+public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {
     private const string CSharpVirtualDocumentSuffix = ".g.cs";
     private ExportProvider? _exportProvider;
@@ -87,7 +86,10 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                 documentFilePath)
             .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference));
 
-        var solution = Workspace.CurrentSolution.AddProject(projectInfo);
+        // Importantly, we use Roslyn's remote workspace here so that when our OOP services call into Roslyn, their code
+        // will be able to access their services.
+        var workspace = RemoteWorkspaceAccessor.GetWorkspace();
+        var solution = workspace.CurrentSolution.AddProject(projectInfo);
 
         solution = solution
             .AddAdditionalDocument(
