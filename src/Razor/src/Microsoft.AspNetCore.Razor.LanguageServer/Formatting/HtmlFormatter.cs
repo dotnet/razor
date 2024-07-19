@@ -69,7 +69,7 @@ internal class HtmlFormatter
             return Array.Empty<TextEdit>();
         }
 
-        context.SourceText.GetLineAndOffset(context.HostDocumentIndex, out var line, out var col);
+        var (line, col) = context.SourceText.GetLineAndOffset(context.HostDocumentIndex);
         var @params = new RazorDocumentOnTypeFormattingParams()
         {
             Position = new Position(line, col),

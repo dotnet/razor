@@ -359,7 +359,7 @@ public partial class OnAutoInsertEndpointTest
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
 
-        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var (line, offset) = codeDocument.GetSourceText().GetLineAndOffset(cursorPosition);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(razorFilePath), },

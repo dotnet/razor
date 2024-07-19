@@ -245,7 +245,7 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
 
         var endpoint = new DefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, languageServer, LoggerFactory);
 
-        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var (line, offset) = codeDocument.GetSourceText().GetLineAndOffset(cursorPosition);
         var request = new TextDocumentPositionParams
         {
             TextDocument = new TextDocumentIdentifier

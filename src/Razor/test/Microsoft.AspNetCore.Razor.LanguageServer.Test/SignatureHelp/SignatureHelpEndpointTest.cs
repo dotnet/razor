@@ -104,7 +104,7 @@ public class SignatureHelpEndpointTest(ITestOutputHelper testOutput) : SingleSer
         var endpoint = new SignatureHelpEndpoint(
             LanguageServerFeatureOptions, DocumentMappingService, languageServer, optionsMonitor, LoggerFactory);
 
-        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var (line, offset) = codeDocument.GetSourceText().GetLineAndOffset(cursorPosition);
         var request = new SignatureHelpParams
         {
             TextDocument = new TextDocumentIdentifier

@@ -372,7 +372,7 @@ internal abstract class AbstractRazorDocumentMappingService(
 
                 // The "next" C# location is only valid if it is on the same line in the source document
                 // as the requested position.
-                codeDocument.GetSourceText().GetLineAndOffset(hostDocumentIndex, out var hostDocumentLine, out _);
+                var (hostDocumentLine, _) = codeDocument.GetSourceText().GetLineAndOffset(hostDocumentIndex);
 
                 if (mapping.OriginalSpan.LineIndex == hostDocumentLine)
                 {

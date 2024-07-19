@@ -22,8 +22,8 @@ internal abstract class AbstractSyntaxNodeFoldingProvider<TNode> : IRazorFolding
         using var builder = new PooledArrayBuilder<FoldingRange>(nodes.Length);
         foreach (var node in nodes)
         {
-            sourceText.GetLineAndOffset(node.Span.Start, out var startLine, out var startOffset);
-            sourceText.GetLineAndOffset(node.Span.End, out var endLine, out var endOffset);
+            var (startLine, startOffset) = sourceText.GetLineAndOffset(node.Span.Start);
+            var (endLine, endOffset) = sourceText.GetLineAndOffset(node.Span.End);
             var foldingRange = new FoldingRange()
             {
                 StartCharacter = startOffset,

@@ -98,7 +98,7 @@ public class ImplementationEndpointTest(ITestOutputHelper testOutput) : SingleSe
         var endpoint = new ImplementationEndpoint(
             LanguageServerFeatureOptions, DocumentMappingService, languageServer, LoggerFactory);
 
-        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var (line, offset) = codeDocument.GetSourceText().GetLineAndOffset(cursorPosition);
         var request = new TextDocumentPositionParams
         {
             TextDocument = new TextDocumentIdentifier

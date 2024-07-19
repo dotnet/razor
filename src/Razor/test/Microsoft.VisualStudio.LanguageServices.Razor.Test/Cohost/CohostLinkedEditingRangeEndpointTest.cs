@@ -162,7 +162,7 @@ public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHe
         TestFileMarkupParser.GetPositionAndSpans(input, out input, out int cursorPosition, out ImmutableArray<TextSpan> spans);
         var document = CreateProjectAndRazorDocument(input);
         var sourceText = await document.GetTextAsync(DisposalToken);
-        sourceText.GetLineAndOffset(cursorPosition, out var lineIndex, out var characterIndex);
+        var (lineIndex, characterIndex) = sourceText.GetLineAndOffset(cursorPosition);
 
         var endpoint = new CohostLinkedEditingRangeEndpoint(RemoteServiceInvoker, LoggerFactory);
 

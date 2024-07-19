@@ -52,7 +52,7 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
             LanguageServerFeatureOptions, DocumentMappingService, languageServer, LoggerFactory, FilePathService);
 
         var sourceText = codeDocument.GetSourceText();
-        sourceText.GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var (line, offset) = sourceText.GetLineAndOffset(cursorPosition);
 
         var request = new ReferenceParams
         {

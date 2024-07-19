@@ -92,8 +92,8 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
 
         var csharpText = codeDocument.GetCSharpSourceText();
 
-        csharpText.GetLineAndOffset(csharpBreakpointSpan.Start, out var startLineIndex, out var startCharacterIndex);
-        csharpText.GetLineAndOffset(csharpBreakpointSpan.End, out var endLineIndex, out var endCharacterIndex);
+        var (startLineIndex, startCharacterIndex) = csharpText.GetLineAndOffset(csharpBreakpointSpan.Start);
+        var (endLineIndex, endCharacterIndex) = csharpText.GetLineAndOffset(csharpBreakpointSpan.End);
 
         var projectedRange = new Range()
         {

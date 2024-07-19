@@ -37,7 +37,7 @@ internal static class IRazorDocumentMappingServiceExtensions
         SourceText sourceText,
         int hostDocumentIndex)
     {
-        sourceText.GetLineAndOffset(hostDocumentIndex, out var line, out var character);
+        var (line, character) = sourceText.GetLineAndOffset(hostDocumentIndex);
         var position = new Position(line, character);
 
         var languageKind = service.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);

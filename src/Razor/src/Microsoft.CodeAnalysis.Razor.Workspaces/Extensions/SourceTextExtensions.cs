@@ -35,16 +35,6 @@ internal static class SourceTextExtensions
         return TextChangeRange.Collapse(ranges);
     }
 
-    public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
-    {
-        ArgHelper.ThrowIfNull(text);
-
-        var line = text.Lines.GetLineFromPosition(position);
-
-        lineNumber = line.LineNumber;
-        offset = position - line.Start;
-    }
-
     public static (int line, int offset) GetLineAndOffset(this SourceText text, int position)
     {
         ArgHelper.ThrowIfNull(text);
