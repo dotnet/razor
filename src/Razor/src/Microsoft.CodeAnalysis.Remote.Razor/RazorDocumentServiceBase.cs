@@ -6,18 +6,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal abstract class RazorDocumentServiceBase(
-    IServiceBroker serviceBroker,
-    DocumentSnapshotFactory documentSnapshotFactory)
-    : RazorServiceBase(serviceBroker)
+internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBrokeredServiceBase(in args)
 {
-    protected DocumentSnapshotFactory DocumentSnapshotFactory { get; } = documentSnapshotFactory;
+    protected DocumentSnapshotFactory DocumentSnapshotFactory { get; } = args.ExportProvider.GetExportedValue<DocumentSnapshotFactory>();
 
-    protected ValueTask<T> RunServiceAsync<T>(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, Func<RemoteDocumentContext, ValueTask<T>> implementation, CancellationToken cancellationToken)
+    protected ValueTask<T> RunServiceAsync<T>(
+        RazorPinnedSolutionInfoWrapper solutionInfo,
+        DocumentId razorDocumentId,
+        Func<RemoteDocumentContext, ValueTask<T>> implementation,
+        CancellationToken cancellationToken)
     {
         return RunServiceAsync(
             solutionInfo,

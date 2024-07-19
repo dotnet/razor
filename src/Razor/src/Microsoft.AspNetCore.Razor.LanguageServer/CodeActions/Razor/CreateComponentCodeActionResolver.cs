@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -11,22 +12,17 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolver
+internal sealed class CreateComponentCodeActionResolver(IDocumentContextFactory documentContextFactory, LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
-    private readonly IDocumentContextFactory _documentContextFactory;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-
-    public CreateComponentCodeActionResolver(IDocumentContextFactory documentContextFactory, LanguageServerFeatureOptions languageServerFeatureOptions)
-    {
-        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentException(nameof(languageServerFeatureOptions));
-    }
+    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
 
@@ -65,12 +61,10 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
             Host = string.Empty,
         }.Uri;
 
-        var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>
-        {
-            new CreateFile() { Uri = newComponentUri },
-        };
+        using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+        documentChanges.Add(new CreateFile() { Uri = newComponentUri });
 
-        TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);
+        TryAddNamespaceDirective(codeDocument, newComponentUri, ref documentChanges.AsRef());
 
         return new WorkspaceEdit()
         {
@@ -78,7 +72,7 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
         };
     }
 
-    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, ref PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         var namespaceDirective = syntaxTree.Root.DescendantNodes()
@@ -93,14 +87,14 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
             documentChanges.Add(new TextDocumentEdit
             {
                 TextDocument = documentIdentifier,
-                Edits = new[]
-                {
+                Edits =
+                [
                     new TextEdit()
                     {
                         NewText = namespaceDirective.GetContent(),
                         Range = new Range{ Start = new Position(0, 0), End = new Position(0, 0) },
                     }
-                }
+                ]
             });
         }
     }

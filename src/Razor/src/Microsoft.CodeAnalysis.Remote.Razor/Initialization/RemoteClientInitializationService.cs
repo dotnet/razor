@@ -5,18 +5,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed class RemoteClientInitializationService(
-    IServiceBroker serviceBroker)
-    : RazorServiceBase(serviceBroker), IRemoteClientInitializationService
+internal sealed class RemoteClientInitializationService(in ServiceArgs args) : RazorBrokeredServiceBase(in args), IRemoteClientInitializationService
 {
+    internal sealed class Factory : FactoryBase<IRemoteClientInitializationService>
+    {
+        protected override IRemoteClientInitializationService CreateService(in ServiceArgs args)
+            => new RemoteClientInitializationService(in args);
+    }
+
+    private readonly RemoteLanguageServerFeatureOptions _remoteLanguageServerFeatureOptions = args.ExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
+    private readonly RemoteSemanticTokensLegendService _remoteSemanticTokensLegendService = args.ExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
+
     public ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(ct =>
             {
-                RemoteLanguageServerFeatureOptions.SetOptions(options);
+                _remoteLanguageServerFeatureOptions.SetOptions(options);
                 return default;
             },
             cancellationToken);
@@ -24,7 +30,7 @@ internal sealed class RemoteClientInitializationService(
     public ValueTask InitializeLSPAsync(RemoteClientLSPInitializationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(ct =>
             {
-                RemoteSemanticTokensLegendService.SetLegend(options.TokenTypes, options.TokenModifiers);
+                _remoteSemanticTokensLegendService.SetLegend(options.TokenTypes, options.TokenModifiers);
                 return default;
             },
             cancellationToken);
