@@ -19,14 +19,9 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
-internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeActionProvider
+internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
 {
-    private readonly ILogger _logger;
-
-    public ExtractToNewComponentCodeActionProvider(ILoggerFactory loggerFactory)
-    {
-        _logger = loggerFactory.GetOrCreateLogger<ExtractToNewComponentCodeActionProvider>();
-    }
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToNewComponentCodeActionProvider>();
 
     public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
