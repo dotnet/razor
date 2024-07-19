@@ -118,9 +118,11 @@ internal ref struct MemoryBuilder<T>
         // we've grown too large, we want to OOM when Rent is called below.
         if ((uint)nextCapacity > ArrayMaxLength)
         {
-            nextCapacity = Math.Max(
-                Math.Max(_memory.Length + 1, ArrayMaxLength),
-                _memory.Length);
+            // Note: it's not possible for _memory.Length + 1 to overflow because that would mean
+            // _memory is pointing to an array with length int.MaxValue, which is larger than
+            // Array.MaxLength. We would have OOM'd before getting here.
+
+            nextCapacity = Math.Max(_memory.Length + 1, ArrayMaxLength);
         }
 
         Debug.Assert(nextCapacity > _memory.Length);
