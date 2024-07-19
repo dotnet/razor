@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -26,7 +27,7 @@ internal class OnAutoInsertEndpoint(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
-    IEnumerable<IOnAutoInsertProvider> onAutoInsertProvider,
+    IAutoInsertService autoInsertService,
     RazorLSPOptionsMonitor optionsMonitor,
     IAdhocWorkspaceFactory workspaceFactory,
     IRazorFormattingService razorFormattingService,
@@ -40,7 +41,7 @@ internal class OnAutoInsertEndpoint(
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
     private readonly IAdhocWorkspaceFactory _workspaceFactory = workspaceFactory;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
-    private readonly List<IOnAutoInsertProvider> _onAutoInsertProviders = onAutoInsertProvider.ToList();
+    private readonly IAutoInsertService _autoInsertService = autoInsertService;
 
     protected override string CustomMessageTarget => CustomMessageNames.RazorOnAutoInsertEndpointName;
 
@@ -53,7 +54,7 @@ internal class OnAutoInsertEndpoint(
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        var triggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter);
+        var triggerCharacters = _autoInsertService.TriggerCharacters;
 
         if (_languageServerFeatureOptions.SingleServerSupport)
         {
@@ -84,36 +85,20 @@ internal class OnAutoInsertEndpoint(
 
         var character = request.Character;
 
-        using var applicableProviders = new PooledArrayBuilder<IOnAutoInsertProvider>();
-        foreach (var provider in _onAutoInsertProviders)
-        {
-            if (provider.TriggerCharacter == character)
+        var insertTextEdit = await _autoInsertService.TryResolveInsertionAsync(
+            documentContext.Snapshot,
+            request.Position,
+            character,
+            _optionsMonitor.CurrentValue.AutoClosingTags
+        ).ConfigureAwait(false);
+
+        if (insertTextEdit is not null)
+        { 
+            return new VSInternalDocumentOnAutoInsertResponseItem()
             {
-                applicableProviders.Add(provider);
-            }
-        }
-
-        if (applicableProviders.Count == 0)
-        {
-            // There's currently a bug in the LSP platform where other language clients OnAutoInsert trigger characters influence every language clients trigger characters.
-            // To combat this we need to preemptively return so we don't try having our providers handle characters that they can't.
-            return null;
-        }
-
-        var uri = request.TextDocument.Uri;
-        var position = request.Position;
-
-        using var formattingContext = FormattingContext.Create(uri, documentContext.Snapshot, codeDocument, request.Options, _workspaceFactory);
-        foreach (var provider in applicableProviders)
-        {
-            if (provider.TryResolveInsertion(position, formattingContext, out var textEdit, out var format))
-            {
-                return new VSInternalDocumentOnAutoInsertResponseItem()
-                {
-                    TextEdit = textEdit,
-                    TextEditFormat = format,
-                };
-            }
+                TextEdit = insertTextEdit.Value.TextEdit,
+                TextEditFormat = insertTextEdit.Value.InsertTextFormat,
+            };
         }
 
         // No provider could handle the text edit.
