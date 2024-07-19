@@ -49,6 +49,11 @@ internal static class SourceTextExtensions
     {
         ArgHelper.ThrowIfNull(text);
 
+        return text.GetLineAndOffsetCore(position);
+    }
+
+    private static (int line, int offset) GetLineAndOffsetCore(this SourceText text, int position)
+    {
         var line = text.Lines.GetLineFromPosition(position);
 
         return (line.LineNumber, position - line.Start);
@@ -64,8 +69,8 @@ internal static class SourceTextExtensions
     {
         ArgHelper.ThrowIfNull(text);
 
-        text.GetLineAndOffset(textSpan.Start, out startLineNumber, out startOffset);
-        text.GetLineAndOffset(textSpan.End, out endLineNumber, out endOffset);
+        (startLineNumber, startOffset) = text.GetLineAndOffsetCore(textSpan.Start);
+        (endLineNumber, endOffset) = text.GetLineAndOffsetCore(textSpan.End);
     }
 
     public static void GetLinesAndOffsets(
@@ -78,8 +83,8 @@ internal static class SourceTextExtensions
     {
         ArgHelper.ThrowIfNull(text);
 
-        text.GetLineAndOffset(sourceSpan.AbsoluteIndex, out startLineNumber, out startOffset);
-        text.GetLineAndOffset(sourceSpan.AbsoluteIndex + sourceSpan.Length, out endLineNumber, out endOffset);
+        (startLineNumber, startOffset) = text.GetLineAndOffsetCore(sourceSpan.AbsoluteIndex);
+        (endLineNumber, endOffset) = text.GetLineAndOffsetCore(sourceSpan.AbsoluteIndex + sourceSpan.Length);
     }
 
     public static string GetSubTextString(this SourceText text, TextSpan span)
