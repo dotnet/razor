@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
@@ -21,20 +22,12 @@ internal static class PositionExtensions
 
     public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, ILogger? logger, out int absoluteIndex)
     {
-        if (position is null)
-        {
-            throw new ArgumentNullException(nameof(position));
-        }
-
-        if (sourceText is null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
+        ArgHelper.ThrowIfNull(position);
+        ArgHelper.ThrowIfNull(sourceText);
 
         return sourceText.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
     }
 
-    
     public static bool TryGetSourceLocation(
         this Position position,
         SourceText sourceText,
@@ -63,15 +56,8 @@ internal static class PositionExtensions
 
     public static int CompareTo(this Position position, Position other)
     {
-        if (position is null)
-        {
-            throw new ArgumentNullException(nameof(position));
-        }
-
-        if (other is null)
-        {
-            throw new ArgumentNullException(nameof(other));
-        }
+        ArgHelper.ThrowIfNull(position);
+        ArgHelper.ThrowIfNull(other);
 
         var result = position.Line.CompareTo(other.Line);
         return result != 0 ? result : position.Character.CompareTo(other.Character);
@@ -79,15 +65,8 @@ internal static class PositionExtensions
 
     public static bool IsValid(this Position position, SourceText sourceText)
     {
-        if (position is null)
-        {
-            throw new ArgumentNullException(nameof(position));
-        }
-
-        if (sourceText is null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
+        ArgHelper.ThrowIfNull(position);
+        ArgHelper.ThrowIfNull(sourceText);
 
         return sourceText.TryGetAbsoluteIndex(position.Line, position.Character, logger: null, out _);
     }
