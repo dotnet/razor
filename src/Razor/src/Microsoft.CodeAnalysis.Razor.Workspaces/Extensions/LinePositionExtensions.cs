@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.Text;
 
 internal static class LinePositionExtensions
 {
+    public static void Deconstruct(this LinePosition linePosition, out int line, out int character)
+        => (line, character) = (linePosition.Line, linePosition.Character);
+
     public static Position ToPosition(this LinePosition linePosition)
         => new(linePosition.Line, linePosition.Character);
 
