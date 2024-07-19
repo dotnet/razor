@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
@@ -16,15 +17,8 @@ internal static class SourceTextExtensions
     /// </summary>
     public static TextChangeRange GetEncompassingTextChangeRange(this SourceText newText, SourceText oldText)
     {
-        if (newText is null)
-        {
-            throw new ArgumentNullException(nameof(newText));
-        }
-
-        if (oldText is null)
-        {
-            throw new ArgumentNullException(nameof(oldText));
-        }
+        ArgHelper.ThrowIfNull(newText);
+        ArgHelper.ThrowIfNull(oldText);
 
         var ranges = newText.GetChangeRanges(oldText);
         if (ranges.Count == 0)
@@ -43,10 +37,7 @@ internal static class SourceTextExtensions
 
     public static void GetLineAndOffset(this SourceText source, int position, out int lineNumber, out int offset)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         var line = source.Lines.GetLineFromPosition(position);
 
@@ -62,10 +53,7 @@ internal static class SourceTextExtensions
         out int endLineNumber,
         out int endOffset)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         source.GetLineAndOffset(textSpan.Start, out startLineNumber, out startOffset);
         source.GetLineAndOffset(textSpan.End, out endLineNumber, out endOffset);
@@ -79,10 +67,7 @@ internal static class SourceTextExtensions
         out int endLineNumber,
         out int endOffset)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         source.GetLineAndOffset(sourceSpan.AbsoluteIndex, out startLineNumber, out startOffset);
         source.GetLineAndOffset(sourceSpan.AbsoluteIndex + sourceSpan.Length, out endLineNumber, out endOffset);
@@ -90,10 +75,7 @@ internal static class SourceTextExtensions
 
     public static string GetSubTextString(this SourceText source, TextSpan span)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         var charBuffer = new char[span.Length];
         source.CopyTo(span.Start, charBuffer, 0, span.Length);
@@ -102,15 +84,8 @@ internal static class SourceTextExtensions
 
     public static bool NonWhitespaceContentEquals(this SourceText source, SourceText other)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (other is null)
-        {
-            throw new ArgumentNullException(nameof(other));
-        }
+        ArgHelper.ThrowIfNull(source);
+        ArgHelper.ThrowIfNull(other);
 
         var i = 0;
         var j = 0;
@@ -150,10 +125,7 @@ internal static class SourceTextExtensions
 
     public static int? GetFirstNonWhitespaceOffset(this SourceText source, TextSpan? span, out int newLineCount)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         span ??= new TextSpan(0, source.Length);
         newLineCount = 0;
@@ -178,10 +150,7 @@ internal static class SourceTextExtensions
     // For instance "  abcdef  " would have a last non-whitespace offset of 7 to correspond to the charcter 'f'.
     public static int? GetLastNonWhitespaceOffset(this SourceText source, TextSpan? span, out int newLineCount)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         span ??= new TextSpan(0, source.Length);
         newLineCount = 0;
@@ -264,10 +233,7 @@ internal static class SourceTextExtensions
 
     public static TextSpan GetTextSpan(this SourceText sourceText, int startLine, int startCharacter, int endLine, int endCharacter)
     {
-        if (sourceText is null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
+        ArgHelper.ThrowIfNull(sourceText);
 
         var start = GetAbsoluteIndex(startLine, startCharacter, sourceText, "Start");
         var end = GetAbsoluteIndex(endLine, endCharacter, sourceText, "End");
