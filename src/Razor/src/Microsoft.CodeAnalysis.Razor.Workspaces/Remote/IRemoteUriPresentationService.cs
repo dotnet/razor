@@ -16,6 +16,6 @@ internal interface IRemoteUriPresentationService
 
     [DataContract]
     public record struct Response(
-        [property: DataMember(Order = 0)] bool ShouldCallHtml,
+        [property: DataMember(Order = 0)] bool CallHtml,
         [property: DataMember(Order = 1)] TextChange? TextChange);
 }
