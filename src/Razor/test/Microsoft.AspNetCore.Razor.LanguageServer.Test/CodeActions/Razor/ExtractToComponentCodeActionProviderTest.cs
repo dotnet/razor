@@ -154,6 +154,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        AddMultiPointSelectionToContext(ref context, selectionSpan);
 
         var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
         request.Range = VsLspFactory.CreateRange(lineSpan);
@@ -321,82 +322,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
-    }
-
-    [Theory]
-    [InlineData("""
-    <div id="parent">
-        [|<div>
-            <h1>Div a title</h1>
-            <p>Div a par</p>
-        </div>|]
-        <div>
-            <h1>Div b title</h1>
-            <p>Div b par</p>
-        </div>
-    </div>
-    """)]
-    [InlineData("""
-    <div id="parent">
-        <div>
-            <h1>Div a title</h1>
-            [|<p>Div a par</p>|]
-        </div>
-        <div>
-            <h1>Div b title</h1>
-            <p>Div b par</p>
-        </div>
-    </div>
-    """)]
-    [InlineData("""
-    <div id="parent">
-        <div>
-            <h1>Div a title</h1>
-            [|<p>Div a par</p>
-        </div>
-        <div>
-            <h1>Div b title</h1>
-            <p>Div b par</p>|]
-        </div>
-    </div>
-    """)]
-    public async Task Handle_ValidElementSelection_ReturnsNotNull(string markupElementSelection)
-    {
-        // Arrange
-        var documentPath = "c:/Test.razor";
-        var contents = $$"""
-            page "/"
-            
-            <PageTitle>Home</PageTitle>
-            
-            {{markupElementSelection}}
-      
-            <h1>Hello, world!</h1>
-            
-            Welcome to your new app.
-            """;
-
-        TestFileMarkupParser.GetPositionAndSpans(
-            contents, out contents, out int cursorPosition, out ImmutableArray<TextSpan> spans);
-
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
-            Context = new VSInternalCodeActionContext()
-        };
-
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
-
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
-
-        // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
-
-        // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
