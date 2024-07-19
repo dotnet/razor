@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal static class SourceSpanExtensions
 {
-    public static Range ToRange(this SourceSpan sourceSpan, SourceText sourceText)
+    public static Range ToRange(this SourceSpan sourceSpan, SourceText text)
     {
-        sourceText.GetLinesAndOffsets(sourceSpan, out var startLine, out var startChar, out var endLine, out var endChar);
+        text.GetLinesAndOffsets(sourceSpan, out var startLine, out var startChar, out var endLine, out var endChar);
 
         return new Range
         {
@@ -20,9 +20,9 @@ internal static class SourceSpanExtensions
         };
     }
 
-    public static LinePositionSpan ToLinePositionSpan(this SourceSpan sourceSpan, SourceText sourceText)
+    public static LinePositionSpan ToLinePositionSpan(this SourceSpan sourceSpan, SourceText text)
     {
-        sourceText.GetLinesAndOffsets(sourceSpan, out var startLine, out var startChar, out var endLine, out var endChar);
+        text.GetLinesAndOffsets(sourceSpan, out var startLine, out var startChar, out var endLine, out var endChar);
 
         return new LinePositionSpan(new(startLine, startChar), new(endLine, endChar));
     }
