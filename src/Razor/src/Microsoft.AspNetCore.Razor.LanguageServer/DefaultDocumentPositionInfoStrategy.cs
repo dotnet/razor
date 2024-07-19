@@ -18,7 +18,7 @@ internal class DefaultDocumentPositionInfoStrategy : IDocumentPositionInfoStrate
     public async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(IRazorDocumentMappingService documentMappingService, DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
     {
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+        if (!sourceText.TryGetAbsoluteIndex(position, logger, out var absoluteIndex))
         {
             return null;
         }

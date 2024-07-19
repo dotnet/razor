@@ -69,7 +69,7 @@ internal sealed class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
     {
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
 
-        if (!position.TryGetAbsoluteIndex(context.SourceText, logger, out var absoluteIndex))
+        if (!context.SourceText.TryGetAbsoluteIndex(position, logger, out var absoluteIndex))
         {
             return false;
         }

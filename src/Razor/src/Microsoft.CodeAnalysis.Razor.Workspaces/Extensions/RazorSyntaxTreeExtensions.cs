@@ -50,7 +50,7 @@ internal static class RazorSyntaxTreeExtensions
         ILogger logger,
         bool includeWhitespace = false)
     {
-        if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+        if (!sourceText.TryGetAbsoluteIndex(position, logger, out var absoluteIndex))
         {
             return default;
         }

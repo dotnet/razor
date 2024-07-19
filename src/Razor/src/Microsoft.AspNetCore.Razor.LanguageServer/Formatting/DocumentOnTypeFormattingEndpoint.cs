@@ -90,7 +90,7 @@ internal class DocumentOnTypeFormattingEndpoint(
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+        if (!sourceText.TryGetAbsoluteIndex(request.Position, _logger, out var hostDocumentIndex))
         {
             return null;
         }

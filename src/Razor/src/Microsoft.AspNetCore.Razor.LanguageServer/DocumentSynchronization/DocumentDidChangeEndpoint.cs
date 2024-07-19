@@ -75,12 +75,12 @@ internal class DocumentDidChangeEndpoint(
                 throw new ArgumentNullException(nameof(change.Range), "Range of change should not be null.");
             }
 
-            if (!change.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var startPosition))
+            if (!sourceText.TryGetAbsoluteIndex(change.Range.Start, _logger, out var startPosition))
             {
                 continue;
             }
 
-            if (!change.Range.End.TryGetAbsoluteIndex(sourceText, _logger, out var endPosition))
+            if (!sourceText.TryGetAbsoluteIndex(change.Range.End, _logger, out var endPosition))
             {
                 continue;
             }

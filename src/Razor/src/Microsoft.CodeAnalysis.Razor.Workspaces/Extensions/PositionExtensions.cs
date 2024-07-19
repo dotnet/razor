@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
@@ -15,25 +14,40 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 internal static class PositionExtensions
 {
     public static LinePosition ToLinePosition(this Position position)
-        => new LinePosition(position.Line, position.Character);
+        => new(position.Line, position.Character);
 
     public static LinePosition ToLinePosition(this RLSP.Position position)
         => new LinePosition(position.Line, position.Character);
-    public static bool TryGetAbsoluteIndex(this Position position, SourceText text, ILogger? logger, out int absoluteIndex)
+
+    public static bool TryGetAbsoluteIndex(this Position position, SourceText text, out int absoluteIndex)
     {
         ArgHelper.ThrowIfNull(position);
         ArgHelper.ThrowIfNull(text);
 
-        return text.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
+        return text.TryGetAbsoluteIndex(position, out absoluteIndex);
     }
+
+    public static bool TryGetAbsoluteIndex(this Position position, SourceText text, ILogger logger, out int absoluteIndex)
+    {
+        ArgHelper.ThrowIfNull(position);
+        ArgHelper.ThrowIfNull(text);
+
+        return text.TryGetAbsoluteIndex(position, logger, out absoluteIndex);
+    }
+
+    public static int GetRequiredAbsoluteIndex(this Position position, SourceText text)
+        => text.GetRequiredAbsoluteIndex(position);
+
+    public static int GetRequiredAbsoluteIndex(this Position position, SourceText text, ILogger logger)
+        => text.GetRequiredAbsoluteIndex(position, logger);
 
     public static bool TryGetSourceLocation(
         this Position position,
         SourceText text,
-        ILogger? logger,
+        ILogger logger,
         [NotNullWhen(true)] out SourceLocation? sourceLocation)
     {
-        if (!position.TryGetAbsoluteIndex(text, logger, out var absoluteIndex))
+        if (!text.TryGetAbsoluteIndex(position, logger, out var absoluteIndex))
         {
             sourceLocation = null;
             return false;
@@ -41,16 +55,6 @@ internal static class PositionExtensions
 
         sourceLocation = new SourceLocation(absoluteIndex, position.Line, position.Character);
         return true;
-    }
-
-    public static int GetRequiredAbsoluteIndex(this Position position, SourceText text, ILogger? logger)
-    {
-        if (!position.TryGetAbsoluteIndex(text, logger, out var absoluteIndex))
-        {
-            throw new InvalidOperationException();
-        }
-
-        return absoluteIndex;
     }
 
     public static int CompareTo(this Position position, Position other)

@@ -54,7 +54,8 @@ internal class WrapWithTagEndpoint(
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (request.Range?.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
+        if (request.Range?.Start is not { } start ||
+            !sourceText.TryGetAbsoluteIndex(start, _logger, out var hostDocumentIndex))
         {
             return null;
         }

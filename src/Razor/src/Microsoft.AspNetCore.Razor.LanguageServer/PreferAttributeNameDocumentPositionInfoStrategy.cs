@@ -24,7 +24,7 @@ internal class PreferAttributeNameDocumentPositionInfoStrategy : IDocumentPositi
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+        if (sourceText.TryGetAbsoluteIndex(position, logger, out var absoluteIndex))
         {
             // First, lets see if we should adjust the location to get a better result from C#. For example given <Component @bi|nd-Value="Pants" />
             // where | is the cursor, we would be unable to map that location to C#. If we pretend the caret was 3 characters to the right though,

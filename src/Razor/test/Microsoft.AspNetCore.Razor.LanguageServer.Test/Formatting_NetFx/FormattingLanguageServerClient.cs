@@ -45,7 +45,7 @@ internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : IC
     {
         var generatedHtml = GetGeneratedHtml(@params.TextDocument.Uri);
         var generatedHtmlSource = SourceText.From(generatedHtml, Encoding.UTF8);
-        var absoluteIndex = @params.Position.GetRequiredAbsoluteIndex(generatedHtmlSource, logger: null);
+        var absoluteIndex = generatedHtmlSource.GetRequiredAbsoluteIndex(@params.Position);
 
         var request = $$"""
             {

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -194,22 +195,33 @@ internal static class SourceTextExtensions
         return false;
     }
 
+    public static bool TryGetAbsoluteIndex(this SourceText text, LinePosition position, out int absoluteIndex)
+        => text.TryGetAbsoluteIndex(position.Line, position.Character, out absoluteIndex);
+
+    public static bool TryGetAbsoluteIndex(this SourceText text, LinePosition position, ILogger logger, out int absoluteIndex)
+        => text.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
+
+    public static bool TryGetAbsoluteIndex(this SourceText text, Position position, out int absoluteIndex)
+        => text.TryGetAbsoluteIndex(position.Line, position.Character, out absoluteIndex);
+
+    public static bool TryGetAbsoluteIndex(this SourceText text, Position position, ILogger logger, out int absoluteIndex)
+        => text.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
+
     public static bool TryGetAbsoluteIndex(this SourceText text, int line, int character, out int absoluteIndex)
-    {
-        return text.TryGetAbsoluteIndex(line, character, logger: null, out absoluteIndex);
-    }
+        => text.TryGetAbsoluteIndex(line, character, logger: null, out absoluteIndex);
 
     public static bool TryGetAbsoluteIndex(this SourceText text, int line, int character, ILogger? logger, out int absoluteIndex)
     {
         absoluteIndex = 0;
         var lineCount = text.Lines.Count;
-        if (line > lineCount ||
-            (line == lineCount && character > 0))
+
+        if (line > lineCount || (line == lineCount && character > 0))
         {
-            if (logger != null)
+            if (logger is not null)
             {
-                logger?.Log(LogLevel.Error, SR.FormatPositionLine_Outside_Range(line, nameof(text), text.Lines.Count), exception: null);
-                Debug.Fail(SR.FormatPositionLine_Outside_Range(line, nameof(text), text.Lines.Count));
+                var errorMessage = SR.FormatPositionLine_Outside_Range(line, nameof(text), text.Lines.Count);
+                logger.LogError(errorMessage);
+                Debug.Fail(errorMessage);
             }
 
             return false;
@@ -219,30 +231,45 @@ internal static class SourceTextExtensions
         if (line == lineCount)
         {
             absoluteIndex = text.Length;
+            return true;
         }
-        else
-        {
-            var sourceLine = text.Lines[line];
-            var lineLengthIncludingLineBreak = sourceLine.SpanIncludingLineBreak.Length;
-            if (character > lineLengthIncludingLineBreak)
-            {
-                if (logger != null)
-                {
-                    var errorMessage = SR.FormatPositionCharacter_Outside_Range(character, nameof(text), lineLengthIncludingLineBreak);
-                    logger?.Log(LogLevel.Error, errorMessage, exception: null);
-                    Debug.Fail(errorMessage);
-                }
 
-                return false;
+        var sourceLine = text.Lines[line];
+        var lineLengthIncludingLineBreak = sourceLine.SpanIncludingLineBreak.Length;
+        if (character > lineLengthIncludingLineBreak)
+        {
+            if (logger is not null)
+            {
+                var errorMessage = SR.FormatPositionCharacter_Outside_Range(character, nameof(text), lineLengthIncludingLineBreak);
+                logger.LogError(errorMessage);
+                Debug.Fail(errorMessage);
             }
 
-            absoluteIndex = sourceLine.Start + character;
+            return false;
         }
 
+        absoluteIndex = sourceLine.Start + character;
         return true;
     }
 
-    public static int GetRequiredAbsoluteIndex(this SourceText text, int line, int character, ILogger? logger = null)
+    public static int GetRequiredAbsoluteIndex(this SourceText text, LinePosition position)
+        => text.GetRequiredAbsoluteIndex(position.Line, position.Character);
+
+    public static int GetRequiredAbsoluteIndex(this SourceText text, LinePosition position, ILogger logger)
+        => text.GetRequiredAbsoluteIndex(position.Line, position.Character, logger);
+
+    public static int GetRequiredAbsoluteIndex(this SourceText text, Position position)
+        => text.GetRequiredAbsoluteIndex(position.Line, position.Character);
+
+    public static int GetRequiredAbsoluteIndex(this SourceText text, Position position, ILogger logger)
+        => text.GetRequiredAbsoluteIndex(position.Line, position.Character, logger);
+
+    public static int GetRequiredAbsoluteIndex(this SourceText text, int line, int character)
+        => text.TryGetAbsoluteIndex(line, character, out var absolutionPosition)
+            ? absolutionPosition
+            : ThrowHelper.ThrowInvalidOperationException<int>($"({line},{character}) matches or exceeds SourceText boundary {text.Lines.Count}.");
+
+    public static int GetRequiredAbsoluteIndex(this SourceText text, int line, int character, ILogger logger)
         => text.TryGetAbsoluteIndex(line, character, logger, out var absolutionPosition)
             ? absolutionPosition
             : ThrowHelper.ThrowInvalidOperationException<int>($"({line},{character}) matches or exceeds SourceText boundary {text.Lines.Count}.");
@@ -251,8 +278,8 @@ internal static class SourceTextExtensions
     {
         ArgHelper.ThrowIfNull(text);
 
-        var start = GetAbsoluteIndex("Start", startLine, startCharacter, text);
-        var end = GetAbsoluteIndex("End", endLine, endCharacter, text);
+        var start = GetAbsoluteIndex(text, startLine, startCharacter, "Start");
+        var end = GetAbsoluteIndex(text, endLine, endCharacter, "End");
 
         var length = end - start;
         if (length < 0)
@@ -262,7 +289,7 @@ internal static class SourceTextExtensions
 
         return new TextSpan(start, length);
 
-        static int GetAbsoluteIndex(string name, int line, int character, SourceText text)
+        static int GetAbsoluteIndex(SourceText text, int line, int character, string name)
         {
             return text.TryGetAbsoluteIndex(line, character, out var absolutePosition)
                 ? absolutePosition

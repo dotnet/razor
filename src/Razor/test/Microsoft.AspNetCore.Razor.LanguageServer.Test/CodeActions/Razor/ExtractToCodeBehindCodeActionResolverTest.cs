@@ -136,9 +136,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeDocumentChange = documentChanges[1];
         Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
         var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
-        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        var sourceText = codeDocument.GetSourceText();
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.Start, Logger, out var removeStart));
         Assert.Equal(actionParams.RemoveStart, removeStart);
-        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.End, Logger, out var removeEnd));
         Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
         var editCodeBehindChange = documentChanges[2];
@@ -198,9 +199,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeDocumentChange = documentChanges[1];
         Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
         var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
-        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        var sourceText = codeDocument.GetSourceText();
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.Start, Logger, out var removeStart));
         Assert.Equal(actionParams.RemoveStart, removeStart);
-        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.End, Logger, out var removeEnd));
         Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
         var editCodeBehindChange = documentChanges[2];
@@ -268,9 +270,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeDocumentChange = documentChanges[1];
         Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
         var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
-        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        var sourceText = codeDocument.GetSourceText();
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.Start, Logger, out var removeStart));
         Assert.Equal(actionParams.RemoveStart, removeStart);
-        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.End, Logger, out var removeEnd));
         Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
         var editCodeBehindChange = documentChanges[2];
@@ -348,9 +351,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeDocumentChange = documentChanges[1];
         Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
         var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
-        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        var sourceText = codeDocument.GetSourceText();
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.Start, Logger, out var removeStart));
         Assert.Equal(actionParams.RemoveStart, removeStart);
-        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.End, Logger, out var removeEnd));
         Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
         var editCodeBehindChange = documentChanges[2];
@@ -430,9 +434,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeDocumentChange = documentChanges[1];
         Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
         var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
-        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        var sourceText = codeDocument.GetSourceText();
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.Start, Logger, out var removeStart));
         Assert.Equal(actionParams.RemoveStart, removeStart);
-        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.End, Logger, out var removeEnd));
         Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
         var editCodeBehindChange = documentChanges[2];
@@ -500,9 +505,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeDocumentChange = documentChanges[1];
         Assert.True(editCodeDocumentChange.TryGetFirst(out var editCodeDocument));
         var editCodeDocumentEdit = editCodeDocument!.Edits.First();
-        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        var sourceText = codeDocument.GetSourceText();
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.Start, Logger, out var removeStart));
         Assert.Equal(actionParams.RemoveStart, removeStart);
-        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.End, Logger, out var removeEnd));
         Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
         var editCodeBehindChange = documentChanges[2];
@@ -562,9 +568,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeDocumentChange = documentChanges[1];
         Assert.True(editCodeDocumentChange.TryGetFirst(out var editCodeDocument));
         var editCodeDocumentEdit = editCodeDocument!.Edits.First();
-        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        var sourceText = codeDocument.GetSourceText();
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.Start, Logger, out var removeStart));
         Assert.Equal(actionParams.RemoveStart, removeStart);
-        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.End, Logger, out var removeEnd));
         Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
         var editCodeBehindChange = documentChanges[2];
@@ -626,9 +633,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeDocumentChange = documentChanges[1];
         Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
         var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
-        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        var sourceText = codeDocument.GetSourceText();
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.Start, Logger, out var removeStart));
         Assert.Equal(actionParams.RemoveStart, removeStart);
-        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.End, Logger, out var removeEnd));
         Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
         var editCodeBehindChange = documentChanges[2];
@@ -694,9 +702,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var editCodeDocumentChange = documentChanges[1];
         Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
         var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
-        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        var sourceText = codeDocument.GetSourceText();
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.Start, Logger, out var removeStart));
         Assert.Equal(actionParams.RemoveStart, removeStart);
-        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.True(sourceText.TryGetAbsoluteIndex(editCodeDocumentEdit.Range.End, Logger, out var removeEnd));
         Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
         var editCodeBehindChange = documentChanges[2];

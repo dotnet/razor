@@ -68,7 +68,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
             return false;
         }
 
-        if (!position.TryGetAbsoluteIndex(context.SourceText, _logger, out var afterCloseAngleIndex))
+        if (!context.SourceText.TryGetAbsoluteIndex(position, _logger, out var afterCloseAngleIndex))
         {
             format = default;
             edit = default;

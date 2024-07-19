@@ -62,7 +62,7 @@ internal sealed class InlayHintService(IRazorDocumentMappingService documentMapp
         using var _1 = ArrayBuilderPool<InlayHint>.GetPooledObject(out var inlayHintsBuilder);
         foreach (var hint in inlayHints)
         {
-            if (hint.Position.TryGetAbsoluteIndex(csharpSourceText, null, out var absoluteIndex) &&
+            if (csharpSourceText.TryGetAbsoluteIndex(hint.Position, out var absoluteIndex) &&
                 _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteIndex, out Position? hostDocumentPosition, out var hostDocumentIndex))
             {
                 // We know this C# maps to Razor, but does it map to Razor that we like?
