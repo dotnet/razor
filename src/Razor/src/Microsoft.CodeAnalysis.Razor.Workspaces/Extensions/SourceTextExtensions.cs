@@ -121,18 +121,38 @@ internal static class SourceTextExtensions
         return i == text.Length && j == other.Length;
     }
 
-    public static int? GetFirstNonWhitespaceOffset(this SourceText text, TextSpan? span, out int newLineCount)
+    public static bool TryGetFirstNonWhitespaceOffset(this SourceText text, out int offset)
+        => text.TryGetFirstNonWhitespaceOffset(new TextSpan(0, text.Length), out offset);
+
+    public static bool TryGetFirstNonWhitespaceOffset(this SourceText text, TextSpan span, out int offset)
     {
         ArgHelper.ThrowIfNull(text);
 
-        span ??= new TextSpan(0, text.Length);
-        newLineCount = 0;
-
-        for (var i = span.Value.Start; i < span.Value.End; i++)
+        for (var i = span.Start; i < span.End; i++)
         {
             if (!char.IsWhiteSpace(text[i]))
             {
-                return i - span.Value.Start;
+                offset = i - span.Start;
+                return true;
+            }
+        }
+
+        offset = -1;
+        return false;
+    }
+
+    public static bool TryGetFirstNonWhitespaceOffset(this SourceText text, TextSpan span, out int offset, out int newLineCount)
+    {
+        ArgHelper.ThrowIfNull(text);
+
+        newLineCount = 0;
+
+        for (var i = span.Start; i < span.End; i++)
+        {
+            if (!char.IsWhiteSpace(text[i]))
+            {
+                offset = i - span.Start;
+                return true;
             }
             else if (text[i] == '\n')
             {
@@ -140,7 +160,9 @@ internal static class SourceTextExtensions
             }
         }
 
-        return null;
+        offset = -1;
+        newLineCount = -1;
+        return false;
     }
 
     // Given the source text and the current span, we start at the ending span location and iterate towards the start

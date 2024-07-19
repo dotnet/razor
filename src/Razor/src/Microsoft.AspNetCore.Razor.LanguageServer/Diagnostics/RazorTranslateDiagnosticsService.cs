@@ -531,8 +531,9 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
                 var startLine = sourceText.Lines[startLineIndex];
 
                 // Look for the first non-whitespace character so we're not squiggling random whitespace at the start of the diagnostic
-                var firstNonWhitespaceCharacterOffset = sourceText.GetFirstNonWhitespaceOffset(startLine.Span, out _);
-                var diagnosticStartCharacter = firstNonWhitespaceCharacterOffset ?? 0;
+                var diagnosticStartCharacter = sourceText.TryGetFirstNonWhitespaceOffset(startLine.Span, out var offset)
+                    ? offset
+                    : 0;
                 var startLinePosition = new Position(startLineIndex, diagnosticStartCharacter);
 
                 var endLineIndex = diagnosticRange.End.Line;

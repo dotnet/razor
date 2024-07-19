@@ -56,6 +56,8 @@ internal static class TextLineExtensions
             throw new ArgumentOutOfRangeException(nameof(startOffset), SR.Invalid_Offset);
         }
 
-        return line.Text!.GetFirstNonWhitespaceOffset(TextSpan.FromBounds(line.Start + startOffset, line.EndIncludingLineBreak), out _);
+        return line.Text!.TryGetFirstNonWhitespaceOffset(TextSpan.FromBounds(line.Start + startOffset, line.EndIncludingLineBreak), out var offset)
+            ? offset
+            : null;
     }
 }

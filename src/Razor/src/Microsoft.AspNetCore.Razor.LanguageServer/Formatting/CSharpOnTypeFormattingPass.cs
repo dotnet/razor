@@ -374,8 +374,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         // }
         // We want to return the length of the range marked by |...|
         //
-        var whitespaceLength = text.GetFirstNonWhitespaceOffset(sourceMappingSpan, out var newLineCount);
-        if (whitespaceLength is null)
+        if (!text.TryGetFirstNonWhitespaceOffset(sourceMappingSpan, out var whitespaceLength, out var newLineCount))
         {
             // There was no content after the start of this mapping. Meaning it already is clean.
             // E.g,
@@ -386,7 +385,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             return;
         }
 
-        var spanToReplace = new TextSpan(sourceMappingSpan.Start, whitespaceLength.Value);
+        var spanToReplace = new TextSpan(sourceMappingSpan.Start, whitespaceLength);
         if (!context.TryGetIndentationLevel(spanToReplace.End, out var contentIndentLevel))
         {
             // Can't find the correct indentation for this content. Leave it alone.
