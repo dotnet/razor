@@ -19,7 +19,8 @@ internal static class RazorServices
             (typeof(IRemoteSemanticTokensService), null),
             (typeof(IRemoteHtmlDocumentService), null),
             (typeof(IRemoteUriPresentationService), null),
-            (typeof(IRemoteFoldingRangeService), null)
+            (typeof(IRemoteFoldingRangeService), null),
+            (typeof(IRemoteDocumentHighlightService), null),
         ];
 
     // Internal for testing

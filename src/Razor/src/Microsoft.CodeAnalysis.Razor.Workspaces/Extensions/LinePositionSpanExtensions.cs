@@ -3,6 +3,7 @@
 
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using RLSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -14,6 +15,13 @@ internal static class LinePositionSpanExtensions
             Start = linePositionSpan.Start.ToPosition(),
             End = linePositionSpan.End.ToPosition()
         };
+
+    public static RLSP.Range ToRLSPRange(this LinePositionSpan linePositionSpan)
+    => new RLSP.Range
+    {
+        Start = linePositionSpan.Start.ToRLSPPosition(),
+        End = linePositionSpan.End.ToRLSPPosition()
+    };
 
     public static TextSpan ToTextSpan(this LinePositionSpan linePositionSpan, SourceText sourceText)
         => sourceText.GetTextSpan(linePositionSpan.Start.Line, linePositionSpan.Start.Character, linePositionSpan.End.Line, linePositionSpan.End.Character);
