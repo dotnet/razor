@@ -15,6 +15,6 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [46] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
-                    ComponentAttribute -  - PlaceHolder -  - AttributeStructure.DoubleQuotes
-                        CSharpExpression - (26:0,26 [16] x:\dir\subdir\Test\TestComponent.cshtml)
+                    ComponentAttribute - (26:0,26 [16] x:\dir\subdir\Test\TestComponent.cshtml) - PlaceHolder - Placeholder - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (28:0,28 [13] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (28:0,28 [13] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new MyClass()
