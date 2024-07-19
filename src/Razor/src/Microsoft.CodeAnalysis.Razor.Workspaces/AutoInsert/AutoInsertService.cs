@@ -4,12 +4,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
@@ -18,7 +15,7 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
     private readonly IEnumerable<IOnAutoInsertProvider> _onAutoInsertProviders = onAutoInsertProviders;
 
     // This gets called just once
-    public IEnumerable<string> TriggerCharacters => _onAutoInsertProviders.Select((provider) => provider.TriggerCharacter)
+    public IEnumerable<string> TriggerCharacters => _onAutoInsertProviders.Select((provider) => provider.TriggerCharacter);
 
     public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(
         IDocumentSnapshot documentSnapshot,
