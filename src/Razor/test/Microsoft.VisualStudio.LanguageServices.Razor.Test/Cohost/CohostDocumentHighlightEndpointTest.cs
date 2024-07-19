@@ -150,7 +150,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
         TestFileMarkupParser.GetPositionAndSpans(input, out var source, out int cursorPosition, out ImmutableArray<TextSpan> spans);
         var document = CreateProjectAndRazorDocument(source);
         var inputText = await document.GetTextAsync(DisposalToken);
-        inputText.GetLineAndOffset(cursorPosition, out var lineIndex, out var characterIndex);
+        var (lineIndex, characterIndex) = inputText.GetLineAndOffset(cursorPosition);
 
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentDocumentHighlightName, htmlResponse)]);
 

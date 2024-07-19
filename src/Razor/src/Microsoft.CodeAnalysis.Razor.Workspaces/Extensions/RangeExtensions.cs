@@ -81,8 +81,8 @@ internal static class RangeExtensions
         return range.Start.Line != range.End.Line;
     }
 
-    public static TextSpan ToTextSpan(this Range range, SourceText sourceText)
-        => sourceText.GetTextSpan(range.Start.Line, range.Start.Character, range.End.Line, range.End.Character);
+    public static TextSpan ToTextSpan(this Range range, SourceText text)
+        => text.GetTextSpan(range.Start.Line, range.Start.Character, range.End.Line, range.End.Character);
 
     public static LinePositionSpan ToLinePositionSpan(this Range range)
         => new LinePositionSpan(range.Start.ToLinePosition(), range.End.ToLinePosition());
@@ -114,13 +114,13 @@ internal static class RangeExtensions
         return $"({range.Start.Line}, {range.Start.Character})-({range.End.Line}, {range.End.Character})";
     }
 
-    public static TextSpan AsTextSpan(this Range range, SourceText sourceText)
+    public static TextSpan AsTextSpan(this Range range, SourceText text)
     {
         ArgHelper.ThrowIfNull(range);
-        ArgHelper.ThrowIfNull(sourceText);
+        ArgHelper.ThrowIfNull(text);
 
-        var start = sourceText.Lines[range.Start.Line].Start + range.Start.Character;
-        var end = sourceText.Lines[range.End.Line].Start + range.End.Character;
+        var start = text.Lines[range.Start.Line].Start + range.Start.Character;
+        var end = text.Lines[range.End.Line].Start + range.End.Character;
         return new TextSpan(start, end - start);
     }
 

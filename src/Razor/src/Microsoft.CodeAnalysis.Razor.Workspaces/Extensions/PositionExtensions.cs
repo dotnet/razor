@@ -19,22 +19,21 @@ internal static class PositionExtensions
 
     public static LinePosition ToLinePosition(this RLSP.Position position)
         => new LinePosition(position.Line, position.Character);
-
-    public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, ILogger? logger, out int absoluteIndex)
+    public static bool TryGetAbsoluteIndex(this Position position, SourceText text, ILogger? logger, out int absoluteIndex)
     {
         ArgHelper.ThrowIfNull(position);
-        ArgHelper.ThrowIfNull(sourceText);
+        ArgHelper.ThrowIfNull(text);
 
-        return sourceText.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
+        return text.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
     }
 
     public static bool TryGetSourceLocation(
         this Position position,
-        SourceText sourceText,
+        SourceText text,
         ILogger? logger,
         [NotNullWhen(true)] out SourceLocation? sourceLocation)
     {
-        if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+        if (!position.TryGetAbsoluteIndex(text, logger, out var absoluteIndex))
         {
             sourceLocation = null;
             return false;
@@ -44,9 +43,9 @@ internal static class PositionExtensions
         return true;
     }
 
-    public static int GetRequiredAbsoluteIndex(this Position position, SourceText sourceText, ILogger? logger)
+    public static int GetRequiredAbsoluteIndex(this Position position, SourceText text, ILogger? logger)
     {
-        if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+        if (!position.TryGetAbsoluteIndex(text, logger, out var absoluteIndex))
         {
             throw new InvalidOperationException();
         }
@@ -63,11 +62,11 @@ internal static class PositionExtensions
         return result != 0 ? result : position.Character.CompareTo(other.Character);
     }
 
-    public static bool IsValid(this Position position, SourceText sourceText)
+    public static bool IsValid(this Position position, SourceText text)
     {
         ArgHelper.ThrowIfNull(position);
-        ArgHelper.ThrowIfNull(sourceText);
+        ArgHelper.ThrowIfNull(text);
 
-        return sourceText.TryGetAbsoluteIndex(position.Line, position.Character, logger: null, out _);
+        return text.TryGetAbsoluteIndex(position.Line, position.Character, logger: null, out _);
     }
 }
