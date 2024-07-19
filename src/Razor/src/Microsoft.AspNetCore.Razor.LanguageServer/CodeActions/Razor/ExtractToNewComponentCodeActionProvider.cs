@@ -66,7 +66,17 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
         var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);
 
-        ProcessSelection(startElementNode, endElementNode, actionParams);
+        var dependencyScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode);
+
+        AddComponentDependenciesInRange(dependencyScanRoot,
+                                        actionParams.ExtractStart,
+                                        actionParams.ExtractEnd,
+                                        ref actionParams);
+
+        if (IsMultiPointSelection(context.Request.Range))
+        {
+            ProcessMultiPointSelection(startElementNode, endElementNode, actionParams);
+        }
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
@@ -94,7 +104,10 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return (null, null);
         }
 
-        var endElementNode = GetEndElementNode(context, syntaxTree);
+        var endElementNode = GetEndElementNode(context, syntaxTree, logger);
+
+        endElementNode ??= startElementNode;
+
         return (startElementNode, endElementNode);
     }
 
@@ -142,7 +155,8 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             Uri = context.Request.TextDocument.Uri,
             ExtractStart = startElementNode.Span.Start,
             ExtractEnd = startElementNode.Span.End,
-            Namespace = @namespace
+            Namespace = @namespace,
+            Dependencies = []
         };
     }
 
@@ -257,37 +271,58 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
         return null;
     }
-    private static HashSet<SyntaxNode> IdentifyComponentsInRange(SyntaxNode root, int extractStart, int extractEnd)
+
+    private static void AddComponentDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd, ref ExtractToNewComponentCodeActionParams actionParams)
     {
-        var components = new HashSet<SyntaxNode>();
+        var components = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
 
         foreach (var node in root.DescendantNodes())
         {
-            if (node is MarkupTagHelperElementSyntax markupElement &&
-                extractSpan.Contains(markupElement.Span))
+            if (IsMarkupTagHelperElement(node, extractSpan))
             {
-                components.Add(markupElement);
+                var tagHelperInfo = GetTagHelperInfo(node);
+                if (tagHelperInfo != null)
+                {
+                    AddDependenciesFromTagHelperInfo(tagHelperInfo, components, ref actionParams);
+                }
             }
         }
-
-        return components;
     }
 
-    private static List<string> GetAllUsingStatements(SyntaxNode root)
+    private static bool IsMarkupTagHelperElement(SyntaxNode node, TextSpan extractSpan)
     {
-        return root.DescendantNodes()
-                   .OfType<CSharpCodeBlockSyntax>()
-                   .SelectMany(cSharpBlock => cSharpBlock.ChildNodes())
-                   .OfType<RazorDirectiveSyntax>()
-                   .Select(directive => directive.ToFullString().TrimStart())
-                   .Where(directiveString => directiveString.StartsWith("@using"))
-                   .Select(directiveString => directiveString.Trim())
-                   .ToList();
+        return node is MarkupTagHelperElementSyntax markupElement &&
+                extractSpan.Contains(markupElement.Span);
     }
 
-    //private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
-    //{
-    //    return node.DescendantNodes().Any(static n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
-    //}
+    private static TagHelperInfo? GetTagHelperInfo(SyntaxNode node)
+    {
+        if (node is MarkupTagHelperElementSyntax markupElement)
+        {
+            return markupElement.TagHelperInfo;
+        }
+
+        return null;
+    }
+
+    private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, ref ExtractToNewComponentCodeActionParams actionParams)
+    {
+        foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
+        {
+            if (descriptor != null)
+            {
+                foreach (var metadata in descriptor.Metadata)
+                {
+                    if (metadata.Key == TagHelperMetadata.Common.TypeNamespace &&
+                        metadata.Value is not null &&
+                        !components.Contains(metadata.Value))
+                    {
+                        components.Add(metadata.Value);
+                        actionParams.Dependencies.Add($"@using {metadata.Value}");
+                    }
+                }
+            }
+        }
+    }
 }

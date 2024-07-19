@@ -98,7 +98,7 @@ internal sealed class ExtractToNewComponentCodeActionResolver(
             newComponentContent += Environment.NewLine + Environment.NewLine; // Ensure there's a newline after the dependencies if any exist.
         }
 
-        newComponentContent = newComponentContent + text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
+        newComponentContent += text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
 
         var start = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractStart);
         var end = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractEnd);
