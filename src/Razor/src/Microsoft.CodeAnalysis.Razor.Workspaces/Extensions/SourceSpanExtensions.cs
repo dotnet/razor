@@ -11,19 +11,19 @@ internal static class SourceSpanExtensions
 {
     public static Range ToRange(this SourceSpan sourceSpan, SourceText text)
     {
-        text.GetLinesAndOffsets(sourceSpan, out var startLine, out var startChar, out var endLine, out var endChar);
+        var (start, end) = text.GetLinesAndOffsets(sourceSpan);
 
         return new Range
         {
-            Start = new Position(startLine, startChar),
-            End = new Position(endLine, endChar),
+            Start = new(start.line, start.offset),
+            End = new(end.line, end.offset),
         };
     }
 
     public static LinePositionSpan ToLinePositionSpan(this SourceSpan sourceSpan, SourceText text)
     {
-        text.GetLinesAndOffsets(sourceSpan, out var startLine, out var startChar, out var endLine, out var endChar);
+        var (start, end) = text.GetLinesAndOffsets(sourceSpan);
 
-        return new LinePositionSpan(new(startLine, startChar), new(endLine, endChar));
+        return new LinePositionSpan(new(start.line, start.offset), new(end.line, end.offset));
     }
 }

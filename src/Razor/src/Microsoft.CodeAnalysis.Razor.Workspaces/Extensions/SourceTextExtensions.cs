@@ -59,32 +59,24 @@ internal static class SourceTextExtensions
         return (line.LineNumber, position - line.Start);
     }
 
-    public static void GetLinesAndOffsets(
-        this SourceText text,
-        TextSpan textSpan,
-        out int startLineNumber,
-        out int startOffset,
-        out int endLineNumber,
-        out int endOffset)
+    public static ((int line, int offset) start, (int line, int offset) end) GetLinesAndOffsets(this SourceText text, TextSpan textSpan)
     {
         ArgHelper.ThrowIfNull(text);
 
-        (startLineNumber, startOffset) = text.GetLineAndOffsetCore(textSpan.Start);
-        (endLineNumber, endOffset) = text.GetLineAndOffsetCore(textSpan.End);
+        var start = text.GetLineAndOffsetCore(textSpan.Start);
+        var end = text.GetLineAndOffsetCore(textSpan.End);
+
+        return (start, end);
     }
 
-    public static void GetLinesAndOffsets(
-        this SourceText text,
-        SourceSpan sourceSpan,
-        out int startLineNumber,
-        out int startOffset,
-        out int endLineNumber,
-        out int endOffset)
+    public static ((int line, int offset) start, (int line, int offset) end) GetLinesAndOffsets(this SourceText text, SourceSpan sourceSpan)
     {
         ArgHelper.ThrowIfNull(text);
 
-        (startLineNumber, startOffset) = text.GetLineAndOffsetCore(sourceSpan.AbsoluteIndex);
-        (endLineNumber, endOffset) = text.GetLineAndOffsetCore(sourceSpan.AbsoluteIndex + sourceSpan.Length);
+        var start = text.GetLineAndOffsetCore(sourceSpan.AbsoluteIndex);
+        var end = text.GetLineAndOffsetCore(sourceSpan.AbsoluteIndex + sourceSpan.Length);
+
+        return (start, end);
     }
 
     public static string GetSubTextString(this SourceText text, TextSpan span)

@@ -4,7 +4,6 @@
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -27,14 +26,12 @@ internal static class TextSpanExtensions
 
     public static Range ToRange(this TextSpan span, SourceText text)
     {
-        ArgHelper.ThrowIfNull(text);
-
-        text.GetLinesAndOffsets(span, out var startLine, out var startChar, out var endLine, out var endChar);
+        var (start, end) = text.GetLinesAndOffsets(span);
 
         var range = new Range
         {
-            Start = new Position(startLine, startChar),
-            End = new Position(endLine, endChar)
+            Start = new(start.line, start.offset),
+            End = new(end.line, end.offset)
         };
 
         return range;
