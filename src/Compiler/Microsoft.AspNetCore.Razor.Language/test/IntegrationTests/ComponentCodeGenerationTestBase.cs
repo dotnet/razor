@@ -1733,6 +1733,93 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
+    public void ImplicitStringConversion_ParameterCasing_AddAttribute()
+    {
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_7_0 };
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyClass
+            {
+                public static implicit operator string(MyClass c) => "";
+            }
+
+            public class MyComponent : ComponentBase
+            {
+                [Parameter] public string Placeholder { get; set; } = "";
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent PlaceHolder="@(new MyClass())" />
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
+    public void ImplicitStringConversion_ParameterCasing_AddComponentParameter()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyClass
+            {
+                public static implicit operator string(MyClass c) => "";
+            }
+
+            public class MyComponent : ComponentBase
+            {
+                [Parameter] public string Placeholder { get; set; } = "";
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent PlaceHolder="@(new MyClass())" />
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
+    public void ImplicitStringConversion_ParameterCasing_Multiple()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyClass
+            {
+                public static implicit operator string(MyClass c) => "";
+            }
+
+            public class MyComponent : ComponentBase
+            {
+                [Parameter] public string Placeholder { get; set; } = "";
+                [Parameter] public string PlaceHolder { get; set; } = "";
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent PlaceHolder="@(new MyClass())" />
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [IntegrationTestFact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1869483")]
     public void AddComponentParameter()
     {

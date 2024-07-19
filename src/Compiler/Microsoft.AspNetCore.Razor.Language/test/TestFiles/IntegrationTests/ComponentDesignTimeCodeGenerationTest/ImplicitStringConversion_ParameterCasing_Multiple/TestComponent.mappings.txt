@@ -1,0 +1,10 @@
+﻿Source Location: (28:0,28 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|new MyClass()|
+Generated Location: (1138:29,28 [13] )
+|new MyClass()|
+
+Source Location: (13:0,13 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|PlaceHolder|
+Generated Location: (1559:42,13 [11] )
+|PlaceHolder|
+
