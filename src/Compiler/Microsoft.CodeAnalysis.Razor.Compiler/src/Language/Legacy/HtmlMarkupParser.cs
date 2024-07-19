@@ -1085,39 +1085,42 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         // http://dev.w3.org/html5/spec/tokenization.html#attribute-name-state
         // Read the 'name' (i.e. read until the '=' or whitespace/newline)
         using var nameTokens = new PooledArrayBuilder<SyntaxToken>();
-        if (TryParseAttributeName(out SyntaxToken? ephemeralToken, ref nameTokens.AsRef())
-            is not AttributeNameParsingResult.Success and { } nameParsingResult)
+        var nameParsingResult = TryParseAttributeName(out SyntaxToken? ephemeralToken, ref nameTokens.AsRef());
+
+        switch (nameParsingResult)
         {
-            // Parse C# or razor comment and return to attribute parsing afterwards.
-            switch (nameParsingResult)
-            {
-                case AttributeNameParsingResult.CSharp:
-                    {
-                        Accept(in attributePrefixWhitespace);
-                        PutCurrentBack();
-                        using var pooledResult = Pool.Allocate<RazorSyntaxNode>();
-                        var dynamicAttributeValueBuilder = pooledResult.Builder;
-                        OtherParserBlock(dynamicAttributeValueBuilder);
-                        var value = SyntaxFactory.MarkupMiscAttributeContent(dynamicAttributeValueBuilder.ToList());
-                        builder.Add(value);
-                        return;
-                    }
-                case AttributeNameParsingResult.RazorComment:
-                    {
-                        Accept(in attributePrefixWhitespace);
-                        PutCurrentBack();
-                        ParseRazorCommentWithLeadingAndTrailingWhitespace(builder);
-                        return;
-                    }
-            }
+            // Parse C# and return to attribute parsing afterwards.
+            case AttributeNameParsingResult.CSharp:
+                {
+                    Accept(in attributePrefixWhitespace);
+                    PutCurrentBack();
+                    using var pooledResult = Pool.Allocate<RazorSyntaxNode>();
+                    var dynamicAttributeValueBuilder = pooledResult.Builder;
+                    OtherParserBlock(dynamicAttributeValueBuilder);
+                    var value = SyntaxFactory.MarkupMiscAttributeContent(dynamicAttributeValueBuilder.ToList());
+                    builder.Add(value);
+                    return;
+                }
+
+            // Parse razor comment and return to attribute parsing afterwards.
+            case AttributeNameParsingResult.RazorComment:
+                {
+                    Accept(in attributePrefixWhitespace);
+                    PutCurrentBack();
+                    ParseRazorCommentWithLeadingAndTrailingWhitespace(builder);
+                    return;
+                }
 
             // Unexpected character in tag, enter recovery
-            Debug.Assert(nameParsingResult is AttributeNameParsingResult.Other);
-            Accept(in attributePrefixWhitespace);
-            ParseMiscAttribute(builder);
-            return;
+            case AttributeNameParsingResult.Other:
+                {
+                    Accept(in attributePrefixWhitespace);
+                    ParseMiscAttribute(builder);
+                    return;
+                }
         }
 
+        Debug.Assert(nameParsingResult is AttributeNameParsingResult.Success);
         Accept(in attributePrefixWhitespace); // Whitespace before attribute name
         var namePrefix = OutputAsMarkupLiteral();
 
