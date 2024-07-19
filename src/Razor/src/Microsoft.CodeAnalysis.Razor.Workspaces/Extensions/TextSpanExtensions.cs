@@ -25,11 +25,11 @@ internal static class TextSpanExtensions
         return span;
     }
 
-    public static Range ToRange(this TextSpan span, SourceText sourceText)
+    public static Range ToRange(this TextSpan span, SourceText text)
     {
-        ArgHelper.ThrowIfNull(sourceText);
+        ArgHelper.ThrowIfNull(text);
 
-        sourceText.GetLinesAndOffsets(span, out var startLine, out var startChar, out var endLine, out var endChar);
+        text.GetLinesAndOffsets(span, out var startLine, out var startChar, out var endLine, out var endChar);
 
         var range = new Range
         {
