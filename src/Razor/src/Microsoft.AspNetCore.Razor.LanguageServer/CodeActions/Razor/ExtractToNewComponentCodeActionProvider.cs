@@ -78,7 +78,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         var endOwner = owner;
         var endComponentNode = startComponentNode;
 
-        if (isSelection)
+        if (isSelection && selectionEnd is not null)
         {
             if (!selectionEnd.TryGetSourceLocation(context.CodeDocument.GetSourceText(), _logger, out var location))
             {
@@ -166,7 +166,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         // good namespace to extract to
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
 
-    public (SyntaxNode Start, SyntaxNode End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
+    public (SyntaxNode? Start, SyntaxNode? End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
     {
         // Find the lowest common ancestor of both nodes
         var lowestCommonAncestor = FindLowestCommonAncestor(startNode, endNode);
@@ -175,13 +175,12 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             return (null, null);
         }
 
-        SyntaxNode startContainingNode = null;
-        SyntaxNode endContainingNode = null;
+        SyntaxNode? startContainingNode = null;
+        SyntaxNode? endContainingNode = null;
 
         // Pre-calculate the spans for comparison
         var startSpan = startNode.Span;
         var endSpan = endNode.Span;
-
 
         foreach (var child in lowestCommonAncestor.ChildNodes().Where(node => node.Kind == SyntaxKind.MarkupElement))
         {
@@ -190,13 +189,15 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             if (startContainingNode == null && childSpan.Contains(startSpan))
             {
                 startContainingNode = child;
-                if (endContainingNode != null) break; // Exit if we've found both
+                if (endContainingNode != null)
+                    break; // Exit if we've found both
             }
 
             if (childSpan.Contains(endSpan))
             {
                 endContainingNode = child;
-                if (startContainingNode != null) break; // Exit if we've found both
+                if (startContainingNode != null)
+                    break; // Exit if we've found both
             }
         }
 
@@ -213,6 +214,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             {
                 return current;
             }
+
             current = current.Parent;
         }
 
