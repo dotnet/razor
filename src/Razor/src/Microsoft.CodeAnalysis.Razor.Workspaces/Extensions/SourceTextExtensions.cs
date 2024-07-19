@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
@@ -69,13 +70,14 @@ internal static class SourceTextExtensions
         return (start, end);
     }
 
-    public static string GetSubTextString(this SourceText text, TextSpan span)
+    public static string GetSubTextString(this SourceText text, TextSpan textSpan)
     {
         ArgHelper.ThrowIfNull(text);
 
-        var charBuffer = new char[span.Length];
-        text.CopyTo(span.Start, charBuffer, 0, span.Length);
-        return new string(charBuffer);
+        using var _ = ArrayPool<char>.Shared.GetPooledArray(textSpan.Length, out var charBuffer);
+
+        text.CopyTo(textSpan.Start, charBuffer, 0, textSpan.Length);
+        return new string(charBuffer, 0, textSpan.Length);
     }
 
     public static bool NonWhitespaceContentEquals(this SourceText text, SourceText other)
