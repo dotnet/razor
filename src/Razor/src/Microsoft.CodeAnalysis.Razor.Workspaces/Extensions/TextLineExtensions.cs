@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.CodeAnalysis.Text;
 
 internal static class TextLineExtensions
 {

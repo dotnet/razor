@@ -28,7 +28,6 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
-using static Microsoft.CodeAnalysis.Razor.Workspaces.SourceTextExtensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover;
 
