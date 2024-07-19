@@ -4,10 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-
-#if !NET
-using ThrowHelper = Microsoft.AspNetCore.Razor.Utilities.ThrowHelper;
-#endif
+using Microsoft.AspNetCore.Razor;
 
 namespace Microsoft.AspNetCore.Razor;
 
@@ -43,7 +40,7 @@ internal static class ArrayExtensions
         {
             if (!startIndex.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex));
+                ThrowHelper.ThrowArgumentOutOfRangeException(nameof(startIndex));
             }
 
             return default;
@@ -86,7 +83,7 @@ internal static class ArrayExtensions
         {
             if (!range.Start.Equals(Index.Start) || !range.End.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentNull(nameof(array));
+                ThrowHelper.ThrowArgumentNullException(nameof(array));
             }
 
             return default;
@@ -128,7 +125,7 @@ internal static class ArrayExtensions
         {
             if (!startIndex.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex));
+                ThrowHelper.ThrowArgumentOutOfRangeException(nameof(startIndex));
             }
 
             return default;
@@ -172,7 +169,7 @@ internal static class ArrayExtensions
         {
             if (!range.Start.Equals(Index.Start) || !range.End.Equals(Index.Start))
             {
-                ThrowHelper.ThrowArgumentNull(nameof(array));
+                ThrowHelper.ThrowArgumentNullException(nameof(array));
             }
 
             return default;

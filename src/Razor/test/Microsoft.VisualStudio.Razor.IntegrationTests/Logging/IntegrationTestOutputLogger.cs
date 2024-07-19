@@ -5,11 +5,11 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
-namespace Microsoft.AspNetCore.Razor.Test.Common.Logging;
+namespace Microsoft.VisualStudio.Razor.IntegrationTests.Logging;
 
-internal partial class TestOutputLogger(TestOutputLoggerProvider provider, string categoryName, LogLevel logLevel = LogLevel.Trace) : ILogger
+internal partial class IntegrationTestOutputLogger(IntegrationTestOutputLoggerProvider provider, string categoryName, LogLevel logLevel = LogLevel.Trace) : ILogger
 {
-    private readonly TestOutputLoggerProvider _provider = provider;
+    private readonly IntegrationTestOutputLoggerProvider _provider = provider;
     private readonly string _categoryName = categoryName;
     private readonly LogLevel _logLevel = logLevel;
 
@@ -18,7 +18,7 @@ internal partial class TestOutputLogger(TestOutputLoggerProvider provider, strin
 
     public void Log(LogLevel logLevel, string message, Exception? exception)
     {
-        if (!IsEnabled(logLevel))
+        if (!IsEnabled(logLevel) || !_provider.HasOutput)
         {
             return;
         }
@@ -27,7 +27,11 @@ internal partial class TestOutputLogger(TestOutputLoggerProvider provider, strin
 
         try
         {
-            _provider.Output.WriteLine(formattedMessage);
+            _provider.WriteLine(formattedMessage);
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "There is no currently active test.")
+        {
+            // Ignore, something is logging a message outside of a test. Other loggers will capture it.
         }
         catch (Exception ex)
         {
