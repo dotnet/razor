@@ -16,9 +16,9 @@ internal static class LinePositionExtensions
     public static RLSP.Position ToRLSPPosition(this LinePosition linePosition)
         => new RLSP.Position(linePosition.Line, linePosition.Character);
 
-    public static bool TryGetAbsoluteIndex(this LinePosition position, SourceText sourceText, ILogger logger, out int absoluteIndex)
-        => sourceText.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
+    public static bool TryGetAbsoluteIndex(this LinePosition position, SourceText text, ILogger logger, out int absoluteIndex)
+        => text.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
 
-    public static int GetRequiredAbsoluteIndex(this LinePosition position, SourceText sourceText, ILogger? logger = null)
-        => sourceText.GetRequiredAbsoluteIndex(position.Line, position.Character, logger);
+    public static int GetRequiredAbsoluteIndex(this LinePosition position, SourceText text, ILogger? logger = null)
+        => text.GetRequiredAbsoluteIndex(position.Line, position.Character, logger);
 }
