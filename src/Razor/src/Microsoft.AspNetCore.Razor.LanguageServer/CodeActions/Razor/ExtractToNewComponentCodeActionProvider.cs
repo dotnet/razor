@@ -78,13 +78,13 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         var endOwner = startOwner;
         var endComponentNode = startComponentNode;
 
-        if (isSelection)
+        if (isSelection && selectionEnd is not null)
         {
             if (!selectionEnd.TryGetSourceLocation(context.CodeDocument.GetSourceText(), _logger, out var location))
             {
                 return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
             }
-     
+
             if (location is null)
             {
                 return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
@@ -101,9 +101,8 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             endComponentNode = endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
 
             // Correct selection to include the current node if the selection ends immediately after a closing tag.
-            if (endOwner.ToFullString().Trim().IsNullOrEmpty())
+            if (endOwner.ToFullString().Trim().IsNullOrEmpty() && endOwner.TryGetPreviousSibling(out endOwner))
             {
-                endOwner.TryGetPreviousSibling(out endOwner);
                 endComponentNode = endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
             }
         }
@@ -135,11 +134,16 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             Dependencies = new List<string>()
         };
 
-        bool selectionStartHasParentElement = false;
+        var selectionStartHasParentElement = false;
         SyntaxNode? extractStart = null;
         SyntaxNode? extractEnd = null;
 
-        if (isSelection && endComponentNode is not null)
+        if (endComponentNode is null)
+        {
+            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+        }
+
+        if (isSelection)
         {
             // If component @ start of the selection includes a parent element of the component @ end of selection, then proceed as usual.
             // If not, limit extraction to end of component @ end of selection (in the simplest case)
@@ -158,7 +162,13 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             }
         }
 
-        AddComponentDependenciesInRange(FindLowestCommonAncestor(startComponentNode, endComponentNode),
+        var dependencyScanRoot = FindLowestCommonAncestor(startComponentNode, endComponentNode);
+        if (dependencyScanRoot is null)
+        {
+            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+        }
+
+        AddComponentDependenciesInRange(dependencyScanRoot,
                                         actionParams.ExtractStart,
                                         actionParams.ExtractEnd,
                                         ref actionParams);
@@ -183,7 +193,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         // good namespace to extract to
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
 
-    private static (SyntaxNode Start, SyntaxNode End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
+    private static (SyntaxNode? Start, SyntaxNode? End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
     {
         // Find the lowest common ancestor of both nodes
         var lowestCommonAncestor = FindLowestCommonAncestor(startNode, endNode);
@@ -192,13 +202,12 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             return (null, null);
         }
 
-        SyntaxNode startContainingNode = null;
-        SyntaxNode endContainingNode = null;
+        SyntaxNode? startContainingNode = null;
+        SyntaxNode? endContainingNode = null;
 
         // Pre-calculate the spans for comparison
         var startSpan = startNode.Span;
         var endSpan = endNode.Span;
-
 
         foreach (var child in lowestCommonAncestor.ChildNodes().Where(node => node.Kind == SyntaxKind.MarkupElement))
         {
@@ -207,13 +216,15 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             if (startContainingNode == null && childSpan.Contains(startSpan))
             {
                 startContainingNode = child;
-                if (endContainingNode != null) break; // Exit if we've found both
+                if (endContainingNode != null)
+                    break; // Exit if we've found both
             }
 
             if (childSpan.Contains(endSpan))
             {
                 endContainingNode = child;
-                if (startContainingNode != null) break; // Exit if we've found both
+                if (startContainingNode != null)
+                    break; // Exit if we've found both
             }
         }
 
@@ -230,12 +241,12 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
             {
                 return current;
             }
+
             current = current.Parent;
         }
 
         return null;
     }
-
 
     private static void AddComponentDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd, ref ExtractToNewComponentCodeActionParams actionParams)
     {
@@ -267,6 +278,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
         {
             return markupElement.TagHelperInfo;
         }
+
         return null;
     }
 
@@ -279,6 +291,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider : IRazorCodeAction
                 foreach (var metadata in descriptor.Metadata)
                 {
                     if (metadata.Key == TagHelperMetadata.Common.TypeNamespace &&
+                        metadata.Value != null &&
                         !components.Contains(metadata.Value))
                     {
                         components.Add(metadata.Value);
