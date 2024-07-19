@@ -2011,7 +2011,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
     private bool AtBooleanLiteral()
     {
-        return LegacyCSharpTokenizer.GetTokenKeyword(CurrentToken) is CSharpSyntaxKind.TrueKeyword or CSharpSyntaxKind.FalseKeyword;
+        return CSharpTokenizer.GetTokenKeyword(CurrentToken) is CSharpSyntaxKind.TrueKeyword or CSharpSyntaxKind.FalseKeyword;
     }
 
     private void ParseAwaitExpression(SyntaxListBuilder<RazorSyntaxNode> builder, CSharpTransitionSyntax? transition)
