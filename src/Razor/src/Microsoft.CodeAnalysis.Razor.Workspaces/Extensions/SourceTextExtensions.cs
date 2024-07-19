@@ -165,32 +165,33 @@ internal static class SourceTextExtensions
         return false;
     }
 
-    // Given the source text and the current span, we start at the ending span location and iterate towards the start
-    // until we've reached a non-whitespace character.
-    // For instance "  abcdef  " would have a last non-whitespace offset of 7 to correspond to the charcter 'f'.
-    public static int? GetLastNonWhitespaceOffset(this SourceText text, TextSpan? span, out int newLineCount)
+    /// <summary>
+    ///  <para>
+    ///   Given the source text and the current span, we start at the ending span location and iterate towards the start
+    ///   until we've reached a non-whitespace character.
+    ///  </para>
+    ///  <para>
+    ///   For instance, "  abcdef  " would have a last non-whitespace offset of 7 to correspond to the character 'f'.
+    ///  </para>
+    /// </summary>
+    public static bool TryGetLastNonWhitespaceOffset(this SourceText text, TextSpan span, out int offset)
     {
         ArgHelper.ThrowIfNull(text);
 
-        span ??= new TextSpan(0, text.Length);
-        newLineCount = 0;
+        // If the span is at the end of the document, it's common for the "End" to represent 1 past the end of the source
+        var indexableSpanEnd = Math.Min(span.End, text.Length - 1);
 
-        // If the span is at the end of the document it's common for the "End" to represent 1 past the end of the source
-        var indexableSpanEnd = Math.Min(span.Value.End, text.Length - 1);
-
-        for (var i = indexableSpanEnd; i >= span.Value.Start; i--)
+        for (var i = indexableSpanEnd; i >= span.Start; i--)
         {
             if (!char.IsWhiteSpace(text[i]))
             {
-                return i - span.Value.Start;
-            }
-            else if (text[i] == '\n')
-            {
-                newLineCount++;
+                offset = i - span.Start;
+                return true;
             }
         }
 
-        return null;
+        offset = -1;
+        return false;
     }
 
     public static bool TryGetAbsoluteIndex(this SourceText text, int line, int character, out int absoluteIndex)
