@@ -45,6 +45,15 @@ internal static class SourceTextExtensions
         offset = position - line.Start;
     }
 
+    public static (int line, int offset) GetLineAndOffset(this SourceText text, int position)
+    {
+        ArgHelper.ThrowIfNull(text);
+
+        var line = text.Lines.GetLineFromPosition(position);
+
+        return (line.LineNumber, position - line.Start);
+    }
+
     public static void GetLinesAndOffsets(
         this SourceText text,
         TextSpan textSpan,
