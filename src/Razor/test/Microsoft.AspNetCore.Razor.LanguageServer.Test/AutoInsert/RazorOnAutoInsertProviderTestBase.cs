@@ -35,7 +35,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         TestFileMarkupParser.GetPosition(input, out input, out var location);
 
         var source = SourceText.From(input);
-        var (line, column) = source.GetLineAndOffset(location);
+        var (line, column) = source.GetLinePosition(location);
         var position = new Position(line, column);
 
         var path = "file:///path/to/document.razor";

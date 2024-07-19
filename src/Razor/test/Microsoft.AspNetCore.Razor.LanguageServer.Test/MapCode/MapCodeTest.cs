@@ -303,7 +303,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         Assert.True(serverCapabilities.MapCodeProvider);
 
         var sourceText = codeDocument.GetSourceText();
-        var (line, offset) = sourceText.GetLineAndOffset(cursorPosition);
+        var (line, offset) = sourceText.GetLinePosition(cursorPosition);
 
         var mappings = new VSInternalMapCodeMapping[]
         {

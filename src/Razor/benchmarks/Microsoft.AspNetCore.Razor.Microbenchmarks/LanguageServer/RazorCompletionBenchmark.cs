@@ -85,7 +85,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
 
         Position ToPosition(int index)
         {
-            var (line, offset) = DocumentText.GetLineAndOffset(index);
+            var (line, offset) = DocumentText.GetLinePosition(index);
             return new Position(line, offset);
         }
     }

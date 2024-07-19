@@ -125,7 +125,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         var endpoint = new DocumentHighlightEndpoint(
             languageServerFeatureOptions, documentMappingService, languageServer, LoggerFactory);
 
-        var (line, offset) = codeDocument.GetSourceText().GetLineAndOffset(cursorPosition);
+        var (line, offset) = codeDocument.GetSourceText().GetLinePosition(cursorPosition);
         var request = new DocumentHighlightParams
         {
             TextDocument = new TextDocumentIdentifier

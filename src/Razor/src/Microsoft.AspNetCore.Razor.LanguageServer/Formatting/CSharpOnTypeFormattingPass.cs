@@ -537,8 +537,8 @@ internal sealed class CSharpOnTypeFormattingPass(
 
     private static bool IsOnSingleLine(SyntaxNode node, SourceText text)
     {
-        var (startLine, _) = text.GetLineAndOffset(node.Span.Start);
-        var (endLine, _) = text.GetLineAndOffset(node.Span.End);
+        var (startLine, _) = text.GetLinePosition(node.Span.Start);
+        var (endLine, _) = text.GetLinePosition(node.Span.End);
 
         return startLine == endLine;
     }

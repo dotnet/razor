@@ -74,7 +74,7 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
             languageServer,
             LoggerFactory);
 
-        var (line, offset) = codeDocument.GetSourceText().GetLineAndOffset(cursorPosition);
+        var (line, offset) = codeDocument.GetSourceText().GetLinePosition(cursorPosition);
         var request = new RenameParams
         {
             TextDocument = new TextDocumentIdentifier

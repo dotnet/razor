@@ -28,7 +28,7 @@ internal class TextEditResponseRewriter : DelegatedCompletionResponseRewriter
 
         var sourceText = await hostDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
-        var (lineNumber, characterOffset) = sourceText.GetLineAndOffset(hostDocumentIndex);
+        var (lineNumber, characterOffset) = sourceText.GetLinePosition(hostDocumentIndex);
         var hostDocumentPosition = new Position(lineNumber, characterOffset);
         completionList = TranslateTextEdits(hostDocumentPosition, delegatedParameters.ProjectedPosition, completionList);
 

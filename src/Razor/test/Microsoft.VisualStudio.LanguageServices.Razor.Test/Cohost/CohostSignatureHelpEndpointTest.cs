@@ -93,7 +93,7 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
         TestFileMarkupParser.GetPosition(input, out input, out var cursorPosition);
         var document = CreateProjectAndRazorDocument(input);
         var sourceText = await document.GetTextAsync(DisposalToken);
-        var (lineIndex, characterIndex) = sourceText.GetLineAndOffset(cursorPosition);
+        var (lineIndex, characterIndex) = sourceText.GetLinePosition(cursorPosition);
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);
         clientSettingsManager.Update(ClientCompletionSettings.Default with { AutoListParams = autoListParams });

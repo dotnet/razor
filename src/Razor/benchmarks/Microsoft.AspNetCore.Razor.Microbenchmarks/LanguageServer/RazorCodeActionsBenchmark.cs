@@ -92,7 +92,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
 
         Range ToRange(int index)
         {
-            var (line, offset) = DocumentText.GetLineAndOffset(index);
+            var (line, offset) = DocumentText.GetLinePosition(index);
             return new Range
             {
                 Start = new Position(line, offset),

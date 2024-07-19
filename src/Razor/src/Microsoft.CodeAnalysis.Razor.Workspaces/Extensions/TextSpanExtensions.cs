@@ -24,15 +24,5 @@ internal static class TextSpanExtensions
     }
 
     public static Range ToRange(this TextSpan span, SourceText text)
-    {
-        var (start, end) = text.GetLinesAndOffsets(span);
-
-        var range = new Range
-        {
-            Start = new(start.line, start.offset),
-            End = new(end.line, end.offset)
-        };
-
-        return range;
-    }
+        => text.GetLinePositionSpan(span).ToRange();
 }

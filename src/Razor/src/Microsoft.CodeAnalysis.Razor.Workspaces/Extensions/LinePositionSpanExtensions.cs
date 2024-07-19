@@ -8,6 +8,12 @@ namespace Microsoft.CodeAnalysis.Text;
 
 internal static class LinePositionSpanExtensions
 {
+    public static void Deconstruct(this LinePositionSpan linePositionSpan, out LinePosition start, out LinePosition end)
+        => (start, end) = (linePositionSpan.Start, linePositionSpan.End);
+
+    public static void Deconstruct(this LinePositionSpan linePositionSpan, out int startLine, out int startCharacter, out int endLine, out int endCharacter)
+        => (startLine, startCharacter, endLine, endCharacter) = (linePositionSpan.Start.Line, linePositionSpan.Start.Character, linePositionSpan.End.Line, linePositionSpan.End.Character);
+
     public static Range ToRange(this LinePositionSpan linePositionSpan)
         => new()
         {

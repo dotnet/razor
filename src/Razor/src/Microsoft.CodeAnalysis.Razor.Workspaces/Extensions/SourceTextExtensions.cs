@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Text;
@@ -36,48 +37,31 @@ internal static class SourceTextExtensions
         return TextChangeRange.Collapse(ranges);
     }
 
-    public static LinePosition GetLineAndOffset(this SourceText text, int position)
+    public static LinePosition GetLinePosition(this SourceText text, int position)
     {
         ArgHelper.ThrowIfNull(text);
 
         return text.Lines.GetLinePosition(position);
     }
 
-    private static (int line, int offset) GetLineAndOffsetCore(this SourceText text, int position)
-    {
-        var line = text.Lines.GetLineFromPosition(position);
-
-        return (line.LineNumber, position - line.Start);
-    }
-
-    public static ((int line, int offset) start, (int line, int offset) end) GetLinesAndOffsets(this SourceText text, TextSpan textSpan)
+    public static LinePositionSpan GetLinePositionSpan(this SourceText text, TextSpan span)
     {
         ArgHelper.ThrowIfNull(text);
 
-        var start = text.GetLineAndOffsetCore(textSpan.Start);
-        var end = text.GetLineAndOffsetCore(textSpan.End);
-
-        return (start, end);
+        return text.Lines.GetLinePositionSpan(span);
     }
 
-    public static ((int line, int offset) start, (int line, int offset) end) GetLinesAndOffsets(this SourceText text, SourceSpan sourceSpan)
+    public static LinePositionSpan GetLinePositionSpan(this SourceText text, SourceSpan span)
+        => text.GetLinePositionSpan(span.ToTextSpan());
+
+    public static string GetSubTextString(this SourceText text, TextSpan span)
     {
         ArgHelper.ThrowIfNull(text);
 
-        var start = text.GetLineAndOffsetCore(sourceSpan.AbsoluteIndex);
-        var end = text.GetLineAndOffsetCore(sourceSpan.AbsoluteIndex + sourceSpan.Length);
+        using var _ = ArrayPool<char>.Shared.GetPooledArray(span.Length, out var charBuffer);
 
-        return (start, end);
-    }
-
-    public static string GetSubTextString(this SourceText text, TextSpan textSpan)
-    {
-        ArgHelper.ThrowIfNull(text);
-
-        using var _ = ArrayPool<char>.Shared.GetPooledArray(textSpan.Length, out var charBuffer);
-
-        text.CopyTo(textSpan.Start, charBuffer, 0, textSpan.Length);
-        return new string(charBuffer, 0, textSpan.Length);
+        text.CopyTo(span.Start, charBuffer, 0, span.Length);
+        return new string(charBuffer, 0, span.Length);
     }
 
     public static bool NonWhitespaceContentEquals(this SourceText text, SourceText other)

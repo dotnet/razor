@@ -967,7 +967,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
             languageServer,
             LoggerFactory);
 
-        var (line, offset) = codeDocument.GetSourceText().GetLineAndOffset(cursorPosition);
+        var (line, offset) = codeDocument.GetSourceText().GetLinePosition(cursorPosition);
         var razorFileUri = new Uri(razorFilePath);
         var request = new TextDocumentPositionParams
         {
