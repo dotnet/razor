@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight.RemoteDocumentHighlight[]?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -29,7 +29,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
     private readonly IRazorDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IRazorDocumentMappingService>();
     private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
 
-    public ValueTask<RemoteDocumentHighlight[]?> GetHighlightsAsync(
+    public ValueTask<Response> GetHighlightsAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         LinePosition position,
@@ -40,7 +40,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
             context => GetHighlightsAsync(context, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<RemoteDocumentHighlight[]?> GetHighlightsAsync(
+    private async ValueTask<Response> GetHighlightsAsync(
         RemoteDocumentContext context,
         LinePosition position,
         CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(position.Line, position.Character, out var index))
         {
-            return null;
+            return Response.NoFurtherHandling;
         }
 
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -56,13 +56,11 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         var languageKind = _documentMappingService.GetLanguageKind(codeDocument, index, rightAssociative: true);
         if (languageKind is RazorLanguageKind.Html)
         {
-            // Returning null indicates we have nothing to say, so go to Html
-            return null;
+            return Response.CallHtml;
         }
         else if (languageKind is RazorLanguageKind.Razor)
         {
-            // We don't do anything for Razor, but we return an empty array so the caller knows not to bother asking Html
-            return [];
+            return Response.NoFurtherHandling;
         }
 
         var csharpDocument = codeDocument.GetCSharpDocument();
@@ -85,13 +83,10 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
                     }
                 }
 
-                return results.ToArray();
+                return Response.Results(results.ToArray());
             }
         }
 
-        // We couldn't produce any results from C#, but since we know the context is definitely C# we don't want to return null, otherwise
-        // we'd then go and ask Web Tools which could return who knows what results. Instead we return an empty array to indicate we've
-        // done some work.
-        return [];
+        return Response.NoFurtherHandling;
     }
 }

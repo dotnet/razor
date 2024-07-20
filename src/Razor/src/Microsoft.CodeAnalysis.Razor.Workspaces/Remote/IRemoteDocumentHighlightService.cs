@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteDocumentHighlightService
 {
-    ValueTask<RemoteDocumentHighlight[]?> GetHighlightsAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken);
+    ValueTask<RemoteResponse<RemoteDocumentHighlight[]?>> GetHighlightsAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken);
 }

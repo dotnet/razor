@@ -102,7 +102,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
                 }
                 """;
 
-        await VerifyDocumentHighlightsAsync(input);
+        await VerifyDocumentHighlightsAsync(input, htmlResponse: [new DocumentHighlight()]);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
                 }
                 """;
 
-        await VerifyDocumentHighlightsAsync(input, expectEmptyArray: true);
+        await VerifyDocumentHighlightsAsync(input);
     }
 
     [Fact]
@@ -142,17 +142,16 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
                 }
                 """;
 
-        await VerifyDocumentHighlightsAsync(input, expectEmptyArray: true);
+        await VerifyDocumentHighlightsAsync(input);
     }
 
-    private async Task VerifyDocumentHighlightsAsync(string input, bool expectEmptyArray = false)
+    private async Task VerifyDocumentHighlightsAsync(string input, DocumentHighlight[]? htmlResponse = null)
     {
         TestFileMarkupParser.GetPositionAndSpans(input, out var source, out int cursorPosition, out ImmutableArray<TextSpan> spans);
         var document = CreateProjectAndRazorDocument(source);
         var inputText = await document.GetTextAsync(DisposalToken);
         inputText.GetLineAndOffset(cursorPosition, out var lineIndex, out var characterIndex);
 
-        var htmlResponse = new[] { new DocumentHighlight() };
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentDocumentHighlightName, htmlResponse)]);
 
         var endpoint = new CohostDocumentHighlightEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker);
@@ -165,24 +164,13 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
-        Assert.NotNull(result);
-
         if (spans.Length == 0)
         {
-            if (expectEmptyArray)
-            {
-                // No spans and expecting an empty array means this result is in a Razor context
-                Assert.Empty(result);
-            }
-            else
-            {
-                // No spans but not expecting an empty array means we should have gotten a response from the Html server
-                // so we just verify we got our fake one
-                Assert.Same(htmlResponse, result);
-            }
-
+            Assert.Same(result, htmlResponse);
             return;
         }
+
+        Assert.NotNull(result);
 
         var actual = TestFileMarkupParser.CreateTestFile(source, cursorPosition, result.SelectAsArray(h => h.Range.ToTextSpan(inputText)));
 

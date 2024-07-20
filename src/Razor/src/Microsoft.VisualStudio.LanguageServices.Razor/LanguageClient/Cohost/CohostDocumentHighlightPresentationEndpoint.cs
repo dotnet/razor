@@ -63,15 +63,20 @@ internal class CohostDocumentHighlightEndpoint(
 
     private async Task<DocumentHighlight[]?> HandleRequestAsync(DocumentHighlightParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDocumentHighlightService, RemoteDocumentHighlight[]?>(
+        var csharpResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDocumentHighlightService, RemoteResponse<RemoteDocumentHighlight[]?>>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetHighlightsAsync(solutionInfo, razorDocument.Id, request.Position.ToLinePosition(), cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         // If we got a response back, then either Razor or C# wants to do something with this, so we're good to go
-        if (csharpResult is not null)
+        if (csharpResult.Result is { } highlights)
         {
-            return csharpResult.Select(RemoteDocumentHighlight.ToLspDocumentHighlight).ToArray();
+            return highlights.Select(RemoteDocumentHighlight.ToLspDocumentHighlight).ToArray();
+        }
+
+        if (!csharpResult.ShouldCallHtml)
+        {
+            return null;
         }
 
         // If we didn't get anything from Razor or Roslyn, lets ask Html what they want to do
