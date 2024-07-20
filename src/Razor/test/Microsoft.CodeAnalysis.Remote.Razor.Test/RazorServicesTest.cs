@@ -40,15 +40,19 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
         var services = new HashSet<string>(RazorServices.MessagePackServices.Select(s => s.Item1.Name));
         services.UnionWith(RazorServices.JsonServices.Select(s => s.Item1.Name));
         var serviceNodes = s_servicesFile.SelectNodes("/Project/ItemGroup/ServiceHubService");
+        Assert.NotNull(serviceNodes);
         foreach (XmlNode serviceNode in serviceNodes)
         {
-            var serviceEntry = serviceNode.Attributes["Include"].Value;
-            var factoryName = serviceNode.Attributes["ClassName"].Value;
+            Assert.NotNull(serviceNode);
+            Assert.NotNull(serviceNode.Attributes);
+
+            var serviceEntry = serviceNode.Attributes["Include"]!.Value;
+            var factoryName = serviceNode.Attributes["ClassName"]!.Value;
 
             var factoryType = typeof(ServiceArgs).Assembly.GetType(factoryName);
             AssertEx.NotNull(factoryType, $"Could not load type for factory '{factoryName}'");
 
-            var interfaceType = factoryType.BaseType.GetGenericArguments()[0];
+            var interfaceType = factoryType.BaseType!.GetGenericArguments()[0];
             Assert.True(services.Contains(interfaceType.Name), $"Service '{interfaceType.Name}' is not listed in RazorServices");
         }
     }
@@ -94,7 +98,7 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
         AssertEx.NotNull(serviceNode, $"Expected entry in Services.props for {servicePropsEntry}");
 
         var serviceImplName = $"Microsoft.CodeAnalysis.Remote.Razor.Remote{shortName}Service";
-        var factoryName = serviceNode.Attributes["ClassName"].Value;
+        var factoryName = serviceNode.Attributes!["ClassName"]!.Value;
         Assert.Equal($"{serviceImplName}+Factory", factoryName);
 
         var serviceImplType = typeof(ServiceArgs).Assembly.GetType(serviceImplName);
@@ -105,7 +109,7 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
 
         Assert.True(serviceType.IsAssignableFrom(serviceImplType));
 
-        var interfaceType = factoryType.BaseType.GetGenericArguments()[0];
+        var interfaceType = factoryType.BaseType!.GetGenericArguments()[0];
         Assert.Equal(serviceType, interfaceType);
     }
 }
