@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -58,31 +59,39 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
             // Returning null indicates we have nothing to say, so go to Html
             return null;
         }
-        else if (languageKind is RazorLanguageKind.CSharp)
+        else if (languageKind is RazorLanguageKind.Razor)
         {
-            var csharpDocument = codeDocument.GetCSharpDocument();
-            if (_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
+            // We don't do anything for Razor, but we return an empty array so the caller knows not to bother asking Html
+            return [];
+        }
+
+        var csharpDocument = codeDocument.GetCSharpDocument();
+        if (_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
+        {
+            var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
+
+            var highlights = await DocumentHighlights.GetHighlightsAsync(generatedDocument, mappedPosition, cancellationToken).ConfigureAwait(false);
+
+            if (highlights is not null)
             {
-                var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
+                using var results = new PooledArrayBuilder<RemoteDocumentHighlight>();
 
-                var highlights = await DocumentHighlights.GetHighlightsAsync(generatedDocument, mappedPosition, cancellationToken).ConfigureAwait(false);
-
-                if (highlights is not null)
+                foreach (var highlight in highlights)
                 {
-                    foreach (var highlight in highlights)
+                    if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, highlight.Range.ToLinePositionSpan(), out var mappedRange))
                     {
-                        if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, highlight.Range.ToLinePositionSpan(), out var mappedRange))
-                        {
-                            highlight.Range = mappedRange.ToRLSPRange();
-                        }
+                        highlight.Range = mappedRange.ToRLSPRange();
+                        results.Add(RemoteDocumentHighlight.FromRLSPDocumentHighlight(highlight));
                     }
-
-                    return highlights.Select(RemoteDocumentHighlight.FromRLSPDocumentHighlight).ToArray();
                 }
+
+                return results.ToArray();
             }
         }
 
-        // We don't do anything for Razor, but we return an empty array so the caller knows not to bother asking Html
+        // We couldn't produce any results from C#, but since we know the context is definitely C# we don't want to return null, otherwise
+        // we'd then go and ask Web Tools which could return who knows what results. Instead we return an empty array to indicate we've
+        // done some work.
         return [];
     }
 }

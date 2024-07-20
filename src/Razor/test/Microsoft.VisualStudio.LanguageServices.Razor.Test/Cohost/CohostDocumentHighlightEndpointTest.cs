@@ -125,6 +125,26 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
         await VerifyDocumentHighlightsAsync(input, expectEmptyArray: true);
     }
 
+    [Fact]
+    public async Task Inject()
+    {
+        var input = """
+                @inject [|IDis$$posable|] Disposable
+
+                <div>
+                </div>
+
+                @code
+                {
+                    [|IDisposable|].Dispose()
+                    {
+                    }
+                }
+                """;
+
+        await VerifyDocumentHighlightsAsync(input, expectEmptyArray: true);
+    }
+
     private async Task VerifyDocumentHighlightsAsync(string input, bool expectEmptyArray = false)
     {
         TestFileMarkupParser.GetPositionAndSpans(input, out var source, out int cursorPosition, out ImmutableArray<TextSpan> spans);
