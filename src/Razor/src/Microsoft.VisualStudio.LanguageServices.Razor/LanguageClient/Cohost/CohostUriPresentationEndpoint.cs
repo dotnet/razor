@@ -91,7 +91,7 @@ internal class CohostUriPresentationEndpoint(
         }
 
         // If we didn't get anything from our logic, we might need to go and ask Html, but we also might have determined not to
-        if (!data.ShouldCallHtml)
+        if (data.StopHandling)
         {
             return null;
         }

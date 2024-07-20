@@ -74,7 +74,7 @@ internal class CohostDocumentHighlightEndpoint(
             return highlights.Select(RemoteDocumentHighlight.ToLspDocumentHighlight).ToArray();
         }
 
-        if (!csharpResult.ShouldCallHtml)
+        if (csharpResult.StopHandling)
         {
             return null;
         }
