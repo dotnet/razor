@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -57,10 +58,11 @@ internal class CohostDocumentHighlightEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentHighlightParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override async Task<DocumentHighlight[]?> HandleRequestAsync(DocumentHighlightParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-    {
-        var razorDocument = context.TextDocument.AssumeNotNull();
+    protected override Task<DocumentHighlight[]?> HandleRequestAsync(DocumentHighlightParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+        => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
 
+    private async Task<DocumentHighlight[]?> HandleRequestAsync(DocumentHighlightParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
         var csharpResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDocumentHighlightService, RemoteDocumentHighlight[]?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetHighlightsAsync(solutionInfo, razorDocument.Id, request.Position.ToLinePosition(), cancellationToken),
@@ -90,5 +92,13 @@ internal class CohostDocumentHighlightEndpoint(
 
         // Since we don't need to map positions in Html, and document highlight results don't have Uri's, we can return these results directly
         return result?.Response;
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostDocumentHighlightEndpoint instance)
+    {
+        public Task<DocumentHighlight[]?> HandleRequestAsync(DocumentHighlightParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }
