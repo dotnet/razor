@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -151,13 +152,13 @@ internal sealed class CodeActionEndpoint(
         // context.
         //
         // Note: VS Code doesn't provide a `SelectionRange`.
-        var vsCodeActionContext = (VSInternalCodeActionContext)request.Context;
+        var vsCodeActionContext = request.Context;
         if (vsCodeActionContext.SelectionRange != null)
         {
             request.Range = vsCodeActionContext.SelectionRange;
         }
 
-        if (!request.Range.Start.TryGetSourceLocation(sourceText, _logger, out var location))
+        if (!sourceText.TryGetSourceLocation(request.Range.Start, _logger, out var location))
         {
             return null;
         }
@@ -166,7 +167,7 @@ internal sealed class CodeActionEndpoint(
             request,
             documentSnapshot,
             codeDocument,
-            location.Value,
+            location,
             sourceText,
             _languageServerFeatureOptions.SupportsFileManipulation,
             _supportsCodeActionResolve);

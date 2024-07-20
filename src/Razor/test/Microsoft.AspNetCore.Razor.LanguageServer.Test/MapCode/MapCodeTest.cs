@@ -303,7 +303,6 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         Assert.True(serverCapabilities.MapCodeProvider);
 
         var sourceText = codeDocument.GetSourceText();
-        var (line, offset) = sourceText.GetLinePosition(cursorPosition);
 
         var mappings = new VSInternalMapCodeMapping[]
         {
@@ -317,11 +316,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                     [
                         new Location
                         {
-                            Range = new Range
-                            {
-                                Start = new Position(line, offset),
-                                End = new Position(line, offset)
-                            },
+                            Range = sourceText.GetCollapsedLspRange(cursorPosition),
                             Uri = new Uri(razorFilePath)
                         }
                     ]

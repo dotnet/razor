@@ -6,7 +6,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
@@ -75,7 +74,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
 
         // Assert
-        Assert.Equal("lo W", sourceText.GetSubTextString(range.ToTextSpan(sourceText)));
+        Assert.Equal("lo W", sourceText.GetSubTextString(sourceText.GetTextSpan(range)));
         Assert.Equal(expectedRange, range);
     }
 
@@ -95,7 +94,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
 
         // Assert
-        Assert.Equal("", sourceText.GetSubTextString(range.ToTextSpan(sourceText)));
+        Assert.Equal("", sourceText.GetSubTextString(sourceText.GetTextSpan(range)));
         Assert.Equal(expectedRange, range);
     }
 
@@ -115,7 +114,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
 
         // Assert
-        Assert.Equal("", sourceText.GetSubTextString(range.ToTextSpan(sourceText)));
+        Assert.Equal("", sourceText.GetSubTextString(sourceText.GetTextSpan(range)));
         Assert.Equal(expectedRange, range);
     }
 
@@ -135,7 +134,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
 
         // Assert
-        Assert.Equal("World", sourceText.GetSubTextString(range.ToTextSpan(sourceText)));
+        Assert.Equal("World", sourceText.GetSubTextString(sourceText.GetTextSpan(range)));
         Assert.Equal(expectedRange, range);
     }
 

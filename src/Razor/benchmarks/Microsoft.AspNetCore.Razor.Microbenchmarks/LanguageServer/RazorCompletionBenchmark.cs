@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -78,16 +77,10 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync();
 
-        RazorPosition = ToPosition(razorCodeActionIndex);
+        RazorPosition = DocumentText.GetLspPosition(razorCodeActionIndex);
 
         var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, 1);
         RazorRequestContext = new RazorRequestContext(documentContext, RazorLanguageServerHost.GetRequiredService<ILspServices>(), "lsp/method", uri: null);
-
-        Position ToPosition(int index)
-        {
-            var (line, offset) = DocumentText.GetLinePosition(index);
-            return new Position(line, offset);
-        }
     }
 
     private static string GetFileContents()

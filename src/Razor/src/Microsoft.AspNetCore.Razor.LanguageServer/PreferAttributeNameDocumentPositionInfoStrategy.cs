@@ -32,8 +32,7 @@ internal class PreferAttributeNameDocumentPositionInfoStrategy : IDocumentPositi
             // in the actual component property name, then the C# server would give us a result, so we fake it.
             if (RazorSyntaxFacts.TryGetAttributeNameAbsoluteIndex(codeDocument, absoluteIndex, out var attributeNameIndex))
             {
-                var (line, offset) = sourceText.GetLinePosition(attributeNameIndex);
-                position = new Position(line, offset);
+                position = sourceText.GetLspPosition(attributeNameIndex);
             }
         }
 

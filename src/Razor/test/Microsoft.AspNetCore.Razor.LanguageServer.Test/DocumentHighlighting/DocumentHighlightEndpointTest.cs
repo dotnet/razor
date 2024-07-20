@@ -125,14 +125,13 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         var endpoint = new DocumentHighlightEndpoint(
             languageServerFeatureOptions, documentMappingService, languageServer, LoggerFactory);
 
-        var (line, offset) = codeDocument.GetSourceText().GetLinePosition(cursorPosition);
         var request = new DocumentHighlightParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset)
+            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition)
         };
 
         var documentContext = CreateDocumentContext(request.TextDocument.Uri, codeDocument);

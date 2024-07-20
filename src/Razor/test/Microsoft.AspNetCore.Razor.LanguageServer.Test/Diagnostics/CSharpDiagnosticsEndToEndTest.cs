@@ -82,7 +82,7 @@ public class CSharpDiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Singl
         {
             // If any future test requires multiple diagnostics of the same type, please change this code :)
             var diagnostic = Assert.Single(actual, d => d.Code == code);
-            Assert.Equal(span.First(), diagnostic.Range.ToTextSpan(sourceText));
+            Assert.Equal(span.First(), sourceText.GetTextSpan(diagnostic.Range));
         }
     }
 }

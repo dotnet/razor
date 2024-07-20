@@ -12,8 +12,11 @@ internal static class LinePositionExtensions
     public static void Deconstruct(this LinePosition linePosition, out int line, out int character)
         => (line, character) = (linePosition.Line, linePosition.Character);
 
-    public static Position ToPosition(this LinePosition linePosition)
+    public static Position ToLspPosition(this LinePosition linePosition)
         => new(linePosition.Line, linePosition.Character);
+
+    public static Range ToCollapsedLspRange(this LinePosition position)
+        => new() { Start = position.ToLspPosition(), End = position.ToLspPosition() };
 
     public static bool TryGetAbsoluteIndex(this LinePosition position, SourceText text, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position, out absoluteIndex);

@@ -74,14 +74,13 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
             languageServer,
             LoggerFactory);
 
-        var (line, offset) = codeDocument.GetSourceText().GetLinePosition(cursorPosition);
         var request = new RenameParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset),
+            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition),
             NewName = newName
         };
         Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));

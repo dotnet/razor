@@ -238,7 +238,7 @@ internal sealed class CSharpOnTypeFormattingPass(
     {
         var filteredEdits = edits.Where(e =>
         {
-            var span = e.Range.ToTextSpan(context.SourceText);
+            var span = context.SourceText.GetTextSpan(e.Range);
             return ShouldFormat(context, span, allowImplicitStatements: false);
         }).ToArray();
 
@@ -326,7 +326,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         //
 
         var text = context.SourceText;
-        var sourceMappingSpan = sourceMappingRange.ToTextSpan(text);
+        var sourceMappingSpan = text.GetTextSpan(sourceMappingRange);
         if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false, out var owner))
         {
             // We don't want to run cleanup on this range.
@@ -453,7 +453,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         //
 
         var text = context.SourceText;
-        var sourceMappingSpan = sourceMappingRange.ToTextSpan(text);
+        var sourceMappingSpan = text.GetTextSpan(sourceMappingRange);
         var mappingEndLineIndex = sourceMappingRange.End.Line;
 
         var indentations = context.GetIndentations();
@@ -537,10 +537,9 @@ internal sealed class CSharpOnTypeFormattingPass(
 
     private static bool IsOnSingleLine(SyntaxNode node, SourceText text)
     {
-        var (startLine, _) = text.GetLinePosition(node.Span.Start);
-        var (endLine, _) = text.GetLinePosition(node.Span.End);
+        var linePositionSpan = text.GetLinePositionSpan(node.Span);
 
-        return startLine == endLine;
+        return linePositionSpan.Start.Line == linePositionSpan.End.Line;
     }
 
     private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)

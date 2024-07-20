@@ -1,9 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -18,6 +16,9 @@ internal static class PositionExtensions
 
     public static LinePosition ToLinePosition(this RLSP.Position position)
         => new LinePosition(position.Line, position.Character);
+
+    public static Range ToCollapsedRange(this Position position)
+        => new() { Start = position, End = position };
 
     public static bool TryGetAbsoluteIndex(this Position position, SourceText text, out int absoluteIndex)
     {
@@ -40,22 +41,6 @@ internal static class PositionExtensions
 
     public static int GetRequiredAbsoluteIndex(this Position position, SourceText text, ILogger logger)
         => text.GetRequiredAbsoluteIndex(position, logger);
-
-    public static bool TryGetSourceLocation(
-        this Position position,
-        SourceText text,
-        ILogger logger,
-        [NotNullWhen(true)] out SourceLocation? sourceLocation)
-    {
-        if (!text.TryGetAbsoluteIndex(position, logger, out var absoluteIndex))
-        {
-            sourceLocation = null;
-            return false;
-        }
-
-        sourceLocation = new SourceLocation(absoluteIndex, position.Line, position.Character);
-        return true;
-    }
 
     public static int CompareTo(this Position position, Position other)
     {

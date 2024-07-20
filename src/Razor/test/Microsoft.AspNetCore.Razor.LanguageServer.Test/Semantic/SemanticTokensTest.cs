@@ -1140,14 +1140,14 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         => new()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri },
-            Ranges = ranges.Select(s => s.ToRange()).ToArray()
+            Ranges = ranges.Select(s => s.ToLspRange()).ToArray()
         };
 
     private static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(LinePositionSpan range, Uri uri)
         => new()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri },
-            Range = range.ToRange()
+            Range = range.ToLspRange()
         };
 
     private static void GenerateSemanticBaseline(string actualFileContents, string baselineFileName)

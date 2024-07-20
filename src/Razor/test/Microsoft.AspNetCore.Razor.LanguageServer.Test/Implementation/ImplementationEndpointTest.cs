@@ -98,14 +98,13 @@ public class ImplementationEndpointTest(ITestOutputHelper testOutput) : SingleSe
         var endpoint = new ImplementationEndpoint(
             LanguageServerFeatureOptions, DocumentMappingService, languageServer, LoggerFactory);
 
-        var (line, offset) = codeDocument.GetSourceText().GetLinePosition(cursorPosition);
         var request = new TextDocumentPositionParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset)
+            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition)
         };
         Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);

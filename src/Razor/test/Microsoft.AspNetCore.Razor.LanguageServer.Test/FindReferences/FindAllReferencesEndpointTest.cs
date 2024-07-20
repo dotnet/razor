@@ -52,7 +52,6 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
             LanguageServerFeatureOptions, DocumentMappingService, languageServer, LoggerFactory, FilePathService);
 
         var sourceText = codeDocument.GetSourceText();
-        var (line, offset) = sourceText.GetLinePosition(cursorPosition);
 
         var request = new ReferenceParams
         {
@@ -64,7 +63,7 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset)
+            Position = sourceText.GetLspPosition(cursorPosition)
         };
         Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);

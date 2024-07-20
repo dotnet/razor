@@ -322,8 +322,7 @@ internal abstract class AbstractRazorDocumentMappingService(
             var distanceIntoGeneratedSpan = generatedDocumentIndex - generatedAbsoluteIndex;
 
             hostDocumentIndex = mapping.OriginalSpan.AbsoluteIndex + distanceIntoGeneratedSpan;
-            var originalLocation = codeDocument.Source.Text.Lines.GetLinePosition(hostDocumentIndex);
-            hostDocumentPosition = new LinePosition(originalLocation.Line, originalLocation.Character);
+            hostDocumentPosition = codeDocument.Source.Text.GetLinePosition(hostDocumentIndex);
             return true;
         }
 
@@ -372,9 +371,9 @@ internal abstract class AbstractRazorDocumentMappingService(
 
                 // The "next" C# location is only valid if it is on the same line in the source document
                 // as the requested position.
-                var (hostDocumentLine, _) = codeDocument.GetSourceText().GetLinePosition(hostDocumentIndex);
+                var hostDocumentLinePosition = codeDocument.GetSourceText().GetLinePosition(hostDocumentIndex);
 
-                if (mapping.OriginalSpan.LineIndex == hostDocumentLine)
+                if (mapping.OriginalSpan.LineIndex == hostDocumentLinePosition.Line)
                 {
                     generatedIndex = mapping.GeneratedSpan.AbsoluteIndex;
                     generatedPosition = GetGeneratedPosition(generatedDocument, generatedIndex);
@@ -392,7 +391,7 @@ internal abstract class AbstractRazorDocumentMappingService(
         static LinePosition GetGeneratedPosition(IRazorGeneratedDocument generatedDocument, int generatedIndex)
         {
             var generatedSource = GetGeneratedSourceText(generatedDocument);
-            return generatedSource.Lines.GetLinePosition(generatedIndex);
+            return generatedSource.GetLinePosition(generatedIndex);
         }
     }
 
@@ -652,7 +651,7 @@ internal abstract class AbstractRazorDocumentMappingService(
             // We're intersecting or overlapping a single mapping, lets choose that.
 
             var mapping = candidateMappings[0];
-            hostDocumentRange = ConvertMapping(codeDocument.Source, mapping);
+            hostDocumentRange = codeDocument.Source.Text.GetLinePositionSpan(mapping.OriginalSpan);
             return true;
         }
         else
@@ -672,14 +671,6 @@ internal abstract class AbstractRazorDocumentMappingService(
         bool IntersectsWith(int position, SourceSpan span)
         {
             return unchecked((uint)(position - span.AbsoluteIndex) <= (uint)span.Length);
-        }
-
-        static LinePositionSpan ConvertMapping(RazorSourceDocument sourceDocument, SourceMapping mapping)
-        {
-            var startLocation = sourceDocument.Text.Lines.GetLinePosition(mapping.OriginalSpan.AbsoluteIndex);
-            var endLocation = sourceDocument.Text.Lines.GetLinePosition(mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length);
-            var convertedRange = new LinePositionSpan(startLocation, endLocation);
-            return convertedRange;
         }
     }
 
@@ -738,15 +729,14 @@ internal abstract class AbstractRazorDocumentMappingService(
         var sourceDocument = codeDocument.Source;
         var originalSpanBeforeGeneratedRange = mappingBeforeGeneratedRange.OriginalSpan;
         var originalEndBeforeGeneratedRange = originalSpanBeforeGeneratedRange.AbsoluteIndex + originalSpanBeforeGeneratedRange.Length;
-        var originalEndPositionBeforeGeneratedRange = sourceDocument.Text.Lines.GetLinePosition(originalEndBeforeGeneratedRange);
-        var inferredStartPosition = new LinePosition(originalEndPositionBeforeGeneratedRange.Line, originalEndPositionBeforeGeneratedRange.Character);
+        var inferredStartPosition = sourceDocument.Text.GetLinePosition(originalEndBeforeGeneratedRange);
 
         if (mappingAfterGeneratedRange != null)
         {
             // There's a mapping after the "generated range" lets use its start position as our inferred end position.
 
             var originalSpanAfterGeneratedRange = mappingAfterGeneratedRange.OriginalSpan;
-            var originalStartPositionAfterGeneratedRange = sourceDocument.Text.Lines.GetLinePosition(originalSpanAfterGeneratedRange.AbsoluteIndex);
+            var originalStartPositionAfterGeneratedRange = sourceDocument.Text.GetLinePosition(originalSpanAfterGeneratedRange.AbsoluteIndex);
 
             // The mapping in the generated file is after the start, but when mapped back to the host file that may not be true
             if (originalStartPositionAfterGeneratedRange >= inferredStartPosition)
@@ -760,7 +750,7 @@ internal abstract class AbstractRazorDocumentMappingService(
 
         Debug.Assert(sourceDocument.Text.Length > 0, "Source document length should be greater than 0 here because there's a mapping before us");
 
-        var endOfDocumentPosition = sourceDocument.Text.Lines.GetLinePosition(sourceDocument.Text.Length);
+        var endOfDocumentPosition = sourceDocument.Text.GetLinePosition(sourceDocument.Text.Length);
 
         Debug.Assert(endOfDocumentPosition >= inferredStartPosition, "Some how we found a start position that is after the end of the document?");
 

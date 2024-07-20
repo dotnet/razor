@@ -24,5 +24,5 @@ internal static class TextSpanExtensions
     }
 
     public static Range ToRange(this TextSpan span, SourceText text)
-        => text.GetLinePositionSpan(span).ToRange();
+        => text.GetLinePositionSpan(span).ToLspRange();
 }

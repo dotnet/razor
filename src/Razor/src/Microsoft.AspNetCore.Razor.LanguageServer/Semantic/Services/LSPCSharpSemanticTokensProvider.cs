@@ -34,7 +34,7 @@ internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions lang
         using var _ = ListPool<Range>.GetPooledObject(out var csharpRangeList);
         foreach (var span in csharpSpans)
         {
-            csharpRangeList.Add(span.ToRange());
+            csharpRangeList.Add(span.ToLspRange());
         }
 
         var csharpRanges = csharpRangeList.ToArray();

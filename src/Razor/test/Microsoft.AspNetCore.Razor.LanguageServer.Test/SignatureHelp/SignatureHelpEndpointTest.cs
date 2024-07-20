@@ -104,14 +104,13 @@ public class SignatureHelpEndpointTest(ITestOutputHelper testOutput) : SingleSer
         var endpoint = new SignatureHelpEndpoint(
             LanguageServerFeatureOptions, DocumentMappingService, languageServer, optionsMonitor, LoggerFactory);
 
-        var (line, offset) = codeDocument.GetSourceText().GetLinePosition(cursorPosition);
         var request = new SignatureHelpParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset),
+            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition),
             Context = signatureHelpContext
         };
 

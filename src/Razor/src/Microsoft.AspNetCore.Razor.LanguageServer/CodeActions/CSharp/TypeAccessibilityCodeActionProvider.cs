@@ -88,7 +88,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                 continue;
             }
 
-            var diagnosticSpan = diagnostic.Range.ToTextSpan(context.SourceText);
+            var diagnosticSpan = context.SourceText.GetTextSpan(diagnostic.Range);
 
             // Based on how we compute `Range.AsTextSpan` it's possible to have a span
             // which goes beyond the end of the source text. Something likely changed

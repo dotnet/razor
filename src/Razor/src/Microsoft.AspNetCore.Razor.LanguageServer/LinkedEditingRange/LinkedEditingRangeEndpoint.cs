@@ -62,7 +62,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
 
         if (LinkedEditingRangeHelper.GetLinkedSpans(request.Position.ToLinePosition(), codeDocument, _logger) is { } linkedSpans && linkedSpans.Length == 2)
         {
-            var ranges = new Range[2] { linkedSpans[0].ToRange(), linkedSpans[1].ToRange() };
+            var ranges = new Range[2] { linkedSpans[0].ToLspRange(), linkedSpans[1].ToLspRange() };
 
             return new LinkedEditingRanges
             {

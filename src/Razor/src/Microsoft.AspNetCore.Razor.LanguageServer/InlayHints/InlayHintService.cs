@@ -44,7 +44,7 @@ internal sealed class InlayHintService(IRazorDocumentMappingService documentMapp
         // the results, much like folding ranges.
         var delegatedRequest = new DelegatedInlayHintParams(
             Identifier: documentContext.Identifier,
-            ProjectedRange: projectedLinePositionSpan.ToRange(),
+            ProjectedRange: projectedLinePositionSpan.ToLspRange(),
             ProjectedKind: RazorLanguageKind.CSharp
         );
 

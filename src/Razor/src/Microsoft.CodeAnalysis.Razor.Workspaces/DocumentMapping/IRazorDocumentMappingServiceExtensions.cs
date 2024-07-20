@@ -37,8 +37,7 @@ internal static class IRazorDocumentMappingServiceExtensions
         SourceText sourceText,
         int hostDocumentIndex)
     {
-        var (line, character) = sourceText.GetLinePosition(hostDocumentIndex);
-        var position = new Position(line, character);
+        var position = sourceText.GetLspPosition(hostDocumentIndex);
 
         var languageKind = service.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
         if (languageKind is not RazorLanguageKind.Razor)
@@ -67,35 +66,35 @@ internal static class IRazorDocumentMappingServiceExtensions
     public static bool TryMapToHostDocumentRange(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? hostDocumentRange)
     {
         var result = service.TryMapToHostDocumentRange(generatedDocument, generatedDocumentRange.ToLinePositionSpan(), mappingBehavior, out var hostDocumentLinePositionSpan);
-        hostDocumentRange = result ? hostDocumentLinePositionSpan.ToRange() : null;
+        hostDocumentRange = result ? hostDocumentLinePositionSpan.ToLspRange() : null;
         return result;
     }
 
     public static bool TryMapToGeneratedDocumentRange(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, Range hostDocumentRange, [NotNullWhen(true)] out Range? generatedDocumentRange)
     {
         var result = service.TryMapToGeneratedDocumentRange(generatedDocument, hostDocumentRange.ToLinePositionSpan(), out var generatedDocumentLinePositionSpan);
-        generatedDocumentRange = result ? generatedDocumentLinePositionSpan.ToRange() : null;
+        generatedDocumentRange = result ? generatedDocumentLinePositionSpan.ToLspRange() : null;
         return result;
     }
 
     public static bool TryMapToHostDocumentPosition(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, int generatedDocumentIndex, [NotNullWhen(true)] out Position? hostDocumentPosition, out int hostDocumentIndex)
     {
         var result = service.TryMapToHostDocumentPosition(generatedDocument, generatedDocumentIndex, out var hostDocumentLinePosition, out hostDocumentIndex);
-        hostDocumentPosition = result ? hostDocumentLinePosition.ToPosition() : null;
+        hostDocumentPosition = result ? hostDocumentLinePosition.ToLspPosition() : null;
         return result;
     }
 
     public static bool TryMapToGeneratedDocumentPosition(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex)
     {
         var result = service.TryMapToGeneratedDocumentPosition(generatedDocument, hostDocumentIndex, out var generatedLinePosition, out generatedIndex);
-        generatedPosition = result ? generatedLinePosition.ToPosition() : null;
+        generatedPosition = result ? generatedLinePosition.ToLspPosition() : null;
         return result;
     }
 
     public static bool TryMapToGeneratedDocumentOrNextCSharpPosition(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex)
     {
         var result = service.TryMapToGeneratedDocumentOrNextCSharpPosition(generatedDocument, hostDocumentIndex, out var generatedLinePosition, out generatedIndex);
-        generatedPosition = result ? generatedLinePosition.ToPosition() : null;
+        generatedPosition = result ? generatedLinePosition.ToLspPosition() : null;
         return result;
     }
 
@@ -107,6 +106,6 @@ internal static class IRazorDocumentMappingServiceExtensions
     public static async Task<(Uri MappedDocumentUri, Range MappedRange)> MapToHostDocumentUriAndRangeAsync(this IRazorDocumentMappingService service, Uri generatedDocumentUri, Range generatedDocumentRange, CancellationToken cancellationToken)
     {
         var result = await service.MapToHostDocumentUriAndRangeAsync(generatedDocumentUri, generatedDocumentRange.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
-        return (result.MappedDocumentUri, result.MappedRange.ToRange());
+        return (result.MappedDocumentUri, result.MappedRange.ToLspRange());
     }
 }

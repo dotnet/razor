@@ -88,7 +88,7 @@ public class RazorLSPSpanMappingServiceTest : ToolingTestBase
         var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
         var expectedSpan = mappedRange.AsTextSpan(_sourceTextRazor);
-        var expectedLinePosition = _sourceTextRazor.Lines.GetLinePositionSpan(expectedSpan);
+        var expectedLinePosition = _sourceTextRazor.GetLinePositionSpan(expectedSpan);
         var expectedFilePath = _mockDocumentUri.LocalPath;
         var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 

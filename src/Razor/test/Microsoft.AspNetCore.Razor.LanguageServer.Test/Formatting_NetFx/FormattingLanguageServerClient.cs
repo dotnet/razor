@@ -129,16 +129,11 @@ internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : IC
 
         foreach (var textChange in response.TextChanges)
         {
-            var startLinePosition = sourceText.Lines.GetLinePosition(textChange.Position);
-            var endLinePosition = sourceText.Lines.GetLinePosition(textChange.Position + textChange.Length);
+            var span = new TextSpan(textChange.Position, textChange.Length);
 
             var edit = new TextEdit()
             {
-                Range = new()
-                {
-                    Start = new(startLinePosition.Line, startLinePosition.Character),
-                    End = new(endLinePosition.Line, endLinePosition.Character)
-                },
+                Range = sourceText.GetLspRange(span),
                 NewText = textChange.NewText
             };
 

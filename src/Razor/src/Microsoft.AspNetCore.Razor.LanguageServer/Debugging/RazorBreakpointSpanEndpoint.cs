@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol.Debugging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
@@ -55,8 +54,7 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-        var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+        var hostDocumentIndex = sourceText.GetPosition(request.Position);
 
         if (codeDocument.IsUnsupported())
         {
@@ -91,15 +89,7 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
         }
 
         var csharpText = codeDocument.GetCSharpSourceText();
-
-        var (startLineIndex, startCharacterIndex) = csharpText.GetLinePosition(csharpBreakpointSpan.Start);
-        var (endLineIndex, endCharacterIndex) = csharpText.GetLinePosition(csharpBreakpointSpan.End);
-
-        var projectedRange = new Range()
-        {
-            Start = new Position(startLineIndex, startCharacterIndex),
-            End = new Position(endLineIndex, endCharacterIndex),
-        };
+        var projectedRange = csharpText.GetLspRange(csharpBreakpointSpan);
 
         // Now map that new C# location back to the host document
         // Razor files generate code in a "loosely" debuggable way. For instance if you were to do the following in a razor or cshtml file:

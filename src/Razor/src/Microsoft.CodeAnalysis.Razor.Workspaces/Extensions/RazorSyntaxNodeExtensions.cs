@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Range = VisualStudio.LanguageServer.Protocol.Range;
 
 internal static class RazorSyntaxNodeExtensions
 {
@@ -141,10 +141,7 @@ internal static class RazorSyntaxNodeExtensions
             return new LinePositionSpan(position, position);
         }
 
-        var startPosition = sourceText.Lines.GetLinePosition(start);
-        var endPosition = sourceText.Lines.GetLinePosition(end);
-
-        return new LinePositionSpan(startPosition, endPosition);
+        return sourceText.GetLinePositionSpan(start, end);
 
         static LinePosition GetLinePosition(SourceLocation location)
         {
@@ -249,19 +246,11 @@ internal static class RazorSyntaxNodeExtensions
             {
                 // Marker symbol at the end of the document.
                 var location = node.GetSourceLocation(source);
-                var position = GetLinePosition(location);
+                var position = location.ToLinePosition();
                 return new LinePositionSpan(position, position);
             }
 
-            var startPosition = sourceText.Lines.GetLinePosition(start);
-            var endPosition = sourceText.Lines.GetLinePosition(end);
-
-            return new LinePositionSpan(startPosition, endPosition);
-
-            static LinePosition GetLinePosition(SourceLocation location)
-            {
-                return new LinePosition(location.LineIndex, location.CharacterIndex);
-            }
+            return sourceText.GetLinePositionSpan(start, end);
         }
     }
 

@@ -245,14 +245,13 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
 
         var endpoint = new DefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, languageServer, LoggerFactory);
 
-        var (line, offset) = codeDocument.GetSourceText().GetLinePosition(cursorPosition);
         var request = new TextDocumentPositionParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset)
+            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition)
         };
 
         return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);

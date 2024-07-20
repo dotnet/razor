@@ -50,14 +50,9 @@ internal static class LinkedEditingRangeHelper
     {
         var sourceText = codeDocument.GetSourceText();
 
-        if (linePosition.ToPosition().TryGetSourceLocation(sourceText, logger, out var location))
-        {
-            return location;
-        }
-        else
-        {
-            return null;
-        }
+        return sourceText.TryGetSourceLocation(linePosition, logger, out var location)
+            ? location
+            : null;
     }
 
     private static bool TryGetNearestMarkupNameTokens(

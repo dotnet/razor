@@ -88,7 +88,7 @@ internal static class CodeBlockService
         var openBraceLocation = openBrace.GetSourceLocation(code.Source);
         var closeBraceLocation = closeBrace.GetSourceLocation(code.Source);
         var previousLineAbsoluteIndex = closeBraceLocation.AbsoluteIndex - closeBraceLocation.CharacterIndex - 1;
-        var previousLine = code.Source.Text.Lines.GetLinePosition(previousLineAbsoluteIndex);
+        var previousLine = code.Source.Text.GetLinePosition(previousLineAbsoluteIndex);
 
         var insertLineLocation =
             openBraceLocation.LineIndex == closeBraceLocation.LineIndex || !IsLineEmpty(code.Source.Text.Lines[previousLine.Line])

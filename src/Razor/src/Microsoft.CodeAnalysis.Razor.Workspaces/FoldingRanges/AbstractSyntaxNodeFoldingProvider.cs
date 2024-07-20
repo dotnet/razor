@@ -23,14 +23,13 @@ internal abstract class AbstractSyntaxNodeFoldingProvider<TNode> : IRazorFolding
         using var builder = new PooledArrayBuilder<FoldingRange>(nodes.Length);
         foreach (var node in nodes)
         {
-            var (startLine, startOffset) = sourceText.GetLinePosition(node.Span.Start);
-            var (endLine, endOffset) = sourceText.GetLinePosition(node.Span.End);
+            var (start, end) = sourceText.GetLinePositionSpan(node.Span);
             var foldingRange = new FoldingRange()
             {
-                StartCharacter = startOffset,
-                StartLine = startLine,
-                EndCharacter = endOffset,
-                EndLine = endLine,
+                StartCharacter = start.Character,
+                StartLine = start.Line,
+                EndCharacter = end.Character,
+                EndLine = end.Line,
 
                 // Directives remove the "@" but for collapsing we want to keep it for users.
                 // Shows "@code" instead of "code".

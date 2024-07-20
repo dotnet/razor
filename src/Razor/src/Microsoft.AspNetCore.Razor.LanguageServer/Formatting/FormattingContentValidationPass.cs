@@ -54,9 +54,9 @@ internal sealed class FormattingContentValidationPass(
                 {
                     _logger.LogWarning($"{SR.FormatEdit_at_adds(edit.Range.ToDisplayString(), edit.NewText)}");
                 }
-                else if (text.TryGetFirstNonWhitespaceOffset(edit.Range.ToTextSpan(text), out _))
+                else if (text.TryGetFirstNonWhitespaceOffset(text.GetTextSpan(edit.Range), out _))
                 {
-                    _logger.LogWarning($"{SR.FormatEdit_at_deletes(edit.Range.ToDisplayString(), text.ToString(edit.Range.ToTextSpan(text)))}");
+                    _logger.LogWarning($"{SR.FormatEdit_at_deletes(edit.Range.ToDisplayString(), text.ToString(text.GetTextSpan(edit.Range)))}");
                 }
             }
 

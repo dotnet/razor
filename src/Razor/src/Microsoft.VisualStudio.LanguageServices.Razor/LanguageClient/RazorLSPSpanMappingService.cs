@@ -92,7 +92,7 @@ internal sealed class RazorLSPSpanMappingService : IRazorSpanMappingService
             }
 
             var mappedSpan = mappedRange.AsTextSpan(sourceTextRazor);
-            var linePositionSpan = sourceTextRazor.Lines.GetLinePositionSpan(mappedSpan);
+            var linePositionSpan = sourceTextRazor.GetLinePositionSpan(mappedSpan);
             results.Add(new RazorMappedSpanResult(localFilePath, linePositionSpan, mappedSpan));
         }
 

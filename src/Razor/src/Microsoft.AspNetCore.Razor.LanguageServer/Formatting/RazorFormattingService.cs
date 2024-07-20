@@ -60,7 +60,7 @@ internal class RazorFormattingService : IRazorFormattingService
         if (range is not null)
         {
             var sourceText = codeDocument.GetSourceText();
-            if (codeDocument.GetCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && range.ToLinePositionSpan().OverlapsWith(sourceText.GetLinePositionSpan(d.Span))))
+            if (codeDocument.GetCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && range.OverlapsWith(sourceText.GetLspRange(d.Span))))
             {
                 return Array.Empty<TextEdit>();
             }
@@ -199,7 +199,7 @@ internal class RazorFormattingService : IRazorFormattingService
         var textChanges = new List<TextChange>();
         foreach (var edit in edits)
         {
-            var change = new TextChange(edit.Range.ToTextSpan(sourceText), edit.NewText);
+            var change = new TextChange(sourceText.GetTextSpan(edit.Range), edit.NewText);
             textChanges.Add(change);
         }
 

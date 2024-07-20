@@ -69,10 +69,9 @@ internal class HtmlFormatter
             return Array.Empty<TextEdit>();
         }
 
-        var (line, col) = context.SourceText.GetLinePosition(context.HostDocumentIndex);
         var @params = new RazorDocumentOnTypeFormattingParams()
         {
-            Position = new Position(line, col),
+            Position = context.SourceText.GetLspPosition(context.HostDocumentIndex),
             Character = context.TriggerCharacter.ToString(),
             TextDocument = new TextDocumentIdentifier { Uri = context.Uri },
             Options = context.Options,

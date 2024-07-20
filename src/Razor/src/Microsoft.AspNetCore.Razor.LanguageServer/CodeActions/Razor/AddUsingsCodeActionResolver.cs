@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
@@ -18,7 +17,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -123,7 +122,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
 
             if (string.CompareOrdinal(newUsingNamespace, usingDirectiveNamespace) < 0)
             {
-                var usingDirectiveLineIndex = codeDocument.Source.Text.Lines.GetLinePosition(usingDirective.Node.Span.Start).Line;
+                var usingDirectiveLineIndex = codeDocument.Source.Text.GetLinePosition(usingDirective.Node.Span.Start).Line;
                 var head = new Position(usingDirectiveLineIndex, 0);
                 var edit = new TextEdit() { Range = new Range { Start = head, End = head }, NewText = newText };
                 edits.Add(edit);
@@ -187,7 +186,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
     {
         if (endIndex < codeDocument.Source.Text.Length)
         {
-            return codeDocument.Source.Text.Lines.GetLinePosition(endIndex).Line;
+            return codeDocument.Source.Text.GetLinePosition(endIndex).Line;
         }
         else
         {

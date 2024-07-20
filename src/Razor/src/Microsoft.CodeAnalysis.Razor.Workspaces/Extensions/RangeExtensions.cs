@@ -81,11 +81,8 @@ internal static class RangeExtensions
         return range.Start.Line != range.End.Line;
     }
 
-    public static TextSpan ToTextSpan(this Range range, SourceText text)
-        => text.GetTextSpan(range.Start.Line, range.Start.Character, range.End.Line, range.End.Character);
-
     public static LinePositionSpan ToLinePositionSpan(this Range range)
-        => new LinePositionSpan(range.Start.ToLinePosition(), range.End.ToLinePosition());
+        => new(range.Start.ToLinePosition(), range.End.ToLinePosition());
 
     public static LinePositionSpan ToLinePositionSpan(this RLSP.Range range)
         => new LinePositionSpan(range.Start.ToLinePosition(), range.End.ToLinePosition());
@@ -119,9 +116,10 @@ internal static class RangeExtensions
         ArgHelper.ThrowIfNull(range);
         ArgHelper.ThrowIfNull(text);
 
-        var start = text.Lines[range.Start.Line].Start + range.Start.Character;
-        var end = text.Lines[range.End.Line].Start + range.End.Character;
-        return new TextSpan(start, end - start);
+        var start = text.GetPosition(range.Start);
+        var end = text.GetPosition(range.End);
+
+        return TextSpan.FromBounds(start, end);
     }
 
     public static Range? Overlap(this Range range, Range other)

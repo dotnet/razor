@@ -54,7 +54,7 @@ internal static class InsertMapper
         }
 
         // Ensure we don't insert in the middle of a node.
-        var node = documentRoot.FindNode(focusArea.Range.ToTextSpan(sourceText), includeWhitespace: true);
+        var node = documentRoot.FindNode(sourceText.GetTextSpan(focusArea.Range), includeWhitespace: true);
         if (node is null)
         {
             insertionPoint = 0;
@@ -68,7 +68,7 @@ internal static class InsertMapper
             var line = sourceText.Lines[focusArea.Range.Start.Line];
             if (line.GetFirstNonWhitespaceOffset() is null)
             {
-                insertionPoint = focusArea.Range.ToTextSpan(sourceText).Start;
+                insertionPoint = sourceText.GetTextSpan(focusArea.Range).Start;
                 return true;
             }
         }
