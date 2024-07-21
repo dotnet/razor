@@ -89,7 +89,8 @@ internal class OnAutoInsertEndpoint(
             documentContext.Snapshot,
             request.Position,
             character,
-            _optionsMonitor.CurrentValue.AutoClosingTags
+            _optionsMonitor.CurrentValue.AutoClosingTags,
+            cancellationToken
         ).ConfigureAwait(false);
 
         if (insertTextEdit is not null)
