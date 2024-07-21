@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,6 +17,7 @@ internal interface IAutoInsertService
         IDocumentSnapshot documentSnapshot,
         Position position,
         string character,
-        bool autoCloseTags
+        bool autoCloseTags,
+        CancellationToken cancellationToken
     );
 }

@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
-internal sealed class CloseTextTagOnAutoInsertProvider(ILoggerFactory loggerFactory) : IOnAutoInsertProvider
+internal class CloseTextTagOnAutoInsertProvider(ILoggerFactory loggerFactory) : IOnAutoInsertProvider
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<IOnAutoInsertProvider>();
 
