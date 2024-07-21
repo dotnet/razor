@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -21,7 +22,8 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
         IDocumentSnapshot documentSnapshot,
         Position position,
         string character,
-        bool autoCloseTags)
+        bool autoCloseTags,
+        CancellationToken cancellationToken)
     {
         using var applicableProviders = new PooledArrayBuilder<IOnAutoInsertProvider>();
         foreach (var provider in _onAutoInsertProviders)
@@ -39,6 +41,8 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
             return null;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         foreach (var provider in applicableProviders)
         {
             var insertTextEdit = await provider.TryResolveInsertionAsync(
@@ -51,6 +55,8 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
             {
                 return insertTextEdit;
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
         }
 
         // No provider could handle the text edit.

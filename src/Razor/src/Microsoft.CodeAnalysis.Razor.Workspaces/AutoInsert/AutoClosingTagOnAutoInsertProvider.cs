@@ -16,7 +16,7 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
-internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
+internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 {
     // From http://dev.w3.org/html5/spec/Overview.html#elements-0
     private static readonly ImmutableHashSet<string> s_voidElements = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase,
