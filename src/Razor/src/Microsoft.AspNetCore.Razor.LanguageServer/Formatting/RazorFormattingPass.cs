@@ -334,7 +334,7 @@ internal sealed class RazorFormattingPass(
             }
         }
 
-        static bool IsSingleLineDirective(SyntaxNode node, [NotNullWhen(true)] out SyntaxList<SyntaxNode>? children)
+        static bool IsSingleLineDirective(SyntaxNode node, out SyntaxList<SyntaxNode> children)
         {
             if (node is CSharpCodeBlockSyntax content &&
                 node.Parent?.Parent is RazorDirectiveSyntax directive &&
@@ -344,7 +344,7 @@ internal sealed class RazorFormattingPass(
                 return true;
             }
 
-            children = null;
+            children = default;
             return false;
         }
     }

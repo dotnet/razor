@@ -5,33 +5,27 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
-
-using Microsoft.AspNetCore.Razor.Language.Syntax;
+namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal static class RazorSyntaxNodeExtensions
 {
-    internal static bool IsUsingDirective(this SyntaxNode node, [NotNullWhen(true)] out SyntaxList<SyntaxNode>? children)
+    internal static bool IsUsingDirective(this SyntaxNode node, out SyntaxList<SyntaxNode> children)
     {
         // Using directives are weird, because the directive keyword ("using") is part of the C# statement it represents
-        if (node is RazorDirectiveSyntax razorDirective &&
-            razorDirective.DirectiveDescriptor is null &&
-            razorDirective.Body is RazorDirectiveBodySyntax body &&
-            body.Keyword is CSharpStatementLiteralSyntax literal &&
-            literal.LiteralTokens.Count > 0)
+        if (node is RazorDirectiveSyntax { DirectiveDescriptor: null, Body: RazorDirectiveBodySyntax body } &&
+            body.Keyword is CSharpStatementLiteralSyntax { LiteralTokens: { Count: > 0 } literalTokens })
         {
-            if (literal.LiteralTokens[0] is { Kind: SyntaxKind.Keyword, Content: "using" })
+            if (literalTokens[0] is { Kind: SyntaxKind.Keyword, Content: "using" })
             {
-                children = literal.LiteralTokens;
+                children = literalTokens;
                 return true;
             }
         }
 
-        children = null;
+        children = default;
         return false;
     }
 
@@ -60,91 +54,69 @@ internal static class RazorSyntaxNodeExtensions
         return lastNode;
     }
 
-    internal static bool TryGetPreviousSibling(this SyntaxNode syntaxNode, [NotNullWhen(true)] out SyntaxNode? previousSibling)
+    internal static bool TryGetPreviousSibling(this SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? previousSibling)
     {
-        var syntaxNodeParent = syntaxNode.Parent;
-        if (syntaxNodeParent is null)
+        previousSibling = null;
+
+        var parent = node.Parent;
+        if (parent is null)
         {
-            previousSibling = default;
             return false;
         }
 
-        var nodes = syntaxNodeParent.ChildNodes();
-        for (var i = 0; i < nodes.Count; i++)
+        foreach (var child in parent.ChildNodes())
         {
-            if (nodes[i] == syntaxNode)
+            if (ReferenceEquals(child, node))
             {
-                if (i == 0)
-                {
-                    previousSibling = default;
-                    return false;
-                }
-                else
-                {
-                    previousSibling = nodes[i - 1];
-                    return true;
-                }
+                return previousSibling is not null;
             }
+
+            previousSibling = child;
         }
 
-        previousSibling = default;
+        Debug.Fail("How can we iterate node.Parent.ChildNodes() and not find node again?");
+
+        previousSibling = null;
         return false;
     }
 
     public static bool ContainsOnlyWhitespace(this SyntaxNode node, bool includingNewLines = true)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgHelper.ThrowIfNull(node);
 
-        var tokens = node.GetTokens();
-
-        for (var i = 0; i < tokens.Count; i++)
+        foreach (var token in node.GetTokens())
         {
-            var tokenKind = tokens[i].Kind;
-            if (tokenKind != SyntaxKind.Whitespace && (tokenKind != SyntaxKind.NewLine || !includingNewLines))
+            var tokenKind = token.Kind;
+            if (tokenKind != SyntaxKind.Whitespace && (!includingNewLines || tokenKind != SyntaxKind.NewLine))
             {
                 return false;
             }
         }
 
-        // All tokens were either whitespace or newlines.
+        // All tokens were either whitespace or new-lines.
         return true;
     }
 
-    public static LinePositionSpan GetLinePositionSpan(this SyntaxNode node, RazorSourceDocument source)
+    public static LinePositionSpan GetLinePositionSpan(this SyntaxNode node, RazorSourceDocument sourceDocument)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(node);
+        ArgHelper.ThrowIfNull(sourceDocument);
 
         var start = node.Position;
         var end = node.EndPosition;
-        var sourceText = source.Text;
+        var sourceText = sourceDocument.Text;
 
         Debug.Assert(start <= sourceText.Length && end <= sourceText.Length, "Node position exceeds source length.");
 
         if (start == sourceText.Length && node.FullWidth == 0)
         {
             // Marker symbol at the end of the document.
-            var location = node.GetSourceLocation(source);
-            var position = GetLinePosition(location);
-            return new LinePositionSpan(position, position);
+            var location = node.GetSourceLocation(sourceDocument);
+
+            return location.ToLinePosition().GetCollapsedSpan();
         }
 
         return sourceText.GetLinePositionSpan(start, end);
-
-        static LinePosition GetLinePosition(SourceLocation location)
-        {
-            return new LinePosition(location.LineIndex, location.CharacterIndex);
-        }
     }
 
     /// <summary>
@@ -198,8 +170,8 @@ internal static class RazorSyntaxNodeExtensions
         }
 
         var node = @this.FindToken(span.Start, includeWhitespace)
-            .Parent
-            !.FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
+            .Parent!
+            .FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
 
         node.AssumeNotNull();
 
@@ -251,10 +223,8 @@ internal static class RazorSyntaxNodeExtensions
     {
         if (node is MarkupTextLiteralSyntax markupTextLiteral)
         {
-            var literalTokensWithoutLines = new AspNetCore.Razor.Language.Syntax.SyntaxList<SyntaxToken>(
-                markupTextLiteral.LiteralTokens.Where(t => t.Kind != SyntaxKind.NewLine));
-            var updatedLiteral = markupTextLiteral.WithLiteralTokens(literalTokensWithoutLines);
-            return updatedLiteral;
+            var literalTokensWithoutLines = markupTextLiteral.LiteralTokens.Where(static t => t.Kind != SyntaxKind.NewLine);
+            return markupTextLiteral.WithLiteralTokens(literalTokensWithoutLines);
         }
 
         return node;
@@ -265,30 +235,30 @@ internal static class RazorSyntaxNodeExtensions
         csharpCodeBlock = null;
 
         // Any piece of C# code can potentially be surrounded by a CSharpCodeBlockSyntax.
-        if (node is CSharpCodeBlockSyntax outerCSharpCodeBlock)
+        switch (node)
         {
-            var innerCSharpNode = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(
-                n => n is CSharpStatementSyntax or
-                     RazorDirectiveSyntax or
-                     CSharpExplicitExpressionSyntax or
-                     CSharpImplicitExpressionSyntax);
-            if (innerCSharpNode is not null)
-            {
-                return innerCSharpNode.IsCSharpNode(out csharpCodeBlock);
-            }
-        }
-        // @code {
-        //    var foo = "bar";
-        // }
-        else if (node is RazorDirectiveSyntax razorDirective)
-        {
-            // code {
+            case CSharpCodeBlockSyntax outerCSharpCodeBlock:
+                var innerCSharpNode = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(
+                    static n => n is CSharpStatementSyntax or
+                                     RazorDirectiveSyntax or
+                                     CSharpExplicitExpressionSyntax or
+                                     CSharpImplicitExpressionSyntax);
+
+                if (innerCSharpNode is not null)
+                {
+                    return innerCSharpNode.IsCSharpNode(out csharpCodeBlock);
+                }
+
+                break;
+
+            // @code {
             //    var foo = "bar";
             // }
-            var razorDirectiveBody = razorDirective.Body as RazorDirectiveBodySyntax;
-            if (razorDirectiveBody is not null)
-            {
-                var directive = razorDirectiveBody.Keyword.ToFullString();
+            case RazorDirectiveSyntax { Body: RazorDirectiveBodySyntax body }:
+                // code {
+                //    var foo = "bar";
+                // }
+                var directive = body.Keyword.ToFullString();
                 if (directive != "code")
                 {
                     return false;
@@ -297,51 +267,49 @@ internal static class RazorSyntaxNodeExtensions
                 // {
                 //    var foo = "bar";
                 // }
-                csharpCodeBlock = razorDirectiveBody.CSharpCode;
+                csharpCodeBlock = body.CSharpCode;
 
                 // var foo = "bar";
-                var innerCodeBlock = csharpCodeBlock.ChildNodes().FirstOrDefault(n => n is CSharpCodeBlockSyntax);
+                var innerCodeBlock = csharpCodeBlock.ChildNodes().FirstOrDefault(IsCSharpCodeBlockSyntax);
                 if (innerCodeBlock is not null)
                 {
                     csharpCodeBlock = innerCodeBlock as CSharpCodeBlockSyntax;
                 }
-            }
-        }
-        // @(x)
-        else if (node is CSharpExplicitExpressionSyntax csharpExplicitExpression)
-        {
+
+                break;
+
+            // @(x)
             // (x)
-            var body = csharpExplicitExpression.Body as CSharpExplicitExpressionBodySyntax;
-            if (body is not null)
-            {
+            case CSharpExplicitExpressionSyntax { Body: CSharpExplicitExpressionBodySyntax body }:
                 // x
                 csharpCodeBlock = body.CSharpCode;
-            }
-        }
-        // @x
-        else if (node is CSharpImplicitExpressionSyntax csharpImplicitExpression)
-        {
-            var csharpImplicitExpressionBody = csharpImplicitExpression.Body as CSharpImplicitExpressionBodySyntax;
-            if (csharpImplicitExpressionBody is not null)
-            {
+                break;
+
+            // @x
+            case CSharpImplicitExpressionSyntax { Body: CSharpImplicitExpressionBodySyntax body }:
                 // x
-                csharpCodeBlock = csharpImplicitExpressionBody.CSharpCode;
-            }
-        }
-        // @{
-        //    var x = 1;
-        // }
-        else if (node is CSharpStatementSyntax csharpStatement)
-        {
-            // {
+                csharpCodeBlock = body.CSharpCode;
+                break;
+
+            // @{
             //    var x = 1;
             // }
-            var csharpStatementBody = csharpStatement.Body;
+            case CSharpStatementSyntax csharpStatement:
+                // {
+                //    var x = 1;
+                // }
+                var csharpStatementBody = csharpStatement.Body;
 
-            // var x = 1;
-            csharpCodeBlock = csharpStatementBody.ChildNodes().FirstOrDefault(n => n is CSharpCodeBlockSyntax) as CSharpCodeBlockSyntax;
+                // var x = 1;
+                csharpCodeBlock = csharpStatementBody.ChildNodes().FirstOrDefault(IsCSharpCodeBlockSyntax) as CSharpCodeBlockSyntax;
+                break;
         }
 
         return csharpCodeBlock is not null;
+
+        static bool IsCSharpCodeBlockSyntax(SyntaxNode node)
+        {
+            return node is CSharpCodeBlockSyntax;
+        }
     }
 }

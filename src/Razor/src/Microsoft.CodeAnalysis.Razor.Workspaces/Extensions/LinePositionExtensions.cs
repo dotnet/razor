@@ -11,6 +11,9 @@ internal static class LinePositionExtensions
     public static void Deconstruct(this LinePosition linePosition, out int line, out int character)
         => (line, character) = (linePosition.Line, linePosition.Character);
 
+    public static LinePositionSpan GetCollapsedSpan(this LinePosition linePosition)
+        => new(linePosition, linePosition);
+
     public static bool TryGetAbsoluteIndex(this LinePosition position, SourceText text, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position, out absoluteIndex);
 

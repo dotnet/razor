@@ -2,41 +2,38 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
-
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+
+namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class RazorSyntaxTreeExtensions
 {
     public static ImmutableArray<RazorDirectiveSyntax> GetSectionDirectives(this RazorSyntaxTree syntaxTree)
-    {
-        return GetDirectives(syntaxTree, directive => directive.DirectiveDescriptor?.Directive == SectionDirective.Directive.Directive);
-    }
+        => GetDirectives(syntaxTree, static d => d.DirectiveDescriptor?.Directive == SectionDirective.Directive.Directive);
 
     public static ImmutableArray<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
-    {
-        return GetDirectives(syntaxTree, directive => directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock);
-    }
+        => GetDirectives(syntaxTree, static d => d.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock);
 
     private static ImmutableArray<RazorDirectiveSyntax> GetDirectives(RazorSyntaxTree syntaxTree, Func<RazorDirectiveSyntax, bool> predicate)
     {
-        return syntaxTree.Root
-            .DescendantNodes(node => node is RazorDocumentSyntax or MarkupBlockSyntax or CSharpCodeBlockSyntax)
-            .OfType<RazorDirectiveSyntax>()
-            .Where(predicate)
-            .SelectAsArray(d => d);
-    }
+        using var builder = new PooledArrayBuilder<RazorDirectiveSyntax>();
 
-    public static IReadOnlyList<CSharpStatementSyntax> GetCSharpStatements(this RazorSyntaxTree syntaxTree)
-    {
-        // We want all nodes that represent Razor C# statements, @{ ... }.
-        var statements = syntaxTree.Root.DescendantNodes().OfType<CSharpStatementSyntax>().ToList();
-        return statements;
+        foreach (var node in syntaxTree.Root.DescendantNodes(ShouldDescendIntoChildren))
+        {
+            if (node is RazorDirectiveSyntax directive && predicate(directive))
+            {
+                builder.Add(directive);
+            }
+        }
+
+        return builder.ToImmutable();
+
+        static bool ShouldDescendIntoChildren(SyntaxNode node)
+        {
+            return node is RazorDocumentSyntax or MarkupBlockSyntax or CSharpCodeBlockSyntax;
+        }
     }
 }
