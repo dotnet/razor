@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -20,26 +23,17 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using System.Globalization;
-using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
-internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeActionResolver
-{
-    private static readonly Workspace s_workspace = new AdhocWorkspace();
 
-    private readonly IDocumentContextFactory _documentContextFactory;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IClientConnection _clientConnection;
-    public ExtractToNewComponentCodeActionResolver(
-        IDocumentContextFactory documentContextFactory,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        IClientConnection clientConnection)
-    {
-        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-    }
+internal sealed class ExtractToNewComponentCodeActionResolver(
+    IDocumentContextFactory documentContextFactory,
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IClientConnection clientConnection) : IRazorCodeActionResolver
+{
+
+    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponentAction;
 
@@ -73,12 +67,12 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
         }
 
         var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
-        var directoryName = Path.GetDirectoryName(path) ?? throw new InvalidOperationException($"Unable to determine the directory name for the path: {path}");
+        var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
         var templatePath = Path.Combine(directoryName, "Component");
         var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
 
         // VS Code in Windows expects path to start with '/'
-        var updatedComponentPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !componentPath.StartsWith("/")
+        var updatedComponentPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !componentPath.StartsWith('/')
             ? '/' + componentPath
             : componentPath;
 
@@ -96,7 +90,7 @@ internal sealed class ExtractToNewComponentCodeActionResolver : IRazorCodeAction
         }
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
+        var newComponentContent = text.GetSubTextString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
 
         var start = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractStart);
         var end = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractEnd);

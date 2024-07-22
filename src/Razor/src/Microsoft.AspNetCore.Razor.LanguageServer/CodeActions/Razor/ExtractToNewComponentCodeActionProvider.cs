@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -23,34 +24,34 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToNewComponentCodeActionProvider>();
 
-    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+    public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         if (context is null)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (!context.SupportsFileCreation)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (!FileKinds.IsComponent(context.CodeDocument.GetFileKind()))
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
         if (syntaxTree?.Root is null)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex, true);
+        var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex, includeWhitespace: true);
         if (owner is null)
         {
             _logger.LogWarning($"Owner should never be null.");
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var componentNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
@@ -58,19 +59,19 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         // Make sure we've found tag
         if (componentNode is null)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // Do not provide code action if the cursor is inside proper html content (i.e. page text)
         if (context.Location.AbsoluteIndex > componentNode.StartTag.Span.End &&
             context.Location.AbsoluteIndex < componentNode.EndTag.SpanStart)
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (!TryGetNamespace(context.CodeDocument, out var @namespace))
         {
-            return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var actionParams = new ExtractToNewComponentCodeActionParams()
@@ -89,9 +90,8 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         };
 
         var codeAction = RazorCodeActionFactory.CreateExtractToNewComponent(resolutionParams);
-        var codeActions = new List<RazorVSInternalCodeAction> { codeAction };
 
-        return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
+        return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
     private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
@@ -100,9 +100,4 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         // and causing compiler errors. Avoid offering this refactoring if we can't accurately get a
         // good namespace to extract to
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
-
-    //private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
-    //{
-    //    return node.DescendantNodes().Any(static n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
-    //}
 }
