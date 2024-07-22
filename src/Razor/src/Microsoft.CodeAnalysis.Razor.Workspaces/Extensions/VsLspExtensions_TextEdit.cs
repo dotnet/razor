@@ -3,11 +3,10 @@
 
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static class TextEditExtensions
+internal static partial class VsLspExtensions
 {
     public static TextChange ToTextChange(this TextEdit textEdit, SourceText text)
     {

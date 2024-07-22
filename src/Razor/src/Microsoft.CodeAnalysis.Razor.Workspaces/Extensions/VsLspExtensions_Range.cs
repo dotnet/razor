@@ -3,19 +3,23 @@
 
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using RLSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static class RangeExtensions
+internal static partial class VsLspExtensions
 {
-    public static readonly Range UndefinedRange = new()
-    {
-        Start = new Position(-1, -1),
-        End = new Position(-1, -1)
-    };
+    public static void Deconstruct(this Range range, out Position start, out Position end)
+        => (start, end) = (range.Start, range.End);
+
+    public static void Deconstruct(this Range range, out int startLine, out int startCharacter, out int endLine, out int endCharacter)
+        => (startLine, startCharacter, endLine, endCharacter) = (range.Start.Line, range.Start.Character, range.End.Line, range.End.Character);
+
+    public static LinePositionSpan ToLinePositionSpan(this Range range)
+        => new(range.Start.ToLinePosition(), range.End.ToLinePosition());
+
+    public static LinePositionSpan ToLinePositionSpan(this RLSP.Range range)
+        => new LinePositionSpan(range.Start.ToLinePosition(), range.End.ToLinePosition());
 
     public static bool IntersectsOrTouches(this Range range, Range other)
     {
@@ -33,10 +37,10 @@ internal static class RangeExtensions
     }
 
     private static bool IsBefore(this Range range, Range other) =>
-        range.End.Line < other.Start.Line || range.End.Line == other.Start.Line && range.End.Character < other.Start.Character;
+        range.End.Line < other.Start.Line || (range.End.Line == other.Start.Line && range.End.Character < other.Start.Character);
 
     private static bool IsAfter(this Range range, Range other) =>
-        other.End.Line < range.Start.Line || other.End.Line == range.Start.Line && other.End.Character < range.Start.Character;
+        other.End.Line < range.Start.Line || (other.End.Line == range.Start.Line && other.End.Character < range.Start.Character);
 
     public static bool OverlapsWith(this Range range, Range other)
     {
@@ -81,17 +85,11 @@ internal static class RangeExtensions
         return range.Start.Line != range.End.Line;
     }
 
-    public static LinePositionSpan ToLinePositionSpan(this Range range)
-        => new(range.Start.ToLinePosition(), range.End.ToLinePosition());
-
-    public static LinePositionSpan ToLinePositionSpan(this RLSP.Range range)
-        => new LinePositionSpan(range.Start.ToLinePosition(), range.End.ToLinePosition());
-
     public static bool IsUndefined(this Range range)
     {
         ArgHelper.ThrowIfNull(range);
 
-        return range == UndefinedRange;
+        return range == VsLspFactory.UndefinedRange;
     }
 
     public static int CompareTo(this Range range1, Range range2)

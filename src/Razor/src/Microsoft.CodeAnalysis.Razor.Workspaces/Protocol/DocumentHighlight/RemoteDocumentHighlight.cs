@@ -21,7 +21,7 @@ internal readonly record struct RemoteDocumentHighlight(
     public static VsDocumentHighlight ToLspDocumentHighlight(RemoteDocumentHighlight r)
         => new VsDocumentHighlight
         {
-            Range = r.Position.ToLspRange(),
+            Range = r.Position.ToRange(),
             Kind = r.Kind
         };
 }

@@ -7,10 +7,13 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RLSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static class PositionExtensions
+internal static partial class VsLspExtensions
 {
+    public static void Deconstruct(this Position position, out int line, out int character)
+        => (line, character) = (position.Line, position.Character);
+
     public static LinePosition ToLinePosition(this Position position)
         => new(position.Line, position.Character);
 

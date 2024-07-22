@@ -7,9 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -41,20 +38,5 @@ internal static class RazorSyntaxTreeExtensions
         // We want all nodes that represent Razor C# statements, @{ ... }.
         var statements = syntaxTree.Root.DescendantNodes().OfType<CSharpStatementSyntax>().ToList();
         return statements;
-    }
-
-    public static SyntaxNode? FindInnermostNode(
-        this RazorSyntaxTree syntaxTree,
-        SourceText sourceText,
-        Position position,
-        ILogger logger,
-        bool includeWhitespace = false)
-    {
-        if (!sourceText.TryGetAbsoluteIndex(position, logger, out var absoluteIndex))
-        {
-            return default;
-        }
-
-        return syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace);
     }
 }

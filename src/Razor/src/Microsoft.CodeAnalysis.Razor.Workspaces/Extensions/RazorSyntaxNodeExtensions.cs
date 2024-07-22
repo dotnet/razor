@@ -8,8 +8,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -146,111 +144,6 @@ internal static class RazorSyntaxNodeExtensions
         static LinePosition GetLinePosition(SourceLocation location)
         {
             return new LinePosition(location.LineIndex, location.CharacterIndex);
-        }
-    }
-
-    public static Range GetRange(this SyntaxNode node, RazorSourceDocument source)
-    {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        var lineSpan = node.GetLinePositionSpan(source);
-        var range = new Range
-        {
-            Start = new Position(lineSpan.Start.Line, lineSpan.Start.Character),
-            End = new Position(lineSpan.End.Line, lineSpan.End.Character)
-        };
-
-        return range;
-    }
-
-    public static Range? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
-    {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        var tokens = node.GetTokens();
-
-        SyntaxToken? firstToken = null;
-        for (var i = 0; i < tokens.Count; i++)
-        {
-            var token = tokens[i];
-            if (!token.IsWhitespace())
-            {
-                firstToken = token;
-                break;
-            }
-        }
-
-        SyntaxToken? lastToken = null;
-        for (var i = tokens.Count - 1; i >= 0; i--)
-        {
-            var token = tokens[i];
-            if (!token.IsWhitespace())
-            {
-                lastToken = token;
-                break;
-            }
-        }
-
-        if (firstToken is null && lastToken is null)
-        {
-            return null;
-        }
-
-        var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
-        var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
-
-        var range = new Range
-        {
-            Start = new Position(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
-            End = new Position(endPositionSpan.End.Line, endPositionSpan.End.Character)
-        };
-
-        return range;
-
-        // This is needed because SyntaxToken positions taken from GetTokens
-        // are relative to their parent node and not to the document.
-        static LinePositionSpan GetLinePositionSpan(SyntaxNode? node, RazorSourceDocument source, int parentStart)
-        {
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            var sourceText = source.Text;
-
-            var start = node.Position + parentStart;
-            var end = node.EndPosition + parentStart;
-
-            if (start == sourceText.Length && node.FullWidth == 0)
-            {
-                // Marker symbol at the end of the document.
-                var location = node.GetSourceLocation(source);
-                var position = location.ToLinePosition();
-                return new LinePositionSpan(position, position);
-            }
-
-            return sourceText.GetLinePositionSpan(start, end);
         }
     }
 

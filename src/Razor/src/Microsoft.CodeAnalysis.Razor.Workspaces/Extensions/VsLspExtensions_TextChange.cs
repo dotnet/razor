@@ -1,20 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Text;
+namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static class TextChangeExtensions
+internal static partial class VsLspExtensions
 {
     public static TextEdit ToTextEdit(this TextChange textChange, SourceText sourceText)
     {
-        if (sourceText is null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
+        ArgHelper.ThrowIfNull(textChange);
+        ArgHelper.ThrowIfNull(sourceText);
 
         var range = textChange.Span.ToRange(sourceText);
 

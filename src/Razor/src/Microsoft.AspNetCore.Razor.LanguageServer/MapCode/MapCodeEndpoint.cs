@@ -374,7 +374,7 @@ internal sealed class MapCodeEndpoint(
                         // We convert the URI to the C# generated document URI later on in
                         // LanguageServer.Client since we're unable to retrieve it here.
                         Uri = potentialLocation.Uri,
-                        Range = generatedDocumentRange.ToLspRange()
+                        Range = generatedDocumentRange.ToRange()
                     };
 
                     csharpLocations.Add(csharpLocation);

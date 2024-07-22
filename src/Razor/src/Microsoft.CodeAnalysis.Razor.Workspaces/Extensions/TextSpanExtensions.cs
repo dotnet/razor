@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Text;
 
@@ -22,7 +21,4 @@ internal static class TextSpanExtensions
 
         return span;
     }
-
-    public static Range ToRange(this TextSpan span, SourceText text)
-        => text.GetLinePositionSpan(span).ToLspRange();
 }

@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Text;
 
@@ -65,26 +63,8 @@ internal static class SourceTextExtensions
         return text.Lines.GetPosition(position);
     }
 
-    public static int GetPosition(this SourceText text, Position position)
-        => text.GetPosition(position.ToLinePosition());
-
     public static int GetPosition(this SourceText text, int line, int character)
         => text.GetPosition(new LinePosition(line, character));
-
-    public static Position GetLspPosition(this SourceText text, int position)
-        => text.GetLinePosition(position).ToLspPosition();
-
-    public static Range GetLspRange(this SourceText text, TextSpan span)
-        => text.GetLinePositionSpan(span).ToLspRange();
-
-    public static Range GetLspRange(this SourceText text, SourceSpan span)
-        => text.GetLinePositionSpan(span).ToLspRange();
-
-    public static Range GetLspRange(this SourceText text, int start, int end)
-        => text.GetLinePositionSpan(start, end).ToLspRange();
-
-    public static Range GetCollapsedLspRange(this SourceText text, int position)
-        => text.GetLinePosition(position).ToCollapsedLspRange();
 
     public static string GetSubTextString(this SourceText text, TextSpan span)
     {
@@ -216,12 +196,6 @@ internal static class SourceTextExtensions
     public static bool TryGetAbsoluteIndex(this SourceText text, LinePosition position, ILogger logger, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
 
-    public static bool TryGetAbsoluteIndex(this SourceText text, Position position, out int absoluteIndex)
-        => text.TryGetAbsoluteIndex(position.Line, position.Character, out absoluteIndex);
-
-    public static bool TryGetAbsoluteIndex(this SourceText text, Position position, ILogger logger, out int absoluteIndex)
-        => text.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
-
     public static bool TryGetAbsoluteIndex(this SourceText text, int line, int character, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(line, character, logger: null, out absoluteIndex);
 
@@ -273,12 +247,6 @@ internal static class SourceTextExtensions
     public static int GetRequiredAbsoluteIndex(this SourceText text, LinePosition position, ILogger logger)
         => text.GetRequiredAbsoluteIndex(position.Line, position.Character, logger);
 
-    public static int GetRequiredAbsoluteIndex(this SourceText text, Position position)
-        => text.GetRequiredAbsoluteIndex(position.Line, position.Character);
-
-    public static int GetRequiredAbsoluteIndex(this SourceText text, Position position, ILogger logger)
-        => text.GetRequiredAbsoluteIndex(position.Line, position.Character, logger);
-
     public static int GetRequiredAbsoluteIndex(this SourceText text, int line, int character)
         => text.TryGetAbsoluteIndex(line, character, out var absolutionPosition)
             ? absolutionPosition
@@ -288,9 +256,6 @@ internal static class SourceTextExtensions
         => text.TryGetAbsoluteIndex(line, character, logger, out var absolutionPosition)
             ? absolutionPosition
             : ThrowHelper.ThrowInvalidOperationException<int>($"({line},{character}) matches or exceeds SourceText boundary {text.Lines.Count}.");
-
-    public static TextSpan GetTextSpan(this SourceText text, Range range)
-        => text.GetTextSpan(range.Start.Line, range.Start.Character, range.End.Line, range.End.Character);
 
     public static TextSpan GetTextSpan(this SourceText text, int startLine, int startCharacter, int endLine, int endCharacter)
     {
@@ -316,9 +281,6 @@ internal static class SourceTextExtensions
     }
 
     public static bool TryGetSourceLocation(this SourceText text, LinePosition position, ILogger logger, out SourceLocation location)
-        => text.TryGetSourceLocation(position.Line, position.Character, logger, out location);
-
-    public static bool TryGetSourceLocation(this SourceText text, Position position, ILogger logger, out SourceLocation location)
         => text.TryGetSourceLocation(position.Line, position.Character, logger, out location);
 
     public static bool TryGetSourceLocation(this SourceText text, int line, int character, ILogger logger, out SourceLocation location)

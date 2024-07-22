@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
@@ -34,7 +35,7 @@ internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions lang
         using var _ = ListPool<Range>.GetPooledObject(out var csharpRangeList);
         foreach (var span in csharpSpans)
         {
-            csharpRangeList.Add(span.ToLspRange());
+            csharpRangeList.Add(span.ToRange());
         }
 
         var csharpRanges = csharpRangeList.ToArray();

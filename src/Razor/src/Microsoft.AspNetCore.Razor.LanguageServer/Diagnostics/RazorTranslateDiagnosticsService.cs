@@ -483,7 +483,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
             // For `Error` Severity diagnostics we still show the diagnostics to
             // the user, however we set the range to an undefined range to ensure
             // clicking on the diagnostic doesn't cause errors.
-            originalRange = RangeExtensions.UndefinedRange;
+            originalRange = VsLspFactory.UndefinedRange;
         }
 
         return true;

@@ -68,7 +68,7 @@ internal class CohostLinkedEditingRangeEndpoint(IRemoteServiceInvoker remoteServ
         {
             return new LinkedEditingRanges
             {
-                Ranges = [span1.ToLspRange(), span2.ToLspRange()],
+                Ranges = [span1.ToRange(), span2.ToRange()],
                 WordPattern = LinkedEditingRangeHelper.WordPattern
             };
         }

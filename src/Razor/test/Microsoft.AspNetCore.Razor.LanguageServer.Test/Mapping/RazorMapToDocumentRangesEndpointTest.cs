@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -96,7 +95,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.NotNull(response);
-        Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
+        Assert.Equal(VsLspFactory.UndefinedRange, response!.Ranges[0]);
         Assert.Equal(1337, response.HostDocumentVersion);
     }
 
@@ -129,7 +128,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.NotNull(response);
-        Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
+        Assert.Equal(VsLspFactory.UndefinedRange, response!.Ranges[0]);
         Assert.Equal(1337, response.HostDocumentVersion);
     }
 
@@ -162,7 +161,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.NotNull(response);
-        Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
+        Assert.Equal(VsLspFactory.UndefinedRange, response!.Ranges[0]);
         Assert.Equal(1337, response.HostDocumentVersion);
     }
 
@@ -248,7 +247,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.NotNull(response);
-        Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
+        Assert.Equal(VsLspFactory.UndefinedRange, response!.Ranges[0]);
         Assert.Equal(1337, response.HostDocumentVersion);
     }
 

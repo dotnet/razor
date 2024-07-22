@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RLSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Text;
@@ -11,12 +10,6 @@ internal static class LinePositionExtensions
 {
     public static void Deconstruct(this LinePosition linePosition, out int line, out int character)
         => (line, character) = (linePosition.Line, linePosition.Character);
-
-    public static Position ToLspPosition(this LinePosition linePosition)
-        => new(linePosition.Line, linePosition.Character);
-
-    public static Range ToCollapsedLspRange(this LinePosition position)
-        => new() { Start = position.ToLspPosition(), End = position.ToLspPosition() };
 
     public static bool TryGetAbsoluteIndex(this LinePosition position, SourceText text, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position, out absoluteIndex);

@@ -3,15 +3,11 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal static class SourceSpanExtensions
 {
-    public static Range ToRange(this SourceSpan span, SourceText text)
-        => text.GetLspRange(span);
-
     public static LinePositionSpan ToLinePositionSpan(this SourceSpan span, SourceText text)
         => text.GetLinePositionSpan(span);
 
