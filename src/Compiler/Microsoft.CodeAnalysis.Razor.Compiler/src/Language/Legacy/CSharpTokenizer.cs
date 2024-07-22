@@ -722,7 +722,6 @@ internal class CSharpTokenizer : Tokenizer
         {
             var type = SyntaxKind.Identifier;
             var tokenContent = Buffer.ToString();
-            SyntaxFacts.GetKeywordKind(tokenContent);
             if (_keywords.TryGetValue(tokenContent, value: out _))
             {
                 type = SyntaxKind.Keyword;
