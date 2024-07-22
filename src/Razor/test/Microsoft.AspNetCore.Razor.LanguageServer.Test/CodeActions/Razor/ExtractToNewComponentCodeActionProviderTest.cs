@@ -64,7 +64,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
@@ -94,7 +94,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
 
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve: true);
+        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
 
         return context;
     }

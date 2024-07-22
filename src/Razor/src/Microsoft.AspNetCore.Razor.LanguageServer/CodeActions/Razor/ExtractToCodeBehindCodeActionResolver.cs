@@ -134,38 +134,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
         };
     }
 
-<<<<<<< HEAD
-    private async Task<string> GenerateCodeBehindClassAsync(CodeAnalysis.Razor.ProjectSystem.IProjectSnapshot project, Uri codeBehindUri, string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument, CancellationToken cancellationToken)
-=======
-    /// <summary>
-    /// Generate a file path with adjacent to our input path that has the
-    /// correct codebehind extension, using numbers to differentiate from
-    /// any collisions.
-    /// </summary>
-    /// <param name="path">The origin file path.</param>
-    /// <returns>A non-existent file path with the same base name and a codebehind extension.</returns>
-    private static string GenerateCodeBehindPath(string path)
-    {
-        var baseFileName = Path.GetFileNameWithoutExtension(path);
-        var extension = Path.GetExtension(path);
-        var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
-
-        var n = 0;
-        string codeBehindPath;
-        do
-        {
-            var identifier = n > 0 ? n.ToString(CultureInfo.InvariantCulture) : string.Empty;  // Make it look nice
-
-            codeBehindPath = Path.Combine(directoryName, $"{baseFileName}{identifier}{extension}.cs");
-            n++;
-        }
-        while (File.Exists(codeBehindPath));
-
-        return codeBehindPath;
-    }
-
     private async Task<string> GenerateCodeBehindClassAsync(IProjectSnapshot project, Uri codeBehindUri, string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument, CancellationToken cancellationToken)
->>>>>>> upstream/features/extract-to-component
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 

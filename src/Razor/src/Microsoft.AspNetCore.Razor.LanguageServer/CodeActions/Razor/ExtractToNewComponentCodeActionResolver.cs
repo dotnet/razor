@@ -28,8 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 internal sealed class ExtractToNewComponentCodeActionResolver(
     IDocumentContextFactory documentContextFactory,
-    LanguageServerFeatureOptions languageServerFeatureOptions,
-    IClientConnection clientConnection) : IRazorCodeActionResolver
+    LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
 
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
