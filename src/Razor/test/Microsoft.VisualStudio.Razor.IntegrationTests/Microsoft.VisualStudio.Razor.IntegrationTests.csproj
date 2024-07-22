@@ -6,7 +6,7 @@
     <RootNamespace>Microsoft.VisualStudio.Razor.IntegrationTests</RootNamespace>
 
     <!-- Must use "dotnet test" to get blame-hang options -->
-    <TestRunnerName>MSTest</TestRunnerName>
+    <UseVSTestRunner>true</UseVSTestRunner>
     <TestRunnerAdditionalArguments>"--blame-hang-dump-type:full" "--blame-hang-timeout:20m"</TestRunnerAdditionalArguments>
   </PropertyGroup>
 
