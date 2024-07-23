@@ -1142,6 +1142,25 @@ namespace Test
     }
 
     [IntegrationTestFact]
+    public void Component_WithEditorRequiredParameter_ValueSpecified_DifferentCasing()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            namespace Test;
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired] public string Property1 { get; set; }
+            }
+            """));
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters property1="Some Value" />
+            """);
+        generated.RazorDiagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,1): warning RZ2012: Component 'ComponentWithEditorRequiredParameters' expects a value for the parameter 'Property1', but a value may not have been provided.
+            Diagnostic("RZ2012").WithLocation(1, 1));
+    }
+
+    [IntegrationTestFact]
     public void Component_WithEditorRequiredParameter_ValuesSpecifiedUsingSplatting()
     {
         AdditionalSyntaxTrees.Add(Parse(@"
@@ -1196,6 +1215,25 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
         Assert.Empty(generated.RazorDiagnostics);
+    }
+
+    [IntegrationTestFact]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind_DifferentCasing()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            namespace Test;
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired] public string Property1 { get; set; }
+            }
+            """));
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-property1="Some Value" />
+            """);
+        generated.RazorDiagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,1): warning RZ2012: Component 'ComponentWithEditorRequiredParameters' expects a value for the parameter 'Property1', but a value may not have been provided.
+            Diagnostic("RZ2012").WithLocation(1, 1));
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
@@ -1255,6 +1293,28 @@ namespace Test
 
         CompileToAssembly(generated);
         Assert.Empty(generated.RazorDiagnostics);
+    }
+
+    [IntegrationTestFact]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBindGet_DifferentCasing()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            namespace Test;
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired] public string Property1 { get; set; }
+            }
+            """));
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-property1:get="myField" />
+            @code {
+                private string myField = "Some Value";
+            }
+            """);
+        generated.RazorDiagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,1): warning RZ2012: Component 'ComponentWithEditorRequiredParameters' expects a value for the parameter 'Property1', but a value may not have been provided.
+            Diagnostic("RZ2012").WithLocation(1, 1));
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
