@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Text;
-using RLSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -17,9 +16,6 @@ internal static partial class VsLspExtensions
 
     public static LinePositionSpan ToLinePositionSpan(this Range range)
         => new(range.Start.ToLinePosition(), range.End.ToLinePosition());
-
-    public static LinePositionSpan ToLinePositionSpan(this RLSP.Range range)
-        => new LinePositionSpan(range.Start.ToLinePosition(), range.End.ToLinePosition());
 
     public static bool IntersectsOrTouches(this Range range, Range other)
     {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using RLSP = Roslyn.LanguageServer.Protocol;
-
 namespace Microsoft.CodeAnalysis.Text;
 
 internal static class LinePositionSpanExtensions
@@ -12,13 +10,6 @@ internal static class LinePositionSpanExtensions
 
     public static void Deconstruct(this LinePositionSpan linePositionSpan, out int startLine, out int startCharacter, out int endLine, out int endCharacter)
         => (startLine, startCharacter, endLine, endCharacter) = (linePositionSpan.Start.Line, linePositionSpan.Start.Character, linePositionSpan.End.Line, linePositionSpan.End.Character);
-
-    public static RLSP.Range ToRLSPRange(this LinePositionSpan linePositionSpan)
-        => new RLSP.Range
-        {
-            Start = linePositionSpan.Start.ToRLSPPosition(),
-            End = linePositionSpan.End.ToRLSPPosition()
-        };
 
     public static TextSpan ToTextSpan(this LinePositionSpan linePositionSpan, SourceText sourceText)
         => sourceText.GetTextSpan(linePositionSpan.Start.Line, linePositionSpan.Start.Character, linePositionSpan.End.Line, linePositionSpan.End.Character);

@@ -5,23 +5,24 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using RLSP = Roslyn.LanguageServer.Protocol;
+using static Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
+using RoslynDocumentHighlight = Roslyn.LanguageServer.Protocol.DocumentHighlight;
 using VsDocumentHighlight = Microsoft.VisualStudio.LanguageServer.Protocol.DocumentHighlight;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight;
 
 [DataContract]
 internal readonly record struct RemoteDocumentHighlight(
-    [property: DataMember(Order = 0)] LinePositionSpan Position,
+    [property: DataMember(Order = 0)] LinePositionSpan Span,
     [property: DataMember(Order = 1)] DocumentHighlightKind Kind)
 {
-    public static RemoteDocumentHighlight FromRLSPDocumentHighlight(RLSP.DocumentHighlight h)
-        => new RemoteDocumentHighlight(h.Range.ToLinePositionSpan(), (DocumentHighlightKind)h.Kind);
+    public static RemoteDocumentHighlight FromRoslynDocumentHighlight(RoslynDocumentHighlight highlight)
+        => new(highlight.Range.ToLinePositionSpan(), (DocumentHighlightKind)highlight.Kind);
 
-    public static VsDocumentHighlight ToLspDocumentHighlight(RemoteDocumentHighlight r)
-        => new VsDocumentHighlight
+    public static VsDocumentHighlight ToVsDocumentHighlight(RemoteDocumentHighlight highlight)
+        => new()
         {
-            Range = r.Position.ToRange(),
-            Kind = r.Kind
+            Range = VsLspExtensions.ToRange(highlight.Span),
+            Kind = highlight.Kind
         };
 }

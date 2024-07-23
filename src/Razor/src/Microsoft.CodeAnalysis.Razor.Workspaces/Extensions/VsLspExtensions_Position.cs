@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using RLSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,9 +15,6 @@ internal static partial class VsLspExtensions
 
     public static LinePosition ToLinePosition(this Position position)
         => new(position.Line, position.Character);
-
-    public static LinePosition ToLinePosition(this RLSP.Position position)
-        => new LinePosition(position.Line, position.Character);
 
     public static Range ToCollapsedRange(this Position position)
         => new() { Start = position, End = position };

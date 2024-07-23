@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Razor.Logging;
-using RLSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Text;
 
@@ -16,9 +15,6 @@ internal static class LinePositionExtensions
 
     public static bool TryGetAbsoluteIndex(this LinePosition position, SourceText text, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position, out absoluteIndex);
-
-    public static RLSP.Position ToRLSPPosition(this LinePosition linePosition)
-        => new RLSP.Position(linePosition.Line, linePosition.Character);
 
     public static bool TryGetAbsoluteIndex(this LinePosition position, SourceText text, ILogger logger, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position, logger, out absoluteIndex);
