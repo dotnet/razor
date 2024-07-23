@@ -1820,6 +1820,91 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
+    public void ImplicitStringConversion_ParameterCasing_Bind()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyComponent : ComponentBase
+            {
+                [Parameter] public string Placeholder { get; set; } = "";
+                [Parameter] public EventCallback<string> PlaceholderChanged { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-PlaceHolder="s" />
+
+            @code {
+                private string s = "abc";
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
+    public void ImplicitStringConversion_ParameterCasing_Bind_02()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyComponent : ComponentBase
+            {
+                [Parameter] public string Placeholder { get; set; } = "";
+                [Parameter] public EventCallback<string> PlaceholderChanged { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @Bind-Placeholder="@s" />
+
+            @code {
+                private string s = "abc";
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
+    public void ImplicitStringConversion_ParameterCasing_Bind_03()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyComponent : ComponentBase
+            {
+                [Parameter] public string Placeholder { get; set; } = "";
+                [Parameter] public EventCallback<string> PlaceholderChanged { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-Placeholder:Get="s" @bind-Placeholder:set="Changed" />
+
+            @code {
+                private string s = "abc";
+                private void Changed(string s) { }
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [IntegrationTestFact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1869483")]
     public void AddComponentParameter()
     {

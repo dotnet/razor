@@ -943,4 +943,41 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.Empty(result.Diagnostics);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
+    public async Task ImplicitStringConversion_ParameterCasing_Bind(
+        [CombinatorialValues("StringParameter", "stringParameter")] string paramName,
+        [CombinatorialValues("7.0", "8.0", "Latest")] string langVersion)
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = $$"""
+                @{ var s = "abc"; }
+                <MyComponent {{paramName}}="@s" />
+                """,
+            ["Shared/MyComponent.razor"] = """
+                MyComponent: @StringParameter
+                @code {
+                    [Parameter] public string StringParameter { get; set; } = "";
+                    [Parameter] public EventCallback<string> StringParameterChanged { get; set; }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = langVersion;
+        });
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
 }
