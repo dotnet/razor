@@ -340,12 +340,12 @@ internal sealed class CodeActionEndpoint(
             .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
             .Select(property => property.GetValue(null) as string)
-            .WithoutNull();
+            .WhereNotNull();
         var codeFixProviderNames = typeof(RazorPredefinedCodeFixProviderNames)
             .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
             .Select(property => property.GetValue(null) as string)
-            .WithoutNull();
+            .WhereNotNull();
 
         availableCodeActionNames.AddRange(refactoringProviderNames);
         availableCodeActionNames.AddRange(codeFixProviderNames);
