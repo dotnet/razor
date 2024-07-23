@@ -18,7 +18,15 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent>(0);
-            __builder.AddComponentParameter(1, "PlaceHolder", 
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.
+#nullable restore
+#line (1,20)-(1,31) "x:\dir\subdir\Test\TestComponent.cshtml"
+Placeholder
+
+#line default
+#line hidden
+#nullable disable
+            ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
 #nullable restore
 #line (1,33)-(1,34) "x:\dir\subdir\Test\TestComponent.cshtml"
 s
@@ -26,8 +34,8 @@ s
 #line default
 #line hidden
 #nullable disable
-            );
-            __builder.AddComponentParameter(2, "PlaceHolderChanged", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => s = __value, s));
+            ));
+            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.PlaceholderChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<global::System.String>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.String>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => s = __value, s))));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
