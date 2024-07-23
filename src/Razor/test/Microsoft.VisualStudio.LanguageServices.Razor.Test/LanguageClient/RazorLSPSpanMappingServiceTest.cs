@@ -64,11 +64,7 @@ public class RazorLSPSpanMappingServiceTest : ToolingTestBase
         var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
         var textSpanAsRange = textSpan.ToRange(_sourceTextGenerated);
-        var mappedRange = new Range()
-        {
-            Start = new Position(2, 1),
-            End = new Position(2, 11)
-        };
+        var mappedRange = VsLspFactory.CreateSingleLineRange(2, character: 1, length: 10);
 
         var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
         var mappingResult = new RazorMapToDocumentRangesResponse()

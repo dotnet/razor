@@ -316,7 +316,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                     [
                         new Location
                         {
-                            Range = sourceText.GetCollapsedLspRange(cursorPosition),
+                            Range = sourceText.GetCollapsedRange(cursorPosition),
                             Uri = new Uri(razorFilePath)
                         }
                     ]

@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
-using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -209,7 +208,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
 
         var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.End, logger);
 
-        var startOrEndTag = owner?.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
+        var startOrEndTag = owner?.FirstAncestorOrSelf<RazorSyntaxNode>(static n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
         if (startOrEndTag is null)
         {
             return false;
@@ -258,10 +257,10 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
                 return false;
             }
 
-            var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n.StartTag?.Name.Content == "style");
+            var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(static n => n.StartTag?.Name.Content == "style");
             var csharp = owner.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
 
-            return element?.Body.Any(c => c is CSharpCodeBlockSyntax) ?? false || csharp is not null;
+            return element?.Body.Any(static c => c is CSharpCodeBlockSyntax) ?? false || csharp is not null;
         }
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
@@ -287,7 +286,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
 
             var bodyElement = element
                 .ChildNodes()
-                .SingleOrDefault(c => c is MarkupElementSyntax tag && tag.StartTag?.Name.Content == "body") as MarkupElementSyntax;
+                .SingleOrDefault(static c => c is MarkupElementSyntax tag && tag.StartTag?.Name.Content == "body") as MarkupElementSyntax;
 
             return bodyElement is not null &&
                    bodyElement.StartTag?.Bang is not null;
@@ -346,7 +345,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
                 return false;
             }
 
-            var body = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n.StartTag?.Name.Content.Equals("body", StringComparison.Ordinal) == true);
+            var body = owner.FirstAncestorOrSelf<MarkupElementSyntax>(static n => n.StartTag?.Name.Content.Equals("body", StringComparison.Ordinal) == true);
 
             if (ReferenceEquals(body, owner))
             {
@@ -383,7 +382,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
             return false;
         }
 
-        var markupAttributeNode = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n =>
+        var markupAttributeNode = owner.FirstAncestorOrSelf<RazorSyntaxNode>(static n =>
             n is MarkupAttributeBlockSyntax ||
             n is MarkupTagHelperAttributeSyntax ||
             n is MarkupMiscAttributeContentSyntax);
@@ -405,7 +404,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
         {
             // Only allow markup, generic & (non-razor comment) token nodes
             var containsNonMarkupNodes = attributeNode.DescendantNodes()
-                .Any(n => !(n is MarkupBlockSyntax ||
+                .Any(static n => !(n is MarkupBlockSyntax ||
                     n is MarkupSyntaxNode ||
                     n is GenericBlockSyntax ||
                     (n is SyntaxNode sn && sn.IsToken && sn.Kind != SyntaxKind.RazorCommentTransition)));
@@ -534,7 +533,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
                 var diagnosticStartCharacter = sourceText.TryGetFirstNonWhitespaceOffset(startLine.Span, out var firstNonWhitespaceOffset)
                     ? firstNonWhitespaceOffset
                     : 0;
-                var startLinePosition = new Position(startLineIndex, diagnosticStartCharacter);
+                var startLinePosition = VsLspFactory.CreatePosition(startLineIndex, diagnosticStartCharacter);
 
                 var endLineIndex = diagnosticRange.End.Line;
                 if (endLineIndex >= sourceText.Lines.Count)
@@ -551,13 +550,9 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
                     ? lastNonWhitespaceOffset
                     : 0;
                 var diagnosticEndWhitespaceOffset = diagnosticEndCharacter + 1;
-                var endLinePosition = new Position(endLineIndex, diagnosticEndWhitespaceOffset);
+                var endLinePosition = VsLspFactory.CreatePosition(endLineIndex, diagnosticEndWhitespaceOffset);
 
-                remappedRange = new Range
-                {
-                    Start = startLinePosition,
-                    End = endLinePosition
-                };
+                remappedRange = VsLspFactory.CreateRange(startLinePosition, endLinePosition);
                 return true;
         }
     }

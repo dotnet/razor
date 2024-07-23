@@ -36,7 +36,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 1), End = new Position(0, 1), },
+            Range = VsLspFactory.CreateCollapsedRange(0, 1),
             Context = new VSInternalCodeActionContext()
         };
 
@@ -65,7 +65,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -95,7 +95,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -124,7 +124,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -172,7 +172,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -222,7 +222,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -264,7 +264,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -312,7 +312,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -343,7 +343,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -374,7 +374,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -403,7 +403,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 

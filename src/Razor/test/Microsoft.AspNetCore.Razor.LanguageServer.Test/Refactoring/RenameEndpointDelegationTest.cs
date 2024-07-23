@@ -80,7 +80,7 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition),
+            Position = codeDocument.GetSourceText().GetPosition(cursorPosition),
             NewName = newName
         };
         Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));

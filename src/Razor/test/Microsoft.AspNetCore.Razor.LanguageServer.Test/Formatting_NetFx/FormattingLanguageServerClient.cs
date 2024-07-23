@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Formatting;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -130,12 +129,7 @@ internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : IC
         foreach (var textChange in response.TextChanges)
         {
             var span = new TextSpan(textChange.Position, textChange.Length);
-
-            var edit = new TextEdit()
-            {
-                Range = sourceText.GetLspRange(span),
-                NewText = textChange.NewText
-            };
+            var edit = VsLspFactory.CreateTextEdit(sourceText.GetRange(span), textChange.NewText);
 
             edits.Add(edit);
         }

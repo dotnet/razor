@@ -8,8 +8,8 @@ namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 internal static partial class VsLspExtensions
 {
     public static Position ToPosition(this LinePosition linePosition)
-        => new(linePosition.Line, linePosition.Character);
+        => VsLspFactory.CreatePosition(linePosition.Line, linePosition.Character);
 
     public static Range ToCollapsedRange(this LinePosition position)
-        => new() { Start = position.ToPosition(), End = position.ToPosition() };
+        => VsLspFactory.CreateCollapsedRange(position);
 }

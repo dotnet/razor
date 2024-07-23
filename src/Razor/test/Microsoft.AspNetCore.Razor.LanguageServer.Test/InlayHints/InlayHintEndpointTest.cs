@@ -106,11 +106,7 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
             {
                 Uri = new Uri(razorFilePath)
             },
-            Range = new()
-            {
-                Start = new(0, 0),
-                End = new(codeDocument.Source.Text.Lines.Count, 0)
-            }
+            Range = VsLspFactory.CreateRange(0, 0, codeDocument.Source.Text.Lines.Count, 0)
         };
         Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);

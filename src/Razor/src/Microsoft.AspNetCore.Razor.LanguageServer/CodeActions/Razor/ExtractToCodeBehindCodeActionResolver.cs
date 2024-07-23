@@ -85,7 +85,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
         var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var codeBehindContent = await GenerateCodeBehindClassAsync(documentContext.Project, codeBehindUri, className, actionParams.Namespace, codeBlockContent, codeDocument, cancellationToken).ConfigureAwait(false);
 
-        var removeRange = codeDocument.Source.Text.GetLspRange(actionParams.RemoveStart, actionParams.RemoveEnd);
+        var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
         var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = codeBehindUri };
@@ -96,26 +96,12 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
             new TextDocumentEdit
             {
                 TextDocument = codeDocumentIdentifier,
-                Edits =
-                [
-                    new TextEdit
-                    {
-                        NewText = string.Empty,
-                        Range = removeRange,
-                    }
-                ],
+                Edits = [VsLspFactory.CreateTextEdit(removeRange, string.Empty)]
             },
             new TextDocumentEdit
             {
                 TextDocument = codeBehindDocumentIdentifier,
-                Edits =
-                [
-                    new TextEdit
-                    {
-                        NewText = codeBehindContent,
-                        Range = new Position(0, 0).ToCollapsedRange()
-                    }
-                ],
+                Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, codeBehindContent)]
             }
         };
 

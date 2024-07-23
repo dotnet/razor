@@ -32,7 +32,7 @@ public partial class OnAutoInsertEndpointTest
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(0, 0),
+            Position = VsLspFactory.EmptyPosition,
             Character = ">",
             Options = new FormattingOptions
             {
@@ -63,18 +63,18 @@ public partial class OnAutoInsertEndpointTest
         var optionsMonitor = GetOptionsMonitor();
         var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: false)
         {
-            ResolvedTextEdit = new TextEdit()
+            ResolvedTextEdit = VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, string.Empty)
         };
         var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true)
         {
-            ResolvedTextEdit = new TextEdit()
+            ResolvedTextEdit = VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, string.Empty)
         };
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider1, insertProvider2], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(0, 0),
+            Position = VsLspFactory.EmptyPosition,
             Character = ">",
             Options = new FormattingOptions
             {
@@ -108,18 +108,18 @@ public partial class OnAutoInsertEndpointTest
         var optionsMonitor = GetOptionsMonitor();
         var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true)
         {
-            ResolvedTextEdit = new TextEdit()
+            ResolvedTextEdit = VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, string.Empty)
         };
         var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true)
         {
-            ResolvedTextEdit = new TextEdit()
+            ResolvedTextEdit = VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, string.Empty)
         };
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider1, insertProvider2], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(0, 0),
+            Position = VsLspFactory.EmptyPosition,
             Character = ">",
             Options = new FormattingOptions
             {
@@ -156,7 +156,7 @@ public partial class OnAutoInsertEndpointTest
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(0, 0),
+            Position = VsLspFactory.EmptyPosition,
             Character = ">",
             Options = new FormattingOptions
             {
@@ -191,7 +191,7 @@ public partial class OnAutoInsertEndpointTest
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(0, 0),
+            Position = VsLspFactory.EmptyPosition,
             Character = "=",
             Options = new FormattingOptions
             {
@@ -224,7 +224,7 @@ public partial class OnAutoInsertEndpointTest
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(0, 0),
+            Position = VsLspFactory.EmptyPosition,
             Character = "=",
             Options = new FormattingOptions
             {
@@ -363,7 +363,7 @@ public partial class OnAutoInsertEndpointTest
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(razorFilePath), },
-            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition),
+            Position = codeDocument.GetSourceText().GetPosition(cursorPosition),
             Character = character,
             Options = new FormattingOptions
             {

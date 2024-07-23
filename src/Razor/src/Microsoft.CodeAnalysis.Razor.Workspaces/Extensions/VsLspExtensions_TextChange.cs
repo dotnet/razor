@@ -14,15 +14,9 @@ internal static partial class VsLspExtensions
         ArgHelper.ThrowIfNull(textChange);
         ArgHelper.ThrowIfNull(sourceText);
 
-        var range = textChange.Span.ToRange(sourceText);
-
         Assumes.NotNull(textChange.NewText);
 
-        return new TextEdit()
-        {
-            NewText = textChange.NewText,
-            Range = range
-        };
+        return VsLspFactory.CreateTextEdit(textChange.Span.ToRange(sourceText), textChange.NewText);
     }
 
     public static RazorTextChange ToRazorTextChange(this TextChange textChange)

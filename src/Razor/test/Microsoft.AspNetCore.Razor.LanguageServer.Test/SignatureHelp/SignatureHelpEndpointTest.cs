@@ -110,7 +110,7 @@ public class SignatureHelpEndpointTest(ITestOutputHelper testOutput) : SingleSer
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition),
+            Position = codeDocument.GetSourceText().GetPosition(cursorPosition),
             Context = signatureHelpContext
         };
 

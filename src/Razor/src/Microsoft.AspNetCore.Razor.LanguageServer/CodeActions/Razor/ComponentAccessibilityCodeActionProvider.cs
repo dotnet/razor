@@ -276,23 +276,14 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         using var textEdits = new PooledArrayBuilder<TextEdit>();
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
-        var startTagTextEdit = new TextEdit
-        {
-            Range = startTag.Name.GetRange(context.CodeDocument.Source),
-            NewText = newTagName,
-        };
+        var startTagTextEdit = VsLspFactory.CreateTextEdit(startTag.Name.GetRange(context.CodeDocument.Source), newTagName);
 
         textEdits.Add(startTagTextEdit);
 
         var endTag = (startTag.Parent as MarkupElementSyntax)?.EndTag;
         if (endTag != null)
         {
-            var endTagTextEdit = new TextEdit
-            {
-                Range = endTag.Name.GetRange(context.CodeDocument.Source),
-                NewText = newTagName,
-            };
-
+            var endTagTextEdit = VsLspFactory.CreateTextEdit(endTag.Name.GetRange(context.CodeDocument.Source), newTagName);
             textEdits.Add(endTagTextEdit);
         }
 

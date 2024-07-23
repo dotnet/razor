@@ -118,12 +118,7 @@ internal sealed class RazorFormattingPass(
             else if (children.TryGetOpenBraceToken(out var brace))
             {
                 // If there is no whitespace at all we normalize to a single space
-                var start = brace.GetRange(source).Start;
-                var edit = new TextEdit
-                {
-                    Range = new Range { Start = start, End = start },
-                    NewText = " "
-                };
+                var edit = VsLspFactory.CreateTextEdit(brace.GetRange(source).Start, " ");
                 edits.Add(edit);
 
                 return true;
@@ -285,14 +280,13 @@ internal sealed class RazorFormattingPass(
             else if (children.TryGetOpenBraceToken(out var brace))
             {
                 // If there is no whitespace at all we normalize to a single space
-                var start = brace.GetRange(source).Start;
-                var edit = new TextEdit
-                {
-                    Range = new Range { Start = start, End = start },
-                    NewText = forceNewLine
-                        ? context.NewLineString + FormattingUtilities.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize)
-                        : " "
-                };
+                var edit = VsLspFactory.CreateTextEdit(
+                    brace.GetRange(source).Start,
+                    forceNewLine
+                        ? context.NewLineString + FormattingUtilities.GetIndentationString(
+                            directive.GetLinePositionSpan(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize)
+                        : " ");
+
                 edits.Add(edit);
             }
         }
@@ -359,11 +353,11 @@ internal sealed class RazorFormattingPass(
         {
             // If there is a newline then we want to have just one newline after the directive
             // and indent the { to match the @
-            var edit = new TextEdit
-            {
-                Range = node.GetRange(source),
-                NewText = context.NewLineString + FormattingUtilities.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize)
-            };
+            var edit = VsLspFactory.CreateTextEdit(
+                node.GetRange(source),
+                context.NewLineString + FormattingUtilities.GetIndentationString(
+                    directive.GetLinePositionSpan(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize));
+
             edits.Add(edit);
         }
     }
@@ -373,11 +367,7 @@ internal sealed class RazorFormattingPass(
         // If there is anything other than one single space then we replace with one space between directive and brace.
         //
         // ie, "@code     {" will become "@code {"
-        var edit = new TextEdit
-        {
-            Range = node.GetRange(source),
-            NewText = " "
-        };
+        var edit = VsLspFactory.CreateTextEdit(node.GetRange(source), " ");
         edits.Add(edit);
     }
 
@@ -400,11 +390,7 @@ internal sealed class RazorFormattingPass(
                 newText += FormattingUtilities.GetIndentationString(additionalIndentationLevel, context.Options.InsertSpaces, context.Options.TabSize);
             }
 
-            var edit = new TextEdit
-            {
-                NewText = newText,
-                Range = new Range { Start = openBraceRange.End, End = openBraceRange.End },
-            };
+            var edit = VsLspFactory.CreateTextEdit(openBraceRange.End, newText);
             edits.Add(edit);
             didFormat = true;
         }
@@ -419,22 +405,17 @@ internal sealed class RazorFormattingPass(
             {
                 // If we have a directive, then we line the close brace up with it, and ensure
                 // there is a close brace
-                var edit = new TextEdit
-                {
-                    NewText = context.NewLineString + FormattingUtilities.GetIndentationString(directiveNode.GetRange(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize),
-                    Range = new Range { Start = codeRange.End, End = closeBraceRange.Start },
-                };
+                var edit = VsLspFactory.CreateTextEdit(start: codeRange.End, end: closeBraceRange.Start,
+                    context.NewLineString + FormattingUtilities.GetIndentationString(
+                        directiveNode.GetRange(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize));
+
                 edits.Add(edit);
                 didFormat = true;
             }
             else if (codeRange.End.Line == closeBraceRange.Start.Line)
             {
                 // Add a Newline between the content and the "}" if one doesn't already exist.
-                var edit = new TextEdit
-                {
-                    NewText = context.NewLineString,
-                    Range = new Range { Start = codeRange.End, End = codeRange.End },
-                };
+                var edit = VsLspFactory.CreateTextEdit(codeRange.End, context.NewLineString);
                 edits.Add(edit);
                 didFormat = true;
             }

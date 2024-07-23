@@ -37,7 +37,7 @@ internal static class IRazorDocumentMappingServiceExtensions
         SourceText sourceText,
         int hostDocumentIndex)
     {
-        var position = sourceText.GetLspPosition(hostDocumentIndex);
+        var position = sourceText.GetPosition(hostDocumentIndex);
 
         var languageKind = service.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
         if (languageKind is not RazorLanguageKind.Razor)

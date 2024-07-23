@@ -9,5 +9,5 @@ namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 internal static partial class VsLspExtensions
 {
     public static Range ToRange(this SourceSpan span, SourceText text)
-        => text.GetLspRange(span);
+        => text.GetRange(span);
 }

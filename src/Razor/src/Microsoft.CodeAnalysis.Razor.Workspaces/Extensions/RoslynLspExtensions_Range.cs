@@ -9,4 +9,7 @@ internal static partial class RoslynLspExtensions
 {
     public static LinePositionSpan ToLinePositionSpan(this Range range)
         => new(range.Start.ToLinePosition(), range.End.ToLinePosition());
+
+    public static string ToDisplayString(this Range range)
+        => $"{range.Start.ToDisplayString()}-{range.End.ToDisplayString()}";
 }

@@ -7,6 +7,6 @@ namespace Roslyn.LanguageServer.Protocol;
 
 internal static partial class RoslynLspExtensions
 {
-    public static Position ToRLSPPosition(this LinePosition linePosition)
-        => new(linePosition.Line, linePosition.Character);
+    public static Position ToPosition(this LinePosition linePosition)
+        => RoslynLspFactory.CreatePosition(linePosition.Line, linePosition.Character);
 }

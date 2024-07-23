@@ -54,19 +54,9 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version: 1);
 
         var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
-        Range = new Range
-        {
-            Start = new Position
-            {
-                Line = 0,
-                Character = 0
-            },
-            End = new Position
-            {
-                Line = text.Lines.Count - 1,
-                Character = 0
-            }
-        };
+        Range = VsLspFactory.CreateRange(
+            start: VsLspFactory.EmptyPosition,
+            end: VsLspFactory.CreatePosition(text.Lines.Count - 1, 0));
     }
 
     private const int WindowSize = 10;

@@ -149,7 +149,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
         TestFileMarkupParser.GetPositionAndSpans(input, out var source, out int cursorPosition, out ImmutableArray<TextSpan> spans);
         var document = CreateProjectAndRazorDocument(source);
         var inputText = await document.GetTextAsync(DisposalToken);
-        var position = inputText.GetLspPosition(cursorPosition);
+        var position = inputText.GetPosition(cursorPosition);
 
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentDocumentHighlightName, htmlResponse)]);
 

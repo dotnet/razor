@@ -16,14 +16,9 @@ internal static partial class VsLspExtensions
         ArgHelper.ThrowIfNull(node);
         ArgHelper.ThrowIfNull(source);
 
-        var lineSpan = node.GetLinePositionSpan(source);
-        var range = new Range
-        {
-            Start = new Position(lineSpan.Start.Line, lineSpan.Start.Character),
-            End = new Position(lineSpan.End.Line, lineSpan.End.Character)
-        };
+        var linePositionSpan = node.GetLinePositionSpan(source);
 
-        return range;
+        return VsLspFactory.CreateRange(linePositionSpan);
     }
 
     public static Range? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
@@ -63,13 +58,7 @@ internal static partial class VsLspExtensions
         var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
         var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
 
-        var range = new Range
-        {
-            Start = new Position(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
-            End = new Position(endPositionSpan.End.Line, endPositionSpan.End.Character)
-        };
-
-        return range;
+        return VsLspFactory.CreateRange(startPositionSpan.Start, endPositionSpan.End);
 
         // This is needed because SyntaxToken positions taken from GetTokens
         // are relative to their parent node and not to the document.

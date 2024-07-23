@@ -42,7 +42,8 @@ internal static class CodeBlockService
     {
         var csharpCodeBlock = code.GetSyntaxTree().Root.DescendantNodes()
             .Select(RazorSyntaxFacts.TryGetCSharpCodeFromCodeBlock)
-            .FirstOrDefault(n => n is not null);
+            .FirstOrDefault(static n => n is not null);
+
         if (csharpCodeBlock is null
             || !csharpCodeBlock.Children.TryGetOpenBraceNode(out var openBrace)
             || !csharpCodeBlock.Children.TryGetCloseBraceNode(out var closeBrace))
@@ -60,25 +61,10 @@ internal static class CodeBlockService
                 codeBlockStartText = $"{Environment.NewLine}{codeBlockStartText}";
             }
 
-            var eofPosition = new Position(lastCharacterLocation.LineNumber, insertCharacterIndex);
-            var eofRange = new Range { Start = eofPosition, End = eofPosition };
-            var start = new TextEdit()
-            {
-                NewText = codeBlockStartText,
-                Range = eofRange
-            };
-
-            var method = new TextEdit()
-            {
-                NewText = indentedMethod,
-                Range = eofRange
-            };
-
-            var end = new TextEdit()
-            {
-                NewText = Environment.NewLine + "}",
-                Range = eofRange
-            };
+            var eofRange = VsLspFactory.CreateCollapsedRange(lastCharacterLocation.LineNumber, insertCharacterIndex);
+            var start = VsLspFactory.CreateTextEdit(eofRange, codeBlockStartText);
+            var method = VsLspFactory.CreateTextEdit(eofRange, indentedMethod);
+            var end = VsLspFactory.CreateTextEdit(eofRange, Environment.NewLine + "}");
 
             return [start, method, end];
         }
@@ -107,15 +93,8 @@ internal static class CodeBlockService
         var insertCharacter = openBraceLocation.LineIndex == closeBraceLocation.LineIndex
             ? closeBraceLocation.CharacterIndex
             : 0;
-        var insertPosition = new Position(insertLineLocation.LineIndex, insertCharacter);
 
-        var edit = new TextEdit()
-        {
-            Range = new Range { Start = insertPosition, End = insertPosition },
-            NewText = formattedGeneratedMethod
-        };
-
-        return [edit];
+        return [VsLspFactory.CreateTextEdit(insertLineLocation.LineIndex, insertCharacter, formattedGeneratedMethod)];
     }
 
     private static string FormatMethodInCodeBlock(

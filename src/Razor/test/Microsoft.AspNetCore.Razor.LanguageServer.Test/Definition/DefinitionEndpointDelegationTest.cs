@@ -251,7 +251,7 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition)
+            Position = codeDocument.GetSourceText().GetPosition(cursorPosition)
         };
 
         return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);

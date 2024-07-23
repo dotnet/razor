@@ -80,6 +80,6 @@ internal static class RazorDiagnosticConverter
         var spanStartIndex = Math.Min(sourceSpan.AbsoluteIndex, sourceText.Length);
         var spanEndIndex = Math.Min(sourceSpan.AbsoluteIndex + sourceSpan.Length, sourceText.Length);
 
-        return sourceText.GetLspRange(spanStartIndex, spanEndIndex);
+        return sourceText.GetRange(spanStartIndex, spanEndIndex);
     }
 }

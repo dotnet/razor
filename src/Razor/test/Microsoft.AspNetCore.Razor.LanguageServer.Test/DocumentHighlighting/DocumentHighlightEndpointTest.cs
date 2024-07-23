@@ -131,7 +131,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition)
+            Position = codeDocument.GetSourceText().GetPosition(cursorPosition)
         };
 
         var documentContext = CreateDocumentContext(request.TextDocument.Uri, codeDocument);

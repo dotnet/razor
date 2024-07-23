@@ -8,9 +8,5 @@ namespace Roslyn.LanguageServer.Protocol;
 internal static partial class RoslynLspExtensions
 {
     public static Range ToRange(this LinePositionSpan linePositionSpan)
-        => new()
-        {
-            Start = linePositionSpan.Start.ToRLSPPosition(),
-            End = linePositionSpan.End.ToRLSPPosition()
-        };
+        => RoslynLspFactory.CreateRange(linePositionSpan);
 }

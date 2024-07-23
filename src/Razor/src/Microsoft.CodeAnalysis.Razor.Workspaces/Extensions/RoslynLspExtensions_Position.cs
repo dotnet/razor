@@ -9,4 +9,7 @@ internal static partial class RoslynLspExtensions
 {
     public static LinePosition ToLinePosition(this Position position)
         => new(position.Line, position.Character);
+
+    public static string ToDisplayString(this Position position)
+        => $"({position.Line}, {position.Character})";
 }

@@ -8,9 +8,5 @@ namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 internal static partial class VsLspExtensions
 {
     public static Range ToRange(this LinePositionSpan linePositionSpan)
-        => new()
-        {
-            Start = linePositionSpan.Start.ToPosition(),
-            End = linePositionSpan.End.ToPosition()
-        };
+        => VsLspFactory.CreateRange(linePositionSpan);
 }

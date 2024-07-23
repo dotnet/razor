@@ -63,7 +63,7 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = sourceText.GetLspPosition(cursorPosition)
+            Position = sourceText.GetPosition(cursorPosition)
         };
         Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);

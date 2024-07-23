@@ -81,6 +81,13 @@ internal static partial class VsLspExtensions
         return range.Start.Line != range.End.Line;
     }
 
+    public static bool IsSingleLine(this Range range)
+    {
+        ArgHelper.ThrowIfNull(range);
+
+        return range.Start.Line == range.End.Line;
+    }
+
     public static bool IsUndefined(this Range range)
     {
         ArgHelper.ThrowIfNull(range);
@@ -98,11 +105,6 @@ internal static partial class VsLspExtensions
         }
 
         return result;
-    }
-
-    public static string ToDisplayString(this Range range)
-    {
-        return $"({range.Start.Line}, {range.Start.Character})-({range.End.Line}, {range.End.Character})";
     }
 
     public static TextSpan AsTextSpan(this Range range, SourceText text)
@@ -136,13 +138,12 @@ internal static partial class VsLspExtensions
         // Empty ranges do not overlap with any range.
         if (overlapStart.CompareTo(overlapEnd) < 0)
         {
-            return new Range()
-            {
-                Start = overlapStart,
-                End = overlapEnd,
-            };
+            return VsLspFactory.CreateRange(overlapStart, overlapEnd);
         }
 
         return null;
     }
+
+    public static string ToDisplayString(this Range range)
+        => $"{range.Start.ToDisplayString()}-{range.End.ToDisplayString()}";
 }

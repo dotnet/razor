@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -45,7 +44,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
+            Range = VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -80,7 +79,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
+            Range = VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -115,7 +114,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 8) },
+            Range = VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 8),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -150,7 +149,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = new Range { Start = new Position(0, 2), End = new Position(0, 4) },
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 2, length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -185,7 +184,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = new Range { Start = new Position(0, 4), End = new Position(0, 4) },
+            Range = VsLspFactory.CreateCollapsedRange(0, 4),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -213,7 +212,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = missingUri })
         {
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
+            Range = VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -241,7 +240,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
+            Range = VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -275,21 +274,11 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var computedEdits = new TextEdit[]
         {
-            new()
-            {
-                NewText="<div>" + Environment.NewLine + "    ",
-                Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
-            },
-            new()
-            {
-                NewText="    ",
-                Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
-            },
-            new()
-            {
-                NewText="    }" + Environment.NewLine + "</div>",
-                Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
-            }
+            VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "<div>" + Environment.NewLine + "    "),
+            VsLspFactory.CreateTextEdit(line: 1, character: 0, "    "),
+            VsLspFactory.CreateTextEdit(
+                range: VsLspFactory.CreateSingleLineRange(line: 2, character: 0, length: 1),
+                newText: "    }" + Environment.NewLine + "</div>"),
         };
 
         var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
@@ -324,22 +313,12 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var computedEdits = new TextEdit[]
         {
-            new()
-            {
-                NewText="<div>" + Environment.NewLine + "    ",
-                Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
-            },
-            new()
-            {
-                NewText="    ",
-                Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
-            },
-            new()
-            {
-                // This is the problematic edit.. the close brace has been replaced with a tilde
-                NewText="    ~" + Environment.NewLine + "</div>",
-                Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
-            }
+            VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "<div>" + Environment.NewLine + "    "),
+            VsLspFactory.CreateTextEdit(line: 1, character: 0, "    "),
+            // This is the problematic edit.. the close brace has been replaced with a tilde
+            VsLspFactory.CreateTextEdit(
+                range: VsLspFactory.CreateSingleLineRange(line: 2, character: 0, length: 1),
+                newText: "    ~" + Environment.NewLine + "</div>")
         };
 
         var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
@@ -370,29 +349,19 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
         var uri = new Uri("file://path.razor");
         var factory = CreateDocumentContextFactory(uri, input);
         Assert.True(factory.TryCreate(uri, out var context));
-        var inputSourceText = await context!.GetSourceTextAsync(DisposalToken);
+        var inputSourceText = await context.GetSourceTextAsync(DisposalToken);
 
-        var computedEdits = new TextEdit[]
+        var computedEdits = new[]
         {
-            new()
-            {
-                NewText="<div>" + Environment.NewLine + "    ",
-                Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
-            },
-            new()
-            {
-                NewText="    ",
-                Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
-            },
-            new()
-            {
-                // This looks like a bad edit, but the original source document had a tilde
-                NewText="    ~" + Environment.NewLine + "</div>",
-                Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
-            }
+            VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "<div>" + Environment.NewLine + "    "),
+            VsLspFactory.CreateTextEdit(line: 1, character: 0, "    "),
+            // This looks like a bad edit, but the original source document had a tilde
+            VsLspFactory.CreateTextEdit(
+                range: VsLspFactory.CreateSingleLineRange(line: 2, character: 0, length: 1),
+                newText: "    ~" + Environment.NewLine + "</div>")
         };
 
-        var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
+        var htmlSourceText = await context.GetHtmlSourceTextAsync(DisposalToken);
         var edits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, computedEdits);
         Assert.NotSame(computedEdits, edits);
 

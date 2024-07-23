@@ -4,9 +4,9 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.Protocol;
+namespace Roslyn.LanguageServer.Protocol;
 
-internal static class VsLspFactory
+internal static class RoslynLspFactory
 {
     private static readonly Position s_emptyPosition = new(0, 0);
 
@@ -34,7 +34,7 @@ internal static class VsLspFactory
             Debug.Assert(
                 emptyPosition.Line == 0 &&
                 emptyPosition.Character == 0,
-                $"{nameof(VsLspFactory)}.{nameof(EmptyPosition)} has been corrupted. Current value: {emptyPosition.ToDisplayString()}");
+                $"{nameof(RoslynLspFactory)}.{nameof(EmptyPosition)} has been corrupted. Current value: {emptyPosition.ToDisplayString()}");
 
             return emptyPosition;
         }
@@ -52,7 +52,7 @@ internal static class VsLspFactory
                 emptyRange.Start.Character == 0 &&
                 emptyRange.End.Line == 0 &&
                 emptyRange.End.Character == 0,
-                $"{nameof(VsLspFactory)}.{nameof(EmptyRange)} has been corrupted. Current value: {emptyRange.ToDisplayString()}");
+                $"{nameof(RoslynLspFactory)}.{nameof(EmptyRange)} has been corrupted. Current value: {emptyRange.ToDisplayString()}");
 
             return emptyRange;
         }
@@ -68,7 +68,7 @@ internal static class VsLspFactory
             Debug.Assert(
                 undefinedPosition.Line == -1 &&
                 undefinedPosition.Character == -1,
-                $"{nameof(VsLspFactory)}.{nameof(UndefinedPosition)} has been corrupted. Current value: {undefinedPosition.ToDisplayString()}");
+                $"{nameof(RoslynLspFactory)}.{nameof(UndefinedPosition)} has been corrupted. Current value: {undefinedPosition.ToDisplayString()}");
 
             return undefinedPosition;
         }
@@ -86,7 +86,7 @@ internal static class VsLspFactory
                 undefinedRange.Start.Character == -1 &&
                 undefinedRange.End.Line == -1 &&
                 undefinedRange.End.Character == -1,
-                $"{nameof(VsLspFactory)}.{nameof(UndefinedRange)} has been corrupted. Current value: {undefinedRange.ToDisplayString()}");
+                $"{nameof(RoslynLspFactory)}.{nameof(UndefinedRange)} has been corrupted. Current value: {undefinedRange.ToDisplayString()}");
 
             return undefinedRange;
         }
@@ -117,8 +117,8 @@ internal static class VsLspFactory
     public static Range CreateRange(LinePosition start, LinePosition end)
         => CreateRange(start.Line, start.Character, end.Line, end.Character);
 
-    public static Range CreateRange(LinePositionSpan span)
-        => CreateRange(span.Start, span.End);
+    public static Range CreateRange(LinePositionSpan linePositionSpan)
+        => CreateRange(linePositionSpan.Start, linePositionSpan.End);
 
     public static Range CreateCollapsedRange(int line, int character)
         => (line, character) switch
@@ -143,27 +143,4 @@ internal static class VsLspFactory
     public static Range CreateSingleLineRange(LinePosition start, int length)
         => CreateSingleLineRange(start.Line, start.Character, length);
 
-    public static TextEdit CreateTextEdit(Range range, string newText)
-        => new() { Range = range, NewText = newText };
-
-    public static TextEdit CreateTextEdit(LinePositionSpan span, string newText)
-        => CreateTextEdit(CreateRange(span), newText);
-
-    public static TextEdit CreateTextEdit(int line, int character, string newText)
-        => CreateTextEdit(CreateCollapsedRange(line, character), newText);
-
-    public static TextEdit CreateTextEdit(Position position, string newText)
-        => CreateTextEdit(CreateCollapsedRange(position), newText);
-
-    public static TextEdit CreateTextEdit(LinePosition position, string newText)
-        => CreateTextEdit(CreateCollapsedRange(position.Line, position.Character), newText);
-
-    public static TextEdit CreateTextEdit(int startLine, int startCharacter, int endLine, int endCharacter, string newText)
-        => CreateTextEdit(CreateRange(startLine, startCharacter, endLine, endCharacter), newText);
-
-    public static TextEdit CreateTextEdit(Position start, Position end, string newText)
-        => CreateTextEdit(CreateRange(start, end), newText);
-
-    public static TextEdit CreateTextEdit(LinePosition start, LinePosition end, string newText)
-        => CreateTextEdit(CreateRange(start, end), newText);
 }

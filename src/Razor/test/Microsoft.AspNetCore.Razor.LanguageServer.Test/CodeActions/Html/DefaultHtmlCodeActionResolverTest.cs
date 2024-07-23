@@ -39,14 +39,14 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
         var remappedEdit = new WorkspaceEdit
         {
             DocumentChanges = new TextDocumentEdit[]
-           {
-                new TextDocumentEdit
-                {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= documentUri, Version = 1 },
-                    Edits = new TextEdit[]
+            {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
-                        new TextEdit { NewText = "Goo ~~~~~~~~~~~~~~~ Bar", Range = span.ToRange(sourceText) }
-                    }
+                        Uri = documentUri,
+                        Version = 1
+                    },
+                    Edits = [VsLspFactory.CreateTextEdit(sourceText.GetRange(span), "Goo ~~~~~~~~~~~~~~~ Bar")]
                 }
            }
         };
@@ -70,13 +70,14 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
             {
                 DocumentChanges = new TextDocumentEdit[]
                         {
-                            new TextDocumentEdit
+                            new()
                             {
-                                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= new Uri("c:/Test.razor.html"), Version = 1 },
-                                Edits = new TextEdit[]
+                                TextDocument = new OptionalVersionedTextDocumentIdentifier
                                 {
-                                    new TextEdit { NewText = "Goo" }
-                                }
+                                    Uri = new Uri("c:/Test.razor.html"),
+                                    Version = 1
+                                },
+                                Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "Goo")]
                             }
                         }
             }

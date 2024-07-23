@@ -114,7 +114,7 @@ internal sealed class InlineCompletionEndpoint(
         foreach (var item in list.Items)
         {
             var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
-            var range = item.Range ?? new Range { Start = projectedPosition, End = projectedPosition };
+            var range = item.Range ?? projectedPosition.ToCollapsedRange();
 
             if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
             {

@@ -28,7 +28,7 @@ public class RazorCompletionEndpointTest(ITestOutputHelper testOutput) : Languag
             {
                 Uri = new Uri(documentPath)
             },
-            Position = new Position(0, 1),
+            Position = VsLspFactory.CreatePosition(0, 1),
             Context = new VSInternalCompletionContext(),
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -56,7 +56,7 @@ public class RazorCompletionEndpointTest(ITestOutputHelper testOutput) : Languag
             {
                 Uri = uri
             },
-            Position = new Position(0, 1),
+            Position = VsLspFactory.CreatePosition(0, 1),
             Context = new VSInternalCompletionContext() { InvokeKind = VSInternalCompletionInvokeKind.Typing },
         };
         var requestContext = CreateRazorRequestContext(documentContext);

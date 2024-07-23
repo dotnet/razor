@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -40,20 +38,20 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "var __o = DateTime.Now",
-            new[] {
+            [
                 new SourceMapping(
                     new SourceSpan(4, 12),
                     new SourceSpan(10, 12))
-            });
+            ]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            ProjectedRanges = new[] { new Range { Start = new Position(0, 10), End = new Position(0, 22) }, },
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(line: 0, character: 10, length: 12)],
             RazorDocumentUri = documentPath,
         };
-        var expectedRange = new Range { Start = new Position(0, 4), End = new Position(0, 16) };
+        var expectedRange = VsLspFactory.CreateSingleLineRange(line: 0, character: 4, length: 12);
 
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -74,17 +72,17 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "var __o = DateTime.Now",
-            new[] {
+            [
                 new SourceMapping(
                     new SourceSpan(4, 12),
                     new SourceSpan(10, 12))
-            });
+            ]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            ProjectedRanges = new[] { new Range { Start = new Position(0, 0), End = new Position(0, 3) } },
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 3)],
             RazorDocumentUri = documentPath,
         };
 
@@ -107,17 +105,17 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "var __o = DateTime.Now",
-            new[] {
+            [
                 new SourceMapping(
                     new SourceSpan(4, 12),
                     new SourceSpan(10, 12))
-            });
+            ]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            ProjectedRanges = new[] { new Range { Start = new Position(0, 0), End = new Position(0, 22) } },
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 22)],
             RazorDocumentUri = documentPath,
         };
 
@@ -140,17 +138,17 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "var __o = DateTime.Now",
-            new[] {
+            [
                 new SourceMapping(
                     new SourceSpan(4, 12),
                     new SourceSpan(10, 12))
-            });
+            ]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            ProjectedRanges = new[] { new Range { Start = new Position(0, 10), End = new Position(0, 23) } },
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(line: 0, character : 10, length: 13)],
             RazorDocumentUri = documentPath,
         };
 
@@ -176,7 +174,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.Html,
-            ProjectedRanges = new[] { new Range { Start = new Position(0, 16), End = new Position(0, 20) } },
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(line: 0, character: 16, length: 4)],
             RazorDocumentUri = documentPath,
         };
 
@@ -202,7 +200,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.Razor,
-            ProjectedRanges = new[] { new Range { Start = new Position(0, 3), End = new Position(0, 4) } },
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(line: 0, character: 4, length: 1)],
             RazorDocumentUri = documentPath,
         };
 
@@ -225,18 +223,18 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "var __o = DateTime.Now",
-            new[] {
+            [
                 new SourceMapping(
                     new SourceSpan(4, 12),
                     new SourceSpan(10, 12))
-            });
+            ]);
         codeDocument.SetUnsupported();
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            ProjectedRanges = new[] { new Range { Start = new Position(0, 10), End = new Position(0, 22) } },
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(line: 0, character: 10, length: 12)],
             RazorDocumentUri = documentPath,
         };
 
@@ -253,14 +251,14 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
 
     private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, IEnumerable<SourceMapping> sourceMappings)
     {
-        var codeDocument = CreateCodeDocument(razorSource, ImmutableArray<TagHelperDescriptor>.Empty);
+        var codeDocument = CreateCodeDocument(razorSource, tagHelpers: []);
         var csharpDocument = RazorCSharpDocument.Create(
             codeDocument,
             projectedCSharpSource,
             RazorCodeGenerationOptions.CreateDefault(),
-            Enumerable.Empty<RazorDiagnostic>(),
+            diagnostics: [],
             sourceMappings.ToImmutableArray(),
-            Enumerable.Empty<LinePragma>());
+            linePragmas: []);
         codeDocument.SetCSharpDocument(csharpDocument);
         return codeDocument;
     }

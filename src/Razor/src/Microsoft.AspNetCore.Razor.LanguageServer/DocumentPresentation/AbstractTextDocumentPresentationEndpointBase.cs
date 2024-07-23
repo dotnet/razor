@@ -238,11 +238,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
                 return [];
             }
 
-            var newEdit = new TextEdit()
-            {
-                NewText = edit.NewText,
-                Range = newRange
-            };
+            var newEdit = VsLspFactory.CreateTextEdit(newRange, edit.NewText);
             mappedEdits.Add(newEdit);
         }
 

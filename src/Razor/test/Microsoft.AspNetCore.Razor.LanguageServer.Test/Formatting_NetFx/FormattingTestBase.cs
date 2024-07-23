@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -209,15 +208,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
     }
 
     protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
-        => new()
-        {
-            Range = new Range
-            {
-                Start = new Position(startLine, startChar),
-                End = new Position(endLine, endChar),
-            },
-            NewText = newText,
-        };
+        => VsLspFactory.CreateTextEdit(startLine, startChar, endLine, endChar, newText);
 
     private static SourceText ApplyEdits(SourceText source, TextEdit[] edits)
     {

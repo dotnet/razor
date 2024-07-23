@@ -104,7 +104,7 @@ public class ImplementationEndpointTest(ITestOutputHelper testOutput) : SingleSe
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = codeDocument.GetSourceText().GetLspPosition(cursorPosition)
+            Position = codeDocument.GetSourceText().GetPosition(cursorPosition)
         };
         Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);

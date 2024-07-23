@@ -17,7 +17,7 @@ internal static partial class VsLspExtensions
         => new(position.Line, position.Character);
 
     public static Range ToCollapsedRange(this Position position)
-        => new() { Start = position, End = position };
+        => VsLspFactory.CreateCollapsedRange(position);
 
     public static bool TryGetAbsoluteIndex(this Position position, SourceText text, out int absoluteIndex)
     {
@@ -57,4 +57,7 @@ internal static partial class VsLspExtensions
 
         return text.TryGetAbsoluteIndex(position.Line, position.Character, logger: null, out _);
     }
+
+    public static string ToDisplayString(this Position position)
+        => $"({position.Line}, {position.Character})";
 }

@@ -12,19 +12,19 @@ internal static partial class VsLspExtensions
     public static int GetPosition(this SourceText text, Position position)
         => text.GetPosition(position.ToLinePosition());
 
-    public static Position GetLspPosition(this SourceText text, int position)
+    public static Position GetPosition(this SourceText text, int position)
         => text.GetLinePosition(position).ToPosition();
 
-    public static Range GetLspRange(this SourceText text, TextSpan span)
+    public static Range GetRange(this SourceText text, TextSpan span)
         => text.GetLinePositionSpan(span).ToRange();
 
-    public static Range GetLspRange(this SourceText text, SourceSpan span)
+    public static Range GetRange(this SourceText text, SourceSpan span)
         => text.GetLinePositionSpan(span).ToRange();
 
-    public static Range GetLspRange(this SourceText text, int start, int end)
+    public static Range GetRange(this SourceText text, int start, int end)
         => text.GetLinePositionSpan(start, end).ToRange();
 
-    public static Range GetCollapsedLspRange(this SourceText text, int position)
+    public static Range GetCollapsedRange(this SourceText text, int position)
         => text.GetLinePosition(position).ToCollapsedRange();
 
     public static bool TryGetAbsoluteIndex(this SourceText text, Position position, out int absoluteIndex)

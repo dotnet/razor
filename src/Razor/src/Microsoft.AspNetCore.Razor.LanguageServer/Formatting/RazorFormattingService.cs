@@ -60,7 +60,7 @@ internal class RazorFormattingService : IRazorFormattingService
         if (range is not null)
         {
             var sourceText = codeDocument.GetSourceText();
-            if (codeDocument.GetCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && range.OverlapsWith(sourceText.GetLspRange(d.Span))))
+            if (codeDocument.GetCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && range.OverlapsWith(sourceText.GetRange(d.Span))))
             {
                 return Array.Empty<TextEdit>();
             }

@@ -123,8 +123,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
             if (string.CompareOrdinal(newUsingNamespace, usingDirectiveNamespace) < 0)
             {
                 var usingDirectiveLineIndex = codeDocument.Source.Text.GetLinePosition(usingDirective.Node.Span.Start).Line;
-                var head = new Position(usingDirectiveLineIndex, 0);
-                var edit = new TextEdit() { Range = new Range { Start = head, End = head }, NewText = newText };
+                var edit = VsLspFactory.CreateTextEdit(line: usingDirectiveLineIndex, character: 0, newText);
                 edits.Add(edit);
                 break;
             }
@@ -135,8 +134,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         {
             var endIndex = existingUsingDirectives[^1].Node.Span.End;
             var lineIndex = GetLineIndexOrEnd(codeDocument, endIndex - 1) + 1;
-            var head = new Position(lineIndex, 0);
-            var edit = new TextEdit() { Range = new Range { Start = head, End = head }, NewText = newText };
+            var edit = VsLspFactory.CreateTextEdit(line: lineIndex, character: 0, newText);
             edits.Add(edit);
         }
 
@@ -152,33 +150,25 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
         string newUsingNamespace)
     {
-        var head = new Position(0, 0);
+        var insertPosition = VsLspFactory.EmptyPosition;
 
         // If we don't have usings, insert after the last namespace or page directive, which ever comes later
         var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
         var lastNamespaceOrPageDirective = syntaxTreeRoot
             .DescendantNodes()
-            .Where(n => IsNamespaceOrPageDirective(n))
-            .LastOrDefault();
+            .LastOrDefault(IsNamespaceOrPageDirective);
+
         if (lastNamespaceOrPageDirective != null)
         {
             var lineIndex = GetLineIndexOrEnd(codeDocument, lastNamespaceOrPageDirective.Span.End - 1) + 1;
-            head = new Position(lineIndex, 0);
+            insertPosition = VsLspFactory.CreatePosition(lineIndex, 0);
         }
 
         // Insert all usings at the given point
-        var range = new Range { Start = head, End = head };
         return new TextDocumentEdit
         {
             TextDocument = codeDocumentIdentifier,
-            Edits =
-            [
-                new TextEdit()
-                {
-                    NewText = string.Concat($"@using {newUsingNamespace}{Environment.NewLine}"),
-                    Range = range,
-                }
-            ]
+            Edits = [VsLspFactory.CreateTextEdit(insertPosition, newText: $"@using {newUsingNamespace}{Environment.NewLine}")]
         };
     }
 

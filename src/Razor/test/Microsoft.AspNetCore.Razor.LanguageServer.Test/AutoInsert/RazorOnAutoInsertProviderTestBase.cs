@@ -35,7 +35,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         TestFileMarkupParser.GetPosition(input, out input, out var location);
 
         var source = SourceText.From(input);
-        var position = source.GetLspPosition(location);
+        var position = source.GetPosition(location);
 
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);

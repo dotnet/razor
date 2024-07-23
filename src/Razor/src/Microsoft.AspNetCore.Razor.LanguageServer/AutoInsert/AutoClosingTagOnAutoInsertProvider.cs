@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -86,11 +85,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         if (autoClosingBehavior == AutoClosingBehavior.EndTag)
         {
             format = InsertTextFormat.Snippet;
-            edit = new TextEdit()
-            {
-                NewText = $"$0</{tagName}>",
-                Range = new Range { Start = position, End = position },
-            };
+            edit = VsLspFactory.CreateTextEdit(position, $"$0</{tagName}>");
 
             return true;
         }
@@ -101,16 +96,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
         // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
         var insertionText = char.IsWhiteSpace(context.SourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
-        var insertionPosition = new Position(position.Line, position.Character - 1);
-        edit = new TextEdit()
-        {
-            NewText = insertionText,
-            Range = new Range
-            {
-                Start = insertionPosition,
-                End = insertionPosition
-            }
-        };
+        edit = VsLspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
 
         return true;
     }

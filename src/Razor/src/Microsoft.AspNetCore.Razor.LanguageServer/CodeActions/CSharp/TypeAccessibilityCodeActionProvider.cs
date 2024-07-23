@@ -81,13 +81,15 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         {
             // Corner case handling for diagnostics which (momentarily) linger after
             // @code block is cleared out
-            if (diagnostic.Range.End.Line > context.SourceText.Lines.Count ||
-                diagnostic.Range.End.Character > context.SourceText.Lines[diagnostic.Range.End.Line].End)
+            var range = diagnostic.Range;
+            var end = range.End;
+            if (end.Line > context.SourceText.Lines.Count ||
+                end.Character > context.SourceText.Lines[end.Line].End)
             {
                 continue;
             }
 
-            var diagnosticSpan = context.SourceText.GetTextSpan(diagnostic.Range);
+            var diagnosticSpan = context.SourceText.GetTextSpan(range);
 
             // Based on how we compute `Range.AsTextSpan` it's possible to have a span
             // which goes beyond the end of the source text. Something likely changed
@@ -259,11 +261,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
     {
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
-        var fqnTextEdit = new TextEdit()
-        {
-            NewText = fullyQualifiedName,
-            Range = fqnDiagnostic.Range
-        };
+        var fqnTextEdit = VsLspFactory.CreateTextEdit(fqnDiagnostic.Range, fullyQualifiedName);
 
         var fqnWorkspaceEditDocumentChange = new TextDocumentEdit()
         {

@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -66,19 +65,9 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
-        Range = new Range
-        {
-            Start = new Position
-            {
-                Line = 0,
-                Character = 0
-            },
-            End = new Position
-            {
-                Line = text.Lines.Count - 1,
-                Character = text.Lines.Last().Span.Length - 1
-            }
-        };
+        Range = VsLspFactory.CreateRange(
+            start: VsLspFactory.EmptyPosition,
+            end: VsLspFactory.CreatePosition(text.Lines.Count - 1, text.Lines[^1].Span.Length - 1));
     }
 
     [Benchmark(Description = "Razor Semantic Tokens Range Handling")]

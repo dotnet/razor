@@ -90,7 +90,7 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
         }
 
         var csharpText = codeDocument.GetCSharpSourceText();
-        var projectedRange = csharpText.GetLspRange(csharpBreakpointSpan);
+        var projectedRange = csharpText.GetRange(csharpBreakpointSpan);
 
         // Now map that new C# location back to the host document
         // Razor files generate code in a "loosely" debuggable way. For instance if you were to do the following in a razor or cshtml file:

@@ -71,7 +71,7 @@ internal class HtmlFormatter
 
         var @params = new RazorDocumentOnTypeFormattingParams()
         {
-            Position = context.SourceText.GetLspPosition(context.HostDocumentIndex),
+            Position = context.SourceText.GetPosition(context.HostDocumentIndex),
             Character = context.TriggerCharacter.ToString(),
             TextDocument = new TextDocumentIdentifier { Uri = context.Uri },
             Options = context.Options,

@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
@@ -41,7 +40,7 @@ internal abstract class AbstractRazorDocumentMappingService(
         foreach (var edit in generatedDocumentEdits)
         {
             var range = edit.Range;
-            if (!IsRangeWithinDocument(range, generatedDocumentSourceText))
+            if (!IsRangeWithinDocument(range.ToLinePositionSpan(), generatedDocumentSourceText))
             {
                 continue;
             }
@@ -63,11 +62,7 @@ internal abstract class AbstractRazorDocumentMappingService(
                 // between this edit and the previous one, because the normalization will have swallowed it. See
                 // below for a more info.
                 var newText = (lastNewLineAddedToLine == range.Start.Line ? " " : "") + edit.NewText;
-                hostDocumentEdits.Add(new TextEdit()
-                {
-                    NewText = newText,
-                    Range = new Range { Start = hostDocumentStart!, End = hostDocumentEnd! },
-                });
+                hostDocumentEdits.Add(VsLspFactory.CreateTextEdit(hostDocumentStart!, hostDocumentEnd!, newText));
                 continue;
             }
 
@@ -100,7 +95,7 @@ internal abstract class AbstractRazorDocumentMappingService(
                 // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
                 Debug.Assert(lastNewLine == 0 || edit.NewText[..(lastNewLine - 1)].All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
-                var proposedRange = new Range { Start = new Position(range.End.Line, 0), End = new Position(range.End.Line, range.End.Character) };
+                var proposedRange = VsLspFactory.CreateSingleLineRange(range.End.Line, character: 0, length: range.End.Character);
                 startSync = generatedDocumentSourceText.TryGetAbsoluteIndex(proposedRange.Start, _logger, out startIndex);
                 endSync = generatedDocumentSourceText.TryGetAbsoluteIndex(proposedRange.End, _logger, out endIndex);
                 if (startSync is false || endSync is false)
@@ -113,11 +108,7 @@ internal abstract class AbstractRazorDocumentMappingService(
 
                 if (mappedStart && mappedEnd)
                 {
-                    hostDocumentEdits.Add(new TextEdit()
-                    {
-                        NewText = edit.NewText[lastNewLine..],
-                        Range = new Range { Start = hostDocumentStart!, End = hostDocumentEnd! },
-                    });
+                    hostDocumentEdits.Add(VsLspFactory.CreateTextEdit(hostDocumentStart!, hostDocumentEnd!, edit.NewText[lastNewLine..]));
                     continue;
                 }
             }
@@ -170,21 +161,15 @@ internal abstract class AbstractRazorDocumentMappingService(
                         // If we already added a newline to this line, then we don't want to add another one, but
                         // we do need to add a space between this edit and the previous one, because the normalization
                         // will have swallowed it.
-                        hostDocumentEdits.Add(new TextEdit()
-                        {
-                            NewText = " " + edit.NewText,
-                            Range = new Range { Start = hostDocumentIndex, End = hostDocumentIndex }
-                        });
+                        hostDocumentEdits.Add(VsLspFactory.CreateTextEdit(hostDocumentIndex, " " + edit.NewText));
                     }
                     else
                     {
                         // Otherwise, add a newline and the real content, and remember where we added it
                         lastNewLineAddedToLine = range.Start.Line;
-                        hostDocumentEdits.Add(new TextEdit()
-                        {
-                            NewText = Environment.NewLine + new string(' ', range.Start.Character) + edit.NewText,
-                            Range = new Range { Start = hostDocumentIndex, End = hostDocumentIndex }
-                        });
+                        hostDocumentEdits.Add(VsLspFactory.CreateTextEdit(
+                            hostDocumentIndex,
+                            Environment.NewLine + new string(' ', range.Start.Character) + edit.NewText));
                     }
 
                     continue;
@@ -760,9 +745,6 @@ internal abstract class AbstractRazorDocumentMappingService(
 
     private static bool s_haveAsserted = false;
 
-    private bool IsRangeWithinDocument(Range range, SourceText sourceText)
-        => IsRangeWithinDocument(range.ToLinePositionSpan(), sourceText);
-
     private bool IsRangeWithinDocument(LinePositionSpan range, SourceText sourceText)
     {
         // This might happen when the document that ranges were created against was not the same as the document we're consulting.
@@ -881,12 +863,7 @@ internal abstract class AbstractRazorDocumentMappingService(
                 continue;
             }
 
-            var edit = new TextEdit()
-            {
-                Range = originalRange,
-                NewText = edits[i].NewText
-            };
-
+            var edit = VsLspFactory.CreateTextEdit(originalRange, edits[i].NewText);
             remappedEdits.Add(edit);
         }
 

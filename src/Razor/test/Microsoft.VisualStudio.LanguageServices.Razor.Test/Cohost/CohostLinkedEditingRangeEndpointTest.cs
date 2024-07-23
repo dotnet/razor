@@ -170,7 +170,7 @@ public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHe
             {
                 Uri = document.CreateUri()
             },
-            Position = sourceText.GetLspPosition(cursorPosition)
+            Position = sourceText.GetPosition(cursorPosition)
         };
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);

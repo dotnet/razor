@@ -35,7 +35,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -68,7 +68,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.EmptyRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -80,13 +80,13 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         {
             DocumentChanges = new TextDocumentEdit[]
             {
-                new TextDocumentEdit
-                {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= new Uri(documentPath), Version = 1 },
-                    Edits = new TextEdit[]
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
-                        new TextEdit { NewText = "Goo ~~~~~~~~~~~~~~~ Bar", Range = span.ToRange(context.SourceText) }
-                    }
+                        Uri = new Uri(documentPath),
+                        Version = 1
+                    },
+                    Edits = [VsLspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo ~~~~~~~~~~~~~~~ Bar")]
                 }
             }
         };
@@ -107,13 +107,13 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
                 {
                     DocumentChanges = new TextDocumentEdit[]
                     {
-                        new TextDocumentEdit
-                        {
-                            TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= new Uri("c:/Test.razor.html"), Version = 1 },
-                            Edits = new TextEdit[]
+                        new() {
+                            TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                new TextEdit { NewText = "Goo" }
-                            }
+                                Uri = new Uri("c:/Test.razor.html"),
+                                Version = 1
+                            },
+                            Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "Goo")]
                         }
                     }
                 }

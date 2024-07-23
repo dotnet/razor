@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -62,8 +61,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     {
         EnsureServicesInitialized();
 
-        var loggerFactory = RazorLanguageServerHost.GetRequiredService<ILoggerFactory>();
-
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         ProjectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         PagesDirectory = Path.Combine(projectRoot, "Components", "Pages");
@@ -81,11 +78,9 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         SemanticTokensRangeEndpoint = new SemanticTokensRangeEndpoint(RazorSemanticTokenService, razorSemanticTokensLegendService, razorOptionsMonitor, telemetryReporter: null);
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
-        Range = new Range
-        {
-            Start = new Position { Line = 0, Character = 0 },
-            End = new Position { Line = text.Lines.Count - 1, Character = text.Lines.Last().Span.Length - 1 }
-        };
+        Range = VsLspFactory.CreateRange(
+            start: VsLspFactory.EmptyPosition,
+            end: VsLspFactory.CreatePosition(text.Lines.Count - 1, text.Lines[^1].Span.Length - 1));
 
         var documentVersion = 1;
         VersionCache.TrackDocumentVersion(DocumentSnapshot, documentVersion);
