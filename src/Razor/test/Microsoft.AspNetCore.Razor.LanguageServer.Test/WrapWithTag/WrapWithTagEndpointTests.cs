@@ -184,7 +184,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = VsLspFactory.CreateCollapsedRange(0, 4),
+            Range = VsLspFactory.CreateZeroWidthRange(0, 4),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 

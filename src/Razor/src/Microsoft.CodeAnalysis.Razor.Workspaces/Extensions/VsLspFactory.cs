@@ -120,18 +120,18 @@ internal static class VsLspFactory
     public static Range CreateRange(LinePositionSpan span)
         => CreateRange(span.Start, span.End);
 
-    public static Range CreateCollapsedRange(int line, int character)
+    public static Range CreateZeroWidthRange(int line, int character)
         => (line, character) switch
         {
             (0, 0) => EmptyRange,
             (-1, -1) => UndefinedRange,
-            _ => CreateCollapsedRange(CreatePosition(line, character))
+            _ => CreateZeroWidthRange(CreatePosition(line, character))
         };
 
-    public static Range CreateCollapsedRange(Position position)
+    public static Range CreateZeroWidthRange(Position position)
         => CreateRange(position, position);
 
-    public static Range CreateCollapsedRange(LinePosition position)
+    public static Range CreateZeroWidthRange(LinePosition position)
         => CreateRange(position, position);
 
     public static Range CreateSingleLineRange(int line, int character, int length)
@@ -150,13 +150,13 @@ internal static class VsLspFactory
         => CreateTextEdit(CreateRange(span), newText);
 
     public static TextEdit CreateTextEdit(int line, int character, string newText)
-        => CreateTextEdit(CreateCollapsedRange(line, character), newText);
+        => CreateTextEdit(CreateZeroWidthRange(line, character), newText);
 
     public static TextEdit CreateTextEdit(Position position, string newText)
-        => CreateTextEdit(CreateCollapsedRange(position), newText);
+        => CreateTextEdit(CreateZeroWidthRange(position), newText);
 
     public static TextEdit CreateTextEdit(LinePosition position, string newText)
-        => CreateTextEdit(CreateCollapsedRange(position.Line, position.Character), newText);
+        => CreateTextEdit(CreateZeroWidthRange(position.Line, position.Character), newText);
 
     public static TextEdit CreateTextEdit(int startLine, int startCharacter, int endLine, int endCharacter, string newText)
         => CreateTextEdit(CreateRange(startLine, startCharacter, endLine, endCharacter), newText);

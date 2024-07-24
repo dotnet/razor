@@ -120,18 +120,18 @@ internal static class RoslynLspFactory
     public static Range CreateRange(LinePositionSpan linePositionSpan)
         => CreateRange(linePositionSpan.Start, linePositionSpan.End);
 
-    public static Range CreateCollapsedRange(int line, int character)
+    public static Range CreateZeroWidthRange(int line, int character)
         => (line, character) switch
         {
             (0, 0) => EmptyRange,
             (-1, -1) => UndefinedRange,
-            _ => CreateCollapsedRange(CreatePosition(line, character))
+            _ => CreateZeroWidthRange(CreatePosition(line, character))
         };
 
-    public static Range CreateCollapsedRange(Position position)
+    public static Range CreateZeroWidthRange(Position position)
         => CreateRange(position, position);
 
-    public static Range CreateCollapsedRange(LinePosition position)
+    public static Range CreateZeroWidthRange(LinePosition position)
         => CreateRange(position, position);
 
     public static Range CreateSingleLineRange(int line, int character, int length)

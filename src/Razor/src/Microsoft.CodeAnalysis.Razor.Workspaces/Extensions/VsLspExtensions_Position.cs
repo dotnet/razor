@@ -16,8 +16,8 @@ internal static partial class VsLspExtensions
     public static LinePosition ToLinePosition(this Position position)
         => new(position.Line, position.Character);
 
-    public static Range ToCollapsedRange(this Position position)
-        => VsLspFactory.CreateCollapsedRange(position);
+    public static Range ToZeroWidthRange(this Position position)
+        => VsLspFactory.CreateZeroWidthRange(position);
 
     public static bool TryGetAbsoluteIndex(this Position position, SourceText text, out int absoluteIndex)
     {

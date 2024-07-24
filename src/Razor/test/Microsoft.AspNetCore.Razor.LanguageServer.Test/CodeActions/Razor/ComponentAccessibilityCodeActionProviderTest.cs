@@ -36,7 +36,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.CreateCollapsedRange(0, 1),
+            Range = VsLspFactory.CreateZeroWidthRange(0, 1),
             Context = new VSInternalCodeActionContext()
         };
 

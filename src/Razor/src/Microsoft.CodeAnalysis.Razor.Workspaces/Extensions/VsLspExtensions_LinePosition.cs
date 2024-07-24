@@ -10,6 +10,6 @@ internal static partial class VsLspExtensions
     public static Position ToPosition(this LinePosition linePosition)
         => VsLspFactory.CreatePosition(linePosition.Line, linePosition.Character);
 
-    public static Range ToCollapsedRange(this LinePosition position)
-        => VsLspFactory.CreateCollapsedRange(position);
+    public static Range ToZeroWidthRange(this LinePosition position)
+        => VsLspFactory.CreateZeroWidthRange(position);
 }

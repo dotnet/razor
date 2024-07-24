@@ -60,7 +60,7 @@ internal static class CodeBlockService
                 codeBlockStartText = $"{Environment.NewLine}{codeBlockStartText}";
             }
 
-            var eofRange = VsLspFactory.CreateCollapsedRange(lastCharacterLocation.LineNumber, insertCharacterIndex);
+            var eofRange = VsLspFactory.CreateZeroWidthRange(lastCharacterLocation.LineNumber, insertCharacterIndex);
             var start = VsLspFactory.CreateTextEdit(eofRange, codeBlockStartText);
             var method = VsLspFactory.CreateTextEdit(eofRange, indentedMethod);
             var end = VsLspFactory.CreateTextEdit(eofRange, Environment.NewLine + "}");

@@ -79,9 +79,9 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync();
 
-        RazorCodeActionRange = DocumentText.GetCollapsedRange(razorCodeActionIndex);
-        CSharpCodeActionRange = DocumentText.GetCollapsedRange(csharpCodeActionIndex);
-        HtmlCodeActionRange = DocumentText.GetCollapsedRange(htmlCodeActionIndex);
+        RazorCodeActionRange = DocumentText.GetZeroWidthRange(razorCodeActionIndex);
+        CSharpCodeActionRange = DocumentText.GetZeroWidthRange(csharpCodeActionIndex);
+        HtmlCodeActionRange = DocumentText.GetZeroWidthRange(htmlCodeActionIndex);
 
         var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, 1);
 

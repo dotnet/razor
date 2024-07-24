@@ -96,7 +96,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         // Arrange
         var sourceText = SourceText.From("Hello World");
         var sourceSpan = new SourceSpan(sourceText.Length + 5, 0, sourceText.Length + 5, 4);
-        var expectedRange = VsLspFactory.CreateCollapsedRange(0, 11);
+        var expectedRange = VsLspFactory.CreateZeroWidthRange(0, 11);
 
         // Act
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
