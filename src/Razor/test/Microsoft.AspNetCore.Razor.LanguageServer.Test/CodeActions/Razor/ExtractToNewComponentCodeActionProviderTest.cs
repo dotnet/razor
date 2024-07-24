@@ -119,7 +119,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     // Holding off on this test until configured correctly (fails on CI)
