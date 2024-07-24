@@ -112,17 +112,6 @@ internal static partial class VsLspExtensions
         return result;
     }
 
-    public static TextSpan AsTextSpan(this Range range, SourceText text)
-    {
-        ArgHelper.ThrowIfNull(range);
-        ArgHelper.ThrowIfNull(text);
-
-        var start = text.GetPosition(range.Start);
-        var end = text.GetPosition(range.End);
-
-        return TextSpan.FromBounds(start, end);
-    }
-
     public static Range? Overlap(this Range range, Range other)
     {
         ArgHelper.ThrowIfNull(range);

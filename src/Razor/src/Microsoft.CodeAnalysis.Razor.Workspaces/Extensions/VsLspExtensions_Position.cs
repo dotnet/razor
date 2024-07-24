@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -25,14 +24,6 @@ internal static partial class VsLspExtensions
 
         var result = position.Line.CompareTo(other.Line);
         return result != 0 ? result : position.Character.CompareTo(other.Character);
-    }
-
-    public static bool IsValid(this Position position, SourceText text)
-    {
-        ArgHelper.ThrowIfNull(position);
-        ArgHelper.ThrowIfNull(text);
-
-        return text.TryGetAbsoluteIndex(position.Line, position.Character, out _);
     }
 
     public static string ToDisplayString(this Position position)

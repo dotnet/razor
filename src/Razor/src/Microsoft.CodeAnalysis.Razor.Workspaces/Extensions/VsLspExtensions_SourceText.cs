@@ -26,6 +26,9 @@ internal static partial class VsLspExtensions
     public static Range GetZeroWidthRange(this SourceText text, int position)
         => text.GetLinePosition(position).ToZeroWidthRange();
 
+    public static bool IsValidPosition(this SourceText text, Position position)
+        => text.IsValidPosition(position.Line, position.Character);
+
     public static bool TryGetAbsoluteIndex(this SourceText text, Position position, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position.Line, position.Character, out absoluteIndex);
 

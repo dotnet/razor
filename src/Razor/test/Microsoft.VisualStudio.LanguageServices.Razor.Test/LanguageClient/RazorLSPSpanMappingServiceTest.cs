@@ -69,7 +69,7 @@ public class RazorLSPSpanMappingServiceTest : ToolingTestBase
         var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
         var mappingResult = new RazorMapToDocumentRangesResponse()
         {
-            Ranges = new Range[] { mappedRange }
+            Ranges = [mappedRange]
         };
         documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
             .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
@@ -83,7 +83,7 @@ public class RazorLSPSpanMappingServiceTest : ToolingTestBase
 
         var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
-        var expectedSpan = mappedRange.AsTextSpan(_sourceTextRazor);
+        var expectedSpan = _sourceTextRazor.GetTextSpan(mappedRange);
         var expectedLinePosition = _sourceTextRazor.GetLinePositionSpan(expectedSpan);
         var expectedFilePath = _mockDocumentUri.LocalPath;
         var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);

@@ -11,19 +11,16 @@ internal static class LinePositionSpanExtensions
     public static void Deconstruct(this LinePositionSpan linePositionSpan, out int startLine, out int startCharacter, out int endLine, out int endCharacter)
         => (startLine, startCharacter, endLine, endCharacter) = (linePositionSpan.Start.Line, linePositionSpan.Start.Character, linePositionSpan.End.Line, linePositionSpan.End.Character);
 
-    public static TextSpan ToTextSpan(this LinePositionSpan linePositionSpan, SourceText sourceText)
-        => sourceText.GetTextSpan(linePositionSpan.Start.Line, linePositionSpan.Start.Character, linePositionSpan.End.Line, linePositionSpan.End.Character);
-
-    public static bool OverlapsWith(this LinePositionSpan range, LinePositionSpan other)
+    public static bool OverlapsWith(this LinePositionSpan span, LinePositionSpan other)
     {
-        var overlapStart = range.Start;
-        if (range.Start.CompareTo(other.Start) < 0)
+        var overlapStart = span.Start;
+        if (span.Start.CompareTo(other.Start) < 0)
         {
             overlapStart = other.Start;
         }
 
-        var overlapEnd = range.End;
-        if (range.End.CompareTo(other.End) > 0)
+        var overlapEnd = span.End;
+        if (span.End.CompareTo(other.End) > 0)
         {
             overlapEnd = other.End;
         }

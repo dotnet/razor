@@ -77,7 +77,7 @@ internal static class RazorCodeDocumentExtensions
         SourceSpan? maxGeneratedSpan = null;
 
         var sourceText = codeDocument.GetSourceText();
-        var textSpan = razorRange.ToTextSpan(sourceText);
+        var textSpan = sourceText.GetTextSpan(razorRange);
         var csharpDoc = codeDocument.GetCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.

@@ -188,44 +188,77 @@ internal static class SourceTextExtensions
         return false;
     }
 
+    public static bool IsValidPosition(this SourceText text, LinePosition lspPosition)
+        => text.TryGetAbsoluteIndex(lspPosition, out _);
+
+    public static bool IsValidPosition(this SourceText text, (int line, int character) lspPosition)
+        => text.TryGetAbsoluteIndex(lspPosition, out _);
+
+    public static bool IsValidPosition(this SourceText text, int line, int character)
+        => text.TryGetAbsoluteIndex(line, character, out _);
+
     public static bool TryGetAbsoluteIndex(this SourceText text, LinePosition position, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position.Line, position.Character, out absoluteIndex);
+
+    public static bool TryGetAbsoluteIndex(this SourceText text, (int line, int character) position, out int absoluteIndex)
+        => text.TryGetAbsoluteIndex(position.line, position.character, out absoluteIndex);
 
     public static bool TryGetAbsoluteIndex(this SourceText text, int line, int character, out int absoluteIndex)
     {
         absoluteIndex = 0;
+
+        if (character < 0)
+        {
+            return false;
+        }
+
         var lineCount = text.Lines.Count;
 
-        if (line > lineCount || (line == lineCount && character > 0))
+        if (line > lineCount)
         {
             return false;
         }
 
-        // LSP spec allowed a Range to end one line past the end, and character 0. SourceText does not, so we adjust to the final char position
+        // The LSP spec allows the end of a range to be after the last line at character 0.
+        // SourceText doesn't allow that, so we adjust to SourceText.Length.
         if (line == lineCount)
         {
-            absoluteIndex = text.Length;
-            return true;
+            if (character == 0)
+            {
+                absoluteIndex = text.Length;
+                return true;
+            }
+
+            return false;
         }
 
-        var sourceLine = text.Lines[line];
-        var lineLengthIncludingLineBreak = sourceLine.SpanIncludingLineBreak.Length;
-        if (character > lineLengthIncludingLineBreak)
+        var textLine = text.Lines[line];
+
+        if (character > textLine.SpanIncludingLineBreak.Length)
         {
             return false;
         }
 
-        absoluteIndex = sourceLine.Start + character;
+        absoluteIndex = textLine.Start + character;
         return true;
     }
 
     public static int GetRequiredAbsoluteIndex(this SourceText text, LinePosition position)
         => text.GetRequiredAbsoluteIndex(position.Line, position.Character);
 
+    public static int GetRequiredAbsoluteIndex(this SourceText text, (int line, int character) position)
+        => text.GetRequiredAbsoluteIndex(position.line, position.character);
+
     public static int GetRequiredAbsoluteIndex(this SourceText text, int line, int character)
         => text.TryGetAbsoluteIndex(line, character, out var absolutionPosition)
             ? absolutionPosition
             : ThrowHelper.ThrowInvalidOperationException<int>($"({line},{character}) matches or exceeds SourceText boundary {text.Lines.Count}.");
+
+    public static TextSpan GetTextSpan(this SourceText text, LinePosition start, LinePosition end)
+        => text.GetTextSpan(start.Line, start.Character, end.Line, end.Character);
+
+    public static TextSpan GetTextSpan(this SourceText text, LinePositionSpan span)
+        => text.GetTextSpan(span.Start, span.End);
 
     public static TextSpan GetTextSpan(this SourceText text, int startLine, int startCharacter, int endLine, int endCharacter)
     {

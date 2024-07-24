@@ -188,7 +188,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         var rangeToAdjust = VsLspFactory.CreateRange(start, end);
 
-        Debug.Assert(rangeToAdjust.End.IsValid(cleanedText), "Invalid range. This is unexpected.");
+        Debug.Assert(cleanedText.IsValidPosition(rangeToAdjust.End), "Invalid range. This is unexpected.");
 
         var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken, rangeToAdjust).ConfigureAwait(false);
         if (indentationChanges.Count > 0)

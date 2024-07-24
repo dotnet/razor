@@ -48,7 +48,7 @@ internal static class InsertMapper
         }
 
         // Verify that the focus area is within the document.
-        if (!focusArea.Range.Start.IsValid(sourceText))
+        if (!sourceText.IsValidPosition(focusArea.Range.Start))
         {
             insertionPoint = 0;
             return false;

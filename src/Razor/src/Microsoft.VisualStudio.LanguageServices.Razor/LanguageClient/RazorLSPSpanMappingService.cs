@@ -77,12 +77,13 @@ internal sealed class RazorLSPSpanMappingService : IRazorSpanMappingService
     {
         if (mappedResult is null)
         {
-            return ImmutableArray<RazorMappedSpanResult>.Empty;
+            return [];
         }
 
-        using var results = new PooledArrayBuilder<RazorMappedSpanResult>();
+        var ranges = mappedResult.Ranges;
+        using var results = new PooledArrayBuilder<RazorMappedSpanResult>(capacity: ranges.Length);
 
-        foreach (var mappedRange in mappedResult.Ranges)
+        foreach (var mappedRange in ranges)
         {
             if (mappedRange.IsUndefined())
             {
@@ -91,7 +92,7 @@ internal sealed class RazorLSPSpanMappingService : IRazorSpanMappingService
                 continue;
             }
 
-            var mappedSpan = mappedRange.AsTextSpan(sourceTextRazor);
+            var mappedSpan = sourceTextRazor.GetTextSpan(mappedRange);
             var linePositionSpan = sourceTextRazor.GetLinePositionSpan(mappedSpan);
             results.Add(new RazorMappedSpanResult(localFilePath, linePositionSpan, mappedSpan));
         }

@@ -48,7 +48,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         CancellationToken cancellationToken)
     {
         var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!sourceText.TryGetAbsoluteIndex(position.Line, position.Character, out var index))
+        if (!sourceText.TryGetAbsoluteIndex(position, out var index))
         {
             return Response.NoFurtherHandling;
         }

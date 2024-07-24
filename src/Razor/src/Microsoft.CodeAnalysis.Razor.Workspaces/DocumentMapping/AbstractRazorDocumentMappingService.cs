@@ -618,17 +618,21 @@ internal abstract class AbstractRazorDocumentMappingService(
         if (startMappedDirectly)
         {
             // Start of generated range intersects with a mapping
-            candidateMappings.AddRange(generatedDocument.SourceMappings.Where(mapping => IntersectsWith(startIndex, mapping.GeneratedSpan)));
+            candidateMappings.AddRange(
+                generatedDocument.SourceMappings.Where(mapping => IntersectsWith(startIndex, mapping.GeneratedSpan)));
         }
         else if (endMappedDirectly)
         {
             // End of generated range intersects with a mapping
-            candidateMappings.AddRange(generatedDocument.SourceMappings.Where(mapping => IntersectsWith(endIndex, mapping.GeneratedSpan)));
+            candidateMappings.AddRange(
+                generatedDocument.SourceMappings.Where(mapping => IntersectsWith(endIndex, mapping.GeneratedSpan)));
         }
         else
         {
             // Our range does not intersect with any mapping; we should see if it overlaps generated locations
-            candidateMappings.AddRange(generatedDocument.SourceMappings.Where(mapping => Overlaps(generatedDocumentRange.ToTextSpan(generatedSourceText), mapping.GeneratedSpan)));
+            candidateMappings.AddRange(
+                generatedDocument.SourceMappings
+                    .Where(mapping => Overlaps(generatedSourceText.GetTextSpan(generatedDocumentRange), mapping.GeneratedSpan)));
         }
 
         if (candidateMappings.Count == 1)
@@ -682,7 +686,7 @@ internal abstract class AbstractRazorDocumentMappingService(
             return false;
         }
 
-        var generatedRangeAsSpan = generatedDocumentRange.ToTextSpan(generatedSourceText);
+        var generatedRangeAsSpan = generatedSourceText.GetTextSpan(generatedDocumentRange);
         SourceMapping? mappingBeforeGeneratedRange = null;
         SourceMapping? mappingAfterGeneratedRange = null;
 
@@ -761,7 +765,7 @@ internal abstract class AbstractRazorDocumentMappingService(
 
         static bool IsPositionWithinDocument(LinePosition linePosition, SourceText sourceText)
         {
-            return sourceText.TryGetAbsoluteIndex(linePosition.Line, linePosition.Character, out _);
+            return sourceText.TryGetAbsoluteIndex(linePosition, out _);
         }
     }
 

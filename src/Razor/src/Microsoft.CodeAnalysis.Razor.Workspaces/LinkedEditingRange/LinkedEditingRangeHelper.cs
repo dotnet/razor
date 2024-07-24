@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
@@ -21,7 +20,7 @@ internal static class LinkedEditingRangeHelper
 
     public static LinePositionSpan[]? GetLinkedSpans(LinePosition linePosition, RazorCodeDocument codeDocument)
     {
-        if (GetSourceLocation(linePosition, codeDocument) is not { } validLocation)
+        if (!codeDocument.Source.Text.TryGetSourceLocation(linePosition, out var validLocation))
         {
             return null;
         }
@@ -40,15 +39,6 @@ internal static class LinkedEditingRangeHelper
         }
 
         return null;
-    }
-
-    private static SourceLocation? GetSourceLocation(LinePosition linePosition, RazorCodeDocument codeDocument)
-    {
-        var sourceText = codeDocument.GetSourceText();
-
-        return sourceText.TryGetSourceLocation(linePosition, out var location)
-            ? location
-            : null;
     }
 
     private static bool TryGetNearestMarkupNameTokens(
