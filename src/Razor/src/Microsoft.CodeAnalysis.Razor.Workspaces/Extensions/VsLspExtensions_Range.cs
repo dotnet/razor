@@ -95,6 +95,11 @@ internal static partial class VsLspExtensions
         return range == VsLspFactory.UndefinedRange;
     }
 
+    public static bool IsZeroWidth(this Range range)
+    {
+        return range.Start == range.End;
+    }
+
     public static int CompareTo(this Range range1, Range range2)
     {
         var result = range1.Start.CompareTo(range2.Start);
