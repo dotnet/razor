@@ -38,7 +38,7 @@ internal sealed class FormattingContentValidationPass(
 
         var text = context.SourceText;
         var edits = result.Edits;
-        var changes = edits.Select(e => e.ToTextChange(text));
+        var changes = edits.Select(text.GetTextChange);
         var changedText = text.WithChanges(changes);
 
         if (!text.NonWhitespaceContentEquals(changedText))

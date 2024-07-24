@@ -124,7 +124,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         // Assert
         Assert.Contains("**Attribute**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
-        var expectedRange = span.ToRange(codeDocument.GetSourceText());
+        var expectedRange = codeDocument.GetSourceText().GetRange(span);
         Assert.Equal(expectedRange, hover.Range);
     }
 

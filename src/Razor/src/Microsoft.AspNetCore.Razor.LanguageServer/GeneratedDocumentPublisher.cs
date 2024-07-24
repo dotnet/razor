@@ -97,7 +97,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
         {
             HostDocumentFilePath = filePath,
             ProjectKeyId = projectKey.Id,
-            Changes = textChanges.Select(t => t.ToRazorTextChange()).ToArray(),
+            Changes = textChanges.Select(static t => t.ToRazorTextChange()).ToArray(),
             HostDocumentVersion = hostDocumentVersion,
             PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
         };
@@ -140,7 +140,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
         {
             HostDocumentFilePath = filePath,
             ProjectKeyId = projectKey.Id,
-            Changes = textChanges.Select(t => t.ToRazorTextChange()).ToArray(),
+            Changes = textChanges.Select(static t => t.ToRazorTextChange()).ToArray(),
             HostDocumentVersion = hostDocumentVersion,
             PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
         };

@@ -9,9 +9,6 @@ internal static class ProjectExtensions
 {
     internal static Document GetRequiredDocument(this Project project, DocumentId documentId)
     {
-        ArgHelper.ThrowIfNull(project);
-        ArgHelper.ThrowIfNull(documentId);
-
         return project.GetDocument(documentId)
             ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {project.Name}");
     }

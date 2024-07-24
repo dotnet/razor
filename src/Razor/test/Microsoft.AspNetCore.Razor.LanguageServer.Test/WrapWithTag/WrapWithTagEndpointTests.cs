@@ -285,7 +285,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
         var edits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, computedEdits);
         Assert.Same(computedEdits, edits);
 
-        var finalText = inputSourceText.WithChanges(edits.Select(e => e.ToTextChange(inputSourceText)));
+        var finalText = inputSourceText.WithChanges(edits.Select(inputSourceText.GetTextChange));
         Assert.Equal(expected, finalText.ToString());
     }
 
@@ -325,7 +325,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
         var edits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, computedEdits);
         Assert.NotSame(computedEdits, edits);
 
-        var finalText = inputSourceText.WithChanges(edits.Select(e => e.ToTextChange(inputSourceText)));
+        var finalText = inputSourceText.WithChanges(edits.Select(inputSourceText.GetTextChange));
         Assert.Equal(expected, finalText.ToString());
     }
 
@@ -365,7 +365,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
         var edits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, computedEdits);
         Assert.NotSame(computedEdits, edits);
 
-        var finalText = inputSourceText.WithChanges(edits.Select(e => e.ToTextChange(inputSourceText)));
+        var finalText = inputSourceText.WithChanges(edits.Select(inputSourceText.GetTextChange));
         Assert.Equal(expected, finalText.ToString());
     }
 }

@@ -55,7 +55,7 @@ internal sealed class RazorLSPSpanMappingService : IRazorSpanMappingService
             throw new ArgumentNullException(nameof(spans));
         }
 
-        var projectedRanges = spans.Select(span => span.ToRange(sourceTextGenerated)).ToArray();
+        var projectedRanges = spans.Select(sourceTextGenerated.GetRange).ToArray();
 
         var mappedResult = await _lspDocumentMappingProvider.MapToDocumentRangesAsync(
             RazorLanguageKind.CSharp,

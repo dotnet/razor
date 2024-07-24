@@ -143,7 +143,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         // Assert
         var sourceText = codeDocument.GetSourceText();
         var expected = spans
-            .Select(s => s.ToRange(sourceText))
+            .Select(sourceText.GetRange)
             .OrderBy(s => s.Start.Line)
             .ThenBy(s => s.Start.Character)
             .ToArray();

@@ -383,7 +383,7 @@ public partial class OnAutoInsertEndpointTest
         Assert.False(insertProvider.Called);
         Assert.Equal(1, languageServer.RequestCount);
 
-        var edits = new[] { result.TextEdit.ToTextChange(codeDocument.GetSourceText()) };
+        var edits = new[] { codeDocument.GetSourceText().GetTextChange(result.TextEdit) };
         var newText = codeDocument.GetSourceText().WithChanges(edits).ToString();
         Assert.Equal(expected, newText);
     }

@@ -88,7 +88,7 @@ internal class WrapWithTagEndpoint(
                 (requestSpan == codeBlock.FullSpan || requestSpan.Length == 0))
             {
                 // Pretend we're in Html so the rest of the logic can continue
-                request.Range = codeBlock.FullSpan.ToRange(sourceText);
+                request.Range = sourceText.GetRange(codeBlock.FullSpan);
                 languageKind = RazorLanguageKind.Html;
             }
         }

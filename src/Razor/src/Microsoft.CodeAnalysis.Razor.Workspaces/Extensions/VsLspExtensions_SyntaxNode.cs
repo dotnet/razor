@@ -13,9 +13,6 @@ internal static partial class VsLspExtensions
 {
     public static Range GetRange(this SyntaxNode node, RazorSourceDocument source)
     {
-        ArgHelper.ThrowIfNull(node);
-        ArgHelper.ThrowIfNull(source);
-
         var linePositionSpan = node.GetLinePositionSpan(source);
 
         return VsLspFactory.CreateRange(linePositionSpan);
@@ -23,9 +20,6 @@ internal static partial class VsLspExtensions
 
     public static Range? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
     {
-        ArgHelper.ThrowIfNull(node);
-        ArgHelper.ThrowIfNull(source);
-
         var tokens = node.GetTokens();
 
         SyntaxToken? firstToken = null;

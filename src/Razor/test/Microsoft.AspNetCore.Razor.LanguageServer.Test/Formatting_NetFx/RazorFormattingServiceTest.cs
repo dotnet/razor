@@ -34,8 +34,8 @@ public class Foo{}
         var collapsedEdit = RazorFormattingService.MergeEdits(edits, sourceText);
 
         // Assert
-        var multiEditChange = sourceText.WithChanges(edits.Select(e => e.ToTextChange(sourceText)));
-        var singleEditChange = sourceText.WithChanges(collapsedEdit.ToTextChange(sourceText));
+        var multiEditChange = sourceText.WithChanges(edits.Select(sourceText.GetTextChange));
+        var singleEditChange = sourceText.WithChanges(sourceText.GetTextChange(collapsedEdit));
 
         Assert.Equal(multiEditChange.ToString(), singleEditChange.ToString());
     }

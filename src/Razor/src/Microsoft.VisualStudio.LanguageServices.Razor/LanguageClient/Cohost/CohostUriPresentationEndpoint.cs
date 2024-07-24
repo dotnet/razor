@@ -84,7 +84,7 @@ internal class CohostUriPresentationEndpoint(
                         {
                             Uri = request.TextDocument.Uri
                         },
-                        Edits = [textChange.ToTextEdit(sourceText)]
+                        Edits = [sourceText.GetTextEdit(textChange)]
                     }
                 }
             };

@@ -302,7 +302,7 @@ internal sealed class DefinitionEndpoint(
                 return null;
             }
 
-            var range = property.Identifier.Span.ToRange(csharpText);
+            var range = csharpText.GetRange(property.Identifier.Span);
             if (documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var originalRange))
             {
                 return originalRange;

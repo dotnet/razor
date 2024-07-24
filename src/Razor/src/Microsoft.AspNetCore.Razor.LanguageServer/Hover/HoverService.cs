@@ -72,7 +72,7 @@ internal sealed partial class HoverService(
         if (RazorSyntaxFacts.TryGetFullAttributeNameSpan(codeDocument, positionInfo.HostDocumentIndex, out var originalAttributeRange))
         {
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            response.Range = originalAttributeRange.ToRange(sourceText);
+            response.Range = sourceText.GetRange(originalAttributeRange);
         }
         else if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {

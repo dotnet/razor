@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,9 +18,6 @@ internal static partial class VsLspExtensions
 
     public static int CompareTo(this Position position, Position other)
     {
-        ArgHelper.ThrowIfNull(position);
-        ArgHelper.ThrowIfNull(other);
-
         var result = position.Line.CompareTo(other.Line);
         return result != 0 ? result : position.Character.CompareTo(other.Character);
     }

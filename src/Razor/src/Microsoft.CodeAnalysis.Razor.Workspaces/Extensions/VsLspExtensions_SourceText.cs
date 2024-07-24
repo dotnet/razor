@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
@@ -40,4 +41,10 @@ internal static partial class VsLspExtensions
 
     public static bool TryGetSourceLocation(this SourceText text, Position position, out SourceLocation location)
         => text.TryGetSourceLocation(position.Line, position.Character, out location);
+
+    public static TextChange GetTextChange(this SourceText text, TextEdit edit)
+        => new(text.GetTextSpan(edit.Range), edit.NewText);
+
+    public static TextEdit GetTextEdit(this SourceText text, TextChange change)
+        => VsLspFactory.CreateTextEdit(text.GetRange(change.Span), change.NewText.AssumeNotNull());
 }

@@ -9,9 +9,6 @@ internal static class SolutionExtensions
 {
     internal static Project GetRequiredProject(this Solution solution, ProjectId projectId)
     {
-        ArgHelper.ThrowIfNull(solution);
-        ArgHelper.ThrowIfNull(projectId);
-
         return solution.GetProject(projectId)
             ?? ThrowHelper.ThrowInvalidOperationException<Project>($"The projectId {projectId} did not exist in {solution}.");
     }

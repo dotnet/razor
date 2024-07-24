@@ -87,7 +87,7 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
 
         var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(context.CSharpWorkspace.Services, root, spanToFormat, context.Options.GetIndentationOptions(), cancellationToken);
 
-        var edits = changes.Select(c => c.ToTextEdit(csharpSourceText)).ToArray();
+        var edits = changes.Select(csharpSourceText.GetTextEdit).ToArray();
         return edits;
     }
 
@@ -265,8 +265,8 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
 
         static bool SpansMultipleLines(SyntaxNode node, SourceText text)
         {
-            var range = node.Span.ToRange(text);
-            return range.Start.Line != range.End.Line;
+            var range = text.GetRange(node.Span);
+            return range.SpansMultipleLines();
         }
     }
 

@@ -90,7 +90,7 @@ internal class RazorFormattingService : IRazorFormattingService
     private static TextEdit[] GetMinimalEdits(SourceText originalText, IEnumerable<TextEdit> filteredEdits)
     {
         // Make sure the edits actually change something, or its not worth responding
-        var textChanges = filteredEdits.Select(e => e.ToTextChange(originalText));
+        var textChanges = filteredEdits.Select(originalText.GetTextChange);
         var changedText = originalText.WithChanges(textChanges);
         if (changedText.ContentEquals(originalText))
         {
@@ -99,7 +99,7 @@ internal class RazorFormattingService : IRazorFormattingService
 
         // Only send back the minimum edits
         var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, DiffKind.Char);
-        var finalEdits = minimalChanges.Select(f => f.ToTextEdit(originalText)).ToArray();
+        var finalEdits = minimalChanges.Select(originalText.GetTextEdit).ToArray();
 
         return finalEdits;
     }
@@ -211,7 +211,7 @@ internal class RazorFormattingService : IRazorFormattingService
 
         var encompassingChange = new TextChange(spanBeforeChange, newText);
 
-        return encompassingChange.ToTextEdit(sourceText);
+        return sourceText.GetTextEdit(encompassingChange);
     }
 
     private static void WrapCSharpSnippets(TextEdit[] snippetEdits)

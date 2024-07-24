@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -40,17 +39,11 @@ internal static partial class VsLspExtensions
 
     public static bool OverlapsWith(this Range range, Range other)
     {
-        ArgHelper.ThrowIfNull(range);
-        ArgHelper.ThrowIfNull(other);
-
         return range.ToLinePositionSpan().OverlapsWith(other.ToLinePositionSpan());
     }
 
     public static bool LineOverlapsWith(this Range range, Range other)
     {
-        ArgHelper.ThrowIfNull(range);
-        ArgHelper.ThrowIfNull(other);
-
         var overlapStart = range.Start.Line;
         if (range.Start.Line.CompareTo(other.Start.Line) < 0)
         {
@@ -68,30 +61,22 @@ internal static partial class VsLspExtensions
 
     public static bool Contains(this Range range, Range other)
     {
-        ArgHelper.ThrowIfNull(range);
-        ArgHelper.ThrowIfNull(other);
 
         return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
     }
 
     public static bool SpansMultipleLines(this Range range)
     {
-        ArgHelper.ThrowIfNull(range);
-
         return range.Start.Line != range.End.Line;
     }
 
     public static bool IsSingleLine(this Range range)
     {
-        ArgHelper.ThrowIfNull(range);
-
         return range.Start.Line == range.End.Line;
     }
 
     public static bool IsUndefined(this Range range)
     {
-        ArgHelper.ThrowIfNull(range);
-
         return range == VsLspFactory.UndefinedRange;
     }
 
@@ -114,9 +99,6 @@ internal static partial class VsLspExtensions
 
     public static Range? Overlap(this Range range, Range other)
     {
-        ArgHelper.ThrowIfNull(range);
-        ArgHelper.ThrowIfNull(other);
-
         var overlapStart = range.Start;
         if (range.Start.CompareTo(other.Start) < 0)
         {

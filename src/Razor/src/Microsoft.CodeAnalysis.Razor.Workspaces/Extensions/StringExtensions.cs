@@ -1,16 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor;
-
 namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class StringExtensions
 {
     public static int? GetFirstNonWhitespaceOffset(this string line)
     {
-        ArgHelper.ThrowIfNull(line);
-
         for (var i = 0; i < line.Length; i++)
         {
             if (!char.IsWhiteSpace(line[i]))
@@ -24,8 +20,6 @@ internal static class StringExtensions
 
     public static int? GetLastNonWhitespaceOffset(this string line)
     {
-        ArgHelper.ThrowIfNull(line);
-
         for (var i = line.Length - 1; i >= 0; i--)
         {
             if (!char.IsWhiteSpace(line[i]))
@@ -39,8 +33,6 @@ internal static class StringExtensions
 
     public static string GetLeadingWhitespace(this string lineText)
     {
-        ArgHelper.ThrowIfNull(lineText);
-
         var firstOffset = lineText.GetFirstNonWhitespaceOffset();
 
         return firstOffset.HasValue
@@ -50,8 +42,6 @@ internal static class StringExtensions
 
     public static string GetTrailingWhitespace(this string lineText)
     {
-        ArgHelper.ThrowIfNull(lineText);
-
         var lastOffset = lineText.GetLastNonWhitespaceOffset();
 
         return lastOffset.HasValue

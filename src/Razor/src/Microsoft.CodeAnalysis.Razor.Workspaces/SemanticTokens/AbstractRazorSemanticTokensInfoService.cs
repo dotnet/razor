@@ -273,7 +273,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
 
             if (textSpan.OverlapsWith(mappedTextSpan))
             {
-                var mappedRange = mapping.GeneratedSpan.ToLinePositionSpan(csharpSourceText);
+                var mappedRange = csharpSourceText.GetLinePositionSpan(mapping.GeneratedSpan);
                 csharpRanges.Add(mappedRange);
             }
         }

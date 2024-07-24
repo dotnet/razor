@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor;
 
@@ -52,7 +51,7 @@ internal static class TextLineExtensions
     {
         if (startOffset > line.SpanIncludingLineBreak.Length)
         {
-            throw new ArgumentOutOfRangeException(nameof(startOffset), SR.Invalid_Offset);
+            return ThrowHelper.ThrowArgumentOutOfRangeException<int?>(nameof(startOffset), SR.Invalid_Offset);
         }
 
         return line.Text!.TryGetFirstNonWhitespaceOffset(TextSpan.FromBounds(line.Start + startOffset, line.EndIncludingLineBreak), out var offset)

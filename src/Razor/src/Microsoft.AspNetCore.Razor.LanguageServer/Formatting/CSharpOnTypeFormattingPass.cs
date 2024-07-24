@@ -73,7 +73,7 @@ internal sealed class CSharpOnTypeFormattingPass(
                 return result;
             }
 
-            textEdits = formattingChanges.Select(change => change.ToTextEdit(csharpText)).ToArray();
+            textEdits = formattingChanges.Select(csharpText.GetTextEdit).ToArray();
             _logger.LogInformation($"Received {textEdits.Length} results from C#.");
         }
 
@@ -112,14 +112,14 @@ internal sealed class CSharpOnTypeFormattingPass(
         var originalText = codeDocument.GetSourceText();
         _logger.LogTestOnly($"Original text:\r\n{originalText}");
 
-        var changes = filteredEdits.Select(e => e.ToTextChange(originalText));
+        var changes = filteredEdits.Select(originalText.GetTextChange);
 
         // Apply the format on type edits sent over by the client.
         var formattedText = ApplyChangesAndTrackChange(originalText, changes, out _, out var spanAfterFormatting);
         _logger.LogTestOnly($"After C# changes:\r\n{formattedText}");
 
         var changedContext = await context.WithTextAsync(formattedText).ConfigureAwait(false);
-        var rangeAfterFormatting = spanAfterFormatting.ToRange(formattedText);
+        var rangeAfterFormatting = formattedText.GetRange(spanAfterFormatting);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -201,7 +201,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
         var finalChanges = cleanedText.GetTextChanges(originalText);
-        var finalEdits = finalChanges.Select(f => f.ToTextEdit(originalText)).ToArray();
+        var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
         finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
 
@@ -258,7 +258,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         {
             var newLineCount = change.NewText is null ? 0 : change.NewText.Split('\n').Length - 1;
 
-            var range = change.Span.ToRange(text);
+            var range = text.GetRange(change.Span);
             Debug.Assert(range.Start.Line <= range.End.Line, "Invalid range.");
 
             // For convenience, since we're already iterating through things, we also find the extremes
@@ -284,14 +284,14 @@ internal sealed class CSharpOnTypeFormattingPass(
     private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
     {
         var text = context.SourceText;
-        range ??= TextSpan.FromBounds(0, text.Length).ToRange(text);
+        range ??= text.GetRange(TextSpan.FromBounds(0, text.Length));
         var csharpDocument = context.CodeDocument.GetCSharpDocument();
 
         var changes = new List<TextChange>();
         foreach (var mapping in csharpDocument.SourceMappings)
         {
             var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
-            var mappingRange = mappingSpan.ToRange(text);
+            var mappingRange = text.GetRange(mappingSpan);
             if (!range.LineOverlapsWith(mappingRange))
             {
                 // We don't care about this range. It didn't change.
@@ -545,10 +545,10 @@ internal sealed class CSharpOnTypeFormattingPass(
 
     private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)
     {
-        var changes = edits.Select(e => e.ToTextChange(originalText));
+        var changes = edits.Select(originalText.GetTextChange);
         originalTextWithChanges = originalText.WithChanges(changes);
         var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, DiffKind.Char);
-        var cleanEdits = cleanChanges.Select(c => c.ToTextEdit(originalText)).ToArray();
+        var cleanEdits = cleanChanges.Select(originalText.GetTextEdit).ToArray();
         return cleanEdits;
     }
 }

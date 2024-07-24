@@ -16,9 +16,6 @@ internal static class SourceTextExtensions
     /// </summary>
     public static TextChangeRange GetEncompassingTextChangeRange(this SourceText newText, SourceText oldText)
     {
-        ArgHelper.ThrowIfNull(newText);
-        ArgHelper.ThrowIfNull(oldText);
-
         var ranges = newText.GetChangeRanges(oldText);
         if (ranges.Count == 0)
         {
@@ -35,18 +32,10 @@ internal static class SourceTextExtensions
     }
 
     public static LinePosition GetLinePosition(this SourceText text, int position)
-    {
-        ArgHelper.ThrowIfNull(text);
-
-        return text.Lines.GetLinePosition(position);
-    }
+        => text.Lines.GetLinePosition(position);
 
     public static LinePositionSpan GetLinePositionSpan(this SourceText text, TextSpan span)
-    {
-        ArgHelper.ThrowIfNull(text);
-
-        return text.Lines.GetLinePositionSpan(span);
-    }
+        => text.Lines.GetLinePositionSpan(span);
 
     public static LinePositionSpan GetLinePositionSpan(this SourceText text, SourceSpan span)
         => text.GetLinePositionSpan(span.ToTextSpan());
@@ -55,19 +44,13 @@ internal static class SourceTextExtensions
         => text.GetLinePositionSpan(TextSpan.FromBounds(start, end));
 
     public static int GetPosition(this SourceText text, LinePosition position)
-    {
-        ArgHelper.ThrowIfNull(text);
-
-        return text.Lines.GetPosition(position);
-    }
+        => text.Lines.GetPosition(position);
 
     public static int GetPosition(this SourceText text, int line, int character)
         => text.GetPosition(new LinePosition(line, character));
 
     public static string GetSubTextString(this SourceText text, TextSpan span)
     {
-        ArgHelper.ThrowIfNull(text);
-
         using var _ = ArrayPool<char>.Shared.GetPooledArray(span.Length, out var charBuffer);
 
         text.CopyTo(span.Start, charBuffer, 0, span.Length);
@@ -76,9 +59,6 @@ internal static class SourceTextExtensions
 
     public static bool NonWhitespaceContentEquals(this SourceText text, SourceText other)
     {
-        ArgHelper.ThrowIfNull(text);
-        ArgHelper.ThrowIfNull(other);
-
         var i = 0;
         var j = 0;
         while (i < text.Length && j < other.Length)
@@ -120,8 +100,6 @@ internal static class SourceTextExtensions
 
     public static bool TryGetFirstNonWhitespaceOffset(this SourceText text, TextSpan span, out int offset)
     {
-        ArgHelper.ThrowIfNull(text);
-
         for (var i = span.Start; i < span.End; i++)
         {
             if (!char.IsWhiteSpace(text[i]))
@@ -137,8 +115,6 @@ internal static class SourceTextExtensions
 
     public static bool TryGetFirstNonWhitespaceOffset(this SourceText text, TextSpan span, out int offset, out int newLineCount)
     {
-        ArgHelper.ThrowIfNull(text);
-
         newLineCount = 0;
 
         for (var i = span.Start; i < span.End; i++)
@@ -170,8 +146,6 @@ internal static class SourceTextExtensions
     /// </summary>
     public static bool TryGetLastNonWhitespaceOffset(this SourceText text, TextSpan span, out int offset)
     {
-        ArgHelper.ThrowIfNull(text);
-
         // If the span is at the end of the document, it's common for the "End" to represent 1 past the end of the source
         var indexableSpanEnd = Math.Min(span.End, text.Length - 1);
 
@@ -262,8 +236,6 @@ internal static class SourceTextExtensions
 
     public static TextSpan GetTextSpan(this SourceText text, int startLine, int startCharacter, int endLine, int endCharacter)
     {
-        ArgHelper.ThrowIfNull(text);
-
         var start = GetAbsoluteIndex(text, startLine, startCharacter, "Start");
         var end = GetAbsoluteIndex(text, endLine, endCharacter, "End");
 

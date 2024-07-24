@@ -63,7 +63,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
 
     private static SourceText ApplyEdit(SourceText source, TextEdit edit)
     {
-        var change = edit.ToTextChange(source);
+        var change = source.GetTextChange(edit);
         return source.WithChanges(change);
     }
 

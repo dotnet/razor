@@ -18,15 +18,11 @@ internal static class RazorCodeDocumentExtensions
 
     public static SourceText GetSourceText(this RazorCodeDocument document)
     {
-        ArgHelper.ThrowIfNull(document);
-
         return document.Source.Text;
     }
 
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
     {
-        ArgHelper.ThrowIfNull(document);
-
         if (!document.Items.TryGetValue(s_csharpSourceTextKey, out SourceText? sourceText))
         {
             var csharpDocument = document.GetCSharpDocument();
@@ -41,8 +37,6 @@ internal static class RazorCodeDocumentExtensions
 
     public static SourceText GetHtmlSourceText(this RazorCodeDocument document)
     {
-        ArgHelper.ThrowIfNull(document);
-
         if (!document.Items.TryGetValue(s_htmlSourceTextKey, out SourceText? sourceText))
         {
             var htmlDocument = document.GetHtmlDocument();
@@ -104,8 +98,8 @@ internal static class RazorCodeDocumentExtensions
         if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
         {
             var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var startRange = minGeneratedSpan.Value.ToLinePositionSpan(csharpSourceText);
-            var endRange = maxGeneratedSpan.Value.ToLinePositionSpan(csharpSourceText);
+            var startRange = csharpSourceText.GetLinePositionSpan(minGeneratedSpan.Value);
+            var endRange = csharpSourceText.GetLinePositionSpan(maxGeneratedSpan.Value);
 
             csharpRange = new LinePositionSpan(startRange.Start, endRange.End);
             Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");

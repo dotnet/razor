@@ -17,7 +17,7 @@ internal static partial class VsLspExtensions
     {
         if (!sourceText.TryGetAbsoluteIndex(position, out var absoluteIndex))
         {
-            return default;
+            return null;
         }
 
         return syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace);

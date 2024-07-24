@@ -123,7 +123,7 @@ public class ImplementationEndpointTest(ITestOutputHelper testOutput) : SingleSe
         {
             Assert.Equal(new Uri(razorFilePath), location.Uri);
 
-            var expectedRange = expectedSpans[i].ToRange(codeDocument.GetSourceText());
+            var expectedRange = codeDocument.GetSourceText().GetRange(expectedSpans[i]);
             Assert.Equal(expectedRange, location.Range);
 
             i++;

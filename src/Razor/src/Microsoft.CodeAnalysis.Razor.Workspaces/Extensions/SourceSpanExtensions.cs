@@ -8,9 +8,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal static class SourceSpanExtensions
 {
-    public static LinePositionSpan ToLinePositionSpan(this SourceSpan span, SourceText text)
-        => text.GetLinePositionSpan(span);
-
     public static TextSpan ToTextSpan(this SourceSpan span)
         => new(span.AbsoluteIndex, span.Length);
 }

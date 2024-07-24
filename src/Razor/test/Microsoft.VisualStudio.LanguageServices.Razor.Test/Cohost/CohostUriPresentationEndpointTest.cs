@@ -279,7 +279,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             {
                 Uri = document.CreateUri()
             },
-            Range = span.ToRange(sourceText),
+            Range = sourceText.GetRange(span),
             Uris = uris
         };
 

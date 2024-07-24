@@ -81,7 +81,7 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
         {
             Assert.Equal(new Uri(razorFilePath), referenceItem.Location.Uri);
 
-            var expectedRange = expectedSpans[i].ToRange(codeDocument.GetSourceText());
+            var expectedRange = codeDocument.GetSourceText().GetRange(expectedSpans[i]);
             Assert.Equal(expectedRange, referenceItem.Location.Range);
 
             i++;

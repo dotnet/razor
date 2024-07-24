@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -82,8 +81,6 @@ internal static class RazorSyntaxNodeExtensions
 
     public static bool ContainsOnlyWhitespace(this SyntaxNode node, bool includingNewLines = true)
     {
-        ArgHelper.ThrowIfNull(node);
-
         foreach (var token in node.GetTokens())
         {
             var tokenKind = token.Kind;
@@ -99,9 +96,6 @@ internal static class RazorSyntaxNodeExtensions
 
     public static LinePositionSpan GetLinePositionSpan(this SyntaxNode node, RazorSourceDocument sourceDocument)
     {
-        ArgHelper.ThrowIfNull(node);
-        ArgHelper.ThrowIfNull(sourceDocument);
-
         var start = node.Position;
         var end = node.EndPosition;
         var sourceText = sourceDocument.Text;
@@ -166,7 +160,7 @@ internal static class RazorSyntaxNodeExtensions
     {
         if (!@this.FullSpan.Contains(span))
         {
-            throw new ArgumentOutOfRangeException(nameof(span));
+            return ThrowHelper.ThrowArgumentOutOfRangeException<SyntaxNode?>(nameof(span));
         }
 
         var node = @this.FindToken(span.Start, includeWhitespace)
@@ -210,6 +204,8 @@ internal static class RazorSyntaxNodeExtensions
 
     public static bool ExistsOnTarget(this SyntaxNode node, SyntaxNode target)
     {
+        // TODO: This looks like a potential allocation hotspot and performance bottleneck.
+
         var nodeString = node.RemoveEmptyNewLines().ToFullString();
         var matchingNode = target.DescendantNodesAndSelf()
             // Empty new lines can affect our comparison so we remove them since they're insignificant.
