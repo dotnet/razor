@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.CodeAnalysis.Text;
 

@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Razor;
 
-namespace System;
+namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class StringExtensions
 {
