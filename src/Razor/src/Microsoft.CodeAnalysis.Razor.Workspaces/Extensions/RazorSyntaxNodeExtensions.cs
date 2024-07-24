@@ -113,7 +113,7 @@ internal static class RazorSyntaxNodeExtensions
             // Marker symbol at the end of the document.
             var location = node.GetSourceLocation(sourceDocument);
 
-            return location.ToLinePosition().GetZeroWidthSpan();
+            return location.ToLinePosition().ToZeroWidthSpan();
         }
 
         return sourceText.GetLinePositionSpan(start, end);
