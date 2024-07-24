@@ -726,23 +726,27 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             expressionAttributeName = valueAttributeName + "Expression";
         }
 
-        foreach (var attribute in componentTagHelper.BoundAttributes)
+        for (int i = componentTagHelper.BoundAttributes.Length - 1, set = 0; i >= 0 && set != 3; i--)
         {
+            var attribute = componentTagHelper.BoundAttributes[i];
             var comparison = attribute.GetComparison();
 
-            if (string.Equals(valueAttributeName, attribute.Name, comparison))
+            if (valueAttribute is null && string.Equals(valueAttributeName, attribute.Name, comparison))
             {
                 valueAttribute = attribute;
+                set++;
             }
 
-            if (string.Equals(changeAttributeName, attribute.Name, comparison))
+            if (changeAttribute is null && string.Equals(changeAttributeName, attribute.Name, comparison))
             {
                 changeAttribute = attribute;
+                set++;
             }
 
-            if (string.Equals(expressionAttributeName, attribute.Name, comparison))
+            if (expressionAttribute is null && string.Equals(expressionAttributeName, attribute.Name, comparison))
             {
                 expressionAttribute = attribute;
+                set++;
             }
         }
 
