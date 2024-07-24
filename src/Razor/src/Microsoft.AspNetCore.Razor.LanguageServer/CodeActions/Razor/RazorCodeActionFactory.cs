@@ -14,6 +14,7 @@ internal static class RazorCodeActionFactory
     private readonly static Guid s_fullyQualifyComponentTelemetryId = new("3d9abe36-7d10-4e08-8c18-ad88baa9a923");
     private readonly static Guid s_createComponentFromTagTelemetryId = new("a28e0baa-a4d5-4953-a817-1db586035841");
     private readonly static Guid s_createExtractToCodeBehindTelemetryId = new("f63167f7-fdc6-450f-8b7b-b240892f4a27");
+    private readonly static Guid s_createExtractToNewComponentTelemetryId = new("af67b0a3-f84b-4808-97a7-b53e85b22c64");
     private readonly static Guid s_generateMethodTelemetryId = new("c14fa003-c752-45fc-bb29-3a123ae5ecef");
     private readonly static Guid s_generateAsyncMethodTelemetryId = new("9058ca47-98e2-4f11-bf7c-a16a444dd939");
 
@@ -63,6 +64,19 @@ internal static class RazorCodeActionFactory
             Title = title,
             Data = data,
             TelemetryId = s_createExtractToCodeBehindTelemetryId,
+        };
+        return codeAction;
+    }
+
+    public static RazorVSInternalCodeAction CreateExtractToNewComponent(RazorCodeActionResolutionParams resolutionParams)
+    {
+        var title = SR.ExtractTo_NewComponent_Title;
+        var data = JsonSerializer.SerializeToElement(resolutionParams);
+        var codeAction = new RazorVSInternalCodeAction()
+        {
+            Title = title,
+            Data = data,
+            TelemetryId = s_createExtractToNewComponentTelemetryId,
         };
         return codeAction;
     }

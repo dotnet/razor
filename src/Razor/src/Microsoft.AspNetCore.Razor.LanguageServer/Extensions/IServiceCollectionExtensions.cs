@@ -146,6 +146,8 @@ internal static class IServiceCollectionExtensions
         // Razor Code actions
         services.AddSingleton<IRazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
         services.AddSingleton<IRazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, ExtractToNewComponentCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver ,ExtractToNewComponentCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
         services.AddSingleton<IRazorCodeActionResolver, CreateComponentCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionResolver, AddUsingsCodeActionResolver>();

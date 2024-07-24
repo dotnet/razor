@@ -47,6 +47,11 @@
         <target state="translated">Wyodrębnij blok do kodu znajdującego się poza</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_NewComponent_Title">
+        <source>Extract element to new component</source>
+        <target state="new">Extract element to new component</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_Externally_Modified">
         <source>File was externally modified: {0}</source>
         <target state="translated">Plik został zmodyfikowany na zewnątrz: {0}</target>
