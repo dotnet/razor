@@ -33,13 +33,13 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
             DocumentChanges = new TextDocumentEdit[] {
                 new()
                 {
-                    Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "Generated C# Based Edit")]
+                    Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, "Generated C# Based Edit")]
                 }
             }
         }
     };
 
-    private static readonly TextEdit[] s_defaultFormattedEdits = [VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "Remapped & Formatted Edit")];
+    private static readonly TextEdit[] s_defaultFormattedEdits = [VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, "Remapped & Formatted Edit")];
 
     private static readonly CodeAction s_defaultUnresolvedCodeAction = new CodeAction()
     {
@@ -105,11 +105,11 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
                 {
                     new TextDocumentEdit()
                     {
-                        Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "1. Generated C# Based Edit")]
+                        Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, "1. Generated C# Based Edit")]
                     },
                     new TextDocumentEdit()
                     {
-                        Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "2. Generated C# Based Edit")]
+                        Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, "2. Generated C# Based Edit")]
                     }
                 }
             }

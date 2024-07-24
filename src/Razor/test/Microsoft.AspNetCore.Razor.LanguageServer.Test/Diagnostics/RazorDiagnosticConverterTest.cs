@@ -80,7 +80,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         // Arrange
         var sourceText = SourceText.From(string.Empty);
         var sourceSpan = new SourceSpan(5, 0, 5, 4);
-        var expectedRange = VsLspFactory.EmptyRange;
+        var expectedRange = VsLspFactory.DefaultRange;
 
         // Act
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);

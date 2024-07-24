@@ -141,7 +141,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var request = new RazorProximityExpressionsParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.EmptyPosition,
+            Position = VsLspFactory.DefaultPosition,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 

@@ -67,7 +67,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
         Range = VsLspFactory.CreateRange(
-            start: VsLspFactory.EmptyPosition,
+            start: VsLspFactory.DefaultPosition,
             end: VsLspFactory.CreatePosition(text.Lines.Count - 1, text.Lines[^1].Span.Length - 1));
     }
 

@@ -8,12 +8,12 @@ namespace Roslyn.LanguageServer.Protocol;
 
 internal static class RoslynLspFactory
 {
-    private static readonly Position s_emptyPosition = new(0, 0);
+    private static readonly Position s_defaultPosition = new(0, 0);
 
-    private static readonly Range s_emptyRange = new()
+    private static readonly Range s_defaultRange = new()
     {
-        Start = s_emptyPosition,
-        End = s_emptyPosition
+        Start = s_defaultPosition,
+        End = s_defaultPosition
     };
 
     private static readonly Position s_undefinedPosition = new(-1, -1);
@@ -24,37 +24,44 @@ internal static class RoslynLspFactory
         End = s_undefinedPosition
     };
 
-    public static Position EmptyPosition
+    /// <summary>
+    ///  Returns a <see cref="Position"/> for line 0 and character 0.
+    /// </summary>
+    public static Position DefaultPosition
     {
         get
         {
-            var emptyPosition = s_emptyPosition;
+            var defaultPosition = s_defaultPosition;
 
             // Since Position is mutable, it's possible that something might modify it. If that happens, we should know!
             Debug.Assert(
-                emptyPosition.Line == 0 &&
-                emptyPosition.Character == 0,
-                $"{nameof(RoslynLspFactory)}.{nameof(EmptyPosition)} has been corrupted. Current value: {emptyPosition.ToDisplayString()}");
+                defaultPosition.Line == 0 &&
+                defaultPosition.Character == 0,
+                $"{nameof(RoslynLspFactory)}.{nameof(DefaultPosition)} has been corrupted. Current value: {defaultPosition.ToDisplayString()}");
 
-            return emptyPosition;
+            return defaultPosition;
         }
     }
 
-    public static Range EmptyRange
+    /// <summary>
+    ///  Returns a <see cref="Position"/> for starting line 0 and character 0,
+    ///  and ending line 0 and character 0.
+    /// </summary>
+    public static Range DefaultRange
     {
         get
         {
-            var emptyRange = s_emptyRange;
+            var defaultRange = s_defaultRange;
 
             // Since Range is mutable, it's possible that something might modify it. If that happens, we should know!
             Debug.Assert(
-                emptyRange.Start.Line == 0 &&
-                emptyRange.Start.Character == 0 &&
-                emptyRange.End.Line == 0 &&
-                emptyRange.End.Character == 0,
-                $"{nameof(RoslynLspFactory)}.{nameof(EmptyRange)} has been corrupted. Current value: {emptyRange.ToDisplayString()}");
+                defaultRange.Start.Line == 0 &&
+                defaultRange.Start.Character == 0 &&
+                defaultRange.End.Line == 0 &&
+                defaultRange.End.Character == 0,
+                $"{nameof(RoslynLspFactory)}.{nameof(DefaultRange)} has been corrupted. Current value: {defaultRange.ToDisplayString()}");
 
-            return emptyRange;
+            return defaultRange;
         }
     }
 
@@ -95,7 +102,7 @@ internal static class RoslynLspFactory
     public static Position CreatePosition(int line, int character)
         => (line, character) switch
         {
-            (0, 0) => EmptyPosition,
+            (0, 0) => DefaultPosition,
             (-1, -1) => UndefinedPosition,
             _ => new(line, character)
         };
@@ -103,16 +110,13 @@ internal static class RoslynLspFactory
     public static Position CreatePosition(LinePosition linePosition)
         => CreatePosition(linePosition.Line, linePosition.Character);
 
-    public static Range CreateRange(int startLine, int startCharacter, int endLine, int endCharacter)
-        => (startLine, startCharacter, endLine, endCharacter) switch
-        {
-            (0, 0, 0, 0) => EmptyRange,
-            (-1, -1, -1, -1) => UndefinedRange,
-            _ => CreateRange(CreatePosition(startLine, startCharacter), CreatePosition(endLine, endCharacter))
-        };
-
     public static Range CreateRange(Position start, Position end)
         => new() { Start = start, End = end };
+
+    public static Range CreateRange(int startLine, int startCharacter, int endLine, int endCharacter)
+        => startLine == endLine && startCharacter == endCharacter
+            ? CreateZeroWidthRange(startLine, startCharacter)
+            : CreateRange(CreatePosition(startLine, startCharacter), CreatePosition(endLine, endCharacter));
 
     public static Range CreateRange(LinePosition start, LinePosition end)
         => CreateRange(start.Line, start.Character, end.Line, end.Character);
@@ -123,7 +127,7 @@ internal static class RoslynLspFactory
     public static Range CreateZeroWidthRange(int line, int character)
         => (line, character) switch
         {
-            (0, 0) => EmptyRange,
+            (0, 0) => DefaultRange,
             (-1, -1) => UndefinedRange,
             _ => CreateZeroWidthRange(CreatePosition(line, character))
         };
@@ -142,5 +146,4 @@ internal static class RoslynLspFactory
 
     public static Range CreateSingleLineRange(LinePosition start, int length)
         => CreateSingleLineRange(start.Line, start.Character, length);
-
 }

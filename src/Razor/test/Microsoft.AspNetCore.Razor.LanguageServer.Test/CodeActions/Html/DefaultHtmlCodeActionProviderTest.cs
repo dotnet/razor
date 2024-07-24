@@ -35,7 +35,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.EmptyRange,
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -68,7 +68,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.EmptyRange,
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -113,7 +113,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
                                 Uri = new Uri("c:/Test.razor.html"),
                                 Version = 1
                             },
-                            Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.EmptyRange, "Goo")]
+                            Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, "Goo")]
                         }
                     }
                 }

@@ -19,7 +19,7 @@ public class TextEditResponseRewriterTest(ITestOutputHelper testOutput)
         // Arrange
         var getCompletionsAt = 1;
         var documentContent = "<";
-        var textEditRange = VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 1);
+        var textEditRange = VsLspFactory.CreateSingleLineRange(start: VsLspFactory.DefaultPosition, length: 1);
         var delegatedCompletionList = GenerateCompletionList(textEditRange);
 
         // Act

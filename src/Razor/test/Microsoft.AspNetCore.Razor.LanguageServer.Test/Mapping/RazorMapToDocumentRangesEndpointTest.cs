@@ -82,7 +82,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 3)],
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(start: VsLspFactory.DefaultPosition, length: 3)],
             RazorDocumentUri = documentPath,
         };
 
@@ -115,7 +115,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(start: VsLspFactory.EmptyPosition, length: 22)],
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(start: VsLspFactory.DefaultPosition, length: 22)],
             RazorDocumentUri = documentPath,
         };
 

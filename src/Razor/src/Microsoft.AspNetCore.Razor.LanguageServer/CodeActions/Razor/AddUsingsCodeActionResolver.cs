@@ -150,7 +150,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
         string newUsingNamespace)
     {
-        var insertPosition = VsLspFactory.EmptyPosition;
+        var insertPosition = VsLspFactory.DefaultPosition;
 
         // If we don't have usings, insert after the last namespace or page directive, which ever comes later
         var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;

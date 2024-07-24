@@ -35,7 +35,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.EmptyRange,
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 // Even though the DTO declares this as non-null, we want to make sure we behave
@@ -72,7 +72,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.EmptyRange,
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = new Diagnostic[] {
@@ -127,7 +127,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.EmptyRange,
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = new Diagnostic[] {
@@ -167,7 +167,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.EmptyRange,
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = new Diagnostic[] {
@@ -243,7 +243,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.EmptyRange,
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = Array.Empty<Diagnostic>()
@@ -295,7 +295,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.EmptyRange,
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = Array.Empty<Diagnostic>()
@@ -353,7 +353,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.EmptyRange,
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = new Diagnostic[] {
