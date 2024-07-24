@@ -8,13 +8,12 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
+internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor optionsMonitor) : IOnAutoInsertProvider
 {
     // From http://dev.w3.org/html5/spec/Overview.html#elements-0
     private static readonly ImmutableHashSet<string> s_voidElements = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase,
@@ -36,26 +35,10 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         "track",
         "wbr"
     );
+
     private static readonly ImmutableHashSet<string> s_voidElementsCaseSensitive = s_voidElements.WithComparer(StringComparer.Ordinal);
 
-    private readonly RazorLSPOptionsMonitor _optionsMonitor;
-    private readonly ILogger _logger;
-
-    public AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor optionsMonitor, ILoggerFactory loggerFactory)
-    {
-        if (optionsMonitor is null)
-        {
-            throw new ArgumentNullException(nameof(optionsMonitor));
-        }
-
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _optionsMonitor = optionsMonitor;
-        _logger = loggerFactory.GetOrCreateLogger<IOnAutoInsertProvider>();
-    }
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
 
     public string TriggerCharacter => ">";
 
@@ -68,7 +51,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
             return false;
         }
 
-        if (!context.SourceText.TryGetAbsoluteIndex(position, _logger, out var afterCloseAngleIndex))
+        if (!context.SourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex))
         {
             format = default;
             edit = default;

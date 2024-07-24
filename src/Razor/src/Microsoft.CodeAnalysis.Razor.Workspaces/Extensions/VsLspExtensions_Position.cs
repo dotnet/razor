@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -19,28 +18,6 @@ internal static partial class VsLspExtensions
     public static Range ToZeroWidthRange(this Position position)
         => VsLspFactory.CreateZeroWidthRange(position);
 
-    public static bool TryGetAbsoluteIndex(this Position position, SourceText text, out int absoluteIndex)
-    {
-        ArgHelper.ThrowIfNull(position);
-        ArgHelper.ThrowIfNull(text);
-
-        return text.TryGetAbsoluteIndex(position, out absoluteIndex);
-    }
-
-    public static bool TryGetAbsoluteIndex(this Position position, SourceText text, ILogger logger, out int absoluteIndex)
-    {
-        ArgHelper.ThrowIfNull(position);
-        ArgHelper.ThrowIfNull(text);
-
-        return text.TryGetAbsoluteIndex(position, logger, out absoluteIndex);
-    }
-
-    public static int GetRequiredAbsoluteIndex(this Position position, SourceText text)
-        => text.GetRequiredAbsoluteIndex(position);
-
-    public static int GetRequiredAbsoluteIndex(this Position position, SourceText text, ILogger logger)
-        => text.GetRequiredAbsoluteIndex(position, logger);
-
     public static int CompareTo(this Position position, Position other)
     {
         ArgHelper.ThrowIfNull(position);
@@ -55,7 +32,7 @@ internal static partial class VsLspExtensions
         ArgHelper.ThrowIfNull(position);
         ArgHelper.ThrowIfNull(text);
 
-        return text.TryGetAbsoluteIndex(position.Line, position.Character, logger: null, out _);
+        return text.TryGetAbsoluteIndex(position.Line, position.Character, out _);
     }
 
     public static string ToDisplayString(this Position position)

@@ -158,7 +158,7 @@ internal sealed class CodeActionEndpoint(
             request.Range = vsCodeActionContext.SelectionRange;
         }
 
-        if (!sourceText.TryGetSourceLocation(request.Range.Start, _logger, out var location))
+        if (!sourceText.TryGetSourceLocation(request.Range.Start, out var location))
         {
             return null;
         }

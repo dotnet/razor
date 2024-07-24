@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -14,10 +13,9 @@ internal static partial class VsLspExtensions
         this RazorSyntaxTree syntaxTree,
         SourceText sourceText,
         Position position,
-        ILogger logger,
         bool includeWhitespace = false)
     {
-        if (!sourceText.TryGetAbsoluteIndex(position, logger, out var absoluteIndex))
+        if (!sourceText.TryGetAbsoluteIndex(position, out var absoluteIndex))
         {
             return default;
         }

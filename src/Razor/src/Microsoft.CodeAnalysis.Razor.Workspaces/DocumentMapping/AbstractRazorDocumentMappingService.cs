@@ -45,8 +45,8 @@ internal abstract class AbstractRazorDocumentMappingService(
                 continue;
             }
 
-            var startSync = generatedDocumentSourceText.TryGetAbsoluteIndex(range.Start, _logger, out var startIndex);
-            var endSync = generatedDocumentSourceText.TryGetAbsoluteIndex(range.End, _logger, out var endIndex);
+            var startSync = generatedDocumentSourceText.TryGetAbsoluteIndex(range.Start, out var startIndex);
+            var endSync = generatedDocumentSourceText.TryGetAbsoluteIndex(range.End, out var endIndex);
             if (startSync is false || endSync is false)
             {
                 break;
@@ -96,8 +96,8 @@ internal abstract class AbstractRazorDocumentMappingService(
                 Debug.Assert(lastNewLine == 0 || edit.NewText[..(lastNewLine - 1)].All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
                 var proposedRange = VsLspFactory.CreateSingleLineRange(range.End.Line, character: 0, length: range.End.Character);
-                startSync = generatedDocumentSourceText.TryGetAbsoluteIndex(proposedRange.Start, _logger, out startIndex);
-                endSync = generatedDocumentSourceText.TryGetAbsoluteIndex(proposedRange.End, _logger, out endIndex);
+                startSync = generatedDocumentSourceText.TryGetAbsoluteIndex(proposedRange.Start, out startIndex);
+                endSync = generatedDocumentSourceText.TryGetAbsoluteIndex(proposedRange.End, out endIndex);
                 if (startSync is false || endSync is false)
                 {
                     break;
@@ -235,13 +235,13 @@ internal abstract class AbstractRazorDocumentMappingService(
             return false;
         }
 
-        if (!sourceText.TryGetAbsoluteIndex(range.Start, _logger, out var startIndex) ||
+        if (!sourceText.TryGetAbsoluteIndex(range.Start, out var startIndex) ||
             !TryMapToGeneratedDocumentPosition(generatedDocument, startIndex, out var generatedRangeStart, out var _))
         {
             return false;
         }
 
-        if (!sourceText.TryGetAbsoluteIndex(range.End, _logger, out var endIndex) ||
+        if (!sourceText.TryGetAbsoluteIndex(range.End, out var endIndex) ||
             !TryMapToGeneratedDocumentPosition(generatedDocument, endIndex, out var generatedRangeEnd, out var _))
         {
             return false;
@@ -562,13 +562,13 @@ internal abstract class AbstractRazorDocumentMappingService(
             return false;
         }
 
-        if (!generatedSourceText.TryGetAbsoluteIndex(range.Start, _logger, out var startIndex) ||
+        if (!generatedSourceText.TryGetAbsoluteIndex(range.Start, out var startIndex) ||
             !TryMapToHostDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _))
         {
             return false;
         }
 
-        if (!generatedSourceText.TryGetAbsoluteIndex(range.End, _logger, out var endIndex) ||
+        if (!generatedSourceText.TryGetAbsoluteIndex(range.End, out var endIndex) ||
             !TryMapToHostDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _))
         {
             return false;

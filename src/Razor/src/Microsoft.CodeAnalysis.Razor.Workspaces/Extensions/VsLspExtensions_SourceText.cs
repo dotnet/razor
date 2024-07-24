@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -30,18 +29,12 @@ internal static partial class VsLspExtensions
     public static bool TryGetAbsoluteIndex(this SourceText text, Position position, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position.Line, position.Character, out absoluteIndex);
 
-    public static bool TryGetAbsoluteIndex(this SourceText text, Position position, ILogger logger, out int absoluteIndex)
-        => text.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
-
     public static int GetRequiredAbsoluteIndex(this SourceText text, Position position)
         => text.GetRequiredAbsoluteIndex(position.Line, position.Character);
-
-    public static int GetRequiredAbsoluteIndex(this SourceText text, Position position, ILogger logger)
-        => text.GetRequiredAbsoluteIndex(position.Line, position.Character, logger);
 
     public static TextSpan GetTextSpan(this SourceText text, Range range)
         => text.GetTextSpan(range.Start.Line, range.Start.Character, range.End.Line, range.End.Character);
 
-    public static bool TryGetSourceLocation(this SourceText text, Position position, ILogger logger, out SourceLocation location)
-        => text.TryGetSourceLocation(position.Line, position.Character, logger, out location);
+    public static bool TryGetSourceLocation(this SourceText text, Position position, out SourceLocation location)
+        => text.TryGetSourceLocation(position.Line, position.Character, out location);
 }

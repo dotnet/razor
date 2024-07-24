@@ -71,7 +71,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
 
         var filteredDiagnostics = diagnosticKind == RazorLanguageKind.CSharp
             ? FilterCSharpDiagnostics(diagnostics, codeDocument, sourceText)
-            : FilterHTMLDiagnostics(diagnostics, codeDocument, sourceText, _logger);
+            : FilterHTMLDiagnostics(diagnostics, codeDocument, sourceText);
         if (filteredDiagnostics.Length == 0)
         {
             _logger.LogDebug($"No diagnostics remaining after filtering.");
@@ -99,8 +99,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
     private static Diagnostic[] FilterHTMLDiagnostics(
         Diagnostic[] unmappedDiagnostics,
         RazorCodeDocument codeDocument,
-        SourceText sourceText,
-        ILogger logger)
+        SourceText sourceText)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
 
@@ -109,9 +108,9 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
         var filteredDiagnostics = unmappedDiagnostics
             .Where(d =>
                 !InCSharpLiteral(d, sourceText, syntaxTree) &&
-                !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes, logger) &&
-                !AppliesToTagHelperTagName(d, sourceText, syntaxTree, logger) &&
-                !ShouldFilterHtmlDiagnosticBasedOnErrorCode(d, sourceText, syntaxTree, logger))
+                !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes) &&
+                !AppliesToTagHelperTagName(d, sourceText, syntaxTree) &&
+                !ShouldFilterHtmlDiagnosticBasedOnErrorCode(d, sourceText, syntaxTree))
             .ToArray();
 
         return filteredDiagnostics;
@@ -187,11 +186,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
                 or SyntaxKind.CSharpEphemeralTextLiteral;
     }
 
-    private static bool AppliesToTagHelperTagName(
-        Diagnostic diagnostic,
-        SourceText sourceText,
-        RazorSyntaxTree syntaxTree,
-        ILogger logger)
+    private static bool AppliesToTagHelperTagName(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
     {
         // Goal of this method is to filter diagnostics that touch TagHelper tag names. Reason being is TagHelpers can output anything. Meaning
         // If you have a TagHelper like:
@@ -207,7 +202,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
             return false;
         }
 
-        var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.End, logger);
+        var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.End);
 
         var startOrEndTag = owner?.FirstAncestorOrSelf<RazorSyntaxNode>(static n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
         if (startOrEndTag is null)
@@ -228,7 +223,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
         return true;
     }
 
-    private static bool ShouldFilterHtmlDiagnosticBasedOnErrorCode(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+    private static bool ShouldFilterHtmlDiagnosticBasedOnErrorCode(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
     {
         if (!diagnostic.Code.HasValue)
         {
@@ -239,20 +234,20 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
 
         return str switch
         {
-            CSSErrorCodes.MissingOpeningBrace => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree, logger),
-            CSSErrorCodes.MissingSelectorAfterCombinator => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree, logger),
-            CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree, logger),
-            HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree, logger),
-            HtmlErrorCodes.InvalidNestingErrorCode => IsAnyFilteredInvalidNestingError(diagnostic, sourceText, syntaxTree, logger),
+            CSSErrorCodes.MissingOpeningBrace => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
+            CSSErrorCodes.MissingSelectorAfterCombinator => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
+            CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
+            HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),
+            HtmlErrorCodes.InvalidNestingErrorCode => IsAnyFilteredInvalidNestingError(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.MissingEndTagErrorCode => FileKinds.IsComponent(syntaxTree.Options.FileKind), // Redundant with RZ9980 in Components
-            HtmlErrorCodes.TooFewElementsErrorCode => IsAnyFilteredTooFewElementsError(diagnostic, sourceText, syntaxTree, logger),
+            HtmlErrorCodes.TooFewElementsErrorCode => IsAnyFilteredTooFewElementsError(diagnostic, sourceText, syntaxTree),
             _ => false,
         };
 
-        static bool IsCSharpInStyleBlock(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsCSharpInStyleBlock(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
         {
             // C# in a style block causes diagnostics because the HTML background document replaces C# with "~"
-            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start);
             if (owner is null)
             {
                 return false;
@@ -266,9 +261,9 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
         // but we don't currently have a system to accomplish that
-        static bool IsAnyFilteredTooFewElementsError(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsAnyFilteredTooFewElementsError(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
         {
-            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start);
             if (owner is null)
             {
                 return false;
@@ -295,9 +290,9 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
         // but we don't currently have a system to accomplish that
-        static bool IsHtmlWithBangAndMatchingTags(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsHtmlWithBangAndMatchingTags(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
         {
-            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start);
             if (owner is null)
             {
                 return false;
@@ -319,13 +314,13 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
             return haveBang && namesEquivalent;
         }
 
-        static bool IsAnyFilteredInvalidNestingError(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
-            => IsInvalidNestingWarningWithinComponent(diagnostic, sourceText, syntaxTree, logger) ||
-               IsInvalidNestingFromBody(diagnostic, sourceText, syntaxTree, logger);
+        static bool IsAnyFilteredInvalidNestingError(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            => IsInvalidNestingWarningWithinComponent(diagnostic, sourceText, syntaxTree) ||
+               IsInvalidNestingFromBody(diagnostic, sourceText, syntaxTree);
 
-        static bool IsInvalidNestingWarningWithinComponent(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsInvalidNestingWarningWithinComponent(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
         {
-            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start);
             if (owner is null)
             {
                 return false;
@@ -338,9 +333,9 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
         // but we don't currently have a system to accomplish that
-        static bool IsInvalidNestingFromBody(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsInvalidNestingFromBody(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
         {
-            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start, logger);
+            var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.Start);
             if (owner is null)
             {
                 return false;
@@ -366,8 +361,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
         Diagnostic diagnostic,
         SourceText sourceText,
         RazorSyntaxTree syntaxTree,
-        Dictionary<TextSpan, bool> processedAttributes,
-        ILogger logger)
+        Dictionary<TextSpan, bool> processedAttributes)
     {
         // Examine the _end_ of the diagnostic to see if we're at the
         // start of an (im/ex)plicit expression. Looking at the start
@@ -377,7 +371,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
             return false;
         }
 
-        var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.End, logger);
+        var owner = syntaxTree.FindInnermostNode(sourceText, diagnostic.Range.End);
         if (owner is null)
         {
             return false;

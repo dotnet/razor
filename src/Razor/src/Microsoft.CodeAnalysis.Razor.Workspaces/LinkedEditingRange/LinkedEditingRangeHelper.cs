@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
@@ -20,9 +19,9 @@ internal static class LinkedEditingRangeHelper
     // https://github.com/dotnet/aspnetcore/blob/9da42b9fab4c61fe46627ac0c6877905ec845d5a/src/Razor/Microsoft.AspNetCore.Razor.Language/src/Legacy/HtmlTokenizer.cs
     public static readonly string WordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
 
-    public static LinePositionSpan[]? GetLinkedSpans(LinePosition linePosition, RazorCodeDocument codeDocument, ILogger logger)
+    public static LinePositionSpan[]? GetLinkedSpans(LinePosition linePosition, RazorCodeDocument codeDocument)
     {
-        if (GetSourceLocation(linePosition, codeDocument, logger) is not { } validLocation)
+        if (GetSourceLocation(linePosition, codeDocument) is not { } validLocation)
         {
             return null;
         }
@@ -43,14 +42,11 @@ internal static class LinkedEditingRangeHelper
         return null;
     }
 
-    private static SourceLocation? GetSourceLocation(
-        LinePosition linePosition,
-        RazorCodeDocument codeDocument,
-        ILogger logger)
+    private static SourceLocation? GetSourceLocation(LinePosition linePosition, RazorCodeDocument codeDocument)
     {
         var sourceText = codeDocument.GetSourceText();
 
-        return sourceText.TryGetSourceLocation(linePosition, logger, out var location)
+        return sourceText.TryGetSourceLocation(linePosition, out var location)
             ? location
             : null;
     }

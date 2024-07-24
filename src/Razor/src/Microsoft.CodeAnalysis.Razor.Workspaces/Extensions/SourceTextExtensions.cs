@@ -3,10 +3,8 @@
 
 using System;
 using System.Buffers;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Text;
@@ -193,26 +191,13 @@ internal static class SourceTextExtensions
     public static bool TryGetAbsoluteIndex(this SourceText text, LinePosition position, out int absoluteIndex)
         => text.TryGetAbsoluteIndex(position.Line, position.Character, out absoluteIndex);
 
-    public static bool TryGetAbsoluteIndex(this SourceText text, LinePosition position, ILogger logger, out int absoluteIndex)
-        => text.TryGetAbsoluteIndex(position.Line, position.Character, logger, out absoluteIndex);
-
     public static bool TryGetAbsoluteIndex(this SourceText text, int line, int character, out int absoluteIndex)
-        => text.TryGetAbsoluteIndex(line, character, logger: null, out absoluteIndex);
-
-    public static bool TryGetAbsoluteIndex(this SourceText text, int line, int character, ILogger? logger, out int absoluteIndex)
     {
         absoluteIndex = 0;
         var lineCount = text.Lines.Count;
 
         if (line > lineCount || (line == lineCount && character > 0))
         {
-            if (logger is not null)
-            {
-                var errorMessage = SR.FormatPositionLine_Outside_Range(line, nameof(text), text.Lines.Count);
-                logger.LogError(errorMessage);
-                Debug.Fail(errorMessage);
-            }
-
             return false;
         }
 
@@ -227,13 +212,6 @@ internal static class SourceTextExtensions
         var lineLengthIncludingLineBreak = sourceLine.SpanIncludingLineBreak.Length;
         if (character > lineLengthIncludingLineBreak)
         {
-            if (logger is not null)
-            {
-                var errorMessage = SR.FormatPositionCharacter_Outside_Range(character, nameof(text), lineLengthIncludingLineBreak);
-                logger.LogError(errorMessage);
-                Debug.Fail(errorMessage);
-            }
-
             return false;
         }
 
@@ -244,16 +222,8 @@ internal static class SourceTextExtensions
     public static int GetRequiredAbsoluteIndex(this SourceText text, LinePosition position)
         => text.GetRequiredAbsoluteIndex(position.Line, position.Character);
 
-    public static int GetRequiredAbsoluteIndex(this SourceText text, LinePosition position, ILogger logger)
-        => text.GetRequiredAbsoluteIndex(position.Line, position.Character, logger);
-
     public static int GetRequiredAbsoluteIndex(this SourceText text, int line, int character)
         => text.TryGetAbsoluteIndex(line, character, out var absolutionPosition)
-            ? absolutionPosition
-            : ThrowHelper.ThrowInvalidOperationException<int>($"({line},{character}) matches or exceeds SourceText boundary {text.Lines.Count}.");
-
-    public static int GetRequiredAbsoluteIndex(this SourceText text, int line, int character, ILogger logger)
-        => text.TryGetAbsoluteIndex(line, character, logger, out var absolutionPosition)
             ? absolutionPosition
             : ThrowHelper.ThrowInvalidOperationException<int>($"({line},{character}) matches or exceeds SourceText boundary {text.Lines.Count}.");
 
@@ -280,12 +250,12 @@ internal static class SourceTextExtensions
         }
     }
 
-    public static bool TryGetSourceLocation(this SourceText text, LinePosition position, ILogger logger, out SourceLocation location)
-        => text.TryGetSourceLocation(position.Line, position.Character, logger, out location);
+    public static bool TryGetSourceLocation(this SourceText text, LinePosition position, out SourceLocation location)
+        => text.TryGetSourceLocation(position.Line, position.Character, out location);
 
-    public static bool TryGetSourceLocation(this SourceText text, int line, int character, ILogger logger, out SourceLocation location)
+    public static bool TryGetSourceLocation(this SourceText text, int line, int character, out SourceLocation location)
     {
-        if (text.TryGetAbsoluteIndex(line, character, logger, out var absoluteIndex))
+        if (text.TryGetAbsoluteIndex(line, character, out var absoluteIndex))
         {
             location = new SourceLocation(absoluteIndex, line, character);
             return true;

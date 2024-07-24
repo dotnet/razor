@@ -48,7 +48,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         var configurationService = new DefaultRazorConfigurationService(clientConnection, loggerFactory);
         var optionsMonitor = new RazorLSPOptionsMonitor(configurationService, RazorLSPOptions.Default);
 
-        CompletionEndpoint = new RazorCompletionEndpoint(completionListProvider, telemetryReporter: null, optionsMonitor, loggerFactory);
+        CompletionEndpoint = new RazorCompletionEndpoint(completionListProvider, telemetryReporter: null, optionsMonitor);
 
         var clientCapabilities = new VSInternalClientCapabilities
         {

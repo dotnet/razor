@@ -205,7 +205,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
                     if (colorBackground)
                     {
                         tokenModifiers |= _semanticTokensLegendService.TokenModifiers.RazorCodeModifier;
-                        AddAdditionalCSharpWhitespaceRanges(razorRanges, textClassification, razorSource, previousRazorSemanticRange, originalRange, _logger);
+                        AddAdditionalCSharpWhitespaceRanges(razorRanges, textClassification, razorSource, previousRazorSemanticRange, originalRange);
                     }
 
                     razorRanges.Add(new SemanticRange(semanticRange.Kind, originalRange.Start.Line, originalRange.Start.Character, originalRange.End.Line, originalRange.End.Character, tokenModifiers, fromRazor: false));
@@ -220,14 +220,14 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         return razorRanges.DrainToImmutable();
     }
 
-    private void AddAdditionalCSharpWhitespaceRanges(ImmutableArray<SemanticRange>.Builder razorRanges, int textClassification, SourceText razorSource, LinePositionSpan? previousRazorSemanticRange, LinePositionSpan originalRange, ILogger logger)
+    private void AddAdditionalCSharpWhitespaceRanges(ImmutableArray<SemanticRange>.Builder razorRanges, int textClassification, SourceText razorSource, LinePositionSpan? previousRazorSemanticRange, LinePositionSpan originalRange)
     {
         var startLine = originalRange.Start.Line;
         var startChar = originalRange.Start.Character;
         if (previousRazorSemanticRange is { } previousRange &&
             previousRange.End.Line == startLine &&
             previousRange.End.Character < startChar &&
-            razorSource.TryGetAbsoluteIndex(previousRange.End, logger, out var previousSpanEndIndex) &&
+            razorSource.TryGetAbsoluteIndex(previousRange.End, out var previousSpanEndIndex) &&
             ContainsOnlySpacesOrTabs(razorSource, previousSpanEndIndex + 1, startChar - previousRange.End.Character - 1))
         {
             // we're on the same line as previous, lets extend ours to include whitespace between us and the proceeding range
@@ -235,7 +235,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         }
         else if (startChar > 0 &&
             previousRazorSemanticRange?.End.Line != startLine &&
-            razorSource.TryGetAbsoluteIndex(originalRange.Start, logger, out var originalRangeStartIndex) &&
+            razorSource.TryGetAbsoluteIndex(originalRange.Start, out var originalRangeStartIndex) &&
             ContainsOnlySpacesOrTabs(razorSource, originalRangeStartIndex - startChar + 1, startChar - 1))
         {
             // We're on a new line, and the start of the line is only whitespace, so give that a background color too

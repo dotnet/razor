@@ -36,10 +36,10 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         IFilePathService filePathService,
         ILogger logger)
     {
-        _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
-        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-        _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _razorDocumentMappingService = razorDocumentMappingService;
+        _clientConnection = clientConnection;
+        _filePathService = filePathService;
+        _logger = logger;
     }
 
     public abstract string EndpointName { get; }
@@ -74,7 +74,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (sourceText.TryGetAbsoluteIndex(request.Range.Start, _logger, out var hostDocumentIndex) != true)
+        if (sourceText.TryGetAbsoluteIndex(request.Range.Start, out var hostDocumentIndex) != true)
         {
             return null;
         }

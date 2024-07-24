@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -14,19 +13,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentLinkedEditingRangeName)]
-internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>, ICapabilitiesProvider
+internal class LinkedEditingRangeEndpoint(ILoggerFactory loggerFactory)
+    : IRazorRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>, ICapabilitiesProvider
 {
-    private readonly ILogger _logger;
-
-    public LinkedEditingRangeEndpoint(ILoggerFactory loggerFactory)
-    {
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _logger = loggerFactory.GetOrCreateLogger<LinkedEditingRangeEndpoint>();
-    }
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<LinkedEditingRangeEndpoint>();
 
     public bool MutatesSolutionState => false;
 
@@ -59,7 +49,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
             return null;
         }
 
-        if (LinkedEditingRangeHelper.GetLinkedSpans(request.Position.ToLinePosition(), codeDocument, _logger) is { } linkedSpans && linkedSpans.Length == 2)
+        if (LinkedEditingRangeHelper.GetLinkedSpans(request.Position.ToLinePosition(), codeDocument) is { } linkedSpans && linkedSpans.Length == 2)
         {
             var ranges = new[] { linkedSpans[0].ToRange(), linkedSpans[1].ToRange() };
 
