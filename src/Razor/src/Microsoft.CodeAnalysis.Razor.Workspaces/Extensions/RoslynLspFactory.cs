@@ -110,19 +110,25 @@ internal static class RoslynLspFactory
     public static Position CreatePosition(LinePosition linePosition)
         => CreatePosition(linePosition.Line, linePosition.Character);
 
-    public static Range CreateRange(Position start, Position end)
-        => new() { Start = start, End = end };
+    public static Position CreatePosition((int line, int character) position)
+        => CreatePosition(position.line, position.character);
 
     public static Range CreateRange(int startLine, int startCharacter, int endLine, int endCharacter)
         => startLine == endLine && startCharacter == endCharacter
             ? CreateZeroWidthRange(startLine, startCharacter)
             : CreateRange(CreatePosition(startLine, startCharacter), CreatePosition(endLine, endCharacter));
 
+    public static Range CreateRange(Position start, Position end)
+        => new() { Start = start, End = end };
+
     public static Range CreateRange(LinePosition start, LinePosition end)
         => CreateRange(start.Line, start.Character, end.Line, end.Character);
 
-    public static Range CreateRange(LinePositionSpan linePositionSpan)
-        => CreateRange(linePositionSpan.Start, linePositionSpan.End);
+    public static Range CreateRange((int line, int character) start, (int line, int character) end)
+        => CreateRange(start.line, start.character, end.line, end.character);
+
+    public static Range CreateRange(LinePositionSpan span)
+        => CreateRange(span.Start, span.End);
 
     public static Range CreateZeroWidthRange(int line, int character)
         => (line, character) switch
@@ -138,6 +144,9 @@ internal static class RoslynLspFactory
     public static Range CreateZeroWidthRange(LinePosition position)
         => CreateRange(position, position);
 
+    public static Range CreateZeroWidthRange((int line, int character) position)
+        => CreateRange(position, position);
+
     public static Range CreateSingleLineRange(int line, int character, int length)
         => CreateRange(line, character, line, character + length);
 
@@ -146,4 +155,7 @@ internal static class RoslynLspFactory
 
     public static Range CreateSingleLineRange(LinePosition start, int length)
         => CreateSingleLineRange(start.Line, start.Character, length);
+
+    public static Range CreateSingleLineRange((int line, int character) start, int length)
+        => CreateRange(CreatePosition(start), CreatePosition(start.line, start.character + length));
 }

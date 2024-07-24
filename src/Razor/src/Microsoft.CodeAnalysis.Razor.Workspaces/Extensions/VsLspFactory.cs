@@ -110,6 +110,9 @@ internal static class VsLspFactory
     public static Position CreatePosition(LinePosition linePosition)
         => CreatePosition(linePosition.Line, linePosition.Character);
 
+    public static Position CreatePosition((int line, int character) position)
+        => CreatePosition(position.line, position.character);
+
     public static Range CreateRange(int startLine, int startCharacter, int endLine, int endCharacter)
         => startLine == endLine && startCharacter == endCharacter
             ? CreateZeroWidthRange(startLine, startCharacter)
@@ -120,6 +123,9 @@ internal static class VsLspFactory
 
     public static Range CreateRange(LinePosition start, LinePosition end)
         => CreateRange(start.Line, start.Character, end.Line, end.Character);
+
+    public static Range CreateRange((int line, int character) start, (int line, int character) end)
+        => CreateRange(start.line, start.character, end.line, end.character);
 
     public static Range CreateRange(LinePositionSpan span)
         => CreateRange(span.Start, span.End);
@@ -138,6 +144,9 @@ internal static class VsLspFactory
     public static Range CreateZeroWidthRange(LinePosition position)
         => CreateRange(position, position);
 
+    public static Range CreateZeroWidthRange((int line, int character) position)
+        => CreateRange(position, position);
+
     public static Range CreateSingleLineRange(int line, int character, int length)
         => CreateRange(line, character, line, character + length);
 
@@ -146,6 +155,9 @@ internal static class VsLspFactory
 
     public static Range CreateSingleLineRange(LinePosition start, int length)
         => CreateSingleLineRange(start.Line, start.Character, length);
+
+    public static Range CreateSingleLineRange((int line, int character) start, int length)
+        => CreateRange(CreatePosition(start), CreatePosition(start.line, start.character + length));
 
     public static TextEdit CreateTextEdit(Range range, string newText)
         => new() { Range = range, NewText = newText };
@@ -161,6 +173,9 @@ internal static class VsLspFactory
 
     public static TextEdit CreateTextEdit(LinePosition position, string newText)
         => CreateTextEdit(CreateZeroWidthRange(position.Line, position.Character), newText);
+
+    public static TextEdit CreateTextEdit((int line, int character) position, string newText)
+        => CreateTextEdit(CreateZeroWidthRange(position), newText);
 
     public static TextEdit CreateTextEdit(int startLine, int startCharacter, int endLine, int endCharacter, string newText)
         => CreateTextEdit(CreateRange(startLine, startCharacter, endLine, endCharacter), newText);
