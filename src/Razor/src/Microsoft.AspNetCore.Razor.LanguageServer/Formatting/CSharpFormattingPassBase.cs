@@ -523,7 +523,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             //
             if (owner is { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
                 explicitExpression.Span.ToRange(context.SourceText) is { } exprRange &&
-                exprRange.Start.Line == exprRange.End.Line)
+                exprRange.IsSingleLine())
             {
                 return true;
             }

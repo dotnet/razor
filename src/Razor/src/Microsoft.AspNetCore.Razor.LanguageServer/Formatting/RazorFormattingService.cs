@@ -177,8 +177,7 @@ internal class RazorFormattingService : IRazorFormattingService
         {
             var collapsedEdit = MergeEdits(edits, originalText);
             if (collapsedEdit.NewText.Length == 0 &&
-                collapsedEdit.Range.Start.Line == collapsedEdit.Range.End.Line &&
-                collapsedEdit.Range.Start.Character == collapsedEdit.Range.End.Character)
+                collapsedEdit.Range.IsZeroWidth())
             {
                 return Array.Empty<TextEdit>();
             }
