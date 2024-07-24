@@ -19,8 +19,8 @@ using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using MarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
@@ -118,7 +118,6 @@ internal sealed partial class HoverService(
             owner = owner.Parent;
         }
 
-        var position = VsLspFactory.CreatePosition(location.LineIndex, location.CharacterIndex);
         var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
         // We want to find the parent tag, but looking up ancestors in the tree can find other things,
@@ -342,10 +341,10 @@ internal sealed partial class HoverService(
         return hover;
     }
 
-    private static VisualStudioMarkupKind GetHoverContentFormat(ClientCapabilities clientCapabilities)
+    private static MarkupKind GetHoverContentFormat(ClientCapabilities clientCapabilities)
     {
         var hoverContentFormat = clientCapabilities.TextDocument?.Hover?.ContentFormat;
-        var hoverKind = hoverContentFormat?.Contains(VisualStudioMarkupKind.Markdown) == true ? VisualStudioMarkupKind.Markdown : VisualStudioMarkupKind.PlainText;
+        var hoverKind = hoverContentFormat?.Contains(MarkupKind.Markdown) == true ? MarkupKind.Markdown : MarkupKind.PlainText;
         return hoverKind;
     }
 }

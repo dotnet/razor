@@ -85,7 +85,7 @@ internal sealed class CreateComponentCodeActionResolver(IDocumentContextFactory 
             documentChanges.Add(new TextDocumentEdit
             {
                 TextDocument = documentIdentifier,
-                Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, namespaceDirective.GetContent())]
+                Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), namespaceDirective.GetContent())]
             });
         }
     }

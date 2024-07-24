@@ -101,7 +101,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
             new TextDocumentEdit
             {
                 TextDocument = codeBehindDocumentIdentifier,
-                Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, codeBehindContent)]
+                Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), codeBehindContent)]
             }
         };
 

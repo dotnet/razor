@@ -150,7 +150,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
         string newUsingNamespace)
     {
-        var insertPosition = VsLspFactory.DefaultPosition;
+        var insertPosition = (0, 0);
 
         // If we don't have usings, insert after the last namespace or page directive, which ever comes later
         var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
@@ -161,7 +161,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         if (lastNamespaceOrPageDirective != null)
         {
             var lineIndex = GetLineIndexOrEnd(codeDocument, lastNamespaceOrPageDirective.Span.End - 1) + 1;
-            insertPosition = VsLspFactory.CreatePosition(lineIndex, 0);
+            insertPosition = (lineIndex, 0);
         }
 
         // Insert all usings at the given point

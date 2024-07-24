@@ -67,8 +67,8 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
         Range = VsLspFactory.CreateRange(
-            start: VsLspFactory.DefaultPosition,
-            end: VsLspFactory.CreatePosition(text.Lines.Count - 1, text.Lines[^1].Span.Length - 1));
+            start: (0, 0),
+            end: (text.Lines.Count - 1, text.Lines[^1].Span.Length - 1));
     }
 
     [Benchmark(Description = "Razor Semantic Tokens Range Handling")]

@@ -534,7 +534,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
                 var diagnosticStartCharacter = sourceText.TryGetFirstNonWhitespaceOffset(startLine.Span, out var firstNonWhitespaceOffset)
                     ? firstNonWhitespaceOffset
                     : 0;
-                var startLinePosition = VsLspFactory.CreatePosition(startLineIndex, diagnosticStartCharacter);
+                var startLinePosition = (startLineIndex, diagnosticStartCharacter);
 
                 var endLineIndex = diagnosticRange.End.Line;
                 if (endLineIndex >= sourceText.Lines.Count)
@@ -551,7 +551,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
                     ? lastNonWhitespaceOffset
                     : 0;
                 var diagnosticEndWhitespaceOffset = diagnosticEndCharacter + 1;
-                var endLinePosition = VsLspFactory.CreatePosition(endLineIndex, diagnosticEndWhitespaceOffset);
+                var endLinePosition = (endLineIndex, diagnosticEndWhitespaceOffset);
 
                 remappedRange = VsLspFactory.CreateRange(startLinePosition, endLinePosition);
                 return true;

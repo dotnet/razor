@@ -28,7 +28,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
 }
 ");
         using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, "@ ");
+        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ ");
         var input = new FormattingResult([badEdit], RazorLanguageKind.CSharp);
         var pass = GetPass();
 
@@ -49,7 +49,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
 }
 ");
         using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, "@ ");
+        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ ");
         var input = new FormattingResult([badEdit], RazorLanguageKind.Html);
         var pass = GetPass();
 
@@ -94,7 +94,7 @@ public class Foo { }
 }
 ");
         using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, "@ "); // Creates a diagnostic
+        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ "); // Creates a diagnostic
         var input = new FormattingResult([badEdit], RazorLanguageKind.Razor);
         var pass = GetPass();
 

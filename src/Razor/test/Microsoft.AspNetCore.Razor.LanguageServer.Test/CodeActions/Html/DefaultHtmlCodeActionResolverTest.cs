@@ -77,7 +77,7 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
                                     Uri = new Uri("c:/Test.razor.html"),
                                     Version = 1
                                 },
-                                Edits = [VsLspFactory.CreateTextEdit(VsLspFactory.DefaultRange, "Goo")]
+                                Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                             }
                         }
             }
