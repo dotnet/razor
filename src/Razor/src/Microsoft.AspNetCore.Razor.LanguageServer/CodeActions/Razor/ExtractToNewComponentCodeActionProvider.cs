@@ -78,12 +78,12 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         {
             if (!selectionEnd.TryGetSourceLocation(context.CodeDocument.GetSourceText(), _logger, out var location))
             {
-                return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+                return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
             }
      
             if (location is null)
             {
-                return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+                return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
             }
 
             selectionEndIndex = location.Value;
@@ -91,7 +91,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
             if (endOwner is null)
             {
-                return SpecializedTasks.Null<IReadOnlyList<RazorVSInternalCodeAction>>();
+                return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
             }
 
             endComponentNode = endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
