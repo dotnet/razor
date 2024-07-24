@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -13,80 +13,63 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal static class RazorCodeDocumentExtensions
 {
-    private static readonly object s_cSharpSourceTextKey = new();
+    private static readonly object s_csharpSourceTextKey = new();
     private static readonly object s_htmlSourceTextKey = new();
 
     public static SourceText GetSourceText(this RazorCodeDocument document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgHelper.ThrowIfNull(document);
 
         return document.Source.Text;
     }
 
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgHelper.ThrowIfNull(document);
 
-        var sourceTextObj = document.Items[s_cSharpSourceTextKey];
-        if (sourceTextObj is null)
+        if (!document.Items.TryGetValue(s_csharpSourceTextKey, out SourceText? sourceText))
         {
             var csharpDocument = document.GetCSharpDocument();
-            var sourceText = SourceText.From(csharpDocument.GeneratedCode);
-            document.Items[s_cSharpSourceTextKey] = sourceText;
+            sourceText = SourceText.From(csharpDocument.GeneratedCode);
+            document.Items[s_csharpSourceTextKey] = sourceText;
 
             return sourceText;
         }
 
-        return (SourceText)sourceTextObj;
+        return sourceText.AssumeNotNull();
     }
 
     public static SourceText GetHtmlSourceText(this RazorCodeDocument document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgHelper.ThrowIfNull(document);
 
-        var sourceTextObj = document.Items[s_htmlSourceTextKey];
-        if (sourceTextObj is null)
+        if (!document.Items.TryGetValue(s_htmlSourceTextKey, out SourceText? sourceText))
         {
             var htmlDocument = document.GetHtmlDocument();
-            var sourceText = SourceText.From(htmlDocument.GeneratedCode);
+            sourceText = SourceText.From(htmlDocument.GeneratedCode);
             document.Items[s_htmlSourceTextKey] = sourceText;
 
             return sourceText;
         }
 
-        return (SourceText)sourceTextObj;
+        return sourceText.AssumeNotNull();
     }
 
     public static SourceText GetGeneratedSourceText(this RazorCodeDocument document, IRazorGeneratedDocument generatedDocument)
-    {
-        if (generatedDocument is RazorCSharpDocument)
+        => generatedDocument switch
         {
-            return GetCSharpSourceText(document);
-        }
-        else if (generatedDocument is RazorHtmlDocument)
-        {
-            return GetHtmlSourceText(document);
-        }
-
-        throw new InvalidOperationException("Unknown generated document type");
-    }
+            RazorCSharpDocument => document.GetCSharpSourceText(),
+            RazorHtmlDocument => document.GetHtmlSourceText(),
+            _ => ThrowHelper.ThrowInvalidOperationException<SourceText>("Unknown generated document type"),
+        };
 
     public static IRazorGeneratedDocument GetGeneratedDocument(this RazorCodeDocument document, RazorLanguageKind languageKind)
-      => languageKind switch
-      {
-          RazorLanguageKind.CSharp => document.GetCSharpDocument(),
-          RazorLanguageKind.Html => document.GetHtmlDocument(),
-          _ => throw new System.InvalidOperationException(),
-      };
+        => languageKind switch
+        {
+            RazorLanguageKind.CSharp => document.GetCSharpDocument(),
+            RazorLanguageKind.Html => document.GetHtmlDocument(),
+            _ => ThrowHelper.ThrowInvalidOperationException<IRazorGeneratedDocument>($"Unexpected language kind: {languageKind}"),
+        };
 
     public static bool TryGetMinimalCSharpRange(this RazorCodeDocument codeDocument, LinePositionSpan razorRange, out LinePositionSpan csharpRange)
     {
@@ -139,7 +122,7 @@ internal static class RazorCodeDocumentExtensions
         var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
             .GetDocumentIntermediateNode()
             .FindDescendantNodes<IntermediateNode>()
-            .First(n => n is NamespaceDeclarationIntermediateNode);
+            .First(static n => n is NamespaceDeclarationIntermediateNode);
 
         return namespaceNode.Content == fullyQualifiedNamespace;
     }
