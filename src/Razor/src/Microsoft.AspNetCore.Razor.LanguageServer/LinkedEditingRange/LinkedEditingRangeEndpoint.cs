@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.LinkedEditingRange;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
@@ -62,7 +61,7 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
 
         if (LinkedEditingRangeHelper.GetLinkedSpans(request.Position.ToLinePosition(), codeDocument, _logger) is { } linkedSpans && linkedSpans.Length == 2)
         {
-            var ranges = new Range[2] { linkedSpans[0].ToRange(), linkedSpans[1].ToRange() };
+            var ranges = new[] { linkedSpans[0].ToRange(), linkedSpans[1].ToRange() };
 
             return new LinkedEditingRanges
             {
