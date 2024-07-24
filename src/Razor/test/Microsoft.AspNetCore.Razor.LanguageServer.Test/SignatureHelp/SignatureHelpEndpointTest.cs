@@ -7,7 +7,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -110,7 +109,7 @@ public class SignatureHelpEndpointTest(ITestOutputHelper testOutput) : SingleSer
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = codeDocument.GetSourceText().GetPosition(cursorPosition),
+            Position = codeDocument.Source.Text.GetPosition(cursorPosition),
             Context = signatureHelpContext
         };
 

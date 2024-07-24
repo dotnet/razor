@@ -51,7 +51,7 @@ internal class FormattingContext : IDisposable
     public int HostDocumentIndex { get; }
     public char TriggerCharacter { get; }
 
-    public SourceText SourceText => CodeDocument.GetSourceText();
+    public SourceText SourceText => CodeDocument.Source.Text;
 
     public SourceText CSharpSourceText => CodeDocument.GetCSharpSourceText();
 

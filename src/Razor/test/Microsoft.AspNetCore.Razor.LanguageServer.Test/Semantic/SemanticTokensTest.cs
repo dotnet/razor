@@ -945,7 +945,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             .Returns(projectSnapshot.Object);
 
         documentContext.Setup(d => d.GetSourceTextAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(document.GetSourceText()));
+            .Returns(Task.FromResult(document.Source.Text));
 
         documentContext.Setup(d => d.Uri)
             .Returns(new Uri($"c:\\${(isRazorFile ? RazorFile : CSHtmlFile)}"));

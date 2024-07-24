@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,7 +15,7 @@ internal abstract class AbstractSyntaxNodeFoldingProvider<TNode> : IRazorFolding
 {
     public ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument)
     {
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
         var syntaxTree = codeDocument.GetSyntaxTree();
         var nodes = GetFoldableNodes(syntaxTree);
 

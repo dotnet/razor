@@ -228,7 +228,7 @@ internal abstract class AbstractRazorDocumentMappingService(
             return false;
         }
 
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
         var range = hostDocumentRange;
         if (!IsRangeWithinDocument(range, sourceText))
         {
@@ -356,7 +356,7 @@ internal abstract class AbstractRazorDocumentMappingService(
 
                 // The "next" C# location is only valid if it is on the same line in the source document
                 // as the requested position.
-                var hostDocumentLinePosition = codeDocument.GetSourceText().GetLinePosition(hostDocumentIndex);
+                var hostDocumentLinePosition = codeDocument.Source.Text.GetLinePosition(hostDocumentIndex);
 
                 if (mapping.OriginalSpan.LineIndex == hostDocumentLinePosition.Line)
                 {

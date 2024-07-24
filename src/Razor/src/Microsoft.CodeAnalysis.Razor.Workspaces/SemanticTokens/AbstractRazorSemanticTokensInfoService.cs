@@ -184,7 +184,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         razorRanges.SetCapacityIfLarger(csharpResponse.Length / TokenSize);
 
         var textClassification = _semanticTokensLegendService.TokenTypes.MarkupTextLiteral;
-        var razorSource = codeDocument.GetSourceText();
+        var razorSource = codeDocument.Source.Text;
 
         SemanticRange previousSemanticRange = default;
         LinePositionSpan? previousRazorSemanticRange = null;
@@ -262,7 +262,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
     {
         using var _ = ArrayBuilderPool<LinePositionSpan>.GetPooledObject(out var csharpRanges);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
         var textSpan = sourceText.GetTextSpan(razorRange);
         var csharpDoc = codeDocument.GetCSharpDocument();
 
@@ -327,7 +327,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
     {
         SemanticRange previousResult = default;
 
-        var sourceText = razorCodeDocument.GetSourceText();
+        var sourceText = razorCodeDocument.Source.Text;
 
         // We don't bother filtering out duplicate ranges (eg, where C# and Razor both have opinions), but instead take advantage of
         // our sort algorithm to be correct, so we can skip duplicates here. That means our final array may end up smaller than the

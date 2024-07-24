@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -461,12 +460,12 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var cSharpDocument = codeDocument.GetCSharpDocument();
         var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", "diagnostic", RazorDiagnosticSeverity.Error);
         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, componentSourceSpan);
-        var cSharpDocumentWithDiagnostic = RazorCSharpDocument.Create(codeDocument, cSharpDocument.GeneratedCode, cSharpDocument.Options, new[] { diagnostic });
+        var cSharpDocumentWithDiagnostic = RazorCSharpDocument.Create(codeDocument, cSharpDocument.GeneratedCode, cSharpDocument.Options, [diagnostic]);
         codeDocument.SetCSharpDocument(cSharpDocumentWithDiagnostic);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
             document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()) &&
+            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text) &&
             document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers), MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);

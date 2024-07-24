@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -335,7 +334,7 @@ $$Path;
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
             document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()) &&
+            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text) &&
             document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers), MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);

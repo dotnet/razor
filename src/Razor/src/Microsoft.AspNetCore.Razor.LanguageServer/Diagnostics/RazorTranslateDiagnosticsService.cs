@@ -15,14 +15,11 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
-using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -497,7 +494,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
         // semi-intelligent way.
 
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var span = codeDocument.GetSourceText().GetTextSpan(diagnosticRange);
+        var span = codeDocument.Source.Text.GetTextSpan(diagnosticRange);
         var owner = syntaxTree.Root.FindNode(span, getInnermostNodeForTie: true);
 
         switch (owner?.Kind)

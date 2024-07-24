@@ -16,11 +16,6 @@ internal static class RazorCodeDocumentExtensions
     private static readonly object s_csharpSourceTextKey = new();
     private static readonly object s_htmlSourceTextKey = new();
 
-    public static SourceText GetSourceText(this RazorCodeDocument document)
-    {
-        return document.Source.Text;
-    }
-
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
     {
         if (!document.Items.TryGetValue(s_csharpSourceTextKey, out SourceText? sourceText))
@@ -70,7 +65,7 @@ internal static class RazorCodeDocumentExtensions
         SourceSpan? minGeneratedSpan = null;
         SourceSpan? maxGeneratedSpan = null;
 
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
         var textSpan = sourceText.GetTextSpan(razorRange);
         var csharpDoc = codeDocument.GetCSharpDocument();
 

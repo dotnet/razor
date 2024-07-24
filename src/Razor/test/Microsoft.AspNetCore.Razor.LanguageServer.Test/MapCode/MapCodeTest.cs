@@ -301,7 +301,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         capabilitiesProvider.ApplyCapabilities(serverCapabilities, new());
         Assert.True(serverCapabilities.MapCodeProvider);
 
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
 
         var mappings = new VSInternalMapCodeMapping[]
         {

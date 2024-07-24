@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
@@ -60,10 +59,10 @@ internal class RazorFormattingService : IRazorFormattingService
         // Razor diagnostics, not the C# diagnostics 🤦‍
         if (range is not null)
         {
-            var sourceText = codeDocument.GetSourceText();
+            var sourceText = codeDocument.Source.Text;
             if (codeDocument.GetCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && range.OverlapsWith(sourceText.GetRange(d.Span))))
             {
-                return Array.Empty<TextEdit>();
+                return [];
             }
         }
 
@@ -73,7 +72,7 @@ internal class RazorFormattingService : IRazorFormattingService
         using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
         var originalText = context.SourceText;
 
-        var result = new FormattingResult(Array.Empty<TextEdit>());
+        var result = new FormattingResult([]);
         foreach (var pass in _formattingPasses)
         {
             cancellationToken.ThrowIfCancellationRequested();

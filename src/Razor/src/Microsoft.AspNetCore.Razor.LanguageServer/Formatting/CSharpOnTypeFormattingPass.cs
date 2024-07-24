@@ -109,7 +109,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         }
 
         // Find the lines that were affected by these edits.
-        var originalText = codeDocument.GetSourceText();
+        var originalText = codeDocument.Source.Text;
         _logger.LogTestOnly($"Original text:\r\n{originalText}");
 
         var changes = filteredEdits.Select(originalText.GetTextChange);

@@ -124,7 +124,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         // Assert
         Assert.Contains("**Attribute**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
-        var expectedRange = codeDocument.GetSourceText().GetRange(span);
+        var expectedRange = codeDocument.Source.Text.GetRange(span);
         Assert.Equal(expectedRange, hover.Range);
     }
 
@@ -898,7 +898,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
             {
                 Uri = razorFileUri,
             },
-            Position = codeDocument.GetSourceText().GetPosition(cursorPosition)
+            Position = codeDocument.Source.Text.GetPosition(cursorPosition)
         };
         var documentContext = CreateDocumentContext(razorFileUri, codeDocument);
         var requestContext = CreateRazorRequestContext(documentContext: documentContext);

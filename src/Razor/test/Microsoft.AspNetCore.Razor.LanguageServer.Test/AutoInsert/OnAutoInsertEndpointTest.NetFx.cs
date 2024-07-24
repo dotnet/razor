@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -360,10 +359,11 @@ public partial class OnAutoInsertEndpointTest
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
 
+        var text = codeDocument.Source.Text;
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(razorFilePath), },
-            Position = codeDocument.GetSourceText().GetPosition(cursorPosition),
+            Position = text.GetPosition(cursorPosition),
             Character = character,
             Options = new FormattingOptions
             {
@@ -383,8 +383,8 @@ public partial class OnAutoInsertEndpointTest
         Assert.False(insertProvider.Called);
         Assert.Equal(1, languageServer.RequestCount);
 
-        var edits = new[] { codeDocument.GetSourceText().GetTextChange(result.TextEdit) };
-        var newText = codeDocument.GetSourceText().WithChanges(edits).ToString();
+        var edits = new[] { text.GetTextChange(result.TextEdit) };
+        var newText = text.WithChanges(edits).ToString();
         Assert.Equal(expected, newText);
     }
 }

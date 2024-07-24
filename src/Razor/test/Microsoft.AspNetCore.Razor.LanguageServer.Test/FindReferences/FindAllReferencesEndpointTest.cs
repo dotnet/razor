@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -51,7 +50,7 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
         var endpoint = new FindAllReferencesEndpoint(
             LanguageServerFeatureOptions, DocumentMappingService, languageServer, LoggerFactory, FilePathService);
 
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
 
         var request = new ReferenceParams
         {
@@ -81,7 +80,7 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
         {
             Assert.Equal(new Uri(razorFilePath), referenceItem.Location.Uri);
 
-            var expectedRange = codeDocument.GetSourceText().GetRange(expectedSpans[i]);
+            var expectedRange = codeDocument.Source.Text.GetRange(expectedSpans[i]);
             Assert.Equal(expectedRange, referenceItem.Location.Range);
 
             i++;

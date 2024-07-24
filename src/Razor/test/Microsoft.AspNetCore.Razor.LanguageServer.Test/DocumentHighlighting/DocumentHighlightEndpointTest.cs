@@ -131,7 +131,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = codeDocument.GetSourceText().GetPosition(cursorPosition)
+            Position = codeDocument.Source.Text.GetPosition(cursorPosition)
         };
 
         var documentContext = CreateDocumentContext(request.TextDocument.Uri, codeDocument);
@@ -141,7 +141,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
         var expected = spans
             .Select(sourceText.GetRange)
             .OrderBy(s => s.Start.Line)

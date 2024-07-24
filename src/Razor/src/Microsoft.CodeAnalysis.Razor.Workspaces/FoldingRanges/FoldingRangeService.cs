@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -86,7 +85,7 @@ internal class FoldingRangeService(
     {
         Debug.Assert(range.StartLine < range.EndLine);
 
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
         var startLine = range.StartLine;
 
         if (startLine >= sourceText.Lines.Count)
