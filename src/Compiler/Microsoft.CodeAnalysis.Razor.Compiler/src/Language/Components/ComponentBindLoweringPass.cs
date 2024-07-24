@@ -728,17 +728,19 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
 
         foreach (var attribute in componentTagHelper.BoundAttributes)
         {
-            if (string.Equals(valueAttributeName, attribute.Name, StringComparison.OrdinalIgnoreCase))
+            var comparison = attribute.GetComparison();
+
+            if (string.Equals(valueAttributeName, attribute.Name, comparison))
             {
                 valueAttribute = attribute;
             }
 
-            if (string.Equals(changeAttributeName, attribute.Name, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(changeAttributeName, attribute.Name, comparison))
             {
                 changeAttribute = attribute;
             }
 
-            if (string.Equals(expressionAttributeName, attribute.Name, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(expressionAttributeName, attribute.Name, comparison))
             {
                 expressionAttribute = attribute;
             }
