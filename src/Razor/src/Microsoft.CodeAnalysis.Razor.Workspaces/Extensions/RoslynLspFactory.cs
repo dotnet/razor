@@ -158,4 +158,31 @@ internal static class RoslynLspFactory
 
     public static Range CreateSingleLineRange((int line, int character) start, int length)
         => CreateRange(CreatePosition(start), CreatePosition(start.line, start.character + length));
+
+    public static TextEdit CreateTextEdit(Range range, string newText)
+        => new() { Range = range, NewText = newText };
+
+    public static TextEdit CreateTextEdit(LinePositionSpan span, string newText)
+        => CreateTextEdit(CreateRange(span), newText);
+
+    public static TextEdit CreateTextEdit(int line, int character, string newText)
+        => CreateTextEdit(CreateZeroWidthRange(line, character), newText);
+
+    public static TextEdit CreateTextEdit(Position position, string newText)
+        => CreateTextEdit(CreateZeroWidthRange(position), newText);
+
+    public static TextEdit CreateTextEdit(LinePosition position, string newText)
+        => CreateTextEdit(CreateZeroWidthRange(position.Line, position.Character), newText);
+
+    public static TextEdit CreateTextEdit((int line, int character) position, string newText)
+        => CreateTextEdit(CreateZeroWidthRange(position), newText);
+
+    public static TextEdit CreateTextEdit(int startLine, int startCharacter, int endLine, int endCharacter, string newText)
+        => CreateTextEdit(CreateRange(startLine, startCharacter, endLine, endCharacter), newText);
+
+    public static TextEdit CreateTextEdit(Position start, Position end, string newText)
+        => CreateTextEdit(CreateRange(start, end), newText);
+
+    public static TextEdit CreateTextEdit(LinePosition start, LinePosition end, string newText)
+        => CreateTextEdit(CreateRange(start, end), newText);
 }
