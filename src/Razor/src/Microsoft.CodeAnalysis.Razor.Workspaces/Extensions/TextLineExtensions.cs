@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.AspNetCore.Razor;
 
 namespace Microsoft.CodeAnalysis.Text;
 
@@ -15,9 +15,7 @@ internal static class TextLineExtensions
 
     public static int GetIndentationSize(this TextLine line, long tabSize)
     {
-        var text = line.Text;
-
-        Assumes.NotNull(text);
+        var text = line.Text.AssumeNotNull();
 
         var indentation = 0;
         for (var i = line.Start; i < line.End; i++)
