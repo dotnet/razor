@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
@@ -106,7 +105,6 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
             """,
             displayAllOverride: true);
 
-
     [Fact]
     public Task InlayHints_ComponentAttributes()
         => VerifyInlayHintsAsync(
@@ -119,9 +117,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
                 </div>
 
                 """,
-            toolTipMap: new Dictionary<string, string>
-            {
-            },
+            toolTipMap: [],
             output: """
 
                 <div>
@@ -164,7 +160,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
             Assert.True(spansDict.TryGetValue(label, out var spans), $"Expected {label} to be in test provided markers");
 
             var span = Assert.Single(spans);
-            var expectedRange = span.ToRLSPRange(inputText);
+            var expectedRange = inputText.GetRange(span);
             // Inlay hints only have a position, so we ignore the end of the range that comes from the test input
             Assert.Equal(expectedRange.Start, hint.Position);
 
@@ -196,16 +192,12 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
         }
 
         // To validate edits, we have to collect them all together, and apply them backwards
-        var edits = hints
+        var changes = hints
             .SelectMany(h => h.TextEdits ?? [])
             .OrderByDescending(e => e.Range.Start.Line)
             .ThenByDescending(e => e.Range.Start.Character)
-            .ToArray();
-        foreach (var edit in edits)
-        {
-            var change = edit.ToTextChange(inputText);
-            inputText = inputText.WithChanges(change);
-        }
+            .Select(inputText.GetTextChange);
+        inputText = inputText.WithChanges(changes);
 
         AssertEx.EqualOrDiff(output, inputText.ToString());
     }

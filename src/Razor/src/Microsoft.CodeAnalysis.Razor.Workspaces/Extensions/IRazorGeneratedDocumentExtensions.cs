@@ -1,8 +1,7 @@
 ﻿using System;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class IRazorGeneratedDocumentExtensions
 {

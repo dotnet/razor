@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol.InlayHints;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -56,7 +57,7 @@ internal sealed partial class RemoteInlayHintService(in ServiceArgs args) : Razo
         var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
 
         var textDocument = inlayHintParams.TextDocument.WithUri(generatedDocument.CreateUri());
-        var range = projectedLinePositionSpan.ToRLSPRange();
+        var range = projectedLinePositionSpan.ToRange();
 
         var hints = await InlayHints.GetInlayHintsAsync(generatedDocument, textDocument, range, displayAllOverride, cancellationToken).ConfigureAwait(false);
 
@@ -71,7 +72,7 @@ internal sealed partial class RemoteInlayHintService(in ServiceArgs args) : Razo
         var syntaxTree = codeDocument.GetSyntaxTree();
         foreach (var hint in hints)
         {
-            if (hint.Position.ToLinePosition().TryGetAbsoluteIndex(csharpSourceText, null, out var absoluteIndex) &&
+            if (csharpSourceText.TryGetAbsoluteIndex(hint.Position.ToLinePosition(), out var absoluteIndex) &&
                 _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteIndex, out var hostDocumentPosition, out var hostDocumentIndex))
             {
                 // We know this C# maps to Razor, but does it map to Razor that we like?
@@ -83,13 +84,13 @@ internal sealed partial class RemoteInlayHintService(in ServiceArgs args) : Razo
 
                 if (hint.TextEdits is not null)
                 {
-                    var changes = hint.TextEdits.Select(e => e.ToTextChange(csharpSourceText));
+                    var changes = hint.TextEdits.Select(csharpSourceText.GetTextChange);
                     var mappedChanges = _documentMappingService.GetHostDocumentEdits(csharpDocument, changes);
-                    hint.TextEdits = mappedChanges.Select(c => c.ToRLSPTextEdit(razorSourceText)).ToArray();
+                    hint.TextEdits = mappedChanges.Select(razorSourceText.GetTextEdit).ToArray();
                 }
 
                 hint.Data = new InlayHintDataWrapper(inlayHintParams.TextDocument, hint.Data, hint.Position);
-                hint.Position = hostDocumentPosition.ToRLSPPosition();
+                hint.Position = hostDocumentPosition.ToPosition();
 
                 inlayHintsBuilder.Add(hint);
             }

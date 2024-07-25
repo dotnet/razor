@@ -40,13 +40,14 @@ internal abstract class AbstractRazorDocumentMappingService(
         foreach (var change in generatedDocumentChanges)
         {
             var span = change.Span;
-            if (!IsSpanWithinDocument(span, generatedDocumentSourceText))
+            // Deliberately doing a naive check to avoid telemetry for truly bad data
+            if (span.Start <= 0 || span.Start >= generatedDocumentSourceText.Length || span.End <= 0 || span.End >= generatedDocumentSourceText.Length)
             {
                 continue;
             }
 
-            generatedDocumentSourceText.GetLineAndOffset(span.Start, out var startLine, out var startCharacter);
-            generatedDocumentSourceText.GetLineAndOffset(span.End, out var endLine, out var endCharacter);
+            var (startLine, startChar) = generatedDocumentSourceText.GetLinePosition(span.Start);
+            var (endLine, _) = generatedDocumentSourceText.GetLinePosition(span.End);
 
             var mappedStart = this.TryMapToHostDocumentPosition(generatedDocument, span.Start, out var hostDocumentStart, out var hostStartIndex);
             var mappedEnd = this.TryMapToHostDocumentPosition(generatedDocument, span.End, out var hostDocumentEnd, out var hostEndIndex);
@@ -91,17 +92,13 @@ internal abstract class AbstractRazorDocumentMappingService(
                 // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
                 Debug.Assert(lastNewLine == 0 || change.NewText[..(lastNewLine - 1)].All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
-                var proposedStart = new LinePosition(endLine, 0);
-                var proposedEnd = new LinePosition(endLine, endCharacter);
-                var startSync = proposedStart.TryGetAbsoluteIndex(generatedDocumentSourceText, _logger, out var startIndex);
-                var endSync = proposedEnd.TryGetAbsoluteIndex(generatedDocumentSourceText, _logger, out var endIndex);
-                if (startSync is false || endSync is false)
+                var startSync = generatedDocumentSourceText.TryGetAbsoluteIndex((endLine, 0), out var startIndex);
+                if (startSync is false)
                 {
                     break;
                 }
 
                 mappedStart = this.TryMapToHostDocumentPosition(generatedDocument, startIndex, out _, out hostStartIndex);
-                mappedEnd = this.TryMapToHostDocumentPosition(generatedDocument, endIndex, out _, out hostEndIndex);
 
                 if (mappedStart && mappedEnd)
                 {
@@ -163,7 +160,7 @@ internal abstract class AbstractRazorDocumentMappingService(
                     {
                         // Otherwise, add a newline and the real content, and remember where we added it
                         lastNewLineAddedToLine = startLine;
-                        yield return new TextChange(new TextSpan(hostEndIndex, 0), " " + Environment.NewLine + new string(' ', startCharacter) + change.NewText);
+                        yield return new TextChange(new TextSpan(hostEndIndex, 0), " " + Environment.NewLine + new string(' ', startChar) + change.NewText);
                     }
 
                     continue;
@@ -715,12 +712,6 @@ internal abstract class AbstractRazorDocumentMappingService(
     }
 
     private static bool s_haveAsserted = false;
-
-    private static bool IsSpanWithinDocument(TextSpan span, SourceText sourceText)
-        => span.Start >= 0 &&
-            span.Start < sourceText.Length &&
-            span.End is >= 0 &&
-            span.End < sourceText.Length;
 
     private bool IsRangeWithinDocument(LinePositionSpan range, SourceText sourceText)
     {

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 using Roslyn.LanguageServer.Protocol;
 using VSLSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 

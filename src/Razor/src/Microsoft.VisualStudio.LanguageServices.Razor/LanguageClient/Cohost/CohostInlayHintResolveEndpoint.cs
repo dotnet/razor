@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol.InlayHints;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 using Roslyn.LanguageServer.Protocol;
 using VSLSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -95,9 +94,9 @@ internal class CohostInlayHintResolveEndpoint(IRemoteServiceInvoker remoteServic
 
     private static InlayHintDataWrapper? GetInlayHintResolveData(InlayHint inlayHint)
     {
-        if (inlayHint.Data is InlayHintDataWrapper)
+        if (inlayHint.Data is InlayHintDataWrapper wrapper)
         {
-            return (InlayHintDataWrapper)inlayHint.Data;
+            return wrapper;
         }
 
         if (inlayHint.Data is JsonElement json)

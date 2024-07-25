@@ -21,11 +21,11 @@ internal static class IRazorDocumentMappingServiceExtensions
     public static TextEdit[] GetHostDocumentEdits(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, TextEdit[] generatedDocumentEdits)
     {
         var generatedDocumentSourceText = generatedDocument.GetGeneratedSourceText();
-        var documentText = generatedDocument.CodeDocument.AssumeNotNull().GetSourceText();
+        var documentText = generatedDocument.CodeDocument.AssumeNotNull().Source.Text;
 
-        var changes = generatedDocumentEdits.Select(e => e.ToTextChange(generatedDocumentSourceText));
+        var changes = generatedDocumentEdits.Select(generatedDocumentSourceText.GetTextChange);
         var mappedChanges = service.GetHostDocumentEdits(generatedDocument, changes);
-        return mappedChanges.Select(c => c.ToTextEdit(documentText)).ToArray();
+        return mappedChanges.Select(documentText.GetTextEdit).ToArray();
     }
 
     public static bool TryMapToHostDocumentRange(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, LinePositionSpan projectedRange, out LinePositionSpan originalRange)

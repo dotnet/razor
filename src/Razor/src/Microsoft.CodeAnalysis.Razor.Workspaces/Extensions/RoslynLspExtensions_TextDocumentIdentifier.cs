@@ -4,15 +4,10 @@
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-namespace Microsoft.VisualStudio.LanguageServer.Protocol;
+namespace Roslyn.LanguageServer.Protocol;
 
-internal static partial class VsLspExtensions
+internal static partial class RoslynLspExtensions
 {
-    public static VSProjectContext? GetProjectContext(this TextDocumentIdentifier textDocumentIdentifier)
-        => textDocumentIdentifier is VSTextDocumentIdentifier vsIdentifier
-            ? vsIdentifier.ProjectContext
-            : null;
-
     /// <summary>
     /// Returns a copy of the passed in <see cref="TextDocumentIdentifier"/> with the passed in <see cref="Uri"/>.
     /// </summary>
