@@ -227,11 +227,8 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         var startSpan = startNode.Span;
         var endSpan = endNode.Span;
 
-        int i = 0;
-
         foreach (var child in nearestCommonAncestor.ChildNodes().Where(node => node.Kind == SyntaxKind.MarkupElement))
         {
-            i++;
             var childSpan = child.Span;
 
             if (startContainingNode == null && childSpan.Contains(startSpan))
