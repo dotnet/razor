@@ -53,7 +53,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
         var (startElementNode, endElementNode) = GetStartAndEndElements(context, syntaxTree, _logger);
 
-        // Make sure we've found tag
+        // Make sure the selection starts on an element tag
         if (startElementNode is null)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -158,6 +158,18 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         actionParams.ExtractEnd = selectionStartHasParentElement ? actionParams.ExtractEnd : endElementNode.Span.End;
 
         // If the start element is not an ancestor of the end element, we need to find a common parent
+        // This conditional handles cases where the user's selection spans across different levels of the DOM.
+        // For example:
+        //   <div>
+        //     <span>
+        //      Selected text starts here<p>Some text</p>
+        //     </span>
+        //     <span>
+        //       <p>More text</p>
+        //     </span>
+        //     Selected text ends here <span></span>
+        //   </div>
+        // In this case, we need to find the smallest set of complete elements that covers the entire selection.
         if (!selectionStartHasParentElement)
         {
             // Find the closest containing sibling pair that encompasses both the start and end elements
