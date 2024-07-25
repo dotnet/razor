@@ -3,7 +3,6 @@
 
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
