@@ -94,7 +94,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         // Importantly, we use Roslyn's remote workspace here so that when our OOP services call into Roslyn, their code
         // will be able to access their services.
-        var workspace = RemoteWorkspaceAccessor.GetWorkspace();
+        var workspace = RemoteWorkspaceAccessor.CreateWorkspace_TestOnly();
         var solution = workspace.CurrentSolution.AddProject(projectInfo);
 
         solution = solution
