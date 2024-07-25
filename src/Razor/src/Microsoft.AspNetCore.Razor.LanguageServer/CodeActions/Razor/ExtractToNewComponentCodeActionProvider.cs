@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
@@ -50,62 +51,10 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex, includeWhitespace: true);
-        if (owner is null)
-        {
-            _logger.LogWarning($"Owner should never be null.");
-            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-        }
-
-        var startComponentNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
-
-        var selectionStart = context.Request.Range.Start;
-        var selectionEnd = context.Request.Range.End;
-        var isSelection = selectionStart != selectionEnd;
-
-        // If user selects range from end to beginning (i.e., bottom-to-top or right-to-left), get the effective start and end.
-        if (selectionEnd is not null && selectionEnd.Line < selectionStart.Line ||
-           (selectionEnd is not null && selectionEnd.Line == selectionStart.Line && selectionEnd.Character < selectionStart.Character))
-        {
-            (selectionEnd, selectionStart) = (selectionStart, selectionEnd);
-        }
-
-        var selectionEndIndex = new SourceLocation(0, 0, 0);
-        var endOwner = owner;
-        var endComponentNode = startComponentNode;
-
-        if (isSelection && selectionEnd is not null)
-        {
-            if (!selectionEnd.TryGetSourceLocation(context.CodeDocument.GetSourceText(), _logger, out var location))
-            {
-                return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-            }
-     
-            if (location is null)
-            {
-                return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-            }
-
-            selectionEndIndex = location.Value;
-            endOwner = syntaxTree.Root.FindInnermostNode(selectionEndIndex.AbsoluteIndex, true);
-
-            if (endOwner is null)
-            {
-                return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-            }
-
-            endComponentNode = endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
-        }
+        var (startElementNode, endElementNode) = GetStartAndEndElements(context, syntaxTree, _logger);
 
         // Make sure we've found tag
-        if (startComponentNode is null)
-        {
-            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-        }
-
-        // Do not provide code action if the cursor is inside proper html content (i.e. rendered text)
-        if (context.Location.AbsoluteIndex > startComponentNode.StartTag.Span.End &&
-            context.Location.AbsoluteIndex < startComponentNode.EndTag.SpanStart)
+        if (startElementNode is null)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -115,31 +64,11 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var actionParams = new ExtractToNewComponentCodeActionParams()
-        {
-            Uri = context.Request.TextDocument.Uri,
-            ExtractStart = startComponentNode.Span.Start,
-            ExtractEnd = startComponentNode.Span.End,
-            Namespace = @namespace
-        };
+        var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);
 
-        if (isSelection && endComponentNode is not null)
+        if (IsMultiPointSelection(context.Request.Range))
         {
-            // If component @ start of the selection includes a parent element of the component @ end of selection, then proceed as usual.
-            // If not, limit extraction to end of component @ end of selection (in the simplest case)
-            var selectionStartHasParentElement = endComponentNode.Ancestors().Any(node => node == startComponentNode);
-            actionParams.ExtractEnd = selectionStartHasParentElement ? actionParams.ExtractEnd : endComponentNode.Span.End;
-
-            // Handle other case: Either start/end of selection is nested within a component
-            if (!selectionStartHasParentElement)
-            {
-                var (extractStart, extractEnd) = FindContainingSiblingPair(startComponentNode, endComponentNode);
-                if (extractStart != null && extractEnd != null)
-                {
-                    actionParams.ExtractStart = extractStart.Span.Start;
-                    actionParams.ExtractEnd = extractEnd.Span.End;
-                }
-            }
+            ProcessMultiPointSelection(startElementNode, endElementNode, actionParams);
         }
 
         var resolutionParams = new RazorCodeActionResolutionParams()
@@ -150,8 +79,112 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         };
 
         var codeAction = RazorCodeActionFactory.CreateExtractToNewComponent(resolutionParams);
-
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
+    }
+
+    private static (MarkupElementSyntax? Start, MarkupElementSyntax? End) GetStartAndEndElements(RazorCodeActionContext context, RazorSyntaxTree syntaxTree, ILogger logger)
+    {
+        var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex, includeWhitespace: true);
+        if (owner is null)
+        {
+            logger.LogWarning($"Owner should never be null.");
+            return (null, null);
+        }
+
+        var startElementNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
+        if (startElementNode is null || IsInsideProperHtmlContent(context, startElementNode))
+        {
+            return (null, null);
+        }
+
+        var endElementNode = GetEndElementNode(context, syntaxTree, logger);
+        return (startElementNode, endElementNode);
+    }
+
+    private static bool IsInsideProperHtmlContent(RazorCodeActionContext context, MarkupElementSyntax startElementNode)
+    {
+        return context.Location.AbsoluteIndex > startElementNode.StartTag.Span.End &&
+               context.Location.AbsoluteIndex < startElementNode.EndTag.SpanStart;
+    }
+
+    private static MarkupElementSyntax? GetEndElementNode(RazorCodeActionContext context, RazorSyntaxTree syntaxTree, ILogger logger)
+    {
+        var selectionStart = context.Request.Range.Start;
+        var selectionEnd = context.Request.Range.End;
+        if (selectionStart == selectionEnd)
+        {
+            return null;
+        }
+
+        var endLocation = GetEndLocation(selectionEnd, context.CodeDocument, logger);
+        if (!endLocation.HasValue)
+        {
+            return null;
+        }
+
+        var endOwner = syntaxTree.Root.FindInnermostNode(endLocation.Value.AbsoluteIndex, true);
+        return endOwner?.FirstAncestorOrSelf<MarkupElementSyntax>();
+    }
+
+    private static ExtractToNewComponentCodeActionParams CreateInitialActionParams(RazorCodeActionContext context, MarkupElementSyntax startElementNode, string @namespace)
+    {
+        return new ExtractToNewComponentCodeActionParams
+        {
+            Uri = context.Request.TextDocument.Uri,
+            ExtractStart = startElementNode.Span.Start,
+            ExtractEnd = startElementNode.Span.End,
+            Namespace = @namespace
+        };
+    }
+
+    /// <summary>
+    /// Processes a multi-point selection to determine the correct range for extraction.
+    /// </summary>
+    /// <param name="startElementNode">The starting element of the selection.</param>
+    /// <param name="endElementNode">The ending element of the selection, if it exists.</param>
+    /// <param name="actionParams">The parameters for the extraction action, which will be updated.</param>
+    private static void ProcessMultiPointSelection(MarkupElementSyntax startElementNode, MarkupElementSyntax? endElementNode, ExtractToNewComponentCodeActionParams actionParams)
+    {
+        // If there's no end element, we can't process a multi-point selection
+        if (endElementNode is null)
+        {
+            return;
+        }
+
+        // Check if the start element is an ancestor of the end element
+        var selectionStartHasParentElement = endElementNode.Ancestors().Any(node => node == startElementNode);
+
+        // If the start element is an ancestor, keep the original end; otherwise, use the end of the end element
+        actionParams.ExtractEnd = selectionStartHasParentElement ? actionParams.ExtractEnd : endElementNode.Span.End;
+
+        // If the start element is not an ancestor of the end element, we need to find a common parent
+        if (!selectionStartHasParentElement)
+        {
+            // Find the closest containing sibling pair that encompasses both the start and end elements
+            var (extractStart, extractEnd) = FindContainingSiblingPair(startElementNode, endElementNode);
+
+            // If we found a valid containing pair, update the extraction range
+            if (extractStart is not null && extractEnd is not null)
+            {
+                actionParams.ExtractStart = extractStart.Span.Start;
+                actionParams.ExtractEnd = extractEnd.Span.End;
+            }
+            // Note: If we don't find a valid pair, we keep the original extraction range
+        }
+    }
+
+    private static bool IsMultiPointSelection(Range range)
+    {
+        return range.Start != range.End;
+    }
+
+    private static SourceLocation? GetEndLocation(Position selectionEnd, RazorCodeDocument codeDocument, ILogger logger)
+    {
+        if (!selectionEnd.TryGetSourceLocation(codeDocument.GetSourceText(), logger, out var location))
+        {
+            return null;
+        }
+        return location;
     }
 
     private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
@@ -161,11 +194,11 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         // good namespace to extract to
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
 
-    public (SyntaxNode? Start, SyntaxNode? End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
+    private static (SyntaxNode? Start, SyntaxNode? End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
     {
         // Find the lowest common ancestor of both nodes
-        var lowestCommonAncestor = FindLowestCommonAncestor(startNode, endNode);
-        if (lowestCommonAncestor == null)
+        var nearestCommonAncestor = FindNearestCommonAncestor(startNode, endNode);
+        if (nearestCommonAncestor == null)
         {
             return (null, null);
         }
@@ -177,7 +210,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         var startSpan = startNode.Span;
         var endSpan = endNode.Span;
 
-        foreach (var child in lowestCommonAncestor.ChildNodes().Where(node => node.Kind == SyntaxKind.MarkupElement))
+        foreach (var child in nearestCommonAncestor.ChildNodes().Where(node => node.Kind == SyntaxKind.MarkupElement))
         {
             var childSpan = child.Span;
 
@@ -199,7 +232,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         return (startContainingNode, endContainingNode);
     }
 
-    public SyntaxNode? FindLowestCommonAncestor(SyntaxNode node1, SyntaxNode node2)
+    private static SyntaxNode? FindNearestCommonAncestor(SyntaxNode node1, SyntaxNode node2)
     {
         var current = node1;
 
@@ -215,9 +248,4 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
         return null;
     }
-
-    //private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
-    //{
-    //    return node.DescendantNodes().Any(static n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
-    //}
 }

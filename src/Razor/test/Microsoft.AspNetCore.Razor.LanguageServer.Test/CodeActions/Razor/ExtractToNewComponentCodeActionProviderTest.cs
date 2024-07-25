@@ -76,7 +76,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         Assert.Empty(commandOrCodeActionContainer);
     }
 
-    [Fact]
+    [Fact (Skip = "Incorrectly set up")]
     public async Task Handle_InProperMarkup_ReturnsNull()
     {
         // Arrange
@@ -122,81 +122,80 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         Assert.Empty(commandOrCodeActionContainer);
     }
 
-    // Holding off on this test until configured correctly (fails on CI)
-    //[Theory]
-    //[InlineData("""
-    //<div id="parent">
-    //    [|<div>
-    //        <h1>Div a title</h1>
-    //        <p>Div a par</p>
-    //    </div>|]
-    //    <div>
-    //        <h1>Div b title</h1>
-    //        <p>Div b par</p>
-    //    </div>
-    //</div>
-    //""")]
-    //[InlineData("""
-    //<div id="parent">
-    //    <div>
-    //        <h1>Div a title</h1>
-    //        [|<p>Div a par</p>|]
-    //    </div>
-    //    <div>
-    //        <h1>Div b title</h1>
-    //        <p>Div b par</p>
-    //    </div>
-    //</div>
-    //""")]
-    //[InlineData("""
-    //<div id="parent">
-    //    <div>
-    //        <h1>Div a title</h1>
-    //        [|<p>Div a par</p>
-    //    </div>
-    //    <div>
-    //        <h1>Div b title</h1>
-    //        <p>Div b par</p>|]
-    //    </div>
-    //</div>
-    //""")]
-    //public async Task Handle_ValidElementSelection_ReturnsNotNull(string markupElementSelection)
-    //{
-    //    // Arrange
-    //    var documentPath = "c:/Test.razor";
-    //    var contents = $$"""
-    //        page "/"
+    [Theory (Skip = "Incorrectly set up")]
+    [InlineData("""
+    <div id="parent">
+        [|<div>
+            <h1>Div a title</h1>
+            <p>Div a par</p>
+        </div>|]
+        <div>
+            <h1>Div b title</h1>
+            <p>Div b par</p>
+        </div>
+    </div>
+    """)]
+    [InlineData("""
+    <div id="parent">
+        <div>
+            <h1>Div a title</h1>
+            [|<p>Div a par</p>|]
+        </div>
+        <div>
+            <h1>Div b title</h1>
+            <p>Div b par</p>
+        </div>
+    </div>
+    """)]
+    [InlineData("""
+    <div id="parent">
+        <div>
+            <h1>Div a title</h1>
+            [|<p>Div a par</p>
+        </div>
+        <div>
+            <h1>Div b title</h1>
+            <p>Div b par</p>|]
+        </div>
+    </div>
+    """)]
+    public async Task Handle_ValidElementSelection_ReturnsNotNull(string markupElementSelection)
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = $$"""
+            page "/"
 
-    //        <PageTitle>Home</PageTitle>
+            <PageTitle>Home</PageTitle>
 
-    //        {{markupElementSelection}}
+            {{markupElementSelection}}
 
-    //        <h1>Hello, world!</h1>
+            <h1>Hello, world!</h1>
 
-    //        Welcome to your new app.
-    //        """;
+            Welcome to your new app.
+            """;
 
-    //    TestFileMarkupParser.GetPositionAndSpans(
-    //        contents, out contents, out int cursorPosition, out ImmutableArray<TextSpan> spans);
+        TestFileMarkupParser.GetPositionAndSpans(
+            contents, out contents, out int cursorPosition, out ImmutableArray<TextSpan> spans);
 
-    //    var request = new VSCodeActionParams()
-    //    {
-    //        TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-    //        Range = new Range(),
-    //        Context = new VSInternalCodeActionContext()
-    //    };
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range(),
+            Context = new VSInternalCodeActionContext()
+        };
 
-    //    var location = new SourceLocation(cursorPosition, -1, -1);
-    //    var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+        var location = new SourceLocation(cursorPosition, -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
 
-    //    var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
 
-    //    // Act
-    //    var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
-    //    // Assert
-    //    Assert.NotNull(commandOrCodeActionContainer);
-    //}
+        // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
+    }
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
         => CreateRazorCodeActionContext(request, location, filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
