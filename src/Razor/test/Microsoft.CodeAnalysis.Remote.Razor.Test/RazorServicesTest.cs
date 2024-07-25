@@ -9,12 +9,11 @@ using System.Reflection;
 using System.Xml;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
