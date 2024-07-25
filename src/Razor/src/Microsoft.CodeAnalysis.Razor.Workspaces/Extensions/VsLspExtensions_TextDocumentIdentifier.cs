@@ -9,4 +9,41 @@ internal static partial class VsLspExtensions
         => textDocumentIdentifier is VSTextDocumentIdentifier vsIdentifier
             ? vsIdentifier.ProjectContext
             : null;
+
+    /// <summary>
+    /// Returns a copy of the passed in <see cref="TextDocumentIdentifier"/> with the passed in <see cref="Uri"/>.
+    /// </summary>
+    public static TextDocumentIdentifier WithUri(this TextDocumentIdentifier textDocumentIdentifier, Uri uri)
+    {
+        if (textDocumentIdentifier is VSTextDocumentIdentifier vsTdi)
+        {
+            return new VSTextDocumentIdentifier
+            {
+                Uri = uri,
+                ProjectContext = vsTdi.ProjectContext
+            };
+        }
+
+        return new TextDocumentIdentifier
+        {
+            Uri = uri
+        };
+    }
+
+    public static RLSP.TextDocumentIdentifier WithUri(this RLSP.TextDocumentIdentifier textDocumentIdentifier, Uri uri)
+    {
+        if (textDocumentIdentifier is RLSP.VSTextDocumentIdentifier vsTdi)
+        {
+            return new RLSP.VSTextDocumentIdentifier
+            {
+                Uri = uri,
+                ProjectContext = vsTdi.ProjectContext
+            };
+        }
+
+        return new RLSP.TextDocumentIdentifier
+        {
+            Uri = uri
+        };
+    }
 }
