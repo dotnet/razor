@@ -103,6 +103,11 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
     private static bool IsInsideProperHtmlContent(RazorCodeActionContext context, MarkupElementSyntax startElementNode)
     {
+        // If the provider executes before the user/completion inserts an end tag, the below return fails
+        if (startElementNode.EndTag.IsMissing)
+        {
+            return true;
+        }
         return context.Location.AbsoluteIndex > startElementNode.StartTag.Span.End &&
                context.Location.AbsoluteIndex < startElementNode.EndTag.SpanStart;
     }
@@ -222,8 +227,11 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         var startSpan = startNode.Span;
         var endSpan = endNode.Span;
 
+        int i = 0;
+
         foreach (var child in nearestCommonAncestor.ChildNodes().Where(node => node.Kind == SyntaxKind.MarkupElement))
         {
+            i++;
             var childSpan = child.Span;
 
             if (startContainingNode == null && childSpan.Contains(startSpan))
