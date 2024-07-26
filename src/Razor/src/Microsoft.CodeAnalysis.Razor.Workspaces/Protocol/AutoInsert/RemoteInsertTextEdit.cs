@@ -18,4 +18,16 @@ internal readonly record struct RemoteInsertTextEdit(
 {
     public static RemoteInsertTextEdit FromLspInsertTextEdit(InsertTextEdit edit)
         => new (edit.TextEdit, edit.InsertTextFormat);
+
+    public static VSInternalDocumentOnAutoInsertResponseItem ToLspInsertTextEdit(RemoteInsertTextEdit edit)
+        => new()
+        {
+            TextEdit = edit.TextEdit,
+            TextEditFormat = edit.InsertTextFormat,
+        };
+
+    public override string ToString()
+    {
+        return $"({TextEdit.Range.Start.Line}, {TextEdit.Range.Start.Character})-({TextEdit.Range.End.Line}, {TextEdit.Range.End.Character}), '{TextEdit.NewText}', {InsertTextFormat}";
+    }
 }
