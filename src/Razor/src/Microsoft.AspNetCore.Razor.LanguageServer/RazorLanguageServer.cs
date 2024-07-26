@@ -24,6 +24,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.FoldingRanges;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -135,12 +137,14 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         services.AddHoverServices();
         services.AddTextDocumentServices(featureOptions);
 
-        // Auto insert
-        services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
-        services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
-
         if (!featureOptions.UseRazorCohostServer)
         {
+            // Auto insert
+            services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
+            services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
+
+            services.AddSingleton<IAutoInsertService, AutoInsertService>();
+
             // Folding Range Providers
             services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
             services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementFoldingProvider>();
@@ -149,6 +153,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
             services.AddSingleton<IFoldingRangeService, FoldingRangeService>();
+
         }
 
         // Other
@@ -177,6 +182,8 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddTransient<IOnInitialized>(sp => sp.GetRequiredService<RazorConfigurationEndpoint>());
 
             services.AddHandlerWithCapabilities<ImplementationEndpoint>();
+            services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
 
             if (!featureOptions.UseRazorCohostServer)
@@ -187,6 +194,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
                 services.AddSingleton<IRenameService, RenameService>();
                 services.AddHandlerWithCapabilities<RenameEndpoint>();
 
+                services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
                 services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
                 services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
                 services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
