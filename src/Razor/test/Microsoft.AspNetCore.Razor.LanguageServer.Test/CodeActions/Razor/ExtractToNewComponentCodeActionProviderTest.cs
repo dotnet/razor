@@ -194,7 +194,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
+        Assert.NotEmpty(commandOrCodeActionContainer);
     }
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)

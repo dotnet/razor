@@ -190,10 +190,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         }
     }
 
-    private static bool IsMultiPointSelection(Range range)
-    {
-        return range.Start != range.End;
-    }
+    private static bool IsMultiPointSelection(Range range) => range.Start != range.End;
 
     private static SourceLocation? GetEndLocation(Position selectionEnd, RazorCodeDocument codeDocument, ILogger logger)
     {
@@ -234,14 +231,14 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             if (startContainingNode == null && childSpan.Contains(startSpan))
             {
                 startContainingNode = child;
-                if (endContainingNode != null)
+                if (endContainingNode is not null)
                     break; // Exit if we've found both
             }
 
             if (childSpan.Contains(endSpan))
             {
                 endContainingNode = child;
-                if (startContainingNode != null)
+                if (startContainingNode is not null)
                     break; // Exit if we've found both
             }
         }
@@ -253,7 +250,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
     {
         var current = node1;
 
-        while (current.Kind == SyntaxKind.MarkupElement && current != null)
+        while (current.Kind == SyntaxKind.MarkupElement && current is not null)
         {
             if (current.Span.Contains(node2.Span))
             {
