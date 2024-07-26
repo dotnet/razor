@@ -1,8 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
@@ -64,5 +68,34 @@ internal static class VSInternalServerCapabilitiesExtensions
     public static void EnableMapCodeProvider(this VSInternalServerCapabilities serverCapabilities)
     {
         serverCapabilities.MapCodeProvider = true;
+    }
+
+    public static HashSet<string> HtmlAllowedAutoInsertTriggerCharacters { get; } = new(StringComparer.Ordinal) { "=", };
+    public static HashSet<string> CSharpAllowedAutoInsertTriggerCharacters { get; } = new(StringComparer.Ordinal) { "'", "/", "\n" };
+
+    public static void EnableOnAutoInsert(
+        this VSInternalServerCapabilities serverCapabilities,
+        bool singleServerSupport,
+        IEnumerable<string> triggerCharacters)
+    {
+        serverCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
+            .EnableOnAutoInsert(singleServerSupport, triggerCharacters);
+    }
+
+    public static VSInternalDocumentOnAutoInsertOptions EnableOnAutoInsert(
+        this VSInternalDocumentOnAutoInsertOptions options,
+        bool singleServerSupport,
+        IEnumerable<string> triggerCharacters)
+    {
+        if (singleServerSupport)
+        {
+            triggerCharacters = triggerCharacters
+                .Concat(HtmlAllowedAutoInsertTriggerCharacters)
+                .Concat(CSharpAllowedAutoInsertTriggerCharacters);
+        }
+
+        options.TriggerCharacters = triggerCharacters.Distinct().ToArray();
+
+        return options;
     }
 }
