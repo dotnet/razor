@@ -128,6 +128,13 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         }
 
         var endOwner = syntaxTree.Root.FindInnermostNode(endLocation.Value.AbsoluteIndex, true);
+
+        // Correct selection to include the current node if the selection ends immediately after a closing tag.
+        if (string.IsNullOrWhiteSpace(endOwner.ToFullString()) && endOwner.TryGetPreviousSibling(out var previousSibling))
+        {
+            endOwner = previousSibling;
+        }
+
         return endOwner?.FirstAncestorOrSelf<MarkupElementSyntax>();
     }
 

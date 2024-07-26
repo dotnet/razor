@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions.Razor;
 
 public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    [Fact (Skip = "Not fully set up yet")]
+    [Fact]
     public async Task Handle_InvalidFileKind()
     {
         // Arrange
@@ -76,29 +76,29 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         Assert.Empty(commandOrCodeActionContainer);
     }
 
-    [Fact (Skip = "Incorrectly set up")]
-    public async Task Handle_InProperMarkup_ReturnsNull()
+    [Fact]
+    public async Task Handle_SinglePointSelection_ReturnsNotEmpty()
     {
         // Arrange
-        var documentPath = "c:/Test.razor";
+        var documentPath = "c:/Test.cs";
         var contents = """
-            page "/"
-            
+            @page "/"
+
             <PageTitle>Home</PageTitle>
-            
+
             <div id="parent">
-                <div>
+                <$$div>
                     <h1>Div a title</h1>
-                    <p>Div $$a par</p>
+                    <p>Div a par</p>
                 </div>
                 <div>
                     <h1>Div b title</h1>
                     <p>Div b par</p>
                 </div>
-            </div
-            
+            </div>
+
             <h1>Hello, world!</h1>
-            
+
             Welcome to your new app.
             """;
         TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
@@ -119,64 +119,35 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Empty(commandOrCodeActionContainer);
+        Assert.NotEmpty(commandOrCodeActionContainer);
     }
 
-    [Theory (Skip = "Incorrectly set up")]
-    [InlineData("""
-    <div id="parent">
-        [|<div>
-            <h1>Div a title</h1>
-            <p>Div a par</p>
-        </div>|]
-        <div>
-            <h1>Div b title</h1>
-            <p>Div b par</p>
-        </div>
-    </div>
-    """)]
-    [InlineData("""
-    <div id="parent">
-        <div>
-            <h1>Div a title</h1>
-            [|<p>Div a par</p>|]
-        </div>
-        <div>
-            <h1>Div b title</h1>
-            <p>Div b par</p>
-        </div>
-    </div>
-    """)]
-    [InlineData("""
-    <div id="parent">
-        <div>
-            <h1>Div a title</h1>
-            [|<p>Div a par</p>
-        </div>
-        <div>
-            <h1>Div b title</h1>
-            <p>Div b par</p>|]
-        </div>
-    </div>
-    """)]
-    public async Task Handle_ValidElementSelection_ReturnsNotNull(string markupElementSelection)
+    [Fact]
+    public async Task Handle_MultiPointSelection_ReturnsNotEmpty()
     {
         // Arrange
-        var documentPath = "c:/Test.razor";
-        var contents = $$"""
-            page "/"
+        var documentPath = "c:/Test.cs";
+        var contents = """
+            @page "/"
 
             <PageTitle>Home</PageTitle>
 
-            {{markupElementSelection}}
+            <div id="parent">
+                [|<div>
+                    $$<h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div|]>
+            </div>
 
             <h1>Hello, world!</h1>
 
             Welcome to your new app.
             """;
-
-        TestFileMarkupParser.GetPositionAndSpans(
-            contents, out contents, out int cursorPosition, out ImmutableArray<TextSpan> spans);
+        TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var selectionSpan);
 
         var request = new VSCodeActionParams()
         {
@@ -186,7 +157,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         };
 
         var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
         var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
 
@@ -195,6 +166,57 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
 
         // Assert
         Assert.NotEmpty(commandOrCodeActionContainer);
+    }
+
+    [Fact]
+    public async Task Handle_MultiPointSelectionWithEndAfterElement_ReturnsCurrentElement()
+    {
+        // Arrange
+        var documentPath = "c:/Test.cs";
+        var contents = """
+            @page "/"
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<div>
+                    $$<h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>|]
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """;
+        TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var selectionSpan);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range(),
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var location = new SourceLocation(cursorPosition, -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+
+        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotEmpty(commandOrCodeActionContainer);
+        var codeAction = Assert.Single(commandOrCodeActionContainer);
+        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
+        Assert.NotNull(razorCodeActionResolutionParams);
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToNewComponentCodeActionParams>();
+        Assert.NotNull(actionParams);
     }
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
