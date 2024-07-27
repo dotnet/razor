@@ -5,6 +5,4 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
-internal record struct InsertTextEdit(TextEdit TextEdit, InsertTextFormat InsertTextFormat)
-{
-}
+internal record struct InsertTextEdit(TextEdit TextEdit, InsertTextFormat InsertTextFormat);
