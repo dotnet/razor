@@ -264,7 +264,5 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         SelfClosing,
     }
 
-    private record struct TagNameWithClosingBehavior(string TagName, AutoClosingBehavior AutoClosingBehavior)
-    {
-    }
+    private record struct TagNameWithClosingBehavior(string TagName, AutoClosingBehavior AutoClosingBehavior);
 }
