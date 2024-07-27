@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
@@ -53,12 +55,16 @@ internal class CohostOnAutoInsertEndpoint(
             // TODO: Add overload that doesn't use solution
             //_remoteServiceProvider.TryInvokeAsync()
             var providerTriggerChars = new string[] { ">" };
-            var singleServerSupport = true; // TODO: always true for now? Long-term plan?
+
+            var triggerCharacters = providerTriggerChars
+                .Concat(AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters)
+                .Concat(AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters);
+
             return new Registration
             {
                 Method = VSInternalMethods.OnAutoInsertName,
                 RegisterOptions = new VSInternalDocumentOnAutoInsertOptions()
-                    .EnableOnAutoInsert(singleServerSupport, providerTriggerChars)
+                    .EnableOnAutoInsert(triggerCharacters)
             };
         }
 

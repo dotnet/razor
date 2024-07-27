@@ -52,7 +52,15 @@ internal class OnAutoInsertEndpoint(
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
         var triggerCharacters = _autoInsertService.TriggerCharacters;
-        serverCapabilities.EnableOnAutoInsert(_languageServerFeatureOptions.SingleServerSupport, triggerCharacters);
+
+        if (_languageServerFeatureOptions.SingleServerSupport)
+        {
+            triggerCharacters = triggerCharacters
+                .Concat(AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters)
+                .Concat(AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters);
+        }
+
+        serverCapabilities.EnableOnAutoInsert(triggerCharacters);
     }
 
     protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
