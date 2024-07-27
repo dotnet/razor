@@ -7,45 +7,37 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
-internal class CloseTextTagOnAutoInsertProvider(ILoggerFactory loggerFactory) : IOnAutoInsertProvider
+internal class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
 {
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<IOnAutoInsertProvider>();
-
     public string TriggerCharacter => ">";
 
     public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool enableAutoClosingTags)
     {
         if (!(enableAutoClosingTags
-              && await IsAtTextTagAsync(documentSnapshot, position, _logger).ConfigureAwait(false)))
+              && await IsAtTextTagAsync(documentSnapshot, position).ConfigureAwait(false)))
         {
             return default;
         }
 
         // This is a text tag.
         var format = InsertTextFormat.Snippet;
-        var edit = new TextEdit()
-        {
-            NewText = $"$0</{SyntaxConstants.TextTagName}>",
-            Range = new Range { Start = position, End = position },
-        };
+        var edit = VsLspFactory.CreateTextEdit(position, $"$0</{SyntaxConstants.TextTagName}>");
 
         return new InsertTextEdit(edit, format);
     }
 
-    private static async ValueTask<bool> IsAtTextTagAsync(IDocumentSnapshot documentSnapshot, Position position, ILogger logger)
+    private static async ValueTask<bool> IsAtTextTagAsync(IDocumentSnapshot documentSnapshot, Position position)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         var syntaxTree = codeDocument.GetSyntaxTree();
 
         if (!(documentSnapshot.TryGetText(out var sourceText)
-              && position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex)))
+              && sourceText.TryGetAbsoluteIndex(position, out var absoluteIndex)))
         {
             return false;
         }
