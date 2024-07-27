@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
 internal interface IAutoInsertService
 {
-    public IEnumerable<string> TriggerCharacters { get; }
+    IEnumerable<string> TriggerCharacters { get; }
 
     ValueTask<InsertTextEdit?> TryResolveInsertionAsync(
         IDocumentSnapshot documentSnapshot,
