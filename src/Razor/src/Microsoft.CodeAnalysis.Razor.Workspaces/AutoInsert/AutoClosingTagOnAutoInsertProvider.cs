@@ -54,9 +54,9 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
     public string TriggerCharacter => ">";
 
-    public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool autoClosingTagsOption)
+    public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool enableAutoClosingTags)
     {
-        if (!(autoClosingTagsOption
+        if (!(enableAutoClosingTags
             && documentSnapshot.TryGetText(out var sourceText)
             && position.TryGetAbsoluteIndex(sourceText, _logger, out var afterCloseAngleIndex)
             && await TryResolveAutoClosingBehaviorAsync(documentSnapshot, afterCloseAngleIndex)

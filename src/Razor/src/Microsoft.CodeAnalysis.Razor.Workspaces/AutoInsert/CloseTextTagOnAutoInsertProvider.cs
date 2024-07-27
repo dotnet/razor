@@ -20,9 +20,9 @@ internal class CloseTextTagOnAutoInsertProvider(ILoggerFactory loggerFactory) : 
 
     public string TriggerCharacter => ">";
 
-    public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool autoClosingTags)
+    public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool enableAutoClosingTags)
     {
-        if (!(autoClosingTags
+        if (!(enableAutoClosingTags
               && await IsAtTextTagAsync(documentSnapshot, position, _logger).ConfigureAwait(false)))
         {
             return default;

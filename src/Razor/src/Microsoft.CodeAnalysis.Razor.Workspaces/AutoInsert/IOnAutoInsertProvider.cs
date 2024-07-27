@@ -11,5 +11,5 @@ internal interface IOnAutoInsertProvider
 {
     string TriggerCharacter { get; }
 
-    public ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool autoClosingTagsOption);
+    public ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool enableAutoClosingTags);
 }
