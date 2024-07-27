@@ -70,30 +70,18 @@ internal static class VSInternalServerCapabilitiesExtensions
         serverCapabilities.MapCodeProvider = true;
     }
 
-    public static HashSet<string> HtmlAllowedAutoInsertTriggerCharacters { get; } = new(StringComparer.Ordinal) { "=", };
-    public static HashSet<string> CSharpAllowedAutoInsertTriggerCharacters { get; } = new(StringComparer.Ordinal) { "'", "/", "\n" };
-
     public static void EnableOnAutoInsert(
         this VSInternalServerCapabilities serverCapabilities,
-        bool singleServerSupport,
         IEnumerable<string> triggerCharacters)
     {
         serverCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
-            .EnableOnAutoInsert(singleServerSupport, triggerCharacters);
+            .EnableOnAutoInsert(triggerCharacters);
     }
 
     public static VSInternalDocumentOnAutoInsertOptions EnableOnAutoInsert(
         this VSInternalDocumentOnAutoInsertOptions options,
-        bool singleServerSupport,
         IEnumerable<string> triggerCharacters)
     {
-        if (singleServerSupport)
-        {
-            triggerCharacters = triggerCharacters
-                .Concat(HtmlAllowedAutoInsertTriggerCharacters)
-                .Concat(CSharpAllowedAutoInsertTriggerCharacters);
-        }
-
         options.TriggerCharacters = triggerCharacters.Distinct().ToArray();
 
         return options;
