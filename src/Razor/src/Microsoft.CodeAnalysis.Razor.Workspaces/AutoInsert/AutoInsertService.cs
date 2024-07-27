@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsertProviders) : IAutoInsertService
 {
     private readonly IEnumerable<IOnAutoInsertProvider> _onAutoInsertProviders = onAutoInsertProviders;
+
+    public static HashSet<string> HtmlAllowedAutoInsertTriggerCharacters { get; } = new(StringComparer.Ordinal) { "=", };
+    public static HashSet<string> CSharpAllowedAutoInsertTriggerCharacters { get; } = new(StringComparer.Ordinal) { "'", "/", "\n" };
 
     // This gets called just once
     public IEnumerable<string> TriggerCharacters => _onAutoInsertProviders.Select((provider) => provider.TriggerCharacter);
