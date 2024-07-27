@@ -7,9 +7,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -38,19 +36,8 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         "track",
         "wbr"
     );
+
     private static readonly ImmutableHashSet<string> s_voidElementsCaseSensitive = s_voidElements.WithComparer(StringComparer.Ordinal);
-
-    private readonly ILogger _logger;
-
-    public AutoClosingTagOnAutoInsertProvider(ILoggerFactory loggerFactory)
-    {
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _logger = loggerFactory.GetOrCreateLogger<IOnAutoInsertProvider>();
-    }
 
     public string TriggerCharacter => ">";
 
@@ -58,7 +45,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
     {
         if (!(enableAutoClosingTags
             && documentSnapshot.TryGetText(out var sourceText)
-            && position.TryGetAbsoluteIndex(sourceText, _logger, out var afterCloseAngleIndex)
+            && sourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex)
             && await TryResolveAutoClosingBehaviorAsync(documentSnapshot, afterCloseAngleIndex)
                      .ConfigureAwait(false) is { } tagNameWithClosingBehavior))
         {
@@ -68,11 +55,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         if (tagNameWithClosingBehavior.AutoClosingBehavior == AutoClosingBehavior.EndTag)
         {
             var formatForEndTag = InsertTextFormat.Snippet;
-            var editForEndTag = new TextEdit()
-            {
-                NewText = $"$0</{tagNameWithClosingBehavior.TagName}>",
-                Range = new Range { Start = position, End = position },
-            };
+            var editForEndTag = VsLspFactory.CreateTextEdit(position, $"$0</{tagNameWithClosingBehavior.TagName}>");
 
             return new InsertTextEdit(editForEndTag, formatForEndTag);
         }
@@ -83,16 +66,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
         // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
         var insertionText = char.IsWhiteSpace(sourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
-        var insertionPosition = new Position(position.Line, position.Character - 1);
-        var edit = new TextEdit()
-        {
-            NewText = insertionText,
-            Range = new Range
-            {
-                Start = insertionPosition,
-                End = insertionPosition
-            }
-        };
+        var edit = VsLspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
 
         return new InsertTextEdit(edit, format);
     }
