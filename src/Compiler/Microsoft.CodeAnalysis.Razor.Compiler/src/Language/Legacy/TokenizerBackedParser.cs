@@ -17,7 +17,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     protected delegate void SpanContextConfigActionWithPreviousConfig(SpanEditHandlerBuilder? editHandlerBuilder, ref ISpanChunkGenerator? chunkGenerator, SpanContextConfigAction? previousConfig);
 
     private readonly SyntaxListPool _pool = new SyntaxListPool();
-    private readonly TokenizerView<TTokenizer> _tokenizer;
+    protected readonly TokenizerView<TTokenizer> _tokenizer;
     private SyntaxListBuilder<SyntaxToken>? _tokenBuilder;
 
     protected SpanEditHandlerBuilder? editHandlerBuilder;

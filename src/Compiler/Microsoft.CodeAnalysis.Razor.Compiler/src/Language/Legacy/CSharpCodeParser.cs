@@ -89,7 +89,11 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     }
 
     public CSharpCodeParser(IEnumerable<DirectiveDescriptor> directives, ParserContext context)
-        : base(context.ParseLeadingDirectives ? FirstDirectiveCSharpLanguageCharacteristics.Instance : CSharpLanguageCharacteristics.Instance, context)
+        : base(context.ParseLeadingDirectives
+            ? FirstDirectiveCSharpLanguageCharacteristics.Instance
+            : context.UseRoslynTokenizer
+                ? RoslynCSharpLanguageCharacteristics.Instance
+                : NativeCSharpLanguageCharacteristics.Instance, context)
     {
         if (directives == null)
         {
@@ -1981,7 +1985,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         ref readonly PooledArrayBuilder<SyntaxToken> whitespace,
         CSharpTransitionSyntax? transition)
     {
-        var result = CSharpTokenizer.GetTokenKeyword(CurrentToken);
+        var result = _tokenizer.Tokenizer.GetTokenKeyword(CurrentToken);
         Debug.Assert(CurrentToken.Kind == SyntaxKind.Keyword && result.HasValue);
         if (_keywordParserMap.TryGetValue(result!.Value, out var handler))
         {
@@ -1998,7 +2002,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
     private bool TryParseKeyword(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
-        var result = CSharpTokenizer.GetTokenKeyword(CurrentToken);
+        var result = _tokenizer.Tokenizer.GetTokenKeyword(CurrentToken);
         Debug.Assert(CurrentToken.Kind == SyntaxKind.Keyword && result.HasValue);
         if (_keywordParserMap.TryGetValue(result!.Value, out var handler))
         {
@@ -2011,7 +2015,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
     private bool AtBooleanLiteral()
     {
-        return CSharpTokenizer.GetTokenKeyword(CurrentToken) is CSharpSyntaxKind.TrueKeyword or CSharpSyntaxKind.FalseKeyword;
+        return _tokenizer.Tokenizer.GetTokenKeyword(CurrentToken) is CSharpSyntaxKind.TrueKeyword or CSharpSyntaxKind.FalseKeyword;
     }
 
     private void ParseAwaitExpression(SyntaxListBuilder<RazorSyntaxNode> builder, CSharpTransitionSyntax? transition)
@@ -2065,7 +2069,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             builder.Add(transition);
         }
 
-        var block = new Block(CurrentToken, CurrentStart);
+        var block = new Block(GetBlockName(CurrentToken), CurrentStart);
         ParseConditionalBlock(builder, block);
         if (topLevel)
         {
@@ -2147,7 +2151,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     private void ParseUnconditionalBlock(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         Assert(SyntaxKind.Keyword);
-        var block = new Block(CurrentToken, CurrentStart);
+        var block = new Block(GetBlockName(CurrentToken), CurrentStart);
         AcceptAndMoveNext();
         AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
         ParseExpectedCodeBlock(builder, block);
@@ -2162,7 +2166,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             // If it does, just accept it and let the compiler complain.
             builder.Add(transition);
         }
-        var result = CSharpTokenizer.GetTokenKeyword(CurrentToken);
+        var result = _tokenizer.Tokenizer.GetTokenKeyword(CurrentToken);
         Debug.Assert(result is CSharpSyntaxKind.CaseKeyword or CSharpSyntaxKind.DefaultKeyword);
         AcceptAndMoveNext();
         while (EnsureCurrent() && CurrentToken.Kind != SyntaxKind.Colon)
@@ -2205,7 +2209,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         if (At(CSharpSyntaxKind.ElseKeyword))
         {
             Accept(in whitespace);
-             Assert(CSharpSyntaxKind.ElseKeyword);
+            Assert(CSharpSyntaxKind.ElseKeyword);
             ParseElseClause(builder);
         }
         else
@@ -2223,7 +2227,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         {
             return;
         }
-        var block = new Block(CurrentToken, CurrentStart);
+        var block = new Block(GetBlockName(CurrentToken), CurrentStart);
 
         AcceptAndMoveNext();
         AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
@@ -2291,7 +2295,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         Assert(CSharpSyntaxKind.CatchKeyword);
 
-        var block = new Block(CurrentToken, CurrentStart);
+        var block = new Block(GetBlockName(CurrentToken), CurrentStart);
 
         // Accept "catch"
         AcceptAndMoveNext();
@@ -2367,7 +2371,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         Assert(CSharpSyntaxKind.UsingKeyword);
         var topLevel = transition != null;
-        var block = new Block(CurrentToken, CurrentStart);
+        var block = new Block(GetBlockName(CurrentToken), CurrentStart);
         var usingToken = EatCurrentToken();
         using var whitespaceOrComments = new PooledArrayBuilder<SyntaxToken>();
         ReadWhile(IsSpacingTokenIncludingComments, ref whitespaceOrComments.AsRef());
@@ -2913,7 +2917,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     [Conditional("DEBUG")]
     internal void Assert(CSharpSyntaxKind expectedKeyword)
     {
-        var result = CSharpTokenizer.GetTokenKeyword(CurrentToken);
+        var result = _tokenizer.Tokenizer.GetTokenKeyword(CurrentToken);
         Debug.Assert(CurrentToken.Kind == SyntaxKind.Keyword &&
             result.HasValue &&
             result.Value == expectedKeyword);
@@ -2921,10 +2925,20 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
     protected internal bool At(CSharpSyntaxKind keyword)
     {
-        var result = CSharpTokenizer.GetTokenKeyword(CurrentToken);
+        var result = _tokenizer.Tokenizer.GetTokenKeyword(CurrentToken);
         return At(SyntaxKind.Keyword) &&
             result.HasValue &&
             result.Value == keyword;
+    }
+
+    private string GetBlockName(SyntaxToken token)
+    {
+        var result = _tokenizer.Tokenizer.GetTokenKeyword(token);
+        if (result is not CSharpSyntaxKind.None and { } value && token.Kind == SyntaxKind.Keyword)
+        {
+            return CSharpSyntaxFacts.GetText(value);
+        }
+        return token.Content;
     }
 
     protected class Block
@@ -2935,23 +2949,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             Start = start;
         }
 
-        public Block(SyntaxToken token, SourceLocation start)
-            : this(GetName(token), start)
-        {
-        }
-
         public string Name { get; set; }
         public SourceLocation Start { get; set; }
-
-        private static string GetName(SyntaxToken token)
-        {
-            var result = CSharpTokenizer.GetTokenKeyword(token);
-            if (result is not CSharpSyntaxKind.None and { } value && token.Kind == SyntaxKind.Keyword)
-            {
-                return CSharpSyntaxFacts.GetText(value);
-            }
-            return token.Content;
-        }
     }
 
     internal class ParsedDirective

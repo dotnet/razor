@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
@@ -55,6 +54,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     options.SuppressChecksum = true;
                     options.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                 }));
+                b.Features.Add(new ConfigureRazorParserOptions(razorSourceGeneratorOptions.UseRoslynTokenizer));
 
                 b.SetRootNamespace(razorSourceGeneratorOptions.RootNamespace);
 
@@ -109,6 +109,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     options.SuppressUniqueIds = razorSourceGeneratorOptions.TestSuppressUniqueIds;
                     options.SuppressAddComponentParameter = !isAddComponentParameterAvailable;
                 }));
+                b.Features.Add(new ConfigureRazorParserOptions(razorSourceGeneratorOptions.UseRoslynTokenizer));
 
                 CompilerFeatures.Register(b);
                 RazorExtensions.Register(b);

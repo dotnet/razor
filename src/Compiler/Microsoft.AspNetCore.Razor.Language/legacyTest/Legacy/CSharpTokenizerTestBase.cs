@@ -18,7 +18,7 @@ public abstract class CSharpTokenizerTestBase : TokenizerTestBase
 
     internal override object CreateTokenizer(SeekableTextReader source)
     {
-        return new RoslynCSharpTokenizer(source);
+        return new NativeCSharpTokenizer(source);
     }
 
     internal void TestSingleToken(string text, SyntaxKind expectedTokenKind)

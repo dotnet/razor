@@ -18,7 +18,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         {
             var ((options, parseOptions), isSuppressed) = pair;
             var globalOptions = options.GlobalOptions;
-            
+
             if (isSuppressed)
             {
                 return default;
@@ -44,6 +44,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true);
 
+            // We use the new tokenizer by default
+            var useRazorTokenizer = !parseOptions.Features.TryGetValue("use-razor-tokenizer", out var useRazorTokenizerValue)
+                                    || !string.Equals(useRazorTokenizerValue, "false", StringComparison.OrdinalIgnoreCase);
+
             var razorSourceGenerationOptions = new RazorSourceGenerationOptions()
             {
                 Configuration = razorConfiguration,
@@ -52,6 +56,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 SupportLocalizedComponentNames = supportLocalizedComponentNames == "true",
                 CSharpLanguageVersion = ((CSharpParseOptions)parseOptions).LanguageVersion,
                 TestSuppressUniqueIds = _testSuppressUniqueIds,
+                UseRoslynTokenizer = useRazorTokenizer,
             };
 
             return (razorSourceGenerationOptions, diagnostic);
