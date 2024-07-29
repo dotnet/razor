@@ -24,8 +24,6 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
     private readonly IAutoInsertService _autoInsertService
         = args.ExportProvider.GetExportedValue<IAutoInsertService>();
 
-    public IEnumerable<string> TriggerCharacters => _autoInsertService.TriggerCharacters;
-
     public ValueTask<RemoteInsertTextEdit?> TryResolveInsertionAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId documentId,
