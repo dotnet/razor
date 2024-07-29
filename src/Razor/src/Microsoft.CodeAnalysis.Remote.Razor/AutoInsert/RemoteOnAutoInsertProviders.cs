@@ -3,16 +3,15 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
-using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.CodBeAnalysis.Remote.Razor.AutoInsert;
 
 [Shared]
 [Export(typeof(IOnAutoInsertProvider))]
-internal sealed class RemoteAutoClosingTagOnAutoInsertProvider(ILoggerFactory loggerFactory)
-    : AutoClosingTagOnAutoInsertProvider(loggerFactory);
+internal sealed class RemoteAutoClosingTagOnAutoInsertProvider
+    : AutoClosingTagOnAutoInsertProvider;
 
 [Shared]
 [Export(typeof(IOnAutoInsertProvider))]
-internal sealed class RemoteCloseTextTagOnAutoInsertProvider(ILoggerFactory loggerFactory)
-    : CloseTextTagOnAutoInsertProvider(loggerFactory);
+internal sealed class RemoteCloseTextTagOnAutoInsertProvider
+    : CloseTextTagOnAutoInsertProvider;

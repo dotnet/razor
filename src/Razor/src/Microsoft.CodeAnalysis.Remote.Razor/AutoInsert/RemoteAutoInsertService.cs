@@ -12,13 +12,17 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
-internal class RemoteAutoInsertService(
-    IRazorServiceBroker serviceBroker,
-    DocumentSnapshotFactory documentSnapshotFactory,
-    IAutoInsertService autoInsertService)
-    : RazorDocumentServiceBase(serviceBroker, documentSnapshotFactory), IRemoteAutoInsertService
+internal class RemoteAutoInsertService(in ServiceArgs args)
+    : RazorDocumentServiceBase(in args), IRemoteAutoInsertService
 {
-    private readonly IAutoInsertService _autoInsertService = autoInsertService;
+    internal sealed class Factory : FactoryBase<IRemoteAutoInsertService>
+    {
+        protected override IRemoteAutoInsertService CreateService(in ServiceArgs args)
+            => new RemoteAutoInsertService(in args);
+    }
+
+    private readonly IAutoInsertService _autoInsertService
+        = args.ExportProvider.GetExportedValue<IAutoInsertService>();
 
     public IEnumerable<string> TriggerCharacters => _autoInsertService.TriggerCharacters;
 
