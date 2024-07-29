@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -32,6 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 #pragma warning restore RS0030 // Do not use banned APIs
 internal class CohostOnAutoInsertEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
+#pragma warning disable RS0030 // Do not use banned APIs
+    [ImportMany] IEnumerable<IOnAutoInsertTriggerCharacterProvider> onAutoInsertTriggerCharacterProviders,
+#pragma warning restore RS0030 // Do not use banned APIs
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
     IRazorDocumentMappingService razorDocumentMappingService,
@@ -39,6 +43,7 @@ internal class CohostOnAutoInsertEndpoint(
     : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
+    private readonly IEnumerable<IOnAutoInsertTriggerCharacterProvider> _onAutoInsertTriggerCharacterProviders = onAutoInsertTriggerCharacterProviders;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostOnAutoInsertEndpoint>();
@@ -52,9 +57,8 @@ internal class CohostOnAutoInsertEndpoint(
     {
         if (clientCapabilities.SupportsVisualStudioExtensions)
         {
-            // TODO: Add overload that doesn't use solution
-            //_remoteServiceProvider.TryInvokeAsync()
-            var providerTriggerChars = new string[] { ">" };
+            var providerTriggerChars = _onAutoInsertTriggerCharacterProviders
+                .Select((provider) => provider.TriggerCharacter);
 
             var triggerCharacters = providerTriggerChars
                 .Concat(AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters)
