@@ -31,14 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal class CohostOnAutoInsertEndpoint(
-    IRemoteServiceProvider remoteServiceProvider,
+    IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
     IRazorDocumentMappingService razorDocumentMappingService,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IDynamicRegistrationProvider
 {
-    private readonly IRemoteServiceProvider _remoteServiceProvider = remoteServiceProvider;
+    private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostOnAutoInsertEndpoint>();
@@ -81,7 +81,7 @@ internal class CohostOnAutoInsertEndpoint(
         _logger.LogDebug($"Resolving auto-insertion for {razorDocument.FilePath}");
 
         _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
-        var data = await _remoteServiceProvider.TryInvokeAsync<IRemoteAutoInsertService, RemoteInsertTextEdit?>(
+        var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, RemoteInsertTextEdit?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)
                 => service.TryResolveInsertionAsync(

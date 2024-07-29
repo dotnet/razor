@@ -112,7 +112,7 @@ internal class OnAutoInsertEndpoint(
 
         if (positionInfo.LanguageKind == RazorLanguageKind.Html)
         {
-            if (!VSInternalServerCapabilitiesExtensions.HtmlAllowedAutoInsertTriggerCharacters.Contains(request.Character))
+            if (!AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters.Contains(request.Character))
             {
                 Logger.LogInformation($"Inapplicable HTML trigger char {request.Character}.");
                 return SpecializedTasks.Null<IDelegatedParams>();
@@ -128,7 +128,7 @@ internal class OnAutoInsertEndpoint(
         }
         else if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {
-            if (!VSInternalServerCapabilitiesExtensions.CSharpAllowedAutoInsertTriggerCharacters.Contains(request.Character))
+            if (!AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters.Contains(request.Character))
             {
                 Logger.LogInformation($"Inapplicable C# trigger char {request.Character}.");
                 return SpecializedTasks.Null<IDelegatedParams>();
