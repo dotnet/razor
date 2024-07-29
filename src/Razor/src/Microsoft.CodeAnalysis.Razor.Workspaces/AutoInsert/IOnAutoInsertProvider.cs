@@ -7,9 +7,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
-internal interface IOnAutoInsertProvider
+internal interface IOnAutoInsertProvider : IOnAutoInsertTriggerCharacterProvider
 {
-    string TriggerCharacter { get; }
-
     public ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool enableAutoClosingTags);
 }
