@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 // Removal of this type is tracked by https://github.com/dotnet/razor/issues/8445
-internal class LegacyCSharpLanguageCharacteristics : LanguageCharacteristics<CSharpTokenizer>
+internal class NativeCSharpLanguageCharacteristics : LanguageCharacteristics<CSharpTokenizer>
 {
     private static readonly Dictionary<SyntaxKind, string> _tokenSamples = new Dictionary<SyntaxKind, string>()
         {
@@ -65,17 +65,17 @@ internal class LegacyCSharpLanguageCharacteristics : LanguageCharacteristics<CSh
             { SyntaxKind.Transition, "@" },
         };
 
-    private static readonly LegacyCSharpLanguageCharacteristics _instance = new LegacyCSharpLanguageCharacteristics();
+    private static readonly NativeCSharpLanguageCharacteristics _instance = new NativeCSharpLanguageCharacteristics();
 
-    protected LegacyCSharpLanguageCharacteristics()
+    protected NativeCSharpLanguageCharacteristics()
     {
     }
 
-    public static LegacyCSharpLanguageCharacteristics Instance => _instance;
+    public static NativeCSharpLanguageCharacteristics Instance => _instance;
 
     public override CSharpTokenizer CreateTokenizer(SeekableTextReader source)
     {
-        return new LegacyCSharpTokenizer(source);
+        return new NativeCSharpTokenizer(source);
     }
 
     protected override SyntaxToken CreateToken(string content, SyntaxKind kind, RazorDiagnostic[] errors)

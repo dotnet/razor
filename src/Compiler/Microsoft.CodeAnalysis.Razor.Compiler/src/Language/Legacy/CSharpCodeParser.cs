@@ -93,7 +93,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             ? FirstDirectiveCSharpLanguageCharacteristics.Instance
             : context.UseRoslynTokenizer
                 ? RoslynCSharpLanguageCharacteristics.Instance
-                : LegacyCSharpLanguageCharacteristics.Instance, context)
+                : NativeCSharpLanguageCharacteristics.Instance, context)
     {
         if (directives == null)
         {

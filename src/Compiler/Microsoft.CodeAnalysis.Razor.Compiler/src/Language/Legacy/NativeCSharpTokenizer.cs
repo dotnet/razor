@@ -15,7 +15,11 @@ using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal class LegacyCSharpTokenizer : CSharpTokenizer
+/// <remarks>
+/// This is the old tokenizer that was used in Razor. It natively implemented tokenization of C#, rather than using Roslyn. It is maintained for
+/// backwards compatibility, controlled by user using a Feature flag in their project file.
+/// </remarks>
+internal class NativeCSharpTokenizer : CSharpTokenizer
 {
     private readonly Dictionary<char, Func<SyntaxKind>> _operatorHandlers;
 
@@ -101,7 +105,7 @@ internal class LegacyCSharpTokenizer : CSharpTokenizer
             CSharpSyntaxKind.WhenKeyword,
             CSharpSyntaxKind.WhereKeyword }).ToFrozenDictionary(keySelector: k => SyntaxFacts.GetText(k));
 
-    public LegacyCSharpTokenizer(SeekableTextReader source)
+    public NativeCSharpTokenizer(SeekableTextReader source)
         : base(source)
     {
         base.CurrentState = StartState;
