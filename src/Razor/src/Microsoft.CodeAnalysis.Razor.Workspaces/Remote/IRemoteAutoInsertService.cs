@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteAutoInsertService : IDisposable
 {
-    IEnumerable<string> TriggerCharacters {  get; }
-
     ValueTask<RemoteInsertTextEdit?> TryResolveInsertionAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId documentId,
