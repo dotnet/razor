@@ -172,7 +172,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
             };
     }
 
-    public async Task ReplaceTextAsync(Uri documentUri, params (LspRange Range, string Text)[] changes)
+    internal async Task ReplaceTextAsync(Uri documentUri, params (LspRange Range, string Text)[] changes)
     {
         var didChangeParams = CreateDidChangeTextDocumentParams(
             documentUri,
