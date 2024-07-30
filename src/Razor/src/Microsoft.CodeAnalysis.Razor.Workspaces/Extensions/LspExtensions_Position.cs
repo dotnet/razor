@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static partial class VsLspExtensions
+internal static partial class LspExtensions
 {
     public static void Deconstruct(this Position position, out int line, out int character)
         => (line, character) = (position.Line, position.Character);
@@ -14,7 +14,7 @@ internal static partial class VsLspExtensions
         => new(position.Line, position.Character);
 
     public static Range ToZeroWidthRange(this Position position)
-        => VsLspFactory.CreateZeroWidthRange(position);
+        => LspFactory.CreateZeroWidthRange(position);
 
     public static int CompareTo(this Position position, Position other)
     {

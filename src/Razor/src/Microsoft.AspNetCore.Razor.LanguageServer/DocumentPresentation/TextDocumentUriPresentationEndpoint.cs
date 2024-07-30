@@ -76,7 +76,7 @@ internal class TextDocumentUriPresentationEndpoint(
                     {
                         Uri = request.TextDocument.Uri
                     },
-                    Edits = [VsLspFactory.CreateTextEdit(request.Range, componentTagText)]
+                    Edits = [LspFactory.CreateTextEdit(request.Range, componentTagText)]
                 }
             }
         };

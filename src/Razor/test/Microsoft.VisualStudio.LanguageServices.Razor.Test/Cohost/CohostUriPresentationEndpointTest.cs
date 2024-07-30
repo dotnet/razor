@@ -61,7 +61,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                         {
                             Uri = FileUri("File1.razor.g.html")
                         },
-                        Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
+                        Edits = [LspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
                     }
                 }
             },
@@ -125,7 +125,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                         {
                             Uri = FileUri("File1.razor.g.html")
                         },
-                        Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
+                        Edits = [LspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
                     }
                 }
             },

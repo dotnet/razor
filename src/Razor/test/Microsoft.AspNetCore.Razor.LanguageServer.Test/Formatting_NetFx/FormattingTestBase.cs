@@ -208,7 +208,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
     }
 
     protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
-        => VsLspFactory.CreateTextEdit(startLine, startChar, endLine, endChar, newText);
+        => LspFactory.CreateTextEdit(startLine, startChar, endLine, endChar, newText);
 
     private static SourceText ApplyEdits(SourceText source, TextEdit[] edits)
     {

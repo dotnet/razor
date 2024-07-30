@@ -214,7 +214,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 },
-                Range = VsLspFactory.DefaultRange,
+                Range = LspFactory.DefaultRange,
                 Context = new VSInternalCodeActionContext()
             }
         };
@@ -295,7 +295,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 {
                     Uri = testDocUri
                 },
-                Range = VsLspFactory.DefaultRange,
+                Range = LspFactory.DefaultRange,
                 Context = new VSInternalCodeActionContext()
             }
         };
@@ -420,7 +420,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 1,
-            ranges: [VsLspFactory.DefaultRange],
+            ranges: [LspFactory.DefaultRange],
             correlationId: Guid.Empty);
 
         // Act
@@ -469,7 +469,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            ranges: [VsLspFactory.DefaultRange],
+            ranges: [LspFactory.DefaultRange],
             correlationId: Guid.Empty);
 
         // Act
@@ -546,7 +546,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            ranges: [VsLspFactory.DefaultRange],
+            ranges: [LspFactory.DefaultRange],
             correlationId: Guid.Empty);
 
         // Act
@@ -624,7 +624,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            ranges: [VsLspFactory.DefaultRange],
+            ranges: [LspFactory.DefaultRange],
             correlationId: Guid.Empty);
         var expectedResults = new ProvideSemanticTokensResponse(null, documentVersion);
 

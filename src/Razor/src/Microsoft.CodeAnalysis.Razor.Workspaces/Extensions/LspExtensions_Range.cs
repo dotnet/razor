@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static partial class VsLspExtensions
+internal static partial class LspExtensions
 {
     public static void Deconstruct(this Range range, out Position start, out Position end)
         => (start, end) = (range.Start, range.End);
@@ -77,7 +77,7 @@ internal static partial class VsLspExtensions
 
     public static bool IsUndefined(this Range range)
     {
-        return range == VsLspFactory.UndefinedRange;
+        return range == LspFactory.UndefinedRange;
     }
 
     public static bool IsZeroWidth(this Range range)
@@ -114,7 +114,7 @@ internal static partial class VsLspExtensions
         // Empty ranges do not overlap with any range.
         if (overlapStart.CompareTo(overlapEnd) < 0)
         {
-            return VsLspFactory.CreateRange(overlapStart, overlapEnd);
+            return LspFactory.CreateRange(overlapStart, overlapEnd);
         }
 
         return null;

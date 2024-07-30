@@ -207,8 +207,8 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         }
     }
 
-    private Range InRange { get; set; } = VsLspFactory.CreateSingleLineRange(line: 85, character: 8, length: 8);
-    private Range OutRange { get; set; } = VsLspFactory.CreateSingleLineRange(line: 6, character: 8, length: 8);
+    private Range InRange { get; set; } = LspFactory.CreateSingleLineRange(line: 85, character: 8, length: 8);
+    private Range OutRange { get; set; } = LspFactory.CreateSingleLineRange(line: 6, character: 8, length: 8);
 
     private Diagnostic[] GetDiagnostics(int n) => Enumerable.Range(1, n).Select(_ => new Diagnostic()
     {

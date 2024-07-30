@@ -38,7 +38,7 @@ internal sealed class CloseTextTagOnAutoInsertProvider(RazorLSPOptionsMonitor op
 
         // This is a text tag.
         format = InsertTextFormat.Snippet;
-        edit = VsLspFactory.CreateTextEdit(position, $"$0</{SyntaxConstants.TextTagName}>");
+        edit = LspFactory.CreateTextEdit(position, $"$0</{SyntaxConstants.TextTagName}>");
 
         return true;
     }

@@ -261,7 +261,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
     {
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
-        var fqnTextEdit = VsLspFactory.CreateTextEdit(fqnDiagnostic.Range, fullyQualifiedName);
+        var fqnTextEdit = LspFactory.CreateTextEdit(fqnDiagnostic.Range, fullyQualifiedName);
 
         var fqnWorkspaceEditDocumentChange = new TextDocumentEdit()
         {

@@ -64,7 +64,7 @@ public class RazorLSPSpanMappingServiceTest : ToolingTestBase
         var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
         var textSpanAsRange = _sourceTextGenerated.GetRange(textSpan);
-        var mappedRange = VsLspFactory.CreateSingleLineRange(2, character: 1, length: 10);
+        var mappedRange = LspFactory.CreateSingleLineRange(2, character: 1, length: 10);
 
         var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
         var mappingResult = new RazorMapToDocumentRangesResponse()
@@ -138,7 +138,7 @@ public class RazorLSPSpanMappingServiceTest : ToolingTestBase
     {
         // Arrange
         var sourceTextRazor = SourceText.From("");
-        var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { VsLspFactory.UndefinedRange } };
+        var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { LspFactory.UndefinedRange } };
 
         // Act
         var results = RazorLSPSpanMappingService.GetMappedSpanResults(_mockDocumentUri.LocalPath, sourceTextRazor, response);

@@ -72,7 +72,7 @@ public class Foo { }
         using var context = CreateFormattingContext(source);
         var edits = new[]
         {
-            VsLspFactory.CreateTextEdit(2, 0, "    ")
+            LspFactory.CreateTextEdit(2, 0, "    ")
         };
         var input = new FormattingResult(edits, RazorLanguageKind.Razor);
         var pass = GetPass();
@@ -96,7 +96,7 @@ public class Foo { }
         using var context = CreateFormattingContext(source);
         var edits = new[]
         {
-            VsLspFactory.CreateTextEdit(2, 0, 3, 0, "    ") // Nukes a line
+            LspFactory.CreateTextEdit(2, 0, 3, 0, "    ") // Nukes a line
         };
         var input = new FormattingResult(edits, RazorLanguageKind.Razor);
         var pass = GetPass();

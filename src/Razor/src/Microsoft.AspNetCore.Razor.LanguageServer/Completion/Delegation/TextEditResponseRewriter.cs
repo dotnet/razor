@@ -90,7 +90,7 @@ internal class TextEditResponseRewriter : DelegatedCompletionResponseRewriter
         var translatedStartPosition = TranslatePosition(offset, hostDocumentPosition, textEditRange.Start);
         var translatedEndPosition = TranslatePosition(offset, hostDocumentPosition, textEditRange.End);
 
-        return VsLspFactory.CreateRange(translatedStartPosition, translatedEndPosition);
+        return LspFactory.CreateRange(translatedStartPosition, translatedEndPosition);
 
         static Position TranslatePosition(int offset, Position hostDocumentPosition, Position editPosition)
         {
@@ -98,7 +98,7 @@ internal class TextEditResponseRewriter : DelegatedCompletionResponseRewriter
 
             // Note: If this completion handler ever expands to deal with multi-line TextEdits, this logic will likely need to change since
             // it assumes we're only dealing with single-line TextEdits.
-            return VsLspFactory.CreatePosition(hostDocumentPosition.Line, translatedCharacter);
+            return LspFactory.CreatePosition(hostDocumentPosition.Line, translatedCharacter);
         }
     }
 }

@@ -179,13 +179,13 @@ internal sealed class CSharpOnTypeFormattingPass(
             start = firstPosition;
         }
 
-        var end = VsLspFactory.CreatePosition(rangeAfterFormatting.End.Line + lineDelta, 0);
+        var end = LspFactory.CreatePosition(rangeAfterFormatting.End.Line + lineDelta, 0);
         if (lastPosition is not null && lastPosition.CompareTo(start) < 0)
         {
             end = lastPosition;
         }
 
-        var rangeToAdjust = VsLspFactory.CreateRange(start, end);
+        var rangeToAdjust = LspFactory.CreateRange(start, end);
 
         Debug.Assert(cleanedText.IsValidPosition(rangeToAdjust.End), "Invalid range. This is unexpected.");
 

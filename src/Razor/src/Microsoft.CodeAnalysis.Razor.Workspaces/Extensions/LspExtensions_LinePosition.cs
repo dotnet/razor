@@ -5,11 +5,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static partial class VsLspExtensions
+internal static partial class LspExtensions
 {
     public static Position ToPosition(this LinePosition linePosition)
-        => VsLspFactory.CreatePosition(linePosition.Line, linePosition.Character);
+        => LspFactory.CreatePosition(linePosition.Line, linePosition.Character);
 
     public static Range ToZeroWidthRange(this LinePosition position)
-        => VsLspFactory.CreateZeroWidthRange(position);
+        => LspFactory.CreateZeroWidthRange(position);
 }

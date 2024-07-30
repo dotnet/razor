@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static partial class VsLspExtensions
+internal static partial class LspExtensions
 {
     internal static ProjectKey ToProjectKey(this VSProjectContext projectContext)
     {

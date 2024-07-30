@@ -17,8 +17,8 @@ using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 using Microsoft.VisualStudio.Razor.Settings;
-using static Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
-using RoslynLspFactory = Roslyn.LanguageServer.Protocol.RoslynLspFactory;
+using static Roslyn.LanguageServer.Protocol.LspExtensions;
+using LspFactory = Roslyn.LanguageServer.Protocol.LspFactory;
 using RoslynSignatureHelp = Roslyn.LanguageServer.Protocol.SignatureHelp;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
@@ -86,7 +86,7 @@ internal class CohostSignatureHelpEndpoint(
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteSignatureHelpService, RoslynSignatureHelp?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) =>
-                service.GetSignatureHelpAsync(solutionInfo, razorDocument.Id, RoslynLspFactory.CreatePosition(request.Position.ToLinePosition()), cancellationToken),
+                service.GetSignatureHelpAsync(solutionInfo, razorDocument.Id, LspFactory.CreatePosition(request.Position.ToLinePosition()), cancellationToken),
             cancellationToken)
             .ConfigureAwait(false);
 

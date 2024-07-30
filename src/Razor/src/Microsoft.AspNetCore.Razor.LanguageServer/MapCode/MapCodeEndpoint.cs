@@ -236,7 +236,7 @@ internal sealed class MapCodeEndpoint(
                     if (insertionSpan is not null)
                     {
                         var textSpan = new TextSpan(insertionSpan.Value, 0);
-                        var edit = VsLspFactory.CreateTextEdit(sourceText.GetRange(textSpan), nodeToMap.ToFullString());
+                        var edit = LspFactory.CreateTextEdit(sourceText.GetRange(textSpan), nodeToMap.ToFullString());
 
                         var textDocumentEdit = new TextDocumentEdit
                         {
@@ -440,7 +440,7 @@ internal sealed class MapCodeEndpoint(
                     return false;
                 }
 
-                var textEdit = VsLspFactory.CreateTextEdit(hostDocumentRange, documentEdit.NewText);
+                var textEdit = LspFactory.CreateTextEdit(hostDocumentRange, documentEdit.NewText);
 
                 var textDocumentEdit = new TextDocumentEdit
                 {

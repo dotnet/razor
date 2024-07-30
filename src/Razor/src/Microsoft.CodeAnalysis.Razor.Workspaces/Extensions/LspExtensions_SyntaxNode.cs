@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static partial class VsLspExtensions
+internal static partial class LspExtensions
 {
     public static Range GetRange(this SyntaxNode node, RazorSourceDocument source)
     {
         var linePositionSpan = node.GetLinePositionSpan(source);
 
-        return VsLspFactory.CreateRange(linePositionSpan);
+        return LspFactory.CreateRange(linePositionSpan);
     }
 
     public static Range? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
@@ -52,7 +52,7 @@ internal static partial class VsLspExtensions
         var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
         var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
 
-        return VsLspFactory.CreateRange(startPositionSpan.Start, endPositionSpan.End);
+        return LspFactory.CreateRange(startPositionSpan.Start, endPositionSpan.End);
 
         // This is needed because SyntaxToken positions taken from GetTokens
         // are relative to their parent node and not to the document.

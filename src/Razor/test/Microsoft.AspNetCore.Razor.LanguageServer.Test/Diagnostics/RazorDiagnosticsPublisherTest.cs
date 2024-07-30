@@ -42,7 +42,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
             Code = "TestCode",
             Severity = DiagnosticSeverity.Error,
             Message = "TestMessage",
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
         }
     ];
 
@@ -155,7 +155,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
                 Code = "TestCode",
                 Severity = DiagnosticSeverity.Error,
                 Message = "TestMessage",
-                Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
+                Range = LspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
             }
         };
 

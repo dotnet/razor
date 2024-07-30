@@ -73,7 +73,7 @@ internal class TestDocumentManager(CSharpTestLspServer testLspServer = null) : T
         var rangesAndTexts = changes.Select(c =>
         {
             GetLinesAndOffsets(virtualSourceText, c.OldSpan, out var startLine, out var startCharacter, out var endLine, out var endCharacter);
-            var range = VsLspFactory.CreateRange(startLine, startCharacter, endLine, endCharacter);
+            var range = LspFactory.CreateRange(startLine, startCharacter, endLine, endCharacter);
 
             return (range, c.NewText);
         }).ToArray();

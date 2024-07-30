@@ -474,7 +474,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
             // For `Error` Severity diagnostics we still show the diagnostics to
             // the user, however we set the range to an undefined range to ensure
             // clicking on the diagnostic doesn't cause errors.
-            originalRange = VsLspFactory.UndefinedRange;
+            originalRange = LspFactory.UndefinedRange;
         }
 
         return true;
@@ -544,7 +544,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
                 var diagnosticEndWhitespaceOffset = diagnosticEndCharacter + 1;
                 var endLinePosition = (endLineIndex, diagnosticEndWhitespaceOffset);
 
-                remappedRange = VsLspFactory.CreateRange(startLinePosition, endLinePosition);
+                remappedRange = LspFactory.CreateRange(startLinePosition, endLinePosition);
                 return true;
         }
     }

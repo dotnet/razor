@@ -187,8 +187,8 @@ internal partial class RazorCustomMessageTarget
         if (range.Start == range.End)
         {
             // Insertion
-            revertedProvisionalTextEdit = VsLspFactory.CreateTextEdit(
-                range: VsLspFactory.CreateSingleLineRange(
+            revertedProvisionalTextEdit = LspFactory.CreateTextEdit(
+                range: LspFactory.CreateSingleLineRange(
                     range.Start,
                     length: range.End.Character + provisionalTextEdit.NewText.Length),
                 newText: string.Empty);
@@ -196,7 +196,7 @@ internal partial class RazorCustomMessageTarget
         else
         {
             // Replace
-            revertedProvisionalTextEdit = VsLspFactory.CreateTextEdit(range, string.Empty);
+            revertedProvisionalTextEdit = LspFactory.CreateTextEdit(range, string.Empty);
         }
 
         return revertedProvisionalTextEdit;

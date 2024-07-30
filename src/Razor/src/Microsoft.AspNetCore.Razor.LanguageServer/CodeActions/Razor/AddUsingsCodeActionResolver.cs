@@ -123,7 +123,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
             if (string.CompareOrdinal(newUsingNamespace, usingDirectiveNamespace) < 0)
             {
                 var usingDirectiveLineIndex = codeDocument.Source.Text.GetLinePosition(usingDirective.Node.Span.Start).Line;
-                var edit = VsLspFactory.CreateTextEdit(line: usingDirectiveLineIndex, character: 0, newText);
+                var edit = LspFactory.CreateTextEdit(line: usingDirectiveLineIndex, character: 0, newText);
                 edits.Add(edit);
                 break;
             }
@@ -134,7 +134,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         {
             var endIndex = existingUsingDirectives[^1].Node.Span.End;
             var lineIndex = GetLineIndexOrEnd(codeDocument, endIndex - 1) + 1;
-            var edit = VsLspFactory.CreateTextEdit(line: lineIndex, character: 0, newText);
+            var edit = LspFactory.CreateTextEdit(line: lineIndex, character: 0, newText);
             edits.Add(edit);
         }
 
@@ -168,7 +168,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
         return new TextDocumentEdit
         {
             TextDocument = codeDocumentIdentifier,
-            Edits = [VsLspFactory.CreateTextEdit(insertPosition, newText: $"@using {newUsingNamespace}{Environment.NewLine}")]
+            Edits = [LspFactory.CreateTextEdit(insertPosition, newText: $"@using {newUsingNamespace}{Environment.NewLine}")]
         };
     }
 

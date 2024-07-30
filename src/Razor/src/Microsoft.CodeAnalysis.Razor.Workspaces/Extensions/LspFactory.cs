@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static class VsLspFactory
+internal static class LspFactory
 {
     private static readonly Position s_defaultPosition = new(0, 0);
 
@@ -37,7 +37,7 @@ internal static class VsLspFactory
             Debug.Assert(
                 defaultPosition.Line == 0 &&
                 defaultPosition.Character == 0,
-                $"{nameof(VsLspFactory)}.{nameof(DefaultPosition)} has been corrupted. Current value: {defaultPosition.ToDisplayString()}");
+                $"{nameof(LspFactory)}.{nameof(DefaultPosition)} has been corrupted. Current value: {defaultPosition.ToDisplayString()}");
 
             return defaultPosition;
         }
@@ -59,7 +59,7 @@ internal static class VsLspFactory
                 defaultRange.Start.Character == 0 &&
                 defaultRange.End.Line == 0 &&
                 defaultRange.End.Character == 0,
-                $"{nameof(VsLspFactory)}.{nameof(DefaultRange)} has been corrupted. Current value: {defaultRange.ToDisplayString()}");
+                $"{nameof(LspFactory)}.{nameof(DefaultRange)} has been corrupted. Current value: {defaultRange.ToDisplayString()}");
 
             return defaultRange;
         }
@@ -75,7 +75,7 @@ internal static class VsLspFactory
             Debug.Assert(
                 undefinedPosition.Line == -1 &&
                 undefinedPosition.Character == -1,
-                $"{nameof(VsLspFactory)}.{nameof(UndefinedPosition)} has been corrupted. Current value: {undefinedPosition.ToDisplayString()}");
+                $"{nameof(LspFactory)}.{nameof(UndefinedPosition)} has been corrupted. Current value: {undefinedPosition.ToDisplayString()}");
 
             return undefinedPosition;
         }
@@ -93,7 +93,7 @@ internal static class VsLspFactory
                 undefinedRange.Start.Character == -1 &&
                 undefinedRange.End.Line == -1 &&
                 undefinedRange.End.Character == -1,
-                $"{nameof(VsLspFactory)}.{nameof(UndefinedRange)} has been corrupted. Current value: {undefinedRange.ToDisplayString()}");
+                $"{nameof(LspFactory)}.{nameof(UndefinedRange)} has been corrupted. Current value: {undefinedRange.ToDisplayString()}");
 
             return undefinedRange;
         }

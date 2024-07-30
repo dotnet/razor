@@ -50,7 +50,7 @@ internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions lang
             // Likely the server doesn't support the new endpoint, fallback to the original one
             if (csharpResponse?.Tokens is null && csharpRanges.Length > 1)
             {
-                var minimalRange = VsLspFactory.CreateRange(csharpRanges[0].Start, csharpRanges[^1].End);
+                var minimalRange = LspFactory.CreateRange(csharpRanges[0].Start, csharpRanges[^1].End);
 
                 var newParams = new ProvideSemanticTokensRangesParams(
                     parameter.TextDocument,

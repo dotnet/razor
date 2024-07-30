@@ -132,7 +132,7 @@ public class DefaultRazorBreakpointResolverTest : ToolingTestBase
     {
         // Arrange
         var hostDocumentPosition = GetPosition(ValidBreakpointCSharp, _hostTextbuffer);
-        var hostBreakpointRange = VsLspFactory.CreateSingleLineRange(start: hostDocumentPosition, length: ValidBreakpointCSharp.Length);
+        var hostBreakpointRange = LspFactory.CreateSingleLineRange(start: hostDocumentPosition, length: ValidBreakpointCSharp.Length);
         var projectionProvider = new TestLSPBreakpointSpanProvider(
             _documentUri,
             new Dictionary<Position, Range>()
@@ -183,6 +183,6 @@ public class DefaultRazorBreakpointResolverTest : ToolingTestBase
         }
 
         var line = textBuffer.CurrentSnapshot.GetLineFromPosition(index);
-        return VsLspFactory.CreatePosition(line.LineNumber, index - line.Start.Position);
+        return LspFactory.CreatePosition(line.LineNumber, index - line.Start.Position);
     }
 }

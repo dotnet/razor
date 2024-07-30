@@ -62,7 +62,7 @@ internal abstract class AbstractRazorDocumentMappingService(
                 // between this edit and the previous one, because the normalization will have swallowed it. See
                 // below for a more info.
                 var newText = (lastNewLineAddedToLine == range.Start.Line ? " " : "") + edit.NewText;
-                hostDocumentEdits.Add(VsLspFactory.CreateTextEdit(hostDocumentStart!, hostDocumentEnd!, newText));
+                hostDocumentEdits.Add(LspFactory.CreateTextEdit(hostDocumentStart!, hostDocumentEnd!, newText));
                 continue;
             }
 
@@ -95,7 +95,7 @@ internal abstract class AbstractRazorDocumentMappingService(
                 // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
                 Debug.Assert(lastNewLine == 0 || edit.NewText[..(lastNewLine - 1)].All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
-                var proposedRange = VsLspFactory.CreateSingleLineRange(range.End.Line, character: 0, length: range.End.Character);
+                var proposedRange = LspFactory.CreateSingleLineRange(range.End.Line, character: 0, length: range.End.Character);
                 startSync = generatedDocumentSourceText.TryGetAbsoluteIndex(proposedRange.Start, out startIndex);
                 endSync = generatedDocumentSourceText.TryGetAbsoluteIndex(proposedRange.End, out endIndex);
                 if (startSync is false || endSync is false)
@@ -108,7 +108,7 @@ internal abstract class AbstractRazorDocumentMappingService(
 
                 if (mappedStart && mappedEnd)
                 {
-                    hostDocumentEdits.Add(VsLspFactory.CreateTextEdit(hostDocumentStart!, hostDocumentEnd!, edit.NewText[lastNewLine..]));
+                    hostDocumentEdits.Add(LspFactory.CreateTextEdit(hostDocumentStart!, hostDocumentEnd!, edit.NewText[lastNewLine..]));
                     continue;
                 }
             }
@@ -161,13 +161,13 @@ internal abstract class AbstractRazorDocumentMappingService(
                         // If we already added a newline to this line, then we don't want to add another one, but
                         // we do need to add a space between this edit and the previous one, because the normalization
                         // will have swallowed it.
-                        hostDocumentEdits.Add(VsLspFactory.CreateTextEdit(hostDocumentIndex, " " + edit.NewText));
+                        hostDocumentEdits.Add(LspFactory.CreateTextEdit(hostDocumentIndex, " " + edit.NewText));
                     }
                     else
                     {
                         // Otherwise, add a newline and the real content, and remember where we added it
                         lastNewLineAddedToLine = range.Start.Line;
-                        hostDocumentEdits.Add(VsLspFactory.CreateTextEdit(
+                        hostDocumentEdits.Add(LspFactory.CreateTextEdit(
                             hostDocumentIndex,
                             Environment.NewLine + new string(' ', range.Start.Character) + edit.NewText));
                     }
@@ -867,7 +867,7 @@ internal abstract class AbstractRazorDocumentMappingService(
                 continue;
             }
 
-            var edit = VsLspFactory.CreateTextEdit(originalRange, edits[i].NewText);
+            var edit = LspFactory.CreateTextEdit(originalRange, edits[i].NewText);
             remappedEdits.Add(edit);
         }
 

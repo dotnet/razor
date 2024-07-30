@@ -64,7 +64,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         // Arrange
         var sourceSpan = new SourceSpan(3, 0, 3, 4);
         var sourceText = SourceText.From("Hello World");
-        var expectedRange = VsLspFactory.CreateSingleLineRange(line: 0, character: 3, length: 4);
+        var expectedRange = LspFactory.CreateSingleLineRange(line: 0, character: 3, length: 4);
 
         // Act
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
@@ -80,7 +80,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         // Arrange
         var sourceText = SourceText.From(string.Empty);
         var sourceSpan = new SourceSpan(5, 0, 5, 4);
-        var expectedRange = VsLspFactory.DefaultRange;
+        var expectedRange = LspFactory.DefaultRange;
 
         // Act
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
@@ -96,7 +96,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         // Arrange
         var sourceText = SourceText.From("Hello World");
         var sourceSpan = new SourceSpan(sourceText.Length + 5, 0, sourceText.Length + 5, 4);
-        var expectedRange = VsLspFactory.CreateZeroWidthRange(0, 11);
+        var expectedRange = LspFactory.CreateZeroWidthRange(0, 11);
 
         // Act
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
@@ -112,7 +112,7 @@ public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : Langua
         // Arrange
         var sourceText = SourceText.From("Hello World");
         var sourceSpan = new SourceSpan(6, 0, 6, 15);
-        var expectedRange = VsLspFactory.CreateSingleLineRange(line: 0, character: 6, length: 5);
+        var expectedRange = LspFactory.CreateSingleLineRange(line: 0, character: 6, length: 5);
 
         // Act
         var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);

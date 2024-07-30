@@ -129,7 +129,7 @@ internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : IC
         foreach (var textChange in response.TextChanges)
         {
             var span = new TextSpan(textChange.Position, textChange.Length);
-            var edit = VsLspFactory.CreateTextEdit(sourceText.GetRange(span), textChange.NewText);
+            var edit = LspFactory.CreateTextEdit(sourceText.GetRange(span), textChange.NewText);
 
             edits.Add(edit);
         }

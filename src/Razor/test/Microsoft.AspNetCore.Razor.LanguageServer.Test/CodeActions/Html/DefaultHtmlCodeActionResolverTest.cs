@@ -46,7 +46,7 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
                         Uri = documentUri,
                         Version = 1
                     },
-                    Edits = [VsLspFactory.CreateTextEdit(sourceText.GetRange(span), "Goo ~~~~~~~~~~~~~~~ Bar")]
+                    Edits = [LspFactory.CreateTextEdit(sourceText.GetRange(span), "Goo ~~~~~~~~~~~~~~~ Bar")]
                 }
            }
         };
@@ -77,7 +77,7 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
                                     Uri = new Uri("c:/Test.razor.html"),
                                     Version = 1
                                 },
-                                Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), "Goo")]
+                                Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                             }
                         }
             }

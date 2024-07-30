@@ -51,7 +51,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Text = "Hi there"
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -90,7 +90,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Text = "Hi there"
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -131,7 +131,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Text = "Hi there"
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -173,7 +173,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Text = "Hi there"
         };
         var requestContext = CreateRazorRequestContext(documentContext);

@@ -96,7 +96,7 @@ internal class DefaultRazorBreakpointResolver : RazorBreakpointResolver
             return cachedRange;
         }
 
-        var position = VsLspFactory.CreatePosition(lineIndex, characterIndex);
+        var position = LspFactory.CreatePosition(lineIndex, characterIndex);
         var hostDocumentRange = await _breakpointSpanProvider.GetBreakpointSpanAsync(documentSnapshot, position, cancellationToken).ConfigureAwait(false);
         if (hostDocumentRange is null)
         {

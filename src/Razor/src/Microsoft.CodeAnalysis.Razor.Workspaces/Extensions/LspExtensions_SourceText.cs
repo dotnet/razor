@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
-internal static partial class VsLspExtensions
+internal static partial class LspExtensions
 {
     public static int GetPosition(this SourceText text, Position position)
         => text.GetPosition(position.ToLinePosition());
@@ -46,5 +46,5 @@ internal static partial class VsLspExtensions
         => new(text.GetTextSpan(edit.Range), edit.NewText);
 
     public static TextEdit GetTextEdit(this SourceText text, TextChange change)
-        => VsLspFactory.CreateTextEdit(text.GetRange(change.Span), change.NewText.AssumeNotNull());
+        => LspFactory.CreateTextEdit(text.GetRange(change.Span), change.NewText.AssumeNotNull());
 }
