@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServer.Protocol;
+namespace Roslyn.LanguageServer.Protocol;
 
 internal static partial class LspExtensions
 {
