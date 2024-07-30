@@ -70,7 +70,7 @@ internal class CohostDocumentHighlightEndpoint(
         // If we got a response back, then either Razor or C# wants to do something with this, so we're good to go
         if (csharpResult.Result is { } highlights)
         {
-            return highlights.Select(RemoteDocumentHighlight.ToVsDocumentHighlight).ToArray();
+            return highlights.Select(RemoteDocumentHighlight.ToLspDocumentHighlight).ToArray();
         }
 
         if (csharpResult.StopHandling)
