@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -108,6 +107,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         {
             return true;
         }
+
         return context.Location.AbsoluteIndex > startElementNode.StartTag.Span.End &&
                context.Location.AbsoluteIndex < startElementNode.EndTag.SpanStart;
     }
@@ -128,7 +128,6 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         }
 
         var endOwner = syntaxTree.Root.FindInnermostNode(endLocation.Value.AbsoluteIndex, true);
-        
         if (endOwner is null)
         {
             return null;
@@ -206,10 +205,11 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
     private static SourceLocation? GetEndLocation(Position selectionEnd, RazorCodeDocument codeDocument, ILogger logger)
     {
-        if (!selectionEnd.TryGetSourceLocation(codeDocument.GetSourceText(), logger, out var location))
+        if (!selectionEnd.TryGetSourceLocation(codeDocument.Source.Text, logger, out var location))
         {
             return null;
         }
+
         return location;
     }
 
@@ -236,7 +236,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         var startSpan = startNode.Span;
         var endSpan = endNode.Span;
 
-        foreach (var child in nearestCommonAncestor.ChildNodes().Where(node => node.Kind == SyntaxKind.MarkupElement))
+        foreach (var child in nearestCommonAncestor.ChildNodes().Where(static node => node.Kind == SyntaxKind.MarkupElement))
         {
             var childSpan = child.Span;
 
