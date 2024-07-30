@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\src\Microsoft.AspNetCore.Razor.LanguageServer\GlobalUsings.cs" Link="GlobalUsings.cs" />
     <Compile Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Workspaces\TestServices.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
@@ -54,6 +55,8 @@
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.DiaSymReader" />
+
+    <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Aliases="RLSP" />
   </ItemGroup>
 
   <Import Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.Serialization.Json\Microsoft.AspNetCore.Razor.Serialization.Json.projitems" Label="Shared" />
