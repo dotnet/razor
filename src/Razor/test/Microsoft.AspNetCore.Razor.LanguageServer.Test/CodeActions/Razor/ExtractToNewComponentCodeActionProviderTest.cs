@@ -155,6 +155,8 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
+        AddMultiPointSelectionToContext(context, selectionSpan);
+
         var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
 
         // Act
@@ -162,6 +164,11 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
 
         // Assert
         Assert.NotEmpty(commandOrCodeActionContainer);
+        var codeAction = Assert.Single(commandOrCodeActionContainer);
+        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
+        Assert.NotNull(razorCodeActionResolutionParams);
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToNewComponentCodeActionParams>();
+        Assert.NotNull(actionParams);
     }
 
     [Fact]
@@ -201,7 +208,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-        AddMultiPointSelectionToContext(ref context, selectionSpan);
+        AddMultiPointSelectionToContext(context, selectionSpan);
 
         var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
 
@@ -249,10 +256,9 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         return context;
     }
 
-
-    private static void AddMultiPointSelectionToContext(ref RazorCodeActionContext context, TextSpan selectionSpan)
+    private static void AddMultiPointSelectionToContext(RazorCodeActionContext context, TextSpan selectionSpan)
     {
-        var sourceText = context.CodeDocument.GetSourceText();
+        var sourceText = context.CodeDocument.Source.Text;
         var startLinePosition = sourceText.Lines.GetLinePosition(selectionSpan.Start);
         var startPosition = new Position(startLinePosition.Line, startLinePosition.Character);
 

@@ -19,10 +19,7 @@ internal static class FileUtilities
     public static string GenerateUniquePath(string path, string extension)
     {
         // Add check for rooted path in the future, currently having issues in platforms other than Windows.
-        //if (!Path.IsPathRooted(path))
-        //{
-        //    throw new ArgumentException("The path is not rooted.", nameof(path));
-        //}
+        // See: https://github.com/dotnet/razor/issues/10684
 
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
         var baseFileName = Path.GetFileNameWithoutExtension(path);
