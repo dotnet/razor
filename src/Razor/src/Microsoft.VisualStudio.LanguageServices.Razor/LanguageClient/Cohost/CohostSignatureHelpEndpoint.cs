@@ -16,9 +16,6 @@ using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 using Microsoft.VisualStudio.Razor.Settings;
-using static Roslyn.LanguageServer.Protocol.LspExtensions;
-using LspFactory = Roslyn.LanguageServer.Protocol.LspFactory;
-using RoslynSignatureHelp = Roslyn.LanguageServer.Protocol.SignatureHelp;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 
@@ -35,7 +32,7 @@ internal class CohostSignatureHelpEndpoint(
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<SignatureHelpParams, SumType<SignatureHelp, RoslynSignatureHelp>?>, IDynamicRegistrationProvider
+    : AbstractRazorCohostDocumentRequestHandler<SignatureHelpParams, SignatureHelp?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
@@ -70,10 +67,10 @@ internal class CohostSignatureHelpEndpoint(
     // NOTE: The use of SumType here is a little odd, but it allows us to return Roslyn LSP types from the Roslyn call, and VS LSP types from the Html
     //       call. It works because both sets of types are attributed the right way, so the Json ends up looking the same and the client doesn't
     //       care. Ideally eventually we will be able to move all of this to just Roslyn LSP types, but we might have to wait for Web Tools
-    protected override Task<SumType<SignatureHelp, RoslynSignatureHelp>?> HandleRequestAsync(SignatureHelpParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override Task<SignatureHelp?> HandleRequestAsync(SignatureHelpParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
 
-    private async Task<SumType<SignatureHelp, RoslynSignatureHelp>?> HandleRequestAsync(SignatureHelpParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<SignatureHelp?> HandleRequestAsync(SignatureHelpParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         // Return nothing if "Parameter Information" option is disabled unless signature help is invoked explicitly via command as opposed to typing or content change
         if (request.Context is { TriggerKind: not SignatureHelpTriggerKind.Invoked } &&
@@ -82,10 +79,10 @@ internal class CohostSignatureHelpEndpoint(
             return null;
         }
 
-        var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteSignatureHelpService, RoslynSignatureHelp?>(
+        var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteSignatureHelpService, SignatureHelp?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) =>
-                service.GetSignatureHelpAsync(solutionInfo, razorDocument.Id, LspFactory.CreatePosition(request.Position.ToLinePosition()), cancellationToken),
+                service.GetSignatureHelpAsync(solutionInfo, razorDocument.Id, request.Position, cancellationToken),
             cancellationToken)
             .ConfigureAwait(false);
 
@@ -130,17 +127,7 @@ internal class CohostSignatureHelpEndpoint(
                 return null;
             }
 
-            if (signatureHelp.TryGetFirst(out var sigHelp1))
-            {
-                return sigHelp1.Signatures.Select(s => s.Label).ToArray();
-            }
-            else if (signatureHelp.TryGetSecond(out var sigHelp2))
-            {
-                return sigHelp2.Signatures.Select(s => s.Label).ToArray();
-            }
-
-            Assumed.Unreachable();
-            return null;
+            return signatureHelp.Signatures.Select(s => s.Label).ToArray();
         }
     }
 }
