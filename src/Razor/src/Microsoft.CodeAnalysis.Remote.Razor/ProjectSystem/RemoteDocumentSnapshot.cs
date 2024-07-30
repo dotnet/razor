@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,6 +93,16 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
         return _generatedDocument is not null;
     }
 
+    public void SetGeneratedDocument(Document generatedDocument)
+    {
+        if (_generatedDocument is not null)
+        {
+            ThrowHelper.ThrowInvalidOperationException("A single document snapshot can only ever possibly have a single generated document");
+        }
+
+        _generatedDocument = generatedDocument;
+    }
+
     /// <summary>
     /// Sets the generated C# document for this snapshot
     /// </summary>
@@ -104,14 +115,14 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
     ///     3. If the Razor document changes, which would invalidate this generated document, then a new document snapshot would
     ///        be created and this instance would never be used again
     /// </remarks>
-    public void SetGeneratedDocument(Document generatedDocument)
+    internal Document GetOrAddGeneratedDocument(Document generatedDocument)
     {
         // TODO: Delete this method when the source generator is hooked up
-        if (_generatedDocument is not null)
+        if (_generatedDocument is null)
         {
-            ThrowHelper.ThrowInvalidOperationException("A single document snapshot can only ever possibly have a single generated document");
+            _generatedDocument = generatedDocument;
         }
 
-        _generatedDocument = generatedDocument;
+        return generatedDocument;
     }
 }

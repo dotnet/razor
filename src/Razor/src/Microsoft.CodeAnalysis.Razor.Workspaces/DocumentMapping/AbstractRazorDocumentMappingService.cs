@@ -345,7 +345,7 @@ internal abstract class AbstractRazorDocumentMappingService(
         static LinePosition GetGeneratedPosition(IRazorGeneratedDocument generatedDocument, int generatedIndex)
         {
             var generatedSource = generatedDocument.GetGeneratedSourceText();
-            return generatedSource.Lines.GetLinePosition(generatedIndex);
+            return generatedSource.GetLinePosition(generatedIndex);
         }
     }
 

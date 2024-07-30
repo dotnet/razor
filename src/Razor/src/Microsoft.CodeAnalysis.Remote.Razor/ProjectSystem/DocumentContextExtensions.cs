@@ -33,7 +33,7 @@ internal static class DocumentContextExtensions
         var projectKey = razorDocument.Project.ToProjectKey();
         var generatedFilePath = filePathService.GetRazorCSharpFilePath(projectKey, razorDocument.FilePath.AssumeNotNull());
         var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == razorDocument.Project.Id);
-        generatedDocument = solution.GetDocument(generatedDocumentId).AssumeNotNull();
+        generatedDocument = solution.GetRequiredDocument(generatedDocumentId);
 
         var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
