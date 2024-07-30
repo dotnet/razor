@@ -19,11 +19,4 @@ internal static class RemoteWorkspaceAccessor
     /// </remarks>
     public static Workspace GetWorkspace()
         => RazorBrokeredServiceImplementation.GetWorkspace();
-
-    /// <summary>
-    /// Because of IVT this project is the only place that this code can exist, so please please please please please
-    /// only call it from tests. Thanks.
-    /// </summary>
-    public static Workspace CreateWorkspace_TestOnly()
-        => TestHelpers.CreateTestWorkspace();
 }
