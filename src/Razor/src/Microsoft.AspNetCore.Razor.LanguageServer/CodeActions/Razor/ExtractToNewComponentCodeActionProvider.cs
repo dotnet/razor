@@ -51,9 +51,8 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var (startElementNode, endElementNode) = GetStartAndEndElements(context, syntaxTree, _logger);
-
         // Make sure the selection starts on an element tag
+        var (startElementNode, endElementNode) = GetStartAndEndElements(context, syntaxTree, _logger);
         if (startElementNode is null)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -71,7 +70,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         AddComponentDependenciesInRange(dependencyScanRoot,
                                         actionParams.ExtractStart,
                                         actionParams.ExtractEnd,
-                                        ref actionParams);
+                                        actionParams);
 
         if (IsMultiPointSelection(context.Request.Range))
         {
@@ -288,7 +287,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         return null;
     }
 
-    private static void AddComponentDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd, ref ExtractToNewComponentCodeActionParams actionParams)
+    private static void AddComponentDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd, ExtractToNewComponentCodeActionParams actionParams)
     {
         var components = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
@@ -300,7 +299,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
                 var tagHelperInfo = GetTagHelperInfo(node);
                 if (tagHelperInfo != null)
                 {
-                    AddDependenciesFromTagHelperInfo(tagHelperInfo, components, ref actionParams);
+                    AddDependenciesFromTagHelperInfo(tagHelperInfo, components, actionParams);
                 }
             }
         }
@@ -322,7 +321,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         return null;
     }
 
-    private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, ref ExtractToNewComponentCodeActionParams actionParams)
+    private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, ExtractToNewComponentCodeActionParams actionParams)
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {

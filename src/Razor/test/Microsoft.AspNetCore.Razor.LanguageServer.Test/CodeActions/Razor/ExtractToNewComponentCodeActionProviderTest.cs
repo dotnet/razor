@@ -232,7 +232,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         // Arrange
         var documentPath = "c:/Test.razor";
         var contents = """
-            page "/"
+            @page "/"
             
             <PageTitle>Home</PageTitle>
             
@@ -289,7 +289,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         codeDocument.SetFileKind(FileKinds.Component);
         codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
         {
-            o.RootNamespace = "ExtractToCodeBehindTest";
+            o.RootNamespace = "ExtractToNewComponentTest";
         }));
         codeDocument.SetSyntaxTree(syntaxTree);
 
@@ -303,6 +303,34 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
 
         return context;
     }
+
+    //private static IDocumentSnapshot CreateSupplementaryRazorFile(string filePath, string text, bool supportsFileCreation = true)
+    //    => CreateSupplementaryRazorFile(filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
+
+    //private static IDocumentSnapshot CreateSupplementaryRazorFile(string filePath, string text, string? relativePath, bool supportsFileCreation = true)
+    //{
+    //    var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
+    //    var options = RazorParserOptions.Create(o =>
+    //    {
+    //        o.Directives.Add(ComponentCodeDirective.Directive);
+    //        o.Directives.Add(FunctionsDirective.Directive);
+    //    });
+    //    var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, options);
+
+    //    var codeDocument = TestRazorCodeDocument.Create(sourceDocument, imports: default);
+    //    codeDocument.SetFileKind(FileKinds.Component);
+    //    codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
+    //    {
+    //        o.RootNamespace = "ExtractToNewComponentTest";
+    //    }));
+    //    codeDocument.SetSyntaxTree(syntaxTree);
+
+    //    var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
+    //        document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
+    //        document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()), MockBehavior.Strict);
+
+    //    return documentSnapshot;
+    //}
 
     private static void AddMultiPointSelectionToContext(ref RazorCodeActionContext context, TextSpan selectionSpan)
     {
