@@ -3,6 +3,8 @@
 
 #nullable disable
 
+extern alias RLSP;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,14 +16,14 @@ using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Protocol.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Protocol.Folding;
 using Xunit;
-using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
-    Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
-using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
-using LspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using DefinitionResult = RLSP::Roslyn.LanguageServer.Protocol.SumType<
+    RLSP::Roslyn.LanguageServer.Protocol.VSInternalLocation,
+    RLSP::Roslyn.LanguageServer.Protocol.VSInternalLocation[],
+    RLSP::Roslyn.LanguageServer.Protocol.DocumentLink[]>;
+using ImplementationResult = RLSP::Roslyn.LanguageServer.Protocol.SumType<
+    RLSP::Roslyn.LanguageServer.Protocol.Location[],
+    RLSP::Roslyn.LanguageServer.Protocol.VSInternalReferenceItem[]>;
+using LspSignatureHelp = RLSP::Roslyn.LanguageServer.Protocol.SignatureHelp;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -269,7 +271,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 _cancellationToken);
         }
 
-        private Task<VisualStudio.LanguageServer.Protocol.SignatureHelp> HandleSignatureHelpAsync<T>(T @params)
+        private Task<LspSignatureHelp> HandleSignatureHelpAsync<T>(T @params)
         {
             var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
             var delegatedRequest = new SignatureHelpParams()
@@ -282,7 +284,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 Position = delegatedParams.ProjectedPosition,
             };
 
-            return _csharpServer.ExecuteRequestAsync<SignatureHelpParams, VisualStudio.LanguageServer.Protocol.SignatureHelp>(
+            return _csharpServer.ExecuteRequestAsync<SignatureHelpParams, LspSignatureHelp>(
                 Methods.TextDocumentSignatureHelpName,
                 delegatedRequest,
                 _cancellationToken);

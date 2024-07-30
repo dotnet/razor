@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+extern alias RLSP;
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -17,10 +19,10 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
-    Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
+using DefinitionResult = RLSP::Roslyn.LanguageServer.Protocol.SumType<
+    RLSP::Roslyn.LanguageServer.Protocol.VSInternalLocation,
+    RLSP::Roslyn.LanguageServer.Protocol.VSInternalLocation[],
+    RLSP::Roslyn.LanguageServer.Protocol.DocumentLink[]>;
 using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;

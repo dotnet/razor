@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+extern alias RLSP;
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VisualStudio.Text.Adornments;
+using RLSP::Roslyn.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 

@@ -3,6 +3,7 @@
 
 #nullable disable
 
+extern alias RLSP;
 using System;
 using System.Linq;
 using System.Threading;
@@ -22,8 +23,8 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Moq;
+using RLSP::Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
@@ -1012,7 +1013,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
                 Position = hoverParams.ProjectedPosition
             };
 
-            var result = await _csharpServer.ExecuteRequestAsync<VisualStudio.LanguageServer.Protocol.TextDocumentPositionParams, TResponse>(
+            var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, TResponse>(
                 Methods.TextDocumentHoverName, hoverRequest, _cancellationToken);
 
             return result;
