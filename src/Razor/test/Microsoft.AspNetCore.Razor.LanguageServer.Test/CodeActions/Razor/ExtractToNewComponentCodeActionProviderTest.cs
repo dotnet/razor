@@ -238,7 +238,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         // Arrange
         var documentPath = "c:/Test.razor";
         var contents = """
-            page "/"
+            @page "/"
             
             <PageTitle>Home</PageTitle>
             
