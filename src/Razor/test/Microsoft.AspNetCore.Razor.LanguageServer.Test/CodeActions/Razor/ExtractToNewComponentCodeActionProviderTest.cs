@@ -182,6 +182,8 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
             @namespace MarketApp.Pages.Product.Home
             @page "/"
 
+            namespace MarketApp.Pages.Product.Home
+
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
