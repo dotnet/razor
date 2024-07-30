@@ -4,11 +4,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using LspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.Debugging;
 
 internal abstract class RazorBreakpointResolver
 {
-    public abstract Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken);
+    public abstract Task<LspRange?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken);
 }

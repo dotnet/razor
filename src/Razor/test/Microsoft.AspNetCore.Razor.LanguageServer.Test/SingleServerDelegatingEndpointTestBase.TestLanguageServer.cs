@@ -22,7 +22,7 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
 using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using LspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -340,7 +340,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             throw new NotImplementedException();
         }
 
-        private Task<Range> HandleValidateBreakpointRangeAsync<T>(T @params)
+        private Task<LspRange> HandleValidateBreakpointRangeAsync<T>(T @params)
         {
             var delegatedParams = Assert.IsType<DelegatedValidateBreakpointRangeParams>(@params);
             var delegatedRequest = new VSInternalValidateBreakableRangeParams()
@@ -353,7 +353,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 Range = delegatedParams.ProjectedRange,
             };
 
-            return _csharpServer.ExecuteRequestAsync<VSInternalValidateBreakableRangeParams, Range>(
+            return _csharpServer.ExecuteRequestAsync<VSInternalValidateBreakableRangeParams, LspRange>(
                 VSInternalMethods.TextDocumentValidateBreakableRangeName, delegatedRequest, _cancellationToken);
         }
     }

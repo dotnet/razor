@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using LspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
@@ -71,7 +71,7 @@ internal static class RazorDiagnosticConverter
     }
 
     // Internal for testing
-    internal static Range? ConvertSpanToRange(SourceSpan sourceSpan, SourceText sourceText)
+    internal static LspRange? ConvertSpanToRange(SourceSpan sourceSpan, SourceText sourceText)
     {
         if (sourceSpan == SourceSpan.Undefined)
         {

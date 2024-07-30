@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using LspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -446,7 +446,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
         return codeDocument.GetSyntaxTree().Diagnostics.Any(d => d.Id.Equals(razorDiagnosticCode, StringComparison.Ordinal));
     }
 
-    private bool TryGetOriginalDiagnosticRange(Diagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText, [NotNullWhen(true)] out Range? originalRange)
+    private bool TryGetOriginalDiagnosticRange(Diagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText, [NotNullWhen(true)] out LspRange? originalRange)
     {
         if (IsRudeEditDiagnostic(diagnostic))
         {
@@ -487,7 +487,7 @@ internal class RazorTranslateDiagnosticsService(IRazorDocumentMappingService doc
             str.StartsWith("ENC");
     }
 
-    private bool TryRemapRudeEditRange(Range diagnosticRange, RazorCodeDocument codeDocument, SourceText sourceText, [NotNullWhen(true)] out Range? remappedRange)
+    private bool TryRemapRudeEditRange(LspRange diagnosticRange, RazorCodeDocument codeDocument, SourceText sourceText, [NotNullWhen(true)] out LspRange? remappedRange)
     {
         // This is a rude edit diagnostic that has already been mapped to the Razor document. The mapping isn't absolutely correct though,
         // it's based on the runtime code generation of the Razor document therefore we need to re-map the already mapped diagnostic in a

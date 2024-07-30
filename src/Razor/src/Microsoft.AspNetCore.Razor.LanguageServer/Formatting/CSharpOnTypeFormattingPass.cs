@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using LspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -280,7 +280,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return delta;
     }
 
-    private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
+    private static List<TextChange> CleanupDocument(FormattingContext context, LspRange? range = null)
     {
         var text = context.SourceText;
         range ??= text.GetRange(TextSpan.FromBounds(0, text.Length));
@@ -305,7 +305,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return changes;
     }
 
-    private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, out bool newLineAdded)
+    private static void CleanupSourceMappingStart(FormattingContext context, LspRange sourceMappingRange, List<TextChange> changes, out bool newLineAdded)
     {
         newLineAdded = false;
 
@@ -428,7 +428,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return builder.ToString();
     }
 
-    private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool newLineWasAddedAtStart)
+    private static void CleanupSourceMappingEnd(FormattingContext context, LspRange sourceMappingRange, List<TextChange> changes, bool newLineWasAddedAtStart)
     {
         //
         // We look through every source mapping that intersects with the affected range and

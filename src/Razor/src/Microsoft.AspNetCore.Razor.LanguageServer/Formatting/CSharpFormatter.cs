@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using LspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
@@ -25,7 +25,7 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
 
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
 
-    public async Task<TextEdit[]> FormatAsync(FormattingContext context, Range rangeToFormat, CancellationToken cancellationToken)
+    public async Task<TextEdit[]> FormatAsync(FormattingContext context, LspRange rangeToFormat, CancellationToken cancellationToken)
     {
         if (context is null)
         {
@@ -77,7 +77,7 @@ internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappi
         return actualEdits;
     }
 
-    private static async Task<TextEdit[]> GetFormattingEditsAsync(FormattingContext context, Range projectedRange, CancellationToken cancellationToken)
+    private static async Task<TextEdit[]> GetFormattingEditsAsync(FormattingContext context, LspRange projectedRange, CancellationToken cancellationToken)
     {
         var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
         var spanToFormat = csharpSourceText.GetTextSpan(projectedRange);
