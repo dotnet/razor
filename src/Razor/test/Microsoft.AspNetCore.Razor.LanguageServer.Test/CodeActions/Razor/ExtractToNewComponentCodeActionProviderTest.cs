@@ -2,10 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -179,8 +175,8 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
-                [|<div>
-                    $$<h1>Div a title</h1>
+                [|$$<div>
+                    <h1>Div a title</h1>
                     <p>Div a par</p>
                 </div>
                 <div>
@@ -204,6 +200,8 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
 
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+
+        AddMultiPointSelectionToContext(ref context, selectionSpan);
 
         var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
 
@@ -249,5 +247,22 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
 
         return context;
+    }
+
+
+    private static void AddMultiPointSelectionToContext(ref RazorCodeActionContext context, TextSpan selectionSpan)
+    {
+        var sourceText = context.CodeDocument.GetSourceText();
+        var startLinePosition = sourceText.Lines.GetLinePosition(selectionSpan.Start);
+        var startPosition = new Position(startLinePosition.Line, startLinePosition.Character);
+
+        var endLinePosition = sourceText.Lines.GetLinePosition(selectionSpan.End);
+        var endPosition = new Position(endLinePosition.Line, endLinePosition.Character);
+
+        context.Request.Range = new Range
+        {
+            Start = startPosition,
+            End = endPosition
+        };
     }
 }
