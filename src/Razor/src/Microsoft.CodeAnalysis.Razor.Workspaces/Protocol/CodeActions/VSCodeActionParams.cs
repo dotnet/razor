@@ -21,7 +21,7 @@ internal class VSCodeActionParams
 
     [JsonPropertyName("range")]
     [DataMember(Name = "range")]
-    public required Range Range { get; set; }
+    public required LspRange Range { get; set; }
 
     [JsonPropertyName("context")]
     [DataMember(Name = "context")]

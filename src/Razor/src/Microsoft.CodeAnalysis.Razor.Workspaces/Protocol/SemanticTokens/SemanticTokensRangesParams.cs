@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 internal class SemanticTokensRangesParams : SemanticTokensParams
 {
     [JsonPropertyName("ranges")]
-    public required Range[] Ranges { get; set; }
+    public required LspRange[] Ranges { get; set; }
 }

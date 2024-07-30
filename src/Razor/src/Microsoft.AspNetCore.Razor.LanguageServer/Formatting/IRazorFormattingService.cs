@@ -12,7 +12,7 @@ internal interface IRazorFormattingService
 {
     Task<TextEdit[]> FormatAsync(
        VersionedDocumentContext documentContext,
-       Range? range,
+       LspRange? range,
        FormattingOptions options,
        CancellationToken cancellationToken);
 

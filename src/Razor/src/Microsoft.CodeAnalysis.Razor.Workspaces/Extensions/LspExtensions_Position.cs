@@ -13,7 +13,7 @@ internal static partial class LspExtensions
     public static LinePosition ToLinePosition(this Position position)
         => new(position.Line, position.Character);
 
-    public static Range ToZeroWidthRange(this Position position)
+    public static LspRange ToZeroWidthRange(this Position position)
         => LspFactory.CreateZeroWidthRange(position);
 
     public static int CompareTo(this Position position, Position other)

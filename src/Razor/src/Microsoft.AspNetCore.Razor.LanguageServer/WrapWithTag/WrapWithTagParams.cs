@@ -20,7 +20,7 @@ internal class WrapWithTagParams
     /// Gets or sets the selection range to be wrapped.
     /// </summary>
     [JsonPropertyName("_vs_range")]
-    public Range? Range { get; set; }
+    public LspRange? Range { get; set; }
 
     /// <summary>
     /// Gets or sets the wrapping tag name.

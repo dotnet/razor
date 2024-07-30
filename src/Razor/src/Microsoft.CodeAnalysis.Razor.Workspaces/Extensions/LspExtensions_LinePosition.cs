@@ -10,6 +10,6 @@ internal static partial class LspExtensions
     public static Position ToPosition(this LinePosition linePosition)
         => LspFactory.CreatePosition(linePosition.Line, linePosition.Character);
 
-    public static Range ToZeroWidthRange(this LinePosition position)
+    public static LspRange ToZeroWidthRange(this LinePosition position)
         => LspFactory.CreateZeroWidthRange(position);
 }

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 internal interface IPresentationParams
 {
     TextDocumentIdentifier TextDocument { get; set; }
-    Range Range { get; set; }
+    LspRange Range { get; set; }
 }
 
 internal interface IRazorPresentationParams : IPresentationParams

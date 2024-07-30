@@ -7,6 +7,6 @@ namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
 internal static partial class LspExtensions
 {
-    public static Range ToRange(this LinePositionSpan linePositionSpan)
+    public static LspRange ToRange(this LinePositionSpan linePositionSpan)
         => LspFactory.CreateRange(linePositionSpan);
 }

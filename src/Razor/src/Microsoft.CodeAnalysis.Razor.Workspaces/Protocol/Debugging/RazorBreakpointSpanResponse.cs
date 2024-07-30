@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol.Debugging;
 internal class RazorBreakpointSpanResponse
 {
     [JsonPropertyName("range")]
-    public required Range Range { get; init; }
+    public required LspRange Range { get; init; }
 }

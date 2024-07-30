@@ -10,7 +10,7 @@ internal static class LspFactory
 {
     private static readonly Position s_defaultPosition = new(0, 0);
 
-    private static readonly Range s_defaultRange = new()
+    private static readonly LspRange s_defaultRange = new()
     {
         Start = s_defaultPosition,
         End = s_defaultPosition
@@ -18,7 +18,7 @@ internal static class LspFactory
 
     private static readonly Position s_undefinedPosition = new(-1, -1);
 
-    private static readonly Range s_undefinedRange = new()
+    private static readonly LspRange s_undefinedRange = new()
     {
         Start = s_undefinedPosition,
         End = s_undefinedPosition
@@ -47,7 +47,7 @@ internal static class LspFactory
     ///  Returns a <see cref="Position"/> for starting line 0 and character 0,
     ///  and ending line 0 and character 0.
     /// </summary>
-    public static Range DefaultRange
+    public static LspRange DefaultRange
     {
         get
         {
@@ -81,7 +81,7 @@ internal static class LspFactory
         }
     }
 
-    public static Range UndefinedRange
+    public static LspRange UndefinedRange
     {
         get
         {
@@ -113,24 +113,24 @@ internal static class LspFactory
     public static Position CreatePosition((int line, int character) position)
         => CreatePosition(position.line, position.character);
 
-    public static Range CreateRange(int startLine, int startCharacter, int endLine, int endCharacter)
+    public static LspRange CreateRange(int startLine, int startCharacter, int endLine, int endCharacter)
         => startLine == endLine && startCharacter == endCharacter
             ? CreateZeroWidthRange(startLine, startCharacter)
             : CreateRange(CreatePosition(startLine, startCharacter), CreatePosition(endLine, endCharacter));
 
-    public static Range CreateRange(Position start, Position end)
+    public static LspRange CreateRange(Position start, Position end)
         => new() { Start = start, End = end };
 
-    public static Range CreateRange(LinePosition start, LinePosition end)
+    public static LspRange CreateRange(LinePosition start, LinePosition end)
         => CreateRange(start.Line, start.Character, end.Line, end.Character);
 
-    public static Range CreateRange((int line, int character) start, (int line, int character) end)
+    public static LspRange CreateRange((int line, int character) start, (int line, int character) end)
         => CreateRange(start.line, start.character, end.line, end.character);
 
-    public static Range CreateRange(LinePositionSpan span)
+    public static LspRange CreateRange(LinePositionSpan span)
         => CreateRange(span.Start, span.End);
 
-    public static Range CreateZeroWidthRange(int line, int character)
+    public static LspRange CreateZeroWidthRange(int line, int character)
         => (line, character) switch
         {
             (0, 0) => DefaultRange,
@@ -138,28 +138,28 @@ internal static class LspFactory
             _ => CreateZeroWidthRange(CreatePosition(line, character))
         };
 
-    public static Range CreateZeroWidthRange(Position position)
+    public static LspRange CreateZeroWidthRange(Position position)
         => CreateRange(position, position);
 
-    public static Range CreateZeroWidthRange(LinePosition position)
+    public static LspRange CreateZeroWidthRange(LinePosition position)
         => CreateRange(position, position);
 
-    public static Range CreateZeroWidthRange((int line, int character) position)
+    public static LspRange CreateZeroWidthRange((int line, int character) position)
         => CreateRange(position, position);
 
-    public static Range CreateSingleLineRange(int line, int character, int length)
+    public static LspRange CreateSingleLineRange(int line, int character, int length)
         => CreateRange(line, character, line, character + length);
 
-    public static Range CreateSingleLineRange(Position start, int length)
+    public static LspRange CreateSingleLineRange(Position start, int length)
         => CreateRange(start, CreatePosition(start.Line, start.Character + length));
 
-    public static Range CreateSingleLineRange(LinePosition start, int length)
+    public static LspRange CreateSingleLineRange(LinePosition start, int length)
         => CreateSingleLineRange(start.Line, start.Character, length);
 
-    public static Range CreateSingleLineRange((int line, int character) start, int length)
+    public static LspRange CreateSingleLineRange((int line, int character) start, int length)
         => CreateRange(CreatePosition(start), CreatePosition(start.line, start.character + length));
 
-    public static TextEdit CreateTextEdit(Range range, string newText)
+    public static TextEdit CreateTextEdit(LspRange range, string newText)
         => new() { Range = range, NewText = newText };
 
     public static TextEdit CreateTextEdit(LinePositionSpan span, string newText)

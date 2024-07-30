@@ -11,14 +11,14 @@ namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
 internal static partial class LspExtensions
 {
-    public static Range GetRange(this SyntaxNode node, RazorSourceDocument source)
+    public static LspRange GetRange(this SyntaxNode node, RazorSourceDocument source)
     {
         var linePositionSpan = node.GetLinePositionSpan(source);
 
         return LspFactory.CreateRange(linePositionSpan);
     }
 
-    public static Range? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
+    public static LspRange? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
     {
         var tokens = node.GetTokens();
 

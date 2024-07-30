@@ -421,7 +421,7 @@ internal sealed class RazorFormattingPass(
 
         return didFormat;
 
-        static bool RangeHasBeenModified(IList<TextEdit> edits, Range range)
+        static bool RangeHasBeenModified(IList<TextEdit> edits, LspRange range)
         {
             // Because we don't always know what kind of Razor object we're operating on we have to do this to avoid duplicate edits.
             // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.
@@ -430,7 +430,7 @@ internal sealed class RazorFormattingPass(
             return hasBeenModified;
         }
 
-        static int GetAdditionalIndentationLevel(FormattingContext context, Range range, SyntaxNode openBraceNode, SyntaxNode codeNode)
+        static int GetAdditionalIndentationLevel(FormattingContext context, LspRange range, SyntaxNode openBraceNode, SyntaxNode codeNode)
         {
             if (!context.TryGetIndentationLevel(codeNode.Position, out var desiredIndentationLevel))
             {

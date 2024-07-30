@@ -25,7 +25,7 @@ internal record DelegatedPositionParams(
 
 internal record DelegatedInlayHintParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier,
-    [property: JsonPropertyName("projectedRange")] Range ProjectedRange,
+    [property: JsonPropertyName("projectedRange")] LspRange ProjectedRange,
     [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
 internal record DelegatedInlayHintResolveParams(
@@ -35,7 +35,7 @@ internal record DelegatedInlayHintResolveParams(
 
 internal record DelegatedValidateBreakpointRangeParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier,
-    [property: JsonPropertyName("projectedRange")] Range ProjectedRange,
+    [property: JsonPropertyName("projectedRange")] LspRange ProjectedRange,
     [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
 internal record DelegatedOnAutoInsertParams(

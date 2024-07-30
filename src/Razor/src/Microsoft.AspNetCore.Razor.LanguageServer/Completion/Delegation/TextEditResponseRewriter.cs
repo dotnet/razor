@@ -82,7 +82,7 @@ internal class TextEditResponseRewriter : DelegatedCompletionResponseRewriter
         return completionList;
     }
 
-    private static Range TranslateRange(Position hostDocumentPosition, Position projectedPosition, Range textEditRange)
+    private static LspRange TranslateRange(Position hostDocumentPosition, Position projectedPosition, LspRange textEditRange)
     {
         var offset = projectedPosition.Character - hostDocumentPosition.Character;
 
