@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using AliasedVSCommitCharacters = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<string[], Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCommitCharacter[]>;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;

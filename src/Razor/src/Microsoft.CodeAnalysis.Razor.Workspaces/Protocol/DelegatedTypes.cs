@@ -10,7 +10,6 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 internal record DelegatedSpellCheckParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier);
