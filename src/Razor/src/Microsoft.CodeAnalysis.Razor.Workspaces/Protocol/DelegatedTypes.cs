@@ -3,6 +3,7 @@
 
 using System;
 using System.Text.Json.Serialization;
+using LspLocation = Roslyn.LanguageServer.Protocol.Location;
 
 // A file for delegated record types to be put. Each individually
 // should be a plain record. If more logic is needed than record
@@ -10,7 +11,6 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
-using Location = Roslyn.LanguageServer.Protocol.Location;
 
 internal record DelegatedSpellCheckParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier);
@@ -66,7 +66,7 @@ internal record DelegatedMapCodeParams(
     [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind,
     [property: JsonPropertyName("mapCodeCorrelationId")] Guid MapCodeCorrelationId,
     [property: JsonPropertyName("contents")] string[] Contents,
-    [property: JsonPropertyName("focusLocations")] Location[][] FocusLocations) : IDelegatedParams;
+    [property: JsonPropertyName("focusLocations")] LspLocation[][] FocusLocations) : IDelegatedParams;
 
 internal record DelegatedCompletionResolutionContext(
     [property: JsonPropertyName("originalRequestParams")] DelegatedCompletionParams OriginalRequestParams,
