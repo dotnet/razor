@@ -18,7 +18,7 @@ internal readonly record struct RemoteDocumentHighlight(
     public static LspDocumentHighlight ToLspDocumentHighlight(RemoteDocumentHighlight highlight)
         => new()
         {
-            Range = LspExtensions.ToRange(highlight.Span),
+            Range = highlight.Span.ToRange(),
             Kind = highlight.Kind
         };
 }
