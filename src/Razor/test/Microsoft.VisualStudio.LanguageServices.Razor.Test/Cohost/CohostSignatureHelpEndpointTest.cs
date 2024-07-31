@@ -116,7 +116,7 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
             Context = signatureHelpContext
         };
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAndGetLabelsAsync(request, document, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
         // Assert
         if (expected.Length == 0)
@@ -125,7 +125,7 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
             return;
         }
 
-        var actual = Assert.Single(result.AssumeNotNull());
-        Assert.Equal(expected, actual);
+        var actual = Assert.Single(result.AssumeNotNull().Signatures);
+        Assert.Equal(expected, actual.Label);
     }
 }
