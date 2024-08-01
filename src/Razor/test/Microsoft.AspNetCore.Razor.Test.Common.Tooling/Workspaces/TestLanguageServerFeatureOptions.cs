@@ -36,8 +36,6 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool UseRazorCohostServer => false;
 
-    public override bool DisableRazorLanguageServer => false;
-
     public override bool ForceRuntimeCodeGeneration => forceRuntimeCodeGeneration;
 
     public override bool UseNewFormattingEngine => useNewFormattingEngine;
