@@ -6,12 +6,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.Extensions.Options;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -37,16 +38,15 @@ public class RazorSemanticTokensRefreshEndpointTest(ITestOutputHelper testOutput
         };
         var clientCapabilitiesService = new TestClientCapabilitiesService(clientCapabilities);
         var serverClient = new TestClient();
-        var errorReporter = new TestErrorReporter();
         var optionsMonitor = GetOptionsMonitor();
-        using var semanticTokensRefreshPublisher = new WorkspaceSemanticTokensRefreshPublisher(clientCapabilitiesService, serverClient, errorReporter, optionsMonitor);
-        var refreshEndpoint = new RazorSemanticTokensRefreshEndpoint(semanticTokensRefreshPublisher);
+        using var publisher = new WorkspaceSemanticTokensRefreshNotifier(clientCapabilitiesService, serverClient, optionsMonitor);
+        var refreshEndpoint = new RazorSemanticTokensRefreshEndpoint(publisher);
         var refreshParams = new SemanticTokensRefreshParams();
         var requestContext = new RazorRequestContext();
 
         // Act
         await refreshEndpoint.HandleNotificationAsync(refreshParams, requestContext, DisposalToken);
-        semanticTokensRefreshPublisher.GetTestAccessor().WaitForEmpty();
+        await publisher.GetTestAccessor().WaitForNotificationAsync();
 
         // Assert
         Assert.Equal(Methods.WorkspaceSemanticTokensRefreshName, serverClient.Requests.Single().Method);
@@ -61,19 +61,9 @@ public class RazorSemanticTokensRefreshEndpointTest(ITestOutputHelper testOutput
             .Setup(c => c.GetLatestOptionsAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult<RazorLSPOptions?>(options));
 
-        var optionsMonitorCache = new OptionsCache<RazorLSPOptions>();
-
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create(
-            configurationSyncService.Object,
-            optionsMonitorCache);
+            configurationSyncService.Object);
 
         return optionsMonitor;
-    }
-
-    private class TestErrorReporter : IErrorReporter
-    {
-        public void ReportError(Exception exception) => throw new NotImplementedException();
-        public void ReportError(Exception exception, IProjectSnapshot? project) => throw new NotImplementedException();
-        public void ReportError(Exception exception, Project workspaceProject) => throw new NotImplementedException();
     }
 }

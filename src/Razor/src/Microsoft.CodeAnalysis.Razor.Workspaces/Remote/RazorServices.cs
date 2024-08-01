@@ -19,8 +19,12 @@ internal static class RazorServices
         additionalResolvers: TopLevelResolvers.All,
         interfaces:
         [
+            (typeof(IRemoteLinkedEditingRangeService), null),
             (typeof(IRemoteTagHelperProviderService), null),
             (typeof(IRemoteClientInitializationService), null),
             (typeof(IRemoteSemanticTokensService), null),
+            (typeof(IRemoteHtmlDocumentService), null),
+            (typeof(IRemoteUriPresentationService), null),
+            (typeof(IRemoteFoldingRangeService), null)
         ]);
 }

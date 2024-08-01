@@ -3,47 +3,31 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RazorFileChangeDetectorManager : IDisposable
+internal class RazorFileChangeDetectorManager(
+    IWorkspaceRootPathProvider workspaceRootPathProvider,
+    IEnumerable<IFileChangeDetector> fileChangeDetectors) : IOnInitialized, IDisposable
 {
-    private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
-    private readonly IReadOnlyList<IFileChangeDetector> _fileChangeDetectors;
-    private readonly object _disposeLock = new object();
+    private readonly IWorkspaceRootPathProvider _workspaceRootPathProvider = workspaceRootPathProvider;
+    private readonly ImmutableArray<IFileChangeDetector> _fileChangeDetectors = fileChangeDetectors.ToImmutableArray();
+    private readonly object _disposeLock = new();
     private bool _disposed;
 
-    public RazorFileChangeDetectorManager(
-        WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
-        IEnumerable<IFileChangeDetector> fileChangeDetectors)
-    {
-        if (workspaceDirectoryPathResolver is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceDirectoryPathResolver));
-        }
-
-        if (fileChangeDetectors is null)
-        {
-            throw new ArgumentNullException(nameof(fileChangeDetectors));
-        }
-
-        _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;
-        _fileChangeDetectors = fileChangeDetectors.ToArray();
-    }
-
-    public async Task InitializedAsync()
+    public async Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
     {
         // Initialized request, this occurs once the server and client have agreed on what sort of features they both support. It only happens once.
 
-        var workspaceDirectoryPath = _workspaceDirectoryPathResolver.Resolve();
+        var workspaceDirectoryPath = await _workspaceRootPathProvider.GetRootPathAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var fileChangeDetector in _fileChangeDetectors)
         {
-            // We create a dummy cancellation token for now. Have an issue to pass through the cancellation token in the O# lib: https://github.com/OmniSharp/csharp-language-server-protocol/issues/200
-            var cancellationToken = CancellationToken.None;
             await fileChangeDetector.StartAsync(workspaceDirectoryPath, cancellationToken).ConfigureAwait(false);
         }
 

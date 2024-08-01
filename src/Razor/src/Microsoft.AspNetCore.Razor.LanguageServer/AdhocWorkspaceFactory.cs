@@ -3,12 +3,13 @@
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class AdhocWorkspaceFactory(HostServicesProvider hostServicesProvider) : IAdhocWorkspaceFactory
+internal sealed class AdhocWorkspaceFactory(IHostServicesProvider hostServicesProvider) : IAdhocWorkspaceFactory
 {
     public AdhocWorkspace Create(params IWorkspaceService[] workspaceServices)
     {

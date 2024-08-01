@@ -9,7 +9,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
@@ -21,11 +22,9 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 [LogIntegrationTest]
 public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper) : AbstractIntegrationTest
 {
-    private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
-    private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
-
     private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
     private ILogger? _testLogger;
+    private string? _projectFilePath;
 
     protected virtual bool ComponentClassificationExpected => true;
 
@@ -33,25 +32,27 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
     protected virtual string TargetFrameworkElement => $"""<TargetFramework>{TargetFramework}</TargetFramework>""";
 
+    protected string ProjectFilePath => _projectFilePath.AssumeNotNull();
+
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
         _testLogger = await TestServices.Output.SetupIntegrationTestLoggerAsync(_testOutputHelper, ControlledHangMitigatingCancellationToken);
 
-        _testLogger.LogInformation("#### Razor integration test initialize.");
+        _testLogger.LogInformation($"#### Razor integration test initialize.");
 
         VisualStudioLogging.AddCustomLoggers();
 
-        var projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
+        _projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
-        await TestServices.RazorProjectSystem.WaitForProjectFileAsync(projectFilePath, ControlledHangMitigatingCancellationToken);
+        await TestServices.RazorProjectSystem.WaitForProjectFileAsync(_projectFilePath, ControlledHangMitigatingCancellationToken);
 
         var razorFilePath = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
-        await TestServices.RazorProjectSystem.WaitForRazorFileInProjectAsync(projectFilePath, razorFilePath, ControlledHangMitigatingCancellationToken);
+        await TestServices.RazorProjectSystem.WaitForRazorFileInProjectAsync(_projectFilePath, razorFilePath, ControlledHangMitigatingCancellationToken);
 
         // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
         // way we know the LSP server is up, running, and has processed both local and library-sourced Components
@@ -81,7 +82,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
         // Close the file we opened, just in case, so the test can start with a clean slate
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
 
-        _testLogger.LogInformation("#### Razor integration test initialize finished.");
+        _testLogger.LogInformation($"#### Razor integration test initialize finished.");
     }
 
     private async Task<string> CreateAndOpenBlazorProjectAsync(CancellationToken cancellationToken)
@@ -132,7 +133,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
     public override async Task DisposeAsync()
     {
-        _testLogger!.LogInformation("#### Razor integration test dispose.");
+        _testLogger!.LogInformation($"#### Razor integration test dispose.");
 
         TestServices.Output.ClearIntegrationTestLogger();
 
@@ -144,10 +145,10 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
         var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
         Assumes.Present(settingsManager);
         var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
-        var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, defaultValue: false);
+        var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, defaultValue: false);
         Assert.AreEqual(false, legacyEditorFeatureFlagEnabled, "Expected Legacy Editor Feature Flag to be disabled, but it was enabled");
 
-        var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
+        var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
         Assert.AreEqual(false, useLegacyEditor, "Expected the Legacy Razor Editor to be disabled, but it was enabled");
     }
 

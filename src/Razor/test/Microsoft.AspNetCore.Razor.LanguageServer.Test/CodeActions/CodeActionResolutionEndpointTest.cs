@@ -5,8 +5,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -510,7 +512,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
 
         public  Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
-            return Task.FromResult<WorkspaceEdit?>(null);
+            return SpecializedTasks.Null<WorkspaceEdit>();
         }
     }
 

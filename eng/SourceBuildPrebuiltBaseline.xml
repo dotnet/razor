@@ -13,7 +13,4 @@
     <UsagePattern IdentityGlob="Microsoft.AspNetCore.App.Ref/7.0.*" />
     <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/7.0.*" />
   </IgnorePatterns>
-  <Usages>
-    <Usage Id="Microsoft.Build.NoTargets" Version="2.0.1" />
-  </Usages>
 </UsageData>

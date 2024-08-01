@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
@@ -32,8 +31,6 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
     private IDocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
     private Range Range { get; set; }
-
-    private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
     private string PagesDirectory { get; set; }
 
@@ -80,7 +77,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         var cancellationToken = CancellationToken.None;
         var documentVersion = 1;
 
-        await UpdateDocumentAsync(documentVersion, DocumentSnapshot).ConfigureAwait(false);
+        VersionCache!.TrackDocumentVersion(DocumentSnapshot, documentVersion);
 
         var documentLineCount = Range.End.Line;
 
@@ -100,19 +97,13 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         }
     }
 
-    private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot)
-    {
-        await ProjectSnapshotManagerDispatcher!.RunAsync(
-            () => VersionCache!.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None).ConfigureAwait(false);
-    }
-
     [GlobalCleanup]
     public async Task CleanupServerAsync()
     {
-        var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
+        var server = RazorLanguageServerHost.GetTestAccessor().Server;
 
-        await innerServer.ShutdownAsync();
-        await innerServer.ExitAsync();
+        await server.ShutdownAsync();
+        await server.ExitAsync();
     }
 
     protected internal override void Builder(IServiceCollection collection)
@@ -122,9 +113,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
     private void EnsureServicesInitialized()
     {
-        var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
-        VersionCache = languageServer.GetRequiredService<IDocumentVersionCache>();
-        ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
+        RazorSemanticTokenService = RazorLanguageServerHost.GetRequiredService<IRazorSemanticTokensInfoService>();
+        VersionCache = RazorLanguageServerHost.GetRequiredService<IDocumentVersionCache>();
     }
 }

@@ -20,10 +20,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal abstract class CSharpFormattingPassBase : FormattingPassBase
 {
-    protected CSharpFormattingPassBase(IRazorDocumentMappingService documentMappingService, IClientConnection clientConnection)
-        : base(documentMappingService, clientConnection)
+    protected CSharpFormattingPassBase(IRazorDocumentMappingService documentMappingService)
+        : base(documentMappingService)
     {
-        CSharpFormatter = new CSharpFormatter(documentMappingService, clientConnection);
+        CSharpFormatter = new CSharpFormatter(documentMappingService);
     }
 
     protected CSharpFormatter CSharpFormatter { get; }

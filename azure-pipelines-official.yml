@@ -14,31 +14,25 @@ variables:
   value: 'All'
 - name: RunIntegrationTests
   value: false
-- ${{ if ne(variables['System.TeamProject'], 'public') }}:
-  - group: DotNet-DevDiv-Insertion-Workflow-Variables
-  - name: _DevDivDropAccessToken
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
+- group: DotNet-DevDiv-Insertion-Workflow-Variables
+- name: _DevDivDropAccessToken
+  value: $(dn-bot-devdiv-drop-rw-code-rw)
 
-  - group: DotNet-Roslyn-Insertion-Variables
-  - name: Razor.GitHubEmail
-    value: dotnet-build-bot@microsoft.com
-  - name: Razor.GitHubToken
-    value: $(AccessToken-dotnet-build-bot-public-repo)
-  - name: Razor.GitHubUserName
-    value: dotnet-build-bot
-  - name: Insertion.CreateDraftPR
-    value: true
-  - name: Insertion.TitlePrefix
-    value: '[Auto Insertion]'
-  - name: Insertion.TitleSuffix
-    value: ''
-  - name: Codeql.Enabled
-    value: true
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  - name: Codeql.Enabled
-    value: false
-  - name: Codeql.SkipTaskAutoInjection
-    value: true
+- group: DotNet-Roslyn-Insertion-Variables
+- name: Razor.GitHubEmail
+  value: dotnet-build-bot@microsoft.com
+- name: Razor.GitHubToken
+  value: $(AccessToken-dotnet-build-bot-public-repo)
+- name: Razor.GitHubUserName
+  value: dotnet-build-bot
+- name: Insertion.CreateDraftPR
+  value: true
+- name: Insertion.TitlePrefix
+  value: '[Auto Insertion]'
+- name: Insertion.TitleSuffix
+  value: ''
+- name: Codeql.Enabled
+  value: true
 
 trigger:
   batch: true
@@ -72,11 +66,9 @@ extends:
         name: NetCore1ESPool-Svc-Internal
         image: 1es-windows-2022
         os: windows
-      sbom:
-        enabled: false
     pool:
       name: NetCore1ESPool-Svc-Internal
-      image: windows.vs2022.amd64
+      image: windows.vs2022preview.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -84,7 +76,7 @@ extends:
     - stage: build
       displayName: Build
       jobs:
-      - ${{ if and(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
+      - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             LclSource: lclFilesfromPackage
@@ -99,16 +91,12 @@ extends:
           enableSourcebuild: true
           jobs:
           # Code check
-          - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
+          - ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
             - job: Code_check
               displayName: Code check
               pool:
-                ${{ if eq(variables['System.TeamProject'], 'public') }}:
-                  name: $(DncEngPublicBuildPool)
-                  demands: ImageOverride -equals windows.vs2022.amd64.open
-                ${{ if ne(variables['System.TeamProject'], 'public') }}:
-                  name: $(DncEngInternalBuildPool)
-                  demands: ImageOverride -equals windows.vs2022.amd64
+                name: $(DncEngInternalBuildPool)
+                demands: ImageOverride -equals windows.vs2022preview.amd64
               steps:
               - task: NuGetCommand@2
                 displayName: 'Clear NuGet caches'
@@ -116,7 +104,7 @@ extends:
                 inputs:
                   command: custom
                   arguments: 'locals all -clear'
-
+              - task: NuGetAuthenticate@1
               - powershell: ./restore.cmd -msbuildEngine dotnet -ci; ./eng/scripts/CodeCheck.ps1 -ci
                 displayName: Run eng/scripts/CodeCheck.ps1
 
@@ -131,7 +119,7 @@ extends:
           helixRepo: dotnet/razor
           helixType: build.product/
           # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
-          ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
             enableMicrobuild: true
             enablePublishBuildAssets: true
             enablePublishUsingPipelines: true
@@ -140,28 +128,16 @@ extends:
           - job: Windows
             timeoutInMinutes: 120
             pool:
-              ${{ if eq(variables['System.TeamProject'], 'public') }}:
-                name: $(DncEngPublicBuildPool)
-                demands: ImageOverride -equals windows.vs2022.amd64.open
-              ${{ if ne(variables['System.TeamProject'], 'public') }}:
-                name: $(DncEngInternalBuildPool)
-                demands: ImageOverride -equals windows.vs2022.amd64
+              name: $(DncEngInternalBuildPool)
+              demands: ImageOverride -equals windows.vs2022preview.amd64
             strategy:
               matrix:
-                ${{ if eq(variables['System.TeamProject'], 'public') }}:
-                  debug:
-                    _BuildConfig: Debug
+                release:
+                  _BuildConfig: Release
+                  ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
                     _PublishArgs: ''
-                  release:
-                    _BuildConfig: Release
-                    _PublishArgs: ''
-                ${{ if ne(variables['System.TeamProject'], 'public') }}:
-                  release:
-                    _BuildConfig: Release
-                    ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
-                      _PublishArgs: ''
-                    ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
-                      _PublishArgs: /p:DotNetPublishUsingPipelines=true
+                  ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
+                    _PublishArgs: /p:DotNetPublishUsingPipelines=true
 
             variables:
             - _BuildArgs: ''
@@ -169,7 +145,7 @@ extends:
             - __VSNeverShowWhatsNew: 1
 
             # Variables for internal Official builds
-            - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+            - ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
               - _SignType: real
               - _BuildArgs: /p:DotNetSignType=$(_SignType) /p:TeamName=$(_TeamName)
                   /p:OfficialBuildId=$(Build.BuildNumber)
@@ -186,8 +162,7 @@ extends:
                 command: custom
                 arguments: 'locals all -clear'
 
-            - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-              - template: /eng/restore-internal-tools.yml
+            - template: /eng/restore-internal-tools.yml
 
             - powershell: ./eng/scripts/InstallProcDump.ps1
               displayName: Install ProcDump
@@ -285,15 +260,15 @@ extends:
 
             # Publishes setup VSIXes to a drop.
             # Note: The insertion tool looks for the display name of this task in the logs.
-            - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-              - task: 1ES.MicroBuildVstsDrop@1
-                displayName: Upload VSTS Drop
-                inputs:
-                  dropName: $(VisualStudio.DropName)
-                  dropFolder: 'artifacts\VSSetup\$(_BuildConfig)\Insertion'
-                  accessToken: $(_DevDivDropAccessToken)
-                continueOnError: true
-                condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+            - task: 1ES.MicroBuildVstsDrop@1
+              displayName: Upload VSTS Drop
+              inputs:
+                dropName: $(VisualStudio.DropName)
+                dropFolder: 'artifacts\VSSetup\$(_BuildConfig)\Insertion'
+                accessToken: $(_DevDivDropAccessToken)
+                dropRetentionDays: 90
+              continueOnError: true
+              condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
       # Unix jobs done as a group since they share the same test results format.
       - template: /eng/common/templates-official/jobs/jobs.yml@self
@@ -314,26 +289,23 @@ extends:
               matrix:
                 release:
                   _BuildConfig: Release
-                ${{ if eq(variables['System.TeamProject'], 'public') }}:
-                  debug:
-                    _BuildConfig: Debug
 
             variables:
             - _BuildArgs: ''
             # Variables for internal Official builds
-            - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+            - ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
               - _BuildArgs: /p:DotNetPublishUsingPipelines=true
                   /p:OfficialBuildId=$(Build.BuildNumber)
 
             steps:
-            - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-              - task: Bash@3
-                displayName: Setup Private Feeds Credentials
-                inputs:
-                  filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
-                  arguments: $(Build.SourcesDirectory)/NuGet.config $Token
-                env:
-                  Token: $(dn-bot-dnceng-artifact-feeds-rw)
+            - task: Bash@3
+              displayName: Setup Private Feeds Credentials
+              inputs:
+                filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
+                arguments: $(Build.SourcesDirectory)/NuGet.config $Token
+              env:
+                Token: $(dn-bot-dnceng-artifact-feeds-rw)
+            - task: NuGetAuthenticate@1
 
             - script: eng/cibuild.sh
                 --restore
@@ -357,21 +329,14 @@ extends:
 
           - job: Linux
             pool:
-              ${{ if eq(variables['System.TeamProject'], 'public') }}:
-                name: NetCore-Public
-                demands: ImageOverride -equals Build.Ubuntu.2004.Amd64.Open
-              ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-                name: $(DncEngInternalBuildPool)
-                demands: ImageOverride -equals 1es-ubuntu-2004
+              name: $(DncEngInternalBuildPool)
+              demands: ImageOverride -equals 1es-ubuntu-2004
               os: linux
 
             strategy:
               matrix:
                 release:
                   _BuildConfig: Release
-                ${{ if eq(variables['System.TeamProject'], 'public') }}:
-                  debug:
-                    _BuildConfig: Debug
 
             variables:
             - LC_ALL: 'en_US.UTF-8'
@@ -380,7 +345,7 @@ extends:
             - _BuildArgs: ''
 
             # Variables for internal Official builds
-            - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+            - ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
               - _BuildArgs: /p:DotNetPublishUsingPipelines=true
                   /p:OfficialBuildId=$(Build.BuildNumber)
 
@@ -406,7 +371,7 @@ extends:
               displayName: Publish Test Results
               condition: always()
 
-    - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
           publishingInfraVersion: 3

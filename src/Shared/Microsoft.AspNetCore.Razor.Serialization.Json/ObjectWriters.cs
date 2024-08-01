@@ -34,7 +34,6 @@ internal static class ObjectWriters
             : value.LanguageVersion.ToString();
 
         writer.Write(nameof(value.LanguageVersion), languageVersionText);
-        writer.Write(nameof(value.ForceRuntimeCodeGeneration), value.ForceRuntimeCodeGeneration);
 
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
     }
@@ -236,7 +235,7 @@ internal static class ObjectWriters
     public static void WriteProperties(JsonDataWriter writer, RazorProjectInfo value)
     {
         writer.Write(WellKnownPropertyNames.Version, SerializationFormat.Version);
-        writer.Write(nameof(value.SerializedFilePath), value.SerializedFilePath);
+        writer.Write(nameof(value.ProjectKey), value.ProjectKey.Id);
         writer.Write(nameof(value.FilePath), value.FilePath);
         writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);
         writer.WriteObject(nameof(value.ProjectWorkspaceState), value.ProjectWorkspaceState, WriteProperties);

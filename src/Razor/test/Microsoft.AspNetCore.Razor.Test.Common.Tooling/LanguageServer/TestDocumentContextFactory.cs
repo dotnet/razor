@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -25,23 +26,31 @@ internal class TestDocumentContextFactory : IDocumentContextFactory
         _version = version;
     }
 
-    public virtual DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+    public virtual bool TryCreate(
+        Uri documentUri,
+        VSProjectContext? projectContext,
+        bool versioned,
+        [NotNullWhen(true)] out DocumentContext? context)
     {
         if (FilePath is null || CodeDocument is null)
         {
-            return null;
+            context = null;
+            return false;
         }
 
         if (versioned)
         {
             if (_version is null)
             {
-                return null;
+                context = null;
+                return false;
             }
 
-            return TestDocumentContext.From(FilePath, CodeDocument, _version.Value);
+            context = TestDocumentContext.From(FilePath, CodeDocument, _version.Value);
+            return true;
         }
 
-        return TestDocumentContext.From(FilePath, CodeDocument);
+        context = TestDocumentContext.From(FilePath, CodeDocument);
+        return true;
     }
 }

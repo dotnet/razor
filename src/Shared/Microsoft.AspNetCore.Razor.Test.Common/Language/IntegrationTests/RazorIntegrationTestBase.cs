@@ -11,11 +11,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
 
@@ -34,25 +35,10 @@ public class RazorIntegrationTestBase
 
     static RazorIntegrationTestBase()
     {
-        var referenceAssemblyRoots = new[]
-        {
-            typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
-            typeof(Enumerable).Assembly, // Other .NET fundamental types
-            typeof(System.Linq.Expressions.Expression).Assembly,
-            typeof(ComponentBase).Assembly,
-            typeof(CSharp.RuntimeBinder.CSharpArgumentInfo).Assembly, // needed to support `dynamic`
-        };
-
-        var referenceAssemblies = referenceAssemblyRoots
-            .SelectMany(assembly => assembly.GetReferencedAssemblies().Concat(new[] { assembly.GetName() }))
-            .Distinct()
-            .Select(Assembly.Load)
-            .Select(assembly => MetadataReference.CreateFromFile(assembly.Location))
-            .ToList();
         DefaultBaseCompilation = CSharpCompilation.Create(
             "TestAssembly",
             Array.Empty<SyntaxTree>(),
-            referenceAssemblies,
+            ReferenceUtil.AspNetLatestAll,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         CSharpParseOptions = new CSharpParseOptions(LanguageVersion.Preview);
@@ -84,9 +70,11 @@ public class RazorIntegrationTestBase
 
     internal virtual RazorConfiguration Configuration { get; }
 
-    internal virtual string DefaultRootNamespace { get; }
+    internal string DefaultRootNamespace { get; set; }
 
     internal virtual string DefaultFileName { get; }
+
+    internal string DefaultDocumentPath => WorkingDirectory + PathSeparator + DefaultFileName;
 
     internal virtual bool DesignTime { get; }
 
@@ -121,8 +109,8 @@ public class RazorIntegrationTestBase
         {
             b.SetRootNamespace(DefaultRootNamespace);
 
-                // Turn off checksums, we're testing code generation.
-                b.Features.Add(new SuppressChecksum());
+            // Turn off checksums, we're testing code generation.
+            b.Features.Add(new SuppressChecksum());
 
             if (supportLocalizedComponentNames)
             {
@@ -176,36 +164,44 @@ public class RazorIntegrationTestBase
         };
     }
 
+    protected CompileToCSharpResult CompileToCSharp(string cshtmlContent, params DiagnosticDescription[] expectedCSharpDiagnostics)
+    {
+        return CompileToCSharp(
+            DefaultFileName,
+            cshtmlContent: cshtmlContent,
+            expectedCSharpDiagnostics: expectedCSharpDiagnostics);
+    }
+
     protected CompileToCSharpResult CompileToCSharp(
         string cshtmlContent,
-        bool throwOnFailure = true,
         string cssScope = null,
         bool supportLocalizedComponentNames = false,
         bool nullableEnable = false,
         RazorConfiguration configuration = null,
-        CSharpCompilation baseCompilation = null)
+        CSharpCompilation baseCompilation = null,
+        params DiagnosticDescription[] expectedCSharpDiagnostics)
     {
         return CompileToCSharp(
             DefaultFileName,
             cshtmlContent,
-            throwOnFailure,
             cssScope: cssScope,
             supportLocalizedComponentNames: supportLocalizedComponentNames,
             nullableEnable: nullableEnable,
             configuration: configuration,
-            baseCompilation: baseCompilation);
+            baseCompilation: baseCompilation,
+            expectedCSharpDiagnostics: expectedCSharpDiagnostics);
     }
 
     protected CompileToCSharpResult CompileToCSharp(
         string cshtmlRelativePath,
         string cshtmlContent,
-        bool throwOnFailure = true,
         string fileKind = null,
         string cssScope = null,
         bool supportLocalizedComponentNames = false,
         bool nullableEnable = false,
         RazorConfiguration configuration = null,
-        CSharpCompilation baseCompilation = null)
+        CSharpCompilation baseCompilation = null,
+        params DiagnosticDescription[] expectedCSharpDiagnostics)
     {
         if (DeclarationOnly && DesignTime)
         {
@@ -252,11 +248,11 @@ public class RazorIntegrationTestBase
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
                 Code = codeDocument.GetCSharpDocument().GeneratedCode,
-                Diagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
             };
 
             // Result of doing 'temp' compilation
-            var tempAssembly = CompileToAssembly(declaration, throwOnFailure);
+            var tempAssembly = CompileToAssembly(declaration, expectedDiagnostics: expectedCSharpDiagnostics);
 
             // Add the 'temp' compilation as a metadata reference
             var references = baseCompilation.References.Concat(new[] { tempAssembly.Compilation.ToMetadataReference() }).ToArray();
@@ -282,7 +278,7 @@ public class RazorIntegrationTestBase
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
                 Code = codeDocument.GetCSharpDocument().GeneratedCode,
-                Diagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
             };
         }
         else
@@ -312,29 +308,23 @@ public class RazorIntegrationTestBase
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
                 Code = codeDocument.GetCSharpDocument().GeneratedCode,
-                Diagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
             };
         }
     }
 
     protected CompileToAssemblyResult CompileToAssembly(string cshtmlRelativePath, string cshtmlContent)
     {
-        var cSharpResult = CompileToCSharp(cshtmlRelativePath, cshtmlContent);
+        var cSharpResult = CompileToCSharp(cshtmlRelativePath, cshtmlContent: cshtmlContent);
         return CompileToAssembly(cSharpResult);
     }
 
-    protected CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, bool throwOnFailure = true)
+    protected CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, params DiagnosticDescription[] expectedDiagnostics)
     {
-        if (cSharpResult.Diagnostics.Any() && throwOnFailure)
-        {
-            var diagnosticsLog = string.Join(Environment.NewLine, cSharpResult.Diagnostics.Select(d => d.ToString()).ToArray());
-            throw new InvalidOperationException($"Aborting compilation to assembly because RazorCompiler returned nonempty diagnostics: {diagnosticsLog}");
-        }
-
         var syntaxTrees = new[]
         {
-                Parse(cSharpResult.Code),
-            };
+            Parse(cSharpResult.Code),
+        };
 
         var compilation = cSharpResult.BaseCompilation.AddSyntaxTrees(syntaxTrees);
 
@@ -342,16 +332,14 @@ public class RazorIntegrationTestBase
             .GetDiagnostics()
             .Where(d => d.Severity != DiagnosticSeverity.Hidden);
 
-        if (diagnostics.Any() && throwOnFailure)
-        {
-            throw new CompilationFailedException(compilation);
-        }
-        else if (diagnostics.Any())
+        diagnostics.Verify(expectedDiagnostics);
+
+        if (diagnostics.Any())
         {
             return new CompileToAssemblyResult
             {
                 Compilation = compilation,
-                Diagnostics = diagnostics,
+                CSharpDiagnostics = diagnostics,
             };
         }
 
@@ -366,13 +354,12 @@ public class RazorIntegrationTestBase
             return new CompileToAssemblyResult
             {
                 Compilation = compilation,
-                Diagnostics = diagnostics,
-                Assembly = diagnostics.Any() ? null : Assembly.Load(peStream.ToArray())
+                CSharpDiagnostics = diagnostics,
             };
         }
     }
 
-    protected IComponent CompileToComponent(string cshtmlSource)
+    protected INamedTypeSymbol CompileToComponent(string cshtmlSource)
     {
         var assemblyResult = CompileToAssembly(DefaultFileName, cshtmlSource);
 
@@ -380,30 +367,26 @@ public class RazorIntegrationTestBase
         return CompileToComponent(assemblyResult, componentFullTypeName);
     }
 
-    protected IComponent CompileToComponent(CompileToCSharpResult cSharpResult, string fullTypeName)
+    protected INamedTypeSymbol CompileToComponent(CompileToCSharpResult cSharpResult, string fullTypeName)
     {
         return CompileToComponent(CompileToAssembly(cSharpResult), fullTypeName);
     }
 
-    protected IComponent CompileToComponent(CompileToAssemblyResult assemblyResult, string fullTypeName)
+    protected INamedTypeSymbol CompileToComponent(CompileToAssemblyResult assemblyResult, string fullTypeName)
     {
-        var componentType = assemblyResult.Assembly.GetType(fullTypeName);
+        var componentType = assemblyResult.Compilation.GetTypeByMetadataName(fullTypeName);
         if (componentType == null)
         {
-            throw new XunitException(
-                $"Failed to find component type '{fullTypeName}'. Found types:" + Environment.NewLine +
-                string.Join(Environment.NewLine, assemblyResult.Assembly.ExportedTypes.Select(t => t.FullName)));
+            throw new XunitException($"Failed to find component type '{fullTypeName}'");
         }
 
-        return (IComponent)Activator.CreateInstance(componentType);
+        return componentType;
     }
 
     protected static CSharpSyntaxTree Parse(string text, string path = null)
     {
         return (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(text, CSharpParseOptions, path: path);
     }
-
-    protected static string FullTypeName<T>() => typeof(T).FullName.Replace('+', '.');
 
     protected static void AssertSourceEquals(string expected, CompileToCSharpResult generated)
     {
@@ -424,15 +407,14 @@ public class RazorIntegrationTestBase
         public Compilation BaseCompilation { get; set; }
         public RazorCodeDocument CodeDocument { get; set; }
         public string Code { get; set; }
-        public IEnumerable<RazorDiagnostic> Diagnostics { get; set; }
+        public IEnumerable<RazorDiagnostic> RazorDiagnostics { get; set; }
     }
 
     protected class CompileToAssemblyResult
     {
-        public Assembly Assembly { get; set; }
         public Compilation Compilation { get; set; }
         public string VerboseLog { get; set; }
-        public IEnumerable<Diagnostic> Diagnostics { get; set; }
+        public IEnumerable<Diagnostic> CSharpDiagnostics { get; set; }
     }
 
     private class CompilationFailedException : XunitException

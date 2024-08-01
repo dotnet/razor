@@ -3,28 +3,21 @@
 
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.LiveShare.Razor.Guest;
+using Microsoft.VisualStudio.Razor.LiveShare.Guest;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor;
+namespace Microsoft.VisualStudio.Razor.LiveShare;
 
-[Export(typeof(ProjectCapabilityResolver))]
+[Export(typeof(IProjectCapabilityResolver))]
 [method: ImportingConstructor]
 internal class LiveShareProjectCapabilityResolver(
     ILiveShareSessionAccessor sessionAccessor,
-    JoinableTaskContext joinableTaskContext) : ProjectCapabilityResolver
+    JoinableTaskContext joinableTaskContext) : IProjectCapabilityResolver
 {
     private readonly ILiveShareSessionAccessor _sessionAccessor = sessionAccessor;
     private readonly JoinableTaskFactory _joinableTaskFactory = joinableTaskContext.Factory;
 
-    public override bool HasCapability(object project, string capability)
-    {
-        // In LiveShare scenarios we need a document file path to be able to make reasonable assumptions on if a project has a capability
-        return false;
-    }
-
-    public override bool HasCapability(string documentFilePath, object project, string capability)
+    public bool HasCapability(string documentFilePath, object project, string capability)
     {
         if (!_sessionAccessor.IsGuestSessionActive)
         {

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -39,7 +40,7 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
         _project = project;
         _documentSnapshotFactory = documentSnapshotFactory;
         _telemetryReporter = telemetryReporter;
-        _projectKey = ProjectKey.From(_project);
+        _projectKey = _project.ToProjectKey();
 
         _lazyConfiguration = new Lazy<RazorConfiguration>(CreateRazorConfiguration);
         _lazyProjectEngine = new Lazy<RazorProjectEngine>(() =>
@@ -111,6 +112,12 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
         }
 
         return _documentSnapshotFactory.GetOrCreate(textDocument);
+    }
+
+    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    {
+        document = GetDocument(filePath);
+        return document is not null;
     }
 
     public RazorProjectEngine GetProjectEngine() => throw new InvalidOperationException("Should not be called for cohosted projects.");

@@ -13,10 +13,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.Extensions.Internal;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Razor.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using static Microsoft.VisualStudio.LegacyEditor.Razor.Parsing.BackgroundParser;
@@ -40,7 +41,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
     private readonly IVisualStudioDocumentTracker _documentTracker;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
-    private readonly IErrorReporter _errorReporter;
+    private readonly ILogger _logger;
     private readonly List<CodeDocumentRequest> _codeDocumentRequests;
     private readonly TaskScheduler _uiThreadScheduler;
     private RazorProjectEngine? _projectEngine;
@@ -55,12 +56,12 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         IVisualStudioDocumentTracker documentTracker,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ICompletionBroker completionBroker,
-        IErrorReporter errorReporter,
+        ILoggerFactory loggerFactory,
         JoinableTaskContext joinableTaskContext)
     {
         _joinableTaskContext = joinableTaskContext;
         _projectEngineFactoryProvider = projectEngineFactoryProvider;
-        _errorReporter = errorReporter;
+        _logger = loggerFactory.GetOrCreateLogger<VisualStudioRazorParser>();
         _completionBroker = completionBroker;
         _documentTracker = documentTracker;
         _codeDocumentRequests = new List<CodeDocumentRequest>();
@@ -413,7 +414,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         catch (Exception ex)
         {
             // This is something totally unexpected, let's just send it over to the workspace.
-            _errorReporter.ReportError(ex);
+            _logger.LogError(ex);
         }
 
         async Task OnIdle_QueueOnUIThreadAsync()

@@ -53,19 +53,12 @@
                     MarkupTextLiteral - [61..62)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
                     MarkupTagHelperAttributeValue - [62..76)::14
-                        CSharpExpressionLiteral - [62..67)::5 - [(int)] - Gen<None>
+                        CSharpExpressionLiteral - [62..76)::14 - [(int)@obj.Prop] - Gen<None>
                             Text;[(int)];
-                        MarkupBlock - [67..76)::9
-                            CSharpCodeBlock - [67..76)::9
-                                CSharpImplicitExpression - [67..76)::9
-                                    CSharpTransition - [67..67)::0
-                                        Transition;[<Missing>];
-                                    CSharpImplicitExpressionBody - [67..76)::9
-                                        CSharpCodeBlock - [67..76)::9
-                                            CSharpExpressionLiteral - [67..76)::9 - [@obj.Prop] - Gen<Expr>
-                                                Identifier;[@obj];
-                                                Dot;[.];
-                                                Identifier;[Prop];
+                            Transition;[@];
+                            Identifier;[obj];
+                            Dot;[.];
+                            Identifier;[Prop];
                     MarkupTextLiteral - [76..77)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
                 MarkupMiscAttributeContent - [77..78)::1

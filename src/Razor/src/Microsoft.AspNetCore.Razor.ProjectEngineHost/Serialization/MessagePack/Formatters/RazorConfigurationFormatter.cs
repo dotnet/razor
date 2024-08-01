@@ -25,11 +25,9 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
 
         count -= 2;
 
-        var forceRuntimeCodeGeneration = false;
-
         if (reader.NextMessagePackType is MessagePackType.Boolean)
         {
-            forceRuntimeCodeGeneration = reader.ReadBoolean();
+            reader.ReadBoolean(); // forceRuntimeCodeGeneration
             count -= 1;
         }
 
@@ -47,14 +45,14 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return new(languageVersion, configurationName, extensions, ForceRuntimeCodeGeneration: forceRuntimeCodeGeneration);
+        return new(languageVersion, configurationName, extensions);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
     {
         // Write 3 values + 1 value per extension.
         var extensions = value.Extensions;
-        var count = extensions.Length + 3;
+        var count = extensions.Length + 2;
 
         writer.WriteArrayHeader(count);
 
@@ -69,9 +67,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             CachedStringFormatter.Instance.Serialize(ref writer, value.LanguageVersion.ToString(), options);
         }
 
-        writer.Write(value.ForceRuntimeCodeGeneration);
-
-        count -= 3;
+        count -= 2;
 
         for (var i = 0; i < count; i++)
         {

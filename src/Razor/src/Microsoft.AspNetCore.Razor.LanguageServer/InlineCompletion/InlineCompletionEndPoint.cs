@@ -10,15 +10,15 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
@@ -28,7 +28,7 @@ internal sealed class InlineCompletionEndpoint(
     IRazorDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IAdhocWorkspaceFactory adhocWorkspaceFactory,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : IRazorRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>, ICapabilitiesProvider
 {
     private static readonly ImmutableHashSet<string> s_cSharpKeywords = ImmutableHashSet.Create(
@@ -39,7 +39,7 @@ internal sealed class InlineCompletionEndpoint(
     private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     private readonly IAdhocWorkspaceFactory _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
-    private readonly ILogger _logger = loggerFactory.CreateLogger<InlineCompletionEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();
 
     public bool MutatesSolutionState => false;
 
@@ -63,7 +63,7 @@ internal sealed class InlineCompletionEndpoint(
             throw new ArgumentNullException(nameof(request));
         }
 
-        _logger.LogInformation("Starting request for {textDocumentUri} at {position}.", request.TextDocument.Uri, request.Position);
+        _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
 
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
@@ -87,7 +87,7 @@ internal sealed class InlineCompletionEndpoint(
         if (languageKind != RazorLanguageKind.CSharp ||
             !_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out Position? projectedPosition, out _))
         {
-            _logger.LogInformation("Unsupported location for {textDocumentUri}.", request.TextDocument.Uri);
+            _logger.LogInformation($"Unsupported location for {request.TextDocument.Uri}.");
             return null;
         }
 
@@ -107,7 +107,7 @@ internal sealed class InlineCompletionEndpoint(
             cancellationToken).ConfigureAwait(false);
         if (list is null || !list.Items.Any())
         {
-            _logger.LogInformation("Did not get any inline completions from delegation.");
+            _logger.LogInformation($"Did not get any inline completions from delegation.");
             return null;
         }
 
@@ -119,7 +119,7 @@ internal sealed class InlineCompletionEndpoint(
 
             if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
             {
-                _logger.LogWarning("Could not remap projected range {range} to razor document", range);
+                _logger.LogWarning($"Could not remap projected range {range} to razor document");
                 continue;
             }
 
@@ -141,11 +141,11 @@ internal sealed class InlineCompletionEndpoint(
 
         if (items.Count == 0)
         {
-            _logger.LogInformation("Could not format / map the items from delegation.");
+            _logger.LogInformation($"Could not format / map the items from delegation.");
             return null;
         }
 
-        _logger.LogInformation("Returning {itemsCount} items.", items.Count);
+        _logger.LogInformation($"Returning {items.Count} items.");
         return new VSInternalInlineCompletionList
         {
             Items = items.ToArray()
