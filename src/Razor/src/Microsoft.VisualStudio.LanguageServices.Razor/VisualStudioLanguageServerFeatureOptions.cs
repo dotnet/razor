@@ -17,7 +17,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
     private readonly Lazy<bool> _useRazorCohostServer;
-    private readonly Lazy<bool> _disableRazorLanguageServer;
     private readonly Lazy<bool> _forceRuntimeCodeGeneration;
 
     [ImportingConstructor]
@@ -58,13 +57,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
             return useRazorCohostServer;
         });
 
-        _disableRazorLanguageServer = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var disableRazorLanguageServer = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.DisableRazorLanguageServer, defaultValue: false);
-            return disableRazorLanguageServer;
-        });
-
         _forceRuntimeCodeGeneration = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
@@ -75,7 +67,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     // We don't currently support file creation operations on VS Codespaces or VS Liveshare
     public override bool SupportsFileManipulation => !IsCodespacesOrLiveshare;
-
 
     public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
 
@@ -98,8 +89,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool UsePreciseSemanticTokenRanges => _usePreciseSemanticTokenRanges.Value;
 
     public override bool UseRazorCohostServer => _useRazorCohostServer.Value;
-
-    public override bool DisableRazorLanguageServer => _disableRazorLanguageServer.Value;
 
     /// <inheritdoc />
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration.Value;

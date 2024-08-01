@@ -48,7 +48,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(commonServices, serviceProvider, projectManager)
+        : base(commonServices, serviceProvider, projectManager, languageServerFeatureOptions)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
     }
