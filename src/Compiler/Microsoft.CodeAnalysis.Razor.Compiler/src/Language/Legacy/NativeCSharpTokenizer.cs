@@ -171,7 +171,7 @@ internal class NativeCSharpTokenizer : CSharpTokenizer
             case CSharpTokenizerState.StarAfterRazorCommentBody:
                 return StarAfterRazorCommentBody();
             case CSharpTokenizerState.AtTokenAfterRazorCommentBody:
-                return AtTokenAfterRazorCommentBody();
+                return AtTokenAfterRazorCommentBody(nextState: StartState);
             default:
                 Debug.Fail("Invalid TokenizerState");
                 return default(StateResult);

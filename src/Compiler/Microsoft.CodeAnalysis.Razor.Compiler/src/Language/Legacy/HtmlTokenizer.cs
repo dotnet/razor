@@ -61,7 +61,7 @@ internal class HtmlTokenizer : Tokenizer
             case HtmlTokenizerState.StarAfterRazorCommentBody:
                 return StarAfterRazorCommentBody();
             case HtmlTokenizerState.AtTokenAfterRazorCommentBody:
-                return AtTokenAfterRazorCommentBody();
+                return AtTokenAfterRazorCommentBody(nextState: StartState);
             default:
                 Debug.Fail("Invalid TokenizerState");
                 return default(StateResult);

@@ -319,11 +319,11 @@ internal abstract class Tokenizer : IDisposable
             EndToken(RazorCommentStarKind));
     }
 
-    protected StateResult AtTokenAfterRazorCommentBody()
+    protected StateResult AtTokenAfterRazorCommentBody(int nextState)
     {
         AssertCurrent('@');
         TakeCurrent();
-        return Transition(StartState, EndToken(RazorCommentTransitionKind));
+        return Transition(nextState, EndToken(RazorCommentTransitionKind));
     }
 
     /// <summary>
