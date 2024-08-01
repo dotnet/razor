@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project divNode for license information.
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -59,24 +60,29 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
+        if (endElementNode is null)
+        {
+            endElementNode = startElementNode;
+        }
+
         if (!TryGetNamespace(context.CodeDocument, out var @namespace))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);
-
-        var dependencyScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode);
-
-        AddComponentDependenciesInRange(dependencyScanRoot,
-                                        actionParams.ExtractStart,
-                                        actionParams.ExtractEnd,
-                                        actionParams);
+        var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);        
 
         if (IsMultiPointSelection(context.Request.Range))
         {
             ProcessMultiPointSelection(startElementNode, endElementNode, actionParams);
         }
+
+        var utilityScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
+        AddComponentDependenciesInRange(utilityScanRoot,
+                                        actionParams.ExtractStart,
+                                        actionParams.ExtractEnd,
+                                        actionParams);
+        GetUsedIdentifiers(utilityScanRoot, syntaxTree.Root, actionParams);
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
@@ -105,8 +111,6 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         }
 
         var endElementNode = GetEndElementNode(context, syntaxTree, logger);
-
-        endElementNode ??= startElementNode;
 
         return (startElementNode, endElementNode);
     }
@@ -156,7 +160,9 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             ExtractStart = startElementNode.Span.Start,
             ExtractEnd = startElementNode.Span.End,
             Namespace = @namespace,
-            Dependencies = []
+            Dependencies = [],
+            UsedIdentifiers = [],
+            UsedMembers = [],
         };
     }
 
@@ -221,7 +227,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
     {
         // Find the lowest common ancestor of both nodes
         var nearestCommonAncestor = FindNearestCommonAncestor(startNode, endNode);
-        if (nearestCommonAncestor == null)
+        if (nearestCommonAncestor is null)
         {
             return (null, null);
         }
@@ -237,7 +243,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         {
             var childSpan = child.Span;
 
-            if (startContainingNode == null && childSpan.Contains(startSpan))
+            if (startContainingNode is null && childSpan.Contains(startSpan))
             {
                 startContainingNode = child;
                 if (endContainingNode is not null)
@@ -259,7 +265,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
     {
         var current = node1;
 
-        while (current.Kind == SyntaxKind.MarkupElement && current is not null)
+        while (current is MarkupElementSyntax && current is not null)
         {
             if (current.Span.Contains(node2.Span))
             {
@@ -282,7 +288,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             if (IsMarkupTagHelperElement(node, extractSpan))
             {
                 var tagHelperInfo = GetTagHelperInfo(node);
-                if (tagHelperInfo != null)
+                if (tagHelperInfo is not null)
                 {
                     AddDependenciesFromTagHelperInfo(tagHelperInfo, components, actionParams);
                 }
@@ -310,7 +316,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {
-            if (descriptor != null)
+            if (descriptor is not null)
             {
                 foreach (var metadata in descriptor.Metadata)
                 {
@@ -324,5 +330,28 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
                 }
             }
         }
+    }
+
+    private static void GetUsedIdentifiers(SyntaxNode divNode, SyntaxNode documentRoot, ExtractToNewComponentCodeActionParams actionParams)
+    {
+        HashSet<string> identifiersInScope = [];
+        HashSet<string> identifiersInBlock = [];
+
+
+        foreach (var node in divNode.DescendantNodes().Where(static node => node.Kind is SyntaxKind.Identifier))
+        {
+            identifiersInScope.Add(node.GetContent());
+        }
+
+        foreach (var codeBlock in documentRoot.DescendantNodes().Where(static node => node.Kind is SyntaxKind.RazorDirective))
+        {
+            foreach (var node in codeBlock.DescendantNodes().Where(static node => node.Kind is SyntaxKind.Identifier))
+            {
+                identifiersInBlock.Add(node.GetContent());
+            }
+        }
+
+        identifiersInBlock.IntersectWith(identifiersInScope);
+        actionParams.UsedIdentifiers = identifiersInBlock;
     }
 }
