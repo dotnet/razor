@@ -23,4 +23,10 @@ internal sealed class ExtractToNewComponentCodeActionParams
 
     [JsonPropertyName("dependencies")]
     public required List<string> Dependencies { get; set; }
+
+    [JsonPropertyName("usedIdentifiers")]
+    public required HashSet<string> UsedIdentifiers { get; set; }
+
+    [JsonPropertyName("usedMembers")]
+    public required HashSet<string> UsedMembers { get; set; }
 }
