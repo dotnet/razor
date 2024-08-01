@@ -191,55 +191,55 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void Multi_Character_Literal_Is_Recognized()
     {
-        TestSingleToken("'foo'", SyntaxKind.CharacterLiteral);
+        TestSingleToken("'goo'", SyntaxKind.CharacterLiteral);
     }
 
     [Fact]
     public void Character_Literal_Is_Terminated_By_EOF_If_Unterminated()
     {
-        TestSingleToken("'foo bar", SyntaxKind.CharacterLiteral);
+        TestSingleToken("'goo bar", SyntaxKind.CharacterLiteral);
     }
 
     [Fact]
     public void Character_Literal_Not_Terminated_By_Escaped_Quote()
     {
-        TestSingleToken("'foo\\'bar'", SyntaxKind.CharacterLiteral);
+        TestSingleToken("'goo\\'bar'", SyntaxKind.CharacterLiteral);
     }
 
     [Fact]
     public void Character_Literal_Is_Terminated_By_EOL_If_Unterminated()
     {
-        TestTokenizer("'foo\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo"), IgnoreRemaining);
+        TestTokenizer("'goo\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'goo"), IgnoreRemaining);
     }
 
     [Fact]
     public void Character_Literal_Eats_EOL_When_Escaped()
     {
-        TestTokenizer("'foo\\\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\n"), IgnoreRemaining);
+        TestTokenizer("'goo\\\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'goo\\\n"), IgnoreRemaining);
     }
 
     [Fact]
     public void Character_Literal_Eats_EOL_When_Escaped_And_Followed_By_Stuff()
     {
-        TestTokenizer("'foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\nflarg"), IgnoreRemaining);
+        TestTokenizer("'goo\\\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'goo\\\nflarg"), IgnoreRemaining);
     }
 
     [Fact]
     public void Character_Literal_Eats_CR_When_Escaped()
     {
-        TestTokenizer("'foo\\\r\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\r"), IgnoreRemaining);
+        TestTokenizer("'goo\\\r\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'goo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
     public void Character_Literal_Eats_CR_When_Escaped_And_Followed_By_Stuff()
     {
-        TestTokenizer($"'foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\r"), IgnoreRemaining);
+        TestTokenizer($"'goo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'goo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
     public void Character_Literal_Allows_Escaped_Escape()
     {
-        TestTokenizer("'foo\\\\'blah", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\\'"), IgnoreRemaining);
+        TestTokenizer("'goo\\\\'blah", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'goo\\\\'"), IgnoreRemaining);
     }
 
     [Fact]
@@ -254,8 +254,8 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void Multi_Character_Literal_Allows_Trailing_Comments()
     {
-        TestTokenizer("'foo' // This is a comment",
-            SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo'"),
+        TestTokenizer("'goo' // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'goo'"),
             SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
             SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
     }
@@ -263,86 +263,86 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void String_Literal_Is_Recognized()
     {
-        TestSingleToken("\"foo\"", SyntaxKind.StringLiteral);
+        TestSingleToken("\"goo\"", SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void String_Literal_Is_Terminated_By_EOF_If_Unterminated()
     {
-        TestSingleToken("\"foo bar", SyntaxKind.StringLiteral);
+        TestSingleToken("\"goo bar", SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void String_Literal_Not_Terminated_By_Escaped_Quote()
     {
-        TestSingleToken("\"foo\\\"bar\"", SyntaxKind.StringLiteral);
+        TestSingleToken("\"goo\\\"bar\"", SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void String_Literal_Is_Terminated_By_EOL_If_Unterminated()
     {
-        TestTokenizer("\"foo\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo"), IgnoreRemaining);
+        TestTokenizer("\"goo\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"goo"), IgnoreRemaining);
     }
 
     [Fact]
     public void String_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash()
     {
-        TestTokenizer("\"foo\\\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\n"), IgnoreRemaining);
+        TestTokenizer("\"goo\\\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"goo\\\n"), IgnoreRemaining);
     }
 
     [Fact]
     public void String_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
     {
-        TestTokenizer("\"foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\nflarg"), IgnoreRemaining);
+        TestTokenizer("\"goo\\\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"goo\\\nflarg"), IgnoreRemaining);
     }
 
     [Fact]
     public void String_Literal_Eats_Escaped_CR()
     {
-        TestTokenizer("\"foo\\\r\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\r"), IgnoreRemaining);
+        TestTokenizer("\"goo\\\r\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"goo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
     public void String_Literal_Eats_Escaped_CR_And_Followed_By_Stuff()
     {
-        TestTokenizer($"\"foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\r"), IgnoreRemaining);
+        TestTokenizer($"\"goo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"goo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
     public void String_Literal_Allows_Escaped_Escape()
     {
-        TestTokenizer("\"foo\\\\\"blah", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\\\""), IgnoreRemaining);
+        TestTokenizer("\"goo\\\\\"blah", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"goo\\\\\""), IgnoreRemaining);
     }
 
     [Fact]
     public void Verbatim_String_Literal_Can_Contain_Newlines()
     {
-        TestSingleToken("@\"foo\nbar\nbaz\"", SyntaxKind.StringLiteral);
+        TestSingleToken("@\"goo\nbar\nbaz\"", SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void Verbatim_String_Literal_Not_Terminated_By_Escaped_Double_Quote()
     {
-        TestSingleToken("@\"foo\"\"bar\"", SyntaxKind.StringLiteral);
+        TestSingleToken("@\"goo\"\"bar\"", SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void Verbatim_String_Literal_Is_Terminated_By_Slash_Double_Quote()
     {
-        TestTokenizer("@\"foo\\\"bar\"", SyntaxFactory.Token(SyntaxKind.StringLiteral, "@\"foo\\\""), IgnoreRemaining);
+        TestTokenizer("@\"goo\\\"bar\"", SyntaxFactory.Token(SyntaxKind.StringLiteral, "@\"goo\\\""), IgnoreRemaining);
     }
 
     [Fact]
     public void Verbatim_String_Literal_Is_Terminated_By_EOF()
     {
-        TestSingleToken("@\"foo", SyntaxKind.StringLiteral);
+        TestSingleToken("@\"goo", SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void String_Literal_Allows_Trailing_Comments()
     {
-        TestTokenizer("\"foo\" // This is a comment",
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\""),
+        TestTokenizer("\"goo\" // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"goo\""),
             SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
             SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
     }
@@ -350,8 +350,8 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void Verbatim_String_Literal_Allows_Trailing_Comments()
     {
-        TestTokenizer("@\"foo\" // This is a comment",
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, "@\"foo\""),
+        TestTokenizer("@\"goo\" // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, "@\"goo\""),
             SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
             SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
     }
