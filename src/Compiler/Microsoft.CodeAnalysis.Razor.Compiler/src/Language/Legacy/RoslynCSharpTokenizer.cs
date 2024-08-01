@@ -1,142 +1,38 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
-using System.Collections.Frozen;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxToken;
 using SyntaxFactory = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxFactory;
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
+using CSharpSyntaxToken = Microsoft.CodeAnalysis.SyntaxToken;
+using CSharpSyntaxTriviaList = Microsoft.CodeAnalysis.SyntaxTriviaList;
+using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal class RoslynCSharpTokenizer : CSharpTokenizer
+#pragma warning disable RSEXPERIMENTAL003 // SyntaxTokenParser is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+internal partial class RoslynCSharpTokenizer : CSharpTokenizer
 {
-    private readonly Dictionary<char, Func<SyntaxKind>> _operatorHandlers;
-
-    private static readonly FrozenDictionary<string, CSharpSyntaxKind> _keywords = (new[] {
-            CSharpSyntaxKind.AwaitKeyword,
-            CSharpSyntaxKind.AbstractKeyword,
-            CSharpSyntaxKind.ByteKeyword,
-            CSharpSyntaxKind.ClassKeyword,
-            CSharpSyntaxKind.DelegateKeyword,
-            CSharpSyntaxKind.EventKeyword,
-            CSharpSyntaxKind.FixedKeyword,
-            CSharpSyntaxKind.IfKeyword,
-            CSharpSyntaxKind.InternalKeyword,
-            CSharpSyntaxKind.NewKeyword,
-            CSharpSyntaxKind.OverrideKeyword,
-            CSharpSyntaxKind.ReadOnlyKeyword,
-            CSharpSyntaxKind.ShortKeyword,
-            CSharpSyntaxKind.StructKeyword,
-            CSharpSyntaxKind.TryKeyword,
-            CSharpSyntaxKind.UnsafeKeyword,
-            CSharpSyntaxKind.VolatileKeyword,
-            CSharpSyntaxKind.AsKeyword,
-            CSharpSyntaxKind.DoKeyword,
-            CSharpSyntaxKind.IsKeyword,
-            CSharpSyntaxKind.ParamsKeyword,
-            CSharpSyntaxKind.RefKeyword,
-            CSharpSyntaxKind.SwitchKeyword,
-            CSharpSyntaxKind.UShortKeyword,
-            CSharpSyntaxKind.WhileKeyword,
-            CSharpSyntaxKind.CaseKeyword,
-            CSharpSyntaxKind.ConstKeyword,
-            CSharpSyntaxKind.ExplicitKeyword,
-            CSharpSyntaxKind.FloatKeyword,
-            CSharpSyntaxKind.NullKeyword,
-            CSharpSyntaxKind.SizeOfKeyword,
-            CSharpSyntaxKind.TypeOfKeyword,
-            CSharpSyntaxKind.ImplicitKeyword,
-            CSharpSyntaxKind.PrivateKeyword,
-            CSharpSyntaxKind.ThisKeyword,
-            CSharpSyntaxKind.UsingKeyword,
-            CSharpSyntaxKind.ExternKeyword,
-            CSharpSyntaxKind.ReturnKeyword,
-            CSharpSyntaxKind.StackAllocKeyword,
-            CSharpSyntaxKind.UIntKeyword,
-            CSharpSyntaxKind.BaseKeyword,
-            CSharpSyntaxKind.CatchKeyword,
-            CSharpSyntaxKind.ContinueKeyword,
-            CSharpSyntaxKind.DoubleKeyword,
-            CSharpSyntaxKind.ForKeyword,
-            CSharpSyntaxKind.InKeyword,
-            CSharpSyntaxKind.LockKeyword,
-            CSharpSyntaxKind.ObjectKeyword,
-            CSharpSyntaxKind.ProtectedKeyword,
-            CSharpSyntaxKind.StaticKeyword,
-            CSharpSyntaxKind.FalseKeyword,
-            CSharpSyntaxKind.PublicKeyword,
-            CSharpSyntaxKind.SByteKeyword,
-            CSharpSyntaxKind.ThrowKeyword,
-            CSharpSyntaxKind.VirtualKeyword,
-            CSharpSyntaxKind.DecimalKeyword,
-            CSharpSyntaxKind.ElseKeyword,
-            CSharpSyntaxKind.OperatorKeyword,
-            CSharpSyntaxKind.StringKeyword,
-            CSharpSyntaxKind.ULongKeyword,
-            CSharpSyntaxKind.BoolKeyword,
-            CSharpSyntaxKind.CharKeyword,
-            CSharpSyntaxKind.DefaultKeyword,
-            CSharpSyntaxKind.ForEachKeyword,
-            CSharpSyntaxKind.LongKeyword,
-            CSharpSyntaxKind.VoidKeyword,
-            CSharpSyntaxKind.EnumKeyword,
-            CSharpSyntaxKind.FinallyKeyword,
-            CSharpSyntaxKind.IntKeyword,
-            CSharpSyntaxKind.OutKeyword,
-            CSharpSyntaxKind.SealedKeyword,
-            CSharpSyntaxKind.TrueKeyword,
-            CSharpSyntaxKind.GotoKeyword,
-            CSharpSyntaxKind.UncheckedKeyword,
-            CSharpSyntaxKind.InterfaceKeyword,
-            CSharpSyntaxKind.BreakKeyword,
-            CSharpSyntaxKind.CheckedKeyword,
-            CSharpSyntaxKind.NamespaceKeyword,
-            CSharpSyntaxKind.WhenKeyword,
-            CSharpSyntaxKind.WhereKeyword }).ToFrozenDictionary(keySelector: k => SyntaxFacts.GetText(k));
+    private readonly SyntaxTokenParser _roslynTokenParser;
+    private readonly List<(int position, SyntaxTokenParser.Result result)> _resultCache = new();
+    private (CSharpSyntaxTriviaList.Enumerator enumerator, bool isLeading)? _currentCSharpTokenTriviaEnumerator;
 
     public RoslynCSharpTokenizer(SeekableTextReader source)
         : base(source)
     {
         base.CurrentState = StartState;
 
-        _operatorHandlers = new Dictionary<char, Func<SyntaxKind>>()
-            {
-                { '-', MinusOperator },
-                { '<', LessThanOperator },
-                { '>', GreaterThanOperator },
-                { '&', CreateTwoCharOperatorHandler(SyntaxKind.And, '=', SyntaxKind.AndAssign, '&', SyntaxKind.DoubleAnd) },
-                { '|', CreateTwoCharOperatorHandler(SyntaxKind.Or, '=', SyntaxKind.OrAssign, '|', SyntaxKind.DoubleOr) },
-                { '+', CreateTwoCharOperatorHandler(SyntaxKind.Plus, '=', SyntaxKind.PlusAssign, '+', SyntaxKind.Increment) },
-                { '=', CreateTwoCharOperatorHandler(SyntaxKind.Assign, '=', SyntaxKind.Equals, '>', SyntaxKind.GreaterThanEqual) },
-                { '!', CreateTwoCharOperatorHandler(SyntaxKind.Not, '=', SyntaxKind.NotEqual) },
-                { '%', CreateTwoCharOperatorHandler(SyntaxKind.Modulo, '=', SyntaxKind.ModuloAssign) },
-                { '*', CreateTwoCharOperatorHandler(SyntaxKind.Star, '=', SyntaxKind.MultiplyAssign) },
-                { ':', CreateTwoCharOperatorHandler(SyntaxKind.Colon, ':', SyntaxKind.DoubleColon) },
-                { '?', CreateTwoCharOperatorHandler(SyntaxKind.QuestionMark, '?', SyntaxKind.NullCoalesce) },
-                { '^', CreateTwoCharOperatorHandler(SyntaxKind.Xor, '=', SyntaxKind.XorAssign) },
-                { '(', () => SyntaxKind.LeftParenthesis },
-                { ')', () => SyntaxKind.RightParenthesis },
-                { '{', () => SyntaxKind.LeftBrace },
-                { '}', () => SyntaxKind.RightBrace },
-                { '[', () => SyntaxKind.LeftBracket },
-                { ']', () => SyntaxKind.RightBracket },
-                { ',', () => SyntaxKind.Comma },
-                { ';', () => SyntaxKind.Semicolon },
-                { '~', () => SyntaxKind.Tilde },
-                { '#', () => SyntaxKind.Hash }
-            };
+        _roslynTokenParser = CodeAnalysis.CSharp.SyntaxFactory.CreateTokenParser(source.SourceText, null);
     }
 
-    protected override int StartState => (int)CSharpTokenizerState.Data;
+    protected override int StartState => (int)RoslynCSharpTokenizerState.Start;
 
-    private new CSharpTokenizerState? CurrentState => (CSharpTokenizerState?)base.CurrentState;
+    private new RoslynCSharpTokenizerState? CurrentState => (RoslynCSharpTokenizerState?)base.CurrentState;
 
     public override SyntaxKind RazorCommentKind => SyntaxKind.RazorCommentLiteral;
 
@@ -144,30 +40,62 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
 
     public override SyntaxKind RazorCommentStarKind => SyntaxKind.RazorCommentStar;
 
+    internal override void StartingBlock()
+    {
+        _roslynTokenParser.SkipForwardTo(Source.Position);
+    }
+
+    internal override void EndingBlock()
+    {
+        // We should always be transitioning to the other parser in response to content. This means that we'll have parsed a token, and be in the TriviaForCSharpToken
+        // state. The other possibility is that the parser looked at the current token, and put it back to let the other parser handle it; in this case, we should be in
+        // the Start state. In order to ensure that we properly handle the trailing trivia (because the other parser will handle the trailing trivia on the node we found,
+        // if any), we need to reset back before the start of that node, skip the content, and reset our state back to Start for when we're called back next.
+        if (CurrentState == RoslynCSharpTokenizerState.Start)
+        {
+            return;
+        }
+
+        Debug.Assert(CurrentState == RoslynCSharpTokenizerState.TriviaForCSharpToken, $"Unexpected state: {CurrentState}");
+        Debug.Assert(_currentCSharpTokenTriviaEnumerator is (_, isLeading: false));
+        Debug.Assert(_resultCache.Count > 0);
+
+        var (_, result) = _resultCache[^1];
+        _roslynTokenParser.ResetTo(result);
+        _resultCache.RemoveAt(_resultCache.Count - 1);
+        var lastToken = result.Token;
+        if (lastToken.HasLeadingTrivia)
+        {
+            // If the previous token did indeed have leading trivia, we need to make sure to take it into account so that any preprocessor directives are seen by the
+            // roslyn token parser
+            _ = GetNextResult(NextResultType.LeadingTrivia);
+        }
+
+        _roslynTokenParser.SkipForwardTo(lastToken.Span.End);
+        base.CurrentState = (int)RoslynCSharpTokenizerState.Start;
+    }
+
     protected override StateResult Dispatch()
     {
         switch (CurrentState)
         {
-            case CSharpTokenizerState.Data:
-                return Data();
-            case CSharpTokenizerState.BlockComment:
-                return BlockComment();
-            case CSharpTokenizerState.QuotedCharacterLiteral:
-                return QuotedCharacterLiteral();
-            case CSharpTokenizerState.QuotedStringLiteral:
-                return QuotedStringLiteral();
-            case CSharpTokenizerState.VerbatimStringLiteral:
-                return VerbatimStringLiteral();
-            case CSharpTokenizerState.AfterRazorCommentTransition:
+            case RoslynCSharpTokenizerState.Start:
+                return Start();
+            case RoslynCSharpTokenizerState.TriviaForCSharpToken:
+                return Trivia();
+            case RoslynCSharpTokenizerState.Token:
+                return Token();
+            case RoslynCSharpTokenizerState.OnRazorCommentStar:
+                return OnRazorCommentStar();
+            case RoslynCSharpTokenizerState.AfterRazorCommentTransition:
                 return AfterRazorCommentTransition();
-            case CSharpTokenizerState.EscapedRazorCommentTransition:
-                return EscapedRazorCommentTransition();
-            case CSharpTokenizerState.RazorCommentBody:
+            case RoslynCSharpTokenizerState.RazorCommentBody:
                 return RazorCommentBody();
-            case CSharpTokenizerState.StarAfterRazorCommentBody:
+            case RoslynCSharpTokenizerState.StarAfterRazorCommentBody:
                 return StarAfterRazorCommentBody();
-            case CSharpTokenizerState.AtTokenAfterRazorCommentBody:
-                return AtTokenAfterRazorCommentBody();
+            case RoslynCSharpTokenizerState.AtTokenAfterRazorCommentBody:
+                Debug.Assert(_currentCSharpTokenTriviaEnumerator is not null);
+                return AtTokenAfterRazorCommentBody(nextState: (int)RoslynCSharpTokenizerState.TriviaForCSharpToken);
             default:
                 Debug.Fail("Invalid TokenizerState");
                 return default(StateResult);
@@ -177,37 +105,13 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
     // Optimize memory allocation by returning constants for the most frequent cases
     protected override string GetTokenContent(SyntaxKind type)
     {
+        Debug.Assert(type != SyntaxKind.CSharpOperator, "CSharpOperator should be handled by getting the interned text from C#");
         var tokenLength = Buffer.Length;
 
         if (tokenLength == 1)
         {
             switch (type)
             {
-                case SyntaxKind.IntegerLiteral:
-                    switch (Buffer[0])
-                    {
-                        case '0':
-                            return "0";
-                        case '1':
-                            return "1";
-                        case '2':
-                            return "2";
-                        case '3':
-                            return "3";
-                        case '4':
-                            return "4";
-                        case '5':
-                            return "5";
-                        case '6':
-                            return "6";
-                        case '7':
-                            return "7";
-                        case '8':
-                            return "8";
-                        case '9':
-                            return "9";
-                    }
-                    break;
                 case SyntaxKind.NewLine:
                     if (Buffer[0] == '\n')
                     {
@@ -224,56 +128,26 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
                         return "\t";
                     }
                     break;
-                case SyntaxKind.Minus:
-                    return "-";
+                case SyntaxKind.NumericLiteral:
+                    Debug.Fail("This should be handled by using the C# lexer's interned string in NumericLiteral()");
+                    return base.GetTokenContent(type);
                 case SyntaxKind.Not:
-                    return "!";
-                case SyntaxKind.Modulo:
-                    return "%";
-                case SyntaxKind.And:
-                    return "&";
                 case SyntaxKind.LeftParenthesis:
-                    return "(";
                 case SyntaxKind.RightParenthesis:
-                    return ")";
-                case SyntaxKind.Star:
-                    return "*";
                 case SyntaxKind.Comma:
-                    return ",";
                 case SyntaxKind.Dot:
-                    return ".";
-                case SyntaxKind.Slash:
-                    return "/";
                 case SyntaxKind.Colon:
-                    return ":";
                 case SyntaxKind.Semicolon:
-                    return ";";
                 case SyntaxKind.QuestionMark:
-                    return "?";
                 case SyntaxKind.RightBracket:
-                    return "]";
                 case SyntaxKind.LeftBracket:
-                    return "[";
-                case SyntaxKind.Xor:
-                    return "^";
                 case SyntaxKind.LeftBrace:
-                    return "{";
-                case SyntaxKind.Or:
-                    return "|";
                 case SyntaxKind.RightBrace:
-                    return "}";
-                case SyntaxKind.Tilde:
-                    return "~";
-                case SyntaxKind.Plus:
-                    return "+";
                 case SyntaxKind.LessThan:
-                    return "<";
                 case SyntaxKind.Assign:
-                    return "=";
                 case SyntaxKind.GreaterThan:
-                    return ">";
-                case SyntaxKind.Hash:
-                    return "#";
+                    Debug.Fail("This should be handled by using the C# lexer's interned string in Operator()");
+                    return base.GetTokenContent(type);
                 case SyntaxKind.Transition:
                     return "@";
 
@@ -285,64 +159,10 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
             {
                 case SyntaxKind.NewLine:
                     return "\r\n";
-                case SyntaxKind.Arrow:
-                    return "->";
-                case SyntaxKind.Decrement:
-                    return "--";
-                case SyntaxKind.MinusAssign:
-                    return "-=";
-                case SyntaxKind.NotEqual:
-                    return "!=";
-                case SyntaxKind.ModuloAssign:
-                    return "%=";
-                case SyntaxKind.AndAssign:
-                    return "&=";
-                case SyntaxKind.DoubleAnd:
-                    return "&&";
-                case SyntaxKind.MultiplyAssign:
-                    return "*=";
-                case SyntaxKind.DivideAssign:
-                    return "/=";
                 case SyntaxKind.DoubleColon:
-                    return "::";
-                case SyntaxKind.NullCoalesce:
-                    return "??";
-                case SyntaxKind.XorAssign:
-                    return "^=";
-                case SyntaxKind.OrAssign:
-                    return "|=";
-                case SyntaxKind.DoubleOr:
-                    return "||";
-                case SyntaxKind.PlusAssign:
-                    return "+=";
-                case SyntaxKind.Increment:
-                    return "++";
-                case SyntaxKind.LessThanEqual:
-                    return "<=";
-                case SyntaxKind.LeftShift:
-                    return "<<";
                 case SyntaxKind.Equals:
-                    return "==";
-                case SyntaxKind.GreaterThanEqual:
-                    if (Buffer[0] == '=')
-                    {
-                        return "=>";
-                    }
-                    return ">=";
-                case SyntaxKind.RightShift:
-                    return ">>";
-
-
-            }
-        }
-        else if (tokenLength == 3)
-        {
-            switch (type)
-            {
-                case SyntaxKind.LeftShiftAssign:
-                    return "<<=";
-                case SyntaxKind.RightShiftAssign:
-                    return ">>=";
+                    Debug.Fail("This should be handled by using the C# lexer's interned string in Operator()");
+                    return base.GetTokenContent(type);
             }
         }
 
@@ -354,24 +174,28 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
         return SyntaxFactory.Token(kind, content, errors);
     }
 
-    private StateResult Data()
+    private StateResult Start()
     {
-        if (SyntaxFacts.IsNewLine(CurrentCharacter))
+        var leadingTriviaResult = GetNextResult(NextResultType.LeadingTrivia);
+        Debug.Assert(leadingTriviaResult.ContextualKind == CSharpSyntaxKind.None);
+        Debug.Assert(leadingTriviaResult.Token.IsKind(CSharpSyntaxKind.None));
+
+        if (leadingTriviaResult.Token.HasLeadingTrivia)
         {
-            // CSharp Spec §2.3.1
-            var checkTwoCharNewline = CurrentCharacter == '\r';
-            TakeCurrent();
-            if (checkTwoCharNewline && CurrentCharacter == '\n')
-            {
-                TakeCurrent();
-            }
-            return Stay(EndToken(SyntaxKind.NewLine));
+            _currentCSharpTokenTriviaEnumerator = (leadingTriviaResult.Token.LeadingTrivia.GetEnumerator(), isLeading: true);
+            return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, null);
         }
-        else if (SyntaxFacts.IsWhitespace(CurrentCharacter))
+        else
         {
-            // CSharp Spec §2.3.3
-            TakeUntil(c => !SyntaxFacts.IsWhitespace(c));
-            return Stay(EndToken(SyntaxKind.Whitespace));
+            return Transition(RoslynCSharpTokenizerState.Token, null);
+        }
+    }
+
+    private StateResult Token()
+    {
+        if (SyntaxFacts.IsNewLine(CurrentCharacter) || SyntaxFacts.IsWhitespace(CurrentCharacter))
+        {
+            Assumed.Unreachable();
         }
         else if (SyntaxFacts.IsIdentifierStartCharacter(CurrentCharacter))
         {
@@ -386,404 +210,472 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
             case '@':
                 return AtToken();
             case '\'':
-                TakeCurrent();
-                return Transition(CSharpTokenizerState.QuotedCharacterLiteral);
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteral, expectedPrefix: "\'", expectedPostfix: "\'");
             case '"':
-                TakeCurrent();
-                return Transition(CSharpTokenizerState.QuotedStringLiteral);
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, expectedPrefix: "\"", expectedPostfix: "\"");
+            case '$':
+                switch (Peek())
+                {
+                    case '"':
+                        return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.InterpolatedStringStartToken, SyntaxKind.StringLiteral, expectedPrefix: "$\"", expectedPostfix: "\"");
+                    case '@' when Peek(2) == '"':
+                        return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.InterpolatedVerbatimStringStartToken, SyntaxKind.StringLiteral, expectedPrefix: "$@\"", expectedPostfix: "\"");
+                }
+                goto default;
             case '.':
                 if (char.IsDigit(Peek()))
                 {
-                    return RealLiteral();
+                    return NumericLiteral();
                 }
-                return Stay(Single(SyntaxKind.Dot));
-            case '/':
-                TakeCurrent();
-                if (CurrentCharacter == '/')
-                {
-                    TakeCurrent();
-                    return SingleLineComment();
-                }
-                else if (CurrentCharacter == '*')
-                {
-                    TakeCurrent();
-                    return Transition(CSharpTokenizerState.BlockComment);
-                }
-                else if (CurrentCharacter == '=')
-                {
-                    TakeCurrent();
-                    return Stay(EndToken(SyntaxKind.DivideAssign));
-                }
-                else
-                {
-                    return Stay(EndToken(SyntaxKind.Slash));
-                }
+                return Operator();
+            case '/' when Peek() is '/' or '*':
+                return Assumed.Unreachable<StateResult>();
             default:
-                return Stay(EndToken(Operator()));
+                return Operator();
         }
     }
 
     private StateResult AtToken()
     {
-        TakeCurrent();
-        if (CurrentCharacter == '"')
+        AssertCurrent('@');
+        switch (Peek())
+        {
+            case '"':
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, expectedPrefix: "@\"", expectedPostfix: "\"");
+            case '$' when Peek(2) == '"':
+                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.InterpolatedStringStartToken, SyntaxKind.StringLiteral, expectedPrefix: "@$\"", expectedPostfix: "\"");
+            case '*':
+                return Assumed.Unreachable<StateResult>();
+            case '@':
+                // Escaped razor transition. Likely will error in the parser.
+                AddResetPoint();
+                TakeCurrent();
+                _roslynTokenParser.SkipForwardTo(Source.Position);
+                AssertCurrent('@');
+                return Transition(RoslynCSharpTokenizerState.Token, EndToken(SyntaxKind.Transition));
+            default:
+                // Either a standard razor transition or a C# identifier. The parser will take care of stitching together the transition and the
+                // identifier if it's the latter case.
+                AddResetPoint();
+                TakeCurrent();
+                _roslynTokenParser.SkipForwardTo(Source.Position);
+                var trailingTrivia = GetNextResult(NextResultType.TrailingTrivia);
+                _currentCSharpTokenTriviaEnumerator = (trailingTrivia.Token.TrailingTrivia.GetEnumerator(), isLeading: false);
+                return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, EndToken(SyntaxKind.Transition));
+        }
+    }
+
+    private StateResult Operator()
+    {
+        var curPosition = Source.Position;
+        var result = GetNextResult(NextResultType.Token);
+        var token = result.Token;
+
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        var finalPosition = curPosition + token.Span.Length;
+
+        for (; curPosition < finalPosition; curPosition++)
         {
             TakeCurrent();
-            return Transition(CSharpTokenizerState.VerbatimStringLiteral);
         }
-        else if (CurrentCharacter == '*')
+
+        SyntaxKind kind;
+        string content;
+        switch (token.RawKind)
         {
+            case (int)CSharpSyntaxKind.ExclamationToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Not;
+                break;
+            case (int)CSharpSyntaxKind.OpenParenToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.LeftParenthesis;
+                break;
+            case (int)CSharpSyntaxKind.CloseParenToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.RightParenthesis;
+                break;
+            case (int)CSharpSyntaxKind.CommaToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Comma;
+                break;
+            case (int)CSharpSyntaxKind.DotToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Dot;
+                break;
+            case (int)CSharpSyntaxKind.ColonColonToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.DoubleColon;
+                break;
+            case (int)CSharpSyntaxKind.ColonToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Colon;
+                break;
+            case (int)CSharpSyntaxKind.OpenBraceToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.LeftBrace;
+                break;
+            case (int)CSharpSyntaxKind.CloseBraceToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.RightBrace;
+                break;
+            case (int)CSharpSyntaxKind.LessThanToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.LessThan;
+                break;
+            case (int)CSharpSyntaxKind.GreaterThanToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.GreaterThan;
+                break;
+            case (int)CSharpSyntaxKind.EqualsToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Assign;
+                break;
+            case (int)CSharpSyntaxKind.OpenBracketToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.LeftBracket;
+                break;
+            case (int)CSharpSyntaxKind.CloseBracketToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.RightBracket;
+                break;
+            case (int)CSharpSyntaxKind.QuestionToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.QuestionMark;
+                break;
+            case (int)CSharpSyntaxKind.SemicolonToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.Semicolon;
+                break;
+            case <= (int)CSharpSyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken and >= (int)CSharpSyntaxKind.TildeToken:
+                TakeTokenContent(token, out content);
+                kind = SyntaxKind.CSharpOperator;
+                break;
+            default:
+                kind = SyntaxKind.Marker;
+                content = Buffer.ToString();
+                Buffer.Clear();
+                break;
+        }
+
+        _currentCSharpTokenTriviaEnumerator = (token.TrailingTrivia.GetEnumerator(), isLeading: false);
+        return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, EndToken(content, kind));
+
+        void TakeTokenContent(CSharpSyntaxToken token, out string content)
+        {
+            // Use the already-interned string from the C# lexer, rather than realizing the buffer, to ensure that
+            // we don't allocate a new string for every operator token.
+            content = token.ValueText;
+            Debug.Assert(content == Buffer.ToString());
+            Buffer.Clear();
+        }
+    }
+
+    private StateResult TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind expectedCSharpTokenKind, SyntaxKind razorTokenKind, string expectedPrefix, string expectedPostfix)
+    {
+        var curPosition = Source.Position;
+        var result = GetNextResult(NextResultType.Token);
+        var csharpToken = result.Token;
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        var finalPosition = curPosition + csharpToken.Span.Length;
+
+        for (; curPosition < finalPosition; curPosition++)
+        {
+            TakeCurrent();
+        }
+
+        // If the token is the expected kind and has the expected prefix or doesn't have the expected postfix, then it's unterminated.
+        // This is a case like `"test` (which doesn't end in the expected postfix), or `"` (which ends in the expected postfix, but
+        // exactly matches the expected prefix).
+        if (CodeAnalysis.CSharpExtensions.IsKind(csharpToken, expectedCSharpTokenKind)
+            && (csharpToken.Text == expectedPrefix || !csharpToken.Text.EndsWith(expectedPostfix, StringComparison.Ordinal)))
+        {
+            CurrentErrors.Add(
+                RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
+                    new SourceSpan(CurrentStart, contentLength: expectedPrefix.Length /* " */)));
+        }
+
+        _currentCSharpTokenTriviaEnumerator = (csharpToken.TrailingTrivia.GetEnumerator(), isLeading: false);
+        return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, EndToken(razorTokenKind));
+    }
+
+
+    private StateResult Trivia()
+    {
+        Debug.Assert(_currentCSharpTokenTriviaEnumerator is not null);
+        var (triviaEnumerator, isLeading) = _currentCSharpTokenTriviaEnumerator.Value;
+
+        if (!triviaEnumerator.MoveNext())
+        {
+            _currentCSharpTokenTriviaEnumerator = null;
+            if (!isLeading)
+            {
+                return Transition(RoslynCSharpTokenizerState.Start, null);
+            }
+            else
+            {
+                return Transition(RoslynCSharpTokenizerState.Token, null);
+            }
+        }
+
+        // Need to make sure the class state is correct, since structs are copied
+        _currentCSharpTokenTriviaEnumerator = (triviaEnumerator, isLeading);
+
+        var curPosition = Source.Position;
+        var trivia = triviaEnumerator.Current;
+        var triviaString = trivia.ToFullString();
+
+        // We handle razor comments with dedicated nodes
+        if (trivia.IsKind(CSharpSyntaxKind.MultiLineCommentTrivia) && triviaString.StartsWith("@*", StringComparison.Ordinal))
+        {
+            Debug.Assert(CurrentCharacter == '@');
+            TakeCurrent();
+
             return Transition(
-                CSharpTokenizerState.AfterRazorCommentTransition,
+                RoslynCSharpTokenizerState.OnRazorCommentStar,
                 EndToken(SyntaxKind.RazorCommentTransition));
         }
-        else if (CurrentCharacter == '@')
-        {
-            // Could be escaped comment transition
-            return Transition(
-                CSharpTokenizerState.EscapedRazorCommentTransition,
-                EndToken(SyntaxKind.Transition));
-        }
 
-        return Stay(EndToken(SyntaxKind.Transition));
-    }
+        // Use FullSpan here because doc comment trivias exclude the leading `///` or `/**` and the trailing `*/`
+        var finalPosition = curPosition + trivia.FullSpan.Length;
 
-    private StateResult EscapedRazorCommentTransition()
-    {
-        TakeCurrent();
-        return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.Transition));
-    }
-
-    private SyntaxKind Operator()
-    {
-        var first = CurrentCharacter;
-        TakeCurrent();
-        Func<SyntaxKind> handler;
-        if (_operatorHandlers.TryGetValue(first, out handler))
-        {
-            return handler();
-        }
-        return SyntaxKind.Marker;
-    }
-
-    private SyntaxKind LessThanOperator()
-    {
-        if (CurrentCharacter == '=')
+        for (; curPosition < finalPosition; curPosition++)
         {
             TakeCurrent();
-            return SyntaxKind.LessThanEqual;
         }
-        return SyntaxKind.LessThan;
-    }
 
-    private SyntaxKind GreaterThanOperator()
-    {
-        if (CurrentCharacter == '=')
-        {
-            TakeCurrent();
-            return SyntaxKind.GreaterThanEqual;
-        }
-        return SyntaxKind.GreaterThan;
-    }
-
-    private SyntaxKind MinusOperator()
-    {
-        if (CurrentCharacter == '>')
-        {
-            TakeCurrent();
-            return SyntaxKind.Arrow;
-        }
-        else if (CurrentCharacter == '-')
-        {
-            TakeCurrent();
-            return SyntaxKind.Decrement;
-        }
-        else if (CurrentCharacter == '=')
-        {
-            TakeCurrent();
-            return SyntaxKind.MinusAssign;
-        }
-        return SyntaxKind.Minus;
-    }
-
-    private Func<SyntaxKind> CreateTwoCharOperatorHandler(SyntaxKind typeIfOnlyFirst, char second, SyntaxKind typeIfBoth)
-    {
-        return () =>
-        {
-            if (CurrentCharacter == second)
-            {
-                TakeCurrent();
-                return typeIfBoth;
-            }
-            return typeIfOnlyFirst;
-        };
-    }
-
-    private Func<SyntaxKind> CreateTwoCharOperatorHandler(SyntaxKind typeIfOnlyFirst, char option1, SyntaxKind typeIfOption1, char option2, SyntaxKind typeIfOption2)
-    {
-        return () =>
-        {
-            if (CurrentCharacter == option1)
-            {
-                TakeCurrent();
-                return typeIfOption1;
-            }
-            else if (CurrentCharacter == option2)
-            {
-                TakeCurrent();
-                return typeIfOption2;
-            }
-            return typeIfOnlyFirst;
-        };
-    }
-
-    private StateResult VerbatimStringLiteral()
-    {
-        TakeUntil(c => c == '"');
-        if (CurrentCharacter == '"')
-        {
-            TakeCurrent();
-            if (CurrentCharacter == '"')
-            {
-                TakeCurrent();
-                // Stay in the literal, this is an escaped "
-                return Stay();
-            }
-        }
-        else if (EndOfFile)
-        {
-            CurrentErrors.Add(
-                RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
-                    new SourceSpan(CurrentStart, contentLength: 1 /* end of file */)));
-        }
-        return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.StringLiteral));
-    }
-
-    private StateResult QuotedCharacterLiteral() => QuotedLiteral('\'', IsEndQuotedCharacterLiteral, SyntaxKind.CharacterLiteral);
-
-    private StateResult QuotedStringLiteral() => QuotedLiteral('\"', IsEndQuotedStringLiteral, SyntaxKind.StringLiteral);
-
-    private static readonly Func<char, bool> IsEndQuotedCharacterLiteral = static (c) => c == '\\' || c == '\'' || SyntaxFacts.IsNewLine(c);
-    private static readonly Func<char, bool> IsEndQuotedStringLiteral = static (c) => c == '\\' || c == '\"' || SyntaxFacts.IsNewLine(c);
-
-    private StateResult QuotedLiteral(char quote, Func<char, bool> isEndQuotedLiteral, SyntaxKind literalType)
-    {
-        TakeUntil(isEndQuotedLiteral);
-        if (CurrentCharacter == '\\')
-        {
-            TakeCurrent(); // Take the '\'
-
-            // If the next char is the same quote that started this
-            if (CurrentCharacter == quote || CurrentCharacter == '\\')
-            {
-                TakeCurrent(); // Take it so that we don't prematurely end the literal.
-            }
-            return Stay();
-        }
-        else if (EndOfFile || SyntaxFacts.IsNewLine(CurrentCharacter))
-        {
-            CurrentErrors.Add(
-                RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
-                    new SourceSpan(CurrentStart, contentLength: 1 /* " */)));
-        }
-        else
-        {
-            TakeCurrent(); // No-op if at EOF
-        }
-        return Transition(CSharpTokenizerState.Data, EndToken(literalType));
-    }
-
-    // CSharp Spec §2.3.2
-    private StateResult BlockComment()
-    {
-        TakeUntil(c => c == '*');
-        if (EndOfFile)
+        if (EndOfFile
+            && trivia.Kind() is CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia
+            && !triviaString.EndsWith("*/", StringComparison.Ordinal))
         {
             CurrentErrors.Add(
                 RazorDiagnosticFactory.CreateParsing_BlockCommentNotTerminated(
                     new SourceSpan(CurrentStart, contentLength: 1 /* end of file */)));
+        }
 
-            return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.CSharpComment));
-        }
-        if (CurrentCharacter == '*')
+        // TODO: Handle preprocessor directives
+        var tokenType = trivia.Kind() switch
         {
-            TakeCurrent();
-            if (CurrentCharacter == '/')
-            {
-                TakeCurrent();
-                return Transition(CSharpTokenizerState.Data, EndToken(SyntaxKind.CSharpComment));
-            }
-        }
-        return Stay();
+            CSharpSyntaxKind.WhitespaceTrivia => SyntaxKind.Whitespace,
+            CSharpSyntaxKind.EndOfLineTrivia => SyntaxKind.NewLine,
+            CSharpSyntaxKind.SingleLineCommentTrivia or CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia or CSharpSyntaxKind.SingleLineDocumentationCommentTrivia => SyntaxKind.CSharpComment,
+            _ => throw new InvalidOperationException("Unexpected trivia kind."),
+        };
+
+        return Stay(EndToken(tokenType));
     }
 
-    // CSharp Spec §2.3.2
-    private StateResult SingleLineComment()
+    private StateResult OnRazorCommentStar()
     {
-        TakeUntil(c => SyntaxFacts.IsNewLine(c));
-        return Stay(EndToken(SyntaxKind.CSharpComment));
+        AssertCurrent('*');
+        TakeCurrent();
+
+        return Transition(
+            RoslynCSharpTokenizerState.RazorCommentBody,
+            EndToken(SyntaxKind.RazorCommentStar));
     }
 
     // CSharp Spec §2.4.4
     private StateResult NumericLiteral()
     {
-        if (TakeAll("0x", caseSensitive: true))
-        {
-            return HexLiteral();
-        }
-        else
-        {
-            return DecimalLiteral();
-        }
-    }
+        var curPosition = Source.Position;
+        var result = GetNextResult(NextResultType.Token);
+        var csharpToken = result.Token;
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        var finalPosition = curPosition + csharpToken.Span.Length;
 
-    private StateResult HexLiteral()
-    {
-        TakeUntil(c => !IsHexDigit(c));
-        TakeIntegerSuffix();
-        return Stay(EndToken(SyntaxKind.IntegerLiteral));
-    }
-
-    private StateResult DecimalLiteral()
-    {
-        TakeUntil(c => !Char.IsDigit(c));
-        if (CurrentCharacter == '.' && Char.IsDigit(Peek()))
-        {
-            return RealLiteral();
-        }
-        else if (IsRealLiteralSuffix(CurrentCharacter) ||
-                 CurrentCharacter == 'E' || CurrentCharacter == 'e')
-        {
-            return RealLiteralExponentPart();
-        }
-        else
-        {
-            TakeIntegerSuffix();
-            return Stay(EndToken(SyntaxKind.IntegerLiteral));
-        }
-    }
-
-    private StateResult RealLiteralExponentPart()
-    {
-        if (CurrentCharacter == 'E' || CurrentCharacter == 'e')
-        {
-            TakeCurrent();
-            if (CurrentCharacter == '+' || CurrentCharacter == '-')
-            {
-                TakeCurrent();
-            }
-            TakeUntil(c => !Char.IsDigit(c));
-        }
-        if (IsRealLiteralSuffix(CurrentCharacter))
+        for (; curPosition < finalPosition; curPosition++)
         {
             TakeCurrent();
         }
-        return Stay(EndToken(SyntaxKind.RealLiteral));
+
+        Buffer.Clear();
+        _currentCSharpTokenTriviaEnumerator = (csharpToken.TrailingTrivia.GetEnumerator(), isLeading: false);
+        return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, EndToken(csharpToken.Text, SyntaxKind.NumericLiteral));
     }
 
-    // CSharp Spec §2.4.4.3
-    private StateResult RealLiteral()
-    {
-        AssertCurrent('.');
-        TakeCurrent();
-        Debug.Assert(Char.IsDigit(CurrentCharacter));
-        TakeUntil(c => !Char.IsDigit(c));
-        return RealLiteralExponentPart();
-    }
-
-    private void TakeIntegerSuffix()
-    {
-        if (Char.ToLowerInvariant(CurrentCharacter) == 'u')
-        {
-            TakeCurrent();
-            if (Char.ToLowerInvariant(CurrentCharacter) == 'l')
-            {
-                TakeCurrent();
-            }
-        }
-        else if (Char.ToLowerInvariant(CurrentCharacter) == 'l')
-        {
-            TakeCurrent();
-            if (Char.ToLowerInvariant(CurrentCharacter) == 'u')
-            {
-                TakeCurrent();
-            }
-        }
-    }
-
-    // CSharp Spec §2.4.2
     private StateResult Identifier()
     {
-        Debug.Assert(SyntaxFacts.IsIdentifierStartCharacter(CurrentCharacter));
-        TakeCurrent();
-        TakeUntil(c => !SyntaxFacts.IsIdentifierPartCharacter(c));
-        SyntaxToken token = null;
-        if (HaveContent)
+        var curPosition = Source.Position;
+        var result = GetNextResult(NextResultType.Token);
+        var csharpToken = result.Token;
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        var finalPosition = curPosition + csharpToken.Span.Length;
+
+        for (; curPosition < finalPosition; curPosition++)
         {
-            var type = SyntaxKind.Identifier;
-            var tokenContent = Buffer.ToString();
-            if (_keywords.TryGetValue(tokenContent, value: out _))
-            {
-                type = SyntaxKind.Keyword;
-            }
-
-            token = SyntaxFactory.Token(type, tokenContent);
-
-            Buffer.Clear();
-            CurrentErrors.Clear();
+            TakeCurrent();
         }
 
-        return Stay(token);
+        var type = SyntaxKind.Identifier;
+        if (!csharpToken.IsKind(CSharpSyntaxKind.IdentifierToken) || result.ContextualKind is not (CSharpSyntaxKind.None or CSharpSyntaxKind.IdentifierToken))
+        {
+            type = SyntaxKind.Keyword;
+        }
+
+        var token = EndToken(csharpToken.Text, type);
+
+        Buffer.Clear();
+        _currentCSharpTokenTriviaEnumerator = (csharpToken.TrailingTrivia.GetEnumerator(), isLeading: false);
+        return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, token);
     }
 
-    private StateResult Transition(CSharpTokenizerState state)
-    {
-        return Transition((int)state, result: null);
-    }
-
-    private StateResult Transition(CSharpTokenizerState state, SyntaxToken result)
+    private StateResult Transition(RoslynCSharpTokenizerState state, SyntaxToken? result)
     {
         return Transition((int)state, result);
     }
 
-    private static bool IsRealLiteralSuffix(char character)
+    internal static CSharpSyntaxKind GetTokenKeywordKind(SyntaxToken token)
     {
-        return character == 'F' ||
-               character == 'f' ||
-               character == 'D' ||
-               character == 'd' ||
-               character == 'M' ||
-               character == 'm';
-    }
+        if (token is null)
+        {
+            return CSharpSyntaxKind.None;
+        }
 
-    private static bool IsHexDigit(char value)
-    {
-        return (value >= '0' && value <= '9') || (value >= 'A' && value <= 'F') || (value >= 'a' && value <= 'f');
+        var content = token.Content;
+        return SyntaxFacts.GetKeywordKind(content) is var kind and not CSharpSyntaxKind.None
+            ? kind
+            : SyntaxFacts.GetContextualKeywordKind(content);
     }
 
     internal override CSharpSyntaxKind? GetTokenKeyword(SyntaxToken token)
     {
-        if (token != null && _keywords.TryGetValue(token.Content, out var keyword))
+        if (token is null)
         {
-            return keyword;
+            return CSharpSyntaxKind.None;
         }
 
-        return null;
+        var content = token.Content;
+        return SyntaxFacts.GetKeywordKind(content) is var kind and not CSharpSyntaxKind.None
+            ? kind
+            : SyntaxFacts.GetContextualKeywordKind(content);
     }
 
-    private enum CSharpTokenizerState
+    private SyntaxTokenParser.Result GetNextResult(NextResultType expectedType)
     {
-        Data,
-        BlockComment,
-        QuotedCharacterLiteral,
-        QuotedStringLiteral,
-        VerbatimStringLiteral,
+        var nextResult = expectedType switch
+        {
+            NextResultType.LeadingTrivia => _roslynTokenParser.ParseLeadingTrivia(),
+            NextResultType.Token => _roslynTokenParser.ParseNextToken(),
+            NextResultType.TrailingTrivia => _roslynTokenParser.ParseTrailingTrivia(),
+            _ => Assumed.Unreachable<SyntaxTokenParser.Result>()
+        };
+
+        Debug.Assert(_resultCache.All(r => r.position <= nextResult.Token.FullSpan.Start));
+
+        if (_resultCache.Count > 0 && _resultCache[^1].position == nextResult.Token.FullSpan.Start)
+        {
+            // This can happen when there was no leading or trailing trivia for this token. We don't need to maintain both the previous
+            // result and the current result, as the current result fully subsumes it.
+            Debug.Assert(_resultCache[^1].result is { Token.FullSpan.Length: 0 });
+            Debug.Assert(!nextResult.Token.HasLeadingTrivia);
+            _resultCache[^1] = (nextResult.Token.FullSpan.Start, nextResult);
+        }
+        else
+        {
+            _resultCache.Add((nextResult.Token.FullSpan.Start, nextResult));
+        }
+
+        return nextResult;
+    }
+
+    private void AddResetPoint()
+    {
+        // We want to make it easy to reset the tokenizer back to just before this token; we can do that very simply by trying to parse
+        // leading trivia, which gives us a reset point. We know that we can't have any leading trivia, since we're on an `@` character.
+        var nextResult = GetNextResult(NextResultType.LeadingTrivia);
+        Debug.Assert(nextResult.Token.IsKind(CSharpSyntaxKind.None));
+        Debug.Assert(nextResult.Token.FullSpan.Length == 0);
+    }
+
+    public override void Reset(int position)
+    {
+        // Most common reset point is the last parsed token, so just try that first.
+        Debug.Assert(_resultCache.Count > 0);
+
+        var lastIndex = _resultCache.Count - 1;
+        var lastResult = _resultCache[lastIndex];
+        if (lastResult.position == position)
+        {
+            _resultCache.RemoveAt(lastIndex);
+            _roslynTokenParser.ResetTo(lastResult.result);
+        }
+        else
+        {
+            // Not the last one, so binary search
+            var index = _resultCache.BinarySearch((position, default), ResultCacheSearcher.Instance);
+
+            if (index >= 0)
+            {
+                // Found an exact match
+                var resetResult = _resultCache[index].result;
+                _roslynTokenParser.ResetTo(resetResult);
+                _resultCache.RemoveRange(index, _resultCache.Count - index);
+            }
+            else
+            {
+                // Reset to the one before reset point, then skip forward
+                index = ~index - 1;
+                // We know there was at least one element in the list, so BinarySearch returned either the element with a position further ahead of where we want to reset to, or the length of the list.
+                // In either case, we know that index is valid.
+                Debug.Assert(index >= 0);
+
+                // We don't want to actually remove the result from the cache in this point: the parser could later ask to reset further back in this same result. This mostly happens for trivia, where the
+                // parser may ask to put multiple tokens back, each part of the same roslyn trivia piece. However, it is not _only_ for trivia, so we can't assert that. The parser may decide, for example,
+                // to split the @ from a token, reset the tokenizer after the @, and then keep going.
+                var resetResult = _resultCache[index].result;
+                _roslynTokenParser.ResetTo(resetResult);
+                _roslynTokenParser.SkipForwardTo(position);
+
+                if (index + 1 < _resultCache.Count)
+                {
+                    // Any results further ahead than the position we reset to are no longer valid, so we want to remove them.
+                    // We need to keep the position we reset to, just in case the parser asks to reset to it again.
+                    _resultCache.RemoveRange(index + 1, _resultCache.Count - index - 1);
+                }
+            }
+
+        }
+
+        base.CurrentState = (int)RoslynCSharpTokenizerState.Start;
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        _roslynTokenParser.Dispose();
+    }
+
+    private enum NextResultType
+    {
+        LeadingTrivia,
+        Token,
+        TrailingTrivia,
+    }
+
+    private enum RoslynCSharpTokenizerState
+    {
+        Start,
+        Token,
+
+        // TODO:
+        TriviaForCSharpToken,
 
         // Razor Comments - need to be the same for HTML and CSharp
+        OnRazorCommentStar,
         AfterRazorCommentTransition = RazorCommentTokenizerState.AfterRazorCommentTransition,
-        EscapedRazorCommentTransition = RazorCommentTokenizerState.EscapedRazorCommentTransition,
         RazorCommentBody = RazorCommentTokenizerState.RazorCommentBody,
         StarAfterRazorCommentBody = RazorCommentTokenizerState.StarAfterRazorCommentBody,
         AtTokenAfterRazorCommentBody = RazorCommentTokenizerState.AtTokenAfterRazorCommentBody,
+    }
+
+    private class ResultCacheSearcher : IComparer<(int position, SyntaxTokenParser.Result result)>
+    {
+        public static ResultCacheSearcher Instance { get; } = new ResultCacheSearcher();
+
+        public int Compare((int position, SyntaxTokenParser.Result result) x, (int position, SyntaxTokenParser.Result result) y)
+        {
+            return x.position.CompareTo(y.position);
+        }
     }
 }

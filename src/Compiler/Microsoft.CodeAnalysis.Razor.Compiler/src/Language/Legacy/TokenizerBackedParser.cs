@@ -721,6 +721,16 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase, IDisposa
         Context.CurrentAcceptedCharacters = acceptedCharacters ?? AcceptedCharactersInternal.None;
     }
 
+    internal void StartingBlock()
+    {
+        _tokenizer.Tokenizer.StartingBlock();
+    }
+
+    internal void EndingBlock()
+    {
+        _tokenizer.Tokenizer.EndingBlock();
+    }
+
     public void Dispose()
     {
         _tokenizer.Dispose();

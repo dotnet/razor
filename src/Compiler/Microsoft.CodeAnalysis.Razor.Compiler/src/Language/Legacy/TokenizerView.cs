@@ -34,9 +34,15 @@ internal class TokenizerView<TTokenizer> : IDisposable
 
     public void PutBack(SyntaxToken token)
     {
-        Source.Position -= token.Content.Length;
+        Reset(Source.Position - token.Content.Length);
+    }
+
+    public void Reset(int position)
+    {
+        Source.Position = position;
         Current = null;
         EndOfFile = Source.Position >= Source.Length;
+        Tokenizer.Reset(Source.Position);
     }
 
     public void Dispose()

@@ -67,10 +67,9 @@ internal abstract class Tokenizer : IDisposable
 
     protected abstract StateResult Dispatch();
 
-    SyntaxToken ITokenizer.NextToken()
-    {
-        return NextToken();
-    }
+    internal virtual void StartingBlock() { }
+
+    internal virtual void EndingBlock() { }
 
     public virtual SyntaxToken? NextToken()
     {
@@ -119,7 +118,7 @@ internal abstract class Tokenizer : IDisposable
         return default(SyntaxToken);
     }
 
-    public void Reset()
+    public virtual void Reset(int position)
     {
         CurrentState = StartState;
     }
@@ -203,6 +202,20 @@ internal abstract class Tokenizer : IDisposable
         SyntaxToken? token = null;
         if (HaveContent)
         {
+            var tokenContent = GetTokenContent(type);
+            Debug.Assert(string.Equals(tokenContent, Buffer.ToString(), StringComparison.Ordinal), $"Token content mismatch: '{tokenContent}' != '{Buffer}'. Token Type: '{type}'.");
+            token = EndToken(tokenContent, type);
+            Buffer.Clear();
+        }
+
+        return token;
+    }
+
+    protected SyntaxToken? EndToken(string tokenContent, SyntaxKind type)
+    {
+        SyntaxToken? token = null;
+        if (tokenContent != null)
+        {
             // Perf: Don't allocate a new errors array unless necessary.
             var errors = CurrentErrors.Count == 0 ? Array.Empty<RazorDiagnostic>() : new RazorDiagnostic[CurrentErrors.Count];
             for (var i = 0; i < CurrentErrors.Count; i++)
@@ -210,11 +223,8 @@ internal abstract class Tokenizer : IDisposable
                 errors[i] = CurrentErrors[i];
             }
 
-            var tokenContent = GetTokenContent(type);
-            Debug.Assert(string.Equals(tokenContent, Buffer.ToString(), StringComparison.Ordinal), $"Token content mismatch: '{tokenContent}' != '{Buffer}'. Token Type: '{type}'.");
             token = CreateToken(tokenContent, type, errors);
 
-            Buffer.Clear();
             CurrentErrors.Clear();
         }
 
@@ -258,13 +268,14 @@ internal abstract class Tokenizer : IDisposable
         return Lookahead(expected, takeIfMatch: true, caseSensitive: caseSensitive);
     }
 
-    protected char Peek()
+    protected char Peek(int charactersAhead = 1)
     {
-        using (var lookahead = BeginLookahead(Source))
+        using var lookahead = BeginLookahead(Source);
+        for (var i = 0; i < charactersAhead; i++)
         {
             MoveNext();
-            return CurrentCharacter;
         }
+        return CurrentCharacter;
     }
 
     protected StateResult AfterRazorCommentTransition()
