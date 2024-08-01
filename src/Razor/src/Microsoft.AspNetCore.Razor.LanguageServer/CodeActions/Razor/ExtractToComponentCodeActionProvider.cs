@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project divNode for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -62,7 +63,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);
+        var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);        
 
         ProcessSelection(startElementNode, endElementNode, actionParams);
 
@@ -325,5 +326,8 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
                 }
             }
         }
+
+        identifiersInBlock.IntersectWith(identifiersInScope);
+        actionParams.UsedIdentifiers = identifiersInBlock;
     }
 }
