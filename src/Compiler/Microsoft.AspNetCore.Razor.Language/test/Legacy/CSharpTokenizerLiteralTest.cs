@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 using Xunit;
 
@@ -214,33 +213,51 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     }
 
     [Fact]
-    public void Character_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash()
+    public void Character_Literal_Eats_EOL_When_Escaped()
     {
-        TestTokenizer("'foo\\\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
+        TestTokenizer("'foo\\\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\n"), IgnoreRemaining);
     }
 
     [Fact]
-    public void Character_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
+    public void Character_Literal_Eats_EOL_When_Escaped_And_Followed_By_Stuff()
     {
-        TestTokenizer("'foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
+        TestTokenizer("'foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\nflarg"), IgnoreRemaining);
     }
 
     [Fact]
-    public void Character_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash()
+    public void Character_Literal_Eats_CR_When_Escaped()
     {
-        TestTokenizer("'foo\\\r\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
+        TestTokenizer("'foo\\\r\n", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
-    public void Character_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
+    public void Character_Literal_Eats_CR_When_Escaped_And_Followed_By_Stuff()
     {
-        TestTokenizer($"'foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\"), IgnoreRemaining);
+        TestTokenizer($"'foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
     public void Character_Literal_Allows_Escaped_Escape()
     {
         TestTokenizer("'foo\\\\'blah", SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo\\\\'"), IgnoreRemaining);
+    }
+
+    [Fact]
+    public void Character_Literal_Allows_Trailing_Comments()
+    {
+        TestTokenizer("'f' // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'f'"),
+            SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
+            SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
+    }
+
+    [Fact]
+    public void Multi_Character_Literal_Allows_Trailing_Comments()
+    {
+        TestTokenizer("'foo' // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.CharacterLiteral, "'foo'"),
+            SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
+            SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
     }
 
     [Fact]
@@ -270,25 +287,25 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void String_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash()
     {
-        TestTokenizer("\"foo\\\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
+        TestTokenizer("\"foo\\\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\n"), IgnoreRemaining);
     }
 
     [Fact]
     public void String_Literal_Terminated_By_EOL_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
     {
-        TestTokenizer("\"foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
+        TestTokenizer("\"foo\\\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\nflarg"), IgnoreRemaining);
     }
 
     [Fact]
-    public void String_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash()
+    public void String_Literal_Eats_Escaped_CR()
     {
-        TestTokenizer("\"foo\\\r\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
+        TestTokenizer("\"foo\\\r\n", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
-    public void String_Literal_Terminated_By_CRLF_Even_When_Last_Char_Is_Slash_And_Followed_By_Stuff()
+    public void String_Literal_Eats_Escaped_CR_And_Followed_By_Stuff()
     {
-        TestTokenizer($"\"foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\"), IgnoreRemaining);
+        TestTokenizer($"\"foo\\\r\nflarg", SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\\\r"), IgnoreRemaining);
     }
 
     [Fact]
@@ -319,5 +336,202 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     public void Verbatim_String_Literal_Is_Terminated_By_EOF()
     {
         TestSingleToken("@\"foo", SyntaxKind.StringLiteral);
+    }
+
+    [Fact]
+    public void String_Literal_Allows_Trailing_Comments()
+    {
+        TestTokenizer("\"foo\" // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, "\"foo\""),
+            SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
+            SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
+    }
+
+    [Fact]
+    public void Verbatim_String_Literal_Allows_Trailing_Comments()
+    {
+        TestTokenizer("@\"foo\" // This is a comment",
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, "@\"foo\""),
+            SyntaxFactory.Token(SyntaxKind.Whitespace, " "),
+            SyntaxFactory.Token(SyntaxKind.CSharpComment, "// This is a comment"));
+    }
+
+    [Fact]
+    public void Interpolated_String_Is_Recognized()
+    {
+        TestTokenizer("""
+            $"Hello, {name}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name}!"
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Allows_Nested_Strings()
+    {
+        TestTokenizer("""
+            $"Hello, {"world!"}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {"world!"}!"
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Allows_Escaped_Curly_Braces()
+    {
+        TestTokenizer("""
+            $"Hello, {{name}}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {{name}}!"
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Allows_Newlines_In_Interpolation_Hole()
+    {
+        TestTokenizer("""
+            $"Hello, {name
+                + 1}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name
+                + 1}!"
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Newlines_Terminate_Content()
+    {
+        TestTokenizer("""
+            $"Hello, {name + 1}
+            !"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name + 1}
+            """), IgnoreRemaining);
+    }
+
+    [Fact]
+    public void Interpolated_String_EndOfFile_In_Interpolation_Hole_Ends_String()
+    {
+        TestTokenizer("""
+            $"Hello, {name + 1
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name + 1
+            """));
+    }
+
+    [Fact]
+    public void Interpolated_String_Allows_Comment_In_Interpolation_Hole()
+    {
+        TestTokenizer("""
+            $"Hello, {name + 1 // Test!
+              }!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
+            $"Hello, {name + 1 // Test!
+              }!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Is_Recognized(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name}!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Nested_Strings(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {"world!"}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {"world!"}!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Escaped_Curly_Braces(string prefix)
+    {
+        TestTokenizer($$$"""
+            {{{prefix}}}"Hello, {{name}}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$$"""
+            {{{prefix}}}"Hello, {{name}}!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Newlines_In_Interpolation_Hole(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name
+                + 1}!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name
+                + 1}!"
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Newlines_In_Content(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name + 1}
+            !"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name + 1}
+            !"
+            """), IgnoreRemaining);
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_EndOfFile_In_Interpolation_Hole_Ends_String(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name + 1
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name + 1
+            """));
+    }
+
+    [Theory]
+    [InlineData("$@")]
+    [InlineData("@$")]
+    public void Verbatim_Interpolated_String_Allows_Comment_In_Interpolation_Hole(string prefix)
+    {
+        TestTokenizer($$"""
+            {{prefix}}"Hello, {name + 1 // Test!
+              }!"
+            """,
+            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
+            {{prefix}}"Hello, {name + 1 // Test!
+              }!"
+            """));
     }
 }
