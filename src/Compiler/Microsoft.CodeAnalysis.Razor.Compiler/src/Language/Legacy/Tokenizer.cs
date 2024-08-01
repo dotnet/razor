@@ -1,8 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,7 +30,7 @@ internal abstract class Tokenizer : IDisposable
 
     protected int? CurrentState { get; set; }
 
-    protected SyntaxToken CurrentSyntaxToken { get; private set; }
+    protected SyntaxToken? CurrentSyntaxToken { get; private set; }
 
     public SeekableTextReader Source { get; private set; }
 
@@ -74,7 +72,7 @@ internal abstract class Tokenizer : IDisposable
         return NextToken();
     }
 
-    public virtual SyntaxToken NextToken()
+    public virtual SyntaxToken? NextToken()
     {
         // Post-Condition: Buffer should be empty at the start of Next()
         Debug.Assert(Buffer.Length == 0);
@@ -96,7 +94,7 @@ internal abstract class Tokenizer : IDisposable
         return token;
     }
 
-    protected virtual SyntaxToken Turn()
+    protected virtual SyntaxToken? Turn()
     {
         if (CurrentState != null)
         {
@@ -150,7 +148,7 @@ internal abstract class Tokenizer : IDisposable
     /// Returns a result containing the specified output and indicating that the next call to
     /// <see cref="Turn"/> should invoke the provided state.
     /// </summary>
-    protected StateResult Transition(int state, SyntaxToken result)
+    protected StateResult Transition(int state, SyntaxToken? result)
     {
         return new StateResult(state, result);
     }
@@ -160,7 +158,7 @@ internal abstract class Tokenizer : IDisposable
         return new StateResult((int)state, result: null);
     }
 
-    protected StateResult Transition(RazorCommentTokenizerState state, SyntaxToken result)
+    protected StateResult Transition(RazorCommentTokenizerState state, SyntaxToken? result)
     {
         return new StateResult((int)state, result);
     }
@@ -181,12 +179,12 @@ internal abstract class Tokenizer : IDisposable
     /// Returns a result containing the specified output and indicating that the next call to
     /// <see cref="Turn"/> should re-invoke the current state.
     /// </summary>
-    protected StateResult Stay(SyntaxToken result)
+    protected StateResult Stay(SyntaxToken? result)
     {
         return new StateResult(CurrentState, result);
     }
 
-    protected SyntaxToken Single(SyntaxKind type)
+    protected SyntaxToken? Single(SyntaxKind type)
     {
         TakeCurrent();
         return EndToken(type);
@@ -200,9 +198,9 @@ internal abstract class Tokenizer : IDisposable
         CurrentStart = CurrentLocation;
     }
 
-    protected SyntaxToken EndToken(SyntaxKind type)
+    protected SyntaxToken? EndToken(SyntaxKind type)
     {
-        SyntaxToken token = null;
+        SyntaxToken? token = null;
         if (HaveContent)
         {
             // Perf: Don't allocate a new errors array unless necessary.
@@ -343,7 +341,7 @@ internal abstract class Tokenizer : IDisposable
         }
 
         // Capture the current buffer content in case we have to backtrack
-        string oldBuffer = null;
+        string? oldBuffer = null;
         if (takeIfMatch)
         {
             oldBuffer = Buffer.ToString();
@@ -397,17 +395,11 @@ internal abstract class Tokenizer : IDisposable
         AtTokenAfterRazorCommentBody,
     }
 
-    protected struct StateResult
+    protected readonly struct StateResult(int? state, SyntaxToken? result)
     {
-        public StateResult(int? state, SyntaxToken result)
-        {
-            State = state;
-            Result = result;
-        }
+        public int? State { get; } = state;
 
-        public int? State { get; }
-
-        public SyntaxToken Result { get; }
+        public SyntaxToken? Result { get; } = result;
     }
 
     private static LookaheadToken BeginLookahead(SeekableTextReader buffer)
