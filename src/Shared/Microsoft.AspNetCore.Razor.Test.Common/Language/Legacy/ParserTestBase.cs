@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -201,8 +201,8 @@ public abstract class ParserTestBase : IParserTest
         var options = CreateParserOptions(version, directives, designTime, _validateSpanEditHandlers, _useLegacyTokenizer, featureFlags, fileKind);
         var context = new ParserContext(source, options);
 
-        var codeParser = new CSharpCodeParser(directives, context);
-        var markupParser = new HtmlMarkupParser(context);
+        using var codeParser = new CSharpCodeParser(directives, context);
+        using var markupParser = new HtmlMarkupParser(context);
 
         codeParser.HtmlParser = markupParser;
         markupParser.CodeParser = codeParser;

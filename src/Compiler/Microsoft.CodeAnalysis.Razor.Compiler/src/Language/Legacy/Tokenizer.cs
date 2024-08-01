@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal abstract class Tokenizer : ITokenizer
+internal abstract class Tokenizer : IDisposable
 {
     protected Tokenizer(SeekableTextReader source)
     {
@@ -386,6 +386,8 @@ internal abstract class Tokenizer : ITokenizer
     {
         Debug.Assert(CurrentCharacter == current, "CurrentCharacter Assumption violated", "Assumed that the current character would be {0}, but it is actually {1}", current, CurrentCharacter);
     }
+
+    public virtual void Dispose() { }
 
     protected enum RazorCommentTokenizerState
     {

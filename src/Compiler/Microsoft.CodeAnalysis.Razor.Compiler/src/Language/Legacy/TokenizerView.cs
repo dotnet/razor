@@ -1,13 +1,14 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
+using System;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal class TokenizerView<TTokenizer>
+internal class TokenizerView<TTokenizer> : IDisposable
     where TTokenizer : Tokenizer
 {
     public TokenizerView(TTokenizer tokenizer)
@@ -36,6 +37,10 @@ internal class TokenizerView<TTokenizer>
         Source.Position -= token.Content.Length;
         Current = null;
         EndOfFile = Source.Position >= Source.Length;
-        Tokenizer.Reset();
+    }
+
+    public void Dispose()
+    {
+        Tokenizer.Dispose();
     }
 }
