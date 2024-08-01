@@ -279,7 +279,7 @@ internal abstract class Tokenizer : IDisposable
 
         AssertCurrent('*');
         TakeCurrent();
-        return Transition(1002, EndToken(RazorCommentStarKind));
+        return Transition(RazorCommentTokenizerState.RazorCommentBody, EndToken(RazorCommentStarKind));
     }
 
     protected StateResult RazorCommentBody()
@@ -392,7 +392,6 @@ internal abstract class Tokenizer : IDisposable
     protected enum RazorCommentTokenizerState
     {
         AfterRazorCommentTransition = 1000,
-        EscapedRazorCommentTransition,
         RazorCommentBody,
         StarAfterRazorCommentBody,
         AtTokenAfterRazorCommentBody,
