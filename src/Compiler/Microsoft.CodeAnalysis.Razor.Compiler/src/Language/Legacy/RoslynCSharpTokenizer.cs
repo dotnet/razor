@@ -459,7 +459,7 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
             CSharpSyntaxKind.WhitespaceTrivia => SyntaxKind.Whitespace,
             CSharpSyntaxKind.EndOfLineTrivia => SyntaxKind.NewLine,
             CSharpSyntaxKind.SingleLineCommentTrivia or CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia or CSharpSyntaxKind.SingleLineDocumentationCommentTrivia => SyntaxKind.CSharpComment,
-            _ => throw new InvalidOperationException("Unexpected trivia kind."),
+            var kind => throw new InvalidOperationException($"Unexpected trivia kind: {kind}."),
         };
 
         return Stay(EndToken(tokenType));
