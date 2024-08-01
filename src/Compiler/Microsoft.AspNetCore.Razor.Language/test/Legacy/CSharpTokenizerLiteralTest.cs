@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -16,137 +16,171 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void Simple_Integer_Literal_Is_Recognized()
     {
-        TestSingleToken("01189998819991197253", SyntaxKind.IntegerLiteral);
+        TestSingleToken("01189998819991197253", SyntaxKind.NumericLiteral);
     }
 
     [Fact]
     public void Integer_Type_Suffix_Is_Recognized()
     {
-        TestSingleToken("42U", SyntaxKind.IntegerLiteral);
-        TestSingleToken("42u", SyntaxKind.IntegerLiteral);
+        TestSingleToken("42U", SyntaxKind.NumericLiteral);
+        TestSingleToken("42u", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("42L", SyntaxKind.IntegerLiteral);
-        TestSingleToken("42l", SyntaxKind.IntegerLiteral);
+        TestSingleToken("42L", SyntaxKind.NumericLiteral);
+        TestSingleToken("42l", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("42UL", SyntaxKind.IntegerLiteral);
-        TestSingleToken("42Ul", SyntaxKind.IntegerLiteral);
+        TestSingleToken("42UL", SyntaxKind.NumericLiteral);
+        TestSingleToken("42Ul", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("42uL", SyntaxKind.IntegerLiteral);
-        TestSingleToken("42ul", SyntaxKind.IntegerLiteral);
+        TestSingleToken("42uL", SyntaxKind.NumericLiteral);
+        TestSingleToken("42ul", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("42LU", SyntaxKind.IntegerLiteral);
-        TestSingleToken("42Lu", SyntaxKind.IntegerLiteral);
+        TestSingleToken("42LU", SyntaxKind.NumericLiteral);
+        TestSingleToken("42Lu", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("42lU", SyntaxKind.IntegerLiteral);
-        TestSingleToken("42lu", SyntaxKind.IntegerLiteral);
+        TestSingleToken("42lU", SyntaxKind.NumericLiteral);
+        TestSingleToken("42lu", SyntaxKind.NumericLiteral);
     }
 
     [Fact]
     public void Trailing_Letter_Is_Not_Part_Of_Integer_Literal_If_Not_Type_Sufix()
     {
-        TestTokenizer("42a", SyntaxFactory.Token(SyntaxKind.IntegerLiteral, "42"), IgnoreRemaining);
+        TestTokenizer("42a", SyntaxFactory.Token(SyntaxKind.NumericLiteral, "42"), IgnoreRemaining);
     }
 
     [Fact]
     public void Simple_Hex_Literal_Is_Recognized()
     {
-        TestSingleToken("0x0123456789ABCDEF", SyntaxKind.IntegerLiteral);
+        TestSingleToken("0x0123456789ABCDEF", SyntaxKind.NumericLiteral);
     }
 
     [Fact]
     public void Integer_Type_Suffix_Is_Recognized_In_Hex_Literal()
     {
-        TestSingleToken("0xDEADBEEFU", SyntaxKind.IntegerLiteral);
-        TestSingleToken("0xDEADBEEFu", SyntaxKind.IntegerLiteral);
+        TestSingleToken("0xDEADBEEFU", SyntaxKind.NumericLiteral);
+        TestSingleToken("0xDEADBEEFu", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("0xDEADBEEFL", SyntaxKind.IntegerLiteral);
-        TestSingleToken("0xDEADBEEFl", SyntaxKind.IntegerLiteral);
+        TestSingleToken("0xDEADBEEFL", SyntaxKind.NumericLiteral);
+        TestSingleToken("0xDEADBEEFl", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("0xDEADBEEFUL", SyntaxKind.IntegerLiteral);
-        TestSingleToken("0xDEADBEEFUl", SyntaxKind.IntegerLiteral);
+        TestSingleToken("0xDEADBEEFUL", SyntaxKind.NumericLiteral);
+        TestSingleToken("0xDEADBEEFUl", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("0xDEADBEEFuL", SyntaxKind.IntegerLiteral);
-        TestSingleToken("0xDEADBEEFul", SyntaxKind.IntegerLiteral);
+        TestSingleToken("0xDEADBEEFuL", SyntaxKind.NumericLiteral);
+        TestSingleToken("0xDEADBEEFul", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("0xDEADBEEFLU", SyntaxKind.IntegerLiteral);
-        TestSingleToken("0xDEADBEEFLu", SyntaxKind.IntegerLiteral);
+        TestSingleToken("0xDEADBEEFLU", SyntaxKind.NumericLiteral);
+        TestSingleToken("0xDEADBEEFLu", SyntaxKind.NumericLiteral);
 
-        TestSingleToken("0xDEADBEEFlU", SyntaxKind.IntegerLiteral);
-        TestSingleToken("0xDEADBEEFlu", SyntaxKind.IntegerLiteral);
+        TestSingleToken("0xDEADBEEFlU", SyntaxKind.NumericLiteral);
+        TestSingleToken("0xDEADBEEFlu", SyntaxKind.NumericLiteral);
     }
 
     [Fact]
-    public void Trailing_Letter_Is_Not_Part_Of_Hex_Literal_If_Not_Type_Sufix()
+    public void Trailing_Letter_Is_Not_Part_Of_Hex_Literal_If_Not_Type_Suffix()
     {
-        TestTokenizer("0xDEADBEEFz", SyntaxFactory.Token(SyntaxKind.IntegerLiteral, "0xDEADBEEF"), IgnoreRemaining);
+        TestTokenizer("0xDEADBEEFz", SyntaxFactory.Token(SyntaxKind.NumericLiteral, "0xDEADBEEF"), IgnoreRemaining);
+    }
+
+    [Fact]
+    public void Binary_Literal_Is_Recognized()
+    {
+        TestSingleToken("0b01010101", SyntaxKind.NumericLiteral);
+    }
+
+    [Fact]
+    public void Integer_Type_Suffix_Is_Recognized_In_Binary_Literal()
+    {
+        TestSingleToken("0b01010101U", SyntaxKind.NumericLiteral);
+        TestSingleToken("0b01010101u", SyntaxKind.NumericLiteral);
+
+        TestSingleToken("0b01010101L", SyntaxKind.NumericLiteral);
+        TestSingleToken("0b01010101l", SyntaxKind.NumericLiteral);
+
+        TestSingleToken("0b01010101UL", SyntaxKind.NumericLiteral);
+        TestSingleToken("0b01010101Ul", SyntaxKind.NumericLiteral);
+
+        TestSingleToken("0b01010101uL", SyntaxKind.NumericLiteral);
+        TestSingleToken("0b01010101ul", SyntaxKind.NumericLiteral);
+
+        TestSingleToken("0b01010101LU", SyntaxKind.NumericLiteral);
+        TestSingleToken("0b01010101Lu", SyntaxKind.NumericLiteral);
+
+        TestSingleToken("0b01010101lU", SyntaxKind.NumericLiteral);
+        TestSingleToken("0b01010101lu", SyntaxKind.NumericLiteral);
+    }
+
+    [Fact]
+    public void Trailing_Letter_Is_Not_Part_Of_Binary_Literal_If_Not_Type_Suffix()
+    {
+        TestTokenizer("0b01010101z", SyntaxFactory.Token(SyntaxKind.NumericLiteral, "0b01010101"), IgnoreRemaining);
     }
 
     [Fact]
     public void Dot_Followed_By_Non_Digit_Is_Not_Part_Of_Real_Literal()
     {
-        TestTokenizer("3.a", SyntaxFactory.Token(SyntaxKind.IntegerLiteral, "3"), IgnoreRemaining);
+        TestTokenizer("3.a", SyntaxFactory.Token(SyntaxKind.NumericLiteral, "3"), IgnoreRemaining);
     }
 
     [Fact]
     public void Simple_Real_Literal_Is_Recognized()
     {
-        TestTokenizer("3.14159", SyntaxFactory.Token(SyntaxKind.RealLiteral, "3.14159"));
+        TestTokenizer("3.14159", SyntaxFactory.Token(SyntaxKind.NumericLiteral, "3.14159"));
     }
 
     [Fact]
     public void Real_Literal_Between_Zero_And_One_Is_Recognized()
     {
-        TestTokenizer(".14159", SyntaxFactory.Token(SyntaxKind.RealLiteral, ".14159"));
+        TestTokenizer(".14159", SyntaxFactory.Token(SyntaxKind.NumericLiteral, ".14159"));
     }
 
     [Fact]
     public void Integer_With_Real_Type_Suffix_Is_Recognized()
     {
-        TestSingleToken("42F", SyntaxKind.RealLiteral);
-        TestSingleToken("42f", SyntaxKind.RealLiteral);
-        TestSingleToken("42D", SyntaxKind.RealLiteral);
-        TestSingleToken("42d", SyntaxKind.RealLiteral);
-        TestSingleToken("42M", SyntaxKind.RealLiteral);
-        TestSingleToken("42m", SyntaxKind.RealLiteral);
+        TestSingleToken("42F", SyntaxKind.NumericLiteral);
+        TestSingleToken("42f", SyntaxKind.NumericLiteral);
+        TestSingleToken("42D", SyntaxKind.NumericLiteral);
+        TestSingleToken("42d", SyntaxKind.NumericLiteral);
+        TestSingleToken("42M", SyntaxKind.NumericLiteral);
+        TestSingleToken("42m", SyntaxKind.NumericLiteral);
     }
 
     [Fact]
     public void Integer_With_Exponent_Is_Recognized()
     {
-        TestSingleToken("1e10", SyntaxKind.RealLiteral);
-        TestSingleToken("1E10", SyntaxKind.RealLiteral);
-        TestSingleToken("1e+10", SyntaxKind.RealLiteral);
-        TestSingleToken("1E+10", SyntaxKind.RealLiteral);
-        TestSingleToken("1e-10", SyntaxKind.RealLiteral);
-        TestSingleToken("1E-10", SyntaxKind.RealLiteral);
+        TestSingleToken("1e10", SyntaxKind.NumericLiteral);
+        TestSingleToken("1E10", SyntaxKind.NumericLiteral);
+        TestSingleToken("1e+10", SyntaxKind.NumericLiteral);
+        TestSingleToken("1E+10", SyntaxKind.NumericLiteral);
+        TestSingleToken("1e-10", SyntaxKind.NumericLiteral);
+        TestSingleToken("1E-10", SyntaxKind.NumericLiteral);
     }
 
     [Fact]
     public void Real_Number_With_Type_Suffix_Is_Recognized()
     {
-        TestSingleToken("3.14F", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14f", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14D", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14d", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14M", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14m", SyntaxKind.RealLiteral);
+        TestSingleToken("3.14F", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14f", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14D", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14d", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14M", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14m", SyntaxKind.NumericLiteral);
     }
 
     [Fact]
     public void Real_Number_With_Exponent_Is_Recognized()
     {
-        TestSingleToken("3.14E10", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14e10", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14E+10", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14e+10", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14E-10", SyntaxKind.RealLiteral);
-        TestSingleToken("3.14e-10", SyntaxKind.RealLiteral);
+        TestSingleToken("3.14E10", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14e10", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14E+10", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14e+10", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14E-10", SyntaxKind.NumericLiteral);
+        TestSingleToken("3.14e-10", SyntaxKind.NumericLiteral);
     }
 
     [Fact]
     public void Real_Number_With_Exponent_And_Type_Suffix_Is_Recognized()
     {
-        TestSingleToken("3.14E+10F", SyntaxKind.RealLiteral);
+        TestSingleToken("3.14E+10F", SyntaxKind.NumericLiteral);
     }
 
     [Fact]
