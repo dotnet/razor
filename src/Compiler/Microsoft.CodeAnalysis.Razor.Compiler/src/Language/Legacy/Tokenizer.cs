@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -203,7 +203,7 @@ internal abstract class Tokenizer : IDisposable
         if (HaveContent)
         {
             var tokenContent = GetTokenContent(type);
-            Debug.Assert(string.Equals(tokenContent, Buffer.ToString(), StringComparison.Ordinal), $"Token content mismatch: '{tokenContent}' != '{Buffer}'. Token Type: '{type}'.");
+            Debug.Assert(tokenContent == Buffer.ToString(), $"Token content mismatch: '{tokenContent}' != '{Buffer}'. Token Type: '{type}'.");
             token = EndToken(tokenContent, type);
             Buffer.Clear();
         }

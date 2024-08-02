@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,12 +12,11 @@ using SyntaxFactory = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 using CSharpSyntaxToken = Microsoft.CodeAnalysis.SyntaxToken;
 using CSharpSyntaxTriviaList = Microsoft.CodeAnalysis.SyntaxTriviaList;
-using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 #pragma warning disable RSEXPERIMENTAL003 // SyntaxTokenParser is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-internal partial class RoslynCSharpTokenizer : CSharpTokenizer
+internal class RoslynCSharpTokenizer : CSharpTokenizer
 {
     private readonly SyntaxTokenParser _roslynTokenParser;
     private readonly List<(int position, SyntaxTokenParser.Result result)> _resultCache = new();
@@ -27,12 +27,17 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
     {
         base.CurrentState = StartState;
 
+        // PROTOTYPE
         _roslynTokenParser = CodeAnalysis.CSharp.SyntaxFactory.CreateTokenParser(source.SourceText, null);
     }
 
     protected override int StartState => (int)RoslynCSharpTokenizerState.Start;
 
-    private new RoslynCSharpTokenizerState? CurrentState => (RoslynCSharpTokenizerState?)base.CurrentState;
+    private new RoslynCSharpTokenizerState? CurrentState
+    {
+        get => (RoslynCSharpTokenizerState?)base.CurrentState;
+        set => base.CurrentState = (int)value;
+    }
 
     public override SyntaxKind RazorCommentKind => SyntaxKind.RazorCommentLiteral;
 
@@ -72,7 +77,7 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
         }
 
         _roslynTokenParser.SkipForwardTo(lastToken.Span.End);
-        base.CurrentState = (int)RoslynCSharpTokenizerState.Start;
+        CurrentState = RoslynCSharpTokenizerState.Start;
     }
 
     protected override StateResult Dispatch()
@@ -472,7 +477,6 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
                 case StringOrCharacterKind.Verbatim_Interpolated_Dollar_First_String:
                 default:
                     return Assumed.Unreachable<bool>();
-
             }
         }
     }
@@ -531,7 +535,7 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
                     new SourceSpan(CurrentStart, contentLength: 1 /* end of file */)));
         }
 
-        // TODO: Handle preprocessor directives
+        // PROTOTYPE: Handle preprocessor directives
         var tokenType = trivia.Kind() switch
         {
             CSharpSyntaxKind.WhitespaceTrivia => SyntaxKind.Whitespace,
@@ -601,19 +605,6 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
     private StateResult Transition(RoslynCSharpTokenizerState state, SyntaxToken? result)
     {
         return Transition((int)state, result);
-    }
-
-    internal static CSharpSyntaxKind GetTokenKeywordKind(SyntaxToken token)
-    {
-        if (token is null)
-        {
-            return CSharpSyntaxKind.None;
-        }
-
-        var content = token.Content;
-        return SyntaxFacts.GetKeywordKind(content) is var kind and not CSharpSyntaxKind.None
-            ? kind
-            : SyntaxFacts.GetContextualKeywordKind(content);
     }
 
     internal override CSharpSyntaxKind? GetTokenKeyword(SyntaxToken token)
@@ -715,7 +706,7 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
 
         }
 
-        base.CurrentState = (int)RoslynCSharpTokenizerState.Start;
+        CurrentState = RoslynCSharpTokenizerState.Start;
     }
 
     public override void Dispose()
@@ -746,8 +737,6 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
     {
         Start,
         Token,
-
-        // TODO:
         TriviaForCSharpToken,
 
         // Razor Comments - need to be the same for HTML and CSharp
@@ -758,7 +747,7 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
         AtTokenAfterRazorCommentBody = RazorCommentTokenizerState.AtTokenAfterRazorCommentBody,
     }
 
-    private class ResultCacheSearcher : IComparer<(int position, SyntaxTokenParser.Result result)>
+    private sealed class ResultCacheSearcher : IComparer<(int position, SyntaxTokenParser.Result result)>
     {
         public static ResultCacheSearcher Instance { get; } = new ResultCacheSearcher();
 
