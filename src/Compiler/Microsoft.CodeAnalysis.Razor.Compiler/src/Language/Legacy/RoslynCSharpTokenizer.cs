@@ -210,16 +210,16 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
             case '@':
                 return AtToken();
             case '\'':
-                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteral, expectedPrefix: "\'", expectedPostfix: "\'");
+                return TokenizedExpectedStringOrCharacterLiteral(StringOrCharacterKind.Character);
             case '"':
-                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, expectedPrefix: "\"", expectedPostfix: "\"");
+                return TokenizedExpectedStringOrCharacterLiteral(StringOrCharacterKind.String_Or_Raw_String);
             case '$':
                 switch (Peek())
                 {
-                    case '"':
-                        return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.InterpolatedStringStartToken, SyntaxKind.StringLiteral, expectedPrefix: "$\"", expectedPostfix: "\"");
+                    case '"' or '$':
+                        return TokenizedExpectedStringOrCharacterLiteral(StringOrCharacterKind.Interpolated_Or_Raw_Interpolated_String);
                     case '@' when Peek(2) == '"':
-                        return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.InterpolatedVerbatimStringStartToken, SyntaxKind.StringLiteral, expectedPrefix: "$@\"", expectedPostfix: "\"");
+                        return TokenizedExpectedStringOrCharacterLiteral(StringOrCharacterKind.Verbatim_Interpolated_Dollar_First_String);
                 }
                 goto default;
             case '.':
@@ -241,9 +241,9 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
         switch (Peek())
         {
             case '"':
-                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.StringLiteralToken, SyntaxKind.StringLiteral, expectedPrefix: "@\"", expectedPostfix: "\"");
-            case '$' when Peek(2) == '"':
-                return TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind.InterpolatedStringStartToken, SyntaxKind.StringLiteral, expectedPrefix: "@$\"", expectedPostfix: "\"");
+                return TokenizedExpectedStringOrCharacterLiteral(StringOrCharacterKind.Verbatim_String);
+            case '$' when Peek(2) is '"':
+                return TokenizedExpectedStringOrCharacterLiteral(StringOrCharacterKind.Verbatim_Interpolated_At_First_String);
             case '*':
                 return Assumed.Unreachable<StateResult>();
             case '@':
@@ -371,32 +371,110 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
         }
     }
 
-    private StateResult TokenizedExpectedStringOrCharacterLiteral(CSharpSyntaxKind expectedCSharpTokenKind, SyntaxKind razorTokenKind, string expectedPrefix, string expectedPostfix)
+    private StateResult TokenizedExpectedStringOrCharacterLiteral(StringOrCharacterKind expectedStringKind)
     {
         var curPosition = Source.Position;
         var result = GetNextResult(NextResultType.Token);
         var csharpToken = result.Token;
         // Don't include trailing trivia; we handle that differently than Roslyn
         var finalPosition = curPosition + csharpToken.Span.Length;
+        (string expectedPrefix, string expectedPostfix, bool lookForPrePostFix) = expectedStringKind switch
+        {
+            StringOrCharacterKind.Character => ("'", "'", false),
+            StringOrCharacterKind.Verbatim_String => ("@\"", "\"", false),
+            StringOrCharacterKind.Verbatim_Interpolated_At_First_String => ("@$\"", "\"", false),
+            StringOrCharacterKind.Verbatim_Interpolated_Dollar_First_String => ("$@\"", "\"", false),
+            StringOrCharacterKind.String_Or_Raw_String when csharpToken.Text is "\"\"" => ("\"", "\"", false),
+            StringOrCharacterKind.Interpolated_Or_Raw_Interpolated_String when csharpToken.Text is "$\"\"" => ("$\"", "\"", false),
+            StringOrCharacterKind.String_Or_Raw_String or StringOrCharacterKind.Interpolated_Or_Raw_Interpolated_String => ("", "", true),
+            _ => throw new InvalidOperationException($"Unexpected expectedStringKind: {expectedStringKind}."),
+        };
 
         for (; curPosition < finalPosition; curPosition++)
         {
+            if (lookForPrePostFix)
+            {
+                lookForPrePostFix = handleCurrentCharacterPrefixPostfix();
+            }
+
             TakeCurrent();
         }
 
         // If the token is the expected kind and has the expected prefix or doesn't have the expected postfix, then it's unterminated.
         // This is a case like `"test` (which doesn't end in the expected postfix), or `"` (which ends in the expected postfix, but
         // exactly matches the expected prefix).
-        if (CodeAnalysis.CSharpExtensions.IsKind(csharpToken, expectedCSharpTokenKind)
-            && (csharpToken.Text == expectedPrefix || !csharpToken.Text.EndsWith(expectedPostfix, StringComparison.Ordinal)))
+        if (lookForPrePostFix || csharpToken.Text == expectedPrefix || !csharpToken.Text.EndsWith(expectedPostfix!, StringComparison.Ordinal))
         {
             CurrentErrors.Add(
                 RazorDiagnosticFactory.CreateParsing_UnterminatedStringLiteral(
-                    new SourceSpan(CurrentStart, contentLength: expectedPrefix.Length /* " */)));
+                    new SourceSpan(CurrentStart, contentLength: expectedPrefix?.Length ?? 0 /* " */)));
         }
 
         _currentCSharpTokenTriviaEnumerator = (csharpToken.TrailingTrivia.GetEnumerator(), isLeading: false);
+        var razorTokenKind = expectedStringKind == StringOrCharacterKind.Character ? SyntaxKind.CharacterLiteral : SyntaxKind.StringLiteral;
         return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, EndToken(razorTokenKind));
+
+        bool handleCurrentCharacterPrefixPostfix()
+        {
+            switch (expectedStringKind)
+            {
+                case StringOrCharacterKind.String_Or_Raw_String:
+                    // We can either have a normal string or a raw string. Add to the prefix/postfix until we find a non-" character
+                    if (CurrentCharacter != '"')
+                    {
+                        Debug.Assert(expectedPrefix != null);
+                        Debug.Assert(expectedPostfix != null);
+                        Debug.Assert(expectedPrefix == expectedPostfix);
+                        return false;
+                    }
+
+                    expectedPrefix += '"';
+                    expectedPostfix += '"';
+                    return true;
+
+                case StringOrCharacterKind.Interpolated_Or_Raw_Interpolated_String:
+                    // Start with the leading $'s
+                    if (expectedPrefix is "" or [.., '$'])
+                    {
+                        if (CurrentCharacter == '$')
+                        {
+                            expectedPrefix += '$';
+                            return true;
+                        }
+                        else if (CurrentCharacter == '"')
+                        {
+                            expectedPrefix += '"';
+                            expectedPostfix += '"';
+                            return true;
+                        }
+                        else
+                        {
+                            // We expect roslyn to have ended parsing, so we should never get here
+                            return Assumed.Unreachable<bool>();
+                        }
+                    }
+
+                    Debug.Assert(expectedPrefix[^1] == '"');
+                    if (CurrentCharacter == '"')
+                    {
+                        expectedPrefix += '"';
+                        expectedPostfix += '"';
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                case StringOrCharacterKind.Character:
+                case StringOrCharacterKind.Verbatim_String:
+                case StringOrCharacterKind.Verbatim_Interpolated_At_First_String:
+                case StringOrCharacterKind.Verbatim_Interpolated_Dollar_First_String:
+                default:
+                    return Assumed.Unreachable<bool>();
+
+            }
+        }
     }
 
 
@@ -651,6 +729,17 @@ internal partial class RoslynCSharpTokenizer : CSharpTokenizer
         LeadingTrivia,
         Token,
         TrailingTrivia,
+    }
+
+    private enum StringOrCharacterKind
+    {
+        Character,
+        String_Or_Raw_String,
+        Interpolated_Or_Raw_Interpolated_String,
+        Verbatim_String,
+        Verbatim_Interpolated_At_First_String,
+        Verbatim_Interpolated_Dollar_First_String,
+        Verbatim_Interpolated_String,
     }
 
     private enum RoslynCSharpTokenizerState

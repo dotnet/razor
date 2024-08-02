@@ -267,6 +267,12 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     }
 
     [Fact]
+    public void String_Literal_Empty_string()
+    {
+        TestSingleToken("\"\"", SyntaxKind.StringLiteral);
+    }
+
+    [Fact]
     public void String_Literal_Is_Terminated_By_EOF_If_Unterminated()
     {
         TestSingleToken("\"goo bar", SyntaxKind.StringLiteral);
@@ -359,47 +365,47 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void Interpolated_String_Is_Recognized()
     {
-        TestTokenizer("""
+        TestSingleToken("""
             $"Hello, {name}!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
-            $"Hello, {name}!"
-            """));
+            SyntaxKind.StringLiteral);
+    }
+
+    [Fact]
+    public void Interpolated_String_Empty_String()
+    {
+        TestSingleToken("""
+            $""
+            """,
+            SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void Interpolated_String_Allows_Nested_Strings()
     {
-        TestTokenizer("""
+        TestSingleToken("""
             $"Hello, {"world!"}!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
-            $"Hello, {"world!"}!"
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void Interpolated_String_Allows_Escaped_Curly_Braces()
     {
-        TestTokenizer("""
+        TestSingleToken("""
             $"Hello, {{name}}!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
-            $"Hello, {{name}}!"
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void Interpolated_String_Allows_Newlines_In_Interpolation_Hole()
     {
-        TestTokenizer("""
+        TestSingleToken("""
             $"Hello, {name
                 + 1}!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
-            $"Hello, {name
-                + 1}!"
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Fact]
@@ -417,25 +423,20 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [Fact]
     public void Interpolated_String_EndOfFile_In_Interpolation_Hole_Ends_String()
     {
-        TestTokenizer("""
+        TestSingleToken("""
             $"Hello, {name + 1
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
-            $"Hello, {name + 1
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Fact]
     public void Interpolated_String_Allows_Comment_In_Interpolation_Hole()
     {
-        TestTokenizer("""
+        TestSingleToken("""
             $"Hello, {name + 1 // Test!
               }!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, """
-            $"Hello, {name + 1 // Test!
-              }!"
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Theory]
@@ -443,12 +444,10 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [InlineData("@$")]
     public void Verbatim_Interpolated_String_Is_Recognized(string prefix)
     {
-        TestTokenizer($$"""
+        TestSingleToken($$"""
             {{prefix}}"Hello, {name}!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
-            {{prefix}}"Hello, {name}!"
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Theory]
@@ -456,12 +455,10 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [InlineData("@$")]
     public void Verbatim_Interpolated_String_Allows_Nested_Strings(string prefix)
     {
-        TestTokenizer($$"""
+        TestSingleToken($$"""
             {{prefix}}"Hello, {"world!"}!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
-            {{prefix}}"Hello, {"world!"}!"
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Theory]
@@ -469,12 +466,10 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [InlineData("@$")]
     public void Verbatim_Interpolated_String_Allows_Escaped_Curly_Braces(string prefix)
     {
-        TestTokenizer($$$"""
+        TestSingleToken($$$"""
             {{{prefix}}}"Hello, {{name}}!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$$"""
-            {{{prefix}}}"Hello, {{name}}!"
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Theory]
@@ -482,14 +477,11 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [InlineData("@$")]
     public void Verbatim_Interpolated_String_Allows_Newlines_In_Interpolation_Hole(string prefix)
     {
-        TestTokenizer($$"""
+        TestSingleToken($$"""
             {{prefix}}"Hello, {name
                 + 1}!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
-            {{prefix}}"Hello, {name
-                + 1}!"
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Theory]
@@ -497,14 +489,11 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [InlineData("@$")]
     public void Verbatim_Interpolated_String_Allows_Newlines_In_Content(string prefix)
     {
-        TestTokenizer($$"""
+        TestSingleToken($$"""
             {{prefix}}"Hello, {name + 1}
             !"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
-            {{prefix}}"Hello, {name + 1}
-            !"
-            """), IgnoreRemaining);
+            SyntaxKind.StringLiteral);
     }
 
     [Theory]
@@ -512,12 +501,10 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [InlineData("@$")]
     public void Verbatim_Interpolated_String_EndOfFile_In_Interpolation_Hole_Ends_String(string prefix)
     {
-        TestTokenizer($$"""
+        TestSingleToken($$"""
             {{prefix}}"Hello, {name + 1
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
-            {{prefix}}"Hello, {name + 1
-            """));
+            SyntaxKind.StringLiteral);
     }
 
     [Theory]
@@ -525,13 +512,174 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     [InlineData("@$")]
     public void Verbatim_Interpolated_String_Allows_Comment_In_Interpolation_Hole(string prefix)
     {
-        TestTokenizer($$"""
+        TestSingleToken($$"""
             {{prefix}}"Hello, {name + 1 // Test!
               }!"
             """,
-            SyntaxFactory.Token(SyntaxKind.StringLiteral, $$"""
-            {{prefix}}"Hello, {name + 1 // Test!
-              }!"
-            """));
+            SyntaxKind.StringLiteral);
+    }
+
+    [Theory]
+    [InlineData(""""
+        """
+        """")]
+    [InlineData("""""
+        """"
+        """"")]
+    [InlineData(""""""
+        """""
+        """""")]
+    public void Single_Line_Raw_String_Literal_Is_Recognized(string quotes)
+    {
+        TestSingleToken($"""
+            {quotes}goo{quotes}
+            """, SyntaxKind.StringLiteral);
+    }
+
+    [Theory, CombinatorialData]
+    public void Single_Line_Raw_Interpolated_String_Literal_Is_Recognized(
+        [CombinatorialValues("$", "$$", "$$$")]
+        string dollars,
+        [CombinatorialValues(""""
+        """
+        """",
+        """""
+        """"
+        """"",
+        """"""
+        """""
+        """"""
+        )]
+        string quotes)
+    {
+        TestSingleToken($"""
+            {dollars}{quotes}goo{quotes}
+            """, SyntaxKind.StringLiteral);
+    }
+
+    [Theory]
+    [InlineData(""""
+        """
+        """")]
+    [InlineData("""""
+        """"
+        """"")]
+    [InlineData(""""""
+        """""
+        """""")]
+    public void Multi_Line_Raw_String_Literal_Is_Recognized(string quotes)
+    {
+        TestSingleToken($"""
+            {quotes}
+            goo
+            {quotes}
+            """, SyntaxKind.StringLiteral);
+    }
+
+    [Theory, CombinatorialData]
+    public void Multi_Line_Raw_Interpolated_String_Literal_Is_Recognized(
+        [CombinatorialValues("$", "$$", "$$$")]
+        string dollars,
+        [CombinatorialValues(""""
+        """
+        """",
+        """""
+        """"
+        """"",
+        """"""
+        """""
+        """"""
+        )]
+        string quotes)
+    {
+        TestSingleToken($"""
+            {dollars}{quotes}
+            goo
+            {quotes}
+            """, SyntaxKind.StringLiteral);
+    }
+
+    [Theory]
+    [InlineData(""""
+        """
+        """")]
+    [InlineData("""""
+        """"
+        """"")]
+    [InlineData(""""""
+        """""
+        """""")]
+    public void Single_Line_Raw_String_Literal_Is_Terminated_By_EOF_If_Unterminated(string quotes)
+    {
+        TestSingleToken($"""
+            {quotes}goo
+            """, SyntaxKind.StringLiteral);
+    }
+
+    [Theory, CombinatorialData]
+    public void Single_Line_Raw_Interpolated_String_Literal_Is_Terminated_By_EOF_If_Unterminated(
+        [CombinatorialValues("$", "$$", "$$$")]
+        string dollars,
+        [CombinatorialValues(""""
+        """
+        """",
+        """""
+        """"
+        """"",
+        """"""
+        """""
+        """"""
+        )]
+        string quotes)
+    {
+        TestSingleToken($"""
+            {dollars}{quotes}goo
+            """, SyntaxKind.StringLiteral);
+    }
+
+    [Theory]
+    [InlineData(""""
+        """
+        """")]
+    [InlineData("""""
+        """"
+        """"")]
+    [InlineData(""""""
+        """""
+        """""")]
+    public void Multi_Line_Raw_String_Literal_Is_Terminated_By_EOF_If_Unterminated(string quotes)
+    {
+        TestSingleToken($"""
+            {quotes}
+            goo
+            """, SyntaxKind.StringLiteral);
+    }
+
+    [Theory, CombinatorialData]
+    public void Multi_Line_Raw_Interpolated_String_Literal_Is_Terminated_By_EOF_If_Unterminated(
+        [CombinatorialValues("$", "$$", "$$$")]
+        string dollars,
+        [CombinatorialValues(""""
+        """
+        """",
+        """""
+        """"
+        """"",
+        """"""
+        """""
+        """"""
+        )]
+        string quotes)
+    {
+        TestSingleToken($"""
+            {dollars}{quotes}
+            goo
+            """, SyntaxKind.StringLiteral);
+    }
+
+    [Fact]
+    public void Raw_Interpolated_String_Just_Dollars_Is_Recognized()
+    {
+        TestSingleToken("$$", SyntaxKind.StringLiteral);
     }
 }
