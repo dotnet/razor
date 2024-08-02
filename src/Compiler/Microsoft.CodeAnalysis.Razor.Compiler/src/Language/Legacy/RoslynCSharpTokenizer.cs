@@ -36,7 +36,7 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
     private new RoslynCSharpTokenizerState? CurrentState
     {
         get => (RoslynCSharpTokenizerState?)base.CurrentState;
-        set => base.CurrentState = (int)value;
+        set => base.CurrentState = (int?)value;
     }
 
     public override SyntaxKind RazorCommentKind => SyntaxKind.RazorCommentLiteral;
