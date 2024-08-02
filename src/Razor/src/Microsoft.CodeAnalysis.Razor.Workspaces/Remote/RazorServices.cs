@@ -26,6 +26,7 @@ internal static class RazorServices
     // Internal for testing
     internal static readonly IEnumerable<(Type, Type?)> JsonServices =
         [
+            (typeof(IRemoteGoToDefinitionService), null),
             (typeof(IRemoteSignatureHelpService), null),
             (typeof(IRemoteInlayHintService), null),
             (typeof(IRemoteRenameService), null),
