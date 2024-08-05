@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project divNode for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -26,9 +26,9 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
-internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
+internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
 {
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToNewComponentCodeActionProvider>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToComponentCodeActionProvider>();
 
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
@@ -91,7 +91,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             Data = actionParams,
         };
 
-        var codeAction = RazorCodeActionFactory.CreateExtractToNewComponent(resolutionParams);
+        var codeAction = RazorCodeActionFactory.CreateExtractToComponent(resolutionParams);
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
@@ -337,10 +337,13 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         HashSet<string> identifiersInScope = [];
         HashSet<string> identifiersInBlock = [];
 
+        HashSet<SyntaxNode> nodesInScope = [];
+        HashSet<SyntaxNode> nodesInBlock = [];
 
         foreach (var node in divNode.DescendantNodes().Where(static node => node.Kind is SyntaxKind.Identifier))
         {
             identifiersInScope.Add(node.GetContent());
+            nodesInScope.Add(node);
         }
 
         foreach (var codeBlock in documentRoot.DescendantNodes().Where(static node => node.Kind is SyntaxKind.RazorDirective))
@@ -348,9 +351,11 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             foreach (var node in codeBlock.DescendantNodes().Where(static node => node.Kind is SyntaxKind.Identifier))
             {
                 identifiersInBlock.Add(node.GetContent());
+                nodesInBlock.Add(node);
             }
         }
 
+        nodesInBlock.IntersectWith(nodesInScope);
         identifiersInBlock.IntersectWith(identifiersInScope);
         actionParams.UsedIdentifiers = identifiersInBlock;
     }
