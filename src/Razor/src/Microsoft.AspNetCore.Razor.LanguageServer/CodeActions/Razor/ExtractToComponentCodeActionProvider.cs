@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project divNode for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -327,6 +327,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             }
         }
 
+        nodesInBlock.IntersectWith(nodesInScope);
         identifiersInBlock.IntersectWith(identifiersInScope);
         actionParams.UsedIdentifiers = identifiersInBlock;
     }

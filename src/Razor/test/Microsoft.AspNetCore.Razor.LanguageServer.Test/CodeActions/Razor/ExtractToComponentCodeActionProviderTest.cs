@@ -165,7 +165,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -376,7 +376,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
