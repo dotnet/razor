@@ -47,7 +47,7 @@
         <target state="translated">Extrahovat blok do kódu na pozadí</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExtractTo_NewComponent_Title">
+      <trans-unit id="ExtractTo_Component_Title">
         <source>Extract element to new component</source>
         <target state="new">Extract element to new component</target>
         <note />

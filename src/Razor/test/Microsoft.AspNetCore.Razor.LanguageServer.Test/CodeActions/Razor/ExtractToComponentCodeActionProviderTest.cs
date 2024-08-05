@@ -23,7 +23,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions.Razor;
 
-public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
     public async Task Handle_InvalidFileKind()
@@ -63,7 +63,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -109,7 +109,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -165,7 +165,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -217,7 +217,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
         AddMultiPointSelectionToContext(ref context, selectionSpan);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -273,7 +273,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
 
         AddMultiPointSelectionToContext(ref context, selectionSpan);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -324,7 +324,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
