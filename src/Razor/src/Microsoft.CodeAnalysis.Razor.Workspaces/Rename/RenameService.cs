@@ -94,9 +94,9 @@ internal class RenameService(
         };
     }
 
-    private ImmutableArray<IDocumentSnapshot?> GetAllDocumentSnapshots(DocumentContext skipDocumentContext)
+    private ImmutableArray<IDocumentSnapshot> GetAllDocumentSnapshots(DocumentContext skipDocumentContext)
     {
-        using var documentSnapshots = new PooledArrayBuilder<IDocumentSnapshot?>();
+        using var documentSnapshots = new PooledArrayBuilder<IDocumentSnapshot>();
         using var _ = StringHashSetPool.GetPooledObject(out var documentPaths);
 
         foreach (var project in _projectCollectionResolver.EnumerateProjects(skipDocumentContext.Snapshot))
@@ -129,54 +129,41 @@ internal class RenameService(
     }
 
     private RenameFile GetFileRenameForComponent(IDocumentSnapshot documentSnapshot, string newPath)
+        => new RenameFile
+        {
+            OldUri = BuildUri(documentSnapshot.FilePath.AssumeNotNull()),
+            NewUri = BuildUri(newPath),
+        };
+
+    private Uri BuildUri(string filePath)
     {
         // VS Code in Windows expects path to start with '/'
-        var filePath = documentSnapshot.FilePath.AssumeNotNull();
-        var updatedOldPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
-            ? '/' + filePath
-            : filePath;
+        var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
+                    ? '/' + filePath
+                    : filePath;
         var oldUri = new UriBuilder
         {
-            Path = updatedOldPath,
+            Path = updatedPath,
             Host = string.Empty,
             Scheme = Uri.UriSchemeFile,
         }.Uri;
-
-        // VS Code in Windows expects path to start with '/'
-        var updatedNewPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !newPath.StartsWith("/")
-            ? '/' + newPath
-            : newPath;
-        var newUri = new UriBuilder
-        {
-
-            Path = updatedNewPath,
-            Host = string.Empty,
-            Scheme = Uri.UriSchemeFile,
-        }.Uri;
-
-        return new RenameFile
-        {
-            OldUri = oldUri,
-            NewUri = newUri,
-        };
+        return oldUri;
     }
 
     private static string MakeNewPath(string originalPath, string newName)
     {
         var newFileName = $"{newName}{Path.GetExtension(originalPath)}";
-        var directoryName = Path.GetDirectoryName(originalPath);
-        Assumes.NotNull(directoryName);
-        var newPath = Path.Combine(directoryName, newFileName);
-        return newPath;
+        var directoryName = Path.GetDirectoryName(originalPath).AssumeNotNull();
+        return Path.Combine(directoryName, newFileName);
     }
 
     private async Task AddEditsForCodeDocumentAsync(
         List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
         ImmutableArray<TagHelperDescriptor> originTagHelpers,
         string newName,
-        IDocumentSnapshot? documentSnapshot)
+        IDocumentSnapshot documentSnapshot)
     {
-        if (documentSnapshot is null)
+        if (!FileKinds.IsComponent(documentSnapshot.FileKind))
         {
             return;
         }
@@ -187,22 +174,8 @@ internal class RenameService(
             return;
         }
 
-        if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
-        {
-            return;
-        }
-
         // VS Code in Windows expects path to start with '/'
-        var filePath = documentSnapshot.FilePath.AssumeNotNull();
-        var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
-            ? "/" + filePath
-            : filePath;
-        var uri = new UriBuilder
-        {
-            Path = updatedPath,
-            Host = string.Empty,
-            Scheme = Uri.UriSchemeFile,
-        }.Uri;
+        var uri = BuildUri(documentSnapshot.FilePath.AssumeNotNull());
 
         AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, uri, codeDocument);
     }
@@ -233,7 +206,7 @@ internal class RenameService(
                 }
 
                 // The origin TagHelper was fully qualified so any fully qualified rename locations we find will need a fully qualified renamed edit.
-                editedName = @namespace + "." + newName;
+                editedName = $"{@namespace}.{newName}";
             }
 
             foreach (var node in tagHelperElements)
@@ -253,20 +226,20 @@ internal class RenameService(
 
     private static TextEdit[] CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
     {
-        using var _ = ListPool<TextEdit>.GetPooledObject(out var edits);
-
-        edits.Add(VsLspFactory.CreateTextEdit(element.StartTag.Name.GetRange(codeDocument.Source), newName));
+        var startTagEdit = VsLspFactory.CreateTextEdit(element.StartTag.Name.GetRange(codeDocument.Source), newName);
 
         if (element.EndTag is MarkupTagHelperEndTagSyntax endTag)
         {
-            edits.Add(VsLspFactory.CreateTextEdit(endTag.Name.GetRange(codeDocument.Source), newName));
+            var endTagEdit = VsLspFactory.CreateTextEdit(endTag.Name.GetRange(codeDocument.Source), newName);
+
+            return [startTagEdit, endTagEdit];
         }
 
-        return [.. edits];
+        return [startTagEdit];
     }
 
-    private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding) =>
-        potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
+    private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding)
+        => potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
 
     private static async Task<ImmutableArray<TagHelperDescriptor>> GetOriginTagHelpersAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
     {
@@ -293,7 +266,7 @@ internal class RenameService(
             return default;
         }
 
-        if (tagHelperStartTag?.Parent is not MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
+        if (tagHelperStartTag.Parent is not MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
         {
             return default;
         }
@@ -305,20 +278,14 @@ internal class RenameService(
             return default;
         }
 
-        using var originTagHelpers = new PooledArrayBuilder<TagHelperDescriptor>();
-        originTagHelpers.Add(primaryTagHelper);
-
         var tagHelpers = await documentContext.Snapshot.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
         var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, tagHelpers);
         if (associatedTagHelper is null)
         {
-            Debug.Fail("Components should always have an associated TagHelper.");
             return default;
         }
 
-        originTagHelpers.Add(associatedTagHelper);
-
-        return originTagHelpers.DrainToImmutable();
+        return [primaryTagHelper, associatedTagHelper];
     }
 
     private static TagHelperDescriptor? FindAssociatedTagHelper(TagHelperDescriptor tagHelper, ImmutableArray<TagHelperDescriptor> tagHelpers)
@@ -347,6 +314,7 @@ internal class RenameService(
             return currentTagHelper;
         }
 
+        Debug.Fail("Components should always have an associated TagHelper.");
         return null;
     }
 }
