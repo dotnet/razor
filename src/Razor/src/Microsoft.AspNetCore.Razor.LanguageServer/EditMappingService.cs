@@ -132,8 +132,7 @@ internal sealed class EditMappingService(
 
     private TextEdit[] RemapTextEditsCore(Uri generatedDocumentUri, RazorCodeDocument codeDocument, TextEdit[] edits)
     {
-        var generatedDocument = GetGeneratedDocumentFromGeneratedDocumentUri(generatedDocumentUri, codeDocument);
-        if (generatedDocument is null)
+        if (!codeDocument.TryGetGeneratedDocument(generatedDocumentUri, _filePathService, out var generatedDocument))
         {
             return edits;
         }
@@ -154,20 +153,5 @@ internal sealed class EditMappingService(
         }
 
         return remappedEdits.ToArray();
-    }
-
-    private IRazorGeneratedDocument? GetGeneratedDocumentFromGeneratedDocumentUri(Uri generatedDocumentUri, RazorCodeDocument codeDocument)
-    {
-        if (_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
-        {
-            return codeDocument.GetCSharpDocument();
-        }
-
-        if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
-        {
-            return codeDocument.GetHtmlDocument();
-        }
-
-        return null;
     }
 }

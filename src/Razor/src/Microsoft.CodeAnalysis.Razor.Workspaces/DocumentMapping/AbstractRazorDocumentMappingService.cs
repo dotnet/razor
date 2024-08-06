@@ -381,10 +381,11 @@ internal abstract class AbstractRazorDocumentMappingService(
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var generatedDocument = GetGeneratedDocumentFromGeneratedDocumentUri(generatedDocumentUri, codeDocument);
 
-        // We already checked that the uri was for a generated document, above
-        Assumes.NotNull(generatedDocument);
+        if (!codeDocument.TryGetGeneratedDocument(generatedDocumentUri, _filePathService, out var generatedDocument))
+        {
+            return Assumed.Unreachable<(Uri, LinePositionSpan)>();
+        }
 
         if (TryMapToHostDocumentRange(generatedDocument, generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
         {
@@ -707,22 +708,6 @@ internal abstract class AbstractRazorDocumentMappingService(
         static bool IsPositionWithinDocument(LinePosition linePosition, SourceText sourceText)
         {
             return sourceText.TryGetAbsoluteIndex(linePosition, out _);
-        }
-    }
-
-    private IRazorGeneratedDocument? GetGeneratedDocumentFromGeneratedDocumentUri(Uri generatedDocumentUri, RazorCodeDocument codeDocument)
-    {
-        if (_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
-        {
-            return codeDocument.GetCSharpDocument();
-        }
-        else if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
-        {
-            return codeDocument.GetHtmlDocument();
-        }
-        else
-        {
-            return null;
         }
     }
 
