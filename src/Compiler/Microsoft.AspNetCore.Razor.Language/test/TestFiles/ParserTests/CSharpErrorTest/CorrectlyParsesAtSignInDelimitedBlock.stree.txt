@@ -16,7 +16,7 @@
                             StringLiteral;["description"];
                             RightBracket;[]];
                             Whitespace;[ ];
-                            NullCoalesce;[??];
+                            CSharpOperator;[??];
                             Whitespace;[ ];
                             Transition;[@];
                             Identifier;[photo];

@@ -37,7 +37,7 @@
                                 Transition;[@];
                                 Identifier;[message];
                                 LessThan;[<];
-                                Slash;[/];
+                                CSharpOperator;[/];
                                 Identifier;[h3];
                                 GreaterThan;[>];
                                 NewLine;[LF];

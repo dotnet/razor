@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
+internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase, IDisposable
     where TTokenizer : Tokenizer
 {
     protected delegate void SpanContextConfigAction(SpanEditHandlerBuilder? editHandlerBuilder, ref ISpanChunkGenerator? chunkGenerator);
@@ -719,5 +719,20 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
     protected void SetAcceptedCharacters(AcceptedCharactersInternal? acceptedCharacters)
     {
         Context.CurrentAcceptedCharacters = acceptedCharacters ?? AcceptedCharactersInternal.None;
+    }
+
+    internal void StartingBlock()
+    {
+        _tokenizer.Tokenizer.StartingBlock();
+    }
+
+    internal void EndingBlock()
+    {
+        _tokenizer.Tokenizer.EndingBlock();
+    }
+
+    public void Dispose()
+    {
+        _tokenizer.Dispose();
     }
 }

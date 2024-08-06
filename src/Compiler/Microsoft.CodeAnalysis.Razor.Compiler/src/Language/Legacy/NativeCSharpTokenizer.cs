@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -171,7 +171,7 @@ internal class NativeCSharpTokenizer : CSharpTokenizer
             case CSharpTokenizerState.StarAfterRazorCommentBody:
                 return StarAfterRazorCommentBody();
             case CSharpTokenizerState.AtTokenAfterRazorCommentBody:
-                return AtTokenAfterRazorCommentBody();
+                return AtTokenAfterRazorCommentBody(nextState: StartState);
             default:
                 Debug.Fail("Invalid TokenizerState");
                 return default(StateResult);
@@ -782,10 +782,10 @@ internal class NativeCSharpTokenizer : CSharpTokenizer
         QuotedCharacterLiteral,
         QuotedStringLiteral,
         VerbatimStringLiteral,
+        EscapedRazorCommentTransition,
 
         // Razor Comments - need to be the same for HTML and CSharp
         AfterRazorCommentTransition = RazorCommentTokenizerState.AfterRazorCommentTransition,
-        EscapedRazorCommentTransition = RazorCommentTokenizerState.EscapedRazorCommentTransition,
         RazorCommentBody = RazorCommentTokenizerState.RazorCommentBody,
         StarAfterRazorCommentBody = RazorCommentTokenizerState.StarAfterRazorCommentBody,
         AtTokenAfterRazorCommentBody = RazorCommentTokenizerState.AtTokenAfterRazorCommentBody,

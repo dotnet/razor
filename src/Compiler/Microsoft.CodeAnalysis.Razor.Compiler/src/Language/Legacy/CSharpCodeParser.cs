@@ -228,6 +228,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             return null;
         }
 
+        StartingBlock();
+
         using (var pooledResult = Pool.Allocate<RazorSyntaxNode>())
         using (PushSpanContextConfig(DefaultSpanContextConfig))
         {
@@ -246,10 +248,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                     CurrentToken.Content[0] == SyntaxConstants.TransitionCharacter)
                 {
                     var split = Language.SplitToken(CurrentToken, 1, SyntaxKind.Transition);
-                    transitionToken = split.Item1;
+                    transitionToken = split.left;
 
                     // Back up to the end of the transition
-                    Context.Source.Position -= split.Item2.Content.Length;
+                    _tokenizer.Reset(Context.Source.Position - split.right.Content.Length);
                     NextToken();
                 }
                 else if (At(SyntaxKind.Transition))
@@ -1035,7 +1037,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             }
             else
             {
-                Context.Source.Position = bookmark;
+                _tokenizer.Reset(bookmark);
                 NextToken();
                 AcceptUntil(SyntaxKind.LessThan, SyntaxKind.LeftBrace, SyntaxKind.RightBrace);
                 return;
@@ -1764,8 +1766,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
                             using (PushSpanContextConfig())
                             {
+                                EndingBlock();
                                 var razorBlock = HtmlParser.ParseRazorBlock(Tuple.Create("{", "}"), caseSensitive: true);
                                 directiveBuilder.Add(razorBlock);
+                                StartingBlock();
                             }
 
                             InitializeContext();
@@ -2377,7 +2381,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         ReadWhile(IsSpacingTokenIncludingComments, ref whitespaceOrComments.AsRef());
         var atLeftParen = At(SyntaxKind.LeftParenthesis);
         var atIdentifier = At(SyntaxKind.Identifier);
-        var atStatic = At(CSharpSyntaxKind.StaticKeyword);
+        var atStaticOrGlobal = At(CSharpSyntaxKind.StaticKeyword, CSharpSyntaxKind.GlobalKeyword);
 
         // Put the read tokens back and let them be handled later.
         PutCurrentBack();
@@ -2390,7 +2394,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             // using ( ==> Using Statement
             ParseUsingStatement(builder, transition, block);
         }
-        else if (atIdentifier || atStatic)
+        else if (atIdentifier || atStaticOrGlobal)
         {
             // using Identifier ==> Using Declaration
             if (!topLevel)
@@ -2472,7 +2476,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             var nonNamespaceTokenCount = TokenBuilder.Count;
             AcceptWhile(IsSpacingTokenIncludingComments);
             var start = CurrentStart;
-            if (At(SyntaxKind.Identifier))
+            if (At(SyntaxKind.Identifier) || At(CSharpSyntaxKind.GlobalKeyword))
             {
                 // non-static using
                 nonNamespaceTokenCount = TokenBuilder.Count;
@@ -2783,6 +2787,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         var wasNested = IsNested;
         IsNested = false;
 
+        EndingBlock();
+
         RazorSyntaxNode? htmlBlock = null;
         using (PushSpanContextConfig())
         {
@@ -2791,6 +2797,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
         builder.Add(htmlBlock);
         InitializeContext();
+
+        StartingBlock();
 
         IsNested = wasNested;
         NextToken();
@@ -2863,7 +2871,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 }
                 if ((mode & BalancingModes.BacktrackOnFailure) == BalancingModes.BacktrackOnFailure)
                 {
-                    Context.Source.Position = startPosition;
+                    _tokenizer.Reset(startPosition);
                     NextToken();
                 }
                 else
@@ -2923,12 +2931,23 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             result.Value == expectedKeyword);
     }
 
-    protected internal bool At(CSharpSyntaxKind keyword)
+    protected internal bool At(params ReadOnlySpan<CSharpSyntaxKind> keywords)
     {
         var result = _tokenizer.Tokenizer.GetTokenKeyword(CurrentToken);
-        return At(SyntaxKind.Keyword) &&
-            result.HasValue &&
-            result.Value == keyword;
+        if (!At(SyntaxKind.Keyword) || result is not { } keywordKind)
+        {
+            return false;
+        }
+
+        foreach (var search in keywords)
+        {
+            if (keywordKind == search)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private string GetBlockName(SyntaxToken token)

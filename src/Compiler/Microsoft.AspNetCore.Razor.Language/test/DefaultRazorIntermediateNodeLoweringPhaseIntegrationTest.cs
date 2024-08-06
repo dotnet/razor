@@ -525,6 +525,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         public void Configure(RazorParserOptionsBuilder options)
         {
             options.SetDesignTime(_designTime);
+            options.UseRoslynTokenizer = true;
         }
 
         public void Configure(RazorCodeGenerationOptionsBuilder options)

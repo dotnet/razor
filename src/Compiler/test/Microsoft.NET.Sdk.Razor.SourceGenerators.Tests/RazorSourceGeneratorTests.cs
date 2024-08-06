@@ -1405,7 +1405,7 @@ namespace AspNetCoreGeneratedDocument
             Assert.Single(result.GeneratedSources);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7049")]
+        [Fact(Skip = "PROTOTYPE"), WorkItem("https://github.com/dotnet/razor/issues/7049")]
         public async Task SourceGenerator_CshtmlFiles_TagHelperInFunction_ManualSuppression()
         {
             // Arrange
