@@ -16,7 +16,7 @@ internal sealed class RazorDocumentMappingService(
     IFilePathService filePathService,
     IDocumentContextFactory documentContextFactory,
     ILoggerFactory loggerFactory)
-    : AbstractRazorDocumentMappingService(filePathService, loggerFactory.GetOrCreateLogger<RazorDocumentMappingService>())
+    : AbstractDocumentMappingService(filePathService, loggerFactory.GetOrCreateLogger<RazorDocumentMappingService>())
 {
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
 

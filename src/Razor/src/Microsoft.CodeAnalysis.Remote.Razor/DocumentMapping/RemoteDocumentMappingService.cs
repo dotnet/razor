@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 internal sealed class RemoteDocumentMappingService(
     IFilePathService filePathService,
     ILoggerFactory loggerFactory)
-    : AbstractRazorDocumentMappingService(filePathService, loggerFactory.GetOrCreateLogger<RemoteDocumentMappingService>())
+    : AbstractDocumentMappingService(filePathService, loggerFactory.GetOrCreateLogger<RemoteDocumentMappingService>())
 {
     protected override ValueTask<RazorCodeDocument?> TryGetCodeDocumentAsync(Uri razorDocumentUri, CancellationToken cancellationToken)
     {
