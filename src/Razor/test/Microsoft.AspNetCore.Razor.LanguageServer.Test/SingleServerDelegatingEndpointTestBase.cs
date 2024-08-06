@@ -25,8 +25,9 @@ public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutput
     private protected IDocumentContextFactory? DocumentContextFactory { get; private set; }
     private protected LanguageServerFeatureOptions? LanguageServerFeatureOptions { get; private set; }
     private protected IRazorDocumentMappingService? DocumentMappingService { get; private set; }
+    private protected IEditMappingService? EditMappingService { get; private set; }
 
-    [MemberNotNull(nameof(DocumentContextFactory), nameof(LanguageServerFeatureOptions), nameof(DocumentMappingService))]
+    [MemberNotNull(nameof(DocumentContextFactory), nameof(LanguageServerFeatureOptions), nameof(DocumentMappingService), nameof(EditMappingService))]
     private protected async Task<TestLanguageServer> CreateLanguageServerAsync(
         RazorCodeDocument codeDocument,
         string razorFilePath,
@@ -65,6 +66,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutput
             MockBehavior.Strict);
 
         DocumentMappingService = new RazorDocumentMappingService(FilePathService, DocumentContextFactory, LoggerFactory);
+        EditMappingService = new EditMappingService(DocumentMappingService, FilePathService, DocumentContextFactory);
 
         var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
             csharpFiles,
