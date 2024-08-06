@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxToken;
 using SyntaxFactory = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxFactory;
@@ -16,11 +17,20 @@ using CSharpSyntaxTriviaList = Microsoft.CodeAnalysis.SyntaxTriviaList;
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 #pragma warning disable RSEXPERIMENTAL003 // SyntaxTokenParser is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-internal class RoslynCSharpTokenizer : CSharpTokenizer
+internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
 {
     private readonly SyntaxTokenParser _roslynTokenParser;
-    private readonly List<(int position, SyntaxTokenParser.Result result)> _resultCache = new();
+    /// <summary>
+    /// The current trivia enumerator that we're parsing through. This is a tuple of the enumerator and whether it's leading trivia.
+    /// When this is non-null, we're in the <see cref="RoslynCSharpTokenizerState.TriviaForCSharpToken"/> state.
+    /// </summary>
     private (CSharpSyntaxTriviaList.Enumerator enumerator, bool isLeading)? _currentCSharpTokenTriviaEnumerator;
+    /// <summary>
+    /// Previous result checkpoints that we can reset <see cref="_roslynTokenParser"/> to. This must be an ordered list
+    /// by position, where the position is the start of the token that was parsed including leading trivia, so that searching
+    /// is correct when performing a reset.
+    /// </summary>
+    private readonly List<(int position, SyntaxTokenParser.Result result)> _resultCache = [];
 
     public RoslynCSharpTokenizer(SeekableTextReader source)
         : base(source)
@@ -272,17 +282,10 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
 
     private StateResult Operator()
     {
-        var curPosition = Source.Position;
         var result = GetNextResult(NextResultType.Token);
         var token = result.Token;
 
-        // Don't include trailing trivia; we handle that differently than Roslyn
-        var finalPosition = curPosition + token.Span.Length;
-
-        for (; curPosition < finalPosition; curPosition++)
-        {
-            TakeCurrent();
-        }
+        AdvancePastToken(token);
 
         SyntaxKind kind;
         string content;
@@ -378,11 +381,8 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
 
     private StateResult TokenizedExpectedStringOrCharacterLiteral(StringOrCharacterKind expectedStringKind)
     {
-        var curPosition = Source.Position;
         var result = GetNextResult(NextResultType.Token);
         var csharpToken = result.Token;
-        // Don't include trailing trivia; we handle that differently than Roslyn
-        var finalPosition = curPosition + csharpToken.Span.Length;
         (string expectedPrefix, string expectedPostfix, bool lookForPrePostFix) = expectedStringKind switch
         {
             StringOrCharacterKind.Character => ("'", "'", false),
@@ -395,7 +395,7 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
             _ => throw new InvalidOperationException($"Unexpected expectedStringKind: {expectedStringKind}."),
         };
 
-        for (; curPosition < finalPosition; curPosition++)
+        for (var finalPosition = Source.Position + csharpToken.Span.Length; Source.Position < finalPosition;)
         {
             if (lookForPrePostFix)
             {
@@ -405,7 +405,7 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
             TakeCurrent();
         }
 
-        // If the token is the expected kind and has the expected prefix or doesn't have the expected postfix, then it's unterminated.
+        // If the token is the expected kind and is only the expected prefix or doesn't have the expected postfix, then it's unterminated.
         // This is a case like `"test` (which doesn't end in the expected postfix), or `"` (which ends in the expected postfix, but
         // exactly matches the expected prefix).
         if (lookForPrePostFix || csharpToken.Text == expectedPrefix || !csharpToken.Text.EndsWith(expectedPostfix!, StringComparison.Ordinal))
@@ -503,7 +503,6 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
         // Need to make sure the class state is correct, since structs are copied
         _currentCSharpTokenTriviaEnumerator = (triviaEnumerator, isLeading);
 
-        var curPosition = Source.Position;
         var trivia = triviaEnumerator.Current;
         var triviaString = trivia.ToFullString();
 
@@ -519,12 +518,7 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
         }
 
         // Use FullSpan here because doc comment trivias exclude the leading `///` or `/**` and the trailing `*/`
-        var finalPosition = curPosition + trivia.FullSpan.Length;
-
-        for (; curPosition < finalPosition; curPosition++)
-        {
-            TakeCurrent();
-        }
+        AdvancePastSpan(trivia.FullSpan);
 
         if (EndOfFile
             && trivia.Kind() is CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia
@@ -560,16 +554,9 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
     // CSharp Spec §2.4.4
     private StateResult NumericLiteral()
     {
-        var curPosition = Source.Position;
         var result = GetNextResult(NextResultType.Token);
         var csharpToken = result.Token;
-        // Don't include trailing trivia; we handle that differently than Roslyn
-        var finalPosition = curPosition + csharpToken.Span.Length;
-
-        for (; curPosition < finalPosition; curPosition++)
-        {
-            TakeCurrent();
-        }
+        AdvancePastToken(csharpToken);
 
         Buffer.Clear();
         _currentCSharpTokenTriviaEnumerator = (csharpToken.TrailingTrivia.GetEnumerator(), isLeading: false);
@@ -578,16 +565,9 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
 
     private StateResult Identifier()
     {
-        var curPosition = Source.Position;
         var result = GetNextResult(NextResultType.Token);
         var csharpToken = result.Token;
-        // Don't include trailing trivia; we handle that differently than Roslyn
-        var finalPosition = curPosition + csharpToken.Span.Length;
-
-        for (; curPosition < finalPosition; curPosition++)
-        {
-            TakeCurrent();
-        }
+        AdvancePastToken(csharpToken);
 
         var type = SyntaxKind.Identifier;
         if (!csharpToken.IsKind(CSharpSyntaxKind.IdentifierToken) || result.ContextualKind is not (CSharpSyntaxKind.None or CSharpSyntaxKind.IdentifierToken))
@@ -600,6 +580,22 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
         Buffer.Clear();
         _currentCSharpTokenTriviaEnumerator = (csharpToken.TrailingTrivia.GetEnumerator(), isLeading: false);
         return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, token);
+    }
+
+    private void AdvancePastToken(CSharpSyntaxToken csharpToken)
+    {
+        // Don't include trailing trivia; we handle that differently than Roslyn
+        AdvancePastSpan(csharpToken.Span);
+    }
+
+    private void AdvancePastSpan(TextSpan span)
+    {
+        var finalPosition = Source.Position + span.Length;
+
+        for (; Source.Position < finalPosition;)
+        {
+            TakeCurrent();
+        }
     }
 
     private StateResult Transition(RoslynCSharpTokenizerState state, SyntaxToken? result)
@@ -662,51 +658,38 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
         // Most common reset point is the last parsed token, so just try that first.
         Debug.Assert(_resultCache.Count > 0);
 
-        var lastIndex = _resultCache.Count - 1;
-        var lastResult = _resultCache[lastIndex];
-        if (lastResult.position == position)
+        // We always walk backwards from the current position, rather than doing a binary search, because the common pattern in the parser is
+        // to put tokens back in the order they were returned. This means that the most common reset point is the last token that was parsed.
+        // If this ever changes, we can consider doing a binary search at that point.
+        for (var i = _resultCache.Count -1; i >= 0; i--)
         {
-            _resultCache.RemoveAt(lastIndex);
-            _roslynTokenParser.ResetTo(lastResult.result);
-        }
-        else
-        {
-            // Not the last one, so binary search
-            var index = _resultCache.BinarySearch((position, default), ResultCacheSearcher.Instance);
-
-            if (index >= 0)
+            var (currentPosition, currentResult) = _resultCache[i];
+            if (currentPosition == position)
             {
-                // Found an exact match
-                var resetResult = _resultCache[index].result;
-                _roslynTokenParser.ResetTo(resetResult);
-                _resultCache.RemoveRange(index, _resultCache.Count - index);
+                // We found an exact match, so we can reset to it directly.
+                _roslynTokenParser.ResetTo(currentResult);
+                _resultCache.RemoveAt(i);
+                base.CurrentState = (int)RoslynCSharpTokenizerState.Start;
+                return;
             }
-            else
+            else if (currentPosition < position)
             {
                 // Reset to the one before reset point, then skip forward
-                index = ~index - 1;
-                // We know there was at least one element in the list, so BinarySearch returned either the element with a position further ahead of where we want to reset to, or the length of the list.
-                // In either case, we know that index is valid.
-                Debug.Assert(index >= 0);
-
                 // We don't want to actually remove the result from the cache in this point: the parser could later ask to reset further back in this same result. This mostly happens for trivia, where the
                 // parser may ask to put multiple tokens back, each part of the same roslyn trivia piece. However, it is not _only_ for trivia, so we can't assert that. The parser may decide, for example,
                 // to split the @ from a token, reset the tokenizer after the @, and then keep going.
-                var resetResult = _resultCache[index].result;
-                _roslynTokenParser.ResetTo(resetResult);
+                _roslynTokenParser.ResetTo(currentResult);
                 _roslynTokenParser.SkipForwardTo(position);
-
-                if (index + 1 < _resultCache.Count)
-                {
-                    // Any results further ahead than the position we reset to are no longer valid, so we want to remove them.
-                    // We need to keep the position we reset to, just in case the parser asks to reset to it again.
-                    _resultCache.RemoveRange(index + 1, _resultCache.Count - index - 1);
-                }
+                base.CurrentState = (int)RoslynCSharpTokenizerState.Start;
+                return;
             }
-
+            else
+            {
+                // We know we're not going to be interested in this reset point anymore, so we can remove it.
+                Debug.Assert(currentPosition > position);
+                _resultCache.RemoveAt(i);
+            }
         }
-
-        CurrentState = RoslynCSharpTokenizerState.Start;
     }
 
     public override void Dispose()
@@ -745,15 +728,5 @@ internal class RoslynCSharpTokenizer : CSharpTokenizer
         RazorCommentBody = RazorCommentTokenizerState.RazorCommentBody,
         StarAfterRazorCommentBody = RazorCommentTokenizerState.StarAfterRazorCommentBody,
         AtTokenAfterRazorCommentBody = RazorCommentTokenizerState.AtTokenAfterRazorCommentBody,
-    }
-
-    private sealed class ResultCacheSearcher : IComparer<(int position, SyntaxTokenParser.Result result)>
-    {
-        public static ResultCacheSearcher Instance { get; } = new ResultCacheSearcher();
-
-        public int Compare((int position, SyntaxTokenParser.Result result) x, (int position, SyntaxTokenParser.Result result) y)
-        {
-            return x.position.CompareTo(y.position);
-        }
     }
 }
