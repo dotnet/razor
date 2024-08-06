@@ -129,7 +129,7 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
 
     private async Task AddCSharpSpellCheckRangesAsync(List<SpellCheckRange> ranges, VersionedDocumentContext documentContext, CancellationToken cancellationToken)
     {
-        var delegatedParams = new DelegatedSpellCheckParams(documentContext.Identifier);
+        var delegatedParams = new DelegatedSpellCheckParams(documentContext.GetTextDocumentIdentifierAndVersion());
         var delegatedResponse = await _clientConnection.SendRequestAsync<DelegatedSpellCheckParams, VSInternalSpellCheckableRangeReport[]?>(
             CustomMessageNames.RazorSpellCheckEndpoint,
             delegatedParams,

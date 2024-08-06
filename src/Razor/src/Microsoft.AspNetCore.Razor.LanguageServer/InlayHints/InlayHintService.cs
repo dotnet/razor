@@ -42,7 +42,7 @@ internal sealed class InlayHintService(IRazorDocumentMappingService documentMapp
         // For now we only support C# inlay hints. Once Web Tools adds support we'll need to request from both servers and combine
         // the results, much like folding ranges.
         var delegatedRequest = new DelegatedInlayHintParams(
-            Identifier: documentContext.Identifier,
+            Identifier: documentContext.GetTextDocumentIdentifierAndVersion(),
             ProjectedRange: projectedLinePositionSpan.ToRange(),
             ProjectedKind: RazorLanguageKind.CSharp
         );
@@ -78,7 +78,7 @@ internal sealed class InlayHintService(IRazorDocumentMappingService documentMapp
 
                 hint.Data = new RazorInlayHintWrapper
                 {
-                    TextDocument = documentContext.Identifier,
+                    TextDocument = documentContext.GetTextDocumentIdentifierAndVersion(),
                     OriginalData = hint.Data,
                     OriginalPosition = hint.Position
                 };

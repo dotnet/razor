@@ -91,10 +91,10 @@ internal sealed class RenameEndpoint(
         }
 
         return Task.FromResult<IDelegatedParams?>(new DelegatedRenameParams(
-                documentContext.Identifier,
-                positionInfo.Position,
-                positionInfo.LanguageKind,
-                request.NewName));
+            documentContext.GetTextDocumentIdentifierAndVersion(),
+            positionInfo.Position,
+            positionInfo.LanguageKind,
+            request.NewName));
     }
 
     protected override async Task<WorkspaceEdit?> HandleDelegatedResponseAsync(WorkspaceEdit? response, RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)

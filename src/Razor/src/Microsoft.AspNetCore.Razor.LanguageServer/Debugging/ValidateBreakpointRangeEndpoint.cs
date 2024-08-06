@@ -67,7 +67,7 @@ internal class ValidateBreakpointRangeEndpoint(
         }
 
         return new DelegatedValidateBreakpointRangeParams(
-            documentContext.Identifier,
+            documentContext.GetTextDocumentIdentifierAndVersion(),
             projectedRange,
             positionInfo.LanguageKind);
     }

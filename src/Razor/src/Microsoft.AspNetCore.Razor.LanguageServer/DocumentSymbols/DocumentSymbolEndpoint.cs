@@ -62,7 +62,7 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
             return null;
         }
 
-        var delegatedParams = new DelegatedDocumentSymbolParams(documentContext.Identifier);
+        var delegatedParams = new DelegatedDocumentSymbolParams(documentContext.GetTextDocumentIdentifierAndVersion());
 
         var result = await _clientConnection.SendRequestAsync<DelegatedDocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(
             CustomMessageNames.RazorDocumentSymbolEndpoint,

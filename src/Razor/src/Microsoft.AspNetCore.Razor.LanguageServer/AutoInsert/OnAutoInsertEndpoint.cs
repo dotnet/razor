@@ -170,7 +170,7 @@ internal class OnAutoInsertEndpoint(
         }
 
         return Task.FromResult<IDelegatedParams?>(new DelegatedOnAutoInsertParams(
-            documentContext.Identifier,
+            documentContext.GetTextDocumentIdentifierAndVersion(),
             positionInfo.Position,
             positionInfo.LanguageKind,
             request.Character,

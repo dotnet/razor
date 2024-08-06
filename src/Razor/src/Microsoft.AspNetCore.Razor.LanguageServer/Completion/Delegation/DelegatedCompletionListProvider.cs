@@ -77,7 +77,7 @@ internal class DelegatedCompletionListProvider
         var shouldIncludeSnippets = await ShouldIncludeSnippetsAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
         var delegatedParams = new DelegatedCompletionParams(
-            documentContext.Identifier,
+            documentContext.GetTextDocumentIdentifierAndVersion(),
             positionInfo.Position,
             positionInfo.LanguageKind,
             completionContext,
