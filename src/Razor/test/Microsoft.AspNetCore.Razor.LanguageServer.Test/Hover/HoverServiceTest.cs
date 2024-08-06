@@ -880,7 +880,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
             options.UseRazorCohostServer == false
             , MockBehavior.Strict);
         var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
+        var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var service = GetHoverService(documentMappingService);
 

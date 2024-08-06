@@ -24,7 +24,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
     public RazorLanguageQueryEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documentMappingService = new RazorDocumentMappingService(
+        _documentMappingService = new LspDocumentMappingService(
             FilePathService,
             new TestDocumentContextFactory(),
             LoggerFactory);

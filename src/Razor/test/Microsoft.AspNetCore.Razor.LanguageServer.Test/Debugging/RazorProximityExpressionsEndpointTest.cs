@@ -20,7 +20,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
     public RazorProximityExpressionsEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _mappingService = new RazorDocumentMappingService(
+        _mappingService = new LspDocumentMappingService(
             FilePathService,
             new TestDocumentContextFactory(),
             LoggerFactory);

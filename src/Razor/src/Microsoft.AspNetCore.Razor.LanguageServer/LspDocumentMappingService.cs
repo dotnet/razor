@@ -12,11 +12,11 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class RazorDocumentMappingService(
+internal sealed class LspDocumentMappingService(
     IFilePathService filePathService,
     IDocumentContextFactory documentContextFactory,
     ILoggerFactory loggerFactory)
-    : AbstractDocumentMappingService(filePathService, loggerFactory.GetOrCreateLogger<RazorDocumentMappingService>())
+    : AbstractDocumentMappingService(filePathService, loggerFactory.GetOrCreateLogger<LspDocumentMappingService>())
 {
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
 

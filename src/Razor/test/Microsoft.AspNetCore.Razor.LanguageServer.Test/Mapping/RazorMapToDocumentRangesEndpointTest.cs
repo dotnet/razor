@@ -23,7 +23,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public RazorMapToDocumentRangesEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documentMappingService = new RazorDocumentMappingService(
+        _documentMappingService = new LspDocumentMappingService(
             FilePathService,
             new TestDocumentContextFactory(),
             LoggerFactory);

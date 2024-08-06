@@ -65,7 +65,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutput
             options.HtmlVirtualDocumentSuffix == DefaultLanguageServerFeatureOptions.DefaultHtmlVirtualDocumentSuffix,
             MockBehavior.Strict);
 
-        DocumentMappingService = new RazorDocumentMappingService(FilePathService, DocumentContextFactory, LoggerFactory);
+        DocumentMappingService = new LspDocumentMappingService(FilePathService, DocumentContextFactory, LoggerFactory);
         EditMappingService = new EditMappingService(DocumentMappingService, FilePathService, DocumentContextFactory);
 
         var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
