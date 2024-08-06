@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -38,7 +37,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -69,7 +68,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -99,7 +98,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -129,7 +128,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -164,7 +163,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -205,7 +204,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -248,7 +247,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -285,7 +284,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -321,7 +320,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -358,7 +357,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = null!
         };
 

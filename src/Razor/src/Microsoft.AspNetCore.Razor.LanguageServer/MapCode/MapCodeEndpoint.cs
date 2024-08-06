@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+extern alias RLSP;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,8 +24,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Location = Microsoft.VisualStudio.LanguageServer.Protocol.Location;
+using Location = RLSP::Roslyn.LanguageServer.Protocol.Location;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
@@ -236,7 +237,7 @@ internal sealed class MapCodeEndpoint(
                     if (insertionSpan is not null)
                     {
                         var textSpan = new TextSpan(insertionSpan.Value, 0);
-                        var edit = VsLspFactory.CreateTextEdit(sourceText.GetRange(textSpan), nodeToMap.ToFullString());
+                        var edit = LspFactory.CreateTextEdit(sourceText.GetRange(textSpan), nodeToMap.ToFullString());
 
                         var textDocumentEdit = new TextDocumentEdit
                         {
@@ -440,7 +441,7 @@ internal sealed class MapCodeEndpoint(
                     return false;
                 }
 
-                var textEdit = VsLspFactory.CreateTextEdit(hostDocumentRange, documentEdit.NewText);
+                var textEdit = LspFactory.CreateTextEdit(hostDocumentRange, documentEdit.NewText);
 
                 var textDocumentEdit = new TextDocumentEdit
                 {

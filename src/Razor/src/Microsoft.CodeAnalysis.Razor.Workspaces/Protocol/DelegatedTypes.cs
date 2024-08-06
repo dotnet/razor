@@ -3,6 +3,7 @@
 
 using System;
 using System.Text.Json.Serialization;
+using LspLocation = Roslyn.LanguageServer.Protocol.Location;
 
 // A file for delegated record types to be put. Each individually
 // should be a plain record. If more logic is needed than record
@@ -10,7 +11,6 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 internal record DelegatedSpellCheckParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier);
@@ -26,7 +26,7 @@ internal record DelegatedPositionParams(
 
 internal record DelegatedInlayHintParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier,
-    [property: JsonPropertyName("projectedRange")] Range ProjectedRange,
+    [property: JsonPropertyName("projectedRange")] LspRange ProjectedRange,
     [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
 internal record DelegatedInlayHintResolveParams(
@@ -36,7 +36,7 @@ internal record DelegatedInlayHintResolveParams(
 
 internal record DelegatedValidateBreakpointRangeParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier,
-    [property: JsonPropertyName("projectedRange")] Range ProjectedRange,
+    [property: JsonPropertyName("projectedRange")] LspRange ProjectedRange,
     [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
 internal record DelegatedOnAutoInsertParams(
@@ -66,7 +66,7 @@ internal record DelegatedMapCodeParams(
     [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind,
     [property: JsonPropertyName("mapCodeCorrelationId")] Guid MapCodeCorrelationId,
     [property: JsonPropertyName("contents")] string[] Contents,
-    [property: JsonPropertyName("focusLocations")] Location[][] FocusLocations) : IDelegatedParams;
+    [property: JsonPropertyName("focusLocations")] LspLocation[][] FocusLocations) : IDelegatedParams;
 
 internal record DelegatedCompletionResolutionContext(
     [property: JsonPropertyName("originalRequestParams")] DelegatedCompletionParams OriginalRequestParams,

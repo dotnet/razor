@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
@@ -38,7 +37,7 @@ internal sealed class CloseTextTagOnAutoInsertProvider(RazorLSPOptionsMonitor op
 
         // This is a text tag.
         format = InsertTextFormat.Snippet;
-        edit = VsLspFactory.CreateTextEdit(position, $"$0</{SyntaxConstants.TextTagName}>");
+        edit = LspFactory.CreateTextEdit(position, $"$0</{SyntaxConstants.TextTagName}>");
 
         return true;
     }

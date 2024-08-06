@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -31,7 +30,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = VsLspFactory.DefaultPosition,
+            Position = LspFactory.DefaultPosition,
             Character = "!",
             Options = new FormattingOptions
             {
@@ -66,7 +65,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = VsLspFactory.DefaultPosition,
+            Position = LspFactory.DefaultPosition,
             Character = ">",
             Options = new FormattingOptions
             {
@@ -101,7 +100,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = VsLspFactory.DefaultPosition,
+            Position = LspFactory.DefaultPosition,
             Character = ">",
             Options = new FormattingOptions
             {
@@ -135,7 +134,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = VsLspFactory.CreatePosition(1, 3),
+            Position = LspFactory.CreatePosition(1, 3),
             Character = "/",
             Options = new FormattingOptions
             {

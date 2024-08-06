@@ -3,7 +3,6 @@
 
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
 

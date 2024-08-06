@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -71,7 +70,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var delegatedParameters = _provider.DelegatedParams;
         Assert.NotNull(delegatedParameters);
         Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
-        Assert.Equal(VsLspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
+        Assert.Equal(LspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
         Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
         Assert.Equal(1337, delegatedParameters.Identifier.Version);
         Assert.Null(delegatedParameters.ProvisionalTextEdit);
@@ -98,7 +97,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var delegatedParameters = _provider.DelegatedParams;
         Assert.NotNull(delegatedParameters);
         Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
-        Assert.Equal(VsLspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
+        Assert.Equal(LspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
         Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
         Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
         Assert.Equal(1337, delegatedParameters.Identifier.Version);
@@ -126,7 +125,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var delegatedParameters = _provider.DelegatedParams;
         Assert.NotNull(delegatedParameters);
         Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
-        Assert.Equal(VsLspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
+        Assert.Equal(LspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
         Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
         Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
         Assert.Equal(1337, delegatedParameters.Identifier.Version);

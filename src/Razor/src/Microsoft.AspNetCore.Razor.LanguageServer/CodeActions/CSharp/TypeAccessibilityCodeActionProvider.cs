@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -261,7 +260,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
     {
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
-        var fqnTextEdit = VsLspFactory.CreateTextEdit(fqnDiagnostic.Range, fullyQualifiedName);
+        var fqnTextEdit = LspFactory.CreateTextEdit(fqnDiagnostic.Range, fullyQualifiedName);
 
         var fqnWorkspaceEditDocumentChange = new TextDocumentEdit()
         {

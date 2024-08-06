@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -72,7 +71,7 @@ public class Foo { }
         using var context = CreateFormattingContext(source);
         var edits = new[]
         {
-            VsLspFactory.CreateTextEdit(2, 0, "    ")
+            LspFactory.CreateTextEdit(2, 0, "    ")
         };
         var input = new FormattingResult(edits, RazorLanguageKind.Razor);
         var pass = GetPass();
@@ -96,7 +95,7 @@ public class Foo { }
         using var context = CreateFormattingContext(source);
         var edits = new[]
         {
-            VsLspFactory.CreateTextEdit(2, 0, 3, 0, "    ") // Nukes a line
+            LspFactory.CreateTextEdit(2, 0, 3, 0, "    ") // Nukes a line
         };
         var input = new FormattingResult(edits, RazorLanguageKind.Razor);
         var pass = GetPass();

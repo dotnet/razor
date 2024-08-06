@@ -19,8 +19,6 @@ using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
@@ -36,7 +34,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
     private VersionedDocumentContext DocumentContext { get; set; }
 
-    private Range Range { get; set; }
+    private LspRange Range { get; set; }
 
     private string PagesDirectory { get; set; }
 
@@ -66,7 +64,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
-        Range = VsLspFactory.CreateRange(
+        Range = LspFactory.CreateRange(
             start: (0, 0),
             end: (text.Lines.Count - 1, text.Lines[^1].Span.Length - 1));
     }

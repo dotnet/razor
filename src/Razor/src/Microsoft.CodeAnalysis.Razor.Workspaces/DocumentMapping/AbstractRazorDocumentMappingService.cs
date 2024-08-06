@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
@@ -831,7 +830,7 @@ internal abstract class AbstractRazorDocumentMappingService(
                 continue;
             }
 
-            var edit = VsLspFactory.CreateTextEdit(originalRange, edits[i].NewText);
+            var edit = LspFactory.CreateTextEdit(originalRange, edits[i].NewText);
             remappedEdits.Add(edit);
         }
 

@@ -13,9 +13,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer.RazorSemanticTokensBenchmark;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
@@ -31,7 +29,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
     private IDocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
-    private Range Range { get; set; }
+    private LspRange Range { get; set; }
 
     private string PagesDirectory { get; set; }
 
@@ -55,7 +53,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version: 1);
 
         var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
-        Range = VsLspFactory.CreateRange(
+        Range = LspFactory.CreateRange(
             start: (0, 0),
             end: (text.Lines.Count - 1, 0));
     }

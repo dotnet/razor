@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
@@ -13,7 +12,7 @@ internal interface IRazorFormattingService
 {
     Task<TextEdit[]> FormatAsync(
        VersionedDocumentContext documentContext,
-       Range? range,
+       LspRange? range,
        FormattingOptions options,
        CancellationToken cancellationToken);
 

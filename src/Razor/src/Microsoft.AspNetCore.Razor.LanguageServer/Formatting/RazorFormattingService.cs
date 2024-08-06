@@ -12,8 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
@@ -37,7 +35,7 @@ internal class RazorFormattingService : IRazorFormattingService
 
     public async Task<TextEdit[]> FormatAsync(
         VersionedDocumentContext documentContext,
-        Range? range,
+        LspRange? range,
         FormattingOptions options,
         CancellationToken cancellationToken)
     {

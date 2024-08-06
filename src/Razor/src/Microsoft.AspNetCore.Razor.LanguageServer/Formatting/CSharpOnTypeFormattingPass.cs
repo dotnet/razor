@@ -19,8 +19,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -179,13 +177,13 @@ internal sealed class CSharpOnTypeFormattingPass(
             start = firstPosition;
         }
 
-        var end = VsLspFactory.CreatePosition(rangeAfterFormatting.End.Line + lineDelta, 0);
+        var end = LspFactory.CreatePosition(rangeAfterFormatting.End.Line + lineDelta, 0);
         if (lastPosition is not null && lastPosition.CompareTo(start) < 0)
         {
             end = lastPosition;
         }
 
-        var rangeToAdjust = VsLspFactory.CreateRange(start, end);
+        var rangeToAdjust = LspFactory.CreateRange(start, end);
 
         Debug.Assert(cleanedText.IsValidPosition(rangeToAdjust.End), "Invalid range. This is unexpected.");
 
@@ -280,7 +278,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return delta;
     }
 
-    private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
+    private static List<TextChange> CleanupDocument(FormattingContext context, LspRange? range = null)
     {
         var text = context.SourceText;
         range ??= text.GetRange(TextSpan.FromBounds(0, text.Length));
@@ -305,7 +303,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return changes;
     }
 
-    private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, out bool newLineAdded)
+    private static void CleanupSourceMappingStart(FormattingContext context, LspRange sourceMappingRange, List<TextChange> changes, out bool newLineAdded)
     {
         newLineAdded = false;
 
@@ -428,7 +426,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return builder.ToString();
     }
 
-    private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool newLineWasAddedAtStart)
+    private static void CleanupSourceMappingEnd(FormattingContext context, LspRange sourceMappingRange, List<TextChange> changes, bool newLineWasAddedAtStart)
     {
         //
         // We look through every source mapping that intersects with the affected range and

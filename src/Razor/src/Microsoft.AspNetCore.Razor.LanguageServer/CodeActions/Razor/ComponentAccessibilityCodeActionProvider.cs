@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -277,14 +276,14 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         using var textEdits = new PooledArrayBuilder<TextEdit>();
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
-        var startTagTextEdit = VsLspFactory.CreateTextEdit(startTag.Name.GetRange(context.CodeDocument.Source), newTagName);
+        var startTagTextEdit = LspFactory.CreateTextEdit(startTag.Name.GetRange(context.CodeDocument.Source), newTagName);
 
         textEdits.Add(startTagTextEdit);
 
         var endTag = (startTag.Parent as MarkupElementSyntax)?.EndTag;
         if (endTag != null)
         {
-            var endTagTextEdit = VsLspFactory.CreateTextEdit(endTag.Name.GetRange(context.CodeDocument.Source), newTagName);
+            var endTagTextEdit = LspFactory.CreateTextEdit(endTag.Name.GetRange(context.CodeDocument.Source), newTagName);
             textEdits.Add(endTagTextEdit);
         }
 

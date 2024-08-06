@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.VisualStudio.LanguageServer.Protocol.VsLspExtensions;
-using static Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
+using Roslyn.LanguageServer.Protocol;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight.RemoteDocumentHighlight[]?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -80,8 +79,8 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
                 {
                     if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, highlight.Range.ToLinePositionSpan(), out var mappedRange))
                     {
-                        highlight.Range = Roslyn.LanguageServer.Protocol.RoslynLspExtensions.ToRange(mappedRange);
-                        results.Add(RemoteDocumentHighlight.FromRoslynDocumentHighlight(highlight));
+                        highlight.Range = mappedRange.ToRange();
+                        results.Add(RemoteDocumentHighlight.FromLspDocumentHighlight(highlight));
                     }
                 }
 

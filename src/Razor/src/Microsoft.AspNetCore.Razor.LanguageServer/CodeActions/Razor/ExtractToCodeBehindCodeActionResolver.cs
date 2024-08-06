@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -96,12 +95,12 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
             new TextDocumentEdit
             {
                 TextDocument = codeDocumentIdentifier,
-                Edits = [VsLspFactory.CreateTextEdit(removeRange, string.Empty)]
+                Edits = [LspFactory.CreateTextEdit(removeRange, string.Empty)]
             },
             new TextDocumentEdit
             {
                 TextDocument = codeBehindDocumentIdentifier,
-                Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), codeBehindContent)]
+                Edits = [LspFactory.CreateTextEdit(position: (0, 0), codeBehindContent)]
             }
         };
 

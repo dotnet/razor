@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -117,7 +116,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(2, 1),
+            Position = LspFactory.CreatePosition(2, 1),
             NewName = "Component5"
         };
 
@@ -140,7 +139,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(2, 1),
+            Position = LspFactory.CreatePosition(2, 1),
             NewName = "Component5"
         };
 
@@ -181,7 +180,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(1, 14),
+            Position = LspFactory.CreatePosition(1, 14),
             NewName = "Test2"
         };
 
@@ -204,7 +203,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             NewName = "Test2"
         };
 
@@ -227,7 +226,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(1, 1),
+            Position = LspFactory.CreatePosition(1, 1),
             NewName = "Test2"
         };
 
@@ -250,7 +249,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(1, 3),
+            Position = LspFactory.CreatePosition(1, 3),
             NewName = "Test2"
         };
 
@@ -273,7 +272,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(1, 10),
+            Position = LspFactory.CreatePosition(1, 10),
             NewName = "Test2"
         };
 
@@ -296,7 +295,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(1, 1),
+            Position = LspFactory.CreatePosition(1, 1),
             NewName = "Component5"
         };
 
@@ -382,7 +381,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(2, 1),
+            Position = LspFactory.CreatePosition(2, 1),
             NewName = "Component5"
         };
 
@@ -428,7 +427,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(1, 1),
+            Position = LspFactory.CreatePosition(1, 1),
             NewName = "Component5"
         };
 
@@ -481,7 +480,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(1, 1),
+            Position = LspFactory.CreatePosition(1, 1),
             NewName = "TestComponent"
         };
 
@@ -546,7 +545,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             NewName = "Test2"
         };
 
@@ -580,7 +579,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = PathUtilities.GetUri(s_componentWithParamFilePath) },
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             NewName = "Test2"
         };
 

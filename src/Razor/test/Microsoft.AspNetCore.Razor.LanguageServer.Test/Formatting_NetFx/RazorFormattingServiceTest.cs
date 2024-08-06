@@ -6,7 +6,6 @@
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,8 +25,8 @@ public class Foo{}
         var sourceText = SourceText.From(source);
         var edits = new[]
         {
-            VsLspFactory.CreateTextEdit(VsLspFactory.CreateSingleLineRange(line: 2, character: 13, length: 3), "Bar"),
-            VsLspFactory.CreateTextEdit(2, 0, "    ")
+            LspFactory.CreateTextEdit(LspFactory.CreateSingleLineRange(line: 2, character: 13, length: 3), "Bar"),
+            LspFactory.CreateTextEdit(2, 0, "    ")
         };
 
         // Act

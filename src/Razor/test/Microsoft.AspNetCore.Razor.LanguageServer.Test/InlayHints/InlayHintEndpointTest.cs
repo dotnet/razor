@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -104,7 +103,7 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
             {
                 Uri = new Uri(razorFilePath)
             },
-            Range = VsLspFactory.CreateRange(0, 0, codeDocument.Source.Text.Lines.Count, 0)
+            Range = LspFactory.CreateRange(0, 0, codeDocument.Source.Text.Lines.Count, 0)
         };
         Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);

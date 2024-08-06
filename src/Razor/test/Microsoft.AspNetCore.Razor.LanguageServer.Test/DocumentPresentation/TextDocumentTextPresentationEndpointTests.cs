@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -51,7 +50,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Text = "Hi there"
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -90,7 +89,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Text = "Hi there"
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -131,7 +130,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Text = "Hi there"
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -173,7 +172,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Text = "Hi there"
         };
         var requestContext = CreateRazorRequestContext(documentContext);

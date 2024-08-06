@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -34,7 +33,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 // Even though the DTO declares this as non-null, we want to make sure we behave
@@ -71,7 +70,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = new Diagnostic[] {
@@ -126,7 +125,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = new Diagnostic[] {
@@ -166,7 +165,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = new Diagnostic[] {
@@ -179,7 +178,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
                     {
                         Severity = DiagnosticSeverity.Error,
                         Code = errorCode,
-                        Range = VsLspFactory.CreateRange(0, 8, 0, 12)
+                        Range = LspFactory.CreateRange(0, 8, 0, 12)
                     },
                     new Diagnostic()
                     {
@@ -242,7 +241,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = Array.Empty<Diagnostic>()
@@ -294,7 +293,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = Array.Empty<Diagnostic>()
@@ -352,7 +351,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
             {
                 Diagnostics = new Diagnostic[] {
@@ -365,7 +364,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
                     {
                         Severity = DiagnosticSeverity.Error,
                         Code = "CS0246",
-                        Range = VsLspFactory.CreateRange(0, 8, 0, 12)
+                        Range = LspFactory.CreateRange(0, 8, 0, 12)
                     },
                     new Diagnostic()
                     {

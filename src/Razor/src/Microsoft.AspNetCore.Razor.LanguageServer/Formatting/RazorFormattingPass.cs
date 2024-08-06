@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
@@ -117,7 +116,7 @@ internal sealed class RazorFormattingPass(
             else if (children.TryGetOpenBraceToken(out var brace))
             {
                 // If there is no whitespace at all we normalize to a single space
-                var edit = VsLspFactory.CreateTextEdit(brace.GetRange(source).Start, " ");
+                var edit = LspFactory.CreateTextEdit(brace.GetRange(source).Start, " ");
                 edits.Add(edit);
 
                 return true;
@@ -279,7 +278,7 @@ internal sealed class RazorFormattingPass(
             else if (children.TryGetOpenBraceToken(out var brace))
             {
                 // If there is no whitespace at all we normalize to a single space
-                var edit = VsLspFactory.CreateTextEdit(
+                var edit = LspFactory.CreateTextEdit(
                     brace.GetRange(source).Start,
                     forceNewLine
                         ? context.NewLineString + FormattingUtilities.GetIndentationString(
@@ -352,7 +351,7 @@ internal sealed class RazorFormattingPass(
         {
             // If there is a newline then we want to have just one newline after the directive
             // and indent the { to match the @
-            var edit = VsLspFactory.CreateTextEdit(
+            var edit = LspFactory.CreateTextEdit(
                 node.GetRange(source),
                 context.NewLineString + FormattingUtilities.GetIndentationString(
                     directive.GetLinePositionSpan(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize));
@@ -366,7 +365,7 @@ internal sealed class RazorFormattingPass(
         // If there is anything other than one single space then we replace with one space between directive and brace.
         //
         // ie, "@code     {" will become "@code {"
-        var edit = VsLspFactory.CreateTextEdit(node.GetRange(source), " ");
+        var edit = LspFactory.CreateTextEdit(node.GetRange(source), " ");
         edits.Add(edit);
     }
 
@@ -389,7 +388,7 @@ internal sealed class RazorFormattingPass(
                 newText += FormattingUtilities.GetIndentationString(additionalIndentationLevel, context.Options.InsertSpaces, context.Options.TabSize);
             }
 
-            var edit = VsLspFactory.CreateTextEdit(openBraceRange.End, newText);
+            var edit = LspFactory.CreateTextEdit(openBraceRange.End, newText);
             edits.Add(edit);
             didFormat = true;
         }
@@ -404,7 +403,7 @@ internal sealed class RazorFormattingPass(
             {
                 // If we have a directive, then we line the close brace up with it, and ensure
                 // there is a close brace
-                var edit = VsLspFactory.CreateTextEdit(start: codeRange.End, end: closeBraceRange.Start,
+                var edit = LspFactory.CreateTextEdit(start: codeRange.End, end: closeBraceRange.Start,
                     context.NewLineString + FormattingUtilities.GetIndentationString(
                         directiveNode.GetRange(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize));
 
@@ -414,7 +413,7 @@ internal sealed class RazorFormattingPass(
             else if (codeRange.End.Line == closeBraceRange.Start.Line)
             {
                 // Add a Newline between the content and the "}" if one doesn't already exist.
-                var edit = VsLspFactory.CreateTextEdit(codeRange.End, context.NewLineString);
+                var edit = LspFactory.CreateTextEdit(codeRange.End, context.NewLineString);
                 edits.Add(edit);
                 didFormat = true;
             }
@@ -422,7 +421,7 @@ internal sealed class RazorFormattingPass(
 
         return didFormat;
 
-        static bool RangeHasBeenModified(IList<TextEdit> edits, Range range)
+        static bool RangeHasBeenModified(IList<TextEdit> edits, LspRange range)
         {
             // Because we don't always know what kind of Razor object we're operating on we have to do this to avoid duplicate edits.
             // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.
@@ -431,7 +430,7 @@ internal sealed class RazorFormattingPass(
             return hasBeenModified;
         }
 
-        static int GetAdditionalIndentationLevel(FormattingContext context, Range range, SyntaxNode openBraceNode, SyntaxNode codeNode)
+        static int GetAdditionalIndentationLevel(FormattingContext context, LspRange range, SyntaxNode openBraceNode, SyntaxNode codeNode)
         {
             if (!context.TryGetIndentationLevel(codeNode.Position, out var desiredIndentationLevel))
             {

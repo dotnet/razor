@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+extern alias RLSP;
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -17,12 +19,10 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
-    Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using DefinitionResult = RLSP::Roslyn.LanguageServer.Protocol.SumType<
+    RLSP::Roslyn.LanguageServer.Protocol.VSInternalLocation,
+    RLSP::Roslyn.LanguageServer.Protocol.VSInternalLocation[],
+    RLSP::Roslyn.LanguageServer.Protocol.DocumentLink[]>;
 using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
@@ -245,7 +245,7 @@ internal sealed class DefinitionEndpoint(
         };
     }
 
-    private async Task<Range> GetNavigateRangeAsync(IDocumentSnapshot documentSnapshot, BoundAttributeDescriptor? attributeDescriptor, CancellationToken cancellationToken)
+    private async Task<LspRange> GetNavigateRangeAsync(IDocumentSnapshot documentSnapshot, BoundAttributeDescriptor? attributeDescriptor, CancellationToken cancellationToken)
     {
         if (attributeDescriptor is not null)
         {
@@ -264,10 +264,10 @@ internal sealed class DefinitionEndpoint(
         // If we were trying to navigate to a property, and we couldn't find it, we can at least take
         // them to the file for the component. If the property was defined in a partial class they can
         // at least then press F7 to go there.
-        return VsLspFactory.DefaultRange;
+        return LspFactory.DefaultRange;
     }
 
-    internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, IRazorDocumentMappingService documentMappingService, ILogger logger, CancellationToken cancellationToken)
+    internal static async Task<LspRange?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, IRazorDocumentMappingService documentMappingService, ILogger logger, CancellationToken cancellationToken)
     {
         // Parse the C# file and find the property that matches the name.
         // We don't worry about parameter attributes here for two main reasons:

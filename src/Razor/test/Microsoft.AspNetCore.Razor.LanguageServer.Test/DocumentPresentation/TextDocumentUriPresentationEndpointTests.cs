@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -69,7 +68,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -127,7 +126,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris =
             [
                 new Uri("file:///c:/path/MyTagHelper.razor.cs"),
@@ -196,7 +195,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -248,7 +247,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -294,7 +293,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris =
             [
                 new Uri("file:///c:/path/SomeOtherFile.cs"),
@@ -346,7 +345,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -404,7 +403,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri1, droppedUri2]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -453,7 +452,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -497,7 +496,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -542,7 +541,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -586,7 +585,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 

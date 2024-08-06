@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -44,7 +43,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = VsLspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
+            Range = LspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -79,7 +78,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = VsLspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
+            Range = LspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -114,7 +113,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = VsLspFactory.CreateSingleLineRange(start: (0, 0), length: 8),
+            Range = LspFactory.CreateSingleLineRange(start: (0, 0), length: 8),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -149,7 +148,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 2, length: 2),
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 2, length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -184,7 +183,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = VsLspFactory.CreateZeroWidthRange(0, 4),
+            Range = LspFactory.CreateZeroWidthRange(0, 4),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -212,7 +211,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = missingUri })
         {
-            Range = VsLspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
+            Range = LspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -240,7 +239,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
-            Range = VsLspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
+            Range = LspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -274,10 +273,10 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var computedEdits = new TextEdit[]
         {
-            VsLspFactory.CreateTextEdit(position: (0, 0), "<div>" + Environment.NewLine + "    "),
-            VsLspFactory.CreateTextEdit(line: 1, character: 0, "    "),
-            VsLspFactory.CreateTextEdit(
-                range: VsLspFactory.CreateSingleLineRange(line: 2, character: 0, length: 1),
+            LspFactory.CreateTextEdit(position: (0, 0), "<div>" + Environment.NewLine + "    "),
+            LspFactory.CreateTextEdit(line: 1, character: 0, "    "),
+            LspFactory.CreateTextEdit(
+                range: LspFactory.CreateSingleLineRange(line: 2, character: 0, length: 1),
                 newText: "    }" + Environment.NewLine + "</div>"),
         };
 
@@ -313,11 +312,11 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var computedEdits = new TextEdit[]
         {
-            VsLspFactory.CreateTextEdit(position: (0, 0), "<div>" + Environment.NewLine + "    "),
-            VsLspFactory.CreateTextEdit(line: 1, character: 0, "    "),
+            LspFactory.CreateTextEdit(position: (0, 0), "<div>" + Environment.NewLine + "    "),
+            LspFactory.CreateTextEdit(line: 1, character: 0, "    "),
             // This is the problematic edit.. the close brace has been replaced with a tilde
-            VsLspFactory.CreateTextEdit(
-                range: VsLspFactory.CreateSingleLineRange(line: 2, character: 0, length: 1),
+            LspFactory.CreateTextEdit(
+                range: LspFactory.CreateSingleLineRange(line: 2, character: 0, length: 1),
                 newText: "    ~" + Environment.NewLine + "</div>")
         };
 
@@ -353,11 +352,11 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var computedEdits = new[]
         {
-            VsLspFactory.CreateTextEdit(position: (0, 0), "<div>" + Environment.NewLine + "    "),
-            VsLspFactory.CreateTextEdit(line: 1, character: 0, "    "),
+            LspFactory.CreateTextEdit(position: (0, 0), "<div>" + Environment.NewLine + "    "),
+            LspFactory.CreateTextEdit(line: 1, character: 0, "    "),
             // This looks like a bad edit, but the original source document had a tilde
-            VsLspFactory.CreateTextEdit(
-                range: VsLspFactory.CreateSingleLineRange(line: 2, character: 0, length: 1),
+            LspFactory.CreateTextEdit(
+                range: LspFactory.CreateSingleLineRange(line: 2, character: 0, length: 1),
                 newText: "    ~" + Environment.NewLine + "</div>")
         };
 

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -28,7 +27,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
 }
 ");
         using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ ");
+        var badEdit = LspFactory.CreateTextEdit(position: (0, 0), "@ ");
         var input = new FormattingResult([badEdit], RazorLanguageKind.CSharp);
         var pass = GetPass();
 
@@ -49,7 +48,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
 }
 ");
         using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ ");
+        var badEdit = LspFactory.CreateTextEdit(position: (0, 0), "@ ");
         var input = new FormattingResult([badEdit], RazorLanguageKind.Html);
         var pass = GetPass();
 
@@ -72,7 +71,7 @@ public class Foo { }
         using var context = CreateFormattingContext(source);
         var edits = new[]
         {
-            VsLspFactory.CreateTextEdit(2, 0, "    ")
+            LspFactory.CreateTextEdit(2, 0, "    ")
         };
         var input = new FormattingResult(edits, RazorLanguageKind.Razor);
         var pass = GetPass();
@@ -94,7 +93,7 @@ public class Foo { }
 }
 ");
         using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ "); // Creates a diagnostic
+        var badEdit = LspFactory.CreateTextEdit(position: (0, 0), "@ "); // Creates a diagnostic
         var input = new FormattingResult([badEdit], RazorLanguageKind.Razor);
         var pass = GetPass();
 

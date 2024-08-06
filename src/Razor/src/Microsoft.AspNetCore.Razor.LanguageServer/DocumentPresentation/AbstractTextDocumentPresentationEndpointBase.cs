@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
@@ -238,7 +237,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
                 return [];
             }
 
-            var newEdit = VsLspFactory.CreateTextEdit(newRange, edit.NewText);
+            var newEdit = LspFactory.CreateTextEdit(newRange, edit.NewText);
             mappedEdits.Add(newEdit);
         }
 

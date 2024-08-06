@@ -8,10 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Debugging;
 using Microsoft.VisualStudio.Text;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
@@ -21,7 +19,7 @@ internal class DefaultRazorBreakpointResolver : RazorBreakpointResolver
     private readonly FileUriProvider _fileUriProvider;
     private readonly LSPDocumentManager _documentManager;
     private readonly LSPBreakpointSpanProvider _breakpointSpanProvider;
-    private readonly MemoryCache<CacheKey, Range> _cache;
+    private readonly MemoryCache<CacheKey, LspRange> _cache;
 
     [ImportingConstructor]
     public DefaultRazorBreakpointResolver(
@@ -51,10 +49,10 @@ internal class DefaultRazorBreakpointResolver : RazorBreakpointResolver
         // 4 is a magic number that was determined based on the functionality of VisualStudio. Currently when you set or edit a breakpoint
         // we get called with two different locations for the same breakpoint. Because of this 2 time call our size must be at least 2,
         // we grow it to 4 just to be safe for lesser known scenarios.
-        _cache = new MemoryCache<CacheKey, Range>(sizeLimit: 4);
+        _cache = new MemoryCache<CacheKey, LspRange>(sizeLimit: 4);
     }
 
-    public override async Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
+    public override async Task<LspRange?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
     {
         if (textBuffer is null)
         {
@@ -96,7 +94,7 @@ internal class DefaultRazorBreakpointResolver : RazorBreakpointResolver
             return cachedRange;
         }
 
-        var position = VsLspFactory.CreatePosition(lineIndex, characterIndex);
+        var position = LspFactory.CreatePosition(lineIndex, characterIndex);
         var hostDocumentRange = await _breakpointSpanProvider.GetBreakpointSpanAsync(documentSnapshot, position, cancellationToken).ConfigureAwait(false);
         if (hostDocumentRange is null)
         {

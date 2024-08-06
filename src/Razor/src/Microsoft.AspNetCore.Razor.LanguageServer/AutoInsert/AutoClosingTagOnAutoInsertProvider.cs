@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
@@ -68,7 +67,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor 
         if (autoClosingBehavior == AutoClosingBehavior.EndTag)
         {
             format = InsertTextFormat.Snippet;
-            edit = VsLspFactory.CreateTextEdit(position, $"$0</{tagName}>");
+            edit = LspFactory.CreateTextEdit(position, $"$0</{tagName}>");
 
             return true;
         }
@@ -79,7 +78,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor 
 
         // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
         var insertionText = char.IsWhiteSpace(context.SourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
-        edit = VsLspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
+        edit = LspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
 
         return true;
     }

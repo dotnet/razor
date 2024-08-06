@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+extern alias RLSP;
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -18,12 +20,11 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
-using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
+using Diagnostic = RLSP::Roslyn.LanguageServer.Protocol.Diagnostic;
+using DiagnosticSeverity = RLSP::Roslyn.LanguageServer.Protocol.DiagnosticSeverity;
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -42,7 +43,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
             Code = "TestCode",
             Severity = DiagnosticSeverity.Error,
             Message = "TestMessage",
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
         }
     ];
 
@@ -155,7 +156,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
                 Code = "TestCode",
                 Severity = DiagnosticSeverity.Error,
                 Message = "TestMessage",
-                Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
+                Range = LspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
             }
         };
 

@@ -7,10 +7,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Snippets;
 using StreamJsonRpc;
 
@@ -108,7 +108,13 @@ internal partial class RazorCustomMessageTarget
         {
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var provisionalChange = new VisualStudioTextChange(provisionalTextEdit, virtualDocumentSnapshot.Snapshot);
+            var provisionalChange = new VisualStudioTextChange(
+                provisionalTextEdit.Range.Start.Line,
+                provisionalTextEdit.Range.Start.Character,
+                provisionalTextEdit.Range.End.Line,
+                provisionalTextEdit.Range.End.Character,
+                virtualDocumentSnapshot.Snapshot,
+                provisionalTextEdit.NewText);
             UpdateVirtualDocument(provisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
 
             // We want the delegation to continue on the captured context because we're currently on the `main` thread and we need to get back to the
@@ -163,7 +169,13 @@ internal partial class RazorCustomMessageTarget
             if (provisionalTextEdit is not null)
             {
                 var revertedProvisionalTextEdit = BuildRevertedEdit(provisionalTextEdit);
-                var revertedProvisionalChange = new VisualStudioTextChange(revertedProvisionalTextEdit, virtualDocumentSnapshot.Snapshot);
+                var revertedProvisionalChange = new VisualStudioTextChange(
+                    revertedProvisionalTextEdit.Range.Start.Line,
+                    revertedProvisionalTextEdit.Range.Start.Character,
+                    revertedProvisionalTextEdit.Range.End.Line,
+                    revertedProvisionalTextEdit.Range.End.Character,
+                    virtualDocumentSnapshot.Snapshot,
+                    revertedProvisionalTextEdit.NewText);
                 UpdateVirtualDocument(revertedProvisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
             }
         }
@@ -186,8 +198,8 @@ internal partial class RazorCustomMessageTarget
         if (range.Start == range.End)
         {
             // Insertion
-            revertedProvisionalTextEdit = VsLspFactory.CreateTextEdit(
-                range: VsLspFactory.CreateSingleLineRange(
+            revertedProvisionalTextEdit = LspFactory.CreateTextEdit(
+                range: LspFactory.CreateSingleLineRange(
                     range.Start,
                     length: range.End.Character + provisionalTextEdit.NewText.Length),
                 newText: string.Empty);
@@ -195,7 +207,7 @@ internal partial class RazorCustomMessageTarget
         else
         {
             // Replace
-            revertedProvisionalTextEdit = VsLspFactory.CreateTextEdit(range, string.Empty);
+            revertedProvisionalTextEdit = LspFactory.CreateTextEdit(range, string.Empty);
         }
 
         return revertedProvisionalTextEdit;
@@ -312,7 +324,19 @@ internal partial class RazorCustomMessageTarget
     public Task<FormattingOptions?> GetFormattingOptionsAsync(TextDocumentIdentifierAndVersion document, CancellationToken _)
     {
         var formattingOptions = _formattingOptionsProvider.GetOptions(document.TextDocumentIdentifier.Uri);
-        return Task.FromResult(formattingOptions);
+
+        if (formattingOptions is null)
+        {
+            return SpecializedTasks.Null<FormattingOptions>();
+        }
+
+        var roslynFormattingOptions = new FormattingOptions()
+        {
+            TabSize = formattingOptions.TabSize,
+            InsertSpaces = formattingOptions.InsertSpaces,
+            OtherOptions = formattingOptions.OtherOptions,
+        };
+        return Task.FromResult<FormattingOptions?>(roslynFormattingOptions);
     }
 
     private void AddSnippetCompletions(DelegatedCompletionParams request, ref PooledArrayBuilder<CompletionItem> builder)

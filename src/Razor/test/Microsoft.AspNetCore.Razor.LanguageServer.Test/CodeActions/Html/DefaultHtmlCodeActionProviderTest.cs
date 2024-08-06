@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -34,7 +33,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -67,7 +66,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
+            Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -85,7 +84,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
                         Uri = new Uri(documentPath),
                         Version = 1
                     },
-                    Edits = [VsLspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo ~~~~~~~~~~~~~~~ Bar")]
+                    Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo ~~~~~~~~~~~~~~~ Bar")]
                 }
             }
         };
@@ -112,7 +111,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
                                 Uri = new Uri("c:/Test.razor.html"),
                                 Version = 1
                             },
-                            Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), "Goo")]
+                            Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                         }
                     }
                 }

@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Debugging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
@@ -29,7 +27,7 @@ internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
         _logger = loggerFactory.GetOrCreateLogger<DefaultLSPBreakpointSpanProvider>();
     }
 
-    public async override Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+    public async override Task<LspRange?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
     {
         if (documentSnapshot is null)
         {

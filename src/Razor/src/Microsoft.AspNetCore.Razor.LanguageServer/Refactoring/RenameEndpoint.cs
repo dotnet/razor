@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
@@ -320,11 +319,11 @@ internal sealed class RenameEndpoint(
     {
         using var _ = ListPool<TextEdit>.GetPooledObject(out var edits);
 
-        edits.Add(VsLspFactory.CreateTextEdit(element.StartTag.Name.GetRange(codeDocument.Source), newName));
+        edits.Add(LspFactory.CreateTextEdit(element.StartTag.Name.GetRange(codeDocument.Source), newName));
 
         if (element.EndTag is MarkupTagHelperEndTagSyntax endTag)
         {
-            edits.Add(VsLspFactory.CreateTextEdit(endTag.Name.GetRange(codeDocument.Source), newName));
+            edits.Add(LspFactory.CreateTextEdit(endTag.Name.GetRange(codeDocument.Source), newName));
         }
 
         return [.. edits];

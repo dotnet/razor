@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Roslyn.LanguageServer.Protocol;
-using VSLSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -29,14 +27,14 @@ internal class CohostInlayHintEndpoint(IRemoteServiceInvoker remoteServiceInvoke
 
     protected override bool RequiresLSPSolution => true;
 
-    public VSLSP.Registration? GetRegistration(VSLSP.VSInternalClientCapabilities clientCapabilities, VSLSP.DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public Registration? GetRegistration(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.InlayHint?.DynamicRegistration == true)
         {
-            return new VSLSP.Registration
+            return new Registration
             {
                 Method = Methods.TextDocumentInlayHintName,
-                RegisterOptions = new VSLSP.InlayHintRegistrationOptions()
+                RegisterOptions = new InlayHintRegistrationOptions()
                 {
                     DocumentSelector = filter
                 }

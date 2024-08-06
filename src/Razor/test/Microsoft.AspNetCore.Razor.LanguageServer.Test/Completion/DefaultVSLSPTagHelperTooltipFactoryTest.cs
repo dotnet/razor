@@ -3,6 +3,8 @@
 
 #nullable disable
 
+extern alias RLSP;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.VisualStudio.Text.Adornments;
+using RLSP::Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;

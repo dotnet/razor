@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+extern alias RLSP;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,10 +19,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
-using MarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using RLSP::Roslyn.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
@@ -249,7 +248,7 @@ internal sealed partial class HoverService(
         return null;
     }
 
-    private VSInternalHover? AttributeInfoToHover(ImmutableArray<BoundAttributeDescriptor> boundAttributes, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
+    private VSInternalHover? AttributeInfoToHover(ImmutableArray<BoundAttributeDescriptor> boundAttributes, LspRange range, string attributeName, VSInternalClientCapabilities clientCapabilities)
     {
         var descriptionInfos = boundAttributes.SelectAsArray(boundAttribute =>
         {
@@ -296,7 +295,7 @@ internal sealed partial class HoverService(
         }
     }
 
-    private async Task<VSInternalHover?> ElementInfoToHoverAsync(string documentFilePath, IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+    private async Task<VSInternalHover?> ElementInfoToHoverAsync(string documentFilePath, IEnumerable<TagHelperDescriptor> descriptors, LspRange range, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
     {
         var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);

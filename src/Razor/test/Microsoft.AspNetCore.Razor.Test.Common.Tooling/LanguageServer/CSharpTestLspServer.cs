@@ -12,10 +12,8 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using StreamJsonRpc;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
@@ -174,7 +172,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
             };
     }
 
-    public async Task ReplaceTextAsync(Uri documentUri, params (Range Range, string Text)[] changes)
+    internal async Task ReplaceTextAsync(Uri documentUri, params (LspRange Range, string Text)[] changes)
     {
         var didChangeParams = CreateDidChangeTextDocumentParams(
             documentUri,
@@ -182,7 +180,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         await ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeParams, _cancellationToken);
 
-        static DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(Uri documentUri, ImmutableArray<(Range Range, string Text)> changes)
+        static DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(Uri documentUri, ImmutableArray<(LspRange Range, string Text)> changes)
         {
             var changeEvents = changes.Select(change => new TextDocumentContentChangeEvent
             {

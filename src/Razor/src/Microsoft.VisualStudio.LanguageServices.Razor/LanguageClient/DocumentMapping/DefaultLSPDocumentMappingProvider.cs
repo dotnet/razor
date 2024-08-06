@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 
@@ -45,7 +44,7 @@ internal class DefaultLSPDocumentMappingProvider : LSPDocumentMappingProvider
     public async override Task<RazorMapToDocumentRangesResponse?> MapToDocumentRangesAsync(
         RazorLanguageKind languageKind,
         Uri razorDocumentUri,
-        Range[] projectedRanges,
+        LspRange[] projectedRanges,
         CancellationToken cancellationToken)
     {
         if (razorDocumentUri is null)
