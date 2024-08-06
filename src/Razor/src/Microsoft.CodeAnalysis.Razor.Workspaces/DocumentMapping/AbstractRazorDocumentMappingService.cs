@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -22,15 +21,12 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-internal abstract class AbstractRazorDocumentMappingService(
-    IFilePathService filePathService,
-    IDocumentContextFactory documentContextFactory,
-    ILogger logger)
-    : IRazorDocumentMappingService
+internal abstract class AbstractRazorDocumentMappingService(IFilePathService filePathService, ILogger logger) : IRazorDocumentMappingService
 {
     private readonly IFilePathService _filePathService = filePathService;
-    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly ILogger _logger = logger;
+
+    protected abstract ValueTask<RazorCodeDocument?> TryGetCodeDocumentAsync(Uri razorDocumentUri, CancellationToken cancellationToken);
 
     public IEnumerable<TextChange> GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, IEnumerable<TextChange> generatedDocumentChanges)
     {
@@ -375,12 +371,11 @@ internal abstract class AbstractRazorDocumentMappingService(
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
-        if (!_documentContextFactory.TryCreate(razorDocumentUri, out var documentContext))
+        var codeDocument = await TryGetCodeDocumentAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
+        if (codeDocument is null)
         {
             return (generatedDocumentUri, generatedDocumentRange);
         }
-
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.TryGetGeneratedDocument(generatedDocumentUri, _filePathService, out var generatedDocument))
         {
