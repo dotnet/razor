@@ -16,7 +16,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-internal static class IRazorDocumentMappingServiceExtensions
+internal static class IDocumentMappingServiceExtensions
 {
     public static TextEdit[] GetHostDocumentEdits(this IDocumentMappingService service, IRazorGeneratedDocument generatedDocument, TextEdit[] generatedDocumentEdits)
     {
