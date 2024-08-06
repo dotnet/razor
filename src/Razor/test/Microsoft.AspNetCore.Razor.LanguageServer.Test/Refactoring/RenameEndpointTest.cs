@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -708,9 +709,9 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
         clientConnection ??= StrictMock.Of<IClientConnection>();
 
+        var renameService = new RenameService(searchEngine, projectManager, options);
         var endpoint = new RenameEndpoint(
-            searchEngine,
-            projectManager,
+            renameService,
             options,
             documentMappingService,
             editMappingService,
