@@ -181,6 +181,7 @@
     <SystemTextEncodingsWebVersion>6.0.0</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>6.0.0</SystemTextJsonVersion>
     <SystemSecurityCryptographyXmlVersion>6.0.1</SystemSecurityCryptographyXmlVersion>
+    <SystemFormatsAsn1Version>6.0.1</SystemFormatsAsn1Version>
     <!-- Benchmarks -->
     <Benchmarks_BaselineSourceGeneratorsVersion>7.0.0-preview.5.22528.1</Benchmarks_BaselineSourceGeneratorsVersion>
   </PropertyGroup>
