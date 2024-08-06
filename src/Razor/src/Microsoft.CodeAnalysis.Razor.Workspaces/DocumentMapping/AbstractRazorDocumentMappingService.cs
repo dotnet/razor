@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-internal abstract class AbstractRazorDocumentMappingService(IFilePathService filePathService, ILogger logger) : IRazorDocumentMappingService
+internal abstract class AbstractRazorDocumentMappingService(IFilePathService filePathService, ILogger logger) : IDocumentMappingService
 {
     private readonly IFilePathService _filePathService = filePathService;
     private readonly ILogger _logger = logger;

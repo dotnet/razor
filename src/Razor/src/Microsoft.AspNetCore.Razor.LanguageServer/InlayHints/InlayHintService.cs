@@ -18,9 +18,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 
-internal sealed class InlayHintService(IRazorDocumentMappingService documentMappingService) : IInlayHintService
+internal sealed class InlayHintService(IDocumentMappingService documentMappingService) : IInlayHintService
 {
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
     public async Task<InlayHint[]?> GetInlayHintsAsync(IClientConnection clientConnection, VersionedDocumentContext documentContext, Range range, CancellationToken cancellationToken)
     {

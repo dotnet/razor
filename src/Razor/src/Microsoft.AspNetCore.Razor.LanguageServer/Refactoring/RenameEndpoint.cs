@@ -30,7 +30,7 @@ internal sealed class RenameEndpoint(
     IRazorComponentSearchEngine componentSearchEngine,
     IProjectCollectionResolver projectResolver,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IEditMappingService editMappingService,
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)

@@ -25,7 +25,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
             => new RemoteUriPresentationService(in args);
     }
 
-    private readonly IRazorDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IRazorDocumentMappingService>();
+    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
     public ValueTask<Response> GetPresentationAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,

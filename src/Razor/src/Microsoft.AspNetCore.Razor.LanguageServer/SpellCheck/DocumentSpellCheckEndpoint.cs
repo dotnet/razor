@@ -21,12 +21,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
 [RazorLanguageServerEndpoint(VSInternalMethods.TextDocumentSpellCheckableRangesName)]
 internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]?>, ICapabilitiesProvider
 {
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly IClientConnection _clientConnection;
 
     public DocumentSpellCheckEndpoint(
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IClientConnection clientConnection)
     {

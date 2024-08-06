@@ -15,11 +15,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal sealed class EditMappingService(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IFilePathService filePathService,
     IDocumentContextFactory documentContextFactory) : IEditMappingService
 {
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IFilePathService _filePathService = filePathService;
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
 

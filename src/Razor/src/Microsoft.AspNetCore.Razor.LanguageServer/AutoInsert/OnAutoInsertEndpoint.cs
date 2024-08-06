@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 [RazorLanguageServerEndpoint(VSInternalMethods.OnAutoInsertName)]
 internal class OnAutoInsertEndpoint(
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IEnumerable<IOnAutoInsertProvider> onAutoInsertProvider,
     RazorLSPOptionsMonitor optionsMonitor,

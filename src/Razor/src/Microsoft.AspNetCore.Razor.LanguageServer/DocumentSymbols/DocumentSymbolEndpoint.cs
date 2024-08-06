@@ -21,12 +21,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbols;
 internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>, ICapabilitiesProvider
 {
     private readonly IClientConnection _clientConnection;
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     public DocumentSymbolEndpoint(
         IClientConnection clientConnection,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         LanguageServerFeatureOptions languageServerFeatureOptions)
     {
         _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));

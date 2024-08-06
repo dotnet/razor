@@ -526,7 +526,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             .Setup(c => c.SendRequestAsync<IDelegatedParams, WorkspaceEdit>(CustomMessageNames.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedEdit);
 
-        var documentMappingServiceMock = new StrictMock<IRazorDocumentMappingService>();
+        var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
         documentMappingServiceMock
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(RazorLanguageKind.CSharp);
@@ -576,7 +576,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             o.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false);
 
         var clientConnection = StrictMock.Of<IClientConnection>();
-        var documentMappingServiceMock = new StrictMock<IRazorDocumentMappingService>();
+        var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
         documentMappingServiceMock
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(RazorLanguageKind.Razor);
@@ -608,7 +608,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
     private async Task<(RenameEndpoint, IDocumentContextFactory)> CreateEndpointAndDocumentContextFactoryAsync(
         LanguageServerFeatureOptions? options = null,
-        IRazorDocumentMappingService? documentMappingService = null,
+        IDocumentMappingService? documentMappingService = null,
         IEditMappingService? editMappingService = null,
         IClientConnection? clientConnection = null)
     {
@@ -692,7 +692,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
         if (documentMappingService == null)
         {
-            var documentMappingServiceMock = new StrictMock<IRazorDocumentMappingService>();
+            var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
             documentMappingServiceMock
                 .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
                 .Returns(RazorLanguageKind.Html);

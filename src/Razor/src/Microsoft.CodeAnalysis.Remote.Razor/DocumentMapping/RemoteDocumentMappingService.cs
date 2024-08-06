@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
-[Export(typeof(IRazorDocumentMappingService)), Shared]
+[Export(typeof(IDocumentMappingService)), Shared]
 [method: ImportingConstructor]
 internal sealed class RemoteDocumentMappingService(
     IFilePathService filePathService,

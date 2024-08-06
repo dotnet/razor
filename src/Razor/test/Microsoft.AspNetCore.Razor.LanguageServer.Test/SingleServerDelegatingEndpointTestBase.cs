@@ -24,7 +24,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutput
 {
     private protected IDocumentContextFactory? DocumentContextFactory { get; private set; }
     private protected LanguageServerFeatureOptions? LanguageServerFeatureOptions { get; private set; }
-    private protected IRazorDocumentMappingService? DocumentMappingService { get; private set; }
+    private protected IDocumentMappingService? DocumentMappingService { get; private set; }
     private protected IEditMappingService? EditMappingService { get; private set; }
 
     [MemberNotNull(nameof(DocumentContextFactory), nameof(LanguageServerFeatureOptions), nameof(DocumentMappingService), nameof(EditMappingService))]

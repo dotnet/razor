@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-internal class TestDocumentMappingService : IRazorDocumentMappingService
+internal class TestDocumentMappingService : IDocumentMappingService
 {
     public RazorLanguageKind LanguageKind { get; set; }
     public LinePosition? GeneratedPosition { get; set; }
