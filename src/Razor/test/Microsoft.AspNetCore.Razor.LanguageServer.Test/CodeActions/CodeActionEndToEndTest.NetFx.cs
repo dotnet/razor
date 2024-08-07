@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Castle.Core.Logging;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -38,6 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
     private const string GenerateEventHandlerTitle = "Generate Event Handler 'DoesNotExist'";
+    private const string ExtractToComponentTitle = "Extract element to new component";
     private const string GenerateAsyncEventHandlerTitle = "Generate Async Event Handler 'DoesNotExist'";
     private const string GenerateEventHandlerReturnType = "void";
     private const string GenerateAsyncEventHandlerReturnType = "global::System.Threading.Tasks.Task";
@@ -58,6 +60,17 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                     new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
                     razorFormattingService)
             ];
+
+    // TODO: Make this func
+    private ExtractToComponentCodeActionResolver[] CreateExtractComponentCodeActionResolvers(string filePath, RazorCodeDocument codeDocument)
+    {
+        var emptyDocumentContextFactory = new TestDocumentContextFactory();
+        return [
+                new ExtractToComponentCodeActionResolver(
+                    new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
+                    TestLanguageServerFeatureOptions.Instance)
+            ];
+    }
 
     #region CSharp CodeAction Tests
 
@@ -1005,6 +1018,36 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
+    [Fact]
+    public async Task Handle_ExtractComponent()
+    {
+        var input = """
+            <[||]div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            <div id="shouldSkip">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            <div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolvers);
+    }
+
     #endregion
 
     private async Task ValidateCodeBehindFileAsync(
@@ -1148,6 +1191,66 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         AssertEx.EqualOrDiff(expected, actual);
     }
 
+    private async Task ValidateExtractComponentCodeActionAsync(
+        string input,
+        string? expected,
+        string codeAction,
+        int childActionIndex = 0,
+        IRazorCodeActionProvider[]? razorCodeActionProviders = null,
+        Func<string, RazorCodeDocument, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        RazorLSPOptionsMonitor? optionsMonitor = null,
+        Diagnostic[]? diagnostics = null)
+    {
+        TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
+
+        var razorFilePath = "C:/path/test.razor";
+        var componentFilePath = "C:/path/Component.razor";
+        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
+        var sourceText = codeDocument.GetSourceText();
+        var uri = new Uri(razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var documentContext = CreateDocumentContext(uri, codeDocument);
+        var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
+
+        var result = await GetCodeActionsAsync(
+            uri,
+            textSpan,
+            sourceText,
+            requestContext,
+            languageServer,
+            razorCodeActionProviders,
+            diagnostics);
+
+        Assert.NotEmpty(result);
+        var codeActionToRun = GetCodeActionToRun(codeAction, childActionIndex, result);
+
+        if (expected is null)
+        {
+            Assert.Null(codeActionToRun);
+            return;
+        }
+
+        Assert.NotNull(codeActionToRun);
+
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentContext.Snapshot, optionsMonitor?.CurrentValue);
+        var changes = await GetEditsAsync(
+            codeActionToRun,
+            requestContext,
+            languageServer,
+            codeActionResolversCreator?.Invoke(razorFilePath, codeDocument) ?? []);
+
+        var edits = new List<TextChange>();
+
+        // Only get changes made in the new component file
+        foreach (var change in changes.Where(e => e.TextDocument.Uri.AbsolutePath == componentFilePath))
+        {
+            edits.AddRange(change.Edits.Select(e => e.ToTextChange(sourceText)));
+        }
+
+        var actual = sourceText.WithChanges(edits).ToString();
+        AssertEx.EqualOrDiff(expected, actual);
+    }
+
     private static VSInternalCodeAction? GetCodeActionToRun(string codeAction, int childActionIndex, SumType<Command, CodeAction>[] result)
     {
         var codeActionToRun = (VSInternalCodeAction?)result.SingleOrDefault(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeAction || ((RazorVSInternalCodeAction)e.Value!).Title == codeAction).Value;
@@ -1265,6 +1368,80 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
             var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
             var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.Source.Text.ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
+            testDocumentSnapshot.With(CodeDocument);
+
+            context = CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
+            return true;
+        }
+
+        private static List<TagHelperDescriptor> CreateTagHelperDescriptors()
+        {
+            return BuildTagHelpers().ToList();
+
+            static IEnumerable<TagHelperDescriptor> BuildTagHelpers()
+            {
+                var builder = TagHelperDescriptorBuilder.Create("oncontextmenu", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+                yield return builder.Build();
+
+                builder = TagHelperDescriptorBuilder.Create("onclick", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+
+                yield return builder.Build();
+
+                builder = TagHelperDescriptorBuilder.Create("oncopy", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"),
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+
+                yield return builder.Build();
+
+                builder = TagHelperDescriptorBuilder.Create("ref", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind),
+                    new KeyValuePair<string, string>(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString));
+
+                yield return builder.Build();
+            }
+        }
+    }
+
+    private class ExtractToComponentResolverDocumentContextFactory : TestDocumentContextFactory
+    {
+        private readonly List<TagHelperDescriptor> _tagHelperDescriptors;
+
+        public ExtractToComponentResolverDocumentContextFactory
+            (string filePath,
+            RazorCodeDocument codeDocument,
+            TagHelperDescriptor[]? tagHelpers = null,
+            int? version = null)
+            : base(filePath, codeDocument, version)
+        {
+            _tagHelperDescriptors = CreateTagHelperDescriptors();
+            if (tagHelpers is not null)
+            {
+                _tagHelperDescriptors.AddRange(tagHelpers);
+            }
+        }
+
+        public override bool TryCreate(
+            Uri documentUri,
+            VSProjectContext? projectContext,
+            bool versioned,
+            [NotNullWhen(true)] out DocumentContext? context)
+        {
+            if (FilePath is null || CodeDocument is null)
+            {
+                context = null;
+                return false;
+            }
+
+            var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
+            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.GetSourceText().ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
             testDocumentSnapshot.With(CodeDocument);
 
             context = CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
