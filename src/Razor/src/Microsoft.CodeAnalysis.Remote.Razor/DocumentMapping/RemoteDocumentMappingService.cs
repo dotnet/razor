@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -47,13 +46,14 @@ internal sealed class RemoteDocumentMappingService(
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
-        var razorFilePath = razorDocumentUri.GetAbsoluteOrUNCPath();
+        var razorFilePath = razorDocumentUri.LocalPath;
         IDocumentSnapshot? razorDocumentSnapshot = null;
 
         foreach (var project in _projectCollectionResolver.EnumerateProjects(originSnapshot))
         {
-            if (project.TryGetDocument(razorFilePath, out razorDocumentSnapshot))
+            if (project.TryGetDocument(razorFilePath, out var snapshot))
             {
+                razorDocumentSnapshot = snapshot;
                 break;
             }
         }
