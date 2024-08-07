@@ -73,8 +73,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
         var solution = context.TextDocument.Project.Solution;
 
         // Make sure we go through Roslyn to go from the Uri the client sent us, to one that it has a chance of finding in the solution
-        var uriToFind = RazorUri.GetDocumentFilePathFromUri(razorFileUri);
-        var ids = solution.GetDocumentIdsWithFilePath(uriToFind);
+        var ids = solution.GetDocumentIdsWithUri(razorFileUri);
         if (ids.Length == 0)
         {
             return Response.CallHtml;
