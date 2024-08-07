@@ -36,8 +36,8 @@ internal sealed class DefinitionEndpoint(
     ILoggerFactory loggerFactory)
     : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<DefinitionEndpoint>()), ICapabilitiesProvider
 {
-    private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
-    private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+    private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 

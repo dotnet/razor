@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -20,13 +21,42 @@ internal sealed class LspDocumentMappingService(
 {
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
 
-    protected override async ValueTask<RazorCodeDocument?> TryGetCodeDocumentAsync(Uri razorDocumentUri, CancellationToken cancellationToken)
+    public async Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
+        Uri generatedDocumentUri,
+        LinePositionSpan generatedDocumentRange,
+        CancellationToken cancellationToken)
     {
-        if (!_documentContextFactory.TryCreate(razorDocumentUri, out var documentContext))
+        var razorDocumentUri = FilePathService.GetRazorDocumentUri(generatedDocumentUri);
+
+        // For Html we just map the Uri, the range will be the same
+        if (FilePathService.IsVirtualHtmlFile(generatedDocumentUri))
         {
-            return null;
+            return (razorDocumentUri, generatedDocumentRange);
         }
 
-        return await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        // We only map from C# files
+        if (!FilePathService.IsVirtualCSharpFile(generatedDocumentUri))
+        {
+            return (generatedDocumentUri, generatedDocumentRange);
+        }
+
+        if (!_documentContextFactory.TryCreate(razorDocumentUri, out var documentContext))
+        {
+            return (generatedDocumentUri, generatedDocumentRange);
+        }
+
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!codeDocument.TryGetGeneratedDocument(generatedDocumentUri, FilePathService, out var generatedDocument))
+        {
+            return Assumed.Unreachable<(Uri, LinePositionSpan)>();
+        }
+
+        if (TryMapToHostDocumentRange(generatedDocument, generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
+        {
+            return (razorDocumentUri, mappedRange);
+        }
+
+        return (generatedDocumentUri, generatedDocumentRange);
     }
 }

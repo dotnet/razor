@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -23,10 +21,8 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal abstract class AbstractDocumentMappingService(IFilePathService filePathService, ILogger logger) : IDocumentMappingService
 {
-    private readonly IFilePathService _filePathService = filePathService;
-    private readonly ILogger _logger = logger;
-
-    protected abstract ValueTask<RazorCodeDocument?> TryGetCodeDocumentAsync(Uri razorDocumentUri, CancellationToken cancellationToken);
+    protected readonly IFilePathService FilePathService = filePathService;
+    protected readonly ILogger Logger = logger;
 
     public IEnumerable<TextChange> GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, IEnumerable<TextChange> generatedDocumentChanges)
     {
@@ -198,7 +194,7 @@ internal abstract class AbstractDocumentMappingService(IFilePathService filePath
             (hostDocumentRange.End.Line == hostDocumentRange.Start.Line &&
              hostDocumentRange.End.Character < hostDocumentRange.Start.Character))
         {
-            _logger.LogWarning($"RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{hostDocumentRange}'");
+            Logger.LogWarning($"RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{hostDocumentRange}'");
             Debug.Fail($"RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{hostDocumentRange}'");
             return false;
         }
@@ -353,41 +349,6 @@ internal abstract class AbstractDocumentMappingService(IFilePathService filePath
         var languageKind = GetLanguageKindCore(classifiedSpans, tagHelperSpans, hostDocumentIndex, documentLength, rightAssociative);
 
         return languageKind;
-    }
-
-    public async Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken)
-    {
-        var razorDocumentUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
-
-        // For Html we just map the Uri, the range will be the same
-        if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
-        {
-            return (razorDocumentUri, generatedDocumentRange);
-        }
-
-        // We only map from C# files
-        if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
-        {
-            return (generatedDocumentUri, generatedDocumentRange);
-        }
-
-        var codeDocument = await TryGetCodeDocumentAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
-        if (codeDocument is null)
-        {
-            return (generatedDocumentUri, generatedDocumentRange);
-        }
-
-        if (!codeDocument.TryGetGeneratedDocument(generatedDocumentUri, _filePathService, out var generatedDocument))
-        {
-            return Assumed.Unreachable<(Uri, LinePositionSpan)>();
-        }
-
-        if (TryMapToHostDocumentRange(generatedDocument, generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
-        {
-            return (razorDocumentUri, mappedRange);
-        }
-
-        return (generatedDocumentUri, generatedDocumentRange);
     }
 
     // Internal for testing
@@ -695,7 +656,7 @@ internal abstract class AbstractDocumentMappingService(IFilePathService filePath
         {
             s_haveAsserted = true;
             var sourceTextLinesCount = sourceText.Lines.Count;
-            _logger.LogWarning($"Attempted to map a range ({range.Start.Line},{range.Start.Character})-({range.End.Line},{range.End.Character}) outside of the Source (line count {sourceTextLinesCount}.) This could happen if the Roslyn and Razor LSP servers are not in sync.");
+            Logger.LogWarning($"Attempted to map a range ({range.Start.Line},{range.Start.Character})-({range.End.Line},{range.End.Character}) outside of the Source (line count {sourceTextLinesCount}.) This could happen if the Roslyn and Razor LSP servers are not in sync.");
         }
 
         return result;

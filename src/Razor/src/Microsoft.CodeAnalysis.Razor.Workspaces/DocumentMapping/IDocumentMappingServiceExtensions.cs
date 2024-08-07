@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -107,16 +106,5 @@ internal static class IDocumentMappingServiceExtensions
         var result = service.TryMapToGeneratedDocumentOrNextCSharpPosition(generatedDocument, hostDocumentIndex, out var generatedLinePosition, out generatedIndex);
         generatedPosition = result ? generatedLinePosition.ToPosition() : null;
         return result;
-    }
-
-    /// <summary>
-    /// Maps a range in the specified generated document uri to a range in the Razor document that owns the
-    /// generated document. If the uri passed in is not for a generated document, or the range cannot be mapped
-    /// for some other reason, the original passed in range is returned unchanged.
-    /// </summary>
-    public static async Task<(Uri MappedDocumentUri, Range MappedRange)> MapToHostDocumentUriAndRangeAsync(this IDocumentMappingService service, Uri generatedDocumentUri, Range generatedDocumentRange, CancellationToken cancellationToken)
-    {
-        var result = await service.MapToHostDocumentUriAndRangeAsync(generatedDocumentUri, generatedDocumentRange.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
-        return (result.MappedDocumentUri, result.MappedRange.ToRange());
     }
 }
