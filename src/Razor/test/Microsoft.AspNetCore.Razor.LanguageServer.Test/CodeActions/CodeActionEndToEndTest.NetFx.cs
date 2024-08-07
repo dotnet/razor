@@ -1544,4 +1544,78 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             }
         }
     }
+
+    private class ExtractToComponentResolverDocumentContextFactory : TestDocumentContextFactory
+    {
+        private readonly List<TagHelperDescriptor> _tagHelperDescriptors;
+
+        public ExtractToComponentResolverDocumentContextFactory
+            (string filePath,
+            RazorCodeDocument codeDocument,
+            TagHelperDescriptor[]? tagHelpers = null,
+            int? version = null)
+            : base(filePath, codeDocument, version)
+        {
+            _tagHelperDescriptors = CreateTagHelperDescriptors();
+            if (tagHelpers is not null)
+            {
+                _tagHelperDescriptors.AddRange(tagHelpers);
+            }
+        }
+
+        public override bool TryCreate(
+            Uri documentUri,
+            VSProjectContext? projectContext,
+            bool versioned,
+            [NotNullWhen(true)] out DocumentContext? context)
+        {
+            if (FilePath is null || CodeDocument is null)
+            {
+                context = null;
+                return false;
+            }
+
+            var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
+            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.GetSourceText().ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
+            testDocumentSnapshot.With(CodeDocument);
+
+            context = CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
+            return true;
+        }
+
+        private static List<TagHelperDescriptor> CreateTagHelperDescriptors()
+        {
+            return BuildTagHelpers().ToList();
+
+            static IEnumerable<TagHelperDescriptor> BuildTagHelpers()
+            {
+                var builder = TagHelperDescriptorBuilder.Create("oncontextmenu", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+                yield return builder.Build();
+
+                builder = TagHelperDescriptorBuilder.Create("onclick", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+
+                yield return builder.Build();
+
+                builder = TagHelperDescriptorBuilder.Create("oncopy", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"),
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+
+                yield return builder.Build();
+
+                builder = TagHelperDescriptorBuilder.Create("ref", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind),
+                    new KeyValuePair<string, string>(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString));
+
+                yield return builder.Build();
+            }
+        }
+    }
 }
