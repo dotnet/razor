@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 
 using RazorLSPConstants = Microsoft.VisualStudio.Razor.LanguageClient.RazorLSPConstants;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 
@@ -85,7 +86,7 @@ internal class CohostOnAutoInsertEndpoint(
         _logger.LogDebug($"Resolving auto-insertion for {razorDocument.FilePath}");
 
         _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
-        var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, RemoteInsertTextEdit?>(
+        var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)
                 => service.TryResolveInsertionAsync(
@@ -97,14 +98,18 @@ internal class CohostOnAutoInsertEndpoint(
                         cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (data is { } remoteInsertTextEdit)
+        if (data.Result is { } remoteInsertTextEdit)
         {
             _logger.LogDebug($"Got insert text edit from OOP {remoteInsertTextEdit}");
             return RemoteInsertTextEdit.ToLspInsertTextEdit(remoteInsertTextEdit);
         }
 
-        // If we are here, Razor didn't return anything, so try HTML
+        if (data.StopHandling)
+        {
+            return null;
+        }
 
+        // Got no data but no signal to stop handling, so try HTML
         return await TryResolveHtmlInsertionAsync(razorDocument, request, cancellationToken)
             .ConfigureAwait(false);
     }

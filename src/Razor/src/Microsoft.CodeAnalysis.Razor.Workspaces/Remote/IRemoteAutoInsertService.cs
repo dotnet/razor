@@ -2,18 +2,17 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Remote;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
 
 internal interface IRemoteAutoInsertService : IDisposable
 {
-    ValueTask<RemoteInsertTextEdit?> TryResolveInsertionAsync(
+    ValueTask<Response> TryResolveInsertionAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId documentId,
         Position position,
