@@ -151,7 +151,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
             services.AddSingleton<IFoldingRangeService, FoldingRangeService>();
-
         }
 
         // Other
@@ -180,8 +179,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddTransient<IOnInitialized>(sp => sp.GetRequiredService<RazorConfigurationEndpoint>());
 
             services.AddHandlerWithCapabilities<ImplementationEndpoint>();
-            services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
-            services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
 
             services.AddHandlerWithCapabilities<RenameEndpoint>();
