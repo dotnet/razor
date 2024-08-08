@@ -22,21 +22,22 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
     Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentDefinitionName)]
 internal sealed class DefinitionEndpoint(
-    RazorComponentSearchEngine componentSearchEngine,
-    IRazorDocumentMappingService documentMappingService,
+    IRazorComponentSearchEngine componentSearchEngine,
+    IDocumentMappingService documentMappingService,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)
     : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<DefinitionEndpoint>()), ICapabilitiesProvider
 {
-    private readonly RazorComponentSearchEngine _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+    private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
@@ -72,7 +73,7 @@ internal sealed class DefinitionEndpoint(
             return default;
         }
 
-        var originComponentDocumentSnapshot = await _componentSearchEngine.TryLocateComponentAsync(originTagDescriptor).ConfigureAwait(false);
+        var originComponentDocumentSnapshot = await _componentSearchEngine.TryLocateComponentAsync(documentContext.Snapshot, originTagDescriptor).ConfigureAwait(false);
         if (originComponentDocumentSnapshot is null)
         {
             Logger.LogInformation($"Origin TagHelper document snapshot is null.");
@@ -111,9 +112,9 @@ internal sealed class DefinitionEndpoint(
         }
 
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
-                documentContext.Identifier,
-                positionInfo.Position,
-                positionInfo.LanguageKind));
+            documentContext.GetTextDocumentIdentifierAndVersion(),
+            positionInfo.Position,
+            positionInfo.LanguageKind));
     }
 
     protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
@@ -263,10 +264,10 @@ internal sealed class DefinitionEndpoint(
         // If we were trying to navigate to a property, and we couldn't find it, we can at least take
         // them to the file for the component. If the property was defined in a partial class they can
         // at least then press F7 to go there.
-        return new Range { Start = new Position(0, 0), End = new Position(0, 0) };
+        return VsLspFactory.DefaultRange;
     }
 
-    internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, IRazorDocumentMappingService documentMappingService, ILogger logger, CancellationToken cancellationToken)
+    internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, IDocumentMappingService documentMappingService, ILogger logger, CancellationToken cancellationToken)
     {
         // Parse the C# file and find the property that matches the name.
         // We don't worry about parameter attributes here for two main reasons:
@@ -301,7 +302,7 @@ internal sealed class DefinitionEndpoint(
                 return null;
             }
 
-            var range = property.Identifier.Span.ToRange(csharpText);
+            var range = csharpText.GetRange(property.Identifier.Span);
             if (documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var originalRange))
             {
                 return originalRange;

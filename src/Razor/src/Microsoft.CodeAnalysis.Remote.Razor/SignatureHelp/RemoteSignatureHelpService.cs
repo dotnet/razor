@@ -26,7 +26,7 @@ internal sealed class RemoteSignatureHelpService(in ServiceArgs args) : RazorDoc
     }
 
     private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
-    private readonly IRazorDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IRazorDocumentMappingService>();
+    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
     public ValueTask<SignatureHelp?> GetSignatureHelpAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId documentId, Position position, CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -39,7 +39,7 @@ internal sealed class RemoteSignatureHelpService(in ServiceArgs args) : RazorDoc
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var linePosition = new LinePosition(position.Line, position.Character);
-        var absoluteIndex = linePosition.GetRequiredAbsoluteIndex(codeDocument.Source.Text, logger: null);
+        var absoluteIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(linePosition);
 
         var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
 

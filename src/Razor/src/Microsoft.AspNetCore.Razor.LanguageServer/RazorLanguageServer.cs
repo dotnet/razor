@@ -20,15 +20,12 @@ using Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.FoldingRanges;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -153,7 +150,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         }
 
         // Other
-        services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
+        services.AddSingleton<IRazorComponentSearchEngine, RazorComponentSearchEngine>();
 
         // Get the DefaultSession for telemetry. This is set by VS with
         // TelemetryService.SetDefaultSession and provides the correct
@@ -178,7 +175,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddTransient<IOnInitialized>(sp => sp.GetRequiredService<RazorConfigurationEndpoint>());
 
             services.AddHandlerWithCapabilities<ImplementationEndpoint>();
-            services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
 
             services.AddHandlerWithCapabilities<RenameEndpoint>();
@@ -186,9 +182,14 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
             if (!featureOptions.UseRazorCohostServer)
             {
+                services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
                 services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
                 services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
                 services.AddHandlerWithCapabilities<FoldingRangeEndpoint>();
+
+                services.AddSingleton<IInlayHintService, InlayHintService>();
+                services.AddHandlerWithCapabilities<InlayHintEndpoint>();
+                services.AddHandler<InlayHintResolveEndpoint>();
             }
 
             services.AddHandler<WrapWithTagEndpoint>();
@@ -204,11 +205,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
             services.AddHandlerWithCapabilities<DocumentSymbolEndpoint>();
             services.AddHandlerWithCapabilities<MapCodeEndpoint>();
-
-            services.AddSingleton<IInlayHintService, InlayHintService>();
-
-            services.AddHandlerWithCapabilities<InlayHintEndpoint>();
-            services.AddHandler<InlayHintResolveEndpoint>();
         }
     }
 }

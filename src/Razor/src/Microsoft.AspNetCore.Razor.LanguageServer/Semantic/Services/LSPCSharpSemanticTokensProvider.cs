@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
@@ -39,7 +41,12 @@ internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions lang
 
         var csharpRanges = csharpRangeList.ToArray();
 
-        var parameter = new ProvideSemanticTokensRangesParams(documentContext.Identifier.TextDocumentIdentifier, documentVersion, csharpRanges, correlationId);
+        var parameter = new ProvideSemanticTokensRangesParams(
+            documentContext.GetTextDocumentIdentifierAndVersion().TextDocumentIdentifier,
+            documentVersion,
+            csharpRanges,
+            correlationId);
+
         ProvideSemanticTokensResponse? csharpResponse;
         if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
         {
@@ -48,11 +55,7 @@ internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions lang
             // Likely the server doesn't support the new endpoint, fallback to the original one
             if (csharpResponse?.Tokens is null && csharpRanges.Length > 1)
             {
-                var minimalRange = new Range
-                {
-                    Start = csharpRanges[0].Start,
-                    End = csharpRanges[^1].End
-                };
+                var minimalRange = VsLspFactory.CreateRange(csharpRanges[0].Start, csharpRanges[^1].End);
 
                 var newParams = new ProvideSemanticTokensRangesParams(
                     parameter.TextDocument,

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
@@ -25,21 +25,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IRazorRequestHandler<TParams, WorkspaceEdit?>, ICapabilitiesProvider
     where TParams : IPresentationParams
 {
-    private readonly IRazorDocumentMappingService _razorDocumentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
     private readonly IClientConnection _clientConnection;
     private readonly IFilePathService _filePathService;
     private readonly ILogger _logger;
 
     protected AbstractTextDocumentPresentationEndpointBase(
-        IRazorDocumentMappingService razorDocumentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         IFilePathService filePathService,
         ILogger logger)
     {
-        _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
-        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-        _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _documentMappingService = documentMappingService;
+        _clientConnection = clientConnection;
+        _filePathService = filePathService;
+        _logger = logger;
     }
 
     public abstract string EndpointName { get; }
@@ -74,12 +74,12 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (request.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
+        if (sourceText.TryGetAbsoluteIndex(request.Range.Start, out var hostDocumentIndex) != true)
         {
             return null;
         }
 
-        var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
+        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
         // See if we can handle this directly in Razor. If not, we'll let things flow to the below delegated handling.
         var result = await TryGetRazorWorkspaceEditAsync(languageKind, request, cancellationToken).ConfigureAwait(false);
         if (result is not null)
@@ -107,7 +107,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         // For CSharp we need to map the range to the generated document
         if (languageKind == RazorLanguageKind.CSharp)
         {
-            if (!_razorDocumentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), request.Range, out var projectedRange))
+            if (!_documentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), request.Range, out var projectedRange))
             {
                 return null;
             }
@@ -233,16 +233,12 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         using var mappedEdits = new PooledArrayBuilder<TextEdit>();
         foreach (var edit in edits)
         {
-            if (!_razorDocumentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))
+            if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))
             {
                 return [];
             }
 
-            var newEdit = new TextEdit()
-            {
-                NewText = edit.NewText,
-                Range = newRange
-            };
+            var newEdit = VsLspFactory.CreateTextEdit(newRange, edit.NewText);
             mappedEdits.Add(newEdit);
         }
 

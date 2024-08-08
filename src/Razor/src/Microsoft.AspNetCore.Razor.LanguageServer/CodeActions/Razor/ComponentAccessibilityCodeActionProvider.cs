@@ -158,7 +158,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             {
                 // if fqn contains a generic typeparam, we should strip it out. Otherwise, replacing tag name will leave generic parameters in razor code, which are illegal
                 // e.g. <Component /> -> <Component<T> />
-                var fullyQualifiedName = DefaultRazorComponentSearchEngine.RemoveGenericContent(tagHelperPair.Short.Name.AsMemory()).ToString();
+                var fullyQualifiedName = RazorComponentSearchEngine.RemoveGenericContent(tagHelperPair.Short.Name.AsMemory()).ToString();
 
                 // If the match was case insensitive, then see if we can work out a new tag name to use as part of adding a using statement
                 TextDocumentEdit? additionalEdit = null;
@@ -277,23 +277,14 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         using var textEdits = new PooledArrayBuilder<TextEdit>();
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
-        var startTagTextEdit = new TextEdit
-        {
-            Range = startTag.Name.GetRange(context.CodeDocument.Source),
-            NewText = newTagName,
-        };
+        var startTagTextEdit = VsLspFactory.CreateTextEdit(startTag.Name.GetRange(context.CodeDocument.Source), newTagName);
 
         textEdits.Add(startTagTextEdit);
 
         var endTag = (startTag.Parent as MarkupElementSyntax)?.EndTag;
         if (endTag != null)
         {
-            var endTagTextEdit = new TextEdit
-            {
-                Range = endTag.Name.GetRange(context.CodeDocument.Source),
-                NewText = newTagName,
-            };
-
+            var endTagTextEdit = VsLspFactory.CreateTextEdit(endTag.Name.GetRange(context.CodeDocument.Source), newTagName);
             textEdits.Add(endTagTextEdit);
         }
 

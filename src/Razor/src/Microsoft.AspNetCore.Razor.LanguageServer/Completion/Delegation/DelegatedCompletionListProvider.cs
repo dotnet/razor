@@ -28,13 +28,13 @@ internal class DelegatedCompletionListProvider
             .Union(s_razorTriggerCharacters);
 
     private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _responseRewriters;
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
     private readonly IClientConnection _clientConnection;
     private readonly CompletionListCache _completionListCache;
 
     public DelegatedCompletionListProvider(
         IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         CompletionListCache completionListCache)
     {
@@ -77,7 +77,7 @@ internal class DelegatedCompletionListProvider
         var shouldIncludeSnippets = await ShouldIncludeSnippetsAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
         var delegatedParams = new DelegatedCompletionParams(
-            documentContext.Identifier,
+            documentContext.GetTextDocumentIdentifierAndVersion(),
             positionInfo.Position,
             positionInfo.LanguageKind,
             completionContext,
@@ -214,19 +214,11 @@ internal class DelegatedCompletionListProvider
 
         // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
         // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
-        var addProvisionalDot = new TextEdit()
-        {
-            Range = new Range()
-            {
-                Start = previousPosition,
-                End = previousPosition,
-            },
-            NewText = ".",
-        };
+        var addProvisionalDot = VsLspFactory.CreateTextEdit(previousPosition, ".");
 
         var provisionalPositionInfo = new DocumentPositionInfo(
             RazorLanguageKind.CSharp,
-            new Position(
+            VsLspFactory.CreatePosition(
                 previousPosition.Line,
                 previousPosition.Character + 1),
             previousCharacterPositionInfo.HostDocumentIndex + 1);

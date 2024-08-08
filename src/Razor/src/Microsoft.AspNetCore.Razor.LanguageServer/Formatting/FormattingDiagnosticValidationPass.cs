@@ -8,17 +8,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal sealed class FormattingDiagnosticValidationPass(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
     : FormattingPassBase(documentMappingService)
 {
@@ -44,7 +42,7 @@ internal sealed class FormattingDiagnosticValidationPass(
 
         var text = context.SourceText;
         var edits = result.Edits;
-        var changes = edits.Select(e => e.ToTextChange(text));
+        var changes = edits.Select(text.GetTextChange);
         var changedText = text.WithChanges(changes);
         var changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
         var changedDiagnostics = changedContext.CodeDocument.GetSyntaxTree().Diagnostics;
