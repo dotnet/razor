@@ -101,8 +101,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             return;
         }
 
-        var targetSymbol = context.Items.GetTargetSymbol();
-        if (targetSymbol is not null && !SymbolEqualityComparer.Default.Equals(targetSymbol, bindMethods.ContainingAssembly))
+        if (context.TargetSymbol is { } targetSymbol && !SymbolEqualityComparer.Default.Equals(targetSymbol, bindMethods.ContainingAssembly))
         {
             return;
         }
