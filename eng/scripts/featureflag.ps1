@@ -3,7 +3,7 @@ param(
   [string]$flag = $null,
   [switch]$enable,
   [switch]$disable,
-  [string]$hive = "RoslynDev",
+  [string]$hive = "Exp",
   [switch]$set,
   [switch]$get
 )

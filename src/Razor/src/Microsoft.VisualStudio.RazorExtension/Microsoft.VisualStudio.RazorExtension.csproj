@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
 
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <VSSDKTargetPlatformRegRootSuffix>Exp</VSSDKTargetPlatformRegRootSuffix>
 
     <!-- Required to run the project localy -->
     <StartArguments>/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log</StartArguments>
@@ -44,7 +44,7 @@
     <Compile Include="..\..\..\Compiler\shared\JsonReaderExtensions.cs" LinkBase="Shared" />
     <Compile Include="..\..\..\Compiler\shared\TagHelperDescriptorJsonConverter.cs" LinkBase="Shared" />
   </ItemGroup>
-  
+
   <!-- Include Razor SDK design time assets in the VSIX -->
   <ItemGroup>
     <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\build\netstandard2.0\Microsoft.NET.Sdk.Razor.DesignTime.targets">

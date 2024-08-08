@@ -26,7 +26,7 @@ The general strategy for an individual test is:
 
 - When adding a new test it's absolutely vital that you run it multiple times (5-10+) before even sending the PR since the most frequent issue in our Integration tests is flakyness. If you see any "random" failures while testing check `artifacts\log\Debug\Screenshots` for relevant logs and diagnostics.
 - Ensure you have deployed `Microsoft.VisualStudio.RazorExtension.Dependencies` if you're using a Preview version of VS, or have not deployed it if you're running VS IntPreview or main. If you've any doubt I recommend just checking the hive folder under `Extensions\Microsoft\Razor Extension Dependencies`.
-- If you're suddenly seeing strange packaging issues it's likely your "Hive" is corrupted somehow. I recommend deleting all the folders containing `RoslynDev` from `AppData\Local\Microsoft\VisualStudio`
+- If you're suddenly seeing strange packaging issues it's likely your "Hive" is corrupted somehow. I recommend deleting all the folders containing `Exp` from `AppData\Local\Microsoft\VisualStudio`
 - If the test did not produce enough logs/diagnostics to know why it failed it's time to [add/capture some more](https://github.com/dotnet/razor/blob/main/src/Razor/test/Microsoft.VisualStudio.Razor.IntegrationTests/VisualStudioLogging.cs).
 - When in doubt, ask for help!
 

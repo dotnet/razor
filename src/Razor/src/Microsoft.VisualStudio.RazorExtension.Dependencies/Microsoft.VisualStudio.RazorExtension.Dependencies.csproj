@@ -10,7 +10,7 @@
 
     <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
 
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <VSSDKTargetPlatformRegRootSuffix>Exp</VSSDKTargetPlatformRegRootSuffix>
 
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>

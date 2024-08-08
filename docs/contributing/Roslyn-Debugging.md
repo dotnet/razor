@@ -32,7 +32,7 @@ Use the steps below to do a clean build if the dlls/binaries need to get cleaned
 > TASKKILL /IM dotnet.exe /F
 > TASKKILL /IM MSBuild.exe /F
 ```
-- Delete the hive folder by navigating to `%LocalAppData%\Microsoft\VisualStudio` and deleting the 17.0_xxxxxxxxRoslynDev folder
+- Delete the hive folder by navigating to `%LocalAppData%\Microsoft\VisualStudio` and deleting the 17.0_xxxxxxxxExp folder
 - Delete the artifacts folder under the root folder of razor repository
 - Launch VS with the Razor solution
 - Make sure `Microsoft.VisualStudio.RazorExtension` is set as the start up project.
@@ -42,7 +42,7 @@ Use the steps below to do a clean build if the dlls/binaries need to get cleaned
 
 ## Notes
 
-- If you're familiar with _Visual Studio Hives_ the `dotnet/roslyn` project uses the `RoslynDev` root suffix .
+- If you're familiar with _Visual Studio Hives_ the `dotnet/roslyn` project uses the `Exp` root suffix .
 - [Building Roslyn on Windows](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Building,%20Debugging,%20and%20Testing%20on%20Windows.md)
 - [Building Roslyn on Linux and Mac](https://github.com/dotnet/roslyn/blob/main/docs/infrastructure/cross-platform.md)
 - If you find the old packages are still being used after this change, purge the nuget cache here: `~\.nuget\packages`
