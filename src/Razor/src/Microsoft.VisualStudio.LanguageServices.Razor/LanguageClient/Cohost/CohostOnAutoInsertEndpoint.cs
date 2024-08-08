@@ -93,7 +93,7 @@ internal class CohostOnAutoInsertEndpoint(
                 => service.TryResolveInsertionAsync(
                         solutionInfo,
                         razorDocument.Id,
-                        request.Position,
+                        request.Position.ToLinePosition(),
                         request.Character,
                         autoCloseTags: true, // TODO: get value from client options
                         cancellationToken),
