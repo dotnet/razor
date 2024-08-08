@@ -14,7 +14,6 @@ public sealed class TagHelperDescriptorProviderContext
     public bool ExcludeHidden { get; set; }
     public bool IncludeDocumentation { get; set; }
 
-    public ItemCollection Items { get; }
     public ICollection<TagHelperDescriptor> Results { get; }
 
     private TagHelperDescriptorProviderContext(Compilation compilation, ISymbol? targetSymbol, ICollection<TagHelperDescriptor> results)
@@ -22,7 +21,6 @@ public sealed class TagHelperDescriptorProviderContext
         Compilation = compilation;
         TargetSymbol = targetSymbol;
         Results = results;
-        Items = [];
     }
 
     public static TagHelperDescriptorProviderContext Create(Compilation compilation, ISymbol? targetSymbol = null)
