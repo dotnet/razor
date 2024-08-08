@@ -109,11 +109,11 @@
     <PackageVersion Include="NuGet.VisualStudio" Version="17.9.1" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(_MicrosoftCodeAnalysisAnalyzersPackageVersion)" />
     <PackageVersion Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutablePackageVersion)" />
-    <PackageVersion Include="System.Resources.Extensions" Version="6.0.0" />
+    <PackageVersion Include="System.Resources.Extensions" Version="8.0.0" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
     <PackageVersion Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataPackageVersion)" />
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="6.0.1" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="7.0.1" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="8.0.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
