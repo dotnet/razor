@@ -3,27 +3,21 @@
 
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal sealed class FormNameTagHelperDescriptorProvider : ITagHelperDescriptorProvider
+// Run after the component tag helper provider
+internal sealed class FormNameTagHelperDescriptorProvider() : TagHelperDescriptorProviderBase(order: 1000)
 {
     private static readonly Lazy<TagHelperDescriptor> s_formNameTagHelper = new(CreateFormNameTagHelper);
 
-    // Run after the component tag helper provider
-    public int Order { get; set; } = 1000;
-
-    public RazorEngine? Engine { get; set; }
-
-    public void Execute(TagHelperDescriptorProviderContext context)
+    public override void Execute(TagHelperDescriptorProviderContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgHelper.ThrowIfNull(context);
 
         var compilation = context.Compilation;
 
