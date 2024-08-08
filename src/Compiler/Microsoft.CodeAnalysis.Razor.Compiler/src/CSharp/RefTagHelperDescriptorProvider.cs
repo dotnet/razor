@@ -26,11 +26,7 @@ internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             throw new ArgumentNullException(nameof(context));
         }
 
-        var compilation = context.GetCompilation();
-        if (compilation == null)
-        {
-            return;
-        }
+        var compilation = context.Compilation;
 
         var elementReference = compilation.GetTypeByMetadataName(ComponentsApi.ElementReference.FullTypeName);
         if (elementReference == null)

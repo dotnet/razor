@@ -25,11 +25,7 @@ internal sealed class FormNameTagHelperDescriptorProvider : ITagHelperDescriptor
             throw new ArgumentNullException(nameof(context));
         }
 
-        var compilation = context.GetCompilation();
-        if (compilation == null)
-        {
-            return;
-        }
+        var compilation = context.Compilation;
 
         var renderTreeBuilders = compilation.GetTypesByMetadataName(ComponentsApi.RenderTreeBuilder.FullTypeName)
             .Where(static t => t.DeclaredAccessibility == Accessibility.Public &&

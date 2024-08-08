@@ -26,11 +26,7 @@ internal sealed class RenderModeTagHelperDescriptorProvider : ITagHelperDescript
             throw new ArgumentNullException(nameof(context));
         }
 
-        var compilation = context.GetCompilation();
-        if (compilation == null)
-        {
-            return;
-        }
+        var compilation = context.Compilation;
 
         var iComponentRenderMode = compilation.GetTypeByMetadataName(ComponentsApi.IComponentRenderMode.FullTypeName);
         if (iComponentRenderMode == null)

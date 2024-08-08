@@ -22,8 +22,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return;
             }
 
-            var context = TagHelperDescriptorProviderContext.Create(results);
-            context.SetCompilation(compilation);
+            var context = TagHelperDescriptorProviderContext.Create(compilation, results);
 
             if (targetSymbol is not null)
             {

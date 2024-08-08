@@ -37,19 +37,19 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
         var providers = projectEngine.Engine.Features.OfType<ITagHelperDescriptorProvider>().OrderBy(f => f.Order).ToArray();
         if (providers.Length == 0)
         {
-            return ImmutableArray<TagHelperDescriptor>.Empty;
+            return [];
+        }
+
+        var compilation = await workspaceProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        if (compilation is null || !CompilationTagHelperFeature.IsValidCompilation(compilation))
+        {
+            return [];
         }
 
         using var _ = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var results);
-        var context = TagHelperDescriptorProviderContext.Create(results);
+        var context = TagHelperDescriptorProviderContext.Create(compilation, results);
         context.ExcludeHidden = true;
         context.IncludeDocumentation = true;
-
-        var compilation = await workspaceProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-        if (CompilationTagHelperFeature.IsValidCompilation(compilation))
-        {
-            context.SetCompilation(compilation);
-        }
 
         ExecuteProviders(providers, context, _telemetryReporter);
 

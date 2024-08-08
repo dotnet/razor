@@ -91,11 +91,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         // we have. Case #4 is data-driven based on component definitions.
         //
         // We provide a good set of attributes that map to the HTML dom. This set is user extensible.
-        var compilation = context.GetCompilation();
-        if (compilation == null)
-        {
-            return;
-        }
+        var compilation = context.Compilation;
 
         var bindMethods = compilation.GetTypeByMetadataName(ComponentsApi.BindConverter.FullTypeName);
         if (bindMethods == null)

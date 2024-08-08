@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 
@@ -23,12 +22,7 @@ public sealed class ViewComponentTagHelperDescriptorProvider : RazorEngineFeatur
             throw new ArgumentNullException(nameof(context));
         }
 
-        var compilation = context.GetCompilation();
-        if (compilation == null)
-        {
-            // No compilation, nothing to do.
-            return;
-        }
+        var compilation = context.Compilation;
 
         var vcAttribute = compilation.GetTypeByMetadataName(ViewComponentTypes.ViewComponentAttribute);
         var nonVCAttribute = compilation.GetTypeByMetadataName(ViewComponentTypes.NonViewComponentAttribute);

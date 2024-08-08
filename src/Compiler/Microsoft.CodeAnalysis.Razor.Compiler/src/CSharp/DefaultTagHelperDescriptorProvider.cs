@@ -21,12 +21,7 @@ public sealed class DefaultTagHelperDescriptorProvider : RazorEngineFeatureBase,
             throw new ArgumentNullException(nameof(context));
         }
 
-        var compilation = context.GetCompilation();
-        if (compilation == null)
-        {
-            // No compilation, nothing to do.
-            return;
-        }
+        var compilation = context.Compilation;
 
         var tagHelperTypeSymbol = compilation.GetTypeByMetadataName(TagHelperTypes.ITagHelper);
         if (tagHelperTypeSymbol == null || tagHelperTypeSymbol.TypeKind == TypeKind.Error)

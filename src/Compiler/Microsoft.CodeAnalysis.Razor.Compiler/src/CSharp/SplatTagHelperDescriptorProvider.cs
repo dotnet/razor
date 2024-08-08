@@ -26,11 +26,7 @@ internal class SplatTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             throw new ArgumentNullException(nameof(context));
         }
 
-        var compilation = context.GetCompilation();
-        if (compilation == null)
-        {
-            return;
-        }
+        var compilation = context.Compilation;
 
         var renderTreeBuilder = compilation.GetTypeByMetadataName(ComponentsApi.RenderTreeBuilder.FullTypeName);
         if (renderTreeBuilder == null)
