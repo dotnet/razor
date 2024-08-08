@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Globalization;
 using System.IO;
 
@@ -19,10 +18,11 @@ internal static class FileUtilities
     /// <returns>A non-existent file path with a name in the specified format and a corresponding extension.</returns>
     public static string GenerateUniquePath(string path, string extension)
     {
-        if (!Path.IsPathRooted(path))
-        {
-            throw new ArgumentException("The path is not rooted.", nameof(path));
-        }
+        // Add check for rooted path in the future, currently having issues in platforms other than Windows.
+        //if (!Path.IsPathRooted(path))
+        //{
+        //    throw new ArgumentException("The path is not rooted.", nameof(path));
+        //}
 
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
         var baseFileName = Path.GetFileNameWithoutExtension(path);
