@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
@@ -32,7 +33,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
     public ValueTask<Response> TryResolveInsertionAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId documentId,
-        Position position,
+        LinePosition linePosition,
         string character,
         bool autoCloseTags,
         CancellationToken cancellationToken)
@@ -41,7 +42,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
             documentId,
             context => TryResolveInsertionAsync(
                 context,
-                position,
+                linePosition,
                 character,
                 autoCloseTags,
                 cancellationToken),
@@ -49,13 +50,13 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
 
     private async ValueTask<Response> TryResolveInsertionAsync(
         RemoteDocumentContext remoteDocumentContext,
-        Position position,
+        LinePosition linePosition,
         string character,
         bool autoCloseTags,
         CancellationToken cancellationToken)
     {
         var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!sourceText.TryGetAbsoluteIndex(position, out var index))
+        if (!sourceText.TryGetAbsoluteIndex(linePosition, out var index))
         {
             return Response.NoFurtherHandling;
         }
@@ -69,9 +70,10 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         }
         else if (languageKind is RazorLanguageKind.Razor)
         {
+            linePosition.Deconstruct(out var line, out var lineCharacter);
             var insertTextEdit = await _autoInsertService.TryResolveInsertionAsync(
                 remoteDocumentContext.Snapshot,
-                position,
+                new Position(line, lineCharacter),
                 character,
                 autoCloseTags,
                 cancellationToken);
