@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -36,11 +37,11 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorTranslateDiagnosticsService>();
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    private static readonly HashSet<string> s_cSharpDiagnosticsToIgnore =
+    private static readonly FrozenSet<string> s_cSharpDiagnosticsToIgnore = new HashSet<string>(
     [
         "RemoveUnnecessaryImportsFixable",
         "IDE0005_gen", // Using directive is unnecessary
-    ];
+    ]).ToFrozenSet();
 
     /// <summary>
     /// Translates code diagnostics from one representation into another.
