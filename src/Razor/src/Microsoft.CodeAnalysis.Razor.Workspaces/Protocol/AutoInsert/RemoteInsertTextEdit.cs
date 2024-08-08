@@ -3,31 +3,40 @@
 
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
 
-// TODO: check annotations
 [DataContract]
 internal readonly record struct RemoteInsertTextEdit(
-        [property: DataMember(Name = "textEdit")]
-        TextEdit TextEdit,
-        [property: DataMember(Name = "insertTextFormat")]
+        [property: DataMember(Order = 0)]
+        LinePositionSpan LinePositionSpan,
+        [property: DataMember(Order = 1)]
+        string NewText,
+        [property: DataMember(Order = 2)]
         InsertTextFormat InsertTextFormat
     )
 {
     public static RemoteInsertTextEdit FromLspInsertTextEdit(InsertTextEdit edit)
-        => new (edit.TextEdit, edit.InsertTextFormat);
+        => new (
+            edit.TextEdit.Range.ToLinePositionSpan(),
+            edit.TextEdit.NewText,
+            edit.InsertTextFormat);
 
     public static VSInternalDocumentOnAutoInsertResponseItem ToLspInsertTextEdit(RemoteInsertTextEdit edit)
         => new()
         {
-            TextEdit = edit.TextEdit,
+            TextEdit = new()
+            {
+                Range = edit.LinePositionSpan.ToRange(),
+                NewText = edit.NewText
+            },
             TextEditFormat = edit.InsertTextFormat,
         };
 
     public override string ToString()
     {
-        return $"({TextEdit.Range.Start.Line}, {TextEdit.Range.Start.Character})-({TextEdit.Range.End.Line}, {TextEdit.Range.End.Character}), '{TextEdit.NewText}', {InsertTextFormat}";
+        return $"({LinePositionSpan.Start.Line}, {LinePositionSpan.Start.Character})-({LinePositionSpan.End.Line}, {LinePositionSpan.End.Character}), '{NewText}', {InsertTextFormat}";
     }
 }
