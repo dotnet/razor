@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Text;
 
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
 
@@ -15,7 +15,7 @@ internal interface IRemoteAutoInsertService : IDisposable
     ValueTask<Response> TryResolveInsertionAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId documentId,
-        Position position,
+        LinePosition position,
         string character,
         bool autoCloseTags,
         CancellationToken cancellationToken);
