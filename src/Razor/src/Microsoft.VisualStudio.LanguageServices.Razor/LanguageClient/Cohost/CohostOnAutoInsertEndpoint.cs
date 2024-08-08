@@ -56,7 +56,8 @@ internal class CohostOnAutoInsertEndpoint(
 
     public Registration? GetRegistration(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
-        if (clientCapabilities.SupportsVisualStudioExtensions)
+        if (clientCapabilities.SupportsVisualStudioExtensions
+            && (clientCapabilities.TextDocument as VSInternalTextDocumentClientCapabilities)?.OnAutoInsert?.DynamicRegistration == true)
         {
             var providerTriggerChars = _onAutoInsertTriggerCharacterProviders
                 .Select((provider) => provider.TriggerCharacter);
