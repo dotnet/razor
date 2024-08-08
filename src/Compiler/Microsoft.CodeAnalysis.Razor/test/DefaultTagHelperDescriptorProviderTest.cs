@@ -23,8 +23,10 @@ public class DefaultTagHelperDescriptorProviderTest
         var compilation = TestCompilation.Create(_assembly);
         var descriptorProvider = new DefaultTagHelperDescriptorProvider();
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        context.ExcludeHidden = true;
+        var context = new TagHelperDescriptorProviderContext(compilation)
+        {
+            ExcludeHidden = true
+        };
 
         // Act
         descriptorProvider.Execute(context);

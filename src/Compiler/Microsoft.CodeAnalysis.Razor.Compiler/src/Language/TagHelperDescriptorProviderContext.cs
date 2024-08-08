@@ -10,11 +10,10 @@ public sealed class TagHelperDescriptorProviderContext(Compilation compilation, 
 {
     public Compilation Compilation { get; } = compilation;
     public ISymbol? TargetSymbol { get; } = targetSymbol;
-
-    public bool ExcludeHidden { get; set; }
-    public bool IncludeDocumentation { get; set; }
-
     public ICollection<TagHelperDescriptor> Results { get; } = results;
+
+    public bool ExcludeHidden { get; init; }
+    public bool IncludeDocumentation { get; init; }
 
     public TagHelperDescriptorProviderContext(Compilation compilation, ISymbol? targetSymbol = null)
         : this(compilation, targetSymbol, results: [])
