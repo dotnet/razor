@@ -33,7 +33,7 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = TagHelperDescriptorProviderContext.Create(compilation);
+        var context = new TagHelperDescriptorProviderContext(compilation);
         var provider = new EventHandlerTagHelperDescriptorProvider();
 
         // Act

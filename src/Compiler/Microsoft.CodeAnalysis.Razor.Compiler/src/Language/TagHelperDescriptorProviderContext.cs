@@ -6,29 +6,23 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed class TagHelperDescriptorProviderContext
+public sealed class TagHelperDescriptorProviderContext(Compilation compilation, ISymbol? targetSymbol, ICollection<TagHelperDescriptor> results)
 {
-    public Compilation Compilation { get; }
-    public ISymbol? TargetSymbol { get; }
+    public Compilation Compilation { get; } = compilation;
+    public ISymbol? TargetSymbol { get; } = targetSymbol;
 
     public bool ExcludeHidden { get; set; }
     public bool IncludeDocumentation { get; set; }
 
-    public ICollection<TagHelperDescriptor> Results { get; }
+    public ICollection<TagHelperDescriptor> Results { get; } = results;
 
-    private TagHelperDescriptorProviderContext(Compilation compilation, ISymbol? targetSymbol, ICollection<TagHelperDescriptor> results)
+    public TagHelperDescriptorProviderContext(Compilation compilation, ISymbol? targetSymbol = null)
+        : this(compilation, targetSymbol, results: [])
     {
-        Compilation = compilation;
-        TargetSymbol = targetSymbol;
-        Results = results;
     }
 
-    public static TagHelperDescriptorProviderContext Create(Compilation compilation, ISymbol? targetSymbol = null)
-        => new(compilation, targetSymbol, results: []);
-
-    public static TagHelperDescriptorProviderContext Create(Compilation compilation, ICollection<TagHelperDescriptor> results)
-        => new(compilation, targetSymbol: null, results);
-
-    public static TagHelperDescriptorProviderContext Create(Compilation compilation, ISymbol? targetSymbol, ICollection<TagHelperDescriptor> results)
-        => new(compilation, targetSymbol, results);
+    public TagHelperDescriptorProviderContext(Compilation compilation, ICollection<TagHelperDescriptor> results)
+        : this(compilation, targetSymbol: null, results)
+    {
+    }
 }

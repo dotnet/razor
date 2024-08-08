@@ -23,7 +23,7 @@ public class DefaultTagHelperDescriptorProviderTest
         var compilation = TestCompilation.Create(_assembly);
         var descriptorProvider = new DefaultTagHelperDescriptorProvider();
 
-        var context = TagHelperDescriptorProviderContext.Create(compilation);
+        var context = new TagHelperDescriptorProviderContext(compilation);
         context.ExcludeHidden = true;
 
         // Act
@@ -55,7 +55,7 @@ namespace TestAssembly
         var compilation = TestCompilation.Create(_assembly, CSharpSyntaxTree.ParseText(csharp));
         var descriptorProvider = new DefaultTagHelperDescriptorProvider();
 
-        var context = TagHelperDescriptorProviderContext.Create(compilation);
+        var context = new TagHelperDescriptorProviderContext(compilation);
 
         // Act
         descriptorProvider.Execute(context);
@@ -88,7 +88,7 @@ namespace TestAssembly
         var targetSymbol = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(
             compilation.References.First(static r => r.Display.Contains("Microsoft.CodeAnalysis.Razor.Test.dll")));
 
-        var context = TagHelperDescriptorProviderContext.Create(compilation, targetSymbol);
+        var context = new TagHelperDescriptorProviderContext(compilation, targetSymbol);
 
         // Act
         descriptorProvider.Execute(context);

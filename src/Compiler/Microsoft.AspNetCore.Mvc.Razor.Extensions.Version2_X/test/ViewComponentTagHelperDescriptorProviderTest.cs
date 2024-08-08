@@ -27,7 +27,7 @@ public class ViewComponentTagHelperDescriptorProviderTest
 
         var compilation = MvcShim.BaseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(code));
 
-        var context = TagHelperDescriptorProviderContext.Create(compilation);
+        var context = new TagHelperDescriptorProviderContext(compilation);
 
         var provider = new ViewComponentTagHelperDescriptorProvider()
         {
