@@ -4,16 +4,17 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
+using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor optionsMonitor) : IOnAutoInsertProvider
+namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
+
+internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 {
     // From http://dev.w3.org/html5/spec/Overview.html#elements-0
     private static readonly ImmutableHashSet<string> s_voidElements = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase,
@@ -38,55 +39,42 @@ internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor 
 
     private static readonly ImmutableHashSet<string> s_voidElementsCaseSensitive = s_voidElements.WithComparer(StringComparer.Ordinal);
 
-    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
-
     public string TriggerCharacter => ">";
 
-    public bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+    public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool enableAutoClosingTags)
     {
-        if (!_optionsMonitor.CurrentValue.AutoClosingTags)
+        if (!(enableAutoClosingTags
+            && documentSnapshot.TryGetText(out var sourceText)
+            && sourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex)
+            && await TryResolveAutoClosingBehaviorAsync(documentSnapshot, afterCloseAngleIndex)
+                     .ConfigureAwait(false) is { } tagNameWithClosingBehavior))
         {
-            format = default;
-            edit = default;
-            return false;
+            return default;
         }
 
-        if (!context.SourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex))
+        if (tagNameWithClosingBehavior.AutoClosingBehavior == AutoClosingBehavior.EndTag)
         {
-            format = default;
-            edit = default;
-            return false;
+            var formatForEndTag = InsertTextFormat.Snippet;
+            var editForEndTag = VsLspFactory.CreateTextEdit(position, $"$0</{tagNameWithClosingBehavior.TagName}>");
+
+            return new InsertTextEdit(editForEndTag, formatForEndTag);
         }
 
-        if (!TryResolveAutoClosingBehavior(context, afterCloseAngleIndex, out var tagName, out var autoClosingBehavior))
-        {
-            format = default;
-            edit = default;
-            return false;
-        }
+        Debug.Assert(tagNameWithClosingBehavior.AutoClosingBehavior == AutoClosingBehavior.SelfClosing);
 
-        if (autoClosingBehavior == AutoClosingBehavior.EndTag)
-        {
-            format = InsertTextFormat.Snippet;
-            edit = VsLspFactory.CreateTextEdit(position, $"$0</{tagName}>");
-
-            return true;
-        }
-
-        Debug.Assert(autoClosingBehavior == AutoClosingBehavior.SelfClosing);
-
-        format = InsertTextFormat.Plaintext;
+        var format = InsertTextFormat.Plaintext;
 
         // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
-        var insertionText = char.IsWhiteSpace(context.SourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
-        edit = VsLspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
+        var insertionText = char.IsWhiteSpace(sourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
+        var edit = VsLspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
 
-        return true;
+        return new InsertTextEdit(edit, format);
     }
 
-    private static bool TryResolveAutoClosingBehavior(FormattingContext context, int afterCloseAngleIndex, [NotNullWhen(true)] out string? name, out AutoClosingBehavior autoClosingBehavior)
+    private static async ValueTask<TagNameWithClosingBehavior?> TryResolveAutoClosingBehaviorAsync(IDocumentSnapshot documentSnapshot, int afterCloseAngleIndex)
     {
-        var syntaxTree = context.CodeDocument.GetSyntaxTree();
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var syntaxTree = codeDocument.GetSyntaxTree();
         var closeAngle = syntaxTree.Root.FindToken(afterCloseAngleIndex - 1);
 
         if (closeAngle.Parent is MarkupStartTagSyntax
@@ -96,19 +84,17 @@ internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor 
             } startTag)
         {
             var unescapedTagName = startTag.Name.Content;
-            autoClosingBehavior = InferAutoClosingBehavior(unescapedTagName, caseSensitive: false);
+            var autoClosingBehavior = InferAutoClosingBehavior(unescapedTagName, caseSensitive: false);
 
             if (autoClosingBehavior == AutoClosingBehavior.EndTag && !CouldAutoCloseParentOrSelf(unescapedTagName, htmlElement))
             {
                 // Auto-closing behavior is end-tag; however, we already have and end-tag therefore we don't need to do anything!
-                autoClosingBehavior = default;
-                name = null;
-                return false;
+                return default;
             }
 
             // Finally capture the entire tag name with the potential escape operator.
-            name = startTag.GetTagNameWithOptionalBang();
-            return true;
+            var name = startTag.GetTagNameWithOptionalBang();
+            return new TagNameWithClosingBehavior(name, autoClosingBehavior);
         }
 
         if (closeAngle.Parent is MarkupTagHelperStartTagSyntax
@@ -117,9 +103,9 @@ internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor 
                 Parent: MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding } tagHelperElement
             } startTagHelper)
         {
-            name = startTagHelper.Name.Content;
+            var name = startTagHelper.Name.Content;
 
-            if (!TryGetTagHelperAutoClosingBehavior(binding, out autoClosingBehavior))
+            if (!TryGetTagHelperAutoClosingBehavior(binding, out var autoClosingBehavior))
             {
                 autoClosingBehavior = InferAutoClosingBehavior(name, caseSensitive: true);
             }
@@ -127,17 +113,13 @@ internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor 
             if (autoClosingBehavior == AutoClosingBehavior.EndTag && !CouldAutoCloseParentOrSelf(name, tagHelperElement))
             {
                 // Auto-closing behavior is end-tag; however, we already have and end-tag therefore we don't need to do anything!
-                autoClosingBehavior = default;
-                name = null;
-                return false;
+                return default;
             }
 
-            return true;
+            return new TagNameWithClosingBehavior(name, autoClosingBehavior);
         }
 
-        autoClosingBehavior = default;
-        name = null;
-        return false;
+        return default;
     }
 
     private static AutoClosingBehavior InferAutoClosingBehavior(string name, bool caseSensitive)
@@ -193,7 +175,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor 
         return false;
     }
 
-    private static bool CouldAutoCloseParentOrSelf(string currentTagName, SyntaxNode node)
+    private static bool CouldAutoCloseParentOrSelf(string currentTagName, RazorSyntaxNode node)
     {
         do
         {
@@ -255,4 +237,6 @@ internal sealed class AutoClosingTagOnAutoInsertProvider(RazorLSPOptionsMonitor 
         EndTag,
         SelfClosing,
     }
+
+    private record struct TagNameWithClosingBehavior(string TagName, AutoClosingBehavior AutoClosingBehavior);
 }
