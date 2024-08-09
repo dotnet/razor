@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
-using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 
 using RazorLSPConstants = Microsoft.VisualStudio.Razor.LanguageClient.RazorLSPConstants;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
@@ -39,7 +38,7 @@ internal class CohostOnAutoInsertEndpoint(
 #pragma warning restore RS0030 // Do not use banned APIs
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
-    IRazorDocumentMappingService razorDocumentMappingService,
+    IDocumentMappingService razorDocumentMappingService,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IDynamicRegistrationProvider
 {
@@ -48,7 +47,7 @@ internal class CohostOnAutoInsertEndpoint(
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostOnAutoInsertEndpoint>();
-    private readonly IRazorDocumentMappingService _razorDocumentMappingService = razorDocumentMappingService;
+    private readonly IDocumentMappingService _razorDocumentMappingService = razorDocumentMappingService;
 
     protected override bool MutatesSolutionState => false;
 

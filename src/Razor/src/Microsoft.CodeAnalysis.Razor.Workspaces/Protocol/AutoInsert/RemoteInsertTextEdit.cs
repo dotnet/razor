@@ -5,6 +5,11 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using static Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
+using static Microsoft.VisualStudio.LanguageServer.Protocol.VsLspExtensions;
+
+using RoslynVSInternalDocumentOnAutoInsertResponseItem = Roslyn.LanguageServer.Protocol.VSInternalDocumentOnAutoInsertResponseItem;
+using RoslynInsertTextFormat = Roslyn.LanguageServer.Protocol.InsertTextFormat;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
 
@@ -15,17 +20,17 @@ internal readonly record struct RemoteInsertTextEdit(
         [property: DataMember(Order = 1)]
         string NewText,
         [property: DataMember(Order = 2)]
-        InsertTextFormat InsertTextFormat
+        RoslynInsertTextFormat InsertTextFormat
     )
 {
     public static RemoteInsertTextEdit FromLspInsertTextEdit(InsertTextEdit edit)
         => new (
             edit.TextEdit.Range.ToLinePositionSpan(),
             edit.TextEdit.NewText,
-            edit.InsertTextFormat);
+            (RoslynInsertTextFormat)edit.InsertTextFormat);
 
-    public static RemoteInsertTextEdit FromVsPlatformAutoInsertResponse(
-        VSInternalDocumentOnAutoInsertResponseItem response)
+    public static RemoteInsertTextEdit FromRoslynAutoInsertResponse(
+        RoslynVSInternalDocumentOnAutoInsertResponseItem response)
         => new(
             response.TextEdit.Range.ToLinePositionSpan(),
             response.TextEdit.NewText,
@@ -36,10 +41,10 @@ internal readonly record struct RemoteInsertTextEdit(
         {
             TextEdit = new()
             {
-                Range = edit.LinePositionSpan.ToRange(),
+                Range = VsLspExtensions.ToRange(edit.LinePositionSpan),
                 NewText = edit.NewText
             },
-            TextEditFormat = edit.InsertTextFormat,
+            TextEditFormat = (InsertTextFormat)edit.InsertTextFormat,
         };
 
     public override string ToString()
