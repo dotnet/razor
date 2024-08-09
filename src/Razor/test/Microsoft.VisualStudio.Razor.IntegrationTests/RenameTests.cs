@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -90,7 +89,7 @@ public class RenameTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdit
                 """,
             open: true,
             cancellationToken: ControlledHangMitigatingCancellationToken);
-        await WaitForComponentInitializeAsync(RazorProjectConstants.BlazorProjectName, "MyComponent", ControlledHangMitigatingCancellationToken);
+        await TestServices.RazorProjectSystem.WaitForComponentTagNameAsync(RazorProjectConstants.BlazorProjectName, "MyComponent", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, MyComponentCSharpPath, saveFile: true, ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
@@ -107,6 +106,10 @@ public class RenameTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdit
 
         await TestServices.Editor.PlaceCaretAsync("MyProperty", charsOffset: 0, occurrence: 2, extendSelection: false, selectBlock: false, ControlledHangMitigatingCancellationToken);
 
+        await TestServices.RazorProjectSystem.WaitForComponentTagNameAsync(RazorProjectConstants.BlazorProjectName, "MyPage", ControlledHangMitigatingCancellationToken);
+
+        await Task.Delay(500);
+
         // Act
         await TestServices.Editor.InvokeRenameAsync(ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("ZooperDooper{ENTER}");
@@ -116,11 +119,11 @@ public class RenameTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdit
         await TestServices.Editor.WaitForActiveWindowByFileAsync("MyComponent.razor.cs", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.VerifyTextContainsAsync("public string? ZooperDooper { get; set; }", ControlledHangMitigatingCancellationToken);
 
-        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "MyPage.razor", ControlledHangMitigatingCancellationToken);
-        await TestServices.Editor.VerifyTextContainsAsync("<MyComponent ZooperDooper=", ControlledHangMitigatingCancellationToken);
-
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "MyComponent.razor", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.VerifyTextContainsAsync("@ZooperDooper", ControlledHangMitigatingCancellationToken);
+
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "MyPage.razor", ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.VerifyTextContainsAsync("<MyComponent ZooperDooper=", ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -145,7 +148,7 @@ public class RenameTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdit
             open: true,
             cancellationToken: ControlledHangMitigatingCancellationToken);
 
-        await WaitForComponentInitializeAsync(RazorProjectConstants.BlazorProjectName, "MyComponent", ControlledHangMitigatingCancellationToken);
+        await TestServices.RazorProjectSystem.WaitForComponentTagNameAsync(RazorProjectConstants.BlazorProjectName, "MyComponent", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, MyComponentPath, saveFile: true, ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
@@ -165,6 +168,8 @@ public class RenameTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdit
 
         await TestServices.Editor.PlaceCaretAsync("Value=", charsOffset: -1, ControlledHangMitigatingCancellationToken);
 
+        await Task.Delay(500);
+
         // Act
         await TestServices.Editor.InvokeRenameAsync(ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("ZooperDooper{ENTER}");
@@ -176,11 +181,5 @@ public class RenameTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdit
 
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "MyPage.razor", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.VerifyTextContainsAsync("<MyComponent @bind-ZooperDooper=\"value\"></MyComponent>", ControlledHangMitigatingCancellationToken);
-    }
-
-    private async Task WaitForComponentInitializeAsync(string projectName, string componentName, CancellationToken cancellationToken)
-    {
-        // Wait for it to initialize by building
-        await TestServices.SolutionExplorer.WaitForComponentAsync(projectName, componentName, cancellationToken);
     }
 }
