@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
@@ -30,8 +31,8 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
 
     private readonly IAutoInsertService _autoInsertService
         = args.ExportProvider.GetExportedValue<IAutoInsertService>();
-    private readonly IRazorDocumentMappingService _documentMappingService
-        = args.ExportProvider.GetExportedValue<IRazorDocumentMappingService>();
+    private readonly IDocumentMappingService _documentMappingService
+        = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
     private readonly IFilePathService _filePathService =
         args.ExportProvider.GetExportedValue<IFilePathService>();
 
@@ -103,7 +104,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
                 cancellationToken
             );
             return autoInsertResponseItem is not null
-                ? Response.Results(RemoteInsertTextEdit.FromVsPlatformAutoInsertResponse(autoInsertResponseItem))
+                ? Response.Results(RemoteInsertTextEdit.FromRoslynAutoInsertResponse(autoInsertResponseItem))
                 : Response.NoFurtherHandling;
         }
 
