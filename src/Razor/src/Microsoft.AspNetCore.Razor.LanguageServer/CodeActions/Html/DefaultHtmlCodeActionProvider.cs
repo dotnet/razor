@@ -47,7 +47,7 @@ internal sealed class DefaultHtmlCodeActionProvider(IEditMappingService editMapp
 
         codeAction.Edit = await editMappingService.RemapWorkspaceEditAsync(documentSnapshot, codeAction.Edit, cancellationToken).ConfigureAwait(false);
 
-        if (codeAction.Edit.TryGetDocumentChanges(out var documentEdits) == true)
+        if (codeAction.Edit.TryGetTextDocumentEdits(out var documentEdits))
         {
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             var htmlSourceText = codeDocument.GetHtmlSourceText();

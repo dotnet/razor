@@ -246,7 +246,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
     private static string ProcessRazorDocumentEdits(SourceText inputText, Uri razorDocumentUri, WorkspaceEdit result)
     {
-        Assert.True(result.TryGetDocumentChanges(out var textDocumentEdits));
+        Assert.True(result.TryGetTextDocumentEdits(out var textDocumentEdits));
         foreach (var textDocumentEdit in textDocumentEdits)
         {
             if (textDocumentEdit.TextDocument.Uri == razorDocumentUri)
