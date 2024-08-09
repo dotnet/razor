@@ -311,6 +311,14 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         while (_tagTracker.Count > 0)
         {
             var tracker = _tagTracker.Pop();
+
+            if (tracker.StateBeforeVoidTag is not null)
+            {
+                // Reached the end of markup in a code block with a void element left open.
+                ResetBeforeVoidTag(builder, tracker);
+                return;
+            }
+
             var element = SyntaxFactory.MarkupElement(tracker.StartTag, builder.Consume(), endTag: null);
             builder.AddRange(tracker.PreviousNodes);
             builder.Add(element);
@@ -482,6 +490,13 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 return;
             }
 
+            if (isWellFormed && tagMode == MarkupTagMode.Void && mode == ParseMode.MarkupInCodeBlock)
+            {
+                // Try parsing void tag as a normal tag (needs to be supported in case it's actually a component).
+                _tagTracker.Push(new TagTracker(tagName, startTag, tagStart, builder.Consume(), isWellFormed) { StateBeforeVoidTag = Context.TakeSnapshot() });
+                return;
+            }
+
             if (tagMode == MarkupTagMode.SelfClosing || tagMode == MarkupTagMode.Invalid || tagMode == MarkupTagMode.Void)
             {
                 // For cases like <foo />, <input> or invalid cases like |<|<p>
@@ -512,6 +527,16 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 builder.Add(element);
                 return;
             }
+            else if (CurrentTracker is { StateBeforeVoidTag: not null } tracker)
+            {
+                // Reached unmatched end tag with a void element left open.
+                Debug.Assert(mode == ParseMode.MarkupInCodeBlock);
+                var popped = _tagTracker.Pop();
+                Debug.Assert(popped == tracker);
+                ResetBeforeVoidTag(builder, tracker);
+                NextToken();
+                return;
+            }
             else
             {
                 // Current tag scope does not match the end tag. Attempt to recover the start tag
@@ -529,6 +554,21 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Resets to just after the void element and adds it to the <paramref name="builder"/> as self-closed.
+    /// That will re-parse the text after the element as C# code instead of HTML markup.
+    /// </summary>
+    private void ResetBeforeVoidTag(SyntaxListBuilder<RazorSyntaxNode> builder, TagTracker tracker)
+    {
+        var state = tracker.StateBeforeVoidTag;
+        Debug.Assert(state!.SourcePosition >= tracker.TagLocation.AbsoluteIndex + tracker.StartTag.Width);
+        builder.Clear();
+        builder.AddRange(tracker.PreviousNodes);
+        builder.Add(SyntaxFactory.MarkupElement(tracker.StartTag, EmptySyntaxList, endTag: null));
+        Context.Restore(state);
+        Context.Source.Position = tracker.TagLocation.AbsoluteIndex + tracker.StartTag.Width;
     }
 
     private void CompleteEndTag(
@@ -550,6 +590,14 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         while (_tagTracker.Count > 0)
         {
             var tracker = _tagTracker.Pop();
+
+            if (tracker.StateBeforeVoidTag is not null)
+            {
+                ResetBeforeVoidTag(builder, tracker);
+                NextToken();
+                return;
+            }
+
             var unclosedElement = SyntaxFactory.MarkupElement(tracker.StartTag, builder.Consume(), endTag: null);
             builder.AddRange(tracker.PreviousNodes);
             builder.Add(unclosedElement);
@@ -2350,5 +2398,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         public SyntaxList<RazorSyntaxNode> PreviousNodes { get; }
 
         public bool IsWellFormed { get; }
+
+        public ParserContextState? StateBeforeVoidTag { get; init; }
     }
 }
