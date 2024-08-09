@@ -1148,7 +1148,7 @@ private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeMana
 
     private static void Push(CodeRenderingContext context, TagHelperIntermediateNode node)
     {
-        ((DefaultCodeRenderingContext)context).AncestorsInternal.Push(node);
+        context.AncestorsInternal.Push(node);
     }
 
     private static TagHelperDescriptor CreateTagHelperDescriptor(

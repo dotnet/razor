@@ -39,7 +39,7 @@ public static class TestCodeRenderingContext
             nodeWriter = new DesignTimeNodeWriter();
         }
 
-        var context = new DefaultCodeRenderingContext(nodeWriter, codeDocument, documentNode, options);
+        var context = new CodeRenderingContext(nodeWriter, codeDocument, documentNode, options);
         context.Visitor = new RenderChildrenVisitor(context);
 
         return context;
@@ -75,7 +75,7 @@ public static class TestCodeRenderingContext
             nodeWriter = new RuntimeNodeWriter();
         }
 
-        var context = new DefaultCodeRenderingContext(nodeWriter, codeDocument, documentNode, options);
+        var context = new CodeRenderingContext(nodeWriter, codeDocument, documentNode, options);
         context.Visitor = new RenderChildrenVisitor(context);
 
         return context;

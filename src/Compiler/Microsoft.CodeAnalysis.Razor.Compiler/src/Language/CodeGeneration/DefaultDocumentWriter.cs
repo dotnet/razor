@@ -33,7 +33,7 @@ internal class DefaultDocumentWriter : DocumentWriter
             throw new ArgumentNullException(nameof(documentNode));
         }
 
-        using var context = new DefaultCodeRenderingContext(
+        using var context = new CodeRenderingContext(
             _codeTarget.CreateNodeWriter(),
             codeDocument,
             documentNode,
@@ -56,16 +56,16 @@ internal class DefaultDocumentWriter : DocumentWriter
 
     private class Visitor : IntermediateNodeVisitor
     {
-        private readonly DefaultCodeRenderingContext _context;
+        private readonly CodeRenderingContext _context;
         private readonly CodeTarget _target;
 
-        public Visitor(CodeTarget target, DefaultCodeRenderingContext context)
+        public Visitor(CodeTarget target, CodeRenderingContext context)
         {
             _target = target;
             _context = context;
         }
 
-        private DefaultCodeRenderingContext Context => _context;
+        private CodeRenderingContext Context => _context;
 
         public override void VisitDocument(DocumentIntermediateNode node)
         {
