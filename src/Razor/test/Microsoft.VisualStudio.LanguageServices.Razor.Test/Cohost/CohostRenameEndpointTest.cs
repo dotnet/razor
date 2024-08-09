@@ -20,6 +20,41 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
+    [Fact]
+    public Task CSharp_Method()
+        => VerifyRenamesAsync(
+            input: """
+                This is a Razor document.
+
+                <h1>@MyMethod()</h1>
+
+                @code
+                {
+                    public string MyMe$$thod()
+                    {
+                        return $"Hi from {nameof(MyMethod)}";
+                    }
+                }
+
+                The end.
+                """,
+            newName: "CallThisFunction",
+            expected: """
+                This is a Razor document.
+                
+                <h1>@CallThisFunction()</h1>
+                
+                @code
+                {
+                    public string CallThisFunction()
+                    {
+                        return $"Hi from {nameof(CallThisFunction)}";
+                    }
+                }
+                
+                The end.
+                """);
+
     [Theory]
     [InlineData("$$Component")]
     [InlineData("Com$$ponent")]
@@ -189,14 +224,18 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         Assumes.NotNull(result);
 
-        foreach (var change in result.DocumentChanges.AssumeNotNull().Second)
+        if (result.DocumentChanges.AssumeNotNull().TryGetSecond(out var changes))
         {
-            if (change.TryGetThird(out var renameEdit))
+            Assert.NotNull(renames);
+
+            foreach (var change in changes)
             {
-                Assert.NotNull(renames);
-                Assert.Contains(renames,
-                    r => renameEdit.OldUri.GetDocumentFilePath().EndsWith(r.oldName) &&
-                         renameEdit.NewUri.GetDocumentFilePath().EndsWith(r.newName));
+                if (change.TryGetThird(out var renameEdit))
+                {
+                    Assert.Contains(renames,
+                        r => renameEdit.OldUri.GetDocumentFilePath().EndsWith(r.oldName) &&
+                             renameEdit.NewUri.GetDocumentFilePath().EndsWith(r.newName));
+                }
             }
         }
 
@@ -207,16 +246,14 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
     private static string ProcessRazorDocumentEdits(SourceText inputText, Uri razorDocumentUri, WorkspaceEdit result)
     {
-        foreach (var change in result.DocumentChanges.AssumeNotNull().Second)
+        Assert.True(result.TryGetDocumentChanges(out var textDocumentEdits));
+        foreach (var textDocumentEdit in textDocumentEdits)
         {
-            if (change.TryGetFirst(out var textDocumentEdit))
+            if (textDocumentEdit.TextDocument.Uri == razorDocumentUri)
             {
-                if (textDocumentEdit.TextDocument.Uri == razorDocumentUri)
+                foreach (var edit in textDocumentEdit.Edits)
                 {
-                    foreach (var edit in textDocumentEdit.Edits)
-                    {
-                        inputText = inputText.WithChanges(inputText.GetTextChange(edit));
-                    }
+                    inputText = inputText.WithChanges(inputText.GetTextChange(edit));
                 }
             }
         }
