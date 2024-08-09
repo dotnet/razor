@@ -22,7 +22,6 @@ public sealed class CodeRenderingContext : IDisposable
     public RazorCodeGenerationOptions Options { get; }
     public CodeWriter CodeWriter { get; }
     public RazorDiagnosticCollection Diagnostics { get; }
-    internal List<LinePragma> LinePragmas { get; }
     public ItemCollection Items { get; }
 
     private readonly Stack<IntermediateNode> _ancestors;
@@ -31,6 +30,7 @@ public sealed class CodeRenderingContext : IDisposable
 
     private readonly PooledObject<Stack<ScopeInternal>> _pooledScopeStack;
     private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _pooledSourceMappings;
+    private readonly PooledObject<List<LinePragma>> _pooledLinePragmas;
 
     public CodeRenderingContext(
         IntermediateNodeWriter nodeWriter,
@@ -51,7 +51,7 @@ public sealed class CodeRenderingContext : IDisposable
         Diagnostics = [];
         Items = [];
         _pooledSourceMappings = ArrayBuilderPool<SourceMapping>.GetPooledObject();
-        LinePragmas = [];
+        _pooledLinePragmas = ListPool<LinePragma>.GetPooledObject();
 
         var diagnostics = _documentNode.GetAllDiagnostics();
         for (var i = 0; i < diagnostics.Count; i++)
@@ -80,6 +80,8 @@ public sealed class CodeRenderingContext : IDisposable
     public string DocumentKind => _documentNode.DocumentKind;
 
     public ImmutableArray<SourceMapping>.Builder SourceMappings => _pooledSourceMappings.Object;
+
+    internal List<LinePragma> LinePragmas => _pooledLinePragmas.Object;
 
     public IntermediateNodeWriter NodeWriter => Current.Writer;
 
@@ -176,6 +178,7 @@ public sealed class CodeRenderingContext : IDisposable
 
     public void Dispose()
     {
+        _pooledLinePragmas.Dispose();
         _pooledScopeStack.Dispose();
         _pooledSourceMappings.Dispose();
         CodeWriter.Dispose();
