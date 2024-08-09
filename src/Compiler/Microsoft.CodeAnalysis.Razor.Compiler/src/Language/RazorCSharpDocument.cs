@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -12,9 +11,9 @@ public sealed class RazorCSharpDocument : IRazorGeneratedDocument
     public RazorCodeDocument CodeDocument { get; }
     public string GeneratedCode { get; }
     public RazorCodeGenerationOptions Options { get; }
-    public IReadOnlyList<RazorDiagnostic> Diagnostics { get; }
+    public ImmutableArray<RazorDiagnostic> Diagnostics { get; }
     public ImmutableArray<SourceMapping> SourceMappings { get; }
-    internal ImmutableArray<LinePragma> LinePragmas { get; }
+    public ImmutableArray<LinePragma> LinePragmas { get; }
 
     public RazorCSharpDocument(
         RazorCodeDocument codeDocument,
