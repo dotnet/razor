@@ -26,7 +26,8 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
 
     private readonly IRenameService _renameService = args.ExportProvider.GetExportedValue<IRenameService>();
     private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
-    private readonly IRazorDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IRazorDocumentMappingService>();
+    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
+    private readonly IEditMappingService _editMappingService = args.ExportProvider.GetExportedValue<IEditMappingService>();
 
     public ValueTask<RemoteResponse<WorkspaceEdit?>> GetRenameEditAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
@@ -76,7 +77,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return NoFurtherHandling;
         }
 
-        var mappedEdit = await _documentMappingService.RemapWorkspaceEditAsync(vsEdit, cancellationToken).ConfigureAwait(false);
+        var mappedEdit = await _editMappingService.RemapWorkspaceEditAsync(context.Snapshot, vsEdit, cancellationToken).ConfigureAwait(false);
         return Results(mappedEdit);
     }
 }
