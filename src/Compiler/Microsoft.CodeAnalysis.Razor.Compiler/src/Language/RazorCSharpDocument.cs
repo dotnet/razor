@@ -15,7 +15,7 @@ public sealed class RazorCSharpDocument : IRazorGeneratedDocument
     public RazorCodeGenerationOptions Options { get; }
     public IReadOnlyList<RazorDiagnostic> Diagnostics { get; }
     public ImmutableArray<SourceMapping> SourceMappings { get; }
-    internal IReadOnlyList<LinePragma> LinePragmas { get; }
+    internal ImmutableArray<LinePragma> LinePragmas { get; }
 
     public RazorCSharpDocument(
         RazorCodeDocument codeDocument,
@@ -23,7 +23,7 @@ public sealed class RazorCSharpDocument : IRazorGeneratedDocument
         RazorCodeGenerationOptions options,
         RazorDiagnostic[] diagnostics,
         ImmutableArray<SourceMapping> sourceMappings,
-        LinePragma[] linePragmas)
+        ImmutableArray<LinePragma> linePragmas)
     {
         ArgHelper.ThrowIfNull(codeDocument);
         ArgHelper.ThrowIfNull(generatedCode);
@@ -33,8 +33,8 @@ public sealed class RazorCSharpDocument : IRazorGeneratedDocument
         Options = options;
 
         Diagnostics = diagnostics ?? [];
-        SourceMappings = sourceMappings;
-        LinePragmas = linePragmas ?? [];
+        SourceMappings = sourceMappings.NullToEmpty();
+        LinePragmas = linePragmas.NullToEmpty();
     }
 
     public static RazorCSharpDocument Create(
@@ -56,12 +56,12 @@ public sealed class RazorCSharpDocument : IRazorGeneratedDocument
         RazorCodeGenerationOptions options,
         IEnumerable<RazorDiagnostic> diagnostics,
         ImmutableArray<SourceMapping> sourceMappings,
-        IEnumerable<LinePragma> linePragmas)
+        ImmutableArray<LinePragma> linePragmas)
     {
         ArgHelper.ThrowIfNull(generatedCode);
         ArgHelper.ThrowIfNull(options);
         ArgHelper.ThrowIfNull(diagnostics);
 
-        return new(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings, linePragmas.ToArray());
+        return new(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings, linePragmas);
     }
 }

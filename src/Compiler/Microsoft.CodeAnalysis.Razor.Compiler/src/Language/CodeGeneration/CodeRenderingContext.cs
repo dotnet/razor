@@ -30,7 +30,7 @@ public sealed class CodeRenderingContext : IDisposable
     private readonly PooledObject<Stack<IntermediateNode>> _pooledAncestors;
     private readonly PooledObject<Stack<ScopeInternal>> _pooledScopeStack;
     private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _pooledSourceMappings;
-    private readonly PooledObject<List<LinePragma>> _pooledLinePragmas;
+    private readonly PooledObject<ImmutableArray<LinePragma>.Builder> _pooledLinePragmas;
 
     public CodeRenderingContext(
         IntermediateNodeWriter nodeWriter,
@@ -51,7 +51,7 @@ public sealed class CodeRenderingContext : IDisposable
         Diagnostics = [];
         Items = [];
         _pooledSourceMappings = ArrayBuilderPool<SourceMapping>.GetPooledObject();
-        _pooledLinePragmas = ListPool<LinePragma>.GetPooledObject();
+        _pooledLinePragmas = ArrayBuilderPool<LinePragma>.GetPooledObject();
 
         var diagnostics = _documentNode.GetAllDiagnostics();
         for (var i = 0; i < diagnostics.Count; i++)
@@ -81,7 +81,7 @@ public sealed class CodeRenderingContext : IDisposable
 
     public ImmutableArray<SourceMapping>.Builder SourceMappings => _pooledSourceMappings.Object;
 
-    internal List<LinePragma> LinePragmas => _pooledLinePragmas.Object;
+    internal ImmutableArray<LinePragma>.Builder LinePragmas => _pooledLinePragmas.Object;
 
     public IntermediateNodeWriter NodeWriter => Current.Writer;
 

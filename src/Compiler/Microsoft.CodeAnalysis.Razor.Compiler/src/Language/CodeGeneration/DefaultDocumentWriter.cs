@@ -51,7 +51,7 @@ internal class DefaultDocumentWriter : DocumentWriter
             _options,
             allOrderedDiagnostics.ToArray(),
             context.SourceMappings.DrainToImmutable(),
-            context.LinePragmas.ToArray());
+            context.LinePragmas.DrainToImmutable());
     }
 
     private class Visitor : IntermediateNodeVisitor
