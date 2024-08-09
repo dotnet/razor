@@ -28,9 +28,9 @@ public sealed class CodeRenderingContext : IDisposable
     private readonly Stack<IntermediateNode> _ancestors;
     private readonly RazorCodeDocument _codeDocument;
     private readonly DocumentIntermediateNode _documentNode;
-    private readonly List<ScopeInternal> _scopes;
 
-    private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _sourceMappingsBuilder;
+    private readonly PooledObject<Stack<ScopeInternal>> _pooledScopeStack;
+    private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _pooledSourceMappings;
 
     public CodeRenderingContext(
         IntermediateNodeWriter nodeWriter,
@@ -50,7 +50,7 @@ public sealed class CodeRenderingContext : IDisposable
         _ancestors = new Stack<IntermediateNode>();
         Diagnostics = [];
         Items = [];
-        _sourceMappingsBuilder = ArrayBuilderPool<SourceMapping>.GetPooledObject();
+        _pooledSourceMappings = ArrayBuilderPool<SourceMapping>.GetPooledObject();
         LinePragmas = [];
 
         var diagnostics = _documentNode.GetAllDiagnostics();
@@ -66,7 +66,8 @@ public sealed class CodeRenderingContext : IDisposable
         Items[NewLineString] = codeDocument.Items[NewLineString];
         Items[SuppressUniqueIds] = codeDocument.Items[SuppressUniqueIds] ?? options.SuppressUniqueIds;
 
-        _scopes = [new(nodeWriter)];
+        _pooledScopeStack = StackPool<ScopeInternal>.GetPooledObject(out var scopeStack);
+        scopeStack.Push(new(nodeWriter));
     }
 
     // This will be initialized by the document writer when the context is 'live'.
@@ -78,7 +79,7 @@ public sealed class CodeRenderingContext : IDisposable
 
     public string DocumentKind => _documentNode.DocumentKind;
 
-    public ImmutableArray<SourceMapping>.Builder SourceMappings => _sourceMappingsBuilder.Object;
+    public ImmutableArray<SourceMapping>.Builder SourceMappings => _pooledSourceMappings.Object;
 
     public IntermediateNodeWriter NodeWriter => Current.Writer;
 
@@ -86,7 +87,8 @@ public sealed class CodeRenderingContext : IDisposable
 
     public RazorSourceDocument SourceDocument => _codeDocument.Source;
 
-    private ScopeInternal Current => _scopes[^1];
+    private Stack<ScopeInternal> ScopeStack => _pooledScopeStack.Object;
+    private ScopeInternal Current => ScopeStack.Peek();
 
     public void AddSourceMappingFor(IntermediateNode node)
     {
@@ -136,7 +138,7 @@ public sealed class CodeRenderingContext : IDisposable
         ArgHelper.ThrowIfNull(node);
         ArgHelper.ThrowIfNull(writer);
 
-        _scopes.Add(new ScopeInternal(writer));
+        ScopeStack.Push(new ScopeInternal(writer));
         _ancestors.Push(node);
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -145,7 +147,7 @@ public sealed class CodeRenderingContext : IDisposable
         }
 
         _ancestors.Pop();
-        _scopes.RemoveAt(_scopes.Count - 1);
+        ScopeStack.Pop();
     }
 
     public void RenderNode(IntermediateNode node)
@@ -160,11 +162,11 @@ public sealed class CodeRenderingContext : IDisposable
         ArgHelper.ThrowIfNull(node);
         ArgHelper.ThrowIfNull(writer);
 
-        _scopes.Add(new ScopeInternal(writer));
+        ScopeStack.Push(new ScopeInternal(writer));
 
         Visitor.Visit(node);
 
-        _scopes.RemoveAt(_scopes.Count - 1);
+        ScopeStack.Pop();
     }
 
     public void AddLinePragma(LinePragma linePragma)
@@ -174,7 +176,8 @@ public sealed class CodeRenderingContext : IDisposable
 
     public void Dispose()
     {
-        _sourceMappingsBuilder.Dispose();
+        _pooledScopeStack.Dispose();
+        _pooledSourceMappings.Dispose();
         CodeWriter.Dispose();
     }
 }
