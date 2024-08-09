@@ -5,9 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
@@ -28,7 +30,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
 
     internal abstract IOnAutoInsertProvider CreateProvider();
 
-    protected void RunAutoInsertTest(string input, string expected, int tabSize = 4, bool insertSpaces = true, string fileKind = default, IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
+    protected async Task RunAutoInsertTestAsync(string input, string expected, int tabSize = 4, bool insertSpaces = true, bool enableAutoClosingTags = true, string fileKind = default, IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
     {
         // Arrange
         TestFileMarkupParser.GetPosition(input, out input, out var location);
@@ -46,16 +48,17 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         };
 
         var provider = CreateProvider();
-        using var context = FormattingContext.Create(uri, Mock.Of<IDocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestAdhocWorkspaceFactory.Instance);
+        var sourceText = codeDocument.Source.Text;
+        var snapshot = Mock.Of<IDocumentSnapshot>(document =>
+            document.TryGetText(out sourceText) == true &&
+            document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument),
+            MockBehavior.Strict);
 
         // Act
-        if (!provider.TryResolveInsertion(position, context, out var edit, out _))
-        {
-            edit = null;
-        }
+        var edit = await provider.TryResolveInsertionAsync(position, snapshot, enableAutoClosingTags: enableAutoClosingTags);
 
         // Assert
-        var edited = edit is null ? source : ApplyEdit(source, edit);
+        var edited = edit is null ? source : ApplyEdit(source, edit.Value.TextEdit);
         var actual = edited.ToString();
         Assert.Equal(expected, actual);
     }
