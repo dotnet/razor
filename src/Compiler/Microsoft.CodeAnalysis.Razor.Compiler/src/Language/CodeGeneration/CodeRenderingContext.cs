@@ -21,13 +21,13 @@ public sealed class CodeRenderingContext : IDisposable
 
     public RazorCodeGenerationOptions Options { get; }
     public CodeWriter CodeWriter { get; }
-    public RazorDiagnosticCollection Diagnostics { get; }
     public ItemCollection Items { get; }
 
     private readonly RazorCodeDocument _codeDocument;
     private readonly DocumentIntermediateNode _documentNode;
 
     private readonly PooledObject<Stack<IntermediateNode>> _pooledAncestors;
+    private readonly PooledObject<ImmutableArray<RazorDiagnostic>.Builder> _pooledDiagnostics;
     private readonly PooledObject<Stack<ScopeInternal>> _pooledScopeStack;
     private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _pooledSourceMappings;
     private readonly PooledObject<ImmutableArray<LinePragma>.Builder> _pooledLinePragmas;
@@ -48,15 +48,14 @@ public sealed class CodeRenderingContext : IDisposable
         Options = options;
 
         _pooledAncestors = StackPool<IntermediateNode>.GetPooledObject();
-        Diagnostics = [];
+        _pooledDiagnostics = ArrayBuilderPool<RazorDiagnostic>.GetPooledObject();
         Items = [];
         _pooledSourceMappings = ArrayBuilderPool<SourceMapping>.GetPooledObject();
         _pooledLinePragmas = ArrayBuilderPool<LinePragma>.GetPooledObject();
 
-        var diagnostics = _documentNode.GetAllDiagnostics();
-        for (var i = 0; i < diagnostics.Count; i++)
+        foreach (var diagnostic in _documentNode.GetAllDiagnostics().AsEnumerable())
         {
-            Diagnostics.Add(diagnostics[i]);
+            Diagnostics.Add(diagnostic);
         }
 
         // Set new line character to a specific string regardless of platform, for testing purposes.
@@ -70,12 +69,24 @@ public sealed class CodeRenderingContext : IDisposable
         scopeStack.Push(new(nodeWriter));
     }
 
+    public void Dispose()
+    {
+        _pooledAncestors.Dispose();
+        _pooledDiagnostics.Dispose();
+        _pooledLinePragmas.Dispose();
+        _pooledScopeStack.Dispose();
+        _pooledSourceMappings.Dispose();
+        CodeWriter.Dispose();
+    }
+
     // This will be initialized by the document writer when the context is 'live'.
     public IntermediateNodeVisitor Visitor { get; set; }
 
     public IEnumerable<IntermediateNode> Ancestors => _pooledAncestors.Object;
 
     internal Stack<IntermediateNode> AncestorsInternal => _pooledAncestors.Object;
+
+    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics => _pooledDiagnostics.Object;
 
     public string DocumentKind => _documentNode.DocumentKind;
 
@@ -174,14 +185,5 @@ public sealed class CodeRenderingContext : IDisposable
     public void AddLinePragma(LinePragma linePragma)
     {
         LinePragmas.Add(linePragma);
-    }
-
-    public void Dispose()
-    {
-        _pooledAncestors.Dispose();
-        _pooledLinePragmas.Dispose();
-        _pooledScopeStack.Dispose();
-        _pooledSourceMappings.Dispose();
-        CodeWriter.Dispose();
     }
 }

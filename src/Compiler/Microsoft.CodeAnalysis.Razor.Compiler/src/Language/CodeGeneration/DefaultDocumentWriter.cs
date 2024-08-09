@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -42,14 +43,13 @@ internal class DefaultDocumentWriter : DocumentWriter
 
         context.Visitor.VisitDocument(documentNode);
 
-        var cSharp = context.CodeWriter.GenerateCode();
+        var csharp = context.CodeWriter.GenerateCode();
 
-        var allOrderedDiagnostics = context.Diagnostics.OrderBy(diagnostic => diagnostic.Span.AbsoluteIndex);
         return new RazorCSharpDocument(
             codeDocument,
-            cSharp,
+            csharp,
             _options,
-            allOrderedDiagnostics.ToArray(),
+            context.Diagnostics.ToImmutableOrderedBy(static d => d.Span.AbsoluteIndex),
             context.SourceMappings.DrainToImmutable(),
             context.LinePragmas.DrainToImmutable());
     }

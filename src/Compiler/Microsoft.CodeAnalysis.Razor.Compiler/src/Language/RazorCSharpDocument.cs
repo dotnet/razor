@@ -20,7 +20,7 @@ public sealed class RazorCSharpDocument : IRazorGeneratedDocument
         RazorCodeDocument codeDocument,
         string generatedCode,
         RazorCodeGenerationOptions options,
-        RazorDiagnostic[] diagnostics,
+        ImmutableArray<RazorDiagnostic> diagnostics,
         ImmutableArray<SourceMapping> sourceMappings = default,
         ImmutableArray<LinePragma> linePragmas = default)
     {
@@ -32,7 +32,7 @@ public sealed class RazorCSharpDocument : IRazorGeneratedDocument
         GeneratedCode = generatedCode;
         Options = options;
 
-        Diagnostics = diagnostics ?? [];
+        Diagnostics = diagnostics.NullToEmpty();
         SourceMappings = sourceMappings.NullToEmpty();
         LinePragmas = linePragmas.NullToEmpty();
     }
