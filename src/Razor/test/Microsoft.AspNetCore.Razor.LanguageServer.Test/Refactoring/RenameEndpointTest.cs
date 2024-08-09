@@ -660,12 +660,12 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath1337, DisposalToken);
         await projectService.AddDocumentToPotentialProjectsAsync(s_indexFilePath1, DisposalToken);
 
-        await projectService.UpdateDocumentAsync(s_componentFilePath1, SourceText.From(ComponentText1), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_componentFilePath2, SourceText.From(ComponentText2), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_directoryFilePath1, SourceText.From(DirectoryText1), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_directoryFilePath2, SourceText.From(DirectoryText2), version: 4, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_componentFilePath1337, SourceText.From(ComponentText1337), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_indexFilePath1, SourceText.From(IndexText1), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath1, SourceText.From(ComponentText1), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath2, SourceText.From(ComponentText2), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_directoryFilePath1, SourceText.From(DirectoryText1), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_directoryFilePath2, SourceText.From(DirectoryText2), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath1337, SourceText.From(ComponentText1337), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_indexFilePath1, SourceText.From(IndexText1), DisposalToken);
 
         var projectKey2 = await projectService.AddProjectAsync(
             s_projectFilePath2, s_intermediateOutputPath2, RazorConfiguration.Default, RootNamespace2, displayName: null, DisposalToken);
@@ -679,9 +679,9 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath4, DisposalToken);
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentWithParamFilePath, DisposalToken);
 
-        await projectService.UpdateDocumentAsync(s_componentFilePath3, SourceText.From(ComponentText3), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_componentFilePath4, SourceText.From(ComponentText4), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_componentWithParamFilePath, SourceText.From(ComponentWithParamText), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath3, SourceText.From(ComponentText3), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath4, SourceText.From(ComponentText4), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentWithParamFilePath, SourceText.From(ComponentWithParamText), DisposalToken);
 
         var searchEngine = new RazorComponentSearchEngine(projectManager, LoggerFactory);
         options ??= StrictMock.Of<LanguageServerFeatureOptions>(o =>
