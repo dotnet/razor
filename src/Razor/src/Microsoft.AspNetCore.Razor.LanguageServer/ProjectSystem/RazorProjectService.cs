@@ -178,7 +178,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         updater.DocumentAdded(miscFilesProject.Key, hostDocument, textLoader);
     }
 
-    public async Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
+    public async Task OpenDocumentAsync(string filePath, SourceText sourceText, CancellationToken cancellationToken)
     {
         await WaitForInitializationAsync().ConfigureAwait(false);
 
@@ -278,7 +278,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             .ConfigureAwait(false);
     }
 
-    public async Task UpdateDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
+    public async Task UpdateDocumentAsync(string filePath, SourceText sourceText, CancellationToken cancellationToken)
     {
         await WaitForInitializationAsync().ConfigureAwait(false);
 
