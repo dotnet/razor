@@ -45,7 +45,7 @@ internal class DefaultDocumentWriter : DocumentWriter
         var cSharp = context.CodeWriter.GenerateCode();
 
         var allOrderedDiagnostics = context.Diagnostics.OrderBy(diagnostic => diagnostic.Span.AbsoluteIndex);
-        return new DefaultRazorCSharpDocument(
+        return new RazorCSharpDocument(
             codeDocument,
             cSharp,
             _options,
