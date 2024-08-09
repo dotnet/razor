@@ -4,7 +4,6 @@
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -30,11 +29,7 @@ internal sealed class RemoteEditMappingService(
         }
 
         var solution = originSnapshot.TextDocument.Project.Solution;
-        var razorDocumentId = solution.GetDocumentIdsWithUri(razorDocumentUri).FirstOrDefault();
-
-        // If we couldn't locate the .razor file, just return the generated file.
-        if (razorDocumentId is null ||
-            solution.GetAdditionalDocument(razorDocumentId) is not TextDocument razorDocument)
+        if (!solution.TryGetRazorDocument(razorDocumentUri, out var razorDocument))
         {
             documentContext = null;
             return false;
