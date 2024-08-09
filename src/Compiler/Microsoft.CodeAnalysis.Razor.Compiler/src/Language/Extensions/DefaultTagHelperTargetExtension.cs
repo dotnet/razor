@@ -584,13 +584,13 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         else if (node is CSharpCodeIntermediateNode)
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_CodeBlocksNotSupportedInAttributes(span);
-            context.Diagnostics.Add(diagnostic);
+            context.AddDiagnostic(diagnostic);
         }
         else if (node is TemplateIntermediateNode)
         {
             var expectedTypeName = property.IsIndexerNameMatch ? property.BoundAttribute.IndexerTypeName : property.BoundAttribute.TypeName;
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InlineMarkupBlocksNotSupportedInAttributes(span, expectedTypeName);
-            context.Diagnostics.Add(diagnostic);
+            context.AddDiagnostic(diagnostic);
         }
     }
 

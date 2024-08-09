@@ -49,9 +49,9 @@ internal class DefaultDocumentWriter : DocumentWriter
             codeDocument,
             csharp,
             _options,
-            context.Diagnostics.ToImmutableOrderedBy(static d => d.Span.AbsoluteIndex),
-            context.SourceMappings.DrainToImmutable(),
-            context.LinePragmas.DrainToImmutable());
+            context.GetDiagnostics(),
+            context.GetSourceMappings(),
+            context.GetLinePragmas());
     }
 
     private class Visitor : IntermediateNodeVisitor

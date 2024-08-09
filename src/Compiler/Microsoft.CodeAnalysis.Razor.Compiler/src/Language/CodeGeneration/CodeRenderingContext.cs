@@ -26,11 +26,15 @@ public sealed class CodeRenderingContext : IDisposable
     private readonly RazorCodeDocument _codeDocument;
     private readonly DocumentIntermediateNode _documentNode;
 
-    private readonly PooledObject<Stack<IntermediateNode>> _pooledAncestors;
-    private readonly PooledObject<ImmutableArray<RazorDiagnostic>.Builder> _pooledDiagnostics;
-    private readonly PooledObject<Stack<ScopeInternal>> _pooledScopeStack;
-    private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _pooledSourceMappings;
-    private readonly PooledObject<ImmutableArray<LinePragma>.Builder> _pooledLinePragmas;
+    private readonly Stack<IntermediateNode> _ancestorStack;
+    private readonly Stack<ScopeInternal> _scopeStack;
+
+    private readonly ImmutableArray<RazorDiagnostic>.Builder _diagnostics;
+    private readonly ImmutableArray<SourceMapping>.Builder _sourceMappings;
+    private readonly ImmutableArray<LinePragma>.Builder _linePragmas;
+
+    public string DocumentKind => _documentNode.DocumentKind;
+    public RazorSourceDocument SourceDocument => _codeDocument.Source;
 
     public CodeRenderingContext(
         IntermediateNodeWriter nodeWriter,
@@ -47,16 +51,21 @@ public sealed class CodeRenderingContext : IDisposable
         _documentNode = documentNode;
         Options = options;
 
-        _pooledAncestors = StackPool<IntermediateNode>.GetPooledObject();
-        _pooledDiagnostics = ArrayBuilderPool<RazorDiagnostic>.GetPooledObject();
-        Items = [];
-        _pooledSourceMappings = ArrayBuilderPool<SourceMapping>.GetPooledObject();
-        _pooledLinePragmas = ArrayBuilderPool<LinePragma>.GetPooledObject();
+        _ancestorStack = StackPool<IntermediateNode>.Default.Get();
+        _scopeStack = StackPool<ScopeInternal>.Default.Get();
+        _scopeStack.Push(new(nodeWriter));
+
+        _diagnostics = ArrayBuilderPool<RazorDiagnostic>.Default.Get();
 
         foreach (var diagnostic in _documentNode.GetAllDiagnostics().AsEnumerable())
         {
-            Diagnostics.Add(diagnostic);
+            _diagnostics.Add(diagnostic);
         }
+
+        _linePragmas = ArrayBuilderPool<LinePragma>.Default.Get();
+        _sourceMappings = ArrayBuilderPool<SourceMapping>.Default.Get();
+
+        Items = [];
 
         // Set new line character to a specific string regardless of platform, for testing purposes.
         var newLineString = codeDocument.Items[NewLineString] as string ?? Environment.NewLine;
@@ -64,44 +73,34 @@ public sealed class CodeRenderingContext : IDisposable
 
         Items[NewLineString] = codeDocument.Items[NewLineString];
         Items[SuppressUniqueIds] = codeDocument.Items[SuppressUniqueIds] ?? options.SuppressUniqueIds;
-
-        _pooledScopeStack = StackPool<ScopeInternal>.GetPooledObject(out var scopeStack);
-        scopeStack.Push(new(nodeWriter));
     }
 
     public void Dispose()
     {
-        _pooledAncestors.Dispose();
-        _pooledDiagnostics.Dispose();
-        _pooledLinePragmas.Dispose();
-        _pooledScopeStack.Dispose();
-        _pooledSourceMappings.Dispose();
+        StackPool<IntermediateNode>.Default.Return(_ancestorStack);
+        StackPool<ScopeInternal>.Default.Return(_scopeStack);
+
+        ArrayBuilderPool<RazorDiagnostic>.Default.Return(_diagnostics);
+        ArrayBuilderPool<LinePragma>.Default.Return(_linePragmas);
+        ArrayBuilderPool<SourceMapping>.Default.Return(_sourceMappings);
+
         CodeWriter.Dispose();
     }
 
     // This will be initialized by the document writer when the context is 'live'.
     public IntermediateNodeVisitor Visitor { get; set; }
 
-    public IEnumerable<IntermediateNode> Ancestors => _pooledAncestors.Object;
+    public IntermediateNodeWriter NodeWriter => _scopeStack.Peek().Writer;
 
-    internal Stack<IntermediateNode> AncestorsInternal => _pooledAncestors.Object;
+    public IntermediateNode Parent => _ancestorStack.Count == 0 ? null : _ancestorStack.Peek();
 
-    public ImmutableArray<RazorDiagnostic>.Builder Diagnostics => _pooledDiagnostics.Object;
+    public void AddDiagnostic(RazorDiagnostic diagnostic)
+    {
+        _diagnostics.Add(diagnostic);
+    }
 
-    public string DocumentKind => _documentNode.DocumentKind;
-
-    public ImmutableArray<SourceMapping>.Builder SourceMappings => _pooledSourceMappings.Object;
-
-    internal ImmutableArray<LinePragma>.Builder LinePragmas => _pooledLinePragmas.Object;
-
-    public IntermediateNodeWriter NodeWriter => Current.Writer;
-
-    public IntermediateNode Parent => AncestorsInternal.Count == 0 ? null : AncestorsInternal.Peek();
-
-    public RazorSourceDocument SourceDocument => _codeDocument.Source;
-
-    private Stack<ScopeInternal> ScopeStack => _pooledScopeStack.Object;
-    private ScopeInternal Current => ScopeStack.Peek();
+    public ImmutableArray<RazorDiagnostic> GetDiagnostics()
+        => _diagnostics.ToImmutableOrderedBy(static d => d.Span.AbsoluteIndex);
 
     public void AddSourceMappingFor(IntermediateNode node)
     {
@@ -124,26 +123,33 @@ public sealed class CodeRenderingContext : IDisposable
             return;
         }
 
-        var currentLocation = CodeWriter.Location with { AbsoluteIndex = CodeWriter.Location.AbsoluteIndex + offset, CharacterIndex = CodeWriter.Location.CharacterIndex + offset };
+        var currentLocation = CodeWriter.Location with
+        {
+            AbsoluteIndex = CodeWriter.Location.AbsoluteIndex + offset,
+            CharacterIndex = CodeWriter.Location.CharacterIndex + offset
+        };
 
         var generatedLocation = new SourceSpan(currentLocation, source.Length);
         var sourceMapping = new SourceMapping(source, generatedLocation);
 
-        SourceMappings.Add(sourceMapping);
+        _sourceMappings.Add(sourceMapping);
     }
+
+    public ImmutableArray<SourceMapping> GetSourceMappings()
+        => _sourceMappings.DrainToImmutable();
 
     public void RenderChildren(IntermediateNode node)
     {
         ArgHelper.ThrowIfNull(node);
 
-        AncestorsInternal.Push(node);
+        _ancestorStack.Push(node);
 
         for (var i = 0; i < node.Children.Count; i++)
         {
             Visitor.Visit(node.Children[i]);
         }
 
-        AncestorsInternal.Pop();
+        _ancestorStack.Pop();
     }
 
     public void RenderChildren(IntermediateNode node, IntermediateNodeWriter writer)
@@ -151,16 +157,16 @@ public sealed class CodeRenderingContext : IDisposable
         ArgHelper.ThrowIfNull(node);
         ArgHelper.ThrowIfNull(writer);
 
-        ScopeStack.Push(new ScopeInternal(writer));
-        AncestorsInternal.Push(node);
+        _scopeStack.Push(new ScopeInternal(writer));
+        _ancestorStack.Push(node);
 
         for (var i = 0; i < node.Children.Count; i++)
         {
             Visitor.Visit(node.Children[i]);
         }
 
-        AncestorsInternal.Pop();
-        ScopeStack.Pop();
+        _ancestorStack.Pop();
+        _scopeStack.Pop();
     }
 
     public void RenderNode(IntermediateNode node)
@@ -175,15 +181,23 @@ public sealed class CodeRenderingContext : IDisposable
         ArgHelper.ThrowIfNull(node);
         ArgHelper.ThrowIfNull(writer);
 
-        ScopeStack.Push(new ScopeInternal(writer));
+        _scopeStack.Push(new ScopeInternal(writer));
 
         Visitor.Visit(node);
 
-        ScopeStack.Pop();
+        _scopeStack.Pop();
     }
 
     public void AddLinePragma(LinePragma linePragma)
     {
-        LinePragmas.Add(linePragma);
+        _linePragmas.Add(linePragma);
+    }
+
+    public ImmutableArray<LinePragma> GetLinePragmas()
+        => _linePragmas.DrainToImmutable();
+
+    public void PushAncestor(IntermediateNode node)
+    {
+        _ancestorStack.Push(node);
     }
 }
