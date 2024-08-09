@@ -24,10 +24,10 @@ public sealed class CodeRenderingContext : IDisposable
     public RazorDiagnosticCollection Diagnostics { get; }
     public ItemCollection Items { get; }
 
-    private readonly Stack<IntermediateNode> _ancestors;
     private readonly RazorCodeDocument _codeDocument;
     private readonly DocumentIntermediateNode _documentNode;
 
+    private readonly PooledObject<Stack<IntermediateNode>> _pooledAncestors;
     private readonly PooledObject<Stack<ScopeInternal>> _pooledScopeStack;
     private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _pooledSourceMappings;
     private readonly PooledObject<List<LinePragma>> _pooledLinePragmas;
@@ -47,7 +47,7 @@ public sealed class CodeRenderingContext : IDisposable
         _documentNode = documentNode;
         Options = options;
 
-        _ancestors = new Stack<IntermediateNode>();
+        _pooledAncestors = StackPool<IntermediateNode>.GetPooledObject();
         Diagnostics = [];
         Items = [];
         _pooledSourceMappings = ArrayBuilderPool<SourceMapping>.GetPooledObject();
@@ -73,9 +73,9 @@ public sealed class CodeRenderingContext : IDisposable
     // This will be initialized by the document writer when the context is 'live'.
     public IntermediateNodeVisitor Visitor { get; set; }
 
-    public IEnumerable<IntermediateNode> Ancestors => _ancestors;
+    public IEnumerable<IntermediateNode> Ancestors => _pooledAncestors.Object;
 
-    internal Stack<IntermediateNode> AncestorsInternal => _ancestors;
+    internal Stack<IntermediateNode> AncestorsInternal => _pooledAncestors.Object;
 
     public string DocumentKind => _documentNode.DocumentKind;
 
@@ -85,7 +85,7 @@ public sealed class CodeRenderingContext : IDisposable
 
     public IntermediateNodeWriter NodeWriter => Current.Writer;
 
-    public IntermediateNode Parent => _ancestors.Count == 0 ? null : _ancestors.Peek();
+    public IntermediateNode Parent => AncestorsInternal.Count == 0 ? null : AncestorsInternal.Peek();
 
     public RazorSourceDocument SourceDocument => _codeDocument.Source;
 
@@ -125,14 +125,14 @@ public sealed class CodeRenderingContext : IDisposable
     {
         ArgHelper.ThrowIfNull(node);
 
-        _ancestors.Push(node);
+        AncestorsInternal.Push(node);
 
         for (var i = 0; i < node.Children.Count; i++)
         {
             Visitor.Visit(node.Children[i]);
         }
 
-        _ancestors.Pop();
+        AncestorsInternal.Pop();
     }
 
     public void RenderChildren(IntermediateNode node, IntermediateNodeWriter writer)
@@ -141,14 +141,14 @@ public sealed class CodeRenderingContext : IDisposable
         ArgHelper.ThrowIfNull(writer);
 
         ScopeStack.Push(new ScopeInternal(writer));
-        _ancestors.Push(node);
+        AncestorsInternal.Push(node);
 
         for (var i = 0; i < node.Children.Count; i++)
         {
             Visitor.Visit(node.Children[i]);
         }
 
-        _ancestors.Pop();
+        AncestorsInternal.Pop();
         ScopeStack.Pop();
     }
 
@@ -178,6 +178,7 @@ public sealed class CodeRenderingContext : IDisposable
 
     public void Dispose()
     {
+        _pooledAncestors.Dispose();
         _pooledLinePragmas.Dispose();
         _pooledScopeStack.Dispose();
         _pooledSourceMappings.Dispose();
