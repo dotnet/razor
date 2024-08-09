@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +22,7 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
         var sourceDocument = TestRazorSourceDocument.Create(content);
         var codeDocument = RazorCodeDocument.Create(sourceDocument);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.CreateDefault());
-        var razorCSharpDocument = RazorCSharpDocument.Create(
+        var razorCSharpDocument = new RazorCSharpDocument(
             codeDocument, content, RazorCodeGenerationOptions.CreateDefault(), diagnostics: [], sourceMappings, linePragmas: []);
         codeDocument.SetSyntaxTree(syntaxTree);
         codeDocument.SetCSharpDocument(razorCSharpDocument);

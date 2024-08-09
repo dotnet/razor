@@ -1032,12 +1032,12 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
     private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, ImmutableArray<SourceMapping> sourceMappings)
     {
         var codeDocument = CreateCodeDocument(razorSource, tagHelpers: []);
-        var csharpDocument = RazorCSharpDocument.Create(
+        var csharpDocument = new RazorCSharpDocument(
             codeDocument,
             projectedCSharpSource,
             RazorCodeGenerationOptions.CreateDefault(),
             diagnostics: [],
-            sourceMappings.ToImmutableArray(),
+            sourceMappings,
             linePragmas: []);
         codeDocument.SetCSharpDocument(csharpDocument);
         return codeDocument;

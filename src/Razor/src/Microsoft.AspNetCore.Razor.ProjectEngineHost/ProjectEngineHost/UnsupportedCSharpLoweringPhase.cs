@@ -14,12 +14,8 @@ internal class UnsupportedCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSha
         var documentNode = codeDocument.GetDocumentIntermediateNode();
         ThrowForMissingDocumentDependency(documentNode);
 
-        var cSharpDocument = RazorCSharpDocument.Create(
-            codeDocument,
-            UnsupportedDisclaimer,
-            documentNode.Options,
-            diagnostics: []);
-        codeDocument.SetCSharpDocument(cSharpDocument);
+        var csharpDocument = new RazorCSharpDocument(codeDocument, UnsupportedDisclaimer, documentNode.Options, diagnostics: []);
+        codeDocument.SetCSharpDocument(csharpDocument);
         codeDocument.SetUnsupported();
     }
 }

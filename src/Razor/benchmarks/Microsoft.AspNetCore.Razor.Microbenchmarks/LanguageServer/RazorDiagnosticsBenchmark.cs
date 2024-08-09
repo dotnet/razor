@@ -57,7 +57,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         var stringSourceDocument = RazorSourceDocument.Create(GetFileContents(), UTF8Encoding.UTF8, RazorSourceDocumentProperties.Default);
         var mockRazorCodeDocument = new Mock<RazorCodeDocument>(MockBehavior.Strict);
 
-        var mockRazorCSharpDocument = RazorCSharpDocument.Create(
+        var mockRazorCSharpDocument = new RazorCSharpDocument(
             mockRazorCodeDocument.Object,
             GeneratedCode,
             RazorCodeGenerationOptions.CreateDesignTimeDefault(),
