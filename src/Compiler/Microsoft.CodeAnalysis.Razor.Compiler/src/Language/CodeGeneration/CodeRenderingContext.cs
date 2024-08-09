@@ -13,9 +13,17 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public sealed class CodeRenderingContext : IDisposable
 {
+    private readonly record struct ScopeInternal(IntermediateNodeWriter Writer);
+
     internal static readonly object NewLineString = "NewLineString";
 
     internal static readonly object SuppressUniqueIds = "SuppressUniqueIds";
+
+    public RazorCodeGenerationOptions Options { get; }
+    public CodeWriter CodeWriter { get; }
+    public RazorDiagnosticCollection Diagnostics { get; }
+    internal List<LinePragma> LinePragmas { get; }
+    public ItemCollection Items { get; }
 
     private readonly Stack<IntermediateNode> _ancestors;
     private readonly RazorCodeDocument _codeDocument;
@@ -30,35 +38,20 @@ public sealed class CodeRenderingContext : IDisposable
         DocumentIntermediateNode documentNode,
         RazorCodeGenerationOptions options)
     {
-        if (nodeWriter == null)
-        {
-            throw new ArgumentNullException(nameof(nodeWriter));
-        }
-
-        if (codeDocument == null)
-        {
-            throw new ArgumentNullException(nameof(codeDocument));
-        }
-
-        if (documentNode == null)
-        {
-            throw new ArgumentNullException(nameof(documentNode));
-        }
-
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgHelper.ThrowIfNull(nodeWriter);
+        ArgHelper.ThrowIfNull(codeDocument);
+        ArgHelper.ThrowIfNull(documentNode);
+        ArgHelper.ThrowIfNull(options);
 
         _codeDocument = codeDocument;
         _documentNode = documentNode;
         Options = options;
 
         _ancestors = new Stack<IntermediateNode>();
-        Diagnostics = new RazorDiagnosticCollection();
-        Items = new ItemCollection();
+        Diagnostics = [];
+        Items = [];
         _sourceMappingsBuilder = ArrayBuilderPool<SourceMapping>.GetPooledObject();
-        LinePragmas = new List<LinePragma>();
+        LinePragmas = [];
 
         var diagnostics = _documentNode.GetAllDiagnostics();
         for (var i = 0; i < diagnostics.Count; i++)
@@ -73,8 +66,7 @@ public sealed class CodeRenderingContext : IDisposable
         Items[NewLineString] = codeDocument.Items[NewLineString];
         Items[SuppressUniqueIds] = codeDocument.Items[SuppressUniqueIds] ?? options.SuppressUniqueIds;
 
-        _scopes = new List<ScopeInternal>();
-        _scopes.Add(new ScopeInternal(nodeWriter));
+        _scopes = [new(nodeWriter)];
     }
 
     // This will be initialized by the document writer when the context is 'live'.
@@ -84,34 +76,21 @@ public sealed class CodeRenderingContext : IDisposable
 
     internal Stack<IntermediateNode> AncestorsInternal => _ancestors;
 
-    public CodeWriter CodeWriter { get; }
-
-    public RazorDiagnosticCollection Diagnostics { get; }
-
     public string DocumentKind => _documentNode.DocumentKind;
-
-    public ItemCollection Items { get; }
 
     public ImmutableArray<SourceMapping>.Builder SourceMappings => _sourceMappingsBuilder.Object;
 
-    internal List<LinePragma> LinePragmas { get; }
-
     public IntermediateNodeWriter NodeWriter => Current.Writer;
-
-    public RazorCodeGenerationOptions Options { get; }
 
     public IntermediateNode Parent => _ancestors.Count == 0 ? null : _ancestors.Peek();
 
     public RazorSourceDocument SourceDocument => _codeDocument.Source;
 
-    private ScopeInternal Current => _scopes[_scopes.Count - 1];
+    private ScopeInternal Current => _scopes[^1];
 
     public void AddSourceMappingFor(IntermediateNode node)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgHelper.ThrowIfNull(node);
 
         if (node.Source == null)
         {
@@ -140,10 +119,7 @@ public sealed class CodeRenderingContext : IDisposable
 
     public void RenderChildren(IntermediateNode node)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgHelper.ThrowIfNull(node);
 
         _ancestors.Push(node);
 
@@ -157,15 +133,8 @@ public sealed class CodeRenderingContext : IDisposable
 
     public void RenderChildren(IntermediateNode node, IntermediateNodeWriter writer)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (writer == null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgHelper.ThrowIfNull(node);
+        ArgHelper.ThrowIfNull(writer);
 
         _scopes.Add(new ScopeInternal(writer));
         _ancestors.Push(node);
@@ -181,25 +150,15 @@ public sealed class CodeRenderingContext : IDisposable
 
     public void RenderNode(IntermediateNode node)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgHelper.ThrowIfNull(node);
 
         Visitor.Visit(node);
     }
 
     public void RenderNode(IntermediateNode node, IntermediateNodeWriter writer)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (writer == null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgHelper.ThrowIfNull(node);
+        ArgHelper.ThrowIfNull(writer);
 
         _scopes.Add(new ScopeInternal(writer));
 
@@ -217,15 +176,5 @@ public sealed class CodeRenderingContext : IDisposable
     {
         _sourceMappingsBuilder.Dispose();
         CodeWriter.Dispose();
-    }
-
-    private struct ScopeInternal
-    {
-        public ScopeInternal(IntermediateNodeWriter writer)
-        {
-            Writer = writer;
-        }
-
-        public IntermediateNodeWriter Writer { get; }
     }
 }
