@@ -4,15 +4,18 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
+using RoslynFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -29,6 +32,8 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         = args.ExportProvider.GetExportedValue<IAutoInsertService>();
     private readonly IRazorDocumentMappingService _documentMappingService
         = args.ExportProvider.GetExportedValue<IRazorDocumentMappingService>();
+    private readonly IFilePathService _filePathService =
+        args.ExportProvider.GetExportedValue<IFilePathService>();
 
     public ValueTask<Response> TryResolveInsertionAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
@@ -82,7 +87,25 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
                 : Response.NoFurtherHandling;
         }
 
-        // TODO: handle C# case
+        // C# case
+
+        var csharpDocument = codeDocument.GetCSharpDocument();
+        if (_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
+        {
+            var generatedDocument = await remoteDocumentContext.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
+            // TODO: use correct options rather than default
+            var formattingOptions = new RoslynFormattingOptions();
+            var autoInsertResponseItem = await OnAutoInsert.GetOnAutoInsertResponseAsync(
+                generatedDocument,
+                mappedPosition,
+                character,
+                formattingOptions,
+                cancellationToken
+            );
+            return autoInsertResponseItem is not null
+                ? Response.Results(RemoteInsertTextEdit.FromVsPlatformAutoInsertResponse(autoInsertResponseItem))
+                : Response.NoFurtherHandling;
+        }
 
         return Response.NoFurtherHandling;
     }
