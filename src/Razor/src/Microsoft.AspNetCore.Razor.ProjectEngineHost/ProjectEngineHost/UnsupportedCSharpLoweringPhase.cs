@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
@@ -19,7 +18,7 @@ internal class UnsupportedCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSha
             codeDocument,
             UnsupportedDisclaimer,
             documentNode.Options,
-            Enumerable.Empty<RazorDiagnostic>());
+            diagnostics: []);
         codeDocument.SetCSharpDocument(cSharpDocument);
         codeDocument.SetUnsupported();
     }

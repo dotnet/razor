@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -20,13 +19,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    internal static RazorCodeDocument CreateCodeDocument(string content, IReadOnlyList<SourceMapping> sourceMappings)
+    internal static RazorCodeDocument CreateCodeDocument(string content, ImmutableArray<SourceMapping> sourceMappings)
     {
         var sourceDocument = TestRazorSourceDocument.Create(content);
         var codeDocument = RazorCodeDocument.Create(sourceDocument);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.CreateDefault());
         var razorCSharpDocument = RazorCSharpDocument.Create(
-            codeDocument, content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>(), sourceMappings.ToImmutableArray(), Array.Empty<LinePragma>());
+            codeDocument, content, RazorCodeGenerationOptions.CreateDefault(), diagnostics: [], sourceMappings, linePragmas: []);
         codeDocument.SetSyntaxTree(syntaxTree);
         codeDocument.SetCSharpDocument(razorCSharpDocument);
 

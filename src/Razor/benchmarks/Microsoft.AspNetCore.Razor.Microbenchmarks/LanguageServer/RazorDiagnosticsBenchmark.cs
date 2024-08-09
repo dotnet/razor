@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -62,10 +61,9 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
             mockRazorCodeDocument.Object,
             GeneratedCode,
             RazorCodeGenerationOptions.CreateDesignTimeDefault(),
-            Array.Empty<RazorDiagnostic>(),
+            diagnostics: [],
             SourceMappings,
-            new List<LinePragma>()
-        );
+            linePragmas: []);
 
         var itemCollection = new ItemCollection();
         itemCollection[typeof(RazorCSharpDocument)] = mockRazorCSharpDocument;
