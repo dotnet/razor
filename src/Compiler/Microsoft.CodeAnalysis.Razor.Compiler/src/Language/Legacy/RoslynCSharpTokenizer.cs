@@ -13,6 +13,7 @@ using SyntaxFactory = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 using CSharpSyntaxToken = Microsoft.CodeAnalysis.SyntaxToken;
 using CSharpSyntaxTriviaList = Microsoft.CodeAnalysis.SyntaxTriviaList;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -30,7 +31,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
     /// by position, where the position is the start of the token that was parsed including leading trivia, so that searching
     /// is correct when performing a reset.
     /// </summary>
-    private readonly List<(int position, SyntaxTokenParser.Result result)> _resultCache = [];
+    private readonly List<(int position, SyntaxTokenParser.Result result)> _resultCache = ListPool<(int, SyntaxTokenParser.Result)>.Default.Get();
 
     public RoslynCSharpTokenizer(SeekableTextReader source)
         : base(source)
@@ -62,10 +63,10 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
 
     internal override void EndingBlock()
     {
-        // We should always be transitioning to the other parser in response to content. This means that we'll have parsed a token, and be in the TriviaForCSharpToken
-        // state. The other possibility is that the parser looked at the current token, and put it back to let the other parser handle it; in this case, we should be in
-        // the Start state. In order to ensure that we properly handle the trailing trivia (because the other parser will handle the trailing trivia on the node we found,
-        // if any), we need to reset back before the start of that node, skip the content, and reset our state back to Start for when we're called back next.
+        // We should always be transitioning to the other parser in response to content. This either means that the CSharp parser put the token it saw back, meaning that we're
+        // in the Start state, or it means that we'll have parsed a token, and be in the TriviaForCSharpToken state. If we're in the Start state, there's nothing for us to do.
+        // In order to ensure that we properly handle the trailing trivia (because the other parser will handle the trailing trivia on the node we found, if any), we need to
+        // reset back before the start of that node, skip the content, and reset our state back to Start for when we're called back next.
         if (CurrentState == RoslynCSharpTokenizerState.Start)
         {
             return;
@@ -286,97 +287,37 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
         var token = result.Token;
 
         AdvancePastToken(token);
-
-        SyntaxKind kind;
         string content;
-        switch (token.RawKind)
+        var kind = token.RawKind switch
         {
-            case (int)CSharpSyntaxKind.ExclamationToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.Not;
-                break;
-            case (int)CSharpSyntaxKind.OpenParenToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.LeftParenthesis;
-                break;
-            case (int)CSharpSyntaxKind.CloseParenToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.RightParenthesis;
-                break;
-            case (int)CSharpSyntaxKind.CommaToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.Comma;
-                break;
-            case (int)CSharpSyntaxKind.DotToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.Dot;
-                break;
-            case (int)CSharpSyntaxKind.ColonColonToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.DoubleColon;
-                break;
-            case (int)CSharpSyntaxKind.ColonToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.Colon;
-                break;
-            case (int)CSharpSyntaxKind.OpenBraceToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.LeftBrace;
-                break;
-            case (int)CSharpSyntaxKind.CloseBraceToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.RightBrace;
-                break;
-            case (int)CSharpSyntaxKind.LessThanToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.LessThan;
-                break;
-            case (int)CSharpSyntaxKind.GreaterThanToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.GreaterThan;
-                break;
-            case (int)CSharpSyntaxKind.EqualsToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.Assign;
-                break;
-            case (int)CSharpSyntaxKind.OpenBracketToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.LeftBracket;
-                break;
-            case (int)CSharpSyntaxKind.CloseBracketToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.RightBracket;
-                break;
-            case (int)CSharpSyntaxKind.QuestionToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.QuestionMark;
-                break;
-            case (int)CSharpSyntaxKind.SemicolonToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.Semicolon;
-                break;
-            case <= (int)CSharpSyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken and >= (int)CSharpSyntaxKind.TildeToken:
-                TakeTokenContent(token, out content);
-                kind = SyntaxKind.CSharpOperator;
-                break;
-            default:
-                kind = SyntaxKind.Marker;
-                content = Buffer.ToString();
-                Buffer.Clear();
-                break;
-        }
+            (int)CSharpSyntaxKind.ExclamationToken => SyntaxKind.Not,
+            (int)CSharpSyntaxKind.OpenParenToken => SyntaxKind.LeftParenthesis,
+            (int)CSharpSyntaxKind.CloseParenToken => SyntaxKind.RightParenthesis,
+            (int)CSharpSyntaxKind.CommaToken => SyntaxKind.Comma,
+            (int)CSharpSyntaxKind.DotToken => SyntaxKind.Dot,
+            (int)CSharpSyntaxKind.ColonColonToken => SyntaxKind.DoubleColon,
+            (int)CSharpSyntaxKind.ColonToken => SyntaxKind.Colon,
+            (int)CSharpSyntaxKind.OpenBraceToken => SyntaxKind.LeftBrace,
+            (int)CSharpSyntaxKind.CloseBraceToken => SyntaxKind.RightBrace,
+            (int)CSharpSyntaxKind.LessThanToken => SyntaxKind.LessThan,
+            (int)CSharpSyntaxKind.GreaterThanToken => SyntaxKind.GreaterThan,
+            (int)CSharpSyntaxKind.EqualsToken => SyntaxKind.Assign,
+            (int)CSharpSyntaxKind.OpenBracketToken => SyntaxKind.LeftBracket,
+            (int)CSharpSyntaxKind.CloseBracketToken => SyntaxKind.RightBracket,
+            (int)CSharpSyntaxKind.QuestionToken => SyntaxKind.QuestionMark,
+            (int)CSharpSyntaxKind.SemicolonToken => SyntaxKind.Semicolon,
+            <= (int)CSharpSyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken and >= (int)CSharpSyntaxKind.TildeToken => SyntaxKind.CSharpOperator,
+            _ => SyntaxKind.Marker,
+        };
+
+        // Use the already-interned string from the C# lexer, rather than realizing the buffer, to ensure that
+        // we don't allocate a new string for every operator token.
+        content = kind == SyntaxKind.Marker ? Buffer.ToString() : token.ValueText;
+        Debug.Assert(content == Buffer.ToString());
+        Buffer.Clear();
 
         _currentCSharpTokenTriviaEnumerator = (token.TrailingTrivia.GetEnumerator(), isLeading: false);
         return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, EndToken(content, kind));
-
-        void TakeTokenContent(CSharpSyntaxToken token, out string content)
-        {
-            // Use the already-interned string from the C# lexer, rather than realizing the buffer, to ensure that
-            // we don't allocate a new string for every operator token.
-            content = token.ValueText;
-            Debug.Assert(content == Buffer.ToString());
-            Buffer.Clear();
-        }
     }
 
     private StateResult TokenizedExpectedStringOrCharacterLiteral(StringOrCharacterKind expectedStringKind)
@@ -490,14 +431,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
         if (!triviaEnumerator.MoveNext())
         {
             _currentCSharpTokenTriviaEnumerator = null;
-            if (!isLeading)
-            {
-                return Transition(RoslynCSharpTokenizerState.Start, null);
-            }
-            else
-            {
-                return Transition(RoslynCSharpTokenizerState.Token, null);
-            }
+            return Transition(isLeading ? RoslynCSharpTokenizerState.Token : RoslynCSharpTokenizerState.Start, null);
         }
 
         // Need to make sure the class state is correct, since structs are copied
@@ -661,7 +595,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
         // We always walk backwards from the current position, rather than doing a binary search, because the common pattern in the parser is
         // to put tokens back in the order they were returned. This means that the most common reset point is the last token that was parsed.
         // If this ever changes, we can consider doing a binary search at that point.
-        for (var i = _resultCache.Count -1; i >= 0; i--)
+        for (var i = _resultCache.Count - 1; i >= 0; i--)
         {
             var (currentPosition, currentResult) = _resultCache[i];
             if (currentPosition == position)
@@ -696,6 +630,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
     {
         base.Dispose();
         _roslynTokenParser.Dispose();
+        ListPool<(int, SyntaxTokenParser.Result)>.Default.Return(_resultCache);
     }
 
     private enum NextResultType
