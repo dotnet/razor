@@ -21,7 +21,7 @@ internal sealed class InlayHintEndpoint(IInlayHintService inlayHintService, ICli
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        //serverCapabilities.EnableInlayHints();
+        serverCapabilities.EnableInlayHints();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(InlayHintParams request)
