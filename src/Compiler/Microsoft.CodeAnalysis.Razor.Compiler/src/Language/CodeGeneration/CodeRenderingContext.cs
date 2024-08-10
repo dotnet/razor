@@ -57,7 +57,7 @@ public sealed class CodeRenderingContext : IDisposable
 
         _diagnostics = ArrayBuilderPool<RazorDiagnostic>.Default.Get();
 
-        foreach (var diagnostic in _documentNode.GetAllDiagnostics().AsEnumerable())
+        foreach (var diagnostic in _documentNode.GetAllDiagnostics())
         {
             _diagnostics.Add(diagnostic);
         }
