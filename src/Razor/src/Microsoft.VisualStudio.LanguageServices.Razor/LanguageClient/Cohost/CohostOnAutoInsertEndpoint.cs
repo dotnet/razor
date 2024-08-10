@@ -38,7 +38,6 @@ internal class CohostOnAutoInsertEndpoint(
 #pragma warning restore RS0030 // Do not use banned APIs
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
-    IDocumentMappingService razorDocumentMappingService,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IDynamicRegistrationProvider
 {
@@ -47,7 +46,6 @@ internal class CohostOnAutoInsertEndpoint(
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostOnAutoInsertEndpoint>();
-    private readonly IDocumentMappingService _razorDocumentMappingService = razorDocumentMappingService;
 
     protected override bool MutatesSolutionState => false;
 
@@ -55,8 +53,7 @@ internal class CohostOnAutoInsertEndpoint(
 
     public Registration? GetRegistration(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
-        if (clientCapabilities.SupportsVisualStudioExtensions
-            && (clientCapabilities.TextDocument as VSInternalTextDocumentClientCapabilities)?.OnAutoInsert?.DynamicRegistration == true)
+        if (clientCapabilities.SupportsVisualStudioExtensions)
         {
             var providerTriggerChars = _onAutoInsertTriggerCharacterProviders
                 .Select((provider) => provider.TriggerCharacter);
