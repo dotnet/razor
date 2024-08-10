@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,9 +11,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 public class CloseTextTagOnAutoInsertProviderTest(ITestOutputHelper testOutput) : RazorOnAutoInsertProviderTestBase(testOutput)
 {
     [Fact]
-    public void OnTypeCloseAngle_ClosesTextTag()
+    public async Task OnTypeCloseAngle_ClosesTextTagAsync()
     {
-        RunAutoInsertTest(
+        await RunAutoInsertTestAsync(
 input: @"
 @{
     <text>$$
@@ -27,9 +27,9 @@ expected: @"
     }
 
     [Fact]
-    public void OnTypeCloseAngle_OutsideRazorBlock_DoesNotCloseTextTag()
+    public async Task OnTypeCloseAngle_OutsideRazorBlock_DoesNotCloseTextTagAsync()
     {
-        RunAutoInsertTest(
+        await RunAutoInsertTestAsync(
 input: @"
     <text>$$
 ",
@@ -38,12 +38,6 @@ expected: @"
 ");
     }
 
-    internal override IOnAutoInsertProvider CreateProvider()
-    {
-        var configService = StrictMock.Of<IConfigurationSyncService>();
-        var optionsMonitor = new RazorLSPOptionsMonitor(configService, RazorLSPOptions.Default);
-
-        var provider = new CloseTextTagOnAutoInsertProvider(optionsMonitor);
-        return provider;
-    }
+    internal override IOnAutoInsertProvider CreateProvider() =>
+        new CloseTextTagOnAutoInsertProvider();
 }

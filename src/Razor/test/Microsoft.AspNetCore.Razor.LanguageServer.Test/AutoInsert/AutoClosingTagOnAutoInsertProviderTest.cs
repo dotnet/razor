@@ -946,8 +946,5 @@ expected: @"
     }
 
     internal override IOnAutoInsertProvider CreateProvider()
-    {
-        var provider = new AutoClosingTagOnAutoInsertProvider();
-        return provider;
-    }
+        => new AutoClosingTagOnAutoInsertProvider();
 }
