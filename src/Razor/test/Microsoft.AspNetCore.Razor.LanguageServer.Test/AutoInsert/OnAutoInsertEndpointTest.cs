@@ -2,11 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -27,7 +28,16 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var optionsMonitor = GetOptionsMonitor();
         var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true);
         var insertProvider2 = new TestOnAutoInsertProvider("<", canResolve: true);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider1, insertProvider2], optionsMonitor, TestAdhocWorkspaceFactory.Instance, null!, LoggerFactory);
+        var autoInsertService = new AutoInsertService([insertProvider1, insertProvider2]);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            autoInsertService,
+            optionsMonitor,
+            TestAdhocWorkspaceFactory.Instance,
+            null!,
+            LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -61,7 +71,15 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
 
         var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, null!, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider]),
+            optionsMonitor,
+            TestAdhocWorkspaceFactory.Instance,
+            null!,
+            LoggerFactory);
         var uri = new Uri("file://path/test.razor");
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
@@ -97,7 +115,15 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, null!, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider]),
+            optionsMonitor,
+            TestAdhocWorkspaceFactory.Instance,
+            razorFormattingService: null!,
+            LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -131,7 +157,14 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor(formatOnType: false);
         var insertProvider = new TestOnAutoInsertProvider(">", canResolve: false);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, null!, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider]),
+            optionsMonitor, TestAdhocWorkspaceFactory.Instance,
+            razorFormattingService: null!,
+            LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -161,13 +194,12 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
 
         public string TriggerCharacter { get; } = triggerCharacter;
 
-        // Disabling because [NotNullWhen] is available in two Assemblies and causes warnings
-        public bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+        public ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot snapshot, bool enableAutoClosingTags)
         {
             Called = true;
-            edit = ResolvedTextEdit!;
-            format = default;
-            return canResolve;
+            return canResolve
+                ? new ValueTask<InsertTextEdit?>(new InsertTextEdit(ResolvedTextEdit!, default))
+                : new ValueTask<InsertTextEdit?>((InsertTextEdit?)default);
         }
     }
 
