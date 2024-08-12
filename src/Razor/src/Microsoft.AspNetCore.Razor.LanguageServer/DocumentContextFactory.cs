@@ -27,19 +27,17 @@ internal sealed class DocumentContextFactory(
     public bool TryCreate(
         Uri documentUri,
         VSProjectContext? projectContext,
-        bool versioned,
         [NotNullWhen(true)] out DocumentContext? context)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
 
-        if (!TryGetDocumentAndVersion(filePath, projectContext, versioned, out var documentAndVersion))
+        if (!TryResolveDocument(filePath, projectContext, out var documentSnapshot))
         {
             // Stale request or misbehaving client, see above comment.
             context = null;
             return false;
         }
 
-        var (documentSnapshot, version) = documentAndVersion;
         if (documentSnapshot is null)
         {
             Debug.Fail($"Document snapshot should never be null here for '{filePath}'. This indicates that our acquisition of documents / versions did not behave as expected.");
@@ -47,50 +45,8 @@ internal sealed class DocumentContextFactory(
             return false;
         }
 
-        if (versioned)
-        {
-            // If we were asked for a versioned document, but have no version info, then we didn't find the document
-            if (version is null)
-            {
-                context = null;
-                return false;
-            }
-
-            context = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext, version.Value);
-            return true;
-        }
-
         context = new DocumentContext(documentUri, documentSnapshot, projectContext);
         return true;
-    }
-
-    private bool TryGetDocumentAndVersion(
-        string filePath,
-        VSProjectContext? projectContext,
-        bool versioned,
-        [NotNullWhen(true)] out DocumentSnapshotAndVersion? documentAndVersion)
-    {
-        if (TryResolveDocument(filePath, projectContext, out var documentSnapshot))
-        {
-            if (!versioned)
-            {
-                documentAndVersion = new DocumentSnapshotAndVersion(documentSnapshot, Version: null);
-                return true;
-            }
-
-            documentAndVersion = new DocumentSnapshotAndVersion(documentSnapshot, documentSnapshot.Version);
-            return true;
-        }
-
-        // This is super rare, if we get here it could mean many things. Some of which:
-        //     1. Stale request:
-        //          - Got queued after a "document closed" / "document removed" type action
-        //          - Took too long to run and by the time the request needed the document context the
-        //            version cache has evicted the entry
-        //     2. Client is misbehaving and sending requests for a document that we've never seen before.
-        _logger.LogWarning($"Tried to create context for document {filePath} and project {projectContext?.Id} which was not found.");
-        documentAndVersion = null;
-        return false;
     }
 
     private bool TryResolveDocument(
@@ -125,6 +81,4 @@ internal sealed class DocumentContextFactory(
         documentSnapshot = null;
         return false;
     }
-
-    private record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int? Version);
 }

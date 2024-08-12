@@ -122,7 +122,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -145,7 +145,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -186,7 +186,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -209,7 +209,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -232,7 +232,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -255,7 +255,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -278,7 +278,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -301,7 +301,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -387,7 +387,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -433,7 +433,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -486,7 +486,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "TestComponent"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -557,7 +557,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -597,7 +597,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(request.TextDocument.Uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(request.TextDocument.Uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act

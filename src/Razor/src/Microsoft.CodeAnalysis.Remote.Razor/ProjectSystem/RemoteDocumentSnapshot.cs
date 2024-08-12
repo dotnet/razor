@@ -34,7 +34,7 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
 
     public bool SupportsOutput => true;
 
-    public int Version => throw new NotImplementedException("We don't expect to use this in cohosting because we do not control generated document creation.");
+    public int Version => -999; // We don't expect to use this in cohosting, but plenty of existing code logs it's value
 
     public Task<SourceText> GetTextAsync() => _textDocument.GetTextAsync();
 

@@ -22,7 +22,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 {
     private IRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
-    private VersionedDocumentContext DocumentContext { get; set; }
+    private DocumentContext DocumentContext { get; set; }
 
     private Uri DocumentUri => DocumentContext.Uri;
 
@@ -49,7 +49,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
         var documentUri = new Uri(filePath);
         var documentSnapshot = await GetDocumentSnapshotAsync(ProjectFilePath, filePath, TargetPath);
-        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version: 1);
+        DocumentContext = new DocumentContext(documentUri, documentSnapshot, projectContext: null);
 
         var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
         Range = VsLspFactory.CreateRange(

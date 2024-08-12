@@ -93,7 +93,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
 
         var requestParams = CreateRazorRequestParameters(request);
 
-        requestParams.HostDocumentVersion = documentContext.Version;
+        requestParams.HostDocumentVersion = documentContext.Snapshot.Version;
         requestParams.Kind = languageKind;
 
         // For CSharp we need to map the range to the generated document
@@ -115,7 +115,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
 
         // The responses we get back will be for virtual documents, so we have to map them back to the real
         // document, and in the case of C#, map the returned ranges too
-        var edit = MapWorkspaceEdit(response, mapRanges: languageKind == RazorLanguageKind.CSharp, codeDocument, documentContext.Version);
+        var edit = MapWorkspaceEdit(response, mapRanges: languageKind == RazorLanguageKind.CSharp, codeDocument, documentContext.Snapshot.Version);
 
         return edit;
     }

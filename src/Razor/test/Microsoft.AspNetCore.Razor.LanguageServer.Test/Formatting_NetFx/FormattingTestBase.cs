@@ -77,7 +77,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         };
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
-        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
+        var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
         var edits = await formattingService.FormatAsync(documentContext, range, options, DisposalToken);
@@ -126,7 +126,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
-        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
+        var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
         var edits = await formattingService.FormatOnTypeAsync(documentContext, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
@@ -194,7 +194,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
-        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
+        var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
         var edits = await formattingService.FormatCodeActionAsync(documentContext, languageKind, codeActionEdits, options, DisposalToken);

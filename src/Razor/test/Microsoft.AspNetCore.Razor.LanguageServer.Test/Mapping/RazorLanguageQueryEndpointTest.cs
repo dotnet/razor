@@ -53,7 +53,6 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         Assert.NotNull(response);
         Assert.Equal(RazorLanguageKind.Razor, response.Kind);
         Assert.Equal(request.Position, response.Position);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     // This is more of an integration test to validate that all the pieces work together
@@ -80,7 +79,6 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         Assert.NotNull(response);
         Assert.Equal(RazorLanguageKind.Html, response.Kind);
         Assert.Equal(request.Position, response.Position);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     // This is more of an integration test to validate that all the pieces work together
@@ -110,7 +108,6 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         Assert.Equal(RazorLanguageKind.CSharp, response.Kind);
         Assert.Equal(0, response.Position.Line);
         Assert.Equal(1, response.Position.Character);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     // This is more of an integration test to validate that all the pieces work together
@@ -142,7 +139,6 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         Assert.Equal(RazorLanguageKind.Html, response.Kind);
         Assert.Equal(0, response.Position.Line);
         Assert.Equal(1, response.Position.Character);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, IEnumerable<SourceMapping> sourceMappings)

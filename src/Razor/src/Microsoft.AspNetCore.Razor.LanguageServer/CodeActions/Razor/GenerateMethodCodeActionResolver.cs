@@ -58,7 +58,7 @@ internal sealed class GenerateMethodCodeActionResolver(
             return null;
         }
 
-        if (!_documentContextFactory.TryCreateForOpenDocument(actionParams.Uri, out var documentContext))
+        if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
         {
             return null;
         }
@@ -139,7 +139,7 @@ internal sealed class GenerateMethodCodeActionResolver(
     private async Task<WorkspaceEdit> GenerateMethodInCodeBlockAsync(
         RazorCodeDocument code,
         GenerateMethodCodeActionParams actionParams,
-        VersionedDocumentContext documentContext,
+        DocumentContext documentContext,
         string? razorNamespace,
         string? razorClassName,
         CancellationToken cancellationToken)
@@ -228,7 +228,7 @@ internal sealed class GenerateMethodCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static async Task<string> PopulateMethodSignatureAsync(VersionedDocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
+    private static async Task<string> PopulateMethodSignatureAsync(DocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
     {
         var templateWithMethodSignature = s_generateMethodTemplate.Replace(MethodName, actionParams.MethodName);
 

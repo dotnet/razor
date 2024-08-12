@@ -117,7 +117,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
                 }
             }
         };
-        Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
+        Assert.True(DocumentContextFactory.TryCreate(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);

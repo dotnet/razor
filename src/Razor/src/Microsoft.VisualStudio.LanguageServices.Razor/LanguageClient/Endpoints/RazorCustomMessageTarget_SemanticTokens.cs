@@ -62,8 +62,7 @@ internal partial class RazorCustomMessageTarget
         var (synchronized, csharpDoc) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
             semanticTokensParams.RequiredHostDocumentVersion,
             semanticTokensParams.TextDocument,
-            cancellationToken,
-            semanticTokensParams.Ranges.FirstOrDefault());
+            cancellationToken);
 
         if (csharpDoc is null)
         {
@@ -90,12 +89,12 @@ internal partial class RazorCustomMessageTarget
         {
             try
             {
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens?>(
-                textBuffer,
-                lspMethodName,
-                languageServerName,
-                requestParams,
-                cancellationToken).ConfigureAwait(false);
+                var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens?>(
+                    textBuffer,
+                    lspMethodName,
+                    languageServerName,
+                    requestParams,
+                    cancellationToken).ConfigureAwait(false);
 
                 response = result?.Response;
             }

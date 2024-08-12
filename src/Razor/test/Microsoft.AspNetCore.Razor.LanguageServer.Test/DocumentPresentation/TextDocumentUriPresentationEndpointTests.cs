@@ -50,7 +50,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
@@ -106,7 +106,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
@@ -173,7 +173,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
@@ -379,7 +379,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater => updater.DocumentOpened(project.Key, razorFilePath, SourceText.From("<div></div>")));
         var documentSnapshot = projectManager.GetLoadedProject(project.Key).GetDocument(razorFilePath).AssumeNotNull();
         var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, null, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, null, out var documentContext));
 
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 

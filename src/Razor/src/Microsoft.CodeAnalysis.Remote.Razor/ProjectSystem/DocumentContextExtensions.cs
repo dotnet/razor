@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal static class DocumentContextExtensions
 {
     public static async Task<Document> GetGeneratedDocumentAsync(
-        this VersionedDocumentContext documentContext,
+        this DocumentContext documentContext,
         IFilePathService filePathService,
         CancellationToken cancellationToken)
     {

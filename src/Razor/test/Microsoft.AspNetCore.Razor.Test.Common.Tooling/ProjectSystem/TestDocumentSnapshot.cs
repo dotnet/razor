@@ -23,13 +23,13 @@ internal class TestDocumentSnapshot : DocumentSnapshot
     public static TestDocumentSnapshot Create(string filePath, VersionStamp version)
         => Create(filePath, string.Empty, version);
 
-    public static TestDocumentSnapshot Create(string filePath, string text)
-        => Create(filePath, text, VersionStamp.Default);
+    public static TestDocumentSnapshot Create(string filePath, string text, int version = 0)
+        => Create(filePath, text, VersionStamp.Default, numericVersion: version);
 
-    public static TestDocumentSnapshot Create(string filePath, string text, VersionStamp version, ProjectWorkspaceState? projectWorkspaceState = null)
-        => Create(filePath, text, version, TestProjectSnapshot.Create(filePath + ".csproj", projectWorkspaceState));
+    public static TestDocumentSnapshot Create(string filePath, string text, VersionStamp version, ProjectWorkspaceState? projectWorkspaceState = null, int numericVersion = 0)
+        => Create(filePath, text, version, TestProjectSnapshot.Create(filePath + ".csproj", projectWorkspaceState), numericVersion);
 
-    public static TestDocumentSnapshot Create(string filePath, string text, VersionStamp version, TestProjectSnapshot projectSnapshot)
+    public static TestDocumentSnapshot Create(string filePath, string text, VersionStamp version, TestProjectSnapshot projectSnapshot, int numericVersion)
     {
         var targetPath = Path.GetDirectoryName(projectSnapshot.FilePath) is string projectDirectory && filePath.StartsWith(projectDirectory)
             ? filePath[projectDirectory.Length..]
@@ -41,7 +41,7 @@ internal class TestDocumentSnapshot : DocumentSnapshot
             hostDocument,
             SourceText.From(text),
             version,
-            1,
+            numericVersion,
             () => Task.FromResult(TextAndVersion.Create(sourceText, version)));
         var testDocument = new TestDocumentSnapshot(projectSnapshot, documentState);
 

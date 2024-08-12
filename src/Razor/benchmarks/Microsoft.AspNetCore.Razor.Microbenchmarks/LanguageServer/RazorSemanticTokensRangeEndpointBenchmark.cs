@@ -34,7 +34,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private Uri DocumentUri => DocumentContext.Uri;
 
-    private VersionedDocumentContext DocumentContext { get; set; }
+    private DocumentContext DocumentContext { get; set; }
 
     private Range Range { get; set; }
 
@@ -66,8 +66,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
         var documentUri = new Uri(filePath);
         var documentSnapshot = await GetDocumentSnapshotAsync(ProjectFilePath, filePath, TargetPath);
-        var version = 1;
-        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
+        DocumentContext = new DocumentContext(documentUri, documentSnapshot, projectContext: null);
 
         var razorOptionsMonitor = RazorLanguageServerHost.GetRequiredService<RazorLSPOptionsMonitor>();
         var clientCapabilitiesService = new BenchmarkClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
@@ -141,7 +140,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
         // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
         protected override Task<ImmutableArray<SemanticRange>?> GetCSharpSemanticRangesAsync(
-            VersionedDocumentContext documentContext,
+            DocumentContext documentContext,
             RazorCodeDocument codeDocument,
             LinePositionSpan razorSpan,
             bool colorBackground,

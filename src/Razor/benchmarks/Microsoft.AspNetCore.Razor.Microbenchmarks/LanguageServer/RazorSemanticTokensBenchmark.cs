@@ -31,7 +31,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
     private IDocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
-    private VersionedDocumentContext DocumentContext { get; set; }
+    private DocumentContext DocumentContext { get; set; }
 
     private Range Range { get; set; }
 
@@ -59,8 +59,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
         var documentUri = new Uri(filePath);
         var documentSnapshot = await GetDocumentSnapshotAsync(ProjectFilePath, filePath, TargetPath);
-        var version = 1;
-        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
+        DocumentContext = new DocumentContext(documentUri, documentSnapshot, projectContext: null);
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
         Range = VsLspFactory.CreateRange(
@@ -108,7 +107,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
         // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
         protected override Task<ImmutableArray<SemanticRange>?> GetCSharpSemanticRangesAsync(
-            VersionedDocumentContext documentContext,
+            DocumentContext documentContext,
             RazorCodeDocument codeDocument,
             LinePositionSpan razorRange,
             bool colorBackground,

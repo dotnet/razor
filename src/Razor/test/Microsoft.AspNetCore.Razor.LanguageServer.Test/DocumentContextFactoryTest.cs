@@ -51,7 +51,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 
         // Act
-        Assert.False(factory.TryCreateForOpenDocument(uri, out _));
+        Assert.False(factory.TryCreate(uri, out _));
     }
 
     [Fact]
@@ -130,10 +130,10 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 
         // Act
-        Assert.True(factory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(factory.TryCreate(uri, out var documentContext));
 
         // Assert
-        Assert.Equal(1, documentContext.Version);
+        Assert.Equal(1, documentContext.Snapshot.Version);
         Assert.Equal(uri, documentContext.Uri);
         Assert.Same(documentSnapshot, documentContext.Snapshot);
     }
