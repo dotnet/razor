@@ -11,7 +11,7 @@ namespace System.Collections.Immutable;
 /// <summary>
 /// <see cref="ImmutableArray{T}"/> extension methods
 /// </summary>
-internal static class ImmutableArrayExtensions
+internal static partial class ImmutableArrayExtensions
 {
     /// <summary>
     /// Returns an empty array if the input array is null (default)
@@ -403,9 +403,9 @@ internal static class ImmutableArrayExtensions
             var items = array.AsSpan();
             var length = items.Length;
 
-            using var _ = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length, out var keys);
+            using var keys = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length);
 
-            if (SelectKeys(items, keySelector, compareHelper, keys.AsSpan(0, length)))
+            if (SelectKeys(items, keySelector, compareHelper, keys.Span))
             {
                 // No need to sort - keys are already ordered.
                 return array;
@@ -416,7 +416,7 @@ internal static class ImmutableArrayExtensions
 
             var comparer = compareHelper.GetOrCreateComparer();
 
-            Array.Sort(keys, newArray, 0, length, comparer);
+            Array.Sort(keys.Array, newArray, 0, length, comparer);
 
             return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
         }

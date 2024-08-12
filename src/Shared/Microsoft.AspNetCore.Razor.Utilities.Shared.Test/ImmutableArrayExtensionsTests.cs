@@ -46,85 +46,13 @@ public class ImmutableArrayExtensionsTests
             _ => x.CompareTo(y)
         };
 
-    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderAsArrayData
-        => new()
-        {
-            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
-            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
-            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
-            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
-            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
-        };
-
-    [Theory]
-    [MemberData(nameof(OrderAsArrayData))]
-    public void OrderAsArray(ImmutableArray<int> data, ImmutableArray<int> expected)
-    {
-        var sorted = data.OrderAsArray();
-        Assert.Equal<int>(expected, sorted);
-    }
-
-    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderAsArray_OddBeforeEvenData
-        => new()
-        {
-            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
-            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
-            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
-            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
-            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
-        };
-
-    [Theory]
-    [MemberData(nameof(OrderAsArray_OddBeforeEvenData))]
-    public void OrderAsArray_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
-    {
-        var sorted = data.OrderAsArray(OddBeforeEven);
-        Assert.Equal<int>(expected, sorted);
-    }
-
-    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderDescendingAsArrayData
-        => new()
-        {
-            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
-            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
-            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
-            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
-            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
-        };
-
-    [Theory]
-    [MemberData(nameof(OrderAsArrayData))]
-    public void OrderDescendingAsArray(ImmutableArray<int> data, ImmutableArray<int> expected)
-    {
-        var sorted = data.OrderAsArray();
-        Assert.Equal<int>(expected, sorted);
-    }
-
-    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderDescendingAsArray_OddBeforeEvenData
-        => new()
-        {
-            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
-            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
-            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
-            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
-            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
-        };
-
-    [Theory]
-    [MemberData(nameof(OrderDescendingAsArray_OddBeforeEvenData))]
-    public void OrderDescendingAsArray_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
-    {
-        var sorted = data.OrderDescendingAsArray(OddBeforeEven);
-        Assert.Equal<int>(expected, sorted);
-    }
-
     public readonly record struct ValueHolder(int Value)
     {
         public static implicit operator ValueHolder(int value)
             => new(value);
     }
 
-    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByAsArrayData
+    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderTestData
         => new()
         {
             { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
@@ -134,15 +62,7 @@ public class ImmutableArrayExtensionsTests
             { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
         };
 
-    [Theory]
-    [MemberData(nameof(OrderByAsArrayData))]
-    public void OrderByAsArray(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
-    {
-        var sorted = data.OrderByAsArray(static x => x.Value);
-        Assert.Equal<ValueHolder>(expected, sorted);
-    }
-
-    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByAsArray_OddBeforeEvenData
+    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderTestData_OddBeforeEven
         => new()
         {
             { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
@@ -152,15 +72,7 @@ public class ImmutableArrayExtensionsTests
             { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
         };
 
-    [Theory]
-    [MemberData(nameof(OrderByAsArray_OddBeforeEvenData))]
-    public void OrderByAsArray_OddBeforeEvent(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
-    {
-        var sorted = data.OrderByAsArray(static x => x.Value, OddBeforeEven);
-        Assert.Equal<ValueHolder>(expected, sorted);
-    }
-
-    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByDescendingAsArrayData
+    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderDescendingTestData
         => new()
         {
             { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
@@ -170,15 +82,47 @@ public class ImmutableArrayExtensionsTests
             { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
         };
 
-    [Theory]
-    [MemberData(nameof(OrderByDescendingAsArrayData))]
-    public void OrderByDescendingAsArray(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
-    {
-        var sorted = data.OrderByDescendingAsArray(static x => x.Value);
-        Assert.Equal<ValueHolder>(expected, sorted);
-    }
+    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderDescendingTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+        };
 
-    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByDescendingAsArray_OddBeforeEvenData
+    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+        };
+
+    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+        };
+
+    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByDescendingTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+        };
+
+    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByDescendingTestData_OddBeforeEven
         => new()
         {
             { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
@@ -189,7 +133,63 @@ public class ImmutableArrayExtensionsTests
         };
 
     [Theory]
-    [MemberData(nameof(OrderByDescendingAsArray_OddBeforeEvenData))]
+    [MemberData(nameof(OrderTestData))]
+    public void OrderAsArray(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        var sorted = data.OrderAsArray();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData_OddBeforeEven))]
+    public void OrderAsArray_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        var sorted = data.OrderAsArray(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData))]
+    public void OrderDescendingAsArray(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        var sorted = data.OrderDescendingAsArray();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData_OddBeforeEven))]
+    public void OrderDescendingAsArray_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        var sorted = data.OrderDescendingAsArray(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData))]
+    public void OrderByAsArray(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var sorted = data.OrderByAsArray(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData_OddBeforeEven))]
+    public void OrderByAsArray_OddBeforeEvent(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var sorted = data.OrderByAsArray(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData))]
+    public void OrderByDescendingAsArray(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var sorted = data.OrderByDescendingAsArray(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData_OddBeforeEven))]
     public void OrderByDescendingAsArray_OddBeforeEven(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
     {
         var sorted = data.OrderByDescendingAsArray(static x => x.Value, OddBeforeEven);
@@ -314,5 +314,85 @@ public class ImmutableArrayExtensionsTests
 
         presortedArray = presortedArray.OrderByDescendingAsArray(static x => x.Value);
         Assert.Same(values, ImmutableCollectionsMarshal.AsArray(presortedArray));
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData))]
+    public void UnsafeOrder(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        // Clone array, since we're modifying it in-place.
+        var sorted = ImmutableArray.Create(data.AsSpan());
+        sorted.Unsafe().Order();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData_OddBeforeEven))]
+    public void UnsafeOrder_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        // Clone array, since we're modifying it in-place.
+        var sorted = ImmutableArray.Create(data.AsSpan());
+        sorted.Unsafe().Order(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData))]
+    public void UnsafeOrderDescending(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        // Clone array, since we're modifying it in-place.
+        var sorted = ImmutableArray.Create(data.AsSpan());
+        sorted.Unsafe().OrderDescending();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData_OddBeforeEven))]
+    public void UnsafeOrderDescending_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        // Clone array, since we're modifying it in-place.
+        var sorted = ImmutableArray.Create(data.AsSpan());
+        sorted.Unsafe().OrderDescending(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData))]
+    public void UnsafeOrderBy(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        // Clone array, since we're modifying it in-place.
+        var sorted = ImmutableArray.Create(data.AsSpan());
+        sorted.Unsafe().OrderBy(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData_OddBeforeEven))]
+    public void UnsafeOrderBy_OddBeforeEven(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        // Clone array, since we're modifying it in-place.
+        var sorted = ImmutableArray.Create(data.AsSpan());
+        sorted.Unsafe().OrderBy(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData))]
+    public void UnsafeOrderByDescending(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        // Clone array, since we're modifying it in-place.
+        var sorted = ImmutableArray.Create(data.AsSpan());
+        sorted.Unsafe().OrderByDescending(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData_OddBeforeEven))]
+    public void UnsafeOrderByDescending_OddBeforeEven(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        // Clone array, since we're modifying it in-place.
+        var sorted = ImmutableArray.Create(data.AsSpan());
+        sorted.Unsafe().OrderByDescending(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
     }
 }
