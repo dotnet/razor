@@ -167,7 +167,7 @@ internal static partial class ImmutableArrayExtensions
         var innerArray = ImmutableCollectionsMarshal.AsArray(array)!;
         var items = innerArray.AsSpan();
 
-        if (AreOrdered(items, in compareHelper))
+        if (SortHelper.AreOrdered(items, in compareHelper))
         {
             // No need to sort - items are already ordered.
             return array;
@@ -196,7 +196,7 @@ internal static partial class ImmutableArrayExtensions
 
         using var keys = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length);
 
-        if (SelectKeys(items, keySelector, in compareHelper, keys.Span))
+        if (SortHelper.SelectKeys(items, keySelector, in compareHelper, keys.Span))
         {
             // No need to sort - keys are already ordered.
             return array;

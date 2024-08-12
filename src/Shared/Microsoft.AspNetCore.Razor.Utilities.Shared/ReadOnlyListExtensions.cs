@@ -1304,7 +1304,7 @@ internal static class ReadOnlyListExtensions
                 return [list[0]];
         }
 
-        if (AreOrdered(list, in compareHelper))
+        if (SortHelper.AreOrdered(list, in compareHelper))
         {
             // No need to sort - items are already ordered.
             return ImmutableCollectionsMarshal.AsImmutableArray(list.ToArray());
@@ -1333,7 +1333,7 @@ internal static class ReadOnlyListExtensions
 
         using var keys = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length);
 
-        if (SelectKeys(list, keySelector, in compareHelper, keys.Span))
+        if (SortHelper.SelectKeys(list, keySelector, in compareHelper, keys.Span))
         {
             // No need to sort - keys are already ordered.
             return ImmutableCollectionsMarshal.AsImmutableArray(list.ToArray());
@@ -1345,66 +1345,5 @@ internal static class ReadOnlyListExtensions
         Array.Sort(keys.Array, newArray, 0, length, comparer);
 
         return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
-    }
-
-    /// <summary>
-    ///  Walk through <paramref name="list"/> and determine whether they are already ordered using
-    ///  the provided <see cref="CompareHelper{T}"/>.
-    /// </summary>
-    /// <returns>
-    ///  <see langword="true"/> if the items are in order; otherwise <see langword="false"/>.
-    /// </returns>
-    /// <remarks>
-    ///  When the items are already ordered, there's no need to perform a sort.
-    /// </remarks>
-    private static bool AreOrdered<T>(IReadOnlyList<T> list, ref readonly CompareHelper<T> compareHelper)
-    {
-        var isOutOfOrder = false;
-        var count = list.Count;
-
-        for (var i = 1; i < count; i++)
-        {
-            if (!compareHelper.InSortedOrder(list[i], list[i - 1]))
-            {
-                isOutOfOrder = true;
-                break;
-            }
-        }
-
-        return !isOutOfOrder;
-    }
-
-    /// <summary>
-    ///  Walk through <paramref name="list"/> and convert each element to a key using <paramref name="keySelector"/>.
-    ///  While walking, each computed key is compared with the previous one using the provided <see cref="CompareHelper{T}"/>
-    ///  to determine whether they are already ordered.
-    /// </summary>
-    /// <returns>
-    ///  <see langword="true"/> if the keys are in order; otherwise <see langword="false"/>.
-    /// </returns>
-    /// <remarks>
-    ///  When the keys are already ordered, there's no need to perform a sort.
-    /// </remarks>
-    private static bool SelectKeys<TElement, TKey>(
-        IReadOnlyList<TElement> list, Func<TElement, TKey> keySelector, ref readonly CompareHelper<TKey> compareHelper, Span<TKey> keys)
-    {
-        var isOutOfOrder = false;
-        var count = list.Count;
-
-        keys[0] = keySelector(list[0]);
-
-        for (var i = 1; i < count; i++)
-        {
-            keys[i] = keySelector(list[i]);
-
-            if (!isOutOfOrder && !compareHelper.InSortedOrder(keys[i], keys[i - 1]))
-            {
-                isOutOfOrder = true;
-
-                // Continue processing to finish converting elements to keys. However, we can stop comparing keys.
-            }
-        }
-
-        return !isOutOfOrder;
     }
 }
