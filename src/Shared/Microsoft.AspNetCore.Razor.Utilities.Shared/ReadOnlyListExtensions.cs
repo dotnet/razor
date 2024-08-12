@@ -952,4 +952,47 @@ internal static class ReadOnlyListExtensions
             _current = default!;
         }
     }
+
+    /// <summary>
+    ///  Copies the contents of the list to a destination <see cref="Span{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the list.</typeparam>
+    /// <param name="list">The list to copy items from.</param>
+    /// <param name="destination">The span to copy items into.</param>
+    /// <exception cref="ArgumentException">
+    ///  The destination span is shorter than the source list.
+    /// </exception>
+    public static void CopyTo<T>(this IReadOnlyList<T> list, Span<T> destination)
+    {
+        ArgHelper.ThrowIfDestinationTooShort(destination, list.Count);
+
+        switch (list)
+        {
+            case ImmutableArray<T> array:
+                array.CopyTo(destination);
+                break;
+
+            case ImmutableArray<T>.Builder builder:
+                builder.CopyTo(destination);
+                break;
+
+            case List<T> listOfT:
+                ListExtensions.CopyTo(listOfT, destination);
+                break;
+
+            case T[] array:
+                MemoryExtensions.CopyTo(array, destination);
+                break;
+
+            default:
+                var count = list.Count;
+
+                for (var i = 0; i < count; i++)
+                {
+                    destination[i] = list[i];
+                }
+
+                break;
+        }
+    }
 }

@@ -2,7 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Xunit;
 using SR = Microsoft.AspNetCore.Razor.Utilities.Shared.Resources.SR;
 
@@ -182,5 +185,96 @@ public class ReadOnlyListExtensionsTest
 
         Assert.Equal(42, readOnlyList.Single(IsEven));
         Assert.Equal(42, readOnlyList.SingleOrDefault(IsEven));
+    }
+
+    [Fact]
+    public void CopyTo_ImmutableArray()
+    {
+        Span<int> source = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        var immutableArray = ImmutableArray.Create(source);
+
+        AssertCopyToCore(immutableArray);
+    }
+
+    [Fact]
+    public void CopyTo_ImmutableArrayBuilder()
+    {
+        Span<int> source = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        var builder = ImmutableArray.CreateBuilder<int>();
+        builder.AddRange(source);
+
+        AssertCopyToCore(builder);
+    }
+
+    [Fact]
+    public void CopyTo_List()
+    {
+        IEnumerable<int> source = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        var list = new List<int>(source);
+
+        AssertCopyToCore(list);
+    }
+
+    [Fact]
+    public void CopyTo_Array()
+    {
+        int[] array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+        AssertCopyToCore(array);
+    }
+
+    [Fact]
+    public void CopyTo_CustomReadOnlyList()
+    {
+        CustomReadOnlyList custom = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+        AssertCopyToCore(custom);
+    }
+
+    private static void AssertCopyToCore(IReadOnlyList<int> list)
+    {
+        var destination1 = new int[list.Count - 1];
+        var exception = Assert.Throws<ArgumentException>(() => list.CopyTo(destination1.AsSpan()));
+        Assert.StartsWith(SR.Destination_is_too_short, exception.Message);
+
+        Span<int> destination2 = stackalloc int[list.Count];
+        list.CopyTo(destination2);
+        AssertElementsEqual(list, destination2);
+
+        Span<int> destination3 = stackalloc int[list.Count + 1];
+        list.CopyTo(destination3);
+        AssertElementsEqual(list, destination3);
+
+        static void AssertElementsEqual<T>(IReadOnlyList<T> list, ReadOnlySpan<T> span)
+        {
+            var count = list.Count;
+            for (var i = 0; i < count; i++)
+            {
+                Assert.Equal(list[i], span[i]);
+            }
+        }
+    }
+
+    [CollectionBuilder(typeof(CustomReadOnlyList), "Create")]
+    private sealed class CustomReadOnlyList(params ReadOnlySpan<int> values) : IReadOnlyList<int>
+    {
+        private readonly int[] _values = values.ToArray();
+
+        public int this[int index] => _values[index];
+        public int Count => _values.Length;
+
+        public IEnumerator<int> GetEnumerator()
+        {
+            foreach (var value in _values)
+            {
+                yield return value;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
+
+        public static CustomReadOnlyList Create(ReadOnlySpan<int> span)
+            => new(span);
     }
 }
