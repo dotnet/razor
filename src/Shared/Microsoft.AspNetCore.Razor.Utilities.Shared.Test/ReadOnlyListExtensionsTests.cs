@@ -277,4 +277,162 @@ public class ReadOnlyListExtensionsTest
         public static CustomReadOnlyList Create(ReadOnlySpan<int> span)
             => new(span);
     }
+
+    private static Comparison<int> OddBeforeEven
+        => (x, y) => (x % 2 != 0, y % 2 != 0) switch
+        {
+            (true, false) => -1,
+            (false, true) => 1,
+            _ => x.CompareTo(y)
+        };
+
+    public readonly record struct ValueHolder(int Value)
+    {
+        public static implicit operator ValueHolder(int value)
+            => new(value);
+    }
+
+    public static TheoryData<IReadOnlyList<int>, ImmutableArray<int>> OrderTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+        };
+
+    public static TheoryData<IReadOnlyList<int>, ImmutableArray<int>> OrderTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+        };
+
+    public static TheoryData<IReadOnlyList<int>, ImmutableArray<int>> OrderDescendingTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+        };
+
+    public static TheoryData<IReadOnlyList<int>, ImmutableArray<int>> OrderDescendingTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+        };
+
+    public static TheoryData<IReadOnlyList<ValueHolder>, ImmutableArray<ValueHolder>> OrderByTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+        };
+
+    public static TheoryData<IReadOnlyList<ValueHolder>, ImmutableArray<ValueHolder>> OrderByTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+        };
+
+    public static TheoryData<IReadOnlyList<ValueHolder>, ImmutableArray<ValueHolder>> OrderByDescendingTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+        };
+
+    public static TheoryData<IReadOnlyList<ValueHolder>, ImmutableArray<ValueHolder>> OrderByDescendingTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+        };
+
+    [Theory]
+    [MemberData(nameof(OrderTestData))]
+    public void OrderAsArray(IReadOnlyList<int> data, ImmutableArray<int> expected)
+    {
+        var sorted = data.OrderAsArray();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData_OddBeforeEven))]
+    public void OrderAsArray_OddBeforeEven(IReadOnlyList<int> data, ImmutableArray<int> expected)
+    {
+        var sorted = data.OrderAsArray(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData))]
+    public void OrderDescendingAsArray(IReadOnlyList<int> data, ImmutableArray<int> expected)
+    {
+        var sorted = data.OrderDescendingAsArray();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData_OddBeforeEven))]
+    public void OrderDescendingAsArray_OddBeforeEven(IReadOnlyList<int> data, ImmutableArray<int> expected)
+    {
+        var sorted = data.OrderDescendingAsArray(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData))]
+    public void OrderByAsArray(IReadOnlyList<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var sorted = data.OrderByAsArray(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData_OddBeforeEven))]
+    public void OrderByAsArray_OddBeforeEven(IReadOnlyList<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var sorted = data.OrderByAsArray(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData))]
+    public void OrderByDescendingAsArray(IReadOnlyList<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var sorted = data.OrderByDescendingAsArray(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData_OddBeforeEven))]
+    public void OrderByDescendingAsArray_OddBeforeEven(IReadOnlyList<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var sorted = data.OrderByDescendingAsArray(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
 }
