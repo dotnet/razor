@@ -175,42 +175,104 @@ internal static class ImmutableArrayExtensions
         return ~min;
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in ascending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
+    /// </returns>
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array)
     {
         var compareHelper = new CompareHelper<T>(comparer: null, descending: false);
         return array.OrderAsArrayCore(in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in ascending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
+    /// </returns>
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array, IComparer<T> comparer)
     {
         var compareHelper = new CompareHelper<T>(comparer, descending: false);
         return array.OrderAsArrayCore(in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in ascending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="comparison">A <see cref="Comparison{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
+    /// </returns>
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array, Comparison<T> comparison)
     {
         var compareHelper = new CompareHelper<T>(comparison, descending: false);
         return array.OrderAsArrayCore(in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in descending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
+    /// </returns>
     public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array)
     {
         var compareHelper = new CompareHelper<T>(comparer: null, descending: true);
         return array.OrderAsArrayCore(in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in descending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
+    /// </returns>
     public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array, IComparer<T> comparer)
     {
         var compareHelper = new CompareHelper<T>(comparer, descending: true);
         return array.OrderAsArrayCore(in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in descending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="comparison">A <see cref="Comparison{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
+    /// </returns>
     public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array, Comparison<T> comparison)
     {
         var compareHelper = new CompareHelper<T>(comparison, descending: true);
         return array.OrderAsArrayCore(in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in ascending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order according to a key.
+    /// </returns>
     public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector)
     {
@@ -218,6 +280,17 @@ internal static class ImmutableArrayExtensions
         return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in ascending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order according to a key.
+    /// </returns>
     public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
@@ -225,6 +298,17 @@ internal static class ImmutableArrayExtensions
         return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in ascending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <param name="comparison">A <see cref="Comparison{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order according to a key.
+    /// </returns>
     public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
@@ -232,6 +316,16 @@ internal static class ImmutableArrayExtensions
         return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in descending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order according to a key.
+    /// </returns>
     public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector)
     {
@@ -239,6 +333,17 @@ internal static class ImmutableArrayExtensions
         return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in descending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order according to a key.
+    /// </returns>
     public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
@@ -246,6 +351,17 @@ internal static class ImmutableArrayExtensions
         return array.OrderByAsArrayCore(keySelector, in compareHelper);
     }
 
+    /// <summary>
+    ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in descending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="array">An array to ordered.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <param name="comparison">A <see cref="Comparison{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order according to a key.
+    /// </returns>
     public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
