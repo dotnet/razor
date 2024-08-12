@@ -435,4 +435,76 @@ public class ReadOnlyListExtensionsTest
         var sorted = data.OrderByDescendingAsArray(static x => x.Value, OddBeforeEven);
         Assert.Equal<ValueHolder>(expected, sorted);
     }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData))]
+    public void OrderAsArray_Enumerable(IReadOnlyList<int> data, ImmutableArray<int> expected)
+    {
+        var enumerable = (IEnumerable<int>)data;
+        var sorted = enumerable.OrderAsArray();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData_OddBeforeEven))]
+    public void OrderAsArray_Enumerable_OddBeforeEven(IReadOnlyList<int> data, ImmutableArray<int> expected)
+    {
+        var enumerable = (IEnumerable<int>)data;
+        var sorted = enumerable.OrderAsArray(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData))]
+    public void OrderDescendingAsArray_Enumerable(IReadOnlyList<int> data, ImmutableArray<int> expected)
+    {
+        var enumerable = (IEnumerable<int>)data;
+        var sorted = enumerable.OrderDescendingAsArray();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData_OddBeforeEven))]
+    public void OrderDescendingAsArray_Enumerable_OddBeforeEven(IReadOnlyList<int> data, ImmutableArray<int> expected)
+    {
+        var enumerable = (IEnumerable<int>)data;
+        var sorted = enumerable.OrderDescendingAsArray(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData))]
+    public void OrderByAsArray_Enumerable(IReadOnlyList<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var enumerable = (IEnumerable<ValueHolder>)data;
+        var sorted = enumerable.OrderByAsArray(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData_OddBeforeEven))]
+    public void OrderByAsArray_Enumerable_OddBeforeEven(IReadOnlyList<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var enumerable = (IEnumerable<ValueHolder>)data;
+        var sorted = enumerable.OrderByAsArray(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData))]
+    public void OrderByDescendingAsArray_Enumerable(IReadOnlyList<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var enumerable = (IEnumerable<ValueHolder>)data;
+        var sorted = enumerable.OrderByDescendingAsArray(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData_OddBeforeEven))]
+    public void OrderByDescendingAsArray_Enumerable_OddBeforeEven(IReadOnlyList<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var enumerable = (IEnumerable<ValueHolder>)data;
+        var sorted = enumerable.OrderByDescendingAsArray(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
 }
