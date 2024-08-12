@@ -26,6 +26,7 @@ internal partial class ParserContext
         ErrorSink = new ErrorSink();
         SeenDirectives = new HashSet<string>(StringComparer.Ordinal);
         EnableSpanEditHandlers = options.EnableSpanEditHandlers;
+        UseRoslynTokenizer = options.UseRoslynTokenizer;
     }
 
     public ErrorSink ErrorSink { get; set; }

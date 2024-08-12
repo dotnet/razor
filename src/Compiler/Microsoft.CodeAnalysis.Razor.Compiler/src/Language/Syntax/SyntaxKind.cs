@@ -84,12 +84,15 @@ internal enum SyntaxKind : byte
     Identifier,
     Keyword,
     IntegerLiteral,
+    NumericLiteral,
     CSharpComment,
     RealLiteral,
     CharacterLiteral,
     StringLiteral,
 
     // CSharp operators
+    CSharpOperator,
+
     Arrow,
     Minus,
     Decrement,
