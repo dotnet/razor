@@ -37,6 +37,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
+    <!-- Manually upgrade to address CG alert. When the VS packages
+         pull in the right version, this can be removed. -->
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
     <PackageReference Include="xunit" />
