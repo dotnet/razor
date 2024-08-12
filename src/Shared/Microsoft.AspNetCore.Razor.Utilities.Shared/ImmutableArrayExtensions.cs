@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace System.Collections.Immutable;
 
@@ -405,7 +406,7 @@ internal static partial class ImmutableArrayExtensions
 
             using var keys = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length);
 
-            if (SelectKeys(items, keySelector, compareHelper, keys.Span))
+            if (SelectKeys(items, keySelector, in compareHelper, keys.Span))
             {
                 // No need to sort - keys are already ordered.
                 return array;
@@ -462,7 +463,7 @@ internal static partial class ImmutableArrayExtensions
     ///  When the keys are already ordered, there's no need to perform a sort.
     /// </remarks>
     private static bool SelectKeys<TElement, TKey>(
-        ReadOnlySpan<TElement> items, Func<TElement, TKey> keySelector, CompareHelper<TKey> compareHelper, Span<TKey> keys)
+        ReadOnlySpan<TElement> items, Func<TElement, TKey> keySelector, ref readonly CompareHelper<TKey> compareHelper, Span<TKey> keys)
     {
         var isOutOfOrder = false;
 
@@ -481,96 +482,5 @@ internal static partial class ImmutableArrayExtensions
         }
 
         return !isOutOfOrder;
-    }
-
-    /// <summary>
-    ///  Helper that avoids creating an <see cref="IComparer{T}"/> until its needed.
-    /// </summary>
-    private readonly ref struct CompareHelper<T>
-    {
-        private readonly IComparer<T> _comparer;
-        private readonly Comparison<T> _comparison;
-        private readonly bool _comparerSpecified;
-        private readonly bool _useComparer;
-        private readonly bool _descending;
-
-        public CompareHelper(IComparer<T>? comparer, bool descending)
-        {
-            _comparerSpecified = comparer is not null;
-            _comparer = comparer ?? Comparer<T>.Default;
-            _useComparer = true;
-            _descending = descending;
-            _comparison = null!;
-        }
-
-        public CompareHelper(Comparison<T> comparison, bool descending)
-        {
-            _comparison = comparison;
-            _useComparer = false;
-            _descending = descending;
-            _comparer = null!;
-        }
-
-        public bool InSortedOrder(T? x, T? y)
-        {
-            // We assume that x and y are in sorted order if x is > y.
-            // We don't consider x == y to be sorted because the actual sor
-            // might not be stable, depending on T.
-
-            return _useComparer
-                ? !_descending ? _comparer.Compare(x!, y!) > 0 : _comparer.Compare(y!, x!) > 0
-                : !_descending ? _comparison(x!, y!) > 0 : _comparison(y!, x!) > 0;
-        }
-
-        public IComparer<T> GetOrCreateComparer()
-            // There are six cases to consider.
-            => (_useComparer, _comparerSpecified, _descending) switch
-            {
-                // Provided a comparer and the results are in ascending order.
-                (true, true, false) => _comparer,
-
-                // Provided a comparer and the results are in descending order.
-                (true, true, true) => DescendingComparer<T>.Create(_comparer),
-
-                // Not provided a comparer and the results are in ascending order.
-                // In this case, _comparer was already set to Comparer<T>.Default.
-                (true, false, false) => _comparer,
-
-                // Not provided a comparer and the results are in descending order.
-                (true, false, true) => DescendingComparer<T>.Default,
-
-                // Provided a comparison delegate and the results are in ascending order.
-                (false, _, false) => Comparer<T>.Create(_comparison),
-
-                // Provided a comparison delegate and the results are in descending order.
-                (false, _, true) => DescendingComparer<T>.Create(_comparison)
-            };
-    }
-
-    private abstract class DescendingComparer<T> : IComparer<T>
-    {
-        private static IComparer<T>? s_default;
-
-        public static IComparer<T> Default => s_default ??= new ReversedComparer(Comparer<T>.Default);
-
-        public static IComparer<T> Create(IComparer<T> comparer)
-            => new ReversedComparer(comparer);
-
-        public static IComparer<T> Create(Comparison<T> comparison)
-            => new ReversedComparison(comparison);
-
-        public abstract int Compare(T? x, T? y);
-
-        private sealed class ReversedComparer(IComparer<T> comparer) : DescendingComparer<T>
-        {
-            public override int Compare(T? x, T? y)
-                => comparer.Compare(y!, x!);
-        }
-
-        private sealed class ReversedComparison(Comparison<T> comparison) : DescendingComparer<T>
-        {
-            public override int Compare(T? x, T? y)
-                => comparison(y!, x!);
-        }
     }
 }

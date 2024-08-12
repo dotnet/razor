@@ -4,6 +4,7 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace System.Collections.Immutable;
 
@@ -195,7 +196,7 @@ internal static partial class ImmutableArrayExtensions
 
         using var keys = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length);
 
-        if (SelectKeys(items, keySelector, compareHelper, keys.Span))
+        if (SelectKeys(items, keySelector, in compareHelper, keys.Span))
         {
             // No need to sort - keys are already ordered.
             return array;
