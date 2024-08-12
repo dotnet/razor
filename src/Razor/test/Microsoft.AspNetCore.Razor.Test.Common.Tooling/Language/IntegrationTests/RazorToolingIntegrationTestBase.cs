@@ -441,9 +441,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
         protected override void ExecuteCore(RazorCodeDocument codeDocument)
         {
-            var field = typeof(CodeRenderingContext).GetField("NewLineString", BindingFlags.Static | BindingFlags.NonPublic);
-            var key = field.GetValue(null);
-            codeDocument.Items[key] = LineEnding;
+            codeDocument.Items[CodeRenderingContext.NewLineStringKey] = LineEnding;
         }
     }
 

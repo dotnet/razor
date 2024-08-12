@@ -793,8 +793,8 @@ public abstract class IntegrationTestBase
 
         protected override void ExecuteCore(RazorCodeDocument codeDocument)
         {
-            codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = "test";
-            codeDocument.Items[CodeRenderingContext.NewLineString] = LineEnding;
+            codeDocument.Items[CodeRenderingContext.SuppressUniqueIdsKey] = "test";
+            codeDocument.Items[CodeRenderingContext.NewLineStringKey] = LineEnding;
         }
     }
 

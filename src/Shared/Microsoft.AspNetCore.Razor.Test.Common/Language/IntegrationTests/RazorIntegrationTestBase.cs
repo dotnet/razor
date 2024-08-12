@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -500,9 +499,7 @@ public class RazorIntegrationTestBase
 
         protected override void ExecuteCore(RazorCodeDocument codeDocument)
         {
-            var field = typeof(CodeRenderingContext).GetField("NewLineString", BindingFlags.Static | BindingFlags.NonPublic);
-            var key = field.GetValue(null);
-            codeDocument.Items[key] = LineEnding;
+            codeDocument.Items[CodeRenderingContext.NewLineStringKey] = LineEnding;
         }
     }
 

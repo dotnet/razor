@@ -101,7 +101,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
 
             // Assign a unique ID for this instance of the source HTML tag. This must be unique
             // per call site, e.g. if the tag is on the view twice, there should be two IDs.
-            var uniqueId = (string)context.Items[CodeRenderingContext.SuppressUniqueIds];
+            var uniqueId = context.SuppressUniqueIds;
             if (uniqueId == null)
             {
                 uniqueId = GetDeterministicId(context);

@@ -15,13 +15,13 @@ public sealed class CodeRenderingContext : IDisposable
 {
     private readonly record struct ScopeInternal(IntermediateNodeWriter Writer);
 
-    internal static readonly object NewLineString = "NewLineString";
+    internal static readonly object NewLineStringKey = "NewLineString";
 
-    internal static readonly object SuppressUniqueIds = "SuppressUniqueIds";
+    internal static readonly object SuppressUniqueIdsKey = "SuppressUniqueIds";
 
     public RazorCodeGenerationOptions Options { get; }
     public CodeWriter CodeWriter { get; }
-    public ItemCollection Items { get; }
+    public string SuppressUniqueIds { get; }
 
     private readonly RazorCodeDocument _codeDocument;
     private readonly DocumentIntermediateNode _documentNode;
@@ -65,14 +65,11 @@ public sealed class CodeRenderingContext : IDisposable
         _linePragmas = ArrayBuilderPool<LinePragma>.Default.Get();
         _sourceMappings = ArrayBuilderPool<SourceMapping>.Default.Get();
 
-        Items = [];
-
         // Set new line character to a specific string regardless of platform, for testing purposes.
-        var newLineString = codeDocument.Items[NewLineString] as string ?? Environment.NewLine;
+        var newLineString = codeDocument.Items[NewLineStringKey] as string ?? Environment.NewLine;
         CodeWriter = new CodeWriter(newLineString, options);
 
-        Items[NewLineString] = codeDocument.Items[NewLineString];
-        Items[SuppressUniqueIds] = codeDocument.Items[SuppressUniqueIds] ?? options.SuppressUniqueIds;
+        SuppressUniqueIds = codeDocument.Items[SuppressUniqueIdsKey] as string ?? options.SuppressUniqueIds;
     }
 
     public void Dispose()

@@ -26,12 +26,12 @@ public static class TestCodeRenderingContext
         var codeDocument = RazorCodeDocument.Create(source);
         if (newLineString != null)
         {
-            codeDocument.Items[CodeRenderingContext.NewLineString] = newLineString;
+            codeDocument.Items[CodeRenderingContext.NewLineStringKey] = newLineString;
         }
 
         if (suppressUniqueIds != null)
         {
-            codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = suppressUniqueIds;
+            codeDocument.Items[CodeRenderingContext.SuppressUniqueIdsKey] = suppressUniqueIds;
         }
 
         if (nodeWriter == null)
@@ -62,12 +62,12 @@ public static class TestCodeRenderingContext
         var codeDocument = RazorCodeDocument.Create(source);
         if (newLineString != null)
         {
-            codeDocument.Items[CodeRenderingContext.NewLineString] = newLineString;
+            codeDocument.Items[CodeRenderingContext.NewLineStringKey] = newLineString;
         }
 
         if (suppressUniqueIds != null)
         {
-            codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = suppressUniqueIds;
+            codeDocument.Items[CodeRenderingContext.SuppressUniqueIdsKey] = suppressUniqueIds;
         }
 
         if (nodeWriter == null)
