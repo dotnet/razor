@@ -81,7 +81,7 @@ internal static class EnumerableExtensions
     /// </exception>
     public static void CopyTo<T>(this IEnumerable<T> sequence, Span<T> destination)
     {
-        // Check a couple of common cases.
+        // First, check a few common cases.
         switch (sequence)
         {
             // We specifically test ImmutableArray<T> to avoid boxing it as an IReadOnlyList.
@@ -98,28 +98,35 @@ internal static class EnumerableExtensions
             case IReadOnlyList<T> list:
                 list.CopyTo(destination);
                 break;
+
+            default:
+                CopySequence(sequence, destination);
+                break;
         }
 
-        if (sequence.TryGetCount(out var count))
+        static void CopySequence(IEnumerable<T> sequence, Span<T> destination)
         {
-            ArgHelper.ThrowIfDestinationTooShort(destination, count);
-
-            var index = 0;
-
-            foreach (var item in sequence)
+            if (sequence.TryGetCount(out var count))
             {
-                destination[index++] = item;
+                ArgHelper.ThrowIfDestinationTooShort(destination, count);
+
+                var index = 0;
+
+                foreach (var item in sequence)
+                {
+                    destination[index++] = item;
+                }
             }
-        }
-        else
-        {
-            var index = 0;
-
-            foreach (var item in sequence)
+            else
             {
-                ArgHelper.ThrowIfDestinationTooShort(destination, index + 1);
+                var index = 0;
 
-                destination[index++] = item;
+                foreach (var item in sequence)
+                {
+                    ArgHelper.ThrowIfDestinationTooShort(destination, index + 1);
+
+                    destination[index++] = item;
+                }
             }
         }
     }
