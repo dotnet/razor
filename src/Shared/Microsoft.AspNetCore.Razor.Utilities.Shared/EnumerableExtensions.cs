@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
-using ImmutableArrayExtensions = System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace System.Collections.Generic;
 
