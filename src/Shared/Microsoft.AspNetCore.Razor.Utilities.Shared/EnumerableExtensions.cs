@@ -83,7 +83,6 @@ internal static class EnumerableExtensions
         // First, check a few common cases.
         switch (sequence)
         {
-            // We specifically test ImmutableArray<T> to avoid boxing it as an IReadOnlyList.
             case ImmutableArray<T> array:
                 ArgHelper.ThrowIfDestinationTooShort(destination, array.Length);
                 array.CopyTo(destination);
