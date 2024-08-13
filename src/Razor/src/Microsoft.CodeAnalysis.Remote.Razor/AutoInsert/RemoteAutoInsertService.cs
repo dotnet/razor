@@ -76,12 +76,11 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         }
         else if (languageKind is RazorLanguageKind.Razor)
         {
-            var insertTextEdit = await _autoInsertService.TryResolveInsertionAsync(
-                remoteDocumentContext.Snapshot,
+            var insertTextEdit = _autoInsertService.TryResolveInsertion(
+                codeDocument,
                 linePosition.ToPosition(),
                 character,
-                autoCloseTags,
-                cancellationToken);
+                autoCloseTags);
 
             return insertTextEdit is { } edit
                 ? Response.Results(RemoteInsertTextEdit.FromLspInsertTextEdit(edit))

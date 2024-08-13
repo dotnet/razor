@@ -81,13 +81,12 @@ internal class OnAutoInsertEndpoint(
 
         var character = request.Character;
 
-        var insertTextEdit = await _autoInsertService.TryResolveInsertionAsync(
-            documentContext.Snapshot,
+        var insertTextEdit = _autoInsertService.TryResolveInsertion(
+            codeDocument,
             request.Position,
             character,
-            _optionsMonitor.CurrentValue.AutoClosingTags,
-            cancellationToken
-        ).ConfigureAwait(false);
+            _optionsMonitor.CurrentValue.AutoClosingTags
+        );
 
         if (insertTextEdit is not null)
         { 

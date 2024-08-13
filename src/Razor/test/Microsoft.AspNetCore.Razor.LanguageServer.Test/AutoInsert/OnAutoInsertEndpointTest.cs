@@ -194,12 +194,10 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
 
         public string TriggerCharacter { get; } = triggerCharacter;
 
-        public ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot snapshot, bool enableAutoClosingTags)
+        public InsertTextEdit? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
         {
             Called = true;
-            return canResolve
-                ? new ValueTask<InsertTextEdit?>(new InsertTextEdit(ResolvedTextEdit!, default))
-                : new ValueTask<InsertTextEdit?>((InsertTextEdit?)default);
+            return canResolve ? new(ResolvedTextEdit!, default) : default;
         }
     }
 

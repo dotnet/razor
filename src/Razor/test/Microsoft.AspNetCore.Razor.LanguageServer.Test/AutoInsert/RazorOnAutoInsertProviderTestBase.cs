@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -30,7 +28,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
 
     internal abstract IOnAutoInsertProvider CreateProvider();
 
-    protected async Task RunAutoInsertTestAsync(string input, string expected, int tabSize = 4, bool insertSpaces = true, bool enableAutoClosingTags = true, string fileKind = default, IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
+    protected void RunAutoInsertTest(string input, string expected, int tabSize = 4, bool insertSpaces = true, bool enableAutoClosingTags = true, string fileKind = default, IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
     {
         // Arrange
         TestFileMarkupParser.GetPosition(input, out input, out var location);
@@ -41,21 +39,11 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);
         var codeDocument = CreateCodeDocument(source, uri.AbsolutePath, tagHelpers, fileKind: fileKind);
-        var options = new FormattingOptions()
-        {
-            TabSize = tabSize,
-            InsertSpaces = insertSpaces,
-        };
 
         var provider = CreateProvider();
-        var sourceText = codeDocument.Source.Text;
-        var snapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.TryGetText(out sourceText) == true &&
-            document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument),
-            MockBehavior.Strict);
 
         // Act
-        var edit = await provider.TryResolveInsertionAsync(position, snapshot, enableAutoClosingTags: enableAutoClosingTags);
+        var edit = provider.TryResolveInsertion(position, codeDocument, enableAutoClosingTags: enableAutoClosingTags);
 
         // Assert
         var edited = edit is null ? source : ApplyEdit(source, edit.Value.TextEdit);
