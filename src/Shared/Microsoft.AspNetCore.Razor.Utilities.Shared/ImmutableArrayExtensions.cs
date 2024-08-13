@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -640,5 +641,313 @@ internal static partial class ImmutableArrayExtensions
         Array.Sort(keys.Array, newArray, 0, length, comparer);
 
         return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in ascending order and sets the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in ascending order.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<T> DrainToImmutableOrdered<T>(this ImmutableArray<T>.Builder builder)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().Order();
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in ascending order and sets the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in ascending order.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<T> DrainToImmutableOrdered<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().Order(comparer);
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in ascending order and sets the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in ascending order.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<T> DrainToImmutableOrdered<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().Order(comparison);
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in descending order and sets the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in descending order.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<T> DrainToImmutableOrderedDescending<T>(this ImmutableArray<T>.Builder builder)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().OrderDescending();
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in descending order and sets the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in descending order.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<T> DrainToImmutableOrderedDescending<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().OrderDescending(comparer);
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in descending order and sets the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in descending order.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<T> DrainToImmutableOrderedDescending<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().OrderDescending(comparison);
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in ascending order according to a key and sets
+    ///  the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in ascending order according to a key.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<TElement> DrainToImmutableOrderedBy<TElement, TKey>(
+        this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().OrderBy(keySelector);
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in ascending order according to a key and sets
+    ///  the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in ascending order according to a key.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<TElement> DrainToImmutableOrderedBy<TElement, TKey>(
+        this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().OrderBy(keySelector, comparer);
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in ascending order according to a key and sets
+    ///  the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <param name="comparison">An <see cref="Comparison{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in ascending order according to a key.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<TElement> DrainToImmutableOrderedBy<TElement, TKey>(
+        this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().OrderBy(keySelector, comparison);
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in descending order according to a key and sets
+    ///  the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in descending order according to a key.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<TElement> DrainToImmutableOrderedByDescending<TElement, TKey>(
+        this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().OrderByDescending(keySelector);
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in descending order according to a key and sets
+    ///  the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in descending order according to a key.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<TElement> DrainToImmutableOrderedByDescending<TElement, TKey>(
+        this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().OrderByDescending(keySelector, comparer);
+        return array;
+    }
+
+    /// <summary>
+    ///  Returns the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  as an immutable array sorted in descending order according to a key and sets
+    ///  the collection to a zero length array.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be sorted.</param>
+    /// <param name="keySelector">A function to extract a key from an element.</param>
+    /// <param name="comparison">An <see cref="Comparison{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this <see cref="ImmutableArray{T}.Builder"/>
+    ///  sorted in descending order according to a key.
+    /// </returns>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity">Capacity</see> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count">Count</see>, the internal array will be extracted as an
+    ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
+    ///  into a new array. The collection will then be set to a zero length array.
+    /// </remarks>
+    public static ImmutableArray<TElement> DrainToImmutableOrderedByDescending<TElement, TKey>(
+        this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
+    {
+        var array = builder.DrainToImmutable();
+        array.Unsafe().OrderByDescending(keySelector, comparison);
+        return array;
     }
 }

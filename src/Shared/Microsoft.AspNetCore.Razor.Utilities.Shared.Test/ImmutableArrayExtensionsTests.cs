@@ -414,6 +414,78 @@ public class ImmutableArrayExtensionsTests
         Assert.Equal<ValueHolder>(expected, sorted);
     }
 
+    [Theory]
+    [MemberData(nameof(OrderTestData))]
+    public void DrainToImmutableOrdered(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        var builder = data.ToBuilder();
+        var sorted = builder.DrainToImmutableOrdered();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData_OddBeforeEven))]
+    public void DrainToImmutableOrdered_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        var builder = data.ToBuilder();
+        var sorted = builder.DrainToImmutableOrdered(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData))]
+    public void DrainToImmutableOrderedDescending(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        var builder = data.ToBuilder();
+        var sorted = builder.DrainToImmutableOrderedDescending();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData_OddBeforeEven))]
+    public void DrainToImmutableOrderedDescending_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        var builder = data.ToBuilder();
+        var sorted = builder.DrainToImmutableOrderedDescending(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData))]
+    public void DrainToImmutableOrderedBy(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var builder = data.ToBuilder();
+        var sorted = builder.DrainToImmutableOrderedBy(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData_OddBeforeEven))]
+    public void DrainToImmutableOrderedBy_OddBeforeEven(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var builder = data.ToBuilder();
+        var sorted = builder.DrainToImmutableOrderedBy(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData))]
+    public void DrainToImmutableOrderedByDescending(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var builder = data.ToBuilder();
+        var sorted = builder.DrainToImmutableOrderedByDescending(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData_OddBeforeEven))]
+    public void DrainToImmutableOrderedByDescending_OddBeforeEven(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        var builder = data.ToBuilder();
+        var sorted = builder.DrainToImmutableOrderedByDescending(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
     [Fact]
     public void OrderAsArray_EmptyArrayReturnsSameArray()
     {
