@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.FoldingRanges;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -190,6 +191,9 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
                 services.AddSingleton<IInlayHintService, InlayHintService>();
                 services.AddHandlerWithCapabilities<InlayHintEndpoint>();
                 services.AddHandler<InlayHintResolveEndpoint>();
+
+                services.AddHandlerWithCapabilities<DocumentSymbolEndpoint>();
+                services.AddSingleton<IDocumentSymbolService, DocumentSymbolService>();
             }
 
             services.AddHandler<WrapWithTagEndpoint>();
@@ -203,7 +207,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
             services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
             services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
-            services.AddHandlerWithCapabilities<DocumentSymbolEndpoint>();
             services.AddHandlerWithCapabilities<MapCodeEndpoint>();
         }
     }
