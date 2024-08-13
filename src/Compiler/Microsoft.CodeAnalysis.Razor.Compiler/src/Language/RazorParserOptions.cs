@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -19,7 +20,8 @@ public sealed class RazorParserOptions
             useRoslynTokenizer: false,
             version: RazorLanguageVersion.Latest,
             fileKind: FileKinds.Legacy,
-            enableSpanEditHandlers: false);
+            enableSpanEditHandlers: false,
+            csharpParseOptions: CSharpParseOptions.Default);
     }
 
     public static RazorParserOptions Create(Action<RazorParserOptionsBuilder> configure)
@@ -60,7 +62,7 @@ public sealed class RazorParserOptions
         return options;
     }
 
-    internal RazorParserOptions(DirectiveDescriptor[] directives, bool designTime, bool parseLeadingDirectives, bool useRoslynTokenizer, RazorLanguageVersion version, string fileKind, bool enableSpanEditHandlers)
+    internal RazorParserOptions(DirectiveDescriptor[] directives, bool designTime, bool parseLeadingDirectives, bool useRoslynTokenizer, RazorLanguageVersion version, string fileKind, bool enableSpanEditHandlers, CSharpParseOptions csharpParseOptions)
     {
         if (directives == null)
         {
@@ -80,6 +82,7 @@ public sealed class RazorParserOptions
         FeatureFlags = RazorParserFeatureFlags.Create(Version, fileKind);
         FileKind = fileKind;
         EnableSpanEditHandlers = enableSpanEditHandlers;
+        CSharpParseOptions = csharpParseOptions;
     }
 
     public bool DesignTime { get; }
@@ -97,6 +100,8 @@ public sealed class RazorParserOptions
     public bool ParseLeadingDirectives { get; }
 
     public bool UseRoslynTokenizer { get; }
+
+    public CSharpParseOptions CSharpParseOptions { get; }
 
     public RazorLanguageVersion Version { get; } = RazorLanguageVersion.Latest;
 

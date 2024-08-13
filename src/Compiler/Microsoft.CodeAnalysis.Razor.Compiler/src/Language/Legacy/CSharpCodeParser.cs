@@ -92,7 +92,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         : base(context.ParseLeadingDirectives
             ? FirstDirectiveCSharpLanguageCharacteristics.Instance
             : context.UseRoslynTokenizer
-                ? RoslynCSharpLanguageCharacteristics.Instance
+                ? new RoslynCSharpLanguageCharacteristics(context.CSharpParseOptions)
                 : NativeCSharpLanguageCharacteristics.Instance, context)
     {
         if (directives == null)

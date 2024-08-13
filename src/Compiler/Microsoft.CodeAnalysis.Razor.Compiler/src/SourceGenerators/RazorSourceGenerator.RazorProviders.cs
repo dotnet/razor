@@ -54,7 +54,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 GenerateMetadataSourceChecksumAttributes = generateMetadataSourceChecksumAttributes == "true",
                 RootNamespace = rootNamespace ?? "ASP",
                 SupportLocalizedComponentNames = supportLocalizedComponentNames == "true",
-                CSharpLanguageVersion = ((CSharpParseOptions)parseOptions).LanguageVersion,
+                CSharpParseOptions = (CSharpParseOptions)parseOptions,
                 TestSuppressUniqueIds = _testSuppressUniqueIds,
                 UseRoslynTokenizer = useRazorTokenizer,
             };
