@@ -3,11 +3,9 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
@@ -16,10 +14,9 @@ internal class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
 {
     public string TriggerCharacter => ">";
 
-    public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool enableAutoClosingTags)
+    public InsertTextEdit? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
     {
-        if (!(enableAutoClosingTags
-              && await IsAtTextTagAsync(documentSnapshot, position).ConfigureAwait(false)))
+        if (!(enableAutoClosingTags && IsAtTextTag(codeDocument, position)))
         {
             return default;
         }
@@ -31,12 +28,11 @@ internal class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
         return new InsertTextEdit(edit, format);
     }
 
-    private static async ValueTask<bool> IsAtTextTagAsync(IDocumentSnapshot documentSnapshot, Position position)
+    private static bool IsAtTextTag(RazorCodeDocument codeDocument, Position position)
     {
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         var syntaxTree = codeDocument.GetSyntaxTree();
 
-        if (!(documentSnapshot.TryGetText(out var sourceText)
+        if (!(codeDocument.Source.Text is { } sourceText
               && sourceText.TryGetAbsoluteIndex(position, out var absoluteIndex)))
         {
             return false;

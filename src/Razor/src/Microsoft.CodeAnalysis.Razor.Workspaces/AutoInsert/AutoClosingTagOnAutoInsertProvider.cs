@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -41,13 +39,12 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
     public string TriggerCharacter => ">";
 
-    public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(Position position, IDocumentSnapshot documentSnapshot, bool enableAutoClosingTags)
+    public InsertTextEdit? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
     {
         if (!(enableAutoClosingTags
-            && documentSnapshot.TryGetText(out var sourceText)
+            && codeDocument.Source.Text is { } sourceText
             && sourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex)
-            && await TryResolveAutoClosingBehaviorAsync(documentSnapshot, afterCloseAngleIndex)
-                     .ConfigureAwait(false) is { } tagNameWithClosingBehavior))
+            && TryResolveAutoClosingBehavior(codeDocument, afterCloseAngleIndex) is { } tagNameWithClosingBehavior))
         {
             return default;
         }
@@ -71,9 +68,8 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         return new InsertTextEdit(edit, format);
     }
 
-    private static async ValueTask<TagNameWithClosingBehavior?> TryResolveAutoClosingBehaviorAsync(IDocumentSnapshot documentSnapshot, int afterCloseAngleIndex)
+    private static TagNameWithClosingBehavior? TryResolveAutoClosingBehavior(RazorCodeDocument codeDocument, int afterCloseAngleIndex)
     {
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         var syntaxTree = codeDocument.GetSyntaxTree();
         var closeAngle = syntaxTree.Root.FindToken(afterCloseAngleIndex - 1);
 

@@ -100,9 +100,9 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6217")]
-    public async Task OnTypeCloseAngle_ConflictingAutoClosingBehaviorsChoosesMostSpecificAsync()
+    public void OnTypeCloseAngle_ConflictingAutoClosingBehaviorsChoosesMostSpecific()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
 @addTagHelper *, TestAssembly
 
@@ -120,9 +120,9 @@ tagHelpers: new[] { WithoutEndTagTagHelper, CatchAllTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
-    public async Task OnTypeCloseAngle_TagHelperAlreadyHasEndTagAsync()
+    public void OnTypeCloseAngle_TagHelperAlreadyHasEndTag()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
 @addTagHelper *, TestAssembly
 
@@ -139,9 +139,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
-    public async Task OnTypeCloseAngle_VoidTagHelperHasEndTag_ShouldStillAutoCloseAsync()
+    public void OnTypeCloseAngle_VoidTagHelperHasEndTag_ShouldStillAutoClose()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -158,9 +158,9 @@ tagHelpers: new[] { UnspecifiedInputTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
-    public async Task OnTypeCloseAngle_TagAlreadyHasEndTagAsync()
+    public void OnTypeCloseAngle_TagAlreadyHasEndTag()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     <div>$$<div></div></div>
     ",
@@ -171,9 +171,9 @@ expected: @"
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
-    public async Task OnTypeCloseAngle_TagDoesNotAutoCloseOutOfScopeAsync()
+    public void OnTypeCloseAngle_TagDoesNotAutoCloseOutOfScope()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     <div>
         @if (true)
@@ -192,9 +192,9 @@ expected: @"
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
-    public async Task OnTypeCloseAngle_VoidTagHasEndTag_ShouldStilloseAsync()
+    public void OnTypeCloseAngle_VoidTagHasEndTag_ShouldStillose()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     <input>$$<input></input></input>
     ",
@@ -205,9 +205,9 @@ expected: @"
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36568")]
-    public async Task OnTypeCloseAngle_VoidElementMirroringTagHelperAsync()
+    public void OnTypeCloseAngle_VoidElementMirroringTagHelper()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -224,9 +224,9 @@ tagHelpers: new[] { UnspecifiedInputMirroringTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36568")]
-    public async Task OnTypeCloseAngle_VoidHtmlElementCapitalized_SelfClosesAsync()
+    public void OnTypeCloseAngle_VoidHtmlElementCapitalized_SelfCloses()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: "<Input>$$",
 expected: "<Input />",
 fileKind: FileKinds.Legacy,
@@ -234,9 +234,9 @@ tagHelpers: Array.Empty<TagHelperDescriptor>());
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_NormalOrSelfClosingStructureOverridesVoidTagBehaviorAsync()
+    public void OnTypeCloseAngle_NormalOrSelfClosingStructureOverridesVoidTagBehavior()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -252,9 +252,9 @@ tagHelpers: new[] { NormalOrSelfclosingInputTagHelper });
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_UnspeccifiedStructureInheritsVoidTagBehaviorAsync()
+    public void OnTypeCloseAngle_UnspeccifiedStructureInheritsVoidTagBehavior()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -270,9 +270,9 @@ tagHelpers: new[] { UnspecifiedInputTagHelper });
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_UnspeccifiedTagHelperTagStructureAsync()
+    public void OnTypeCloseAngle_UnspeccifiedTagHelperTagStructure()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -288,9 +288,9 @@ tagHelpers: new[] { UnspecifiedTagHelper });
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_NormalOrSelfClosingTagHelperTagStructureAsync()
+    public void OnTypeCloseAngle_NormalOrSelfClosingTagHelperTagStructure()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -307,9 +307,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
-    public async Task OnTypeCloseAngle_TagHelperInHtml_NestedStatementAsync()
+    public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -332,9 +332,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
-    public async Task OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithAttributeAsync()
+    public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithAttribute()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -357,9 +357,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
-    public async Task OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuoteAsync()
+    public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -382,9 +382,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
-    public async Task OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithMinimalizedAttributeAsync()
+    public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithMinimalizedAttribute()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -407,9 +407,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
-    public async Task OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithMinimalizedAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuoteAsync()
+    public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithMinimalizedAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -432,9 +432,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
-    public async Task OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithAttributeAsync()
+    public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithAttribute()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -457,9 +457,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
-    public async Task OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuoteAsync()
+    public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -482,9 +482,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
-    public async Task OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithMinimalizedAttributeAsync()
+    public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithMinimalizedAttribute()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -507,9 +507,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
-    public async Task OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithMinimalizedAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuoteAsync()
+    public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithMinimalizedAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -532,9 +532,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
-    public async Task OnTypeCloseAngle_TagHelperInTagHelper_NestedStatementAsync()
+    public void OnTypeCloseAngle_TagHelperInTagHelper_NestedStatement()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -557,9 +557,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
-    public async Task OnTypeCloseAngle_TagHelperNextToVoidTagHelper_NestedStatementAsync()
+    public void OnTypeCloseAngle_TagHelperNextToVoidTagHelper_NestedStatement()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -582,9 +582,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
-    public async Task OnTypeCloseAngle_TagHelperNextToTagHelper_NestedStatementAsync()
+    public void OnTypeCloseAngle_TagHelperNextToTagHelper_NestedStatement()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -606,9 +606,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper, NormalOrSelfclosingInputTagHel
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_NormalOrSelfClosingTagHelperTagStructure_CodeBlockAsync()
+    public void OnTypeCloseAngle_NormalOrSelfClosingTagHelperTagStructure_CodeBlock()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -628,9 +628,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_WithSlash_WithoutEndTagTagHelperTagStructureAsync()
+    public void OnTypeCloseAngle_WithSlash_WithoutEndTagTagHelperTagStructure()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -647,9 +647,9 @@ tagHelpers: new[] { WithoutEndTagTagHelper });
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
-    public async Task OnTypeCloseAngle_NestedStatementAsync()
+    public void OnTypeCloseAngle_NestedStatement()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -671,9 +671,9 @@ tagHelpers: new[] { WithoutEndTagTagHelper });
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_WithSpace_WithoutEndTagTagHelperTagStructureAsync()
+    public void OnTypeCloseAngle_WithSpace_WithoutEndTagTagHelperTagStructure()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -689,9 +689,9 @@ tagHelpers: new[] { WithoutEndTagTagHelper });
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_WithoutEndTagTagHelperTagStructureAsync()
+    public void OnTypeCloseAngle_WithoutEndTagTagHelperTagStructure()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -707,9 +707,9 @@ tagHelpers: new[] { WithoutEndTagTagHelper });
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_WithoutEndTagTagHelperTagStructure_CodeBlockAsync()
+    public void OnTypeCloseAngle_WithoutEndTagTagHelperTagStructure_CodeBlock()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -729,9 +729,9 @@ tagHelpers: new[] { WithoutEndTagTagHelper });
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_MultipleApplicableTagHelperTagStructuresAsync()
+    public void OnTypeCloseAngle_MultipleApplicableTagHelperTagStructures()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -747,9 +747,9 @@ tagHelpers: new[] { UnspecifiedTagHelper, NormalOrSelfClosingTagHelper, WithoutE
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_EscapedTagTagHelperAutoCompletesWithEscapeAsync()
+    public void OnTypeCloseAngle_EscapedTagTagHelperAutoCompletesWithEscape()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @addTagHelper *, TestAssembly
 
@@ -765,9 +765,9 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_AlwaysClosesStandardHTMLTagAsync()
+    public void OnTypeCloseAngle_AlwaysClosesStandardHTMLTag()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
         <div><div>$$</div>
     ",
@@ -778,9 +778,9 @@ expected: @"
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
-    public async Task OnTypeCloseAngle_ClosesStandardHTMLTag_NestedStatementAsync()
+    public void OnTypeCloseAngle_ClosesStandardHTMLTag_NestedStatement()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @if (true)
     {
@@ -797,9 +797,9 @@ expected: @"
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
-    public async Task OnTypeCloseAngle_TagNextToTag_NestedStatementAsync()
+    public void OnTypeCloseAngle_TagNextToTag_NestedStatement()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @if (true)
     {
@@ -816,9 +816,9 @@ expected: @"
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
-    public async Task OnTypeCloseAngle_TagNextToVoidTag_NestedStatementAsync()
+    public void OnTypeCloseAngle_TagNextToVoidTag_NestedStatement()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @if (true)
     {
@@ -834,9 +834,9 @@ expected: @"
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_ClosesStandardHTMLTagAsync()
+    public void OnTypeCloseAngle_ClosesStandardHTMLTag()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
         <div>$$
     ",
@@ -846,9 +846,9 @@ expected: @"
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_ClosesStandardHTMLTag_CodeBlockAsync()
+    public void OnTypeCloseAngle_ClosesStandardHTMLTag_CodeBlock()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @{
         <div>$$
@@ -862,9 +862,9 @@ expected: @"
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_ClosesVoidHTMLTagAsync()
+    public void OnTypeCloseAngle_ClosesVoidHTMLTag()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
         <input>$$
     ",
@@ -875,9 +875,9 @@ expected: @"
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
-    public async Task OnTypeCloseAngle_ClosesVoidHTMLTag_NestedStatementAsync()
+    public void OnTypeCloseAngle_ClosesVoidHTMLTag_NestedStatement()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @if (true)
     {
@@ -893,9 +893,9 @@ expected: @"
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_ClosesVoidHTMLTag_CodeBlockAsync()
+    public void OnTypeCloseAngle_ClosesVoidHTMLTag_CodeBlock()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
     @{
         <input>$$
@@ -909,9 +909,9 @@ expected: @"
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_WithSlash_ClosesVoidHTMLTagAsync()
+    public void OnTypeCloseAngle_WithSlash_ClosesVoidHTMLTag()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
         <input />$$
     ",
@@ -921,9 +921,9 @@ expected: @"
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_WithSpace_ClosesVoidHTMLTagAsync()
+    public void OnTypeCloseAngle_WithSpace_ClosesVoidHTMLTag()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
         <input >$$
     ",
@@ -933,9 +933,9 @@ expected: @"
     }
 
     [Fact]
-    public async Task OnTypeCloseAngle_AutoInsertDisabled_NoopsAsync()
+    public void OnTypeCloseAngle_AutoInsertDisabled_Noops()
     {
-        await RunAutoInsertTestAsync(
+        RunAutoInsertTest(
 input: @"
         <div>$$
     ",

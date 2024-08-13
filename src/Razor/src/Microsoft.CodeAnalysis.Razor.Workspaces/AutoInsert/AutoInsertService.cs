@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
@@ -22,12 +20,11 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
     // This gets called just once
     public IEnumerable<string> TriggerCharacters => _onAutoInsertProviders.Select((provider) => provider.TriggerCharacter);
 
-    public async ValueTask<InsertTextEdit?> TryResolveInsertionAsync(
-        IDocumentSnapshot documentSnapshot,
+    public InsertTextEdit? TryResolveInsertion(
+        RazorCodeDocument codeDocument,
         Position position,
         string character,
-        bool autoCloseTags,
-        CancellationToken cancellationToken)
+        bool autoCloseTags)
     {
         using var applicableProviders = new PooledArrayBuilder<IOnAutoInsertProvider>();
         foreach (var provider in _onAutoInsertProviders)
@@ -45,22 +42,18 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
             return null;
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         foreach (var provider in applicableProviders)
         {
-            var insertTextEdit = await provider.TryResolveInsertionAsync(
+            var insertTextEdit = provider.TryResolveInsertion(
                 position,
-                documentSnapshot,
+                codeDocument,
                 autoCloseTags
-            ).ConfigureAwait(false);
+            );
 
             if (insertTextEdit is not null)
             {
                 return insertTextEdit;
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
         }
 
         // No provider could handle the text edit.
