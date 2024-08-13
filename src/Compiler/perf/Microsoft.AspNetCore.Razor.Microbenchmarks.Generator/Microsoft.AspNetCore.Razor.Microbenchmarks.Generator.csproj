@@ -27,6 +27,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" VersionOverride="$(MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion)" />
     <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
+    <PackageReference Include="System.Formats.Asn1" />
   </ItemGroup>
 
   <!-- Reference the local source generator when building in regular configurations -->
