@@ -43,7 +43,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         string character,
         bool autoCloseTags,
         CancellationToken cancellationToken)
-    => RunServiceAsync(
+        => RunServiceAsync(
             solutionInfo,
             documentId,
             context => TryResolveInsertionAsync(
@@ -76,15 +76,15 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         }
         else if (languageKind is RazorLanguageKind.Razor)
         {
-            linePosition.Deconstruct(out var line, out var lineCharacter);
             var insertTextEdit = await _autoInsertService.TryResolveInsertionAsync(
                 remoteDocumentContext.Snapshot,
-                new Position(line, lineCharacter),
+                linePosition.ToPosition(),
                 character,
                 autoCloseTags,
                 cancellationToken);
-            return insertTextEdit.HasValue
-                ? Response.Results(RemoteInsertTextEdit.FromLspInsertTextEdit(insertTextEdit.Value))
+
+            return insertTextEdit is { } edit
+                ? Response.Results(RemoteInsertTextEdit.FromLspInsertTextEdit(edit))
                 : Response.NoFurtherHandling;
         }
 
