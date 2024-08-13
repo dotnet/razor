@@ -33,13 +33,12 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
     /// </summary>
     private readonly List<(int position, SyntaxTokenParser.Result result)> _resultCache = ListPool<(int, SyntaxTokenParser.Result)>.Default.Get();
 
-    public RoslynCSharpTokenizer(SeekableTextReader source)
+    public RoslynCSharpTokenizer(SeekableTextReader source, CSharpParseOptions parseOptions)
         : base(source)
     {
         base.CurrentState = StartState;
 
-        // PROTOTYPE
-        _roslynTokenParser = CodeAnalysis.CSharp.SyntaxFactory.CreateTokenParser(source.SourceText, null);
+        _roslynTokenParser = CodeAnalysis.CSharp.SyntaxFactory.CreateTokenParser(source.SourceText, parseOptions);
     }
 
     protected override int StartState => (int)RoslynCSharpTokenizerState.Start;

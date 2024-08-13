@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -27,6 +28,7 @@ internal partial class ParserContext
         SeenDirectives = new HashSet<string>(StringComparer.Ordinal);
         EnableSpanEditHandlers = options.EnableSpanEditHandlers;
         UseRoslynTokenizer = options.UseRoslynTokenizer;
+        CSharpParseOptions = options.CSharpParseOptions;
     }
 
     public ErrorSink ErrorSink { get; set; }
@@ -44,6 +46,8 @@ internal partial class ParserContext
     public bool ParseLeadingDirectives { get; }
 
     public bool UseRoslynTokenizer { get; }
+
+    public CSharpParseOptions CSharpParseOptions { get; }
 
     public bool EnableSpanEditHandlers { get; }
 

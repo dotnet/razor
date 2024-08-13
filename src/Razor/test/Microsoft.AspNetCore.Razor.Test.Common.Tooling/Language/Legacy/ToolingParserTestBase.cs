@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -253,10 +254,11 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
             directives.ToArray(),
             designTime,
             parseLeadingDirectives: false,
-            useRoslynTokenizer: false,
+            useRoslynTokenizer: false, // PROTOTYPE: switch to true
             version: version,
             fileKind: fileKind,
-            enableSpanEditHandlers)
+            enableSpanEditHandlers,
+            csharpParseOptions: CSharpParseOptions.Default)
             {
                 FeatureFlags = featureFlags ?? RazorParserFeatureFlags.Create(version, fileKind)
             };

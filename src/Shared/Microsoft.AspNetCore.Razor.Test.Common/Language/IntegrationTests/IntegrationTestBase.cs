@@ -318,7 +318,7 @@ public abstract class IntegrationTestBase
 
             b.Features.Add(new DefaultTypeNameFeature());
             b.SetCSharpLanguageVersion(CSharpParseOptions.LanguageVersion);
-            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true));
+            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions));
 
             // Decorate each import feature so we can normalize line endings.
             foreach (var feature in b.Features.OfType<IImportProjectFeature>().ToArray())

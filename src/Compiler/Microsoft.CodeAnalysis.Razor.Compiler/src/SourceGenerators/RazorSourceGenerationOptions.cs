@@ -18,10 +18,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         /// </summary>
         public bool GenerateMetadataSourceChecksumAttributes { get; set; } = false;
 
-        /// <summary>
-        /// Gets the CSharp language version currently used by the compilation.
-        /// </summary>
-        public LanguageVersion CSharpLanguageVersion { get; set; } = LanguageVersion.CSharp10;
+        internal CSharpParseOptions CSharpParseOptions { get; set; } = new CSharpParseOptions(LanguageVersion.CSharp10);
 
         /// <summary>
         /// Gets a flag that determines if localized component names should be supported.
