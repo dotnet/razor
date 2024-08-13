@@ -387,16 +387,14 @@ internal static partial class ImmutableArrayExtensions
 
         if (sortHelper.ComputeKeys(items, keySelector, keys.Span))
         {
-            // No need to sort - keys are already ordered.
+            // The keys are already ordered, so we don't need to create a new array and sort it.
             return array;
         }
 
         var newArray = new TElement[length];
         items.CopyTo(newArray);
 
-        var comparer = sortHelper.GetOrCreateComparer();
-
-        Array.Sort(keys.Array, newArray, 0, length, comparer);
+        Array.Sort(keys.Array, newArray, 0, length, sortHelper.GetOrCreateComparer());
 
         return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
     }

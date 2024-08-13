@@ -1314,14 +1314,13 @@ internal static class ReadOnlyListExtensions
 
         if (sortHelper.ComputeKeys(list, keySelector, keys.Span))
         {
-            // No need to sort - keys are already ordered.
+            // The keys are already ordered, so we don't need to create a new array and sort it.
             return ImmutableCollectionsMarshal.AsImmutableArray(list.ToArray());
         }
 
         var newArray = list.ToArray();
-        var comparer = sortHelper.GetOrCreateComparer();
 
-        Array.Sort(keys.Array, newArray, 0, length, comparer);
+        Array.Sort(keys.Array, newArray, 0, length, sortHelper.GetOrCreateComparer());
 
         return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
     }

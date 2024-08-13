@@ -456,18 +456,13 @@ internal static class EnumerableExtensions
         }
 
         var length = newArray.Length;
-
         using var keys = SortKey<TKey>.GetPooledArray(minimumLength: length);
 
-        if (sortHelper.ComputeKeys(newArray.AsSpan(), keySelector, keys.Span))
+        if (!sortHelper.ComputeKeys(newArray.AsSpan(), keySelector, keys.Span))
         {
-            // No need to sort - keys are already ordered.
-            return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
+            // The keys are not ordered, so we need to sort the array.
+            Array.Sort(keys.Array, newArray, 0, length, sortHelper.GetOrCreateComparer());
         }
-
-        var comparer = sortHelper.GetOrCreateComparer();
-
-        Array.Sort(keys.Array, newArray, 0, length, comparer);
 
         return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
     }

@@ -173,17 +173,12 @@ internal static partial class ImmutableArrayExtensions
 
         using var keys = SortKey<TKey>.GetPooledArray(minimumLength: length);
 
-        if (sortHelper.ComputeKeys(items, keySelector, keys.Span))
+        if (!sortHelper.ComputeKeys(items, keySelector, keys.Span))
         {
-            // No need to sort - keys are already ordered.
-            return array;
+            // The keys are not ordered, so we need to sort the array.
+            Array.Sort(keys.Array, innerArray, 0, length, sortHelper.GetOrCreateComparer());
         }
 
-        var comparer = sortHelper.GetOrCreateComparer();
-
-        Array.Sort(keys.Array, innerArray, 0, length, comparer);
-
-        // Because we modified the inner array, we can just return array.
         return array;
     }
 }
