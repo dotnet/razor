@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -186,8 +185,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array)
     {
-        var compareHelper = new CompareHelper<T>(comparer: null, descending: false);
-        return array.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer: null, descending: false);
+        return array.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -201,8 +200,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array, IComparer<T> comparer)
     {
-        var compareHelper = new CompareHelper<T>(comparer, descending: false);
-        return array.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer, descending: false);
+        return array.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -216,8 +215,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> OrderAsArray<T>(this ImmutableArray<T> array, Comparison<T> comparison)
     {
-        var compareHelper = new CompareHelper<T>(comparison, descending: false);
-        return array.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparison, descending: false);
+        return array.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -230,8 +229,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array)
     {
-        var compareHelper = new CompareHelper<T>(comparer: null, descending: true);
-        return array.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer: null, descending: true);
+        return array.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -245,8 +244,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array, IComparer<T> comparer)
     {
-        var compareHelper = new CompareHelper<T>(comparer, descending: true);
-        return array.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer, descending: true);
+        return array.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -260,8 +259,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> OrderDescendingAsArray<T>(this ImmutableArray<T> array, Comparison<T> comparison)
     {
-        var compareHelper = new CompareHelper<T>(comparison, descending: true);
-        return array.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparison, descending: true);
+        return array.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -277,8 +276,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector)
     {
-        var compareHelper = new CompareHelper<TKey>(comparer: null, descending: false);
-        return array.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer: null, descending: false);
+        return array.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -295,8 +294,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
-        var compareHelper = new CompareHelper<TKey>(comparer, descending: false);
-        return array.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer, descending: false);
+        return array.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -313,8 +312,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> OrderByAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
-        var compareHelper = new CompareHelper<TKey>(comparison, descending: false);
-        return array.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparison, descending: false);
+        return array.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -330,8 +329,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector)
     {
-        var compareHelper = new CompareHelper<TKey>(comparer: null, descending: true);
-        return array.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer: null, descending: true);
+        return array.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -348,8 +347,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
-        var compareHelper = new CompareHelper<TKey>(comparer, descending: true);
-        return array.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer, descending: true);
+        return array.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -366,38 +365,15 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> OrderByDescendingAsArray<TElement, TKey>(
         this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
-        var compareHelper = new CompareHelper<TKey>(comparison, descending: true);
-        return array.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparison, descending: true);
+        return array.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
-    private static ImmutableArray<T> OrderAsArrayCore<T>(this ImmutableArray<T> array, ref readonly CompareHelper<T> compareHelper)
-    {
-        if (array.Length <= 1)
-        {
-            return array;
-        }
-
-        var items = array.AsSpan();
-
-        if (SortHelper.AreOrdered(items, in compareHelper))
-        {
-            // No need to sort - items are already ordered.
-            return array;
-        }
-
-        var length = items.Length;
-        var newArray = new T[length];
-        items.CopyTo(newArray);
-
-        var comparer = compareHelper.GetOrCreateComparer();
-
-        Array.Sort(newArray, comparer);
-
-        return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
-    }
+    private static ImmutableArray<T> OrderAsArrayCore<T>(this ImmutableArray<T> array, ref readonly SortHelper<T> sortHelper)
+        => array.OrderByAsArrayCore(SortHelper<T>.IdentityFunc, in sortHelper);
 
     private static ImmutableArray<TElement> OrderByAsArrayCore<TElement, TKey>(
-        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, ref readonly CompareHelper<TKey> compareHelper)
+        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, ref readonly SortHelper<TKey> sortHelper)
     {
         if (array.Length <= 1)
         {
@@ -407,9 +383,9 @@ internal static partial class ImmutableArrayExtensions
         var items = array.AsSpan();
         var length = items.Length;
 
-        using var keys = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length);
+        using var keys = SortKey<TKey>.GetPooledArray(minimumLength: length);
 
-        if (SortHelper.SelectKeys(items, keySelector, in compareHelper, keys.Span))
+        if (sortHelper.ComputeKeys(items, keySelector, keys.Span))
         {
             // No need to sort - keys are already ordered.
             return array;
@@ -418,7 +394,7 @@ internal static partial class ImmutableArrayExtensions
         var newArray = new TElement[length];
         items.CopyTo(newArray);
 
-        var comparer = compareHelper.GetOrCreateComparer();
+        var comparer = sortHelper.GetOrCreateComparer();
 
         Array.Sort(keys.Array, newArray, 0, length, comparer);
 
@@ -437,8 +413,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> ToImmutableOrdered<T>(this ImmutableArray<T>.Builder builder)
     {
-        var compareHelper = new CompareHelper<T>(comparer: null, descending: false);
-        return builder.ToImmutableOrderedCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer: null, descending: false);
+        return builder.ToImmutableOrderedCore(in sortHelper);
     }
 
     /// <summary>
@@ -454,8 +430,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> ToImmutableOrdered<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
     {
-        var compareHelper = new CompareHelper<T>(comparer, descending: false);
-        return builder.ToImmutableOrderedCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer, descending: false);
+        return builder.ToImmutableOrderedCore(in sortHelper);
     }
 
     /// <summary>
@@ -471,8 +447,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> ToImmutableOrdered<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
     {
-        var compareHelper = new CompareHelper<T>(comparison, descending: false);
-        return builder.ToImmutableOrderedCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparison, descending: false);
+        return builder.ToImmutableOrderedCore(in sortHelper);
     }
 
     /// <summary>
@@ -487,8 +463,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> ToImmutableOrderedDescending<T>(this ImmutableArray<T>.Builder builder)
     {
-        var compareHelper = new CompareHelper<T>(comparer: null, descending: true);
-        return builder.ToImmutableOrderedCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer: null, descending: true);
+        return builder.ToImmutableOrderedCore(in sortHelper);
     }
 
     /// <summary>
@@ -504,8 +480,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> ToImmutableOrderedDescending<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
     {
-        var compareHelper = new CompareHelper<T>(comparer, descending: true);
-        return builder.ToImmutableOrderedCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer, descending: true);
+        return builder.ToImmutableOrderedCore(in sortHelper);
     }
 
     /// <summary>
@@ -521,8 +497,8 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static ImmutableArray<T> ToImmutableOrderedDescending<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
     {
-        var compareHelper = new CompareHelper<T>(comparison, descending: true);
-        return builder.ToImmutableOrderedCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparison, descending: true);
+        return builder.ToImmutableOrderedCore(in sortHelper);
     }
 
     /// <summary>
@@ -539,8 +515,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedBy<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector)
     {
-        var compareHelper = new CompareHelper<TKey>(comparer: null, descending: false);
-        return builder.ToImmutableOrderedByCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer: null, descending: false);
+        return builder.ToImmutableOrderedByCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -558,8 +534,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedBy<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
-        var compareHelper = new CompareHelper<TKey>(comparer, descending: false);
-        return builder.ToImmutableOrderedByCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer, descending: false);
+        return builder.ToImmutableOrderedByCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -577,8 +553,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedBy<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
-        var compareHelper = new CompareHelper<TKey>(comparison, descending: false);
-        return builder.ToImmutableOrderedByCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparison, descending: false);
+        return builder.ToImmutableOrderedByCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -595,8 +571,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedByDescending<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector)
     {
-        var compareHelper = new CompareHelper<TKey>(comparer: null, descending: true);
-        return builder.ToImmutableOrderedByCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer: null, descending: true);
+        return builder.ToImmutableOrderedByCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -614,8 +590,8 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedByDescending<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
-        var compareHelper = new CompareHelper<TKey>(comparer, descending: true);
-        return builder.ToImmutableOrderedByCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer, descending: true);
+        return builder.ToImmutableOrderedByCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -633,33 +609,15 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedByDescending<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
-        var compareHelper = new CompareHelper<TKey>(comparison, descending: true);
-        return builder.ToImmutableOrderedByCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparison, descending: true);
+        return builder.ToImmutableOrderedByCore(keySelector, in sortHelper);
     }
 
-    private static ImmutableArray<T> ToImmutableOrderedCore<T>(this ImmutableArray<T>.Builder builder, ref readonly CompareHelper<T> compareHelper)
-    {
-        if (builder.Count <= 1)
-        {
-            return builder.ToImmutable();
-        }
-
-        if (SortHelper.AreOrdered(builder, in compareHelper))
-        {
-            // No need to sort - items are already ordered.
-            return builder.ToImmutable();
-        }
-
-        var newArray = builder.ToArray();
-        var comparer = compareHelper.GetOrCreateComparer();
-
-        Array.Sort(newArray, comparer);
-
-        return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
-    }
+    private static ImmutableArray<T> ToImmutableOrderedCore<T>(this ImmutableArray<T>.Builder builder, ref readonly SortHelper<T> sortHelper)
+        => builder.ToImmutableOrderedByCore(SortHelper<T>.IdentityFunc, in sortHelper);
 
     private static ImmutableArray<TElement> ToImmutableOrderedByCore<TElement, TKey>(
-        this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, ref readonly CompareHelper<TKey> compareHelper)
+        this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, ref readonly SortHelper<TKey> sortHelper)
     {
         if (builder.Count <= 1)
         {
@@ -668,16 +626,16 @@ internal static partial class ImmutableArrayExtensions
 
         var length = builder.Count;
 
-        using var keys = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length);
+        using var keys = SortKey<TKey>.GetPooledArray(minimumLength: length);
 
-        if (SortHelper.SelectKeys(builder, keySelector, in compareHelper, keys.Span))
+        if (sortHelper.ComputeKeys(builder, keySelector, keys.Span))
         {
             // No need to sort - keys are already ordered.
             return builder.ToImmutable();
         }
 
         var newArray = builder.ToArray();
-        var comparer = compareHelper.GetOrCreateComparer();
+        var comparer = sortHelper.GetOrCreateComparer();
 
         Array.Sort(keys.Array, newArray, 0, length, comparer);
 

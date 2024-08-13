@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -31,8 +30,8 @@ internal static partial class ImmutableArrayExtensions
         /// </summary>
         public void Order()
         {
-            var compareHelper = new CompareHelper<T>(comparer: null, descending: false);
-            array.UnsafeOrderCore(in compareHelper);
+            var sortHelper = new SortHelper<T>(comparer: null, descending: false);
+            array.UnsafeOrderCore(in sortHelper);
         }
 
         /// <summary>
@@ -41,8 +40,8 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
         public void Order(IComparer<T> comparer)
         {
-            var compareHelper = new CompareHelper<T>(comparer, descending: false);
-            array.UnsafeOrderCore(in compareHelper);
+            var sortHelper = new SortHelper<T>(comparer, descending: false);
+            array.UnsafeOrderCore(in sortHelper);
         }
 
         /// <summary>
@@ -51,8 +50,8 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="comparison">A <see cref="Comparison{T}"/> to compare elements.</param>
         public void Order(Comparison<T> comparison)
         {
-            var compareHelper = new CompareHelper<T>(comparison, descending: false);
-            array.UnsafeOrderCore(in compareHelper);
+            var sortHelper = new SortHelper<T>(comparison, descending: false);
+            array.UnsafeOrderCore(in sortHelper);
         }
 
         /// <summary>
@@ -60,8 +59,8 @@ internal static partial class ImmutableArrayExtensions
         /// </summary>
         public void OrderDescending()
         {
-            var compareHelper = new CompareHelper<T>(comparer: null, descending: true);
-            array.UnsafeOrderCore(in compareHelper);
+            var sortHelper = new SortHelper<T>(comparer: null, descending: true);
+            array.UnsafeOrderCore(in sortHelper);
         }
 
         /// <summary>
@@ -70,8 +69,8 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
         public void OrderDescending(IComparer<T> comparer)
         {
-            var compareHelper = new CompareHelper<T>(comparer, descending: true);
-            array.UnsafeOrderCore(in compareHelper);
+            var sortHelper = new SortHelper<T>(comparer, descending: true);
+            array.UnsafeOrderCore(in sortHelper);
         }
 
         /// <summary>
@@ -80,8 +79,8 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="comparison">A <see cref="Comparison{T}"/> to compare elements.</param>
         public void OrderDescending(Comparison<T> comparison)
         {
-            var compareHelper = new CompareHelper<T>(comparison, descending: true);
-            array.UnsafeOrderCore(in compareHelper);
+            var sortHelper = new SortHelper<T>(comparison, descending: true);
+            array.UnsafeOrderCore(in sortHelper);
         }
 
         /// <summary>
@@ -91,8 +90,8 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="keySelector">A function to extract a key from an element.</param>
         public void OrderBy<TKey>(Func<T, TKey> keySelector)
         {
-            var compareHelper = new CompareHelper<TKey>(comparer: null, descending: false);
-            array.UnsafeOrderByCore(keySelector, in compareHelper);
+            var sortHelper = new SortHelper<TKey>(comparer: null, descending: false);
+            array.UnsafeOrderByCore(keySelector, in sortHelper);
         }
 
         /// <summary>
@@ -103,8 +102,8 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
         public void OrderBy<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
         {
-            var compareHelper = new CompareHelper<TKey>(comparer, descending: false);
-            array.UnsafeOrderByCore(keySelector, in compareHelper);
+            var sortHelper = new SortHelper<TKey>(comparer, descending: false);
+            array.UnsafeOrderByCore(keySelector, in sortHelper);
         }
 
         /// <summary>
@@ -115,8 +114,8 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
         public void OrderBy<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
         {
-            var compareHelper = new CompareHelper<TKey>(comparison, descending: false);
-            array.UnsafeOrderByCore(keySelector, in compareHelper);
+            var sortHelper = new SortHelper<TKey>(comparison, descending: false);
+            array.UnsafeOrderByCore(keySelector, in sortHelper);
         }
 
         /// <summary>
@@ -126,8 +125,8 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="keySelector">A function to extract a key from an element.</param>
         public void OrderByDescending<TKey>(Func<T, TKey> keySelector)
         {
-            var compareHelper = new CompareHelper<TKey>(comparer: null, descending: true);
-            array.UnsafeOrderByCore(keySelector, in compareHelper);
+            var sortHelper = new SortHelper<TKey>(comparer: null, descending: true);
+            array.UnsafeOrderByCore(keySelector, in sortHelper);
         }
 
         /// <summary>
@@ -138,8 +137,8 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
         public void OrderByDescending<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
         {
-            var compareHelper = new CompareHelper<TKey>(comparer, descending: true);
-            array.UnsafeOrderByCore(keySelector, in compareHelper);
+            var sortHelper = new SortHelper<TKey>(comparer, descending: true);
+            array.UnsafeOrderByCore(keySelector, in sortHelper);
         }
 
         /// <summary>
@@ -150,38 +149,16 @@ internal static partial class ImmutableArrayExtensions
         /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
         public void OrderByDescending<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
         {
-            var compareHelper = new CompareHelper<TKey>(comparison, descending: true);
-            array.UnsafeOrderByCore(keySelector, in compareHelper);
+            var sortHelper = new SortHelper<TKey>(comparison, descending: true);
+            array.UnsafeOrderByCore(keySelector, in sortHelper);
         }
     }
 
-    private static ImmutableArray<T> UnsafeOrderCore<T>(this ImmutableArray<T> array, ref readonly CompareHelper<T> compareHelper)
-    {
-        // Note: Checking the length will throw if array.IsDefault returns true.
-        // So, we can assume that the inner array below is non-null.
-        if (array.Length <= 1)
-        {
-            return array;
-        }
-
-        var innerArray = ImmutableCollectionsMarshal.AsArray(array)!;
-        var items = innerArray.AsSpan();
-
-        if (SortHelper.AreOrdered(items, in compareHelper))
-        {
-            // No need to sort - items are already ordered.
-            return array;
-        }
-
-        var comparer = compareHelper.GetOrCreateComparer();
-
-        Array.Sort(innerArray, comparer);
-
-        return array;
-    }
+    private static ImmutableArray<T> UnsafeOrderCore<T>(this ImmutableArray<T> array, ref readonly SortHelper<T> sortHelper)
+        => array.UnsafeOrderByCore(SortHelper<T>.IdentityFunc, in sortHelper);
 
     private static ImmutableArray<TElement> UnsafeOrderByCore<TElement, TKey>(
-        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, ref readonly CompareHelper<TKey> compareHelper)
+        this ImmutableArray<TElement> array, Func<TElement, TKey> keySelector, ref readonly SortHelper<TKey> sortHelper)
     {
         // Note: Checking the length will throw if array.IsDefault returns true.
         // So, we can assume that the inner array below is non-null.
@@ -194,18 +171,19 @@ internal static partial class ImmutableArrayExtensions
         var items = innerArray.AsSpan();
         var length = items.Length;
 
-        using var keys = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length);
+        using var keys = SortKey<TKey>.GetPooledArray(minimumLength: length);
 
-        if (SortHelper.SelectKeys(items, keySelector, in compareHelper, keys.Span))
+        if (sortHelper.ComputeKeys(items, keySelector, keys.Span))
         {
             // No need to sort - keys are already ordered.
             return array;
         }
 
-        var comparer = compareHelper.GetOrCreateComparer();
+        var comparer = sortHelper.GetOrCreateComparer();
 
         Array.Sort(keys.Array, innerArray, 0, length, comparer);
 
+        // Because we modified the inner array, we can just return array.
         return array;
     }
 }

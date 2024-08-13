@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor;
@@ -151,8 +150,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderAsArray(list);
         }
 
-        var compareHelper = new CompareHelper<T>(comparer: null, descending: false);
-        return sequence.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer: null, descending: false);
+        return sequence.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -176,8 +175,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderAsArray(list, comparer);
         }
 
-        var compareHelper = new CompareHelper<T>(comparer, descending: false);
-        return sequence.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer, descending: false);
+        return sequence.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -201,8 +200,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderAsArray(list, comparison);
         }
 
-        var compareHelper = new CompareHelper<T>(comparison, descending: false);
-        return sequence.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparison, descending: false);
+        return sequence.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -225,8 +224,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderDescendingAsArray(list);
         }
 
-        var compareHelper = new CompareHelper<T>(comparer: null, descending: true);
-        return sequence.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer: null, descending: true);
+        return sequence.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -250,8 +249,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderDescendingAsArray(list, comparer);
         }
 
-        var compareHelper = new CompareHelper<T>(comparer, descending: true);
-        return sequence.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparer, descending: true);
+        return sequence.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -275,8 +274,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderDescendingAsArray(list, comparison);
         }
 
-        var compareHelper = new CompareHelper<T>(comparison, descending: true);
-        return sequence.OrderAsArrayCore(in compareHelper);
+        var sortHelper = new SortHelper<T>(comparison, descending: true);
+        return sequence.OrderAsArrayCore(in sortHelper);
     }
 
     /// <summary>
@@ -302,8 +301,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderByAsArray(list, keySelector);
         }
 
-        var compareHelper = new CompareHelper<TKey>(comparer: null, descending: false);
-        return sequence.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer: null, descending: false);
+        return sequence.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -330,8 +329,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderByAsArray(list, keySelector, comparer);
         }
 
-        var compareHelper = new CompareHelper<TKey>(comparer, descending: false);
-        return sequence.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer, descending: false);
+        return sequence.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -358,8 +357,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderByAsArray(list, keySelector, comparison);
         }
 
-        var compareHelper = new CompareHelper<TKey>(comparison, descending: false);
-        return sequence.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparison, descending: false);
+        return sequence.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -385,8 +384,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderByDescendingAsArray(list, keySelector);
         }
 
-        var compareHelper = new CompareHelper<TKey>(comparer: null, descending: true);
-        return sequence.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer: null, descending: true);
+        return sequence.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -413,8 +412,8 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderByDescendingAsArray(list, keySelector, comparer);
         }
 
-        var compareHelper = new CompareHelper<TKey>(comparer, descending: true);
-        return sequence.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparer, descending: true);
+        return sequence.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
     /// <summary>
@@ -441,29 +440,15 @@ internal static class EnumerableExtensions
             return ReadOnlyListExtensions.OrderByDescendingAsArray(list, keySelector, comparison);
         }
 
-        var compareHelper = new CompareHelper<TKey>(comparison, descending: true);
-        return sequence.OrderByAsArrayCore(keySelector, in compareHelper);
+        var sortHelper = new SortHelper<TKey>(comparison, descending: true);
+        return sequence.OrderByAsArrayCore(keySelector, in sortHelper);
     }
 
-    private static ImmutableArray<T> OrderAsArrayCore<T>(this IEnumerable<T> sequence, ref readonly CompareHelper<T> compareHelper)
-    {
-        var newArray = BuildArray(sequence);
-
-        if (newArray.Length <= 1 || SortHelper.AreOrdered(newArray.AsSpan(), in compareHelper))
-        {
-            // No need to sort - items are already ordered.
-            return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
-        }
-
-        var comparer = compareHelper.GetOrCreateComparer();
-
-        Array.Sort(newArray, comparer);
-
-        return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
-    }
+    private static ImmutableArray<T> OrderAsArrayCore<T>(this IEnumerable<T> sequence, ref readonly SortHelper<T> sortHelper)
+        => sequence.OrderByAsArrayCore(SortHelper<T>.IdentityFunc, in sortHelper);
 
     private static ImmutableArray<TElement> OrderByAsArrayCore<TElement, TKey>(
-        this IEnumerable<TElement> sequence, Func<TElement, TKey> keySelector, ref readonly CompareHelper<TKey> compareHelper)
+        this IEnumerable<TElement> sequence, Func<TElement, TKey> keySelector, ref readonly SortHelper<TKey> sortHelper)
     {
         var newArray = BuildArray(sequence);
 
@@ -474,15 +459,15 @@ internal static class EnumerableExtensions
 
         var length = newArray.Length;
 
-        using var keys = ArrayPool<TKey>.Shared.GetPooledArray(minimumLength: length);
+        using var keys = SortKey<TKey>.GetPooledArray(minimumLength: length);
 
-        if (SortHelper.SelectKeys(newArray.AsSpan(), keySelector, in compareHelper, keys.Span))
+        if (sortHelper.ComputeKeys(newArray.AsSpan(), keySelector, keys.Span))
         {
             // No need to sort - keys are already ordered.
             return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
         }
 
-        var comparer = compareHelper.GetOrCreateComparer();
+        var comparer = sortHelper.GetOrCreateComparer();
 
         Array.Sort(keys.Array, newArray, 0, length, comparer);
 
