@@ -2,11 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
