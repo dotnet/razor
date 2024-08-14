@@ -15,10 +15,10 @@ public sealed class CodeRenderingContext : IDisposable
 {
     private readonly record struct ScopeInternal(IntermediateNodeWriter Writer);
 
+    public RazorSourceDocument SourceDocument { get; }
     public RazorCodeGenerationOptions Options { get; }
     public CodeWriter CodeWriter { get; }
 
-    private readonly RazorCodeDocument _codeDocument;
     private readonly DocumentIntermediateNode _documentNode;
 
     private readonly Stack<IntermediateNode> _ancestorStack;
@@ -29,20 +29,19 @@ public sealed class CodeRenderingContext : IDisposable
     private readonly ImmutableArray<LinePragma>.Builder _linePragmas;
 
     public string DocumentKind => _documentNode.DocumentKind;
-    public RazorSourceDocument SourceDocument => _codeDocument.Source;
 
     public CodeRenderingContext(
         IntermediateNodeWriter nodeWriter,
-        RazorCodeDocument codeDocument,
+        RazorSourceDocument sourceDocument,
         DocumentIntermediateNode documentNode,
         RazorCodeGenerationOptions options)
     {
         ArgHelper.ThrowIfNull(nodeWriter);
-        ArgHelper.ThrowIfNull(codeDocument);
+        ArgHelper.ThrowIfNull(sourceDocument);
         ArgHelper.ThrowIfNull(documentNode);
         ArgHelper.ThrowIfNull(options);
 
-        _codeDocument = codeDocument;
+        SourceDocument = sourceDocument;
         _documentNode = documentNode;
         Options = options;
 

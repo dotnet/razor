@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -24,21 +23,15 @@ internal class DefaultDocumentWriter : DocumentWriter
 
     public override RazorCSharpDocument WriteDocument(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
-        if (codeDocument == null)
-        {
-            throw new ArgumentNullException(nameof(codeDocument));
-        }
-
-        if (documentNode == null)
-        {
-            throw new ArgumentNullException(nameof(documentNode));
-        }
+        ArgHelper.ThrowIfNull(codeDocument);
+        ArgHelper.ThrowIfNull(documentNode);
 
         using var context = new CodeRenderingContext(
             _codeTarget.CreateNodeWriter(),
-            codeDocument,
+            codeDocument.Source,
             documentNode,
             _options);
+
         context.Visitor = new Visitor(_codeTarget, context);
 
         context.Visitor.VisitDocument(documentNode);
