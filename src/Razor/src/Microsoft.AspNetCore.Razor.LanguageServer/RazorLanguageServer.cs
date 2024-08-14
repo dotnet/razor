@@ -20,15 +20,13 @@ using Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.FoldingRanges;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -153,7 +151,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         }
 
         // Other
-        services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
+        services.AddSingleton<IRazorComponentSearchEngine, RazorComponentSearchEngine>();
 
         // Get the DefaultSession for telemetry. This is set by VS with
         // TelemetryService.SetDefaultSession and provides the correct
@@ -180,11 +178,13 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddHandlerWithCapabilities<ImplementationEndpoint>();
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
 
-            services.AddHandlerWithCapabilities<RenameEndpoint>();
             services.AddHandlerWithCapabilities<DefinitionEndpoint>();
 
             if (!featureOptions.UseRazorCohostServer)
             {
+                services.AddSingleton<IRenameService, RenameService>();
+                services.AddHandlerWithCapabilities<RenameEndpoint>();
+
                 services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
                 services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
                 services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();

@@ -106,7 +106,7 @@ public class Foo { }
 
     private FormattingDiagnosticValidationPass GetPass()
     {
-        var mappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var mappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var pass = new FormattingDiagnosticValidationPass(mappingService, LoggerFactory)
         {

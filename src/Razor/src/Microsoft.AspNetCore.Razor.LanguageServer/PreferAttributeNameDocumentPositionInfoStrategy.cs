@@ -19,7 +19,7 @@ internal class PreferAttributeNameDocumentPositionInfoStrategy : IDocumentPositi
     public static IDocumentPositionInfoStrategy Instance { get; } = new PreferAttributeNameDocumentPositionInfoStrategy();
 
     public async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         DocumentContext documentContext,
         Position position,
         CancellationToken cancellationToken)

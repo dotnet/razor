@@ -25,7 +25,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
             => new RemoteUriPresentationService(in args);
     }
 
-    private readonly IRazorDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IRazorDocumentMappingService>();
+    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
     public ValueTask<Response> GetPresentationAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
@@ -71,18 +71,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
         }
 
         var solution = context.TextDocument.Project.Solution;
-
-        // Make sure we go through Roslyn to go from the Uri the client sent us, to one that it has a chance of finding in the solution
-        var uriToFind = RazorUri.GetDocumentFilePathFromUri(razorFileUri);
-        var ids = solution.GetDocumentIdsWithFilePath(uriToFind);
-        if (ids.Length == 0)
-        {
-            return Response.CallHtml;
-        }
-
-        // We assume linked documents would produce the same component tag so just take the first
-        var otherDocument = solution.GetAdditionalDocument(ids[0]);
-        if (otherDocument is null)
+        if (!solution.TryGetRazorDocument(razorFileUri, out var otherDocument))
         {
             return Response.CallHtml;
         }

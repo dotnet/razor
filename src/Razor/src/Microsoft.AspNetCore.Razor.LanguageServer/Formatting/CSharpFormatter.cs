@@ -17,11 +17,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal sealed class CSharpFormatter(IRazorDocumentMappingService documentMappingService)
+internal sealed class CSharpFormatter(IDocumentMappingService documentMappingService)
 {
     private const string MarkerId = "RazorMarker";
 
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
     public async Task<TextEdit[]> FormatAsync(FormattingContext context, LspRange rangeToFormat, CancellationToken cancellationToken)
     {

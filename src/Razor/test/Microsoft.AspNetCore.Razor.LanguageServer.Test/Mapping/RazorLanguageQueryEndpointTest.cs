@@ -18,12 +18,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
 public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
 {
-    private readonly IRazorDocumentMappingService _mappingService;
+    private readonly IDocumentMappingService _documentMappingService;
 
     public RazorLanguageQueryEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _mappingService = new RazorDocumentMappingService(
+        _documentMappingService = new LspDocumentMappingService(
             FilePathService,
             new TestDocumentContextFactory(),
             LoggerFactory);
@@ -36,7 +36,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("@{}");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorLanguageQueryEndpoint(_mappingService, LoggerFactory);
+        var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
         var request = new RazorLanguageQueryParams()
         {
             Uri = documentPath,
@@ -63,7 +63,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<s");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorLanguageQueryEndpoint(_mappingService, LoggerFactory);
+        var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
         var request = new RazorLanguageQueryParams()
         {
             Uri = documentPath,
@@ -93,7 +93,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
             "/* CSharp */",
             new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorLanguageQueryEndpoint(_mappingService, LoggerFactory);
+        var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
         var request = new RazorLanguageQueryParams()
         {
             Uri = documentPath,
@@ -124,7 +124,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
             new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
         codeDocument.SetUnsupported();
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorLanguageQueryEndpoint(_mappingService, LoggerFactory);
+        var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
         var request = new RazorLanguageQueryParams()
         {
             Uri = documentPath,

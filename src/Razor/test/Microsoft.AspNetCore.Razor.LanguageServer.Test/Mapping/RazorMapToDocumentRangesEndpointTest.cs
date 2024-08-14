@@ -17,12 +17,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
 public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
 {
-    private readonly IRazorDocumentMappingService _mappingService;
+    private readonly IDocumentMappingService _documentMappingService;
 
     public RazorMapToDocumentRangesEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _mappingService = new RazorDocumentMappingService(
+        _documentMappingService = new LspDocumentMappingService(
             FilePathService,
             new TestDocumentContextFactory(),
             LoggerFactory);
@@ -43,7 +43,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
                     new SourceSpan(10, 12))
             ]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
@@ -77,7 +77,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
                     new SourceSpan(10, 12))
             ]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
@@ -110,7 +110,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
                     new SourceSpan(10, 12))
             ]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
@@ -143,7 +143,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
                     new SourceSpan(10, 12))
             ]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
@@ -169,7 +169,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.Html,
@@ -195,7 +195,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.Razor,
@@ -229,7 +229,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
             ]);
         codeDocument.SetUnsupported();
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,

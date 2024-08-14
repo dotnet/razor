@@ -23,7 +23,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         // Arrange
         var uri = new Uri("file://path/test.razor");
         var formattingService = new DummyRazorFormattingService();
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
         var endpoint = new DocumentOnTypeFormattingEndpoint(
@@ -52,7 +52,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 
         var documentContext = CreateDocumentContext(new Uri("file://path/testDifferentFile.razor"), codeDocument);
         var formattingService = new DummyRazorFormattingService();
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentOnTypeFormattingEndpoint(
@@ -87,7 +87,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentOnTypeFormattingEndpoint(
@@ -123,7 +123,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
 
-        var documentMappingService = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Html);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentOnTypeFormattingEndpoint(
@@ -159,7 +159,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
 
-        var documentMappingService = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Razor);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentOnTypeFormattingEndpoint(
@@ -194,7 +194,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 
         var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
+        var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentOnTypeFormattingEndpoint(

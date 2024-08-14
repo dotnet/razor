@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
 [RazorLanguageServerEndpoint(VSInternalMethods.TextDocumentValidateBreakableRangeName)]
 internal class ValidateBreakpointRangeEndpoint(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)
@@ -26,7 +26,7 @@ internal class ValidateBreakpointRangeEndpoint(
         clientConnection,
         loggerFactory.GetOrCreateLogger<ValidateBreakpointRangeEndpoint>()), ICapabilitiesProvider
 {
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
     protected override bool OnlySingleServer => false;
 
@@ -66,7 +66,7 @@ internal class ValidateBreakpointRangeEndpoint(
         }
 
         return new DelegatedValidateBreakpointRangeParams(
-            documentContext.Identifier,
+            documentContext.GetTextDocumentIdentifierAndVersion(),
             projectedRange,
             positionInfo.LanguageKind);
     }

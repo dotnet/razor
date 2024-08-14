@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal sealed class CSharpFormattingPass(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
     : CSharpFormattingPassBase(documentMappingService)
 {

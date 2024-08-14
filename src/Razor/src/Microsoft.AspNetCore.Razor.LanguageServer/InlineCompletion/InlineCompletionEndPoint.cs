@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 
 [RazorLanguageServerEndpoint(VSInternalMethods.TextDocumentInlineCompletionName)]
 internal sealed class InlineCompletionEndpoint(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IAdhocWorkspaceFactory adhocWorkspaceFactory,
     ILoggerFactory loggerFactory)
@@ -35,7 +35,7 @@ internal sealed class InlineCompletionEndpoint(
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     private readonly IAdhocWorkspaceFactory _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();

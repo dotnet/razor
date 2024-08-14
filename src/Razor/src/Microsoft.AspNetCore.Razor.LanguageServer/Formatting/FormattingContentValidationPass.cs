@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal sealed class FormattingContentValidationPass(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
     : FormattingPassBase(documentMappingService)
 {

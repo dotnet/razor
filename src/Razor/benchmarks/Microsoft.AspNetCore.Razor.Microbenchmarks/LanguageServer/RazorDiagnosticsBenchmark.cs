@@ -113,9 +113,9 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
             MockBehavior.Strict);
     }
 
-    private IRazorDocumentMappingService BuildRazorDocumentMappingService()
+    private IDocumentMappingService BuildRazorDocumentMappingService()
     {
-        var razorDocumentMappingService = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
+        var razorDocumentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
 
         LspRange? hostDocumentRange;
         razorDocumentMappingService.Setup(

@@ -20,7 +20,7 @@ using SignatureHelp = RLSP::Roslyn.LanguageServer.Protocol.SignatureHelp;
 [RazorLanguageServerEndpoint(Methods.TextDocumentSignatureHelpName)]
 internal sealed class SignatureHelpEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         RazorLSPOptionsMonitor optionsMonitor,
         ILoggerFactory loggerProvider)
@@ -55,8 +55,8 @@ internal sealed class SignatureHelpEndpoint(
         }
 
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
-                documentContext.Identifier,
-                positionInfo.Position,
-                positionInfo.LanguageKind));
+            documentContext.GetTextDocumentIdentifierAndVersion(),
+            positionInfo.Position,
+            positionInfo.LanguageKind));
     }
 }
