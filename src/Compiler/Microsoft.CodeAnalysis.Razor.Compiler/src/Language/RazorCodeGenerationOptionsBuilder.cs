@@ -115,7 +115,7 @@ public sealed class RazorCodeGenerationOptionsBuilder
 
     public RazorCodeGenerationOptions Build()
     {
-        return new DefaultRazorCodeGenerationOptions(
+        return new RazorCodeGenerationOptions(
             IndentWithTabs,
             IndentSize,
             DesignTime,
