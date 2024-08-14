@@ -18,5 +18,8 @@ internal interface IRemoteAutoInsertService : IDisposable
         LinePosition position,
         string character,
         bool autoCloseTags,
+        bool formatOnType,
+        bool indentWithTabs,
+        int indentSize,
         CancellationToken cancellationToken);
 }

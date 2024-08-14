@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-
+using Microsoft.VisualStudio.Text.Editor;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
 using RoslynFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
 
@@ -42,6 +42,9 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         LinePosition linePosition,
         string character,
         bool autoCloseTags,
+        bool formatOnType,
+        bool indentWithTabs,
+        int indentSize,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
@@ -51,6 +54,9 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
                 linePosition,
                 character,
                 autoCloseTags,
+                formatOnType,
+                indentWithTabs,
+                indentSize,
                 cancellationToken),
             cancellationToken);
 
@@ -59,6 +65,9 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         LinePosition linePosition,
         string character,
         bool autoCloseTags,
+        bool formatOnType,
+        bool indentWithTabs,
+        int indentSize,
         CancellationToken cancellationToken)
     {
         var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
@@ -103,12 +112,31 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
+        // Special case for C# where we use AutoInsert for two purposes:
+        // 1. For XML documentation comments (filling out the template when typing "///")
+        // 2. For "on type formatting" style behavior, like adjusting indentation when pressing Enter inside empty braces
+        //
+        // If users have turned off on-type formatting, they don't want the behavior of number 2, but its impossible to separate
+        // that out from number 1. Typing "///" could just as easily adjust indentation on some unrelated code higher up in the
+        // file, which is exactly the behavior users complain about.
+        //
+        // Therefore we are just going to no-op if the user has turned off on type formatting. Maybe one day we can make this
+        // smarter, but at least the user can always turn the setting back on, type their "///", and turn it back off, without
+        // having to restart VS. Not the worst compromise (hopefully!)
+        if (!formatOnType)
+        {
+            return Response.NoFurtherHandling;
+        }
+
         var csharpDocument = codeDocument.GetCSharpDocument();
         if (_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
         {
             var generatedDocument = await remoteDocumentContext.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
-            // TODO: use correct options rather than default
-            var formattingOptions = new RoslynFormattingOptions();
+            var formattingOptions = new RoslynFormattingOptions()
+            {
+                InsertSpaces = !indentWithTabs,
+                TabSize = indentSize
+            };
             var autoInsertResponseItem = await OnAutoInsert.GetOnAutoInsertResponseAsync(
                 generatedDocument,
                 mappedPosition,
