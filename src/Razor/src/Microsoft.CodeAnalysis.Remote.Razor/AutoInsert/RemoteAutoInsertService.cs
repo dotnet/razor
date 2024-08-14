@@ -69,22 +69,29 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
 
         var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
+        // Always try our own service first, regardless of language
+        // E.g. if ">" is typed for html tag, it's actually our auto-insert provider
+        // that adds closing tag instead of HTML even though we are in HTML
+        var insertTextEdit = _autoInsertService.TryResolveInsertion(
+            codeDocument,
+            linePosition.ToPosition(),
+            character,
+            autoCloseTags);
+
+        if (insertTextEdit is { } edit)
+        {
+            return Response.Results(RemoteInsertTextEdit.FromLspInsertTextEdit(edit));
+        }
+
         var languageKind = _documentMappingService.GetLanguageKind(codeDocument, index, rightAssociative: true);
-        if (languageKind is RazorLanguageKind.Html)
+        if (languageKind is RazorLanguageKind.Razor)
+        {
+            // If we are in Razor and got no edit from our own service, there is nothing else to do
+            return Response.NoFurtherHandling;
+        }
+        else if (languageKind is RazorLanguageKind.Html)
         {
             return Response.CallHtml;
-        }
-        else if (languageKind is RazorLanguageKind.Razor)
-        {
-            var insertTextEdit = _autoInsertService.TryResolveInsertion(
-                codeDocument,
-                linePosition.ToPosition(),
-                character,
-                autoCloseTags);
-
-            return insertTextEdit is { } edit
-                ? Response.Results(RemoteInsertTextEdit.FromLspInsertTextEdit(edit))
-                : Response.NoFurtherHandling;
         }
 
         // C# case
