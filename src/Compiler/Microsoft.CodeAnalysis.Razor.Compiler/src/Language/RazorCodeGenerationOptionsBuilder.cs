@@ -11,8 +11,6 @@ public sealed class RazorCodeGenerationOptionsBuilder
 
     public bool DesignTime => _designTime;
 
-    public string? FileKind { get; }
-
     public int IndentSize { get; set; } = 4;
 
     public bool IndentWithTabs { get; set; }
@@ -100,12 +98,11 @@ public sealed class RazorCodeGenerationOptionsBuilder
     /// </summary>
     internal bool RemapLinePragmaPathsOnWindows { get; set; }
 
-    public RazorCodeGenerationOptionsBuilder(RazorConfiguration configuration, string fileKind)
+    public RazorCodeGenerationOptionsBuilder(RazorConfiguration configuration)
     {
         ArgHelper.ThrowIfNull(configuration);
 
         Configuration = configuration;
-        FileKind = fileKind;
     }
 
     public RazorCodeGenerationOptionsBuilder(bool designTime)
@@ -114,14 +111,14 @@ public sealed class RazorCodeGenerationOptionsBuilder
     }
 
     public RazorCodeGenerationOptions Build()
-    {
-        return new RazorCodeGenerationOptions(
+        => new(
             IndentWithTabs,
             IndentSize,
             DesignTime,
             RootNamespace,
             SuppressChecksum,
             SuppressMetadataAttributes,
+            SuppressMetadataSourceChecksumAttributes,
             SuppressPrimaryMethodBody,
             SuppressNullabilityEnforcement,
             OmitMinimizedComponentAttributeValues,
@@ -129,11 +126,7 @@ public sealed class RazorCodeGenerationOptionsBuilder
             UseEnhancedLinePragma,
             SuppressUniqueIds,
             SuppressAddComponentParameter,
-            RemapLinePragmaPathsOnWindows)
-        {
-            SuppressMetadataSourceChecksumAttributes = SuppressMetadataSourceChecksumAttributes,
-        };
-    }
+            RemapLinePragmaPathsOnWindows);
 
     public void SetDesignTime(bool designTime)
     {

@@ -60,7 +60,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         var mockRazorCSharpDocument = new RazorCSharpDocument(
             mockRazorCodeDocument.Object,
             GeneratedCode,
-            RazorCodeGenerationOptions.CreateDesignTimeDefault(),
+            RazorCodeGenerationOptions.DesignTimeDefault,
             diagnostics: [],
             SourceMappings,
             linePragmas: []);

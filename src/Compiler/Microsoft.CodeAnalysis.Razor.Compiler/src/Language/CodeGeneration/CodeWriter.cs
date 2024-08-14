@@ -43,7 +43,7 @@ public sealed partial class CodeWriter : IDisposable
     private int _currentLineCharacterIndex;
 
     public CodeWriter()
-        : this(Environment.NewLine, RazorCodeGenerationOptions.CreateDefault())
+        : this(Environment.NewLine, RazorCodeGenerationOptions.Default)
     {
     }
 

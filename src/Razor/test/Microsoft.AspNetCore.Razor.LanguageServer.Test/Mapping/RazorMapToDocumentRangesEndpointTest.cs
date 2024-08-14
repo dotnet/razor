@@ -234,7 +234,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var csharpDocument = new RazorCSharpDocument(
             codeDocument,
             projectedCSharpSource,
-            RazorCodeGenerationOptions.CreateDefault(),
+            RazorCodeGenerationOptions.Default,
             diagnostics: [],
             sourceMappings,
             linePragmas: []);

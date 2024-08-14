@@ -528,7 +528,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
     private static RazorCodeDocument CreateCodeDocument(IEnumerable<RazorDiagnostic> diagnostics)
     {
         var codeDocument = TestRazorCodeDocument.Create("hello");
-        var razorCSharpDocument = new RazorCSharpDocument(codeDocument, "hello", RazorCodeGenerationOptions.CreateDefault(), diagnostics.ToImmutableArray());
+        var razorCSharpDocument = new RazorCSharpDocument(codeDocument, "hello", RazorCodeGenerationOptions.Default, diagnostics.ToImmutableArray());
         codeDocument.SetCSharpDocument(razorCSharpDocument);
 
         return codeDocument;

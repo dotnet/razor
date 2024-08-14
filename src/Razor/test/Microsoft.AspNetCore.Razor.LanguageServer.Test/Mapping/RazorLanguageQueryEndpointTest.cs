@@ -148,7 +148,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         var csharpDocument = new RazorCSharpDocument(
             codeDocument,
             projectedCSharpSource,
-            RazorCodeGenerationOptions.CreateDefault(),
+            RazorCodeGenerationOptions.Default,
             diagnostics: [],
             sourceMappings,
             linePragmas: []);

@@ -16,7 +16,7 @@ public static class TestCodeRenderingContext
         IntermediateNodeWriter nodeWriter = null)
     {
         var documentNode = new DocumentIntermediateNode();
-        var options = RazorCodeGenerationOptions.CreateDesignTimeDefault();
+        var options = RazorCodeGenerationOptions.DesignTimeDefault;
 
         if (source == null)
         {
@@ -52,7 +52,7 @@ public static class TestCodeRenderingContext
         IntermediateNodeWriter nodeWriter = null)
     {
         var documentNode = new DocumentIntermediateNode();
-        var options = RazorCodeGenerationOptions.CreateDefault();
+        var options = RazorCodeGenerationOptions.Default;
 
         if (source == null)
         {
