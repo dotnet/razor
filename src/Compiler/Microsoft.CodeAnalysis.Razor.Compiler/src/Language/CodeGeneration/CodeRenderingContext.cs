@@ -15,8 +15,6 @@ public sealed class CodeRenderingContext : IDisposable
 {
     private readonly record struct ScopeInternal(IntermediateNodeWriter Writer);
 
-    internal static readonly object NewLineStringKey = "NewLineString";
-
     public RazorCodeGenerationOptions Options { get; }
     public CodeWriter CodeWriter { get; }
 
@@ -62,9 +60,7 @@ public sealed class CodeRenderingContext : IDisposable
         _linePragmas = ArrayBuilderPool<LinePragma>.Default.Get();
         _sourceMappings = ArrayBuilderPool<SourceMapping>.Default.Get();
 
-        // Set new line character to a specific string regardless of platform, for testing purposes.
-        var newLineString = codeDocument.Items[NewLineStringKey] as string ?? Environment.NewLine;
-        CodeWriter = new CodeWriter(newLineString, options);
+        CodeWriter = new CodeWriter(options);
     }
 
     public void Dispose()

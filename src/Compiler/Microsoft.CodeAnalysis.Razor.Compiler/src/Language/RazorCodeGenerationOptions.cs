@@ -8,14 +8,17 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public sealed class RazorCodeGenerationOptions(
     RazorCodeGenerationOptionsFlags flags,
     int indentSize,
+    string newLine,
     string? rootNamespace,
     string? suppressUniqueIds)
 {
     private readonly RazorCodeGenerationOptionsFlags _flags = flags;
 
     public bool DesignTime => _flags.HasFlag(RazorCodeGenerationOptionsFlags.DesignTime);
+
     public bool IndentWithTabs => _flags.HasFlag(RazorCodeGenerationOptionsFlags.IndentWithTabs);
     public int IndentSize { get; } = indentSize;
+    public string NewLine { get; } = newLine;
 
     /// <summary>
     /// Gets the root namespace for the generated code.
@@ -113,12 +116,14 @@ public sealed class RazorCodeGenerationOptions(
     public static RazorCodeGenerationOptions Default { get; } = new RazorCodeGenerationOptions(
         flags: RazorCodeGenerationOptionsFlags.DefaultFlags,
         indentSize: 4,
+        newLine: Environment.NewLine,
         rootNamespace: null,
         suppressUniqueIds: null);
 
     public static RazorCodeGenerationOptions DesignTimeDefault { get; } = new RazorCodeGenerationOptions(
         flags: RazorCodeGenerationOptionsFlags.DefaultDesignTimeFlags,
         indentSize: 4,
+        newLine: Environment.NewLine,
         rootNamespace: null,
         suppressUniqueIds: null);
 
@@ -150,10 +155,13 @@ public sealed class RazorCodeGenerationOptions(
 
     public RazorCodeGenerationOptionsBuilder ToBuilder()
     {
-        var builder = new RazorCodeGenerationOptionsBuilder(_flags);
-        builder.IndentSize = IndentSize;
-        builder.RootNamespace = RootNamespace;
-        builder.SuppressUniqueIds = SuppressUniqueIds;
+        var builder = new RazorCodeGenerationOptionsBuilder(_flags)
+        {
+            IndentSize = IndentSize,
+            NewLine = NewLine,
+            RootNamespace = RootNamespace,
+            SuppressUniqueIds = SuppressUniqueIds
+        };
 
         return builder;
     }

@@ -26,7 +26,7 @@ public static class TestCodeRenderingContext
         var codeDocument = RazorCodeDocument.Create(source);
         if (newLineString != null)
         {
-            codeDocument.Items[CodeRenderingContext.NewLineStringKey] = newLineString;
+            optionsBuilder.NewLine = newLineString;
         }
 
         if (suppressUniqueIds != null)
@@ -64,7 +64,7 @@ public static class TestCodeRenderingContext
         var codeDocument = RazorCodeDocument.Create(source);
         if (newLineString != null)
         {
-            codeDocument.Items[CodeRenderingContext.NewLineStringKey] = newLineString;
+            optionsBuilder.NewLine = newLineString;
         }
 
         if (suppressUniqueIds != null)

@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -299,8 +298,7 @@ public abstract class IntegrationTestBase
     {
         return RazorProjectEngine.Create(configuration, FileSystem, b =>
         {
-            b.Features.Add(new ConfigureCodeGenerationOptionsFeature());
-            b.Phases.Insert(0, new ConfigureCodeRenderingPhase(LineEnding));
+            b.Features.Add(new ConfigureCodeGenerationOptionsFeature(LineEnding));
 
             b.RegisterExtensions();
 
@@ -783,28 +781,14 @@ public abstract class IntegrationTestBase
         return Regex.Replace(content, "(?<!\r)\n", lineEnding, RegexOptions.None, TimeSpan.FromSeconds(10));
     }
 
-    private sealed class ConfigureCodeGenerationOptionsFeature : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
+    private sealed class ConfigureCodeGenerationOptionsFeature(string lineEnding) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
         public int Order { get; }
 
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
+            options.NewLine = lineEnding;
             options.SuppressUniqueIds = "test";
-        }
-    }
-
-    private class ConfigureCodeRenderingPhase : RazorEnginePhaseBase
-    {
-        public ConfigureCodeRenderingPhase(string lineEnding)
-        {
-            LineEnding = lineEnding;
-        }
-
-        public string LineEnding { get; }
-
-        protected override void ExecuteCore(RazorCodeDocument codeDocument)
-        {
-            codeDocument.Items[CodeRenderingContext.NewLineStringKey] = LineEnding;
         }
     }
 

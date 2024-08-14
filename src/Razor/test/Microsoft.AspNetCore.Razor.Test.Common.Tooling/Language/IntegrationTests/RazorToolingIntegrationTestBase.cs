@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
@@ -117,7 +116,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
             if (LineEnding != null)
             {
-                b.Phases.Insert(0, new ForceLineEndingPhase(LineEnding));
+                b.Features.Add(new SetNewLineOptionFeature(LineEnding));
             }
 
             b.Features.Add(new DefaultTypeNameFeature());
@@ -430,18 +429,13 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         }
     }
 
-    private class ForceLineEndingPhase : RazorEnginePhaseBase
+    private sealed class SetNewLineOptionFeature(string newLine) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
-        public ForceLineEndingPhase(string lineEnding)
-        {
-            LineEnding = lineEnding;
-        }
+        public int Order { get; }
 
-        public string LineEnding { get; }
-
-        protected override void ExecuteCore(RazorCodeDocument codeDocument)
+        public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
-            codeDocument.Items[CodeRenderingContext.NewLineStringKey] = LineEnding;
+            options.NewLine = newLine;
         }
     }
 

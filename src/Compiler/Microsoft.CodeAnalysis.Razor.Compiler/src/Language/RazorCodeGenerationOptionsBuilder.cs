@@ -1,17 +1,29 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed class RazorCodeGenerationOptionsBuilder
 {
     private RazorCodeGenerationOptionsFlags _flags;
+    private string _newLine = Environment.NewLine;
 
     public RazorConfiguration? Configuration { get; }
 
     public bool DesignTime => _flags.IsFlagSet(RazorCodeGenerationOptionsFlags.DesignTime);
 
     public int IndentSize { get; set; } = 4;
+
+    public string NewLine
+    {
+        get => _newLine;
+        set
+        {
+            _newLine = value ?? Environment.NewLine;
+        }
+    }
 
     public bool IndentWithTabs
     {
@@ -166,6 +178,7 @@ public sealed class RazorCodeGenerationOptionsBuilder
         => new(
             _flags,
             IndentSize,
+            NewLine,
             RootNamespace,
             SuppressUniqueIds);
 
