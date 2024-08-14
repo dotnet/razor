@@ -91,10 +91,17 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         }
         else if (languageKind is RazorLanguageKind.Html)
         {
-            return Response.CallHtml;
+            return AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters.Contains(character)
+                ? Response.CallHtml
+                : Response.NoFurtherHandling;
         }
 
         // C# case
+
+        if (!AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters.Contains(character))
+        {
+            return Response.NoFurtherHandling;
+        }
 
         var csharpDocument = codeDocument.GetCSharpDocument();
         if (_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
