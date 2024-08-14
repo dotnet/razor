@@ -14,6 +14,7 @@ using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 using CSharpSyntaxToken = Microsoft.CodeAnalysis.SyntaxToken;
 using CSharpSyntaxTriviaList = Microsoft.CodeAnalysis.SyntaxTriviaList;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -511,6 +512,26 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
             case CSharpSyntaxKind.SingleLineCommentTrivia or CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia or CSharpSyntaxKind.SingleLineDocumentationCommentTrivia:
                 tokenType = SyntaxKind.CSharpComment;
                 _isOnlyWhitespaceOnLine = false;
+                break;
+            case var kind when SyntaxFacts.IsPreprocessorDirective(kind):
+                tokenType = SyntaxKind.CSharpDirective;
+
+                if (!_isOnlyWhitespaceOnLine)
+                {
+                    // PROTOTYPE: report error
+                }
+
+                // PROTOTYPE: report error for `#define`, `#undef`, as they can't be used in a razor file (will never be at the start of the C# file)
+
+                var directiveTrivia = (DirectiveTriviaSyntax)trivia.GetStructure()!;
+                Debug.Assert(directiveTrivia != null);
+
+                _isOnlyWhitespaceOnLine = directiveTrivia.EndOfDirectiveToken.TrailingTrivia is [.., { RawKind: (int)CSharpSyntaxKind.EndOfLineTrivia }];
+                break;
+            case CSharpSyntaxKind.DisabledTextTrivia:
+                tokenType = SyntaxKind.CSharpDisabledText;
+                _isOnlyWhitespaceOnLine = false;
+                // PROTOTYPE: check for conditional directive end that could be accidentally unterminated (not at the start of the line)
                 break;
             case var kind:
                 throw new InvalidOperationException($"Unexpected trivia kind: {kind}.");

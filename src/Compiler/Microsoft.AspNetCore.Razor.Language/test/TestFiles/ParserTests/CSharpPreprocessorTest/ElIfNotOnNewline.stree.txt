@@ -12,11 +12,7 @@
                     CSharpCodeBlock - [2..14)::12
                         CSharpStatementLiteral - [2..14)::12 - [LF#if trueLF] - Gen<Stmt>
                             NewLine;[LF];
-                            Hash;[#];
-                            Keyword;[if];
-                            Whitespace;[ ];
-                            Keyword;[true];
-                            NewLine;[LF];
+                            CSharpDirective;[#if trueLF];
                     RazorMetaCode - [14..15)::1 - Gen<None>
                         RightBrace;[}];
         MarkupEphemeralTextLiteral - [15..17)::2 - [LF] - Gen<None>
@@ -50,67 +46,19 @@
                 CloseAngle;[>];
         MarkupTextLiteral - [50..52)::2 - [LF] - Gen<Markup>
             NewLine;[LF];
-        CSharpCodeBlock - [52..68)::16
-            CSharpStatement - [52..68)::16
+        CSharpCodeBlock - [52..119)::67
+            CSharpStatement - [52..119)::67
                 CSharpTransition - [52..53)::1 - Gen<None>
                     Transition;[@];
-                CSharpStatementBody - [53..68)::15
+                CSharpStatementBody - [53..119)::66
                     RazorMetaCode - [53..54)::1 - Gen<None>
                         LeftBrace;[{];
-                    CSharpCodeBlock - [54..67)::13
-                        CSharpStatementLiteral - [54..67)::13 - [ #elif false ] - Gen<Stmt>
+                    CSharpCodeBlock - [54..118)::64
+                        CSharpStatementLiteral - [54..118)::64 - [ #elif false }LF<div>LF    <p>Content2</p>LF</div>LF@{LF#endifLF] - Gen<Stmt>
                             Whitespace;[ ];
-                            Hash;[#];
-                            Identifier;[elif];
-                            Whitespace;[ ];
-                            Keyword;[false];
-                            Whitespace;[ ];
-                    RazorMetaCode - [67..68)::1 - Gen<None>
-                        RightBrace;[}];
-        MarkupEphemeralTextLiteral - [68..70)::2 - [LF] - Gen<None>
-            NewLine;[LF];
-        MarkupElement - [70..104)::34
-            MarkupStartTag - [70..75)::5 - [<div>] - Gen<Markup>
-                OpenAngle;[<];
-                Text;[div];
-                CloseAngle;[>];
-            MarkupTextLiteral - [75..81)::6 - [LF    ] - Gen<Markup>
-                NewLine;[LF];
-                Whitespace;[    ];
-            MarkupElement - [81..96)::15
-                MarkupStartTag - [81..84)::3 - [<p>] - Gen<Markup>
-                    OpenAngle;[<];
-                    Text;[p];
-                    CloseAngle;[>];
-                MarkupTextLiteral - [84..92)::8 - [Content2] - Gen<Markup>
-                    Text;[Content2];
-                MarkupEndTag - [92..96)::4 - [</p>] - Gen<Markup>
-                    OpenAngle;[<];
-                    ForwardSlash;[/];
-                    Text;[p];
-                    CloseAngle;[>];
-            MarkupTextLiteral - [96..98)::2 - [LF] - Gen<Markup>
-                NewLine;[LF];
-            MarkupEndTag - [98..104)::6 - [</div>] - Gen<Markup>
-                OpenAngle;[<];
-                ForwardSlash;[/];
-                Text;[div];
-                CloseAngle;[>];
-        MarkupTextLiteral - [104..106)::2 - [LF] - Gen<Markup>
-            NewLine;[LF];
-        CSharpCodeBlock - [106..119)::13
-            CSharpStatement - [106..119)::13
-                CSharpTransition - [106..107)::1 - Gen<None>
-                    Transition;[@];
-                CSharpStatementBody - [107..119)::12
-                    RazorMetaCode - [107..108)::1 - Gen<None>
-                        LeftBrace;[{];
-                    CSharpCodeBlock - [108..118)::10
-                        CSharpStatementLiteral - [108..118)::10 - [LF#endifLF] - Gen<Stmt>
-                            NewLine;[LF];
-                            Hash;[#];
-                            Identifier;[endif];
-                            NewLine;[LF];
+                            CSharpDirective;[#elif false }LF];
+                            CSharpDisabledText;[<div>LF    <p>Content2</p>LF</div>LF@{LF];
+                            CSharpDirective;[#endifLF];
                     RazorMetaCode - [118..119)::1 - Gen<None>
                         RightBrace;[}];
         MarkupTextLiteral - [119..119)::0 - [] - Gen<Markup>

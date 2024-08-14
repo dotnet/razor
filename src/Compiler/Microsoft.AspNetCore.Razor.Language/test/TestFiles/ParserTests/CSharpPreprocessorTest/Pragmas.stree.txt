@@ -12,35 +12,9 @@
                     CSharpCodeBlock - [2..138)::136
                         CSharpStatementLiteral - [2..138)::136 - [LF#pragma warning disable 123LF#pragma warning restore 123LF#pragma checksum "file.cs" "{00000000-0000-0000-0000-000000000000}" "1234"LF] - Gen<Stmt>
                             NewLine;[LF];
-                            Hash;[#];
-                            Identifier;[pragma];
-                            Whitespace;[ ];
-                            Identifier;[warning];
-                            Whitespace;[ ];
-                            Identifier;[disable];
-                            Whitespace;[ ];
-                            IntegerLiteral;[123];
-                            NewLine;[LF];
-                            Hash;[#];
-                            Identifier;[pragma];
-                            Whitespace;[ ];
-                            Identifier;[warning];
-                            Whitespace;[ ];
-                            Identifier;[restore];
-                            Whitespace;[ ];
-                            IntegerLiteral;[123];
-                            NewLine;[LF];
-                            Hash;[#];
-                            Identifier;[pragma];
-                            Whitespace;[ ];
-                            Identifier;[checksum];
-                            Whitespace;[ ];
-                            StringLiteral;["file.cs"];
-                            Whitespace;[ ];
-                            StringLiteral;["{00000000-0000-0000-0000-000000000000}"];
-                            Whitespace;[ ];
-                            StringLiteral;["1234"];
-                            NewLine;[LF];
+                            CSharpDirective;[#pragma warning disable 123LF];
+                            CSharpDirective;[#pragma warning restore 123LF];
+                            CSharpDirective;[#pragma checksum "file.cs" "{00000000-0000-0000-0000-000000000000}" "1234"LF];
                     RazorMetaCode - [138..139)::1 - Gen<None>
                         RightBrace;[}];
         MarkupTextLiteral - [139..139)::0 - [] - Gen<Markup>

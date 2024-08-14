@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-public class CSharpPreprocessorTest() : ParserTestBase(layer: TestProject.Layer.Compiler, validateSpanEditHandlers: false, useLegacyTokenizer: true)
+public class CSharpPreprocessorTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
     [Fact]
     public void Pragmas()

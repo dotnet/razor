@@ -2,27 +2,20 @@
     MarkupBlock - [0..37)::37
         MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
-        CSharpCodeBlock - [0..22)::22
-            CSharpStatement - [0..22)::22
+        CSharpCodeBlock - [0..37)::37
+            CSharpStatement - [0..37)::37
                 CSharpTransition - [0..1)::1 - Gen<None>
                     Transition;[@];
-                CSharpStatementBody - [1..22)::21
+                CSharpStatementBody - [1..37)::36
                     RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
-                    CSharpCodeBlock - [2..21)::19
-                        CSharpStatementLiteral - [2..21)::19 - [LF#region MyRegion ] - Gen<Stmt>
+                    CSharpCodeBlock - [2..36)::34
+                        CSharpStatementLiteral - [2..36)::34 - [LF#region MyRegion }LF#endregionLF] - Gen<Stmt>
                             NewLine;[LF];
-                            Hash;[#];
-                            Identifier;[region];
-                            Whitespace;[ ];
-                            Identifier;[MyRegion];
-                            Whitespace;[ ];
-                    RazorMetaCode - [21..22)::1 - Gen<None>
+                            CSharpDirective;[#region MyRegion }LF];
+                            CSharpDirective;[#endregionLF];
+                    RazorMetaCode - [36..37)::1 - Gen<None>
                         RightBrace;[}];
-        MarkupEphemeralTextLiteral - [22..24)::2 - [LF] - Gen<None>
-            NewLine;[LF];
-        MarkupTextLiteral - [24..37)::13 - [#endregionLF}] - Gen<Markup>
-            Text;[#endregion];
-            NewLine;[LF];
-            Text;[}];
+        MarkupTextLiteral - [37..37)::0 - [] - Gen<Markup>
+            Marker;[];
     EndOfFile;[];
