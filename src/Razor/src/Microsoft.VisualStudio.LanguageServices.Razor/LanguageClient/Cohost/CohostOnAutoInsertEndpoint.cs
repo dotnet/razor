@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
-
+using Microsoft.VisualStudio.Razor.Settings;
 using RazorLSPConstants = Microsoft.VisualStudio.Razor.LanguageClient.RazorLSPConstants;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
 
@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 #pragma warning restore RS0030 // Do not use banned APIs
 internal class CohostOnAutoInsertEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
+    IClientSettingsManager clientSettingsManager,
 #pragma warning disable RS0030 // Do not use banned APIs
     [ImportMany] IEnumerable<IOnAutoInsertTriggerCharacterProvider> onAutoInsertTriggerCharacterProviders,
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -41,6 +42,7 @@ internal class CohostOnAutoInsertEndpoint(
     : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IEnumerable<IOnAutoInsertTriggerCharacterProvider> _onAutoInsertTriggerCharacterProviders = onAutoInsertTriggerCharacterProviders;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
@@ -81,6 +83,12 @@ internal class CohostOnAutoInsertEndpoint(
 
         _logger.LogDebug($"Resolving auto-insertion for {razorDocument.FilePath}");
 
+        var clientSettings = _clientSettingsManager.GetClientSettings();
+        var enableAutoClosingTags = clientSettings.AdvancedSettings.AutoClosingTags;
+        var formatOnType = clientSettings.AdvancedSettings.FormatOnType;
+        var indentWithTabs = clientSettings.ClientSpaceSettings.IndentWithTabs;
+        var indentSize = clientSettings.ClientSpaceSettings.IndentSize;
+
         _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(
             razorDocument.Project.Solution,
@@ -90,7 +98,10 @@ internal class CohostOnAutoInsertEndpoint(
                         razorDocument.Id,
                         request.Position.ToLinePosition(),
                         request.Character,
-                        autoCloseTags: true, // TODO: get value from client options
+                        autoCloseTags: enableAutoClosingTags,
+                        formatOnType: formatOnType,
+                        indentWithTabs: indentWithTabs,
+                        indentSize: indentSize,
                         cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
