@@ -1,26 +1,26 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract class RazorCodeGenerationOptionsBuilder
+public sealed class RazorCodeGenerationOptionsBuilder
 {
-    public virtual RazorConfiguration Configuration => null;
+    private bool _designTime;
 
-    public abstract bool DesignTime { get; }
+    public RazorConfiguration? Configuration { get; }
 
-    public virtual string FileKind => null;
+    public bool DesignTime => _designTime;
 
-    public abstract int IndentSize { get; set; }
+    public string? FileKind { get; }
 
-    public abstract bool IndentWithTabs { get; set; }
+    public int IndentSize { get; set; } = 4;
+
+    public bool IndentWithTabs { get; set; }
 
     /// <summary>
     /// Gets or sets the root namespace of the generated code.
     /// </summary>
-    public virtual string RootNamespace { get; set; }
+    public string? RootNamespace { get; set; }
 
     /// <summary>
     /// Gets or sets a value that indicates whether to suppress the default <c>#pragma checksum</c> directive in the
@@ -31,7 +31,7 @@ public abstract class RazorCodeGenerationOptionsBuilder
     /// The <c>#pragma checksum</c> is required to enable debugging and should only be suppressed for testing
     /// purposes.
     /// </remarks>
-    public abstract bool SuppressChecksum { get; set; }
+    public bool SuppressChecksum { get; set; }
 
     /// <summary>
     /// Gets or sets a value that indicates whether to suppress the default metadata attributes in the generated
@@ -49,7 +49,7 @@ public abstract class RazorCodeGenerationOptionsBuilder
     /// a reference to <c>Microsoft.AspNetCore.Razor.Runtime</c>, or for testing purposes.
     /// </para>
     /// </remarks>
-    public virtual bool SuppressMetadataAttributes { get; set; }
+    public bool SuppressMetadataAttributes { get; set; }
 
     /// <summary>
     /// Gets a value that indicates whether to suppress the <c>RazorSourceChecksumAttribute</c>.
@@ -63,32 +63,32 @@ public abstract class RazorCodeGenerationOptionsBuilder
     /// <summary>
     /// Gets or sets a value that determines if an empty body is generated for the primary method.
     /// </summary>
-    public virtual bool SuppressPrimaryMethodBody { get; set; }
+    public bool SuppressPrimaryMethodBody { get; set; }
 
     /// <summary>
     /// Gets or sets a value that determines if nullability type enforcement should be suppressed for user code.
     /// </summary>
-    public virtual bool SuppressNullabilityEnforcement { get; set; }
+    public bool SuppressNullabilityEnforcement { get; set; }
 
     /// <summary>
     /// Gets or sets a value that determines if the components code writer may omit values for minimized attributes.
     /// </summary>
-    public virtual bool OmitMinimizedComponentAttributeValues { get; set; }
+    public bool OmitMinimizedComponentAttributeValues { get; set; }
 
     /// <summary>
     /// Gets or sets a value that determines if localized component names are to be supported.
     /// </summary>
-    public virtual bool SupportLocalizedComponentNames { get; set; }
+    public bool SupportLocalizedComponentNames { get; set; }
 
     /// <summary>
     /// Gets or sets a value that determines if enhanced line pragmas are to be utilized.
     /// </summary>
-    public virtual bool UseEnhancedLinePragma { get; set; }
+    public bool UseEnhancedLinePragma { get; set; }
 
     /// <summary>
     /// Gets or sets a value that determines if unique ids are suppressed for testing.
     /// </summary>
-    internal string SuppressUniqueIds { get; set; }
+    internal string? SuppressUniqueIds { get; set; }
 
     /// <summary>
     /// Determines whether RenderTreeBuilder.AddComponentParameter should not be used.
@@ -100,9 +100,43 @@ public abstract class RazorCodeGenerationOptionsBuilder
     /// </summary>
     internal bool RemapLinePragmaPathsOnWindows { get; set; }
 
-    public abstract RazorCodeGenerationOptions Build();
-
-    public virtual void SetDesignTime(bool designTime)
+    public RazorCodeGenerationOptionsBuilder(RazorConfiguration configuration, string fileKind)
     {
+        ArgHelper.ThrowIfNull(configuration);
+
+        Configuration = configuration;
+        FileKind = fileKind;
+    }
+
+    public RazorCodeGenerationOptionsBuilder(bool designTime)
+    {
+        _designTime = designTime;
+    }
+
+    public RazorCodeGenerationOptions Build()
+    {
+        return new DefaultRazorCodeGenerationOptions(
+            IndentWithTabs,
+            IndentSize,
+            DesignTime,
+            RootNamespace,
+            SuppressChecksum,
+            SuppressMetadataAttributes,
+            SuppressPrimaryMethodBody,
+            SuppressNullabilityEnforcement,
+            OmitMinimizedComponentAttributeValues,
+            SupportLocalizedComponentNames,
+            UseEnhancedLinePragma,
+            SuppressUniqueIds,
+            SuppressAddComponentParameter,
+            RemapLinePragmaPathsOnWindows)
+        {
+            SuppressMetadataSourceChecksumAttributes = SuppressMetadataSourceChecksumAttributes,
+        };
+    }
+
+    public void SetDesignTime(bool designTime)
+    {
+        _designTime = designTime;
     }
 }

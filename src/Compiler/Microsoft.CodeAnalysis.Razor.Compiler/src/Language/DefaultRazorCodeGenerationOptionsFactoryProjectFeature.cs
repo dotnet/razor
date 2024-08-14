@@ -19,7 +19,7 @@ internal class DefaultRazorCodeGenerationOptionsFactoryProjectFeature : RazorPro
 
     public RazorCodeGenerationOptions Create(string fileKind, Action<RazorCodeGenerationOptionsBuilder> configure)
     {
-        var builder = new DefaultRazorCodeGenerationOptionsBuilder(ProjectEngine.Configuration, fileKind);
+        var builder = new RazorCodeGenerationOptionsBuilder(ProjectEngine.Configuration, fileKind);
         configure?.Invoke(builder);
 
         for (var i = 0; i < _configureOptions.Length; i++)

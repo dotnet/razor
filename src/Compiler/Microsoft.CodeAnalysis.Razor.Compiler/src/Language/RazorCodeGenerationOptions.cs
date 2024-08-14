@@ -54,7 +54,7 @@ public abstract class RazorCodeGenerationOptions
             throw new ArgumentNullException(nameof(configure));
         }
 
-        var builder = new DefaultRazorCodeGenerationOptionsBuilder(designTime: false);
+        var builder = new RazorCodeGenerationOptionsBuilder(designTime: false);
         configure(builder);
         var options = builder.Build();
 
@@ -68,7 +68,7 @@ public abstract class RazorCodeGenerationOptions
             throw new ArgumentNullException(nameof(configure));
         }
 
-        var builder = new DefaultRazorCodeGenerationOptionsBuilder(designTime: true)
+        var builder = new RazorCodeGenerationOptionsBuilder(designTime: true)
         {
             SuppressMetadataAttributes = true,
         };
