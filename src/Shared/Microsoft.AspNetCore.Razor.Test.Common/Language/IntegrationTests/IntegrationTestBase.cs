@@ -299,6 +299,7 @@ public abstract class IntegrationTestBase
     {
         return RazorProjectEngine.Create(configuration, FileSystem, b =>
         {
+            b.Features.Add(new ConfigureCodeGenerationOptionsFeature());
             b.Phases.Insert(0, new ConfigureCodeRenderingPhase(LineEnding));
 
             b.RegisterExtensions();
@@ -782,6 +783,16 @@ public abstract class IntegrationTestBase
         return Regex.Replace(content, "(?<!\r)\n", lineEnding, RegexOptions.None, TimeSpan.FromSeconds(10));
     }
 
+    private sealed class ConfigureCodeGenerationOptionsFeature : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
+    {
+        public int Order { get; }
+
+        public void Configure(RazorCodeGenerationOptionsBuilder options)
+        {
+            options.SuppressUniqueIds = "test";
+        }
+    }
+
     private class ConfigureCodeRenderingPhase : RazorEnginePhaseBase
     {
         public ConfigureCodeRenderingPhase(string lineEnding)
@@ -793,7 +804,6 @@ public abstract class IntegrationTestBase
 
         protected override void ExecuteCore(RazorCodeDocument codeDocument)
         {
-            codeDocument.Items[CodeRenderingContext.SuppressUniqueIdsKey] = "test";
             codeDocument.Items[CodeRenderingContext.NewLineStringKey] = LineEnding;
         }
     }

@@ -16,7 +16,7 @@ public static class TestCodeRenderingContext
         IntermediateNodeWriter nodeWriter = null)
     {
         var documentNode = new DocumentIntermediateNode();
-        var options = RazorCodeGenerationOptions.DesignTimeDefault;
+        var optionsBuilder = RazorCodeGenerationOptions.DesignTimeDefault.ToBuilder();
 
         if (source == null)
         {
@@ -31,13 +31,15 @@ public static class TestCodeRenderingContext
 
         if (suppressUniqueIds != null)
         {
-            codeDocument.Items[CodeRenderingContext.SuppressUniqueIdsKey] = suppressUniqueIds;
+            optionsBuilder.SuppressUniqueIds = suppressUniqueIds;
         }
 
         if (nodeWriter == null)
         {
             nodeWriter = new DesignTimeNodeWriter();
         }
+
+        var options = optionsBuilder.Build();
 
         var context = new CodeRenderingContext(nodeWriter, codeDocument, documentNode, options);
         context.Visitor = new RenderChildrenVisitor(context);
@@ -52,7 +54,7 @@ public static class TestCodeRenderingContext
         IntermediateNodeWriter nodeWriter = null)
     {
         var documentNode = new DocumentIntermediateNode();
-        var options = RazorCodeGenerationOptions.Default;
+        var optionsBuilder = RazorCodeGenerationOptions.Default.ToBuilder();
 
         if (source == null)
         {
@@ -67,13 +69,15 @@ public static class TestCodeRenderingContext
 
         if (suppressUniqueIds != null)
         {
-            codeDocument.Items[CodeRenderingContext.SuppressUniqueIdsKey] = suppressUniqueIds;
+            optionsBuilder.SuppressUniqueIds = suppressUniqueIds;
         }
 
         if (nodeWriter == null)
         {
             nodeWriter = new RuntimeNodeWriter();
         }
+
+        var options = optionsBuilder.Build();
 
         var context = new CodeRenderingContext(nodeWriter, codeDocument, documentNode, options);
         context.Visitor = new RenderChildrenVisitor(context);

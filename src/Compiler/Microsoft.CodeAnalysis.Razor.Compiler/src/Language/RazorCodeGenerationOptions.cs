@@ -11,8 +11,10 @@ public sealed class RazorCodeGenerationOptions(
     string? rootNamespace,
     string? suppressUniqueIds)
 {
-    public bool DesignTime => flags.HasFlag(RazorCodeGenerationOptionsFlags.DesignTime);
-    public bool IndentWithTabs => flags.HasFlag(RazorCodeGenerationOptionsFlags.IndentWithTabs);
+    private readonly RazorCodeGenerationOptionsFlags _flags = flags;
+
+    public bool DesignTime => _flags.HasFlag(RazorCodeGenerationOptionsFlags.DesignTime);
+    public bool IndentWithTabs => _flags.HasFlag(RazorCodeGenerationOptionsFlags.IndentWithTabs);
     public int IndentSize { get; } = indentSize;
 
     /// <summary>
@@ -30,7 +32,7 @@ public sealed class RazorCodeGenerationOptions(
     /// purposes.
     /// </remarks>
     public bool SuppressChecksum
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressChecksum);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressChecksum);
 
     /// <summary>
     /// Gets a value that indicates whether to suppress the default metadata attributes in the generated
@@ -49,7 +51,7 @@ public sealed class RazorCodeGenerationOptions(
     /// </para>
     /// </remarks>
     public bool SuppressMetadataAttributes
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressMetadataAttributes);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressMetadataAttributes);
 
     /// <summary>
     /// Gets a value that indicates whether to suppress the <c>RazorSourceChecksumAttribute</c>.
@@ -59,37 +61,37 @@ public sealed class RazorCodeGenerationOptions(
     /// </para>
     /// </summary>
     public bool SuppressMetadataSourceChecksumAttributes
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressMetadataSourceChecksumAttributes);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressMetadataSourceChecksumAttributes);
 
     /// <summary>
     /// Gets or sets a value that determines if an empty body is generated for the primary method.
     /// </summary>
     public bool SuppressPrimaryMethodBody
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressPrimaryMethodBody);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressPrimaryMethodBody);
 
     /// <summary>
     /// Gets a value that determines if nullability type enforcement should be suppressed for user code.
     /// </summary>
     public bool SuppressNullabilityEnforcement
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressNullabilityEnforcement);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressNullabilityEnforcement);
 
     /// <summary>
     /// Gets a value that determines if the components code writer may omit values for minimized attributes.
     /// </summary>
     public bool OmitMinimizedComponentAttributeValues
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.OmitMinimizedComponentAttributeValues);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.OmitMinimizedComponentAttributeValues);
 
     /// <summary>
     /// Gets a value that determines if localized component names are to be supported.
     /// </summary>
     public bool SupportLocalizedComponentNames
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.SupportLocalizedComponentNames);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.SupportLocalizedComponentNames);
 
     /// <summary>
     /// Gets a value that determines if enhanced line pragmas are to be utilized.
     /// </summary>
     public bool UseEnhancedLinePragma
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.UseEnhancedLinePragma);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.UseEnhancedLinePragma);
 
     /// <summary>
     /// Gets a value used for unique ids for testing purposes. Null for unique ids.
@@ -100,13 +102,13 @@ public sealed class RazorCodeGenerationOptions(
     /// Determines whether RenderTreeBuilder.AddComponentParameter should not be used.
     /// </summary>
     public bool SuppressAddComponentParameter
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressAddComponentParameter);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.SuppressAddComponentParameter);
 
     /// <summary>
     /// Determines if the file paths emitted as part of line pragmas should be mapped back to a valid path on windows.
     /// </summary>
     public bool RemapLinePragmaPathsOnWindows
-        => flags.HasFlag(RazorCodeGenerationOptionsFlags.RemapLinePragmaPathsOnWindows);
+        => _flags.HasFlag(RazorCodeGenerationOptionsFlags.RemapLinePragmaPathsOnWindows);
 
     public static RazorCodeGenerationOptions Default { get; } = new RazorCodeGenerationOptions(
         flags: RazorCodeGenerationOptionsFlags.DefaultFlags,
@@ -144,5 +146,15 @@ public sealed class RazorCodeGenerationOptions(
         var options = builder.Build();
 
         return options;
+    }
+
+    public RazorCodeGenerationOptionsBuilder ToBuilder()
+    {
+        var builder = new RazorCodeGenerationOptionsBuilder(_flags);
+        builder.IndentSize = IndentSize;
+        builder.RootNamespace = RootNamespace;
+        builder.SuppressUniqueIds = SuppressUniqueIds;
+
+        return builder;
     }
 }

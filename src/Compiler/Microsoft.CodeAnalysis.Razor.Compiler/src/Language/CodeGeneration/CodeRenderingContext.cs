@@ -17,11 +17,8 @@ public sealed class CodeRenderingContext : IDisposable
 
     internal static readonly object NewLineStringKey = "NewLineString";
 
-    internal static readonly object SuppressUniqueIdsKey = "SuppressUniqueIds";
-
     public RazorCodeGenerationOptions Options { get; }
     public CodeWriter CodeWriter { get; }
-    public string SuppressUniqueIds { get; }
 
     private readonly RazorCodeDocument _codeDocument;
     private readonly DocumentIntermediateNode _documentNode;
@@ -68,8 +65,6 @@ public sealed class CodeRenderingContext : IDisposable
         // Set new line character to a specific string regardless of platform, for testing purposes.
         var newLineString = codeDocument.Items[NewLineStringKey] as string ?? Environment.NewLine;
         CodeWriter = new CodeWriter(newLineString, options);
-
-        SuppressUniqueIds = codeDocument.Items[SuppressUniqueIdsKey] as string ?? options.SuppressUniqueIds;
     }
 
     public void Dispose()

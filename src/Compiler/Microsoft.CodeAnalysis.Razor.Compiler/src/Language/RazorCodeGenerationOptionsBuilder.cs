@@ -149,6 +149,11 @@ public sealed class RazorCodeGenerationOptionsBuilder
         Configuration = configuration;
     }
 
+    public RazorCodeGenerationOptionsBuilder(RazorCodeGenerationOptionsFlags flags)
+    {
+        _flags = flags;
+    }
+
     public RazorCodeGenerationOptionsBuilder(bool designTime)
     {
         if (designTime)
