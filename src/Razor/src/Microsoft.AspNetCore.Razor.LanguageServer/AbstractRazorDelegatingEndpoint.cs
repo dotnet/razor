@@ -22,13 +22,13 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
    where TRequest : ITextDocumentPositionParams
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
     private readonly IClientConnection _clientConnection;
     protected readonly ILogger Logger;
 
     protected AbstractRazorDelegatingEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         ILogger logger)
     {
@@ -113,7 +113,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             return default;
         }
 
-        var positionInfo = await DocumentPositionInfoStrategy.TryGetPositionInfoAsync(_documentMappingService, documentContext, request.Position, Logger, cancellationToken).ConfigureAwait(false);
+        var positionInfo = await DocumentPositionInfoStrategy.TryGetPositionInfoAsync(_documentMappingService, documentContext, request.Position, cancellationToken).ConfigureAwait(false);
         if (positionInfo is null)
         {
             return default;

@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -117,7 +118,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(2, 1),
+            Position = VsLspFactory.CreatePosition(2, 1),
             NewName = "Component5"
         };
 
@@ -140,7 +141,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(2, 1),
+            Position = VsLspFactory.CreatePosition(2, 1),
             NewName = "Component5"
         };
 
@@ -181,7 +182,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(1, 14),
+            Position = VsLspFactory.CreatePosition(1, 14),
             NewName = "Test2"
         };
 
@@ -204,7 +205,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(1, 0),
+            Position = VsLspFactory.CreatePosition(1, 0),
             NewName = "Test2"
         };
 
@@ -227,7 +228,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(1, 1),
+            Position = VsLspFactory.CreatePosition(1, 1),
             NewName = "Test2"
         };
 
@@ -250,7 +251,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(1, 3),
+            Position = VsLspFactory.CreatePosition(1, 3),
             NewName = "Test2"
         };
 
@@ -273,7 +274,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(1, 10),
+            Position = VsLspFactory.CreatePosition(1, 10),
             NewName = "Test2"
         };
 
@@ -296,7 +297,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(1, 1),
+            Position = VsLspFactory.CreatePosition(1, 1),
             NewName = "Component5"
         };
 
@@ -382,7 +383,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(2, 1),
+            Position = VsLspFactory.CreatePosition(2, 1),
             NewName = "Component5"
         };
 
@@ -428,7 +429,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(1, 1),
+            Position = VsLspFactory.CreatePosition(1, 1),
             NewName = "Component5"
         };
 
@@ -481,7 +482,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(1, 1),
+            Position = VsLspFactory.CreatePosition(1, 1),
             NewName = "TestComponent"
         };
 
@@ -526,13 +527,10 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             .Setup(c => c.SendRequestAsync<IDelegatedParams, WorkspaceEdit>(CustomMessageNames.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedEdit);
 
-        var documentMappingServiceMock = new StrictMock<IRazorDocumentMappingService>();
+        var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
         documentMappingServiceMock
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(RazorLanguageKind.CSharp);
-        documentMappingServiceMock
-            .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(delegatedEdit);
 
         var projectedPosition = new LinePosition(1, 1);
         var projectedIndex = 1;
@@ -540,13 +538,22 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             .Setup(c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
             .Returns(true);
 
-        var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync(options, documentMappingServiceMock.Object, clientConnectionMock.Object);
+        var editMappingServiceMock = new StrictMock<IEditMappingService>();
+        editMappingServiceMock
+            .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(delegatedEdit);
+
+        var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync(
+            options,
+            documentMappingServiceMock.Object,
+            editMappingServiceMock.Object,
+            clientConnectionMock.Object);
 
         var uri = PathUtilities.GetUri(s_componentWithParamFilePath);
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = new Position(1, 0),
+            Position = VsLspFactory.CreatePosition(1, 0),
             NewName = "Test2"
         };
 
@@ -570,17 +577,23 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             o.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false);
 
         var clientConnection = StrictMock.Of<IClientConnection>();
-        var documentMappingServiceMock = new StrictMock<IRazorDocumentMappingService>();
+        var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
         documentMappingServiceMock
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(RazorLanguageKind.Razor);
 
-        var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync(options, documentMappingServiceMock.Object, clientConnection);
+        var editMappingService = StrictMock.Of<IEditMappingService>();
+
+        var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync(
+            options,
+            documentMappingServiceMock.Object,
+            editMappingService,
+            clientConnection);
 
         var request = new RenameParams
         {
             TextDocument = new() { Uri = PathUtilities.GetUri(s_componentWithParamFilePath) },
-            Position = new Position(1, 0),
+            Position = VsLspFactory.CreatePosition(1, 0),
             NewName = "Test2"
         };
 
@@ -596,7 +609,8 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
     private async Task<(RenameEndpoint, IDocumentContextFactory)> CreateEndpointAndDocumentContextFactoryAsync(
         LanguageServerFeatureOptions? options = null,
-        IRazorDocumentMappingService? documentMappingService = null,
+        IDocumentMappingService? documentMappingService = null,
+        IEditMappingService? editMappingService = null,
         IClientConnection? clientConnection = null)
     {
         using PooledArrayBuilder<TagHelperDescriptor> builder = [];
@@ -671,30 +685,36 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         await projectService.UpdateDocumentAsync(s_componentFilePath4, SourceText.From(ComponentText4), version: 42, DisposalToken);
         await projectService.UpdateDocumentAsync(s_componentWithParamFilePath, SourceText.From(ComponentWithParamText), version: 42, DisposalToken);
 
-        var searchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
+        var searchEngine = new RazorComponentSearchEngine(projectManager, LoggerFactory);
         options ??= StrictMock.Of<LanguageServerFeatureOptions>(o =>
             o.SupportsFileManipulation == true &&
             o.SingleServerSupport == false &&
             o.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false);
 
-        var documentMappingServiceMock = new StrictMock<IRazorDocumentMappingService>();
-        documentMappingServiceMock
-            .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
-            .Returns(RazorLanguageKind.Html);
-        var projectedPosition = new LinePosition(1, 1);
-        var projectedIndex = 1;
-        documentMappingServiceMock
-            .Setup(c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
-            .Returns(true);
-        documentMappingService ??= documentMappingServiceMock.Object;
+        if (documentMappingService == null)
+        {
+            var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
+            documentMappingServiceMock
+                .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(RazorLanguageKind.Html);
+            var projectedPosition = new LinePosition(1, 1);
+            var projectedIndex = 1;
+            documentMappingServiceMock
+                .Setup(c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
+                .Returns(true);
+            documentMappingService = documentMappingServiceMock.Object;
+        }
+
+        editMappingService ??= StrictMock.Of<IEditMappingService>();
 
         clientConnection ??= StrictMock.Of<IClientConnection>();
 
+        var renameService = new RenameService(searchEngine, projectManager, options);
         var endpoint = new RenameEndpoint(
-            searchEngine,
-            projectManager,
+            renameService,
             options,
             documentMappingService,
+            editMappingService,
             clientConnection,
             LoggerFactory);
 

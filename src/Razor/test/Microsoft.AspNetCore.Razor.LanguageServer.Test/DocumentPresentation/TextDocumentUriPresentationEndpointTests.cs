@@ -34,7 +34,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/MyTagHelper.razor");
 
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
@@ -69,11 +69,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            },
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -83,7 +79,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("<MyTagHelper />", result!.DocumentChanges!.Value.First[0].Edits[0].NewText);
+        Assert.Equal("<MyTagHelper />", result.DocumentChanges!.Value.First[0].Edits[0].NewText);
     }
 
     [OSSkipConditionFact(["OSX", "Linux"])]
@@ -96,7 +92,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/MyTagHelper.razor");
 
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
@@ -131,11 +127,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            },
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris =
             [
                 new Uri("file:///c:/path/MyTagHelper.razor.cs"),
@@ -163,7 +155,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/fetchdata.razor");
 
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var droppedUri = new Uri("file:///c:/path/fetchdata.razor");
@@ -204,11 +196,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            },
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -218,7 +206,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("<FetchData MyAttribute=\"\" />", result!.DocumentChanges!.Value.First[0].Edits[0].NewText);
+        Assert.Equal("<FetchData MyAttribute=\"\" />", result.DocumentChanges!.Value.First[0].Edits[0].NewText);
     }
 
     [Fact]
@@ -226,7 +214,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var componentCodeDocument = TestRazorCodeDocument.Create("<div></div>");
@@ -260,11 +248,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            },
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -281,7 +265,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(codeDocument), MockBehavior.Strict);
@@ -310,11 +294,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            },
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris =
             [
                 new Uri("file:///c:/path/SomeOtherFile.cs"),
@@ -336,7 +316,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(codeDocument), MockBehavior.Strict);
@@ -366,11 +346,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            },
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -392,7 +368,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/index.razor");
         await projectManager.CreateAndAddDocumentAsync(project, "c:/path/fetchdata.razor");
 
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var droppedUri1 = new Uri("file:///c:/path/fetchdata.razor.cs");
@@ -428,11 +404,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            },
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri1, droppedUri2]
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -454,7 +426,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var projectedRange = It.IsAny<LinePositionSpan>();
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp &&
             s.TryMapToGeneratedDocumentRange(csharpDocument, It.IsAny<LinePositionSpan>(), out projectedRange) == true, MockBehavior.Strict);
 
@@ -481,11 +453,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            }
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -503,7 +471,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(codeDocument), MockBehavior.Strict);
@@ -529,11 +497,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            }
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -552,7 +516,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         codeDocument.SetUnsupported();
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(codeDocument), MockBehavior.Strict);
@@ -578,11 +542,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            }
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -600,7 +560,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(codeDocument), MockBehavior.Strict);
@@ -626,11 +586,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             {
                 Uri = uri
             },
-            Range = new Range
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 2)
-            }
+            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 

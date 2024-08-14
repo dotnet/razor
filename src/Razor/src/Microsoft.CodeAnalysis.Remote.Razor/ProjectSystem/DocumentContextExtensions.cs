@@ -14,26 +14,35 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal static class DocumentContextExtensions
 {
-    public static async Task<Document> GetGeneratedDocumentAsync(this VersionedDocumentContext documentContext, IFilePathService filePathService, CancellationToken cancellationToken)
+    public static async Task<Document> GetGeneratedDocumentAsync(
+        this VersionedDocumentContext documentContext,
+        IFilePathService filePathService,
+        CancellationToken cancellationToken)
     {
         Debug.Assert(documentContext.Snapshot is RemoteDocumentSnapshot, "This method only works on document contexts created in the OOP process");
 
         var snapshot = (RemoteDocumentSnapshot)documentContext.Snapshot;
-        var razorDocument = snapshot.TextDocument;
-        var solution = razorDocument.Project.Solution;
 
-        // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
+        return await snapshot.GetOrAddGeneratedDocumentAsync(
+            (snapshot, documentContext, filePathService, cancellationToken),
+            static async arg =>
+            {
+                var (snapshot, documentContext, filePathService, cancellationToken) = arg;
 
-        var projectKey = razorDocument.Project.ToProjectKey();
-        var generatedFilePath = filePathService.GetRazorCSharpFilePath(projectKey, razorDocument.FilePath.AssumeNotNull());
-        var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == razorDocument.Project.Id);
-        var generatedDocument = solution.GetDocument(generatedDocumentId).AssumeNotNull();
+                var razorDocument = snapshot.TextDocument;
+                var projectKey = snapshot.Project.Key;
+                var solution = razorDocument.Project.Solution;
 
-        var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+                // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
 
-        // HACK: We're not in the same solution fork as the LSP server that provides content for this document
-        generatedDocument = generatedDocument.WithText(csharpSourceText);
+                var generatedFilePath = filePathService.GetRazorCSharpFilePath(projectKey, razorDocument.FilePath.AssumeNotNull());
+                var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == razorDocument.Project.Id);
+                var generatedDocument = solution.GetRequiredDocument(generatedDocumentId);
 
-        return generatedDocument;
+                var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // HACK: We're not in the same solution fork as the LSP server that provides content for this document
+                return generatedDocument.WithText(csharpSourceText);
+            });
     }
 }

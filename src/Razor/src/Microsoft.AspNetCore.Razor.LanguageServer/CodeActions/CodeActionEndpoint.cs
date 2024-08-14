@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -29,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 [RazorLanguageServerEndpoint(LspEndpointName)]
 internal sealed class CodeActionEndpoint(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
     IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,
     IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
@@ -41,7 +42,7 @@ internal sealed class CodeActionEndpoint(
 {
     private const string LspEndpointName = Methods.TextDocumentCodeActionName;
 
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly IEnumerable<IRazorCodeActionProvider> _razorCodeActionProviders = razorCodeActionProviders ?? throw new ArgumentNullException(nameof(razorCodeActionProviders));
     private readonly IEnumerable<ICSharpCodeActionProvider> _csharpCodeActionProviders = csharpCodeActionProviders ?? throw new ArgumentNullException(nameof(csharpCodeActionProviders));
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders ?? throw new ArgumentNullException(nameof(htmlCodeActionProviders));
@@ -151,13 +152,13 @@ internal sealed class CodeActionEndpoint(
         // context.
         //
         // Note: VS Code doesn't provide a `SelectionRange`.
-        var vsCodeActionContext = (VSInternalCodeActionContext)request.Context;
+        var vsCodeActionContext = request.Context;
         if (vsCodeActionContext.SelectionRange != null)
         {
             request.Range = vsCodeActionContext.SelectionRange;
         }
 
-        if (!request.Range.Start.TryGetSourceLocation(sourceText, _logger, out var location))
+        if (!sourceText.TryGetSourceLocation(request.Range.Start, out var location))
         {
             return null;
         }
@@ -166,7 +167,7 @@ internal sealed class CodeActionEndpoint(
             request,
             documentSnapshot,
             codeDocument,
-            location.Value,
+            location,
             sourceText,
             _languageServerFeatureOptions.SupportsFileManipulation,
             _supportsCodeActionResolve);
@@ -339,12 +340,12 @@ internal sealed class CodeActionEndpoint(
             .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
             .Select(property => property.GetValue(null) as string)
-            .WithoutNull();
+            .WhereNotNull();
         var codeFixProviderNames = typeof(RazorPredefinedCodeFixProviderNames)
             .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
             .Select(property => property.GetValue(null) as string)
-            .WithoutNull();
+            .WhereNotNull();
 
         availableCodeActionNames.AddRange(refactoringProviderNames);
         availableCodeActionNames.AddRange(codeFixProviderNames);

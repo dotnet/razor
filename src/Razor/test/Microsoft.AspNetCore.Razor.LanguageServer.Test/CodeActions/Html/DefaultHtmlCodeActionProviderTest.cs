@@ -8,11 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -35,7 +35,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -43,7 +43,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
-        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingService = StrictMock.Of<IEditMappingService>();
         var provider = new DefaultHtmlCodeActionProvider(documentMappingService);
 
         ImmutableArray<RazorVSInternalCodeAction> codeActions = [ new RazorVSInternalCodeAction() { Name = "Test" } ];
@@ -68,7 +68,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -80,23 +80,23 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         {
             DocumentChanges = new TextDocumentEdit[]
             {
-                new TextDocumentEdit
-                {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= new Uri(documentPath), Version = 1 },
-                    Edits = new TextEdit[]
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
-                        new TextEdit { NewText = "Goo ~~~~~~~~~~~~~~~ Bar", Range = span.ToRange(context.SourceText) }
-                    }
+                        Uri = new Uri(documentPath),
+                        Version = 1
+                    },
+                    Edits = [VsLspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo ~~~~~~~~~~~~~~~ Bar")]
                 }
             }
         };
 
-        var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
-        documentMappingServiceMock
-            .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+        var editMappingServiceMock = new StrictMock<IEditMappingService>();
+        editMappingServiceMock
+            .Setup(x => x.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remappedEdit);
 
-        var provider = new DefaultHtmlCodeActionProvider(documentMappingServiceMock.Object);
+        var provider = new DefaultHtmlCodeActionProvider(editMappingServiceMock.Object);
 
         ImmutableArray<RazorVSInternalCodeAction> codeActions =
         [
@@ -107,13 +107,13 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
                 {
                     DocumentChanges = new TextDocumentEdit[]
                     {
-                        new TextDocumentEdit
-                        {
-                            TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= new Uri("c:/Test.razor.html"), Version = 1 },
-                            Edits = new TextEdit[]
+                        new() {
+                            TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                new TextEdit { NewText = "Goo" }
-                            }
+                                Uri = new Uri("c:/Test.razor.html"),
+                                Version = 1
+                            },
+                            Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                         }
                     }
                 }
@@ -126,10 +126,10 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         // Assert
         var action = Assert.Single(providedCodeActions);
         Assert.NotNull(action.Edit);
-        Assert.True(action.Edit.TryGetDocumentChanges(out var changes));
-        Assert.Equal(documentPath, changes[0].TextDocument.Uri.AbsolutePath);
+        Assert.True(action.Edit.TryGetTextDocumentEdits(out var documentEdits));
+        Assert.Equal(documentPath, documentEdits[0].TextDocument.Uri.AbsolutePath);
         // Edit should be converted to 2 edits, to remove the tags
-        Assert.Collection(changes[0].Edits,
+        Assert.Collection(documentEdits[0].Edits,
             e =>
             {
                 Assert.Equal("", e.NewText);
@@ -155,7 +155,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
             document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()) &&
+            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text) &&
             document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers), MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol.Folding;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -88,7 +87,7 @@ internal class CohostFoldingRangeEndpoint(
         {
             _logger.LogDebug($"Got a total of {allRanges.Length} ranges back from OOP");
 
-            return allRanges.Select(RemoteFoldingRange.ToLspFoldingRange).ToArray();
+            return allRanges.Select(RemoteFoldingRange.ToVsFoldingRange).ToArray();
         }
 
         return null;
@@ -122,7 +121,7 @@ internal class CohostFoldingRangeEndpoint(
             return null;
         }
 
-        return result.Response.SelectAsArray(RemoteFoldingRange.FromLspFoldingRange);
+        return result.Response.SelectAsArray(RemoteFoldingRange.FromVsFoldingRange);
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

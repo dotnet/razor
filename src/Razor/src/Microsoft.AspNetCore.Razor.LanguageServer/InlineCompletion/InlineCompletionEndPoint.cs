@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 
 [RazorLanguageServerEndpoint(VSInternalMethods.TextDocumentInlineCompletionName)]
 internal sealed class InlineCompletionEndpoint(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IAdhocWorkspaceFactory adhocWorkspaceFactory,
     ILoggerFactory loggerFactory)
@@ -36,7 +36,7 @@ internal sealed class InlineCompletionEndpoint(
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     private readonly IAdhocWorkspaceFactory _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();
@@ -78,8 +78,7 @@ internal sealed class InlineCompletionEndpoint(
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-        var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+        var hostDocumentIndex = sourceText.GetPosition(request.Position);
 
         var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
 
@@ -115,7 +114,7 @@ internal sealed class InlineCompletionEndpoint(
         foreach (var item in list.Items)
         {
             var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
-            var range = item.Range ?? new Range { Start = projectedPosition, End = projectedPosition };
+            var range = item.Range ?? projectedPosition.ToZeroWidthRange();
 
             if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
             {

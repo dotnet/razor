@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,9 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
 {
     private readonly TextDocument _textDocument = textDocument;
     private readonly RemoteProjectSnapshot _projectSnapshot = projectSnapshot;
+
+    // TODO: Delete this field when the source generator is hooked up
+    private Document? _generatedDocument;
 
     private RazorCodeDocument? _codeDocument;
 
@@ -43,9 +47,9 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
         // TODO: We don't need to worry about locking if we get called from the didOpen/didChange LSP requests, as CLaSP
         //       takes care of that for us, and blocks requests until those are complete. If that doesn't end up happening,
         //       then a locking mechanism here would prevent concurrent compilations.
-        if (_codeDocument is not null)
+        if (TryGetGeneratedOutput(out var codeDocument))
         {
-            return _codeDocument;
+            return codeDocument;
         }
 
         // The non-cohosted DocumentSnapshot implementation uses DocumentState to get the generated output, and we could do that too
@@ -58,16 +62,16 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
 
         var projectEngine = _projectSnapshot.GetProjectEngine_CohostOnly();
         var tagHelpers = await _projectSnapshot.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
-        var imports = await DocumentState.ComputedStateTracker.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
-        _codeDocument = await DocumentState.ComputedStateTracker.GenerateCodeDocumentAsync(tagHelpers, projectEngine, this, imports).ConfigureAwait(false);
+        var imports = await DocumentState.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
 
-        return _codeDocument;
-    }
+        // TODO: Get the configuration for forceRuntimeCodeGeneration
+        // var forceRuntimeCodeGeneration = _projectSnapshot.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
 
-    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
-    {
-        result = _codeDocument;
-        return result is not null;
+        codeDocument = await DocumentState
+            .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false)
+            .ConfigureAwait(false);
+
+        return InterlockedOperations.Initialize(ref _codeDocument, codeDocument);
     }
 
     public IDocumentSnapshot WithText(SourceText text)
@@ -76,5 +80,22 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
         var newDocument = _textDocument.Project.Solution.WithAdditionalDocumentText(id, text).GetAdditionalDocument(id).AssumeNotNull();
 
         return new RemoteDocumentSnapshot(newDocument, _projectSnapshot);
+    }
+
+    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+    {
+        result = _codeDocument;
+        return result is not null;
+    }
+
+    public async Task<Document> GetOrAddGeneratedDocumentAsync<TArg>(TArg arg, Func<TArg, Task<Document>> createGeneratedDocument)
+    {
+        if (_generatedDocument is Document generatedDocument)
+        {
+            return generatedDocument;
+        }
+
+        generatedDocument = await createGeneratedDocument(arg);
+        return InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
     }
 }
