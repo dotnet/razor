@@ -22,7 +22,7 @@ public static class TestCodeRenderingContext
         var options = ConfigureOptions(RazorCodeGenerationOptions.DesignTimeDefault, newLineString, suppressUniqueIds);
 
         var context = new CodeRenderingContext(nodeWriter, source, documentNode, options);
-        context.Visitor = new RenderChildrenVisitor(context);
+        context.SetVisitor(new RenderChildrenVisitor(context.CodeWriter));
 
         return context;
     }
@@ -40,7 +40,7 @@ public static class TestCodeRenderingContext
         var options = ConfigureOptions(RazorCodeGenerationOptions.Default, newLineString, suppressUniqueIds);
 
         var context = new CodeRenderingContext(nodeWriter, source, documentNode, options);
-        context.Visitor = new RenderChildrenVisitor(context);
+        context.SetVisitor(new RenderChildrenVisitor(context.CodeWriter));
 
         return context;
     }
@@ -67,17 +67,11 @@ public static class TestCodeRenderingContext
         return builder.Build();
     }
 
-    private class RenderChildrenVisitor : IntermediateNodeVisitor
+    private class RenderChildrenVisitor(CodeWriter writer) : IntermediateNodeVisitor
     {
-        private readonly CodeRenderingContext _context;
-        public RenderChildrenVisitor(CodeRenderingContext context)
-        {
-            _context = context;
-        }
-
         public override void VisitDefault(IntermediateNode node)
         {
-            _context.CodeWriter.WriteLine("Render Children");
+            writer.WriteLine("Render Children");
         }
     }
 }

@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,6 +25,9 @@ public sealed class CodeRenderingContext : IDisposable
     private readonly ImmutableArray<RazorDiagnostic>.Builder _diagnostics;
     private readonly ImmutableArray<SourceMapping>.Builder _sourceMappings;
     private readonly ImmutableArray<LinePragma>.Builder _linePragmas;
+
+    private IntermediateNodeVisitor? _visitor;
+    public IntermediateNodeVisitor Visitor => _visitor.AssumeNotNull();
 
     public string DocumentKind => _documentNode.DocumentKind;
 
@@ -74,12 +75,16 @@ public sealed class CodeRenderingContext : IDisposable
         CodeWriter.Dispose();
     }
 
-    // This will be initialized by the document writer when the context is 'live'.
-    public IntermediateNodeVisitor Visitor { get; set; }
+    // This will be called by the document writer when the context is 'live'.
+    public void SetVisitor(IntermediateNodeVisitor visitor)
+    {
+        _visitor = visitor;
+    }
 
     public IntermediateNodeWriter NodeWriter => _scopeStack.Peek().Writer;
 
-    public IntermediateNode Parent => _ancestorStack.Count == 0 ? null : _ancestorStack.Peek();
+    public IntermediateNode? Parent
+        => _ancestorStack.Count == 0 ? null : _ancestorStack.Peek();
 
     public void AddDiagnostic(RazorDiagnostic diagnostic)
     {
