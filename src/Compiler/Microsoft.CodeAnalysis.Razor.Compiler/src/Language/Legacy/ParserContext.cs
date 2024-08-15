@@ -76,8 +76,9 @@ internal partial class ParserContext
     {
         get
         {
-            var remaining = ((TextReader)Source).ReadToEnd();
-            Source.Position -= remaining.Length;
+            var bookmark = Source.Position;
+            var remaining = Source.ReadToEnd();
+            Source.Position = bookmark;
             return remaining;
         }
     }
