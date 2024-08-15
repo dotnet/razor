@@ -12,7 +12,7 @@
                     RazorMetaCode - [2..3)::1 - Gen<None>
                         LeftBrace;[{];
                     CSharpCodeBlock - [3..117)::114
-                        CSharpStatementLiteral - [3..117)::114 - [ var validationMessage = @Html.ValidationMessage(Model.Binding, "", new { @@class = "invalid-feedback" }, "div"); ] - Gen<Stmt>
+                        CSharpStatementLiteral - [3..77)::74 - [ var validationMessage = @Html.ValidationMessage(Model.Binding, "", new { ] - Gen<Stmt>
                             Whitespace;[ ];
                             Identifier;[var];
                             Whitespace;[ ];
@@ -36,9 +36,10 @@
                             Whitespace;[ ];
                             LeftBrace;[{];
                             Whitespace;[ ];
+                        CSharpEphemeralTextLiteral - [77..78)::1 - [@] - Gen<Stmt>
                             Transition;[@];
-                            Transition;[@];
-                            Keyword;[class];
+                        CSharpStatementLiteral - [78..117)::39 - [@class = "invalid-feedback" }, "div"); ] - Gen<Stmt>
+                            Identifier;[@class];
                             Whitespace;[ ];
                             Assign;[=];
                             Whitespace;[ ];

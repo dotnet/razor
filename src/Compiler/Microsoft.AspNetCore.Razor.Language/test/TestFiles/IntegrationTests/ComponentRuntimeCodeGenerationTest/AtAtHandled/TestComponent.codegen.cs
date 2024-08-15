@@ -18,8 +18,16 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line (1,3)-(1,110) "x:\dir\subdir\Test\TestComponent.cshtml"
- var validationMessage = @Html.ValidationMessage("test", "", new { @@class = "invalid-feedback" }, "div"); 
+#line (1,3)-(1,70) "x:\dir\subdir\Test\TestComponent.cshtml"
+ var validationMessage = @Html.ValidationMessage("test", "", new { 
+
+#line default
+#line hidden
+#nullable disable
+
+#nullable restore
+#line (1,71)-(1,110) "x:\dir\subdir\Test\TestComponent.cshtml"
+@class = "invalid-feedback" }, "div"); 
 
 #line default
 #line hidden

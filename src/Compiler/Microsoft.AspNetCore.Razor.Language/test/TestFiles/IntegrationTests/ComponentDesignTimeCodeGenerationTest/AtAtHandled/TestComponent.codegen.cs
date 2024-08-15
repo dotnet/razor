@@ -26,7 +26,14 @@ namespace Test
         {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-   var validationMessage = @Html.ValidationMessage("test", "", new { @@class = "invalid-feedback" }, "div"); 
+   var validationMessage = @Html.ValidationMessage("test", "", new { 
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                                                      @class = "invalid-feedback" }, "div"); 
 
 #line default
 #line hidden
