@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteGoToDefinitionService : IRemoteJsonService
 {
-    ValueTask<RoslynLocation[]?> GetDefinitionAsync(
+    ValueTask<RemoteResponse<RoslynLocation[]?>> GetDefinitionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         RoslynPosition position,

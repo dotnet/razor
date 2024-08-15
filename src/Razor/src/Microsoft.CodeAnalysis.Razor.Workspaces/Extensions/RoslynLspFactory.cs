@@ -166,6 +166,12 @@ internal static class RoslynLspFactory
     public static Location CreateLocation(Uri uri, LinePositionSpan span)
         => new() { Uri = uri, Range = CreateRange(span) };
 
+    public static DocumentLink CreateDocumentLink(Uri target, Range range)
+        => new() { Target = target, Range = range };
+
+    public static DocumentLink CreateDocumentLink(Uri target, LinePositionSpan span)
+        => new() { Target = target, Range = CreateRange(span) };
+
     public static TextEdit CreateTextEdit(Range range, string newText)
         => new() { Range = range, NewText = newText };
 

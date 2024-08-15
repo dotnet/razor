@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LspLocation = Microsoft.VisualStudio.LanguageServer.Protocol.Location;
@@ -24,8 +25,14 @@ internal abstract class AbstractRazorComponentDefinitionService(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = logger;
 
-    public async Task<LspLocation?> GetDefinitionAsync(DocumentContext documentContext, int hostDocumentIndex, bool ignoreAttributes, CancellationToken cancellationToken)
+    public async Task<LspLocation?> GetDefinitionAsync(DocumentContext documentContext, DocumentPositionInfo positionInfo, bool ignoreAttributes, CancellationToken cancellationToken)
     {
+        // If we're in C# then there is no point checking for a component tag, because there won't be one
+        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
+        {
+            return null;
+        }
+
         if (!FileKinds.IsComponent(documentContext.FileKind))
         {
             _logger.LogInformation($"'{documentContext.FileKind}' is not a component type.");
@@ -34,7 +41,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(codeDocument, hostDocumentIndex, ignoreAttributes, _logger, out var boundTagHelper, out var boundAttribute))
+        if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(codeDocument, positionInfo.HostDocumentIndex, ignoreAttributes, _logger, out var boundTagHelper, out var boundAttribute))
         {
             _logger.LogInformation($"Could not retrieve bound tag helper information.");
             return null;

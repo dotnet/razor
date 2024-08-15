@@ -62,7 +62,7 @@ internal sealed class DefinitionEndpoint(
 
         // If single server support is on, then we ignore attributes, as they are better handled by delegating to Roslyn
         return await _componentDefinitionService
-            .GetDefinitionAsync(documentContext, positionInfo.HostDocumentIndex, ignoreAttributes: SingleServerSupport, cancellationToken)
+            .GetDefinitionAsync(documentContext, positionInfo, ignoreAttributes: SingleServerSupport, cancellationToken)
             .ConfigureAwait(false);
     }
 

@@ -7,15 +7,19 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.LanguageServer.Protocol;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using RoslynLocation = Roslyn.LanguageServer.Protocol.Location;
 using RoslynPosition = Roslyn.LanguageServer.Protocol.Position;
+using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.Location[]?>;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -27,10 +31,11 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             => new RemoteGoToDefinitionService(in args);
     }
 
+    private readonly IRazorComponentDefinitionService _componentDefinitionService = args.ExportProvider.GetExportedValue<IRazorComponentDefinitionService>();
     private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
-    public ValueTask<RoslynLocation[]?> GetDefinitionAsync(
+    public ValueTask<RemoteResponse<RoslynLocation[]?>> GetDefinitionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         RoslynPosition position,
@@ -41,50 +46,69 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             context => GetDefinitionAsync(context, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<RoslynLocation[]?> GetDefinitionAsync(
+    private async ValueTask<RemoteResponse<RoslynLocation[]?>> GetDefinitionAsync(
         RemoteDocumentContext context,
         RoslynPosition position,
         CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var absoluteIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position.ToLinePosition());
+        var hostDocumentIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position.ToLinePosition());
+        var positionInfo = _documentMappingService.GetPositionInfo(codeDocument, hostDocumentIndex);
 
-        var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
-
-        if (_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), absoluteIndex, out var mappedPosition, out _))
+        // First, see if this is a Razor component.
+        var componentLocation = await _componentDefinitionService.GetDefinitionAsync(context, positionInfo, ignoreAttributes: false, cancellationToken).ConfigureAwait(false);
+        if (componentLocation is not null)
         {
-            var locations = await ExternalHandlers.GoToDefinition
-                .GetDefinitionsAsync(
-                    RemoteWorkspaceAccessor.GetWorkspace(),
-                    generatedDocument,
-                    typeOnly: false,
-                    mappedPosition,
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            if (locations is null and not [])
-            {
-                return locations;
-            }
-
-            using var mappedLocations = new PooledArrayBuilder<RoslynLocation>(locations.Length);
-
-            foreach (var location in locations)
-            {
-                var (uri, range) = location;
-
-                var (mappedDocumentUri, mappedRange) = await _documentMappingService
-                    .MapToHostDocumentUriAndRangeAsync((RemoteDocumentSnapshot)context.Snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
-                    .ConfigureAwait(false);
-
-                var mappedLocation = RoslynLspFactory.CreateLocation(mappedDocumentUri, mappedRange);
-
-                mappedLocations.Add(mappedLocation);
-            }
-
-            return mappedLocations.ToArray();
+            // Convert from VS LSP Location to Roslyn. This can be removed when Razor moves fully onto Roslyn's LSP types.
+            return Results([RoslynLspFactory.CreateLocation(componentLocation.Uri, componentLocation.Range.ToLinePositionSpan())]);
         }
 
-        return null;
+        // If it isn't a Razor component, and it isn't C#, let the server know to delegate to HTML.
+        if (positionInfo.LanguageKind != RazorLanguageKind.CSharp)
+        {
+            return CallHtml;
+        }
+
+        if (!_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out var mappedPosition, out _))
+        {
+            // If we can't map to the generated C# file, we're done.
+            return NoFurtherHandling;
+        }
+
+        // Finally, call into C#.
+        var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
+
+        var locations = await ExternalHandlers.GoToDefinition
+            .GetDefinitionsAsync(
+                RemoteWorkspaceAccessor.GetWorkspace(),
+                generatedDocument,
+                typeOnly: false,
+                mappedPosition,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        if (locations is null and not [])
+        {
+            // C# didn't return anything, so we're done.
+            return NoFurtherHandling;
+        }
+
+        // Map the C# locations back to the Razor file.
+        using var mappedLocations = new PooledArrayBuilder<RoslynLocation>(locations.Length);
+
+        foreach (var location in locations)
+        {
+            var (uri, range) = location;
+
+            var (mappedDocumentUri, mappedRange) = await _documentMappingService
+                .MapToHostDocumentUriAndRangeAsync((RemoteDocumentSnapshot)context.Snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
+                .ConfigureAwait(false);
+
+            var mappedLocation = RoslynLspFactory.CreateLocation(mappedDocumentUri, mappedRange);
+
+            mappedLocations.Add(mappedLocation);
+        }
+
+        return Results(mappedLocations.ToArray());
     }
 }
