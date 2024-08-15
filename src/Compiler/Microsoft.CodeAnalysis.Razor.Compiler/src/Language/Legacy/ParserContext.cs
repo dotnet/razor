@@ -67,7 +67,7 @@ internal partial class ParserContext
 [DebuggerDisplay("{" + nameof(DebuggerToString) + "(),nq}")]
 internal partial class ParserContext
 {
-    internal string Unparsed
+    private string Unparsed
     {
         get
         {
