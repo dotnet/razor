@@ -10516,6 +10516,24 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/sdk/issues/42730")]
+    public void AtAtHandled()
+    {
+        var generated = CompileToCSharp("""
+            @{ var validationMessage = @Html.ValidationMessage("test", "", new { @@class = "invalid-feedback" }, "div"); }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,28): error CS0103: The name 'Html' does not exist in the current context
+                //    var validationMessage = @Html.ValidationMessage("test", "", new { @@class = "invalid-feedback" }, "div");
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@Html").WithArguments("Html").WithLocation(1, 28),
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,70): error CS9008: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                //    var validationMessage = @Html.ValidationMessage("test", "", new { @@class = "invalid-feedback" }, "div");
+                Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@").WithLocation(1, 70));
+    }
+
     #endregion
 
     #region LinePragmas

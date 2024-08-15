@@ -1,0 +1,5 @@
+﻿Source Location: (2:0,2 [107] x:\dir\subdir\Test\TestComponent.cshtml)
+| var validationMessage = @Html.ValidationMessage("test", "", new { @@class = "invalid-feedback" }, "div"); |
+Generated Location: (987:28,2 [107] )
+| var validationMessage = @Html.ValidationMessage("test", "", new { @@class = "invalid-feedback" }, "div"); |
+
