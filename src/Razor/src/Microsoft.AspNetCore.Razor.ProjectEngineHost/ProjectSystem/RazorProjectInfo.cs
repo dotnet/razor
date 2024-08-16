@@ -2,17 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Buffers;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MessagePack;
-using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
-using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Internal;
 
@@ -20,11 +13,6 @@ namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 internal sealed record class RazorProjectInfo
 {
-    private static readonly MessagePackSerializerOptions s_options = MessagePackSerializerOptions.Standard
-        .WithResolver(CompositeResolver.Create(
-            RazorProjectInfoResolver.Instance,
-            StandardResolver.Instance));
-
     public ProjectKey ProjectKey { get; init; }
     public string FilePath { get; init; }
     public RazorConfiguration Configuration { get; init; }
@@ -75,22 +63,4 @@ internal sealed record class RazorProjectInfo
 
         return hash.CombinedHash;
     }
-
-    public byte[] Serialize()
-        => MessagePackSerializer.Serialize(this, s_options);
-
-    public void SerializeTo(IBufferWriter<byte> bufferWriter)
-        => MessagePackSerializer.Serialize(bufferWriter, this, s_options);
-
-    public void SerializeTo(Stream stream)
-        => MessagePackSerializer.Serialize(stream, this, s_options);
-
-    public static RazorProjectInfo? DeserializeFrom(ReadOnlyMemory<byte> buffer)
-        => MessagePackSerializer.Deserialize<RazorProjectInfo>(buffer, s_options);
-
-    public static RazorProjectInfo? DeserializeFrom(Stream stream)
-        => MessagePackSerializer.Deserialize<RazorProjectInfo>(stream, s_options);
-
-    public static ValueTask<RazorProjectInfo> DeserializeFromAsync(Stream stream, CancellationToken cancellationToken)
-        => MessagePackSerializer.DeserializeAsync<RazorProjectInfo>(stream, s_options, cancellationToken);
 }
