@@ -146,6 +146,8 @@ internal partial class RazorCustomMessageTarget
             return await TempForCohost_TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(hostDocument, cancellationToken);
         }
 
+        _logger.LogDebug($"Trying to synchronize for {caller} to version {requiredHostDocumentVersion} of {hostDocument.Uri} for {hostDocument.GetProjectContext()?.Id ?? "(no project context)"}");
+
         // For Html documents we don't do anything fancy, just call the standard service
         // If we're not generating unique document file names, then we can treat C# documents the same way
         if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath ||
@@ -153,8 +155,6 @@ internal partial class RazorCustomMessageTarget
         {
             return await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, cancellationToken).ConfigureAwait(false);
         }
-
-        _logger.LogDebug($"Trying to synchronize for {caller} to version {requiredHostDocumentVersion} of {hostDocument.Uri} for {hostDocument.GetProjectContext()?.Id ?? "(no project context)"}");
 
         var virtualDocument = FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, hostDocument.GetProjectContext());
 
