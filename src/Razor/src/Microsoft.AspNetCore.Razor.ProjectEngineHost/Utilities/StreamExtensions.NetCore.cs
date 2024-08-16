@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Serialization;
 using System;
 using System.Buffers;
 using System.Diagnostics;
@@ -73,9 +74,15 @@ internal static class StreamExtensions
         return stream.ReadStringAsync(encoding: null, cancellationToken);
     }
 
+    public static async Task WriteWithSizeAsync<T>(this Stream stream, T value, CancellationToken cancellationToken)
+    {
+        var bytes = RazorMessagePackSerializer.Serialize(value);
+        WriteSize(stream, bytes.Length);
+        await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
+    }
     public static async Task WriteProjectInfoAsync(this Stream stream, RazorProjectInfo projectInfo, CancellationToken cancellationToken)
     {
-        var bytes = projectInfo.Serialize();
+        var bytes = RazorMessagePackSerializer.Serialize(projectInfo);
         WriteSize(stream, bytes.Length);
         await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
     }
@@ -90,7 +97,7 @@ internal static class StreamExtensions
         // The array may be larger than the bytes read so make sure to trim accordingly.
         var projectInfoMemory = projectInfoBytes.AsMemory(0, sizeToRead);
 
-        return RazorProjectInfo.DeserializeFrom(projectInfoMemory);
+        return RazorMessagePackSerializer.DeserializeFrom<RazorProjectInfo>(projectInfoMemory);
     }
 
     public static void WriteSize(this Stream stream, int length)

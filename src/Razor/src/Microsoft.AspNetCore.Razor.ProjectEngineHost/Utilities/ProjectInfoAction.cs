@@ -5,6 +5,6 @@ namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal enum ProjectInfoAction
 {
-    Update,
-    Remove
+    Remove,
+    Update
 }

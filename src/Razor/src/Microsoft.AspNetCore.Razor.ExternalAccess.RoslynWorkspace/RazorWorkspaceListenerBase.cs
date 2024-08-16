@@ -3,8 +3,13 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
@@ -16,6 +21,9 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
     private readonly ILogger _logger;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
+    private readonly CachedTagHelperResolver _cachedTagHelperResolver = new(NoOpTelemetryReporter.Instance);
+    private readonly Dictionary<ProjectId, ImmutableArray<DocumentSnapshotHandle>> _documentSnapshots = new();
+    private readonly Dictionary<ProjectId, ProjectEntry> _projectEntryMap = new();
 
     // Use an immutable dictionary for ImmutableInterlocked operations. The value isn't checked, just
     // the existance of the key so work is only done for projects with dynamic files.
@@ -28,6 +36,13 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
     internal record Work(ProjectId ProjectId);
     internal record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
     internal record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
+    internal class ProjectEntry
+    {
+        public int? TagHelpersResultId { get; set; }
+        public int ConfigurationHash { get; set; }
+        public int DocumentsHash { get; set; }
+        public string? RootNamespace { get; set; }
+    }
 
     private protected RazorWorkspaceListenerBase(ILogger logger)
     {
@@ -195,7 +210,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         {
             // Remove project is called from Workspace.Changed, while other notifications of _projectsWithDynamicFile
             // are handled with NotifyDynamicFile. Use ImmutableInterlocked here to be sure the updates happen
-            // in a thread safe manner since those are not assumed to be the same thread. 
+            // in a thread safe manner since those are not assumed to be the same thread.
             if (ImmutableInterlocked.TryRemove(ref _projectsWithDynamicFile, project.Id, out var _))
             {
                 var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
@@ -227,7 +242,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Early bail check for if we are disposed or somewhere in the middle of disposal 
+        // Early bail check for if we are disposed or somewhere in the middle of disposal
         if (_disposed || stream is null || solution is null)
         {
             _logger.LogTrace("Skipping work due to disposal");
@@ -235,10 +250,10 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         }
 
         await CheckConnectionAsync(stream, cancellationToken).ConfigureAwait(false);
-        await ProcessWorkCoreAsync(work, stream, solution, _logger, cancellationToken).ConfigureAwait(false);
+        await ProcessWorkCoreAsync(work, stream, solution, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task ProcessWorkCoreAsync(ImmutableArray<Work> work, Stream stream, Solution solution, ILogger logger, CancellationToken cancellationToken)
+    private async Task ProcessWorkCoreAsync(ImmutableArray<Work> work, Stream stream, Solution solution, CancellationToken cancellationToken)
     {
         foreach (var unit in work)
         {
@@ -248,21 +263,21 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
                 if (unit is RemovalWork removalWork)
                 {
-                    await ReportRemovalAsync(stream, removalWork, logger, cancellationToken).ConfigureAwait(false);
+                    await ReportRemovalAsync(stream, removalWork, _logger, cancellationToken).ConfigureAwait(false);
                 }
 
                 var project = solution.GetProject(unit.ProjectId);
                 if (project is null)
                 {
-                    logger.LogTrace("Project {projectId} is not in workspace", unit.ProjectId);
+                    _logger.LogTrace("Project {projectId} is not in workspace", unit.ProjectId);
                     continue;
                 }
 
-                await ReportUpdateProjectAsync(stream, project, logger, cancellationToken).ConfigureAwait(false);
+                await ReportUpdateProjectAsync(stream, project, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                logger.LogError(ex, "Encountered exception while processing unit: {message}", ex.Message);
+                _logger.LogError(ex, "Encountered exception while processing unit: {message}", ex.Message);
             }
         }
 
@@ -272,22 +287,123 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Encountered error flusingh stream");
+            _logger.LogError(ex, "Encountered error flushing stream");
         }
     }
 
-    private static async Task ReportUpdateProjectAsync(Stream stream, Project project, ILogger logger, CancellationToken cancellationToken)
+    private async Task ReportUpdateProjectAsync(Stream stream, Project project, CancellationToken cancellationToken)
     {
-        logger.LogTrace("Serializing information for {projectId}", project.Id);
-        var projectInfo = await RazorProjectInfoFactory.ConvertAsync(project, logger, cancellationToken).ConfigureAwait(false);
-        if (projectInfo is null)
+        _logger.LogTrace("Serializing information for {projectId}", project.Id);
+        var projectPath = Path.GetDirectoryName(project.FilePath);
+        if (projectPath is null)
         {
-            logger.LogTrace("Skipped writing data for {projectId}", project.Id);
+            _logger.LogInformation("projectPath is null, skip update for {projectId}", project.Id);
             return;
         }
 
-        stream.WriteProjectInfoAction(ProjectInfoAction.Update);
-        await stream.WriteProjectInfoAsync(projectInfo, cancellationToken).ConfigureAwait(false);
+        var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
+        if (intermediateOutputPath is null)
+        {
+            _logger.LogInformation("intermediateOutputPath is null, skip update for {projectId}", project.Id);
+            return;
+        }
+
+        if (!_projectEntryMap.TryGetValue(project.Id, out var entry))
+        {
+            _projectEntryMap[project.Id] = entry = new();
+        }
+
+        var (didChange, projectInfo) = await DidProjectInfoChangeAsync(project, entry, projectPath, intermediateOutputPath, cancellationToken).ConfigureAwait(false);
+        if (didChange)
+        {
+            projectInfo.AssumeNotNull();
+            UpdateEntry(project, projectInfo, entry);
+
+            stream.WriteProjectInfoAction(ProjectInfoAction.Update);
+            await stream.WriteProjectInfoAsync(projectInfo, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private void UpdateEntry(Project project, RazorProjectInfo projectInfo, ProjectEntry entry)
+    {
+        entry.RootNamespace = projectInfo.RootNamespace;
+        entry.ConfigurationHash = projectInfo.Configuration.GetHashCode();
+        entry.DocumentsHash = projectInfo.Documents.GetHashCode();
+
+        _cachedTagHelperResolver.TryGetId(project.Id, out var resultId);
+        entry.TagHelpersResultId = resultId;
+    }
+
+    private async Task<(bool, RazorProjectInfo? projectInfo)> DidProjectInfoChangeAsync(Project project, ProjectEntry entry, string projectPath, string intermediateOutputPath, CancellationToken cancellationToken)
+    {
+        ImmutableArray<DocumentSnapshotHandle> documents = default;
+        var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
+        AbstractCachedResolver<TagHelperDescriptor>.DeltaResult? delta = null;
+
+        var configuration = RazorProjectInfoHelpers.ComputeRazorConfigurationOptions(project.AnalyzerOptions.AnalyzerConfigOptionsProvider, out var rootNamespace);
+        if (configuration is null)
+        {
+            return (false, null);
+        }
+
+        if (entry.RootNamespace is null)
+        {
+            return await GetChangedValueAsync().ConfigureAwait(false);
+        }
+
+        if (!entry.RootNamespace.Equals(rootNamespace))
+        {
+            return await GetChangedValueAsync().ConfigureAwait(false);
+        }
+
+        if (entry.ConfigurationHash != configuration.GetHashCode())
+        {
+            return await GetChangedValueAsync().ConfigureAwait(false);
+        }
+
+        documents = RazorProjectInfoHelpers.GetDocuments(project, projectPath);
+        if (documents.Length == 0)
+        {
+            _logger.LogInformation("No razor documents in {projectId}", project.Id);
+            return (false, null);
+        }
+
+        if (entry.DocumentsHash != documents.GetHashCode())
+        {
+            return await GetChangedValueAsync().ConfigureAwait(false);
+        }
+
+        delta = await _cachedTagHelperResolver.GetDeltaAsync(project, entry.TagHelpersResultId, cancellationToken).ConfigureAwait(false);
+        if (delta.IsDelta)
+        {
+            return await GetChangedValueAsync().ConfigureAwait(false);
+        }
+
+        return (false, null);
+
+        async Task<(bool, RazorProjectInfo?)> GetChangedValueAsync()
+        {
+            // Always make sure the cache is up to date since tag helpers will need to be computed anyways
+            if (delta is null)
+            {
+                delta = await _cachedTagHelperResolver.GetDeltaAsync(project, entry.TagHelpersResultId, cancellationToken).ConfigureAwait(false);
+            }
+
+            var tagHelpers = _cachedTagHelperResolver.GetValues(project.Id, delta.ResultId);
+            var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
+
+            var projectInfo = await RazorProjectInfoHelpers.ConvertAsync(
+               project,
+               projectPath,
+               intermediateOutputPath,
+               configuration,
+               rootNamespace,
+               projectWorkspaceState,
+               documents,
+               cancellationToken).ConfigureAwait(false);
+
+            return (projectInfo is null, projectInfo);
+        }
     }
 
     private static Task ReportRemovalAsync(Stream stream, RemovalWork unit, ILogger logger, CancellationToken cancellationToken)

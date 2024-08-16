@@ -3,8 +3,9 @@
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Razor.Remote;
+namespace Microsoft.AspNetCore.Razor;
 
 internal class TagHelperResultCache
 {
