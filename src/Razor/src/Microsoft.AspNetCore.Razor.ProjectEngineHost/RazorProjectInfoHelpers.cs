@@ -1,9 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
@@ -15,60 +19,69 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
+namespace Microsoft.AspNetCore.Razor;
 
-internal static class RazorProjectInfoFactory
+internal static class RazorProjectInfoHelpers
 {
     private static readonly StringComparison s_stringComparison;
 
-    static RazorProjectInfoFactory()
+    static RazorProjectInfoHelpers()
     {
         s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
             ? StringComparison.Ordinal
             : StringComparison.OrdinalIgnoreCase;
     }
 
-    public static async Task<RazorProjectInfo?> ConvertAsync(Project project, ILogger? logger, CancellationToken cancellationToken)
+    public static async Task<RazorProjectInfo?> ConvertAsync(
+        Project project,
+        string projectPath,
+        string intermediateOutputPath,
+        RazorConfiguration? razorConfiguration,
+        string? defaultNamespace,
+        ProjectWorkspaceState? projectWorkspaceState,
+        ImmutableArray<DocumentSnapshotHandle> documents,
+        CancellationToken cancellationToken)
     {
-        var projectPath = Path.GetDirectoryName(project.FilePath);
-        if (projectPath is null)
+        if (documents.IsDefault)
         {
-            logger?.LogInformation("projectPath is null, skip conversion for {projectId}", project.Id);
-            return null;
+            documents = GetDocuments(project, projectPath);
         }
-
-        var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
-        if (intermediateOutputPath is null)
-        {
-            logger?.LogInformation("intermediatePath is null, skip conversion for {projectId}", project.Id);
-            return null;
-        }
-
-        // First, lets get the documents, because if there aren't any, we can skip out early
-        var documents = GetDocuments(project, projectPath);
 
         // Not a razor project
         if (documents.Length == 0)
         {
-            if (project.DocumentIds.Count == 0)
-            {
-                logger?.LogInformation("No razor documents for {projectId}", project.Id);
-            }
-            else
-            {
-                logger?.LogTrace("No documents in {projectId}", project.Id);
-            }
-            
             return null;
         }
 
+        if (razorConfiguration is null)
+        {
+            var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            razorConfiguration = ComputeRazorConfigurationOptions(options, out defaultNamespace);
+        }
+
+        if (projectWorkspaceState is null)
+        {
+            projectWorkspaceState = await GetWorkspaceStateAsync(project, razorConfiguration, defaultNamespace, projectPath, cancellationToken).ConfigureAwait(false);
+            if (projectWorkspaceState is null)
+            {
+                return null;
+            }
+        }
+
+        return new RazorProjectInfo(
+            projectKey: new ProjectKey(intermediateOutputPath),
+            filePath: project.FilePath!,
+            configuration: razorConfiguration,
+            rootNamespace: defaultNamespace,
+            displayName: project.Name,
+            projectWorkspaceState: projectWorkspaceState,
+            documents: documents);
+    }
+
+    public static async Task<ProjectWorkspaceState?> GetWorkspaceStateAsync(Project project, RazorConfiguration configuration, string? defaultNamespace, string projectPath, CancellationToken cancellationToken)
+    {
         var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
-
-        var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-        var configuration = ComputeRazorConfigurationOptions(options, logger, out var defaultNamespace);
-
         var fileSystem = RazorProjectFileSystem.Create(projectPath);
 
         var defaultConfigure = (RazorProjectEngineBuilder builder) =>
@@ -92,19 +105,35 @@ internal static class RazorProjectInfoFactory
         var resolver = new CompilationTagHelperResolver(NoOpTelemetryReporter.Instance);
         var tagHelpers = await resolver.GetTagHelpersAsync(project, engine, cancellationToken).ConfigureAwait(false);
 
-        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
-
-        return new RazorProjectInfo(
-            projectKey: new ProjectKey(intermediateOutputPath),
-            filePath: project.FilePath!,
-            configuration: configuration,
-            rootNamespace: defaultNamespace,
-            displayName: project.Name,
-            projectWorkspaceState: projectWorkspaceState,
-            documents: documents);
+        return ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
     }
 
-    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, ILogger? logger, out string defaultNamespace)
+    public static RazorProjectEngine? GetProjectEngine(Project project, string projectPath)
+    {
+        var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+        var configuration = ComputeRazorConfigurationOptions(options, out var defaultNamespace);
+        var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
+        var fileSystem = RazorProjectFileSystem.Create(projectPath);
+        var defaultConfigure = (RazorProjectEngineBuilder builder) =>
+        {
+            if (defaultNamespace is not null)
+            {
+                builder.SetRootNamespace(defaultNamespace);
+            }
+
+            builder.SetCSharpLanguageVersion(csharpLanguageVersion);
+            builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too!
+        };
+
+        var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration);
+
+        return engineFactory.Create(
+            configuration,
+            fileSystem,
+            configure: defaultConfigure);
+    }
+
+    public static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, out string defaultNamespace)
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
@@ -119,7 +148,6 @@ internal static class RazorProjectInfoFactory
         if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
             !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
         {
-            logger?.LogTrace("Using default of latest language version");
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
@@ -130,7 +158,7 @@ internal static class RazorProjectInfoFactory
         return razorConfiguration;
     }
 
-    internal static ImmutableArray<DocumentSnapshotHandle> GetDocuments(Project project, string projectPath)
+    public static ImmutableArray<DocumentSnapshotHandle> GetDocuments(Project project, string projectPath)
     {
         using var documents = new PooledArrayBuilder<DocumentSnapshotHandle>();
 
@@ -182,7 +210,7 @@ internal static class RazorProjectInfoFactory
 
     private static bool TryGetFileKind(string filePath, [NotNullWhen(true)] out string? fileKind)
     {
-        var extension = Path.GetExtension(filePath.AsSpan());
+        var extension = Path.GetExtension(filePath);
 
         if (extension.Equals(".cshtml", s_stringComparison))
         {
@@ -213,11 +241,9 @@ internal static class RazorProjectInfoFactory
         const string generatedRazorExtension = $".razor{suffix}";
         const string generatedCshtmlExtension = $".cshtml{suffix}";
 
-        var path = filePath.AsSpan();
-
         // Generated files have a path like: virtualcsharp-razor:///e:/Scratch/RazorInConsole/Goo.cshtml__virtual.cs
-        if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
-            (path.EndsWith(generatedRazorExtension, s_stringComparison) || path.EndsWith(generatedCshtmlExtension, s_stringComparison)))
+        if (filePath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
+            (filePath.EndsWith(generatedRazorExtension, s_stringComparison) || filePath.EndsWith(generatedCshtmlExtension, s_stringComparison)))
         {
             // Go through the file path normalizer because it also does Uri decoding, and we're converting from a Uri to a path
             // but "new Uri(filePath).LocalPath" seems wasteful
