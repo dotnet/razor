@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Internal;
 
@@ -53,5 +54,14 @@ internal sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
         hash.Add(CSharpLanguageVersion);
 
         return hash.CombinedHash;
+    }
+
+    internal void CalculateChecksum(Checksum.Builder builder)
+    {
+        builder.AppendData((int)CSharpLanguageVersion);
+        foreach (var tagHelper in TagHelpers)
+        {
+            builder.AppendData(tagHelper.Checksum);
+        }
     }
 }

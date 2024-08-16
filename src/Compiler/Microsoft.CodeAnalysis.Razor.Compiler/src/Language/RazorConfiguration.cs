@@ -1,8 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -38,5 +40,18 @@ public sealed record class RazorConfiguration(
         hash.Add(UseConsolidatedMvcViews);
         hash.Add(LanguageServerFlags);
         return hash;
+    }
+
+    internal void CalculateChecksum(Checksum.Builder builder)
+    {
+        builder.AppendData(LanguageVersion.Major);
+        builder.AppendData(LanguageVersion.Minor);
+        builder.AppendData(ConfigurationName);
+        builder.AppendData(UseConsolidatedMvcViews);
+
+        foreach (var extension in Extensions)
+        {
+            builder.AppendData(extension.ExtensionName);
+        }
     }
 }

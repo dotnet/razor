@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Internal;
 
@@ -20,6 +21,10 @@ internal sealed record class RazorProjectInfo
     public string DisplayName { get; init; }
     public ProjectWorkspaceState ProjectWorkspaceState { get; init; }
     public ImmutableArray<DocumentSnapshotHandle> Documents { get; init; }
+
+    private Checksum? _checksum;
+    internal Checksum Checksum
+        => _checksum ?? InterlockedOperations.Initialize(ref _checksum, ComputeChecksum());
 
     public RazorProjectInfo(
         ProjectKey projectKey,
@@ -62,5 +67,24 @@ internal sealed record class RazorProjectInfo
         hash.Add(Documents);
 
         return hash.CombinedHash;
+    }
+
+    private Checksum ComputeChecksum()
+    {
+        var builder = new Checksum.Builder();
+
+        builder.AppendData(FilePath);
+        builder.AppendData(ProjectKey.Id);
+        builder.AppendData(DisplayName);
+
+        Configuration.CalculateChecksum(builder);
+        foreach (var document in Documents)
+        {
+            document.CalculateChecksum(builder);
+        }
+
+        ProjectWorkspaceState.CalculateChecksum(builder);
+
+        return builder.FreeAndGetChecksum();
     }
 }

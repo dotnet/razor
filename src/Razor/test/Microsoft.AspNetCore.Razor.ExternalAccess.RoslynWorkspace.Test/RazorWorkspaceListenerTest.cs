@@ -256,6 +256,57 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         Assert.Equal(intermediateDirectory, await readerStream.ReadProjectInfoRemovalAsync(CancellationToken.None));
     }
 
+    [Fact]
+    public async Task CSharpDocumentAdded_DoesNotUpdate()
+    {
+        using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
+
+        using var listener = new TestRazorWorkspaceListener();
+        listener.EnsureInitialized(workspace);
+
+        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        listener.NotifyDynamicFile(project.Id);
+
+        await listener.WaitForDebounceAsync();
+
+        Assert.Equal(1, listener.SerializeCalls[project.Id]);
+        Assert.Equal(1, listener.WorkspaceChangedEvents);
+
+        var document = project.AddDocument("TestDocument", "class TestDocument { }");
+        Assert.True(workspace.TryApplyChanges(document.Project.Solution));
+
+        // We can't wait for debounce here, because it won't happen, but if we don't wait for _something_ we won't know
+        // if the test fails, so a delay is annoyingly necessary.
+        await Task.Delay(500);
+
+        Assert.Equal(2, listener.WorkspaceChangedEvents);
+        Assert.Equal(1, listener.SerializeCalls[project.Id]);
+    }
+
+    [Fact]
+    public async Task RazorFileAdded_DoesUpdate()
+    {
+        using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
+
+        using var listener = new TestRazorWorkspaceListener();
+        listener.EnsureInitialized(workspace);
+
+        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        listener.NotifyDynamicFile(project.Id);
+
+        await listener.WaitForDebounceAsync();
+
+        Assert.Equal(1, listener.SerializeCalls[project.Id]);
+        Assert.Equal(1, listener.WorkspaceChangedEvents);
+
+        workspace.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), @"Page.razor", filePath: @"C:\test\Page.razor"));
+
+        await listener.WaitForDebounceAsync();
+
+        Assert.Equal(2, listener.WorkspaceChangedEvents);
+        Assert.Equal(2, listener.SerializeCalls[project.Id]);
+    }
+
     private class TestRazorWorkspaceListener : RazorWorkspaceListenerBase
     {
         private ConcurrentDictionary<ProjectId, int> _serializeCalls = new();
@@ -265,6 +316,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
 
         public ConcurrentDictionary<ProjectId, int> SerializeCalls => _serializeCalls;
         public ConcurrentDictionary<ProjectId, int> RemoveCalls => _removeCalls;
+        public int WorkspaceChangedEvents { get; private set; }
 
         public TestRazorWorkspaceListener()
             : base(NullLoggerFactory.Instance.CreateLogger(""))
@@ -274,6 +326,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         public void EnsureInitialized(Workspace workspace)
         {
             EnsureInitialized(workspace, static () => Stream.Null);
+            workspace.WorkspaceChanged += (s, a) => { WorkspaceChangedEvents++; };
         }
 
         private protected override ValueTask ProcessWorkAsync(ImmutableArray<Work> work, CancellationToken cancellationToken)
