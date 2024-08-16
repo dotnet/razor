@@ -27,5 +27,7 @@ internal static class RazorLSPConstants
 
     public const string RoslynFormatNewFileEndpointName = "roslyn/formatNewFile";
 
+    public const string RoslynRazorComponentInfoEndpointName = "roslyn/razorComponentInfo";
+
     public const string RoslynSemanticTokenRangesEndpointName = "roslyn/semanticTokenRanges";
 }
