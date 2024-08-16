@@ -11,6 +11,7 @@ using System.IO;
 using System.Threading;
 
 namespace Microsoft.AspNetCore.Razor.Serialization;
+
 internal static class RazorMessagePackSerializer
 {
     private static readonly MessagePackSerializerOptions s_options = MessagePackSerializerOptions.Standard
