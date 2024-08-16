@@ -88,7 +88,7 @@ public class StreamExtensionTests
             projectWorkspaceState,
             [new DocumentSnapshotHandle(@"C:\test\document.razor", @"document.razor", FileKinds.Component)]);
 
-        var bytesToSerialize = projectInfo.Serialize();
+        var bytesToSerialize = RazorMessagePackSerializer.Serialize(projectInfo);
 
         await stream.WriteProjectInfoAsync(projectInfo, default);
 
