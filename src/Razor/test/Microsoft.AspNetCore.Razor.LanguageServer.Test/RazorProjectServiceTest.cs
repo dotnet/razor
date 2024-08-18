@@ -757,6 +757,24 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
+    public async Task AddDocumentToMiscProjectAsync_IgnoresKnownDocument_InMiscFiles()
+    {
+        // Arrange
+        const string DocumentFilePath = "C:/path/to/document.cshtml";
+
+        await _projectService.AddDocumentToMiscProjectAsync(DocumentFilePath, DisposalToken);
+
+        // Act
+        using var listener = _projectManager.ListenToNotifications();
+
+        // Act
+        await _projectService.AddDocumentToMiscProjectAsync(DocumentFilePath, DisposalToken);
+
+        // Assert
+        listener.AssertNoNotifications();
+    }
+
+    [Fact]
     public async Task RemoveDocument_RemovesDocumentFromOwnerProject()
     {
         // Arrange

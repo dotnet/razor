@@ -161,25 +161,14 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
         _logger.LogDebug($"Asked to add {textDocumentPath} to the miscellaneous files project, because we don't have project info (yet?)");
 
-        var potentialProjects = _projectManager.FindPotentialProjects(textDocumentPath);
-        foreach (var project in potentialProjects)
+        if (_projectManager.TryResolveDocumentInAnyProject(textDocumentPath, _logger, out var document))
         {
-            if (project.DocumentFilePaths.Contains(textDocumentPath, FilePathComparer.Instance))
-            {
-                // Already in a known project, so we don't want it in the misc files project
-                _logger.LogDebug($"File {textDocumentPath} is already in {project.Key} so we're not adding it to the miscellaneous files project");
-                return;
-            }
+            // Already in a known project, so we don't want it in the misc files project
+            _logger.LogDebug($"File {textDocumentPath} is already in {document.Project.Key}, so we're not adding it to the miscellaneous files project");
+            return;
         }
 
         var miscFilesProject = _projectManager.GetMiscellaneousProject();
-        if (miscFilesProject.GetDocument(textDocumentPath) is not null)
-        {
-            // Document already added. This usually occurs when VSCode has already pre-initialized
-            // open documents and then we try to manually add all known razor documents.
-            _logger.LogDebug($"File {textDocumentPath} is already in the miscellaneous files project, so no-op");
-            return;
-        }
 
         // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
         var normalizedTargetFilePath = textDocumentPath.Replace('/', '\\').TrimStart('\\');
