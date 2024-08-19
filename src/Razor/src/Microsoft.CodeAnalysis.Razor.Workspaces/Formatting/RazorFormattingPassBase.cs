@@ -74,7 +74,7 @@ internal abstract class RazorFormattingPassBase(
         {
             // Disclaimer: CSharpCodeBlockSyntax is used a _lot_ in razor so these methods are probably
             // being overly careful to only try to format syntax forms they care about.
-            TryFormatCSharpBlockStructure(context, edits, source, node, codeBlockBraceOnNextLine: true); // TODO
+            TryFormatCSharpBlockStructure(context, edits, source, node); // TODO
             TryFormatSingleLineDirective(edits, source, node);
             TryFormatBlocks(context, edits, source, node);
         }
@@ -248,7 +248,7 @@ internal abstract class RazorFormattingPassBase(
         return false;
     }
 
-    private void TryFormatCSharpBlockStructure(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node, bool codeBlockBraceOnNextLine)
+    private void TryFormatCSharpBlockStructure(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
     {
         // We're looking for a code block like this:
         //
@@ -268,7 +268,7 @@ internal abstract class RazorFormattingPassBase(
             directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
         {
             // If we're formatting a @code or @functions directive, the user might have indicated they always want a newline
-            var forceNewLine = codeBlockBraceOnNextLine &&
+            var forceNewLine = CodeBlockBraceOnNextLine &&
                 directive.Body is RazorDirectiveBodySyntax { Keyword: { } keyword } &&
                 IsCodeOrFunctionsBlock(keyword);
 
