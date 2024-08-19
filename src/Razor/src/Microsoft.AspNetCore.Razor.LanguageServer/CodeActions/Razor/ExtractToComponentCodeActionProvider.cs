@@ -83,23 +83,32 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
     private static bool IsSelectionValid(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
         var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex, includeWhitespace: true);
-        var startElementNode = owner?.FirstAncestorOrSelf<MarkupElementSyntax>();
-        return startElementNode is not null && !IsInsideProperHtmlContent(context, startElementNode) && !HasDiagnosticErrors(startElementNode);
-    }
-
-    private static bool IsInsideProperHtmlContent(RazorCodeActionContext context, MarkupElementSyntax startElementNode)
-    {
-        // If the provider executes before the user/completion inserts an end tag, the below return fails
-        if (startElementNode.EndTag.IsMissing)
+        if (owner is null)
         {
-            return true;
+            return false;
         }
 
-        return context.Location.AbsoluteIndex > startElementNode.StartTag.Span.End &&
-               context.Location.AbsoluteIndex < startElementNode.EndTag.SpanStart;
+        var startElementNode = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupElementSyntax or MarkupTagHelperElementSyntax);
+        return startElementNode is not null && !HasDiagnosticErrors(startElementNode) && !IsInsideProperHtmlContent(context, owner);
     }
 
-    private static bool HasDiagnosticErrors(MarkupElementSyntax markupElement)
+    private static bool IsInsideProperHtmlContent(RazorCodeActionContext context, SyntaxNode owner)
+    {
+        var tryMakeMarkupElement = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
+        var tryMakeMarkupTagHelperElement = owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
+
+        var isLocationInProperMarkupElement = tryMakeMarkupElement is not null &&
+                                        context.Location.AbsoluteIndex > tryMakeMarkupElement.StartTag.Span.End &&
+                                        context.Location.AbsoluteIndex < tryMakeMarkupElement.EndTag.SpanStart;
+
+        var isLocationInProperMarkupTagHelper = tryMakeMarkupTagHelperElement is not null &&
+                                                context.Location.AbsoluteIndex > tryMakeMarkupTagHelperElement.StartTag.Span.End &&
+                                                context.Location.AbsoluteIndex < tryMakeMarkupTagHelperElement.EndTag.SpanStart;
+
+        return isLocationInProperMarkupElement || isLocationInProperMarkupTagHelper;
+    }
+
+    private static bool HasDiagnosticErrors(MarkupSyntaxNode markupElement)
     {
         var diagnostics = markupElement.GetDiagnostics();
         return diagnostics.Any(d => d.Severity == RazorDiagnosticSeverity.Error);

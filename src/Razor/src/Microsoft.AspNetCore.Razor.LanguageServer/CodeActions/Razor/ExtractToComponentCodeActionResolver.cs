@@ -125,7 +125,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         var newComponentContent = newComponentResult.NewContents;
         var componentNameAndParams = GenerateComponentNameAndParameters(newComponentResult.Methods, componentName);
-            
+
         var componentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
         var newComponentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
 
@@ -176,7 +176,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         public int ExtractStart;
         public int ExtractEnd;
         public HashSet<string>? ComponentDependencies;
-        public HashSet<string>? VariableDependencies;
+        public HashSet<string>? TentativeVariableDependencies;
     }
 
     private static SelectionAnalysisResult TryAnalyzeSelection(RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
@@ -192,7 +192,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         var (success, extractStart, extractEnd) = TryProcessMultiPointSelection(startElementNode, endElementNode, codeDocument, actionParams);
 
         var dependencyScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
-        var methodDependencies = AddComponentDependenciesInRange(dependencyScanRoot, extractStart, extractEnd);
+        var componentDependencies = AddComponentDependenciesInRange(dependencyScanRoot, extractStart, extractEnd);
         var variableDependencies = AddVariableDependenciesInRange(dependencyScanRoot, extractStart, extractEnd);
 
         return new SelectionAnalysisResult
@@ -200,12 +200,12 @@ internal sealed class ExtractToComponentCodeActionResolver(
             Success = success,
             ExtractStart = extractStart,
             ExtractEnd = extractEnd,
-            ComponentDependencies = methodDependencies,
-            VariableDependencies = variableDependencies,
+            ComponentDependencies = componentDependencies,
+            TentativeVariableDependencies = variableDependencies,
         };
     }
 
-    private static (MarkupElementSyntax? Start, MarkupElementSyntax? End) GetStartAndEndElements(RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
+    private static (MarkupSyntaxNode? Start, MarkupSyntaxNode? End) GetStartAndEndElements(RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         if (syntaxTree is null)
@@ -219,8 +219,8 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return (null, null);
         }
 
-        var startElementNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
-        if (startElementNode is null || IsInsideProperHtmlContent(actionParams.AbsoluteIndex, startElementNode))
+        var startElementNode = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupTagHelperElementSyntax or MarkupElementSyntax);
+        if (startElementNode is null)
         {
             return (null, null);
         }
@@ -236,19 +236,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return (startElementNode, endElementNode);
     }
 
-    private static bool IsInsideProperHtmlContent(int absoluteIndex, MarkupElementSyntax startElementNode)
-    {
-        // If the provider executes before the user/completion inserts an end tag, the below return fails
-        if (startElementNode.EndTag.IsMissing)
-        {
-            return true;
-        }
-
-        return absoluteIndex > startElementNode.StartTag.Span.End &&
-               absoluteIndex < startElementNode.EndTag.SpanStart;
-    }
-
-    private static MarkupElementSyntax? TryGetEndElementNode(Position selectionStart, Position selectionEnd, RazorSyntaxTree syntaxTree, SourceText sourceText)
+    private static MarkupSyntaxNode? TryGetEndElementNode(Position selectionStart, Position selectionEnd, RazorSyntaxTree syntaxTree, SourceText sourceText)
     {
         if (selectionStart == selectionEnd)
         {
@@ -274,7 +262,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             endOwner = previousSibling;
         }
 
-        return endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
+        return endOwner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupTagHelperElementSyntax or MarkupElementSyntax);
     }
 
     private static SourceLocation? GetEndLocation(Position selectionEnd, SourceText sourceText)
@@ -296,7 +284,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
     /// <param name="actionParams">The parameters for the extraction action, which will be updated.</param>
     /// one more line for output
     /// <returns>A tuple containing a boolean indicating success, the start of the extraction range, and the end of the extraction range.</returns>
-    private static (bool success, int extractStart, int extractEnd) TryProcessMultiPointSelection(MarkupElementSyntax startElementNode, MarkupElementSyntax endElementNode, RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
+    private static (bool success, int extractStart, int extractEnd) TryProcessMultiPointSelection(MarkupSyntaxNode startElementNode, MarkupSyntaxNode endElementNode, RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
     {
         var extractStart = startElementNode.Span.Start;
         var extractEnd = endElementNode.Span.End;
@@ -420,11 +408,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
     private static SyntaxNode? FindNearestCommonAncestor(SyntaxNode node1, SyntaxNode node2)
     {
         var current = node1;
-        var secondNodeIsCodeBlock = node2 is CSharpCodeBlockSyntax;
-
         while (current is not null)
         {
-            if (ShouldCheckNode(current, secondNodeIsCodeBlock) && current.Span.Contains(node2.Span))
+            if (CheckNode(current) && current.Span.Contains(node2.Span))
             {
                 return current;
             }
@@ -435,21 +421,11 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return null;
     }
 
-    // Whenever the multi point selection includes a code block at the end, the logic for finding the nearest common ancestor and containing sibling pair
-    // should accept nodes of type MarkupBlockSyntax and CSharpCodeBlock each, respectively. ShouldCheckNode() and IsValidNode() handle these cases.
-    private static bool ShouldCheckNode(SyntaxNode node, bool isCodeBlock)
-    {
-        if (isCodeBlock)
-        {
-            return node is MarkupElementSyntax or MarkupBlockSyntax;
-        }
-
-        return node is MarkupElementSyntax;
-    }
+    private static bool CheckNode(SyntaxNode node) => node is MarkupElementSyntax or MarkupTagHelperElementSyntax or MarkupBlockSyntax;
 
     private static bool IsValidNode(SyntaxNode node, bool isCodeBlock)
     {
-        return node is MarkupElementSyntax || (isCodeBlock && node is CSharpCodeBlockSyntax);
+        return node is MarkupElementSyntax or MarkupTagHelperElementSyntax || (isCodeBlock && node is CSharpCodeBlockSyntax);
     }
 
     private static HashSet<string> AddComponentDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd)
