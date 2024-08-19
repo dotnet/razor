@@ -9,16 +9,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class GeneratedDocumentSynchronizer(
     IGeneratedDocumentPublisher publisher,
-    LanguageServerFeatureOptions languageServerFeatureOptions) : IDocumentProcessedListener
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IProjectSnapshotManager projectManager) : IDocumentProcessedListener
 {
     private readonly IGeneratedDocumentPublisher _publisher = publisher;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
 
     public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
         var hostDocumentVersion = document.Version;
-
         var filePath = document.FilePath.AssumeNotNull();
+
+        // If the document isn't open, and we're not updating buffers for closed documents, then we don't need to do anything.
+        if (!_projectManager.IsDocumentOpen(document.FilePath) &&
+            !_languageServerFeatureOptions.UpdateBuffersForClosedDocuments)
+        {
+            return;
+        }
 
         // If cohosting is on, then it is responsible for updating the Html buffer
         if (!_languageServerFeatureOptions.UseRazorCohostServer)
