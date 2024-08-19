@@ -71,7 +71,8 @@ public class StreamExtensionTests
         var configuration = new RazorConfiguration(
             RazorLanguageVersion.Latest,
             "TestConfiguration",
-            ImmutableArray<RazorExtension>.Empty);
+            ImmutableArray<RazorExtension>.Empty,
+            SuppressAddComponentParameter: false);
 
         var tagHelper = TagHelperDescriptorBuilder.Create("TypeName", "AssemblyName")
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tag-name"))

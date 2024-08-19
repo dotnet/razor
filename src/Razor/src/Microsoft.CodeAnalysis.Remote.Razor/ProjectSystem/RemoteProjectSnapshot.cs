@@ -198,6 +198,6 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
-        return new(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true);
+        return new(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: false);
     }
 }

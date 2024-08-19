@@ -16,7 +16,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
     public static readonly string RouteTemplateKey = "RouteTemplate";
 
     private static readonly RazorProjectEngine LeadingDirectiveParsingEngine = RazorProjectEngine.Create(
-        new(RazorLanguageVersion.Version_2_1, "leading-directive-parser", Extensions: []),
+        new(RazorLanguageVersion.Version_2_1, "leading-directive-parser", Extensions: [], SuppressAddComponentParameter: false),
         RazorProjectFileSystem.Create("/"),
         builder =>
         {

@@ -10,5 +10,6 @@ internal static class UnsupportedRazorConfiguration
     public static readonly RazorConfiguration Instance = new(
         RazorLanguageVersion.Version_1_0,
         "UnsupportedRazor",
-        [new("UnsupportedRazorExtension")]);
+        [new("UnsupportedRazorExtension")],
+        SuppressAddComponentParameter: false);
 }

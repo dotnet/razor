@@ -123,7 +123,7 @@ internal static class RazorProjectInfoFactory
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
-        var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true);
+        var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: false);
 
         defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
 

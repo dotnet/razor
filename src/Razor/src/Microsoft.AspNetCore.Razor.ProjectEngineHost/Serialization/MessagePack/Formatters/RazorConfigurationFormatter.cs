@@ -22,8 +22,9 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
 
         var configurationName = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? string.Empty;
         var languageVersionText = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? string.Empty;
+        var suppressAddComponentParameter = reader.ReadBoolean();
 
-        count -= 2;
+        count -= 3;
 
         if (reader.NextMessagePackType is MessagePackType.Boolean)
         {
@@ -45,7 +46,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return new(languageVersion, configurationName, extensions);
+        return new(languageVersion, configurationName, extensions, suppressAddComponentParameter);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
@@ -67,7 +68,9 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             CachedStringFormatter.Instance.Serialize(ref writer, value.LanguageVersion.ToString(), options);
         }
 
-        count -= 2;
+        writer.Write(value.SuppressAddComponentParameter);
+
+        count -= 3;
 
         for (var i = 0; i < count; i++)
         {

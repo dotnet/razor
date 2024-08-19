@@ -1089,7 +1089,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string IntermediateOutputPath = "C:/path/to/obj";
         const string RootNamespace = "My.Root.Namespace";
 
-        var configuration = new RazorConfiguration(RazorLanguageVersion.Version_1_0, "TestName", Extensions: []);
+        var configuration = new RazorConfiguration(RazorLanguageVersion.Version_1_0, "TestName", Extensions: [], SuppressAddComponentParameter: false);
 
         // Act
         var projectKey = await _projectService.AddProjectAsync(

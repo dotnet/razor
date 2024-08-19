@@ -24,7 +24,7 @@ public class SerializationTest : ToolingTestBase
     {
         var languageVersion = RazorLanguageVersion.Experimental;
 
-        _configuration = new(languageVersion, "Custom", [new("TestExtension")]);
+        _configuration = new(languageVersion, "Custom", [new("TestExtension")], SuppressAddComponentParameter: false);
         _projectWorkspaceState = ProjectWorkspaceState.Create(
             tagHelpers: [TagHelperDescriptorBuilder.Create("Test", "TestAssembly").Build()],
             csharpLanguageVersion: LanguageVersion.LatestMajor);

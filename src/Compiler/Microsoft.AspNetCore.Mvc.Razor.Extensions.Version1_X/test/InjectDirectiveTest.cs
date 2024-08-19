@@ -175,7 +175,7 @@ public class InjectDirectiveTest
 
     private RazorEngine CreateEngine()
     {
-        var configuration = new RazorConfiguration(RazorLanguageVersion.Version_1_1, "test", Extensions: []);
+        var configuration = new RazorConfiguration(RazorLanguageVersion.Version_1_1, "test", Extensions: [], SuppressAddComponentParameter: false);
         return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, b =>
         {
             // Notice we're not registering the InjectDirective.Pass here so we can run it on demand.
