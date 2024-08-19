@@ -36,6 +36,7 @@ using System.Security.AccessControl;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 using static Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor.ExtractToComponentCodeActionProvider;
 using Microsoft.VisualStudio.Text;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -61,12 +62,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
     public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
     {
-        if (data.ValueKind == JsonValueKind.Undefined)
-        {
-            return null;
-        }
-
-        var actionParams = JsonSerializer.Deserialize<ExtractToComponentCodeActionParams>(data.GetRawText());
+        var actionParams = DeserializeActionParams(data);
         if (actionParams is null)
         {
             return null;
@@ -77,31 +73,30 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return null;
         }
 
-        var componentDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (componentDocument.IsUnsupported())
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        if (codeDocument.IsUnsupported())
         {
             return null;
         }
 
-        var selectionAnalysis = TryAnalyzeSelection(componentDocument, actionParams);
+        if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
+        {
+            return null;
+        }
 
+        var selectionAnalysis = TryAnalyzeSelection(codeDocument, actionParams);
         if (!selectionAnalysis.Success)
         {
             return null;
         }
 
-        var start = componentDocument.Source.Text.Lines.GetLinePosition(selectionAnalysis.ExtractStart);
-        var end = componentDocument.Source.Text.Lines.GetLinePosition(selectionAnalysis.ExtractEnd);
+        var start = codeDocument.Source.Text.Lines.GetLinePosition(selectionAnalysis.ExtractStart);
+        var end = codeDocument.Source.Text.Lines.GetLinePosition(selectionAnalysis.ExtractEnd);
         var removeRange = new Range
         {
             Start = new Position(start.Line, start.Character),
             End = new Position(end.Line, end.Character)
         };
-
-        if (!FileKinds.IsComponent(componentDocument.GetFileKind()))
-        {
-            return null;
-        }
 
         var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
@@ -121,13 +116,15 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }.Uri;
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentContent = await GenerateNewComponentAsync(selectionAnalysis, componentDocument, actionParams.Uri, documentContext, removeRange, cancellationToken).ConfigureAwait(false);
+        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, newComponentUri, documentContext, removeRange, cancellationToken).ConfigureAwait(false);
 
-        if (newComponentContent is null)
+        if (newComponentResult is null)
         {
             return null;
         }
-
+        var newComponentContent = newComponentResult.NewContents;
+        var componentNameAndParams = GenerateComponentNameAndParameters(newComponentResult.Methods, componentName);
+            
         var componentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
         var newComponentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
 
@@ -141,7 +138,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
                 [
                     new TextEdit
                     {
-                        NewText = $"<{componentName} />",
+                        NewText = $"<{componentNameAndParams}/>",
                         Range = removeRange,
                     }
                 ],
@@ -176,7 +173,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         //        { "trimFinalNewlines", true },
         //    },
         //};
-        
+
         //TextEdit[]? formattedEdits;
         //try
         //{
@@ -196,29 +193,28 @@ internal sealed class ExtractToComponentCodeActionResolver(
             DocumentChanges = documentChanges,
         };
     }
+    private ExtractToComponentCodeActionParams? DeserializeActionParams(JsonElement data)
+    {
+        return data.ValueKind == JsonValueKind.Undefined
+            ? null
+            : JsonSerializer.Deserialize<ExtractToComponentCodeActionParams>(data.GetRawText());
+    }
 
     internal sealed record SelectionAnalysisResult
     {
         public required bool Success;
-        public required int ExtractStart;
-        public required int ExtractEnd;
-        public required HashSet<string> ComponentDependencies;
+        public int ExtractStart;
+        public int ExtractEnd;
+        public HashSet<string>? ComponentDependencies;
+        public HashSet<string>? VariableDependencies;
     }
 
     private static SelectionAnalysisResult TryAnalyzeSelection(RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
     {
-        var result = new SelectionAnalysisResult
-        {
-            Success = false,
-            ExtractStart = 0,
-            ExtractEnd = 0,
-            ComponentDependencies = [],
-        };
-
         var (startElementNode, endElementNode) = GetStartAndEndElements(codeDocument, actionParams);
         if (startElementNode is null)
         {
-            return result;
+            return new SelectionAnalysisResult { Success = false };
         }
 
         endElementNode ??= startElementNode;
@@ -226,14 +222,17 @@ internal sealed class ExtractToComponentCodeActionResolver(
         var (success, extractStart, extractEnd) = TryProcessMultiPointSelection(startElementNode, endElementNode, codeDocument, actionParams);
 
         var dependencyScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
-        var dependencies = AddComponentDependenciesInRange(dependencyScanRoot, extractStart, extractEnd);
+        var methodDependencies = AddComponentDependenciesInRange(dependencyScanRoot, extractStart, extractEnd);
+        var variableDependencies = AddVariableDependenciesInRange(dependencyScanRoot, extractStart, extractEnd);
 
-        result.Success = success;
-        result.ExtractStart = extractStart;
-        result.ExtractEnd = extractEnd;
-        result.ComponentDependencies = dependencies;
-
-        return result;
+        return new SelectionAnalysisResult
+        {
+            Success = success,
+            ExtractStart = extractStart,
+            ExtractEnd = extractEnd,
+            ComponentDependencies = methodDependencies,
+            VariableDependencies = variableDependencies,
+        };
     }
 
     private static (MarkupElementSyntax? Start, MarkupElementSyntax? End) GetStartAndEndElements(RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
@@ -305,12 +304,12 @@ internal sealed class ExtractToComponentCodeActionResolver(
             endOwner = previousSibling;
         }
 
-        return endOwner?.FirstAncestorOrSelf<MarkupElementSyntax>();
+        return endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
     }
 
     private static SourceLocation? GetEndLocation(Position selectionEnd, SourceText sourceText)
     {
-        if (!selectionEnd.TryGetSourceLocation(sourceText, logger: default,  out var location))
+        if (!selectionEnd.TryGetSourceLocation(sourceText, logger: default, out var location))
         {
             return null;
         }
@@ -504,6 +503,28 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return dependencies;
     }
 
+    private static HashSet<string> AddVariableDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd)
+    {
+        var dependencies = new HashSet<string>();
+        var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
+
+        var candidates = root.DescendantNodes().Where(node => extractSpan.Contains(node.Span));
+
+        foreach (var node in root.DescendantNodes().Where(node => extractSpan.Contains(node.Span)))
+        {
+            if (node is MarkupTagHelperAttributeValueSyntax tagAttribute)
+            {
+                dependencies.Add(tagAttribute.ToFullString());
+            }
+            else if (node is CSharpImplicitExpressionBodySyntax implicitExpression)
+            {
+                dependencies.Add(implicitExpression.ToFullString());
+            }
+        }
+
+        return dependencies;
+    }
+
     private static TagHelperInfo? GetTagHelperInfo(SyntaxNode node)
     {
         if (node is MarkupTagHelperElementSyntax markupElement)
@@ -533,10 +554,11 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
     }
 
-    private async Task<string?> GenerateNewComponentAsync(
+    private async Task<NewRazorComponentInfo?> GenerateNewComponentAsync(
         SelectionAnalysisResult selectionAnalysis,
         RazorCodeDocument razorCodeDocument,
         Uri componentUri,
+        Uri newComponentUri,
         DocumentContext documentContext,
         Range relevantRange,
         CancellationToken cancellationToken)
@@ -551,19 +573,48 @@ internal sealed class ExtractToComponentCodeActionResolver(
         var extractedContents = contents.GetSubTextString(new CodeAnalysis.Text.TextSpan(selectionAnalysis.ExtractStart, selectionAnalysis.ExtractEnd - selectionAnalysis.ExtractStart)).Trim();
         var newFileContent = $"{dependencies}{(dependencies.Length > 0 ? Environment.NewLine + Environment.NewLine : "")}{extractedContents}";
 
+        //var formattingParams = new FormatNewFileParams
+        //{
+        //    Project = new TextDocumentIdentifier
+        //    {
+        //        Uri = new Uri(documentContext.Project.FilePath, UriKind.Absolute)
+        //    },
+        //    Document = new TextDocumentIdentifier
+        //    {
+        //        Uri = newComponentUri
+        //    },
+        //    Contents = newFileContent
+        //};
+
+        //string fixedContent = string.Empty;
+        //try
+        //{
+        //    fixedContent = await _clientConnection.SendRequestAsync<FormatNewFileParams, string?>(CustomMessageNames.RazorFormatNewFileEndpointName, formattingParams, cancellationToken: default).ConfigureAwait(false);
+        //}
+        //catch (Exception ex)
+        //{
+        //    throw new InvalidOperationException("Failed to send request to RazorFormatNewFileEndpoint", ex);
+        //}
+
         // Get CSharpStatements within component
         var syntaxTree = razorCodeDocument.GetSyntaxTree();
         var cSharpCodeBlocks = GetCSharpCodeBlocks(syntaxTree, selectionAnalysis.ExtractStart, selectionAnalysis.ExtractEnd);
 
+        var result = new NewRazorComponentInfo
+        {
+            NewContents = newFileContent,
+            Methods = []
+        };
+
         // Only make the Roslyn call if there is valid CSharp in the selected code.
         if (cSharpCodeBlocks.Count == 0)
         {
-            return newFileContent;
+            return result;
         }
 
-        if(!_documentVersionCache.TryGetDocumentVersion(documentContext.Snapshot, out var version))
+        if (!_documentVersionCache.TryGetDocumentVersion(documentContext.Snapshot, out var version))
         {
-            return newFileContent;
+            return result;
         }
 
         var parameters = new RazorComponentInfoParams()
@@ -576,7 +627,11 @@ internal sealed class ExtractToComponentCodeActionResolver(
             {
                 Uri = componentUri
             },
-            ScanRange = relevantRange,
+            NewDocument = new TextDocumentIdentifier
+            {
+                Uri = newComponentUri
+            },
+            NewContents = newFileContent,
             HostDocumentVersion = version.Value
         };
 
@@ -594,10 +649,27 @@ internal sealed class ExtractToComponentCodeActionResolver(
         // Check if client connection call was successful
         if (componentInfo is null)
         {
-            return newFileContent;
+            return result;
         }
 
-        return newFileContent;
+        var codeBlockAtEnd = GetCodeBlockAtEnd(syntaxTree);
+        var identifiersInCodeBlock = GetIdentifiersInContext(codeBlockAtEnd, cSharpCodeBlocks);
+
+        var methodsInFile = componentInfo.Methods.Select(method => method.Name).ToHashSet();
+        var methodStringsInContext = methodsInFile.Intersect(identifiersInCodeBlock);
+        var methodsInContext = GetMethodsInContext(componentInfo, methodStringsInContext);
+
+        var promotedMethods = GeneratePromotedMethods(methodsInContext);
+        var forwardedFields = GenerateForwardedConstantFields(codeBlockAtEnd, GetFieldsInContext(componentInfo, identifiersInCodeBlock));
+        var newFileCodeBlock = GenerateNewFileCodeBlock(promotedMethods, forwardedFields);
+
+        newFileContent = ReplaceMethodInvocations(newFileContent, methodsInContext);
+        newFileContent += newFileCodeBlock;
+
+        result.NewContents = newFileContent;
+        result.Methods = methodsInContext;
+
+        return result;
     }
 
     private static List<CSharpCodeBlockSyntax> GetCSharpCodeBlocks(RazorSyntaxTree syntaxTree, int start, int end)
@@ -622,28 +694,201 @@ internal sealed class ExtractToComponentCodeActionResolver(
     }
 
     // Get identifiers in code block to union with the identifiers in the extracted code
-    private static List<string> GetIdentifiers(RazorSyntaxTree syntaxTree)
+    private static HashSet<string> GetIdentifiersInContext(SyntaxNode codeBlockAtEnd, List<CSharpCodeBlockSyntax> previousCodeBlocks)
     {
-        var identifiers = new List<string>();
-        var root = syntaxTree.Root;
-        // Get only the last CSharpCodeBlock (has an explicit "@code" transition)
-        var cSharpCodeBlock = root.DescendantNodes().OfType<CSharpCodeBlockSyntax>().LastOrDefault();
+        var identifiersInLastCodeBlock = new HashSet<string>();
+        var identifiersInPreviousCodeBlocks = new HashSet<string>();
 
-        if (cSharpCodeBlock == null)
+        if (codeBlockAtEnd == null)
         {
-            return identifiers;
+            return identifiersInLastCodeBlock;
         }
 
-        foreach (var node in cSharpCodeBlock.DescendantNodes())
+        foreach (var node in codeBlockAtEnd.DescendantNodes())
         {
-            if (node is CSharpStatementLiteralSyntax literal && literal.Kind is Language.SyntaxKind.Identifier)
+            if (node.Kind is Language.SyntaxKind.Identifier)
             {
-                var lit = literal.ToFullString();
+                var lit = node.ToFullString();
+                identifiersInLastCodeBlock.Add(lit);
             }
         }
 
-        return identifiers;
+        foreach (var previousCodeBlock in previousCodeBlocks)
+        {
+            foreach (var node in previousCodeBlock.DescendantNodes())
+            {
+                if (node.Kind is Language.SyntaxKind.Identifier)
+                {
+                    var lit = node.ToFullString();
+                    identifiersInPreviousCodeBlocks.Add(lit);
+                }
+            }
+        }
 
-        //var cSharpSyntaxNodes = cSharpCodeBlock.DescendantNodes().OfType<>();
+        // Now union with identifiers in other cSharpCodeBlocks in context
+        identifiersInLastCodeBlock.IntersectWith(identifiersInPreviousCodeBlocks);
+
+        return identifiersInLastCodeBlock;
+    }
+
+    private static HashSet<MethodInsideRazorElementInfo>? GetMethodsInContext(RazorComponentInfo componentInfo, IEnumerable<string> methodStringsInContext)
+    {
+        var methodsInContext = new HashSet<MethodInsideRazorElementInfo>();
+        foreach (var componentMethod in componentInfo.Methods)
+        {
+            if (methodStringsInContext.Contains(componentMethod.Name) && !methodsInContext.Any(method => method.Name == componentMethod.Name))
+            {
+                methodsInContext.Add(componentMethod);
+            }
+        }
+        return methodsInContext;
+    }
+
+    private static SyntaxNode? GetCodeBlockAtEnd(RazorSyntaxTree syntaxTree)
+    {
+        var root = syntaxTree.Root;
+
+        // Get only the last CSharpCodeBlock (has an explicit "@code" transition)
+        var razorDirectiveAtEnd = root.DescendantNodes().OfType<RazorDirectiveSyntax>().LastOrDefault();
+
+        if (razorDirectiveAtEnd is null)
+        {
+            return null;
+        }
+
+        return razorDirectiveAtEnd.Parent;
+    }
+
+    // Create a series of [Parameter] attributes for extracted methods.
+    // Void return functions are promoted to Action<T> delegates.
+    // All other functions should be Func<T... TResult> delegates.
+    private static string GeneratePromotedMethods(HashSet<MethodInsideRazorElementInfo> methods)
+    {
+        var builder = new StringBuilder();
+        var parameterCount = 0;
+        var totalMethods = methods.Count;
+
+        foreach (var method in methods)
+        {
+            builder.AppendLine("/// <summary>");
+            builder.AppendLine($"/// Delegate for the '{method.Name}' method.");
+            builder.AppendLine("/// </summary>");
+            builder.AppendLine("[Parameter]");
+            builder.Append("public ");
+
+            if (method.ReturnType == "void")
+            {
+                builder.Append("Action");
+            }
+            else
+            {
+                builder.Append("Func<");
+            }
+
+            if (method.ParameterTypes.Count > 0)
+            {
+                if (method.ReturnType == "void")
+                {
+                    builder.Append("<");
+                }
+
+                builder.Append(string.Join(", ", method.ParameterTypes));
+                if (method.ReturnType != "void")
+                {
+                    builder.Append(", ");
+                }
+            }
+
+            if (method.ReturnType != "void")
+            {
+                builder.Append(method.ReturnType);
+            }
+
+            builder.Append($"{(method.ReturnType == "void" ? (method.ParameterTypes.Count > 0 ? ">" : "") : ">")}? Parameter{(parameterCount > 0 ? parameterCount : "")} {{ get; set; }}");
+            if (parameterCount < totalMethods - 1)
+            {
+                builder.AppendLine();
+                builder.AppendLine();
+            }
+
+            parameterCount++;
+        }
+        return builder.ToString();
+    }
+
+    private static string GenerateForwardedConstantFields(SyntaxNode codeBlockAtEnd, HashSet<string> relevantFields)
+    {
+        var builder = new StringBuilder();
+
+        var codeBlockString = codeBlockAtEnd.ToFullString();
+
+        var lines = codeBlockString.Split('\n');
+        foreach (var line in lines)
+        {
+            if (relevantFields.Any(field => line.Contains(field)))
+            {
+                builder.AppendLine(line.Trim());
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    // GetFieldsInContext(componentInfo, identifiersInCodeBlock)
+    private static HashSet<string>? GetFieldsInContext(RazorComponentInfo componentInfo, HashSet<string> identifiersInCodeBlock)
+    {
+        var identifiersInFile = componentInfo.Fields.Select(field => field.Name).ToHashSet();
+        return identifiersInFile.Intersect(identifiersInCodeBlock).ToHashSet();
+    }
+
+    private static string GenerateNewFileCodeBlock(string promotedMethods, string carryoverFields)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine();
+        builder.AppendLine();
+        builder.AppendLine("@code {");
+        builder.AppendLine(carryoverFields);
+        builder.AppendLine(promotedMethods);
+        builder.AppendLine("}");
+        return builder.ToString();
+    }
+
+    // Method invocations in the new file must be replaced with their respective parameter name. This is simply a case of replacing each string.
+    private static string ReplaceMethodInvocations(string newFileContent, HashSet<MethodInsideRazorElementInfo> methods)
+    {
+        var parameterCount = 0;
+        foreach (var method in methods)
+        {
+            newFileContent = newFileContent.Replace(method.Name, $"Parameter{(parameterCount > 0 ? parameterCount : "")}");
+            parameterCount++;
+        }
+        return newFileContent;
+    }
+
+    private static string GenerateComponentNameAndParameters(HashSet<MethodInsideRazorElementInfo>? methods, string componentName)
+    {
+        var builder = new StringBuilder();
+        builder.Append(componentName + " ");
+        var parameterCount = 0;
+
+        if (methods is null)
+        {
+            return builder.ToString();
+        }
+
+        foreach (var method in methods)
+        {
+            builder.Append($"Parameter{(parameterCount > 0 ? parameterCount : "")}");
+            builder.Append($"={method.Name}");
+            builder.Append(" ");
+            parameterCount++;
+        }
+        return builder.ToString();
+    }
+
+    internal sealed record NewRazorComponentInfo
+    {
+        public required string NewContents { get; set; }
+        public required HashSet<MethodInsideRazorElementInfo>? Methods { get; set; }
     }
 }
