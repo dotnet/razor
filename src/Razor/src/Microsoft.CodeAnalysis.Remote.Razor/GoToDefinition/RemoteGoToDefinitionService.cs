@@ -56,7 +56,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         var positionInfo = _documentMappingService.GetPositionInfo(codeDocument, hostDocumentIndex);
 
         // First, see if this is a Razor component.
-        var componentLocation = await _componentDefinitionService.GetDefinitionAsync(context, positionInfo, ignoreAttributes: false, cancellationToken).ConfigureAwait(false);
+        var componentLocation = await _componentDefinitionService.GetDefinitionAsync(context.Snapshot, positionInfo, ignoreAttributes: false, cancellationToken).ConfigureAwait(false);
         if (componentLocation is not null)
         {
             // Convert from VS LSP Location to Roslyn. This can be removed when Razor moves fully onto Roslyn's LSP types.
