@@ -72,11 +72,6 @@
         <target state="translated">'{0}' Olay İşleyicisi Oluştur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Razor dil hizmetleri düzgün yapılandırılmadı, '{0}' dil hizmeti eksik.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
         <target state="translated">Şurada kullanılamaz:</target>

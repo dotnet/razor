@@ -54,6 +54,11 @@
         <target state="translated">오프셋이 유효하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_Services_Missing_Service">
+        <source>Razor language services not configured properly, missing language service '{0}'.</source>
+        <target state="new">Razor language services not configured properly, missing language service '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PositionCharacter_Outside_Range">
         <source>Character '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
         <target state="translated">'{2}'의 {1} 범위를 벗어나는 문자 '{0}'이(가) 쿼리되었습니다. 문서가 최신이 아닐 수 있습니다.</target>

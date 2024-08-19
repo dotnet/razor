@@ -160,4 +160,7 @@
   <data name="Diagnostics_after" xml:space="preserve">
     <value>Diagnostics after:</value>
   </data>
+  <data name="Language_Services_Missing_Service" xml:space="preserve">
+    <value>Razor language services not configured properly, missing language service '{0}'.</value>
+  </data>
 </root>

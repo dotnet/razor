@@ -4,11 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+namespace Microsoft.CodeAnalysis.Razor.Common;
 
 internal sealed class AdhocWorkspaceServices : HostWorkspaceServices
 {

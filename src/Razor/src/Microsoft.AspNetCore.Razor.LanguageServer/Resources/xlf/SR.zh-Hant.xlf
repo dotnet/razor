@@ -72,11 +72,6 @@
         <target state="translated">產生事件處理常式 '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">未正確設定 Razor 語言服務，遺漏語言服務 '{0}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
         <target state="translated">無法使用於</target>

@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+namespace Microsoft.CodeAnalysis.Razor.Common;
 
 internal sealed class AdhocServices : HostServices
 {

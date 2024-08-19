@@ -54,6 +54,11 @@
         <target state="translated">Neplatný posun</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_Services_Missing_Service">
+        <source>Razor language services not configured properly, missing language service '{0}'.</source>
+        <target state="new">Razor language services not configured properly, missing language service '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PositionCharacter_Outside_Range">
         <source>Character '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
         <target state="translated">Proběhl dotaz na znak {0} mimo rozsah {1} v {2}. Dokument nemusí být aktuální.</target>

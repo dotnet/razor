@@ -72,11 +72,6 @@
         <target state="translated">Создать обработчик событий "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Языковые службы Razor настроены неправильно, отсутствует языковая служба "{0}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
         <target state="translated">Недоступно в</target>

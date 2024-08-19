@@ -72,11 +72,6 @@
         <target state="translated">Genera gestore dell'evento '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">I servizi di linguaggio Razor non sono configurati correttamente. Manca il servizio di linguaggio '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
         <target state="translated">Non disponibili in</target>
