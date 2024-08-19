@@ -116,12 +116,13 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }.Uri;
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, newComponentUri, documentContext, removeRange, cancellationToken).ConfigureAwait(false);
+        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, newComponentUri, documentContext, cancellationToken).ConfigureAwait(false);
 
         if (newComponentResult is null)
         {
             return null;
         }
+
         var newComponentContent = newComponentResult.NewContents;
         var componentNameAndParams = GenerateComponentNameAndParameters(newComponentResult.Methods, componentName);
             
@@ -156,37 +157,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
                 ],
             }
         };
-
-        //if (!_documentContextFactory.TryCreateForOpenDocument(newComponentUri, out var versionedDocumentContext))
-        //{
-        //    throw new InvalidOperationException("Failed to create a versioned document context for the new component");
-        //}
-
-        //var formattingOptions = new VisualStudio.LanguageServer.Protocol.FormattingOptions()
-        //{
-        //    TabSize = _razorLSPOptionsMonitor.CurrentValue.TabSize,
-        //    InsertSpaces = _razorLSPOptionsMonitor.CurrentValue.InsertSpaces,
-        //    OtherOptions = new Dictionary<string, object>
-        //    {
-        //        { "trimTrailingWhitespace", true },
-        //        { "insertFinalNewline", true },
-        //        { "trimFinalNewlines", true },
-        //    },
-        //};
-
-        //TextEdit[]? formattedEdits;
-        //try
-        //{
-        //    formattedEdits = await _razorFormattingService.FormatAsync(
-        //        documentContext,
-        //        range: removeRange,
-        //        formattingOptions,
-        //        cancellationToken: default).ConfigureAwait(false);
-        //}
-        //catch (Exception ex)
-        //{
-        //    throw new InvalidOperationException("Failed to format the new component", ex);
-        //}
 
         return new WorkspaceEdit
         {
@@ -560,7 +530,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
         Uri componentUri,
         Uri newComponentUri,
         DocumentContext documentContext,
-        Range relevantRange,
         CancellationToken cancellationToken)
     {
         var contents = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
@@ -569,32 +538,12 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return null;
         }
 
-        var dependencies = string.Join(Environment.NewLine, selectionAnalysis.ComponentDependencies);
+        var dependencies = selectionAnalysis.ComponentDependencies is not null
+        ? string.Join(Environment.NewLine, selectionAnalysis.ComponentDependencies)
+        : string.Empty;
+
         var extractedContents = contents.GetSubTextString(new CodeAnalysis.Text.TextSpan(selectionAnalysis.ExtractStart, selectionAnalysis.ExtractEnd - selectionAnalysis.ExtractStart)).Trim();
         var newFileContent = $"{dependencies}{(dependencies.Length > 0 ? Environment.NewLine + Environment.NewLine : "")}{extractedContents}";
-
-        //var formattingParams = new FormatNewFileParams
-        //{
-        //    Project = new TextDocumentIdentifier
-        //    {
-        //        Uri = new Uri(documentContext.Project.FilePath, UriKind.Absolute)
-        //    },
-        //    Document = new TextDocumentIdentifier
-        //    {
-        //        Uri = newComponentUri
-        //    },
-        //    Contents = newFileContent
-        //};
-
-        //string fixedContent = string.Empty;
-        //try
-        //{
-        //    fixedContent = await _clientConnection.SendRequestAsync<FormatNewFileParams, string?>(CustomMessageNames.RazorFormatNewFileEndpointName, formattingParams, cancellationToken: default).ConfigureAwait(false);
-        //}
-        //catch (Exception ex)
-        //{
-        //    throw new InvalidOperationException("Failed to send request to RazorFormatNewFileEndpoint", ex);
-        //}
 
         // Get CSharpStatements within component
         var syntaxTree = razorCodeDocument.GetSyntaxTree();
@@ -653,14 +602,25 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var codeBlockAtEnd = GetCodeBlockAtEnd(syntaxTree);
+        if (codeBlockAtEnd is null)
+        {
+            return result;
+        }
+
         var identifiersInCodeBlock = GetIdentifiersInContext(codeBlockAtEnd, cSharpCodeBlocks);
+
+        if (componentInfo.Methods is null)
+        {
+            return result;
+        }
 
         var methodsInFile = componentInfo.Methods.Select(method => method.Name).ToHashSet();
         var methodStringsInContext = methodsInFile.Intersect(identifiersInCodeBlock);
         var methodsInContext = GetMethodsInContext(componentInfo, methodStringsInContext);
-
         var promotedMethods = GeneratePromotedMethods(methodsInContext);
-        var forwardedFields = GenerateForwardedConstantFields(codeBlockAtEnd, GetFieldsInContext(componentInfo, identifiersInCodeBlock));
+
+        var fieldsInContext = GetFieldsInContext(componentInfo, identifiersInCodeBlock);
+        var forwardedFields = GenerateForwardedConstantFields(codeBlockAtEnd, fieldsInContext);
         var newFileCodeBlock = GenerateNewFileCodeBlock(promotedMethods, forwardedFields);
 
         newFileContent = ReplaceMethodInvocations(newFileContent, methodsInContext);
@@ -731,9 +691,14 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return identifiersInLastCodeBlock;
     }
 
-    private static HashSet<MethodInsideRazorElementInfo>? GetMethodsInContext(RazorComponentInfo componentInfo, IEnumerable<string> methodStringsInContext)
+    private static HashSet<MethodInsideRazorElementInfo> GetMethodsInContext(RazorComponentInfo componentInfo, IEnumerable<string> methodStringsInContext)
     {
         var methodsInContext = new HashSet<MethodInsideRazorElementInfo>();
+        if (componentInfo.Methods is null)
+        {
+            return methodsInContext;
+        }
+
         foreach (var componentMethod in componentInfo.Methods)
         {
             if (methodStringsInContext.Contains(componentMethod.Name) && !methodsInContext.Any(method => method.Name == componentMethod.Name))
@@ -741,6 +706,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
                 methodsInContext.Add(componentMethod);
             }
         }
+
         return methodsInContext;
     }
 
@@ -804,7 +770,8 @@ internal sealed class ExtractToComponentCodeActionResolver(
                 builder.Append(method.ReturnType);
             }
 
-            builder.Append($"{(method.ReturnType == "void" ? (method.ParameterTypes.Count > 0 ? ">" : "") : ">")}? Parameter{(parameterCount > 0 ? parameterCount : "")} {{ get; set; }}");
+            builder.Append($"{(method.ReturnType == "void" ? (method.ParameterTypes.Count > 0 ? ">" : "") : ">")}? " +
+                           $"Parameter{(parameterCount > 0 ? parameterCount : "")} {{ get; set; }}");
             if (parameterCount < totalMethods - 1)
             {
                 builder.AppendLine();
@@ -813,6 +780,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
             parameterCount++;
         }
+
         return builder.ToString();
     }
 
@@ -835,8 +803,13 @@ internal sealed class ExtractToComponentCodeActionResolver(
     }
 
     // GetFieldsInContext(componentInfo, identifiersInCodeBlock)
-    private static HashSet<string>? GetFieldsInContext(RazorComponentInfo componentInfo, HashSet<string> identifiersInCodeBlock)
+    private static HashSet<string> GetFieldsInContext(RazorComponentInfo componentInfo, HashSet<string> identifiersInCodeBlock)
     {
+        if (componentInfo.Fields is null)
+        {
+            return [];
+        }
+
         var identifiersInFile = componentInfo.Fields.Select(field => field.Name).ToHashSet();
         return identifiersInFile.Intersect(identifiersInCodeBlock).ToHashSet();
     }
@@ -862,6 +835,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             newFileContent = newFileContent.Replace(method.Name, $"Parameter{(parameterCount > 0 ? parameterCount : "")}");
             parameterCount++;
         }
+
         return newFileContent;
     }
 
@@ -883,6 +857,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             builder.Append(" ");
             parameterCount++;
         }
+
         return builder.ToString();
     }
 
