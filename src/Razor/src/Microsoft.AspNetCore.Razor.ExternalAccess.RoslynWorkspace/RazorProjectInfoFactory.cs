@@ -66,9 +66,15 @@ internal static class RazorProjectInfoFactory
 
         var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
 
-        var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-        var configuration = ComputeRazorConfigurationOptions(options, logger, out var defaultNamespace);
+        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        if (compilation is null)
+        {
+            logger?.LogTrace("No compilation available for {projectId}", project.Id);
+            return null;
+        }
 
+        var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+        var configuration = ComputeRazorConfigurationOptions(options, compilation, logger, out var defaultNamespace);
         var fileSystem = RazorProjectFileSystem.Create(projectPath);
 
         var defaultConfigure = (RazorProjectEngineBuilder builder) =>
@@ -104,7 +110,7 @@ internal static class RazorProjectInfoFactory
             documents: documents);
     }
 
-    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, ILogger? logger, out string defaultNamespace)
+    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation, ILogger? logger, out string defaultNamespace)
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
@@ -123,7 +129,14 @@ internal static class RazorProjectInfoFactory
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
-        var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: false);
+        var suppressAddComponentParameter = RazorConfiguration.ComputeSuppressAddComponentParameter(compilation);
+
+        var razorConfiguration = new RazorConfiguration(
+            razorLanguageVersion,
+            configurationName,
+            Extensions: [],
+            suppressAddComponentParameter,
+            UseConsolidatedMvcViews: true);
 
         defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
 

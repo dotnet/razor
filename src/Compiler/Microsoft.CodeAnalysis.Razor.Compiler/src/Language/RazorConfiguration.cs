@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -42,5 +43,17 @@ public sealed record class RazorConfiguration(
         hash.Add(UseConsolidatedMvcViews);
         hash.Add(LanguageServerFlags);
         return hash;
+    }
+
+    public static bool ComputeSuppressAddComponentParameter(Compilation compilation)
+    {
+        var isAddComponentParameterAvailable = compilation
+                                                .GetTypesByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder")
+                                                .Any(static t =>
+                                                    t.DeclaredAccessibility == Accessibility.Public &&
+                                                    t.GetMembers("AddComponentParameter")
+                                                        .Any(static m => m.DeclaredAccessibility == Accessibility.Public));
+
+        return !isAddComponentParameterAvailable;
     }
 }

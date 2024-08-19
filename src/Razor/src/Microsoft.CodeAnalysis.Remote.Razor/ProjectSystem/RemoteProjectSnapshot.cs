@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -30,8 +31,8 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
     private readonly Project _project;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory;
     private readonly ITelemetryReporter _telemetryReporter;
-    private readonly Lazy<RazorConfiguration> _lazyConfiguration;
-    private readonly Lazy<RazorProjectEngine> _lazyProjectEngine;
+    private readonly AsyncLazy<RazorConfiguration> _lazyConfiguration;
+    private readonly AsyncLazy<RazorProjectEngine> _lazyProjectEngine;
     private readonly Lazy<ImmutableDictionary<string, ImmutableArray<string>>> _importsToRelatedDocumentsLazy;
 
     private ImmutableArray<TagHelperDescriptor> _tagHelpers;
@@ -43,11 +44,12 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
         _telemetryReporter = telemetryReporter;
         Key = _project.ToProjectKey();
 
-        _lazyConfiguration = new Lazy<RazorConfiguration>(CreateRazorConfiguration);
-        _lazyProjectEngine = new Lazy<RazorProjectEngine>(() =>
+        _lazyConfiguration = new AsyncLazy<RazorConfiguration>(CreateRazorConfigurationAsync, joinableTaskFactory: null);
+        _lazyProjectEngine = new AsyncLazy<RazorProjectEngine>(async () =>
         {
+            var configuration = await _lazyConfiguration.GetValueAsync();
             return ProjectEngineFactories.DefaultProvider.Create(
-                _lazyConfiguration.Value,
+                configuration,
                 rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
                 configure: builder =>
                 {
@@ -55,14 +57,15 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
                 });
-        });
+        },
+        joinableTaskFactory: null);
 
         _importsToRelatedDocumentsLazy = new Lazy<ImmutableDictionary<string, ImmutableArray<string>>>(() =>
         {
             var importsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizingComparer.Instance);
             foreach (var documentFilePath in DocumentFilePaths)
             {
-                var importTargetPaths = ProjectState.GetImportDocumentTargetPaths(documentFilePath, FileKinds.GetFileKindFromFilePath(documentFilePath), _lazyProjectEngine.Value);
+                var importTargetPaths = ProjectState.GetImportDocumentTargetPaths(documentFilePath, FileKinds.GetFileKindFromFilePath(documentFilePath), _lazyProjectEngine.GetValue());
                 importsToRelatedDocuments = ProjectState.AddToImportsToRelatedDocuments(importsToRelatedDocuments, documentFilePath, importTargetPaths);
             }
 
@@ -110,7 +113,8 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
     {
         if (_tagHelpers.IsDefault)
         {
-            var computedTagHelpers = await ComputeTagHelpersAsync(_project, _lazyProjectEngine.Value, _telemetryReporter, cancellationToken);
+            var projectEngine = await _lazyProjectEngine.GetValueAsync(cancellationToken);
+            var computedTagHelpers = await ComputeTagHelpersAsync(_project, projectEngine, _telemetryReporter, cancellationToken);
             ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
         }
 
@@ -152,7 +156,7 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
     /// NOTE: To be called only from CohostDocumentSnapshot.GetGeneratedOutputAsync(). Will be removed when that method uses the source generator directly.
     /// </summary>
     /// <returns></returns>
-    internal RazorProjectEngine GetProjectEngine_CohostOnly() => _lazyProjectEngine.Value;
+    internal Task<RazorProjectEngine> GetProjectEngine_CohostOnlyAsync(CancellationToken cancellationToken) => _lazyProjectEngine.GetValueAsync(cancellationToken);
 
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
     {
@@ -182,7 +186,7 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
                _importsToRelatedDocumentsLazy.Value.ContainsKey(targetPath);
     }
 
-    private RazorConfiguration CreateRazorConfiguration()
+    private async Task<RazorConfiguration> CreateRazorConfigurationAsync()
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
@@ -198,6 +202,17 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
-        return new(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: false);
+        var compilation = await _project.GetCompilationAsync();
+
+        var suppressAddComponentParameter = compilation is null
+            ? false
+            : RazorConfiguration.ComputeSuppressAddComponentParameter(compilation);
+
+        return new(
+            razorLanguageVersion,
+            configurationName,
+            Extensions: [],
+            suppressAddComponentParameter,
+            UseConsolidatedMvcViews: true);
     }
 }
