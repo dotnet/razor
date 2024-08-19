@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -19,18 +20,18 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal class FormattingContext : IDisposable
 {
+    private readonly IAdhocWorkspaceFactory _workspaceFactory;
     private Document? _csharpWorkspaceDocument;
 
-#pragma warning disable 0649
     private AdhocWorkspace? _csharpWorkspace;
-#pragma warning restore 0649
 
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
-    private FormattingContext(Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
+    private FormattingContext(IAdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
         bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
     {
+        _workspaceFactory = workspaceFactory;
         Uri = uri;
         OriginalSnapshot = originalSnapshot;
         CodeDocument = codeDocument;
@@ -74,7 +75,7 @@ internal class FormattingContext : IDisposable
         }
     }
 
-    public AdhocWorkspace CSharpWorkspace => _csharpWorkspace!;// ??= _workspaceFactory.Create();
+    public AdhocWorkspace CSharpWorkspace => _csharpWorkspace ??= _workspaceFactory.Create();
 
     /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
     /// <remarks>
@@ -272,6 +273,7 @@ internal class FormattingContext : IDisposable
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 
         var newContext = new FormattingContext(
+            _workspaceFactory,
             Uri,
             OriginalSnapshot,
             codeDocument,
@@ -307,20 +309,22 @@ internal class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
+        IAdhocWorkspaceFactory workspaceFactory,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
         char triggerCharacter)
     {
-        return CreateCore(uri, originalSnapshot, codeDocument, options, isFormatOnType: true, automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+        return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: true, automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
     }
 
     public static FormattingContext Create(
         Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
-        FormattingOptions options)
+        FormattingOptions options,
+        IAdhocWorkspaceFactory workspaceFactory)
     {
-        return CreateCore(uri, originalSnapshot, codeDocument, options, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
+        return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
     }
 
     private static FormattingContext CreateCore(
@@ -328,6 +332,7 @@ internal class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
+        IAdhocWorkspaceFactory workspaceFactory,
         bool isFormatOnType,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
@@ -353,10 +358,16 @@ internal class FormattingContext : IDisposable
             throw new ArgumentNullException(nameof(options));
         }
 
+        if (workspaceFactory is null)
+        {
+            throw new ArgumentNullException(nameof(workspaceFactory));
+        }
+
         // hostDocumentIndex, triggerCharacter and automaticallyAddUsings are only supported in on type formatting
         Debug.Assert(isFormatOnType || (hostDocumentIndex == 0 && triggerCharacter == '\0' && automaticallyAddUsings == false));
 
         var result = new FormattingContext(
+            workspaceFactory,
             uri,
             originalSnapshot,
             codeDocument,

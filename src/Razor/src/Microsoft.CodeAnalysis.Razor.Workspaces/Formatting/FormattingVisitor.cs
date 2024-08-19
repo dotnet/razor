@@ -10,18 +10,20 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using RazorSyntaxWalker = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxWalker;
-
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal class FormattingVisitor : RazorSyntaxWalker
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
+using SyntaxWalker = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxWalker;
+
+internal class FormattingVisitor : SyntaxWalker
 {
     private const string HtmlTag = "html";
 
     private readonly bool _inGlobalNamespace;
     private readonly List<FormattingSpan> _spans;
     private FormattingBlockKind _currentBlockKind;
-    private Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode? _currentBlock;
+    private SyntaxNode? _currentBlock;
     private int _currentHtmlIndentationLevel = 0;
     private int _currentRazorIndentationLevel = 0;
     private int _currentComponentIndentationLevel = 0;
@@ -318,7 +320,7 @@ internal class FormattingVisitor : RazorSyntaxWalker
     {
         WriteBlock(node, FormattingBlockKind.Markup, n =>
         {
-            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken>(node.EqualsToken), chunkGenerator: null);
+            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new AspNetCore.Razor.Language.Syntax.SyntaxList<SyntaxToken>(node.EqualsToken), chunkGenerator: null);
             var mergedAttributePrefix = SyntaxUtilities.MergeTextLiterals(node.NamePrefix, node.Name, node.NameSuffix, equalsSyntax, node.ValuePrefix);
             Visit(mergedAttributePrefix);
             Visit(node.Value);
@@ -330,7 +332,7 @@ internal class FormattingVisitor : RazorSyntaxWalker
     {
         WriteBlock(node, FormattingBlockKind.Tag, n =>
         {
-            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken>(node.EqualsToken), chunkGenerator: null);
+            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new AspNetCore.Razor.Language.Syntax.SyntaxList<SyntaxToken>(node.EqualsToken), chunkGenerator: null);
             var mergedAttributePrefix = SyntaxUtilities.MergeTextLiterals(node.NamePrefix, node.Name, node.NameSuffix, equalsSyntax, node.ValuePrefix);
             Visit(mergedAttributePrefix);
             Visit(node.Value);
@@ -450,7 +452,7 @@ internal class FormattingVisitor : RazorSyntaxWalker
         base.VisitMarkupEphemeralTextLiteral(node);
     }
 
-    private void WriteBlock<TNode>(TNode node, FormattingBlockKind kind, Action<TNode> handler) where TNode : Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode
+    private void WriteBlock<TNode>(TNode node, FormattingBlockKind kind, Action<TNode> handler) where TNode : SyntaxNode
     {
         var previousBlock = _currentBlock;
         var previousKind = _currentBlockKind;
@@ -464,7 +466,7 @@ internal class FormattingVisitor : RazorSyntaxWalker
         _currentBlockKind = previousKind;
     }
 
-    private void WriteSpan(Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode node, FormattingSpanKind kind)
+    private void WriteSpan(SyntaxNode node, FormattingSpanKind kind)
     {
         if (node.IsMissing)
         {

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
@@ -20,9 +21,11 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 internal class RazorFormattingService : IRazorFormattingService
 {
     private readonly List<IFormattingPass> _formattingPasses;
+    private readonly IAdhocWorkspaceFactory _workspaceFactory;
 
     public RazorFormattingService(
-        IEnumerable<IFormattingPass> formattingPasses)
+        IEnumerable<IFormattingPass> formattingPasses,
+        IAdhocWorkspaceFactory workspaceFactory)
     {
         if (formattingPasses is null)
         {
@@ -30,6 +33,7 @@ internal class RazorFormattingService : IRazorFormattingService
         }
 
         _formattingPasses = formattingPasses.OrderBy(f => f.Order).ToList();
+        _workspaceFactory = workspaceFactory ?? throw new ArgumentNullException(nameof(workspaceFactory));
     }
 
     public async Task<TextEdit[]> FormatAsync(
@@ -66,7 +70,7 @@ internal class RazorFormattingService : IRazorFormattingService
         var uri = documentContext.Uri;
         var documentSnapshot = documentContext.Snapshot;
         var hostDocumentVersion = documentContext.Version;
-        using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options);
+        using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
         var originalText = context.SourceText;
 
         var result = new FormattingResult([]);
@@ -152,7 +156,7 @@ internal class RazorFormattingService : IRazorFormattingService
         var documentSnapshot = documentContext.Snapshot;
         var uri = documentContext.Uri;
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-        using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+        using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
         var result = new FormattingResult(formattedEdits, kind);
 
         foreach (var pass in _formattingPasses)

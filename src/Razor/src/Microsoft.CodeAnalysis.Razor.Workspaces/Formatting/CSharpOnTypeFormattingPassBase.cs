@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal sealed class CSharpOnTypeFormattingPass(
+internal abstract class CSharpOnTypeFormattingPassBase(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
     : CSharpFormattingPassBase(documentMappingService)
 {
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPassBase>();
 
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
@@ -103,8 +103,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             //
             // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
 
-            // TODO: add support
-            // filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
+            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
 
             return new FormattingResult(filteredEdits);
         }
@@ -204,27 +203,12 @@ internal sealed class CSharpOnTypeFormattingPass(
         var finalChanges = cleanedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        // TODO: add support
-        //finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
+        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
 
         return new FormattingResult(finalEdits);
     }
 
-    // TODO: Implement
-    //private static Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
-    //{
-        //if (context.AutomaticallyAddUsings)
-        //{
-        //    // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
-        //    if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
-        //    {
-        //        var usingStatementEdits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
-        //        finalEdits = [.. usingStatementEdits, .. finalEdits];
-        //    }
-        //}
-        //
-        //return Task.FromResult(finalEdits);
-    //}
+    protected abstract Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken);
 
     // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
     private static SourceText ApplyChangesAndTrackChange(SourceText oldText, IEnumerable<TextChange> changes, out TextSpan spanBeforeChange, out TextSpan spanAfterChange)
