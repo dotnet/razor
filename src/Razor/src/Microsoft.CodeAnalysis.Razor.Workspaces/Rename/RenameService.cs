@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -250,23 +251,8 @@ internal class RenameService(
             return default;
         }
 
-        var node = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n => n.Kind == RazorSyntaxKind.MarkupTagHelperStartTag);
-        if (node is not MarkupTagHelperStartTagSyntax tagHelperStartTag)
-        {
-            return default;
-        }
-
-        // Ensure the rename action was invoked on the component name
-        // instead of a component parameter. This serves as an issue
-        // mitigation till `textDocument/prepareRename` is supported
-        // and we can ensure renames aren't triggered in unsupported
-        // contexts. (https://github.com/dotnet/aspnetcore/issues/26407)
-        if (!tagHelperStartTag.Name.FullSpan.IntersectsWith(absoluteIndex))
-        {
-            return default;
-        }
-
-        if (tagHelperStartTag.Parent is not MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
+        var binding = TryGetTagHelperBinding(owner, absoluteIndex);
+        if (binding is null)
         {
             return default;
         }
@@ -286,6 +272,38 @@ internal class RenameService(
         }
 
         return [primaryTagHelper, associatedTagHelper];
+    }
+
+    private static TagHelperBinding? TryGetTagHelperBinding(RazorSyntaxNode owner, int absoluteIndex)
+    {
+        // End tags are easy, because there is only one possible binding result
+        if (owner is MarkupTagHelperEndTagSyntax { Parent: MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var endTagBindingResult } })
+        {
+            return endTagBindingResult;
+        }
+
+        // A rename of a start tag could have an "owner" of one of its attributes, so we do a bit more checking
+        // to support this case
+        var node = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n => n.Kind == RazorSyntaxKind.MarkupTagHelperStartTag);
+        if (node is not MarkupTagHelperStartTagSyntax tagHelperStartTag)
+        {
+            return null;
+        }
+
+        // Ensure the rename action was invoked on the component name instead of a component parameter. This serves as an issue
+        // mitigation till `textDocument/prepareRename` is supported and we can ensure renames aren't triggered in unsupported
+        // contexts. (https://github.com/dotnet/razor/issues/4285)
+        if (!tagHelperStartTag.Name.FullSpan.IntersectsWith(absoluteIndex))
+        {
+            return null;
+        }
+
+        if (tagHelperStartTag is { Parent: MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var startTagBindingResult } })
+        {
+            return startTagBindingResult;
+        }
+
+        return null;
     }
 
     private static TagHelperDescriptor? FindAssociatedTagHelper(TagHelperDescriptor tagHelper, ImmutableArray<TagHelperDescriptor> tagHelpers)
