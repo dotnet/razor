@@ -4,11 +4,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor;
-internal abstract partial class AbstractCachedResolver<T>
+
+internal partial class CachedTagHelperResolver
 {
     public record DeltaResult(
         bool IsDelta,
@@ -36,7 +36,7 @@ internal abstract partial class AbstractCachedResolver<T>
 
             foreach (var item in result)
             {
-                Debug.Assert(set.Add(item), $"{nameof(TagHelperDeltaResult)}.{nameof(Apply)} should not contain any duplicates!");
+                Debug.Assert(set.Add(item), $"{nameof(DeltaResult)}.{nameof(Apply)} should not contain any duplicates!");
             }
 #endif
 

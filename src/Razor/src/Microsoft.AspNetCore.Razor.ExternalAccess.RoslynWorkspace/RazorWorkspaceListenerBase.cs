@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -338,7 +337,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
     {
         ImmutableArray<DocumentSnapshotHandle> documents = default;
         var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
-        AbstractCachedResolver<TagHelperDescriptor>.DeltaResult? delta = null;
+        CachedTagHelperResolver.DeltaResult? delta = null;
 
         var configuration = RazorProjectInfoHelpers.ComputeRazorConfigurationOptions(project.AnalyzerOptions.AnalyzerConfigOptionsProvider, out var rootNamespace);
         if (configuration is null)
