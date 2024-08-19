@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +20,10 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 internal class FormattingContext : IDisposable
 {
     private Document? _csharpWorkspaceDocument;
+
+#pragma warning disable 0649
     private AdhocWorkspace? _csharpWorkspace;
+#pragma warning restore 0649
 
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
@@ -293,8 +297,8 @@ internal class FormattingContext : IDisposable
             return;
         }
 
-        var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<AspNetCore.Razor.Language.Syntax.MarkupTagHelperElementSyntax>().Count();
-        var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<AspNetCore.Razor.Language.Syntax.MarkupTagHelperElementSyntax>().Count();
+        var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
+        var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
         Debug.Assert(oldTagHelperElements == newTagHelperElements, $"Previous context had {oldTagHelperElements} components, new only has {newTagHelperElements}.");
     }
 

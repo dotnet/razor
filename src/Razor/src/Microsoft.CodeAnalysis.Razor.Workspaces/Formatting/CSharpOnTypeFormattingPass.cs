@@ -24,6 +24,8 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+
 internal sealed class CSharpOnTypeFormattingPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
@@ -101,7 +103,8 @@ internal sealed class CSharpOnTypeFormattingPass(
             //
             // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
 
-            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
+            // TODO: add support
+            // filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
 
             return new FormattingResult(filteredEdits);
         }
@@ -201,14 +204,15 @@ internal sealed class CSharpOnTypeFormattingPass(
         var finalChanges = cleanedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
+        // TODO: add support
+        //finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
 
         return new FormattingResult(finalEdits);
     }
 
-    // TODO: Address this!
-    private static Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
-    {
+    // TODO: Implement
+    //private static Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
+    //{
         //if (context.AutomaticallyAddUsings)
         //{
         //    // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
@@ -218,9 +222,9 @@ internal sealed class CSharpOnTypeFormattingPass(
         //        finalEdits = [.. usingStatementEdits, .. finalEdits];
         //    }
         //}
-
-        return Task.FromResult(finalEdits);
-    }
+        //
+        //return Task.FromResult(finalEdits);
+    //}
 
     // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
     private static SourceText ApplyChangesAndTrackChange(SourceText oldText, IEnumerable<TextChange> changes, out TextSpan spanBeforeChange, out TextSpan spanAfterChange)
@@ -335,7 +339,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.TryGetPreviousSibling(out var prevNode) &&
-            prevNode.FirstAncestorOrSelf<AspNetCore.Razor.Language.Syntax.SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            prevNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
             owner.SpanStart == template.Span.End &&
             IsOnSingleLine(template, text))
         {
@@ -489,7 +493,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.NextSpan() is { } nextNode &&
-            nextNode.FirstAncestorOrSelf<AspNetCore.Razor.Language.Syntax.SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            nextNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
             template.SpanStart == owner.Span.End &&
             IsOnSingleLine(template, text))
         {
@@ -535,7 +539,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         changes.Add(change);
     }
 
-    private static bool IsOnSingleLine(AspNetCore.Razor.Language.Syntax.SyntaxNode node, SourceText text)
+    private static bool IsOnSingleLine(SyntaxNode node, SourceText text)
     {
         var linePositionSpan = text.GetLinePositionSpan(node.Span);
 

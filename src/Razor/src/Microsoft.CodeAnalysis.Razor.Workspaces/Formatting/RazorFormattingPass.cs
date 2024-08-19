@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using RazorSyntaxList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 

@@ -18,6 +18,8 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+
 internal abstract class CSharpFormattingPassBase : FormattingPassBase
 {
     protected CSharpFormattingPassBase(IDocumentMappingService documentMappingService)
@@ -294,13 +296,13 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
     protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
         => ShouldFormat(context, mappingSpan, allowImplicitStatements, out _);
 
-    protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out AspNetCore.Razor.Language.Syntax.SyntaxNode? foundOwner)
+    protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out SyntaxNode? foundOwner)
         => ShouldFormat(context, mappingSpan, new ShouldFormatOptions(allowImplicitStatements, isLineRequest: false), out foundOwner);
 
     private static bool ShouldFormatLine(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
         => ShouldFormat(context, mappingSpan, new ShouldFormatOptions(allowImplicitStatements, isLineRequest: true), out _);
 
-    private static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, ShouldFormatOptions options, out AspNetCore.Razor.Language.Syntax.SyntaxNode? foundOwner)
+    private static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, ShouldFormatOptions options, out SyntaxNode? foundOwner)
     {
         // We should be called with the range of various C# SourceMappings.
 
