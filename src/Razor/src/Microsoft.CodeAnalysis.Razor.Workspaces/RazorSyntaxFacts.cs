@@ -4,8 +4,9 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class RazorSyntaxFacts
 {
@@ -79,7 +80,7 @@ internal static class RazorSyntaxFacts
         return attributeNameSpan != default;
     }
 
-    private static TextSpan GetFullAttributeNameSpan(SyntaxNode? node)
+    private static TextSpan GetFullAttributeNameSpan(RazorSyntaxNode? node)
     {
         return node switch
         {
@@ -112,7 +113,7 @@ internal static class RazorSyntaxFacts
         }
     }
 
-    public static CSharpCodeBlockSyntax? TryGetCSharpCodeFromCodeBlock(SyntaxNode node)
+    public static CSharpCodeBlockSyntax? TryGetCSharpCodeFromCodeBlock(RazorSyntaxNode node)
     {
         if (node is CSharpCodeBlockSyntax block &&
             block.Children.FirstOrDefault() is RazorDirectiveSyntax directive &&
@@ -125,10 +126,9 @@ internal static class RazorSyntaxFacts
         return null;
     }
 
-    public static bool IsAnyStartTag(SyntaxNode n)
+    public static bool IsAnyStartTag(RazorSyntaxNode n)
         => n.Kind is SyntaxKind.MarkupStartTag or SyntaxKind.MarkupTagHelperStartTag;
-            
 
-    public static bool IsAnyEndTag(SyntaxNode n)
+    public static bool IsAnyEndTag(RazorSyntaxNode n)
         => n.Kind is SyntaxKind.MarkupEndTag or SyntaxKind.MarkupTagHelperEndTag;
 }

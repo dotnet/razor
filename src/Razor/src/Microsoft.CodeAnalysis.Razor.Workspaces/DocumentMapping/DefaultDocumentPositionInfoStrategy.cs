@@ -3,16 +3,19 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-internal class DefaultDocumentPositionInfoStrategy : IDocumentPositionInfoStrategy
+internal sealed class DefaultDocumentPositionInfoStrategy : IDocumentPositionInfoStrategy
 {
     public static IDocumentPositionInfoStrategy Instance { get; } = new DefaultDocumentPositionInfoStrategy();
+
+    private DefaultDocumentPositionInfoStrategy()
+    {
+    }
 
     public async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(
         IDocumentMappingService documentMappingService,

@@ -3,21 +3,24 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 /// <summary>
 /// A projection strategy that, when given a position that occurs anywhere in an attribute name, will return the projection
 /// for the position at the start of the attribute name, ignoring any prefix or suffix. eg given any location within the
 /// attribute "@bind-Value:after", it will return the projection at the point of the word "Value" therein.
 /// </summary>
-internal class PreferAttributeNameDocumentPositionInfoStrategy : IDocumentPositionInfoStrategy
+internal sealed class PreferAttributeNameDocumentPositionInfoStrategy : IDocumentPositionInfoStrategy
 {
     public static IDocumentPositionInfoStrategy Instance { get; } = new PreferAttributeNameDocumentPositionInfoStrategy();
+
+    private PreferAttributeNameDocumentPositionInfoStrategy()
+    {
+    }
 
     public async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(
         IDocumentMappingService documentMappingService,

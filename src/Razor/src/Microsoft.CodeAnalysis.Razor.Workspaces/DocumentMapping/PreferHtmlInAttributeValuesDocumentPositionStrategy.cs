@@ -4,21 +4,24 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 // The main reason for this service is auto-insert of empty double quotes when a user types
 // equals "=" after Blazor component attribute. We think this is Razor (correctly I guess)
 // and wouldn't forward auto-insert request to HTML in this case. By essentially overriding
 // language info here we allow the request to be sent over to HTML where it will insert empty
 // double-quotes as it would for any other attribute value
-internal class PreferHtmlInAttributeValuesDocumentPositionInfoStrategy : IDocumentPositionInfoStrategy
+internal sealed class PreferHtmlInAttributeValuesDocumentPositionInfoStrategy : IDocumentPositionInfoStrategy
 {
     public static IDocumentPositionInfoStrategy Instance { get; } = new PreferHtmlInAttributeValuesDocumentPositionInfoStrategy();
+
+    private PreferHtmlInAttributeValuesDocumentPositionInfoStrategy()
+    {
+    }
 
     public async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(IDocumentMappingService documentMappingService, DocumentContext documentContext, Position position, CancellationToken cancellationToken)
     {
