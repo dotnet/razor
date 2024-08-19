@@ -1,11 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
@@ -22,28 +18,16 @@ internal sealed class PreferAttributeNameDocumentPositionInfoStrategy : IDocumen
     {
     }
 
-    public async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(
-        IDocumentMappingService documentMappingService,
-        DocumentContext documentContext,
-        Position position,
-        CancellationToken cancellationToken)
+    public DocumentPositionInfo GetPositionInfo(IDocumentMappingService mappingService, RazorCodeDocument codeDocument, int hostDocumentIndex)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (sourceText.TryGetAbsoluteIndex(position, out var absoluteIndex))
+        // First, lets see if we should adjust the location to get a better result from C#. For example given <Component @bi|nd-Value="Pants" />
+        // where | is the cursor, we would be unable to map that location to C#. If we pretend the caret was 3 characters to the right though,
+        // in the actual component property name, then the C# server would give us a result, so we fake it.
+        if (RazorSyntaxFacts.TryGetAttributeNameAbsoluteIndex(codeDocument, hostDocumentIndex, out var attributeNameIndex))
         {
-            // First, lets see if we should adjust the location to get a better result from C#. For example given <Component @bi|nd-Value="Pants" />
-            // where | is the cursor, we would be unable to map that location to C#. If we pretend the caret was 3 characters to the right though,
-            // in the actual component property name, then the C# server would give us a result, so we fake it.
-            if (RazorSyntaxFacts.TryGetAttributeNameAbsoluteIndex(codeDocument, absoluteIndex, out var attributeNameIndex))
-            {
-                position = sourceText.GetPosition(attributeNameIndex);
-            }
+            hostDocumentIndex = attributeNameIndex;
         }
 
-        // We actually don't need a different projection strategy, we just wanted to move the caret position
-        return await DefaultDocumentPositionInfoStrategy.Instance
-            .TryGetPositionInfoAsync(documentMappingService, documentContext, position, cancellationToken)
-            .ConfigureAwait(false);
+        return DefaultDocumentPositionInfoStrategy.Instance.GetPositionInfo(mappingService, codeDocument, hostDocumentIndex);
     }
 }

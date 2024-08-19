@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -23,31 +22,33 @@ internal sealed class PreferHtmlInAttributeValuesDocumentPositionInfoStrategy : 
     {
     }
 
-    public async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(IDocumentMappingService documentMappingService, DocumentContext documentContext, Position position, CancellationToken cancellationToken)
+    public DocumentPositionInfo GetPositionInfo(IDocumentMappingService mappingService, RazorCodeDocument codeDocument, int hostDocumentIndex)
     {
-        var defaultDocumentPositionInfo = await DefaultDocumentPositionInfoStrategy.Instance.TryGetPositionInfoAsync(documentMappingService, documentContext, position, cancellationToken).ConfigureAwait(false);
-        if (defaultDocumentPositionInfo is null)
-        {
-            return null;
-        }
+        var positionInfo = DefaultDocumentPositionInfoStrategy.Instance.GetPositionInfo(mappingService, codeDocument, hostDocumentIndex);
 
-        var absolutePosition = defaultDocumentPositionInfo.HostDocumentIndex;
-        if (defaultDocumentPositionInfo.LanguageKind != RazorLanguageKind.Razor ||
+        var absolutePosition = positionInfo.HostDocumentIndex;
+        if (positionInfo.LanguageKind != RazorLanguageKind.Razor ||
             absolutePosition < 1)
         {
-            return defaultDocumentPositionInfo;
+            return positionInfo;
         }
 
         // Get the node at previous position to see if we are after markup tag helper attribute,
         // and more specifically after the EqualsToken of it
         var previousPosition = absolutePosition - 1;
-        var owner = await documentContext.GetSyntaxNodeAsync(previousPosition, cancellationToken).ConfigureAwait(false);
+
+        var syntaxTree = codeDocument.GetSyntaxTree().AssumeNotNull();
+
+        var owner = syntaxTree.Root is RazorSyntaxNode root
+            ? root.FindInnermostNode(previousPosition)
+            : null;
+
         if (owner is MarkupTagHelperAttributeSyntax { EqualsToken: { IsMissing: false } equalsToken } &&
-            equalsToken.EndPosition == defaultDocumentPositionInfo.HostDocumentIndex)
+            equalsToken.EndPosition == positionInfo.HostDocumentIndex)
         {
-            return new DocumentPositionInfo(RazorLanguageKind.Html, defaultDocumentPositionInfo.Position, defaultDocumentPositionInfo.HostDocumentIndex);
+            return positionInfo with { LanguageKind = RazorLanguageKind.Html };
         }
 
-        return defaultDocumentPositionInfo;
+        return positionInfo;
     }
 }

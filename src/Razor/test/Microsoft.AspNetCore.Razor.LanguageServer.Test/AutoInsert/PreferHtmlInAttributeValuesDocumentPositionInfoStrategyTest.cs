@@ -46,15 +46,14 @@ public class PreferHtmlInAttributeValuesDocumentPositionInfoStrategyTest(ITestOu
         var position = codeDocument.Source.Text.GetPosition(cursorPosition);
         var uri = new Uri(razorFilePath);
         _ = await CreateLanguageServerAsync(codeDocument, razorFilePath);
-        var documentContext = CreateDocumentContext(uri, codeDocument);
 
         // Act
-        var result = await PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance.TryGetPositionInfoAsync(
-            DocumentMappingService, documentContext, position, DisposalToken);
+        var result = PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance.GetPositionInfo(DocumentMappingService, codeDocument, cursorPosition);
 
         // Assert
-        Assert.NotNull(result);
+        Assert.NotEqual(default, result);
         Assert.Equal(expectedLanguage, result.LanguageKind);
+
         if (expectedLanguage != RazorLanguageKind.CSharp)
         {
             Assert.Equal(cursorPosition, result.HostDocumentIndex);

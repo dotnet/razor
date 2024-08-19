@@ -34,6 +34,8 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
     private readonly IRazorComponentDefinitionService _componentDefinitionService = args.ExportProvider.GetExportedValue<IRazorComponentDefinitionService>();
     private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
 
+    protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
+
     public ValueTask<RemoteResponse<RoslynLocation[]?>> GetDefinitionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
@@ -51,8 +53,13 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var hostDocumentIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position.ToLinePosition());
-        var positionInfo = DocumentMappingService.GetPositionInfo(codeDocument, hostDocumentIndex);
+
+        if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
+        {
+            return NoFurtherHandling;
+        }
+
+        var positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex);
 
         // First, see if this is a Razor component.
         var componentLocation = await _componentDefinitionService.GetDefinitionAsync(context.Snapshot, positionInfo, ignoreAttributes: false, cancellationToken).ConfigureAwait(false);

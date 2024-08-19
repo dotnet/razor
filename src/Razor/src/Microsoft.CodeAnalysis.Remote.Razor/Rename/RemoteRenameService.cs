@@ -47,10 +47,13 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
 
-        var hostDocumentIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position);
-        var positionInfo = DocumentMappingService.GetPositionInfo(codeDocument, hostDocumentIndex);
+        if (!TryGetDocumentPositionInfo(codeDocument, position, out var positionInfo))
+        {
+            return NoFurtherHandling;
+        }
+
+        var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
 
         var razorEdit = await _renameService.TryGetRazorRenameEditsAsync(context, positionInfo, newName, cancellationToken).ConfigureAwait(false);
         if (razorEdit is not null)
