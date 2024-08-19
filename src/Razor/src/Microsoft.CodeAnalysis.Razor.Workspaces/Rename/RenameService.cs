@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -250,8 +251,7 @@ internal class RenameService(
             return default;
         }
 
-        var binding = TryGetTagHelperBinding(owner, absoluteIndex);
-        if (binding is null)
+        if (!TryGetTagHelperBinding(owner, absoluteIndex, out var binding))
         {
             return default;
         }
@@ -273,12 +273,13 @@ internal class RenameService(
         return [primaryTagHelper, associatedTagHelper];
     }
 
-    private static TagHelperBinding? TryGetTagHelperBinding(RazorSyntaxNode owner, int absoluteIndex)
+    private static bool TryGetTagHelperBinding(RazorSyntaxNode owner, int absoluteIndex, [NotNullWhen(true)] out TagHelperBinding? binding)
     {
         // End tags are easy, because there is only one possible binding result
         if (owner is MarkupTagHelperEndTagSyntax { Parent: MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var endTagBindingResult } })
         {
-            return endTagBindingResult;
+            binding = endTagBindingResult;
+            return true;
         }
 
         // A rename of a start tag could have an "owner" of one of its attributes, so we do a bit more checking
@@ -286,7 +287,8 @@ internal class RenameService(
         var node = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n => n.Kind == RazorSyntaxKind.MarkupTagHelperStartTag);
         if (node is not MarkupTagHelperStartTagSyntax tagHelperStartTag)
         {
-            return null;
+            binding = null;
+            return false;
         }
 
         // Ensure the rename action was invoked on the component name instead of a component parameter. This serves as an issue
@@ -294,15 +296,18 @@ internal class RenameService(
         // contexts. (https://github.com/dotnet/razor/issues/4285)
         if (!tagHelperStartTag.Name.FullSpan.IntersectsWith(absoluteIndex))
         {
-            return null;
+            binding = null;
+            return false;
         }
 
         if (tagHelperStartTag is { Parent: MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var startTagBindingResult } })
         {
-            return startTagBindingResult;
+            binding = startTagBindingResult;
+            return true;
         }
 
-        return null;
+        binding = null;
+        return false;
     }
 
     private static TagHelperDescriptor? FindAssociatedTagHelper(TagHelperDescriptor tagHelper, ImmutableArray<TagHelperDescriptor> tagHelpers)
