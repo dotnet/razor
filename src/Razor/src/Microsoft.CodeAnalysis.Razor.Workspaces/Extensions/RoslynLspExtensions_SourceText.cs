@@ -8,6 +8,12 @@ namespace Roslyn.LanguageServer.Protocol;
 
 internal static partial class RoslynLspExtensions
 {
+    public static int GetPosition(this SourceText text, Position position)
+        => text.GetPosition(position.ToLinePosition());
+
+    public static Position GetPosition(this SourceText text, int position)
+        => text.GetLinePosition(position).ToPosition();
+
     public static Range GetRange(this SourceText text, TextSpan span)
         => text.GetLinePositionSpan(span).ToRange();
 

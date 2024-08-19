@@ -20,6 +20,7 @@ using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageS
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using RoslynLocation = Roslyn.LanguageServer.Protocol.Location;
 using RoslynPosition = Roslyn.LanguageServer.Protocol.Position;
+using VsPosition = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -69,13 +70,26 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             return Results([RoslynLspFactory.CreateLocation(componentLocation.Uri, componentLocation.Range.ToLinePositionSpan())]);
         }
 
+        if (positionInfo.LanguageKind == RazorLanguageKind.Html)
+        {
+            // Sometimes Html can actually be mapped to C#, like for example component attributes, which map to
+            // C# properties, even though they appear entirely in a Html context. Since remapping is pretty cheap
+            // it's easier to just try mapping, and see what happens, rather than checking for specific syntax nodes.
+            if (DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out VsPosition? csharpPosition, out _))
+            {
+                // We're just gonna pretend this mapped perfectly normally onto C#. Moving this logic to the actual position info
+                // calculating code is possible, but could have untold effects, so opt-in is better (for now?)
+                positionInfo = positionInfo with { LanguageKind = RazorLanguageKind.CSharp, Position = csharpPosition };
+            }
+        }
+
         // If it isn't a Razor component, and it isn't C#, let the server know to delegate to HTML.
         if (positionInfo.LanguageKind != RazorLanguageKind.CSharp)
         {
             return CallHtml;
         }
 
-        if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out var mappedPosition, out _))
+        if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out var mappedPosition, out _))
         {
             // If we can't map to the generated C# file, we're done.
             return NoFurtherHandling;

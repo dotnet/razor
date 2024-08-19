@@ -138,4 +138,13 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
         return null;
     }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostGoToDefinitionEndpoint instance)
+    {
+        public Task<SumType<RoslynLocation, RoslynLocation[], RoslynDocumentLink[]>?> HandleRequestAsync(
+            TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+    }
 }
