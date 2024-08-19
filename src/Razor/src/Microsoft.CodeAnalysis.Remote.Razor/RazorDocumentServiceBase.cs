@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBrokeredServiceBase(in args)
 {
     protected DocumentSnapshotFactory DocumentSnapshotFactory { get; } = args.ExportProvider.GetExportedValue<DocumentSnapshotFactory>();
+    protected IDocumentMappingService DocumentMappingService { get; } = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
     protected ValueTask<T> RunServiceAsync<T>(
         RazorPinnedSolutionInfoWrapper solutionInfo,
