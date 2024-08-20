@@ -1,13 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -88,14 +89,31 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
         return result is not null;
     }
 
-    public async Task<Document> GetOrAddGeneratedDocumentAsync<TArg>(TArg arg, Func<TArg, Task<Document>> createGeneratedDocument)
+    public async Task<Document> GetGeneratedDocumentAsync(IFilePathService filePathService)
     {
         if (_generatedDocument is Document generatedDocument)
         {
             return generatedDocument;
         }
 
-        generatedDocument = await createGeneratedDocument(arg);
+        generatedDocument = await HACK_GenerateDocumentAsync(filePathService).ConfigureAwait(false);
         return InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
+    }
+
+    private async Task<Document> HACK_GenerateDocumentAsync(IFilePathService filePathService)
+    {
+        // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
+
+        var solution = TextDocument.Project.Solution;
+        var generatedFilePath = filePathService.GetRazorCSharpFilePath(Project.Key, FilePath.AssumeNotNull());
+        var projectId = TextDocument.Project.Id;
+        var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == projectId);
+        var generatedDocument = solution.GetRequiredDocument(generatedDocumentId);
+
+        var codeDocument = await this.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var csharpSourceText = codeDocument.GetCSharpSourceText();
+
+        // HACK: We're not in the same solution fork as the LSP server that provides content for this document
+        return generatedDocument.WithText(csharpSourceText);
     }
 }

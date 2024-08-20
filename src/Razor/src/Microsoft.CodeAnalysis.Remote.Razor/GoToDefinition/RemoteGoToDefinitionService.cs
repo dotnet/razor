@@ -96,7 +96,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         }
 
         // Finally, call into C#.
-        var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(_filePathService).ConfigureAwait(false);
 
         var locations = await ExternalHandlers.GoToDefinition
             .GetDefinitionsAsync(
