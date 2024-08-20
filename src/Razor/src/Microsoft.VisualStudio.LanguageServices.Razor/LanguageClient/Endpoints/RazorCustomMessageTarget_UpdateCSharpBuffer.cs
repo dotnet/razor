@@ -87,15 +87,7 @@ internal partial class RazorCustomMessageTarget
                         request.HostDocumentVersion.Value,
                         state: request.PreviousWasEmpty);
 
-                    if (_documentManager.TryGetDocument(hostDocumentUri, out var newDocSnapshot))
-                    {
-                        var newDoc = newDocSnapshot.VirtualDocuments.Where(e => e.Uri == virtualDocument.Uri).FirstOrDefault();
-
-                        if (newDoc is not null)
-                        {
-                            _logger.LogDebug($"UpdateCSharpBuffer finished updating doc for {request.HostDocumentVersion} of {virtualDocument.Uri}. New lines: {newDoc.Snapshot.LineCount}");
-                        }
-                    }
+                    _logger.LogDebug($"UpdateCSharpBuffer finished updating doc for {request.HostDocumentVersion} of {virtualDocument.Uri}. New lines: {GetLineCountOfVirtualDocument(hostDocumentUri, virtualDocument)}");
 
                     return;
                 }
@@ -126,5 +118,16 @@ internal partial class RazorCustomMessageTarget
             request.Changes.Select(change => change.ToVisualStudioTextChange()).ToArray(),
             request.HostDocumentVersion.Value,
             state: request.PreviousWasEmpty);
+    }
+
+    private int GetLineCountOfVirtualDocument(Uri hostDocumentUri, CSharpVirtualDocumentSnapshot virtualDocument)
+    {
+        if (_documentManager.TryGetDocument(hostDocumentUri, out var newDocSnapshot) &&
+            newDocSnapshot.VirtualDocuments.FirstOrDefault(e => e.Uri == virtualDocument.Uri) is { } newDoc)
+        {
+            return newDoc.Snapshot.LineCount;
+        }
+
+        return -1;
     }
 }

@@ -56,7 +56,7 @@ internal partial class RazorCustomMessageTarget
         SemanticTokensParams requestParams,
         CancellationToken cancellationToken)
     {
-        _logger.LogDebug($"Semantic tokens request for {semanticTokensParams.Ranges.Max(r => r.End.Line)} max line number, host version {semanticTokensParams.RequiredHostDocumentVersion}, correlation ID {semanticTokensParams.CorrelationId}");
+        _logger.LogDebug($"Semantic tokens request for {semanticTokensParams.Ranges.Max(static r => r.End.Line)} max line number, host version {semanticTokensParams.RequiredHostDocumentVersion}, correlation ID {semanticTokensParams.CorrelationId}");
 
         var (synchronized, csharpDoc) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
             semanticTokensParams.RequiredHostDocumentVersion,
