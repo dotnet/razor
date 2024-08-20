@@ -97,7 +97,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return (null, null);
         }
 
-        var endElementNode = GetEndElementNode(context, syntaxTree, logger);
+        var endElementNode = GetEndElementNode(context, syntaxTree);
         return (startElementNode, endElementNode);
     }
 
@@ -113,7 +113,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
                context.Location.AbsoluteIndex < startElementNode.EndTag.SpanStart;
     }
 
-    private static MarkupElementSyntax? GetEndElementNode(RazorCodeActionContext context, RazorSyntaxTree syntaxTree, ILogger logger)
+    private static MarkupElementSyntax? GetEndElementNode(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
         var selectionStart = context.Request.Range.Start;
         var selectionEnd = context.Request.Range.End;

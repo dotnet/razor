@@ -13,13 +13,13 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions.Razor;
 
@@ -55,7 +55,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -76,7 +76,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
     public async Task Handle_SinglePointSelection_ReturnsNotEmpty()
     {
         // Arrange
-        var documentPath = "c:/Test.cs";
+        var documentPath = "c:/Test.razor";
         var contents = """
             @page "/"
 
@@ -102,12 +102,12 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
         var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
 
         var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
 
@@ -122,7 +122,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
     public async Task Handle_MultiPointSelection_ReturnsNotEmpty()
     {
         // Arrange
-        var documentPath = "c:/Test.cs";
+        var documentPath = "c:/Test.razor";
         var contents = """
             @page "/"
 
@@ -148,14 +148,15 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-        AddMultiPointSelectionToContext(context, selectionSpan);
+        var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
+        request.Range = VsLspFactory.CreateRange(lineSpan);
 
         var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
 
@@ -175,7 +176,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
     public async Task Handle_MultiPointSelectionWithEndAfterElement_ReturnsCurrentElement()
     {
         // Arrange
-        var documentPath = "c:/Test.cs";
+        var documentPath = "c:/Test.razor";
         var contents = """
             @page "/"
 
@@ -201,14 +202,15 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-        AddMultiPointSelectionToContext(context, selectionSpan);
+        var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
+        request.Range = VsLspFactory.CreateRange(lineSpan);
 
         var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
 
@@ -222,6 +224,8 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToNewComponentCodeActionParams>();
         Assert.NotNull(actionParams);
+        Assert.Equal(selectionSpan.Start, actionParams.ExtractStart);
+        Assert.Equal(selectionSpan.End, actionParams.ExtractEnd);
     }
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
@@ -241,34 +245,18 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         codeDocument.SetFileKind(FileKinds.Component);
         codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
         {
-            o.RootNamespace = "ExtractToCodeBehindTest";
+            o.RootNamespace = "ExtractToComponentTest";
         }));
         codeDocument.SetSyntaxTree(syntaxTree);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
             document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()), MockBehavior.Strict);
+            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text), MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);
 
         var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
 
         return context;
-    }
-
-    private static void AddMultiPointSelectionToContext(RazorCodeActionContext context, TextSpan selectionSpan)
-    {
-        var sourceText = context.CodeDocument.Source.Text;
-        var startLinePosition = sourceText.Lines.GetLinePosition(selectionSpan.Start);
-        var startPosition = new Position(startLinePosition.Line, startLinePosition.Character);
-
-        var endLinePosition = sourceText.Lines.GetLinePosition(selectionSpan.End);
-        var endPosition = new Position(endLinePosition.Line, endLinePosition.Character);
-
-        context.Request.Range = new Range
-        {
-            Start = startPosition,
-            End = endPosition
-        };
     }
 }
