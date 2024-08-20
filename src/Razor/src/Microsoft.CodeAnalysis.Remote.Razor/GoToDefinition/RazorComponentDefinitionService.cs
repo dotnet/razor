@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -27,7 +26,7 @@ internal sealed class RazorComponentDefinitionService(
 {
     private readonly IFilePathService _filePathService = filePathService;
 
-    protected override async ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(IDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override async ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         Debug.Assert(documentSnapshot is RemoteDocumentSnapshot, "This method only works on document snapshots created in the OOP process");
 

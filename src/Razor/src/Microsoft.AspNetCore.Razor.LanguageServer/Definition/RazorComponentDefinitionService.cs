@@ -24,9 +24,10 @@ internal sealed class RazorComponentDefinitionService(
     ILoggerFactory loggerFactory)
     : AbstractRazorComponentDefinitionService(componentSearchEngine, documentMappingService, loggerFactory.GetOrCreateLogger<RazorComponentDefinitionService>())
 {
-    protected override ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(IDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override async ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         var csharpText = codeDocument.GetCSharpSourceText();
-        return new(CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken));
+        return CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
     }
 }

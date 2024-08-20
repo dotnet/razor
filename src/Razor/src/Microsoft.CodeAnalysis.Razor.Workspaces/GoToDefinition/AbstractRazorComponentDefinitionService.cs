@@ -70,7 +70,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
             _logger.LogInformation($"Attempting to get definition from an attribute directly.");
 
             var originCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-            var syntaxTree = await GetCSharpSyntaxTreeAsync(documentSnapshot, originCodeDocument, cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await GetCSharpSyntaxTreeAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
 
             var range = await RazorComponentDefinitionHelpers
                 .TryGetPropertyRangeAsync(originCodeDocument, syntaxTree, attributeDescriptor.GetPropertyName(), _documentMappingService, _logger, cancellationToken)
@@ -89,5 +89,5 @@ internal abstract class AbstractRazorComponentDefinitionService(
         return VsLspFactory.DefaultRange;
     }
 
-    protected abstract ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(IDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken);
+    protected abstract ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken);
 }
