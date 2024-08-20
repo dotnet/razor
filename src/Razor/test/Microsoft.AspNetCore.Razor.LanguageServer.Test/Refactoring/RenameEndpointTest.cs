@@ -278,7 +278,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
