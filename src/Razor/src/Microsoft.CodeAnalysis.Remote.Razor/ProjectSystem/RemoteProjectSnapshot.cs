@@ -203,7 +203,7 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
-        var compilation = await _project.GetCompilationAsync();
+        var compilation = await _project.GetCompilationAsync().ConfigureAwait(false);
 
         var suppressAddComponentParameter = compilation is null
             ? false
