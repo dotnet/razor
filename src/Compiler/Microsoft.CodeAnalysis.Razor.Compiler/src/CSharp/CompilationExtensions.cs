@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
+
 internal static class CompilationExtensions
 {
     public static bool HasAddComponentParameter(this Compilation compilation)
