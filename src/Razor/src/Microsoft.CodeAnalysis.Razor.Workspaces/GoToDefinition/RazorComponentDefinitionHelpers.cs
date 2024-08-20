@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -131,12 +130,13 @@ internal static class RazorComponentDefinitionHelpers
 
     public static async Task<LspRange?> TryGetPropertyRangeAsync(
         RazorCodeDocument codeDocument,
+        SyntaxTree csharpSyntaxTree,
         string propertyName,
         IDocumentMappingService documentMappingService,
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        // Parse the C# file and find the property that matches the name.
+        // Process the C# tree and find the property that matches the name.
         // We don't worry about parameter attributes here for two main reasons:
         //   1. We don't have symbolic information, so the best we could do would be checking for any
         //      attribute named Parameter, regardless of which namespace. It also means we would have
@@ -147,9 +147,8 @@ internal static class RazorComponentDefinitionHelpers
         //      tag helper attribute. If they don't have the [Parameter] attribute then the Razor compiler
         //      will error, but allowing them to Go To Def on that property regardless, actually helps
         //      them fix the error.
-        var csharpText = codeDocument.GetCSharpSourceText();
-        var syntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
-        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+        var root = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         // Since we know how the compiler generates the C# source we can be a little specific here, and avoid
         // long tree walks. If the compiler ever changes how they generate their code, the tests for this will break
@@ -169,6 +168,7 @@ internal static class RazorComponentDefinitionHelpers
                 return null;
             }
 
+            var csharpText = codeDocument.GetCSharpSourceText();
             var range = csharpText.GetRange(property.Identifier.Span);
             if (documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var originalRange))
             {
