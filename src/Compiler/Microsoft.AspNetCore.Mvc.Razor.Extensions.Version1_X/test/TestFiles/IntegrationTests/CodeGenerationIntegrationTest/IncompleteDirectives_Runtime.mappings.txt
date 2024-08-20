@@ -1,0 +1,5 @@
+﻿Source Location: (133:7,8 [9] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml)
+|MyService|
+Generated Location: (1895:33,0 [9] )
+|MyService|
+

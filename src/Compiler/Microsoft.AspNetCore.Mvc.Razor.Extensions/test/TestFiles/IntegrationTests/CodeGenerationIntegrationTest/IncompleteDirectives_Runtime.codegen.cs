@@ -35,6 +35,17 @@ namespace AspNetCore
             WriteLiteral("\r\n");
         }
         #pragma warning restore 1998
+        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+        public 
+#nullable restore
+#line (12,9)-(12,18) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
+MyService<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives>
+
+#line default
+#line hidden
+#nullable disable
+         Member_test { get; private set; }
+         = default!;
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
