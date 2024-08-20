@@ -9,6 +9,7 @@ namespace Microsoft.AspNetCore.Razor;
 
 internal static class EnumExtensions
 {
+    // Note: This is written to allow the JIT to inline only the correct branch depending on the size of T.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void SetFlag<T>(ref this T value, T flag)
         where T : unmanaged, Enum
@@ -39,6 +40,7 @@ internal static class EnumExtensions
         Debug.Fail("Unexpected enum underlying type.");
     }
 
+    // Note: This is written to allow the JIT to inline only the correct branch depending on the size of T.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void ClearFlag<T>(ref this T value, T flag)
         where T : unmanaged, Enum
@@ -83,6 +85,8 @@ internal static class EnumExtensions
         }
     }
 
+    // Note: This is written to allow the JIT to inline only the correct branch depending on the size of T.
+    // This is somewhat faster than Enum.HasFlag(...) when running on .NET Framework.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe bool IsFlagSet<T>(this T value, T flags)
         where T : unmanaged, Enum
@@ -112,6 +116,7 @@ internal static class EnumExtensions
         return false;
     }
 
+    // Note: This is written to allow the JIT to inline only the correct branch depending on the size of T.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe bool IsFlagClear<T>(this T value, T flags)
         where T : unmanaged, Enum
