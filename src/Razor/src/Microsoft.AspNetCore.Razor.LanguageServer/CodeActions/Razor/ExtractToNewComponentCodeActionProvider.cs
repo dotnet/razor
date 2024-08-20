@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
@@ -121,7 +122,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return null;
         }
 
-        var endLocation = GetEndLocation(selectionEnd, context.CodeDocument, logger);
+        var endLocation = GetEndLocation(selectionEnd, context.CodeDocument);
         if (!endLocation.HasValue)
         {
             return null;
@@ -203,9 +204,9 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
     private static bool IsMultiPointSelection(Range range) => range.Start != range.End;
 
-    private static SourceLocation? GetEndLocation(Position selectionEnd, RazorCodeDocument codeDocument, ILogger logger)
+    private static SourceLocation? GetEndLocation(Position selectionEnd, RazorCodeDocument codeDocument)
     {
-        if (!selectionEnd.TryGetSourceLocation(codeDocument.Source.Text, logger, out var location))
+        if (!codeDocument.Source.Text.TryGetSourceLocation(selectionEnd, out var location))
         {
             return null;
         }
