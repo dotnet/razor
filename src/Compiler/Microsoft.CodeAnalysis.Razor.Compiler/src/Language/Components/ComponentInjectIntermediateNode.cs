@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
@@ -18,13 +19,14 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
             "private" // Encapsulation is the default
         };
 
-    public ComponentInjectIntermediateNode(string typeName, string memberName, SourceSpan? typeSpan, SourceSpan? memberSpan)
+    public ComponentInjectIntermediateNode(string typeName, string memberName, SourceSpan? typeSpan, SourceSpan? memberSpan, bool isMalformed)
     {
         TypeName = typeName;
         MemberName = memberName;
         TypeSpan = typeSpan;
         MemberSpan = memberSpan;
-    }
+        IsMalformed = isMalformed;
+     }
 
     public string TypeName { get; }
 
@@ -33,6 +35,8 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
     public SourceSpan? TypeSpan { get; }
 
     public SourceSpan? MemberSpan { get; }
+
+    public bool IsMalformed { get; }
 
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
@@ -59,13 +63,18 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
             throw new ArgumentNullException(nameof(context));
         }
 
-        context.CodeWriter.WriteAutoPropertyDeclaration(
-            _injectedPropertyModifiers,
-            TypeName,
-            MemberName,
-            TypeSpan,
-            MemberSpan,
-            context,
-            defaultValue: true);
+        var memberName = MemberName ?? "Member_" + DefaultTagHelperTargetExtension.GetDeterministicId(context);
+
+        if (!context.Options.DesignTime || !IsMalformed)
+        {
+            context.CodeWriter.WriteAutoPropertyDeclaration(
+                _injectedPropertyModifiers,
+                TypeName,
+                memberName,
+                TypeSpan,
+                MemberSpan,
+                context,
+                defaultValue: true);
+        }
     }
 }

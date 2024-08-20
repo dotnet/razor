@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 
@@ -27,9 +28,10 @@ public class InjectTargetExtension : IInjectTargetExtension
         if (!context.Options.DesignTime && !string.IsNullOrWhiteSpace(node.TypeSource?.FilePath))
         {
             context.CodeWriter.WriteLine(RazorInjectAttribute);
-            context.CodeWriter.WriteAutoPropertyDeclaration(["public"], node.TypeName, node.MemberName, node.TypeSource, node.MemberSource, context, privateSetter: true, defaultValue: true);
+            var memberName = node.MemberName ?? "Member_" + DefaultTagHelperTargetExtension.GetDeterministicId(context);
+            context.CodeWriter.WriteAutoPropertyDeclaration(["public"], node.TypeName, memberName, node.TypeSource, node.MemberSource, context, privateSetter: true, defaultValue: true);
         }
-        else
+        else if(!node.IsMalformed)
         {
             var property = $"public {node.TypeName} {node.MemberName} {{ get; private set; }}";
 

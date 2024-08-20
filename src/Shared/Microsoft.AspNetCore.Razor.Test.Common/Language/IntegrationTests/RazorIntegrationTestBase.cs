@@ -122,6 +122,8 @@ public class RazorIntegrationTestBase
                 b.Features.Add(new SetNewLineOptionFeature(LineEnding));
             }
 
+            b.Features.Add(new SuppressUniqueIdsPhase());
+
             b.Features.Add(new CompilationTagHelperFeature());
             b.Features.Add(new DefaultMetadataReferenceFeature()
             {
@@ -494,6 +496,16 @@ public class RazorIntegrationTestBase
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
             options.NewLine = newLine;
+        }
+    }
+
+    private sealed class SuppressUniqueIdsPhase : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
+    {
+        public int Order { get; }
+
+        public void Configure(RazorCodeGenerationOptionsBuilder options)
+        {
+            options.SuppressUniqueIds = "test";
         }
     }
 
