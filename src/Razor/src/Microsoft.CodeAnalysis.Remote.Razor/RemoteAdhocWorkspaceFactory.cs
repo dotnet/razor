@@ -3,12 +3,11 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal class RemoteAdhocWorkspaceFactory(HostServices hostServices) : IAdhocWorkspaceFactory
+internal sealed class RemoteAdhocWorkspaceFactory(HostServices hostServices) : IAdhocWorkspaceFactory
 {
     public AdhocWorkspace Create(params IWorkspaceService[] workspaceServices)
     {

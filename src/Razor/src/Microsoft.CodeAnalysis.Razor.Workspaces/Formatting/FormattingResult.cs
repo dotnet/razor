@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal struct FormattingResult
+internal readonly struct FormattingResult
 {
     public FormattingResult(TextEdit[] edits, RazorLanguageKind kind = RazorLanguageKind.Razor)
     {

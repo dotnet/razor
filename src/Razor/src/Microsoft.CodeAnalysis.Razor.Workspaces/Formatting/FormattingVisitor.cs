@@ -10,13 +10,15 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using RazorSyntaxTokenList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken>;
+using RazorSyntaxWalker = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxWalker;
+
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
+// There is already RazorSyntaxNode so not following that pattern for this alias
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
-using SyntaxWalker = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxWalker;
 
-internal class FormattingVisitor : SyntaxWalker
+internal class FormattingVisitor : RazorSyntaxWalker
 {
     private const string HtmlTag = "html";
 
@@ -320,7 +322,7 @@ internal class FormattingVisitor : SyntaxWalker
     {
         WriteBlock(node, FormattingBlockKind.Markup, n =>
         {
-            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new AspNetCore.Razor.Language.Syntax.SyntaxList<SyntaxToken>(node.EqualsToken), chunkGenerator: null);
+            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new RazorSyntaxTokenList(node.EqualsToken), chunkGenerator: null);
             var mergedAttributePrefix = SyntaxUtilities.MergeTextLiterals(node.NamePrefix, node.Name, node.NameSuffix, equalsSyntax, node.ValuePrefix);
             Visit(mergedAttributePrefix);
             Visit(node.Value);
@@ -332,7 +334,7 @@ internal class FormattingVisitor : SyntaxWalker
     {
         WriteBlock(node, FormattingBlockKind.Tag, n =>
         {
-            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new AspNetCore.Razor.Language.Syntax.SyntaxList<SyntaxToken>(node.EqualsToken), chunkGenerator: null);
+            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new RazorSyntaxTokenList(node.EqualsToken), chunkGenerator: null);
             var mergedAttributePrefix = SyntaxUtilities.MergeTextLiterals(node.NamePrefix, node.Name, node.NameSuffix, equalsSyntax, node.ValuePrefix);
             Visit(mergedAttributePrefix);
             Visit(node.Value);

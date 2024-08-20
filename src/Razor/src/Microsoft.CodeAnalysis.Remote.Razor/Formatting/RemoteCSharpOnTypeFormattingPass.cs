@@ -18,7 +18,6 @@ internal sealed class RemoteCSharpOnTypeFormattingPass(
     ILoggerFactory loggerFactory)
     : CSharpOnTypeFormattingPassBase(documentMappingService, loggerFactory)
 {
-
     protected override Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(CodeAnalysis.Razor.Formatting.FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
     {
         Debug.Fail("Implement this when code actions are migrated to cohosting");

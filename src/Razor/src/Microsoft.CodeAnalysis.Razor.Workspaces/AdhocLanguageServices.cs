@@ -5,7 +5,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Razor.Common;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal sealed class AdhocLanguageServices(
     AdhocWorkspaceServices workspaceServices,

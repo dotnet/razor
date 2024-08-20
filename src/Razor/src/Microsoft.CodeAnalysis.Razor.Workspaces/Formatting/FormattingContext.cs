@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal class FormattingContext : IDisposable
+internal sealed class FormattingContext : IDisposable
 {
     private readonly IAdhocWorkspaceFactory _workspaceFactory;
     private Document? _csharpWorkspaceDocument;

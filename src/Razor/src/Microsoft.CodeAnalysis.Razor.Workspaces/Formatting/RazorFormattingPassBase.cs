@@ -15,6 +15,9 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
+using RazorRazorSyntaxNodeList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.RazorSyntaxNode>;
+using RazorSyntaxNodeList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode>;
+
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -128,7 +131,7 @@ internal abstract class RazorFormattingPassBase(
 
         return false;
 
-        static bool TryGetWhitespace(AspNetCore.Razor.Language.Syntax.SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out CSharpStatementLiteralSyntax? whitespaceBeforeSectionName, [NotNullWhen(true)] out UnclassifiedTextLiteralSyntax? whitespaceAfterSectionName)
+        static bool TryGetWhitespace(RazorRazorSyntaxNodeList children, [NotNullWhen(true)] out CSharpStatementLiteralSyntax? whitespaceBeforeSectionName, [NotNullWhen(true)] out UnclassifiedTextLiteralSyntax? whitespaceAfterSectionName)
         {
             // If there is whitespace between the directive and the section name, and the section name and the brace, they will be in the first child
             // and third child of the 6 total children
@@ -292,7 +295,7 @@ internal abstract class RazorFormattingPassBase(
             }
         }
 
-        static bool TryGetLeadingWhitespace(AspNetCore.Razor.Language.Syntax.SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out UnclassifiedTextLiteralSyntax? whitespace)
+        static bool TryGetLeadingWhitespace(RazorRazorSyntaxNodeList children, [NotNullWhen(true)] out UnclassifiedTextLiteralSyntax? whitespace)
         {
             // If there is whitespace between the directive and the brace, it will be in the first child
             // of the 4 total children
@@ -329,7 +332,7 @@ internal abstract class RazorFormattingPassBase(
             }
         }
 
-        static bool IsSingleLineDirective(SyntaxNode node, out AspNetCore.Razor.Language.Syntax.SyntaxList<SyntaxNode> children)
+        static bool IsSingleLineDirective(SyntaxNode node, out RazorSyntaxNodeList children)
         {
             if (node is CSharpCodeBlockSyntax content &&
                 node.Parent?.Parent is RazorDirectiveSyntax directive &&

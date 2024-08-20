@@ -16,20 +16,20 @@ internal static class FormattingUtilities
     /// <param name="method">
     ///  The method to add indenting to. The method should be marked with <see cref="Indent"/> where an indent is wanted
     /// </param>
-    /// <param name="indentSize">
-    ///  The indent size
+    /// <param name="tabSize">
+    ///  The indentation size
     /// </param>
     /// <param name="insertSpaces">
-    ///  Use spaces for indent
+    ///  Use spaces for indentation.
     /// </param>
     /// <param name="startingIndent">
     ///  The size of the any existing indent.
     /// </param>
     /// <returns>The indented method.</returns>
-    public static string AddIndentationToMethod(string method, int indentSize, bool insertSpaces, int startingIndent)
+    public static string AddIndentationToMethod(string method, int tabSize, bool insertSpaces, int startingIndent)
     {
-        var initialIndent = GetIndentationString(startingIndent, insertSpaces, indentSize);
-        var indent = GetIndentationString(indentSize, insertSpaces, indentSize);
+        var initialIndent = GetIndentationString(startingIndent, insertSpaces, tabSize);
+        var indent = GetIndentationString(tabSize, insertSpaces, tabSize);
         return method.Replace(InitialIndent, initialIndent).Replace(Indent, indent);
     }
 
@@ -43,7 +43,9 @@ internal static class FormattingUtilities
     /// <param name="tabSize">
     ///  Tab size.
     /// </param>
-    /// <param name="insertSpaces"/>
+    /// <param name="insertSpaces">
+    /// Use spaces for indentation.
+    /// </param>
     /// <param name="startAbsoluteIndex">
     ///  The absolute index of the beginning of the class in the C# file the method will be added to.
     /// </param>

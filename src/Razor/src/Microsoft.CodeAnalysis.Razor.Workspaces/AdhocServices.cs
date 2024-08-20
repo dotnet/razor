@@ -7,7 +7,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Razor.Common;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal sealed class AdhocServices : HostServices
 {
