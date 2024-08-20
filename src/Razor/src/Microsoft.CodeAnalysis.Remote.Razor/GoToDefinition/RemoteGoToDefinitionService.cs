@@ -62,14 +62,6 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
 
         var positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex);
 
-        // First, see if this is a Razor component.
-        var componentLocation = await _componentDefinitionService.GetDefinitionAsync(context.Snapshot, positionInfo, ignoreAttributes: false, cancellationToken).ConfigureAwait(false);
-        if (componentLocation is not null)
-        {
-            // Convert from VS LSP Location to Roslyn. This can be removed when Razor moves fully onto Roslyn's LSP types.
-            return Results([RoslynLspFactory.CreateLocation(componentLocation.Uri, componentLocation.Range.ToLinePositionSpan())]);
-        }
-
         if (positionInfo.LanguageKind == RazorLanguageKind.Html)
         {
             // Sometimes Html can actually be mapped to C#, like for example component attributes, which map to
@@ -83,9 +75,17 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             }
         }
 
-        // If it isn't a Razor component, and it isn't C#, let the server know to delegate to HTML.
-        if (positionInfo.LanguageKind != RazorLanguageKind.CSharp)
+        if (positionInfo.LanguageKind is RazorLanguageKind.Html or RazorLanguageKind.Razor)
         {
+            // First, see if this is a Razor component. We ignore attributes here, because they're better served by the C# handler.
+            var componentLocation = await _componentDefinitionService.GetDefinitionAsync(context.Snapshot, positionInfo, ignoreAttributes: true, cancellationToken).ConfigureAwait(false);
+            if (componentLocation is not null)
+            {
+                // Convert from VS LSP Location to Roslyn. This can be removed when Razor moves fully onto Roslyn's LSP types.
+                return Results([RoslynLspFactory.CreateLocation(componentLocation.Uri, componentLocation.Range.ToLinePositionSpan())]);
+            }
+
+            // If it isn't a Razor component, and it isn't C#, let the server know to delegate to HTML.
             return CallHtml;
         }
 
