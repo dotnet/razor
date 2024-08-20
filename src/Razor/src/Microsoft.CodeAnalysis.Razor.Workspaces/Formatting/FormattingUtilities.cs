@@ -41,7 +41,7 @@ internal static class FormattingUtilities
     ///  and <see cref="InitialIndent"/> where some initial indent is needed.
     /// </param>
     /// <param name="tabSize">
-    ///  Tab size.
+    ///  The indentation size
     /// </param>
     /// <param name="insertSpaces">
     /// Use spaces for indentation.
@@ -82,7 +82,7 @@ internal static class FormattingUtilities
     ///  and <see cref="InitialIndent"/> where some initial indent is needed.
     /// </param>
     /// <param name="tabSize">
-    ///  Tab size.
+    ///  The indentation size
     /// </param>
     /// <param name="insertSpaces"></param>
     /// <param name="startAbsoluteIndex">
@@ -118,7 +118,7 @@ internal static class FormattingUtilities
     /// </summary>
     /// <param name="indentation">An amount of characters to represent the indentation.</param>
     /// <param name="insertSpaces">Whether spaces are used for indentation.</param>
-    /// <param name="tabSize">The size of a tab.</param>
+    /// <param name="tabSize">The size of a tab and indentation.</param>
     /// <returns>A whitespace string representation indentation.</returns>
     public static string GetIndentationString(int indentation, bool insertSpaces, int tabSize)
     {
