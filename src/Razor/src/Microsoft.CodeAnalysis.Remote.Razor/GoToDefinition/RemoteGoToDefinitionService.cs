@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -33,7 +32,6 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
     }
 
     private readonly IRazorComponentDefinitionService _componentDefinitionService = args.ExportProvider.GetExportedValue<IRazorComponentDefinitionService>();
-    private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
@@ -96,7 +94,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         }
 
         // Finally, call into C#.
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(_filePathService).ConfigureAwait(false);
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
 
         var locations = await ExternalHandlers.GoToDefinition
             .GetDefinitionsAsync(
@@ -121,7 +119,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             var (uri, range) = location;
 
             var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-                .MapToHostDocumentUriAndRangeAsync((RemoteDocumentSnapshot)context.Snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
+                .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
                 .ConfigureAwait(false);
 
             var mappedLocation = RoslynLspFactory.CreateLocation(mappedDocumentUri, mappedRange);

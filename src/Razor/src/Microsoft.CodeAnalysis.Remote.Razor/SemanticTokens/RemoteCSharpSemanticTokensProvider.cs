@@ -31,7 +31,7 @@ internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathServi
         // We have a razor document, lets find the generated C# document
         Debug.Assert(documentContext is RemoteDocumentContext, "This method only works on document snapshots created in the OOP process");
         var snapshot = (RemoteDocumentSnapshot)documentContext.Snapshot;
-        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(_filePathService).ConfigureAwait(false);
+        var generatedDocument = await snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
 
         var data = await SemanticTokensRange.GetSemanticTokensAsync(
             generatedDocument,

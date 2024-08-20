@@ -20,18 +20,15 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 internal sealed class RazorComponentDefinitionService(
     IRazorComponentSearchEngine componentSearchEngine,
     IDocumentMappingService documentMappingService,
-    IFilePathService filePathService,
     ILoggerFactory loggerFactory)
     : AbstractRazorComponentDefinitionService(componentSearchEngine, documentMappingService, loggerFactory.GetOrCreateLogger<RazorComponentDefinitionService>())
 {
-    private readonly IFilePathService _filePathService = filePathService;
-
     protected override async ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         Debug.Assert(documentSnapshot is RemoteDocumentSnapshot, "This method only works on document snapshots created in the OOP process");
 
         var remoteSnapshot = (RemoteDocumentSnapshot)documentSnapshot;
-        var document = await remoteSnapshot.GetGeneratedDocumentAsync(_filePathService).ConfigureAwait(false);
+        var document = await remoteSnapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
 
         if (document.TryGetSyntaxTree(out var syntaxTree))
         {
