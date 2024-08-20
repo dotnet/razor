@@ -135,12 +135,12 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         }
 
         // Correct selection to include the current node if the selection ends immediately after a closing tag.
-        if (string.IsNullOrWhiteSpace(endOwner.ToFullString()) && endOwner.TryGetPreviousSibling(out var previousSibling))
+        if (endOwner is MarkupTextLiteralSyntax && string.IsNullOrWhiteSpace(endOwner.ToFullString()) && endOwner.TryGetPreviousSibling(out var previousSibling))
         {
             endOwner = previousSibling;
         }
 
-        return endOwner?.FirstAncestorOrSelf<MarkupElementSyntax>();
+        return endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
     }
 
     private static ExtractToNewComponentCodeActionParams CreateInitialActionParams(RazorCodeActionContext context, MarkupElementSyntax startElementNode, string @namespace)
@@ -168,11 +168,13 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return;
         }
 
-        // Check if the start element is an ancestor of the end element
-        var selectionStartHasParentElement = endElementNode.Ancestors().Any(node => node == startElementNode);
+        var startNodeContainsEndNode = endElementNode.Ancestors().Any(node => node == startElementNode);
 
         // If the start element is an ancestor, keep the original end; otherwise, use the end of the end element
-        actionParams.ExtractEnd = selectionStartHasParentElement ? actionParams.ExtractEnd : endElementNode.Span.End;
+        if (!startNodeContainsEndNode)
+        {
+            actionParams.ExtractEnd = endElementNode.Span.End;
+        }
 
         // If the start element is not an ancestor of the end element, we need to find a common parent
         // This conditional handles cases where the user's selection spans across different levels of the DOM.
@@ -187,7 +189,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         //     Selected text ends here <span></span>
         //   </div>
         // In this case, we need to find the smallest set of complete elements that covers the entire selection.
-        if (!selectionStartHasParentElement)
+        if (!startNodeContainsEndNode)
         {
             // Find the closest containing sibling pair that encompasses both the start and end elements
             var (extractStart, extractEnd) = FindContainingSiblingPair(startElementNode, endElementNode);

@@ -173,7 +173,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
     }
 
     [Fact]
-    public async Task Handle_MultiPointSelectionWithEndAfterElement_ReturnsCurrentElement()
+    public async Task Handle_MultiPointSelection_WithEndAfterElement_ReturnsCurrentElement()
     {
         // Arrange
         var documentPath = "c:/Test.razor";
