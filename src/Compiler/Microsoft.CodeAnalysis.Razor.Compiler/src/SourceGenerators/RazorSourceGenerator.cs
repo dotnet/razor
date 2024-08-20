@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -241,11 +242,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Select((refs, _) =>
                 {
                     var compilation = CSharpCompilation.Create("components", references: refs);
-                    return compilation.GetTypesByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder")
-                        .Any(static t =>
-                            t.DeclaredAccessibility == Accessibility.Public &&
-                            t.GetMembers("AddComponentParameter")
-                                .Any(static m => m.DeclaredAccessibility == Accessibility.Public));
+                    return compilation.HasAddComponentParameter();
                 });
 
             IncrementalValuesProvider<(string, SourceGeneratorRazorCodeDocument)> processed(bool designTime)

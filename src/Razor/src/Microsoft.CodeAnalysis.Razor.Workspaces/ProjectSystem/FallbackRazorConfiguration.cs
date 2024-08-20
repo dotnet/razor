@@ -11,46 +11,39 @@ internal static class FallbackRazorConfiguration
     public static readonly RazorConfiguration MVC_1_0 = new(
         RazorLanguageVersion.Version_1_0,
         "MVC-1.0",
-        [new("MVC-1.0")],
-        SuppressAddComponentParameter: false);
+        [new("MVC-1.0")]);
 
     public static readonly RazorConfiguration MVC_1_1 = new(
         RazorLanguageVersion.Version_1_1,
         "MVC-1.1",
-        [new("MVC-1.1")],
-        SuppressAddComponentParameter: false);
+        [new("MVC-1.1")]);
 
     public static readonly RazorConfiguration MVC_2_0 = new(
          RazorLanguageVersion.Version_2_0,
          "MVC-2.0",
-         [new("MVC-2.0")],
-         SuppressAddComponentParameter: false);
+         [new("MVC-2.0")]);
 
     public static readonly RazorConfiguration MVC_2_1 = new(
          RazorLanguageVersion.Version_2_1,
          "MVC-2.1",
-         [new("MVC-2.1")],
-         SuppressAddComponentParameter: false);
+         [new("MVC-2.1")]);
 
     public static readonly RazorConfiguration MVC_3_0 = new(
          RazorLanguageVersion.Version_3_0,
          "MVC-3.0",
-         [new("MVC-3.0")],
-         SuppressAddComponentParameter: false);
+         [new("MVC-3.0")]);
 
     public static readonly RazorConfiguration MVC_5_0 = new(
          RazorLanguageVersion.Version_5_0,
          // Razor 5.0 uses MVC 3.0 Razor configuration.
          "MVC-3.0",
-         [new("MVC-3.0")],
-         SuppressAddComponentParameter: false);
+         [new("MVC-3.0")]);
 
     public static readonly RazorConfiguration Latest = new(
          RazorLanguageVersion.Latest,
          // Razor latest uses MVC 3.0 Razor configuration.
          "MVC-3.0",
-         [new("MVC-3.0")],
-         SuppressAddComponentParameter: false);
+         [new("MVC-3.0")]);
 
     public static RazorConfiguration SelectConfiguration(Version version)
         => version switch

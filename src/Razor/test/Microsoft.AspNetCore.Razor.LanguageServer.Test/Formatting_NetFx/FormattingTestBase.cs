@@ -260,7 +260,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             ]);
 
         var projectEngine = RazorProjectEngine.Create(
-            new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", ImmutableArray<RazorExtension>.Empty, SuppressAddComponentParameter: false, new LanguageServerFlags(forceRuntimeCodeGeneration)),
+            new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", ImmutableArray<RazorExtension>.Empty, new LanguageServerFlags(forceRuntimeCodeGeneration)),
             projectFileSystem,
             builder =>
             {

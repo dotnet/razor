@@ -4467,8 +4467,7 @@ namespace Test
             RazorLanguageVersion.Version_6_0,
             "unnamed",
             Extensions: [],
-            UseConsolidatedMvcViews: false,
-            SuppressAddComponentParameter: false);
+            UseConsolidatedMvcViews: false);
 
         // Arrange
         AdditionalSyntaxTrees.Add(Parse(@"

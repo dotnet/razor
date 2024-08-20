@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
 
@@ -206,13 +207,13 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
 
         var suppressAddComponentParameter = compilation is null
             ? false
-            : RazorConfiguration.ComputeSuppressAddComponentParameter(compilation);
+            : !compilation.HasAddComponentParameter();
 
         return new(
             razorLanguageVersion,
             configurationName,
             Extensions: [],
-            suppressAddComponentParameter,
+            SuppressAddComponentParameter: suppressAddComponentParameter,
             UseConsolidatedMvcViews: true);
     }
 }

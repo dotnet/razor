@@ -19,13 +19,13 @@ public abstract class RazorProjectEngineTestBase
 
     protected RazorProjectEngine CreateProjectEngine()
     {
-        var configuration = new RazorConfiguration(Version, "test", Extensions: [], SuppressAddComponentParameter: false);
+        var configuration = new RazorConfiguration(Version, "test", Extensions: []);
         return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, ConfigureProjectEngine);
     }
 
     protected RazorProjectEngine CreateProjectEngine(Action<RazorProjectEngineBuilder> configure)
     {
-        var configuration = new RazorConfiguration(Version, "test", Extensions: [], SuppressAddComponentParameter: false);
+        var configuration = new RazorConfiguration(Version, "test", Extensions: []);
         return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, b =>
         {
             ConfigureProjectEngine(b);

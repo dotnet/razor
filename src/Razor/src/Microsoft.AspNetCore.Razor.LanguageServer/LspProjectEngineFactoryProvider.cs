@@ -45,7 +45,7 @@ internal sealed class LspProjectEngineFactoryProvider(RazorLSPOptionsMonitor opt
             }
         }
 
-        private class CodeGenFeature(RazorLSPOptionsMonitor optionsMonitor, RazorConfiguration razorConfiguration) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
+        private class CodeGenFeature(RazorLSPOptionsMonitor optionsMonitor, RazorConfiguration configuration) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
         {
             public int Order { get; set; }
 
@@ -57,7 +57,7 @@ internal sealed class LspProjectEngineFactoryProvider(RazorLSPOptionsMonitor opt
                 options.IndentSize = currentOptions.TabSize;
                 options.IndentWithTabs = !currentOptions.InsertSpaces;
                 options.RemapLinePragmaPathsOnWindows = true;
-                options.SuppressAddComponentParameter = razorConfiguration.SuppressAddComponentParameter;
+                options.SuppressAddComponentParameter = configuration.SuppressAddComponentParameter;
             }
         }
     }

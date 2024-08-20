@@ -1,23 +1,26 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.Extensions.Logging;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
-namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
+namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal static class RazorProjectInfoFactory
 {
@@ -30,19 +33,17 @@ internal static class RazorProjectInfoFactory
             : StringComparison.OrdinalIgnoreCase;
     }
 
-    public static async Task<RazorProjectInfo?> ConvertAsync(Project project, ILogger? logger, CancellationToken cancellationToken)
+    public static async Task<RazorProjectInfo?> ConvertAsync(Project project, CancellationToken cancellationToken)
     {
         var projectPath = Path.GetDirectoryName(project.FilePath);
         if (projectPath is null)
         {
-            logger?.LogInformation("projectPath is null, skip conversion for {projectId}", project.Id);
             return null;
         }
 
         var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
         if (intermediateOutputPath is null)
         {
-            logger?.LogInformation("intermediatePath is null, skip conversion for {projectId}", project.Id);
             return null;
         }
 
@@ -52,15 +53,6 @@ internal static class RazorProjectInfoFactory
         // Not a razor project
         if (documents.Length == 0)
         {
-            if (project.DocumentIds.Count == 0)
-            {
-                logger?.LogInformation("No razor documents for {projectId}", project.Id);
-            }
-            else
-            {
-                logger?.LogTrace("No documents in {projectId}", project.Id);
-            }
-            
             return null;
         }
 
@@ -69,12 +61,11 @@ internal static class RazorProjectInfoFactory
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (compilation is null)
         {
-            logger?.LogTrace("No compilation available for {projectId}", project.Id);
             return null;
         }
 
         var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-        var configuration = ComputeRazorConfigurationOptions(options, compilation, logger, out var defaultNamespace);
+        var configuration = ComputeRazorConfigurationOptions(options, compilation, out var defaultNamespace);
         var fileSystem = RazorProjectFileSystem.Create(projectPath);
 
         var defaultConfigure = (RazorProjectEngineBuilder builder) =>
@@ -110,7 +101,7 @@ internal static class RazorProjectInfoFactory
             documents: documents);
     }
 
-    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation, ILogger? logger, out string defaultNamespace)
+    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation, out string defaultNamespace)
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
@@ -125,17 +116,16 @@ internal static class RazorProjectInfoFactory
         if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
             !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
         {
-            logger?.LogTrace("Using default of latest language version");
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
-        var suppressAddComponentParameter = RazorConfiguration.ComputeSuppressAddComponentParameter(compilation);
+        var suppressAddComponentParameter = !compilation.HasAddComponentParameter();
 
         var razorConfiguration = new RazorConfiguration(
             razorLanguageVersion,
             configurationName,
             Extensions: [],
-            suppressAddComponentParameter,
+            SuppressAddComponentParameter: suppressAddComponentParameter,
             UseConsolidatedMvcViews: true);
 
         defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
@@ -195,7 +185,7 @@ internal static class RazorProjectInfoFactory
 
     private static bool TryGetFileKind(string filePath, [NotNullWhen(true)] out string? fileKind)
     {
-        var extension = Path.GetExtension(filePath.AsSpan());
+        var extension = Path.GetExtension(filePath);
 
         if (extension.Equals(".cshtml", s_stringComparison))
         {
@@ -229,8 +219,8 @@ internal static class RazorProjectInfoFactory
         var path = filePath.AsSpan();
 
         // Generated files have a path like: virtualcsharp-razor:///e:/Scratch/RazorInConsole/Goo.cshtml__virtual.cs
-        if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
-            (path.EndsWith(generatedRazorExtension, s_stringComparison) || path.EndsWith(generatedCshtmlExtension, s_stringComparison)))
+        if (path.StartsWith(prefix.AsSpan(), StringComparison.OrdinalIgnoreCase) &&
+            (path.EndsWith(generatedRazorExtension.AsSpan(), s_stringComparison) || path.EndsWith(generatedCshtmlExtension.AsSpan(), s_stringComparison)))
         {
             // Go through the file path normalizer because it also does Uri decoding, and we're converting from a Uri to a path
             // but "new Uri(filePath).LocalPath" seems wasteful

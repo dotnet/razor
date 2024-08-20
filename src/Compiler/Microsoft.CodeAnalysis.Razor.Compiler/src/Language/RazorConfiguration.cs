@@ -12,15 +12,14 @@ public sealed record class RazorConfiguration(
     RazorLanguageVersion LanguageVersion,
     string ConfigurationName,
     ImmutableArray<RazorExtension> Extensions,
-    bool SuppressAddComponentParameter,
     LanguageServerFlags? LanguageServerFlags = null,
-    bool UseConsolidatedMvcViews = false)
+    bool UseConsolidatedMvcViews = false,
+    bool SuppressAddComponentParameter = false)
 {
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
         ConfigurationName: "unnamed",
         Extensions: [],
-        SuppressAddComponentParameter: false,
         LanguageServerFlags: null,
         UseConsolidatedMvcViews: false);
 
@@ -43,17 +42,5 @@ public sealed record class RazorConfiguration(
         hash.Add(UseConsolidatedMvcViews);
         hash.Add(LanguageServerFlags);
         return hash;
-    }
-
-    public static bool ComputeSuppressAddComponentParameter(Compilation compilation)
-    {
-        var isAddComponentParameterAvailable = compilation
-                                                .GetTypesByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder")
-                                                .Any(static t =>
-                                                    t.DeclaredAccessibility == Accessibility.Public &&
-                                                    t.GetMembers("AddComponentParameter")
-                                                        .Any(static m => m.DeclaredAccessibility == Accessibility.Public));
-
-        return !isAddComponentParameterAvailable;
     }
 }
