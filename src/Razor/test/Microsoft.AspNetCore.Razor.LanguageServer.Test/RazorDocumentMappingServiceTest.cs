@@ -1035,7 +1035,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var csharpDocument = new RazorCSharpDocument(
             codeDocument,
             projectedCSharpSource,
-            RazorCodeGenerationOptions.            Default,
+            RazorCodeGenerationOptions.Default,
             diagnostics: [],
             sourceMappings,
             linePragmas: []);
