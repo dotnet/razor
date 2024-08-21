@@ -32,7 +32,7 @@ internal class RazorFormattingService(
         FormattingOptions options,
         CancellationToken cancellationToken)
     {
-        Debug.Assert(_formattingPasses[0].GetType().Name == "HtmlFormattingPass", "Formatting requires the first pass to be Html");
+        Debug.Assert(_formattingPasses[0] is HtmlFormattingPass, "Formatting requires the first pass to be Html");
 
         var codeDocument = await documentContext.Snapshot.GetFormatterCodeDocumentAsync().ConfigureAwait(false);
 
@@ -130,7 +130,7 @@ internal class RazorFormattingService(
         bool automaticallyAddUsings,
         CancellationToken cancellationToken)
     {
-        Debug.Assert(_formattingPasses[0].GetType().Name == "HtmlFormattingPass", "Formatting requires the first pass to be Html");
+        Debug.Assert(_formattingPasses[0] is HtmlFormattingPass, "Formatting requires the first pass to be Html");
 
         // If we only received a single edit, let's always return a single edit back.
         // Otherwise, merge only if explicitly asked.
