@@ -80,8 +80,11 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
+        // TODO: In the next commit, get the Html edits from the Html formatter
+        var htmlEdits = Array.Empty<TextEdit>();
+
         // Act
-        var edits = await formattingService.GetDocumentFormattingEditsAsync(documentContext, range, options, DisposalToken);
+        var edits = await formattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, range, options, DisposalToken);
 
         // Assert
         var edited = ApplyEdits(source, edits);
@@ -131,7 +134,17 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
-        var edits = await formattingService.GetOnTypeFormattingEditsAsync(documentContext, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+        TextEdit[] edits;
+        if (languageKind == RazorLanguageKind.CSharp)
+        {
+            edits = await formattingService.GetCSharpOnTypeFormattingEditsAsync(documentContext, options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+        }
+        else
+        {
+            // todo:
+            var htmlEdits = Array.Empty<TextEdit>();
+            edits = await formattingService.GetHtmlOnTypeFormattingEditsAsync(documentContext, htmlEdits, options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+        }
 
         // Assert
         var edited = ApplyEdits(razorSourceText, edits);
@@ -199,10 +212,10 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
-        var edits = await formattingService.GetCodeActionEditsAsync(documentContext, languageKind, codeActionEdits, options, DisposalToken);
+        var edit = await formattingService.GetCSharpCodeActionEditAsync(documentContext, codeActionEdits, options, DisposalToken);
 
         // Assert
-        var edited = ApplyEdits(razorSourceText, edits);
+        var edited = ApplyEdits(razorSourceText, [edit]);
         var actual = edited.ToString();
 
         AssertEx.EqualOrDiff(expected, actual);

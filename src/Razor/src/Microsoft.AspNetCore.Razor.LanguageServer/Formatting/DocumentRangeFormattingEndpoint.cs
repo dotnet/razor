@@ -56,7 +56,10 @@ internal class DocumentRangeFormattingEndpoint : IRazorRequestHandler<DocumentRa
             return null;
         }
 
-        var edits = await _razorFormattingService.GetDocumentFormattingEditsAsync(documentContext, request.Range, request.Options, cancellationToken).ConfigureAwait(false);
+        // TODO: In the next commit, get the Html edits from the Html formatter
+        var htmlEdits = Array.Empty<TextEdit>();
+
+        var edits = await _razorFormattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, request.Range, request.Options, cancellationToken).ConfigureAwait(false);
 
         return edits;
     }

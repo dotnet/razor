@@ -26,6 +26,7 @@ internal class RazorFormattingService(
 
     public async Task<TextEdit[]> GetDocumentFormattingEditsAsync(
         VersionedDocumentContext documentContext,
+        TextEdit[] htmlEdits,
         Range? range,
         FormattingOptions options,
         CancellationToken cancellationToken)
@@ -61,7 +62,7 @@ internal class RazorFormattingService(
         using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
         var originalText = context.SourceText;
 
-        var result = new FormattingResult([]);
+        var result = new FormattingResult(htmlEdits);
         foreach (var pass in _formattingPasses)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -75,22 +76,31 @@ internal class RazorFormattingService(
         return originalText.NormalizeTextEdits(filteredEdits);
     }
 
-    public Task<TextEdit[]> GetOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
-        => ApplyFormattedEditsAsync(documentContext, kind, formattedEdits, options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
+    public Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(DocumentContext documentContext, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        => ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, [], options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
-    public Task<TextEdit[]> GetCSharpCodeActionEditsAsync(DocumentContext documentContext, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
-        => ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, formattedEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: false, automaticallyAddUsings: true, cancellationToken: cancellationToken);
+    public Task<TextEdit[]> GetHtmlOnTypeFormattingEditsAsync(DocumentContext documentContext, TextEdit[] htmlEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        => ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.Html, htmlEdits, options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
-    public async Task<TextEdit[]> GetSnippetFormattingEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] edits, FormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextEdit?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextEdit edit, FormattingOptions options, CancellationToken cancellationToken)
     {
-        if (kind == RazorLanguageKind.CSharp)
-        {
-            WrapCSharpSnippets(edits);
-        }
+        var formattedEdits = await ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, [edit], options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        return formattedEdits.SingleOrDefault();
+    }
+
+    public async Task<TextEdit?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, TextEdit[] initialEdits, FormattingOptions options, CancellationToken cancellationToken)
+    {
+        var edits = await ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, initialEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: true, automaticallyAddUsings: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+        return edits.SingleOrDefault();
+    }
+
+    public async Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, TextEdit[] edits, FormattingOptions options, CancellationToken cancellationToken)
+    {
+        WrapCSharpSnippets(edits);
 
         var formattedEdits = await ApplyFormattedEditsAsync(
             documentContext,
-            kind,
+            RazorLanguageKind.CSharp,
             edits,
             options,
             hostDocumentIndex: 0,
@@ -100,12 +110,9 @@ internal class RazorFormattingService(
             automaticallyAddUsings: false,
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        if (kind == RazorLanguageKind.CSharp)
-        {
-            UnwrapCSharpSnippets(formattedEdits);
-        }
+        UnwrapCSharpSnippets(formattedEdits);
 
-        return formattedEdits;
+        return formattedEdits.SingleOrDefault();
     }
 
     private async Task<TextEdit[]> ApplyFormattedEditsAsync(

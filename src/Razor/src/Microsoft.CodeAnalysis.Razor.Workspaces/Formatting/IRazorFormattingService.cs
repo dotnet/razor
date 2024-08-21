@@ -4,7 +4,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
@@ -13,28 +12,40 @@ internal interface IRazorFormattingService
 {
     Task<TextEdit[]> GetDocumentFormattingEditsAsync(
        VersionedDocumentContext documentContext,
+       TextEdit[] htmlEdits,
        Range? range,
        FormattingOptions options,
        CancellationToken cancellationToken);
 
-    Task<TextEdit[]> GetOnTypeFormattingEditsAsync(
+    Task<TextEdit[]> GetHtmlOnTypeFormattingEditsAsync(
       DocumentContext documentContext,
-      RazorLanguageKind kind,
-      TextEdit[] formattedEdits,
+      TextEdit[] htmlEdits,
       FormattingOptions options,
       int hostDocumentIndex,
       char triggerCharacter,
       CancellationToken cancellationToken);
 
-    Task<TextEdit[]> GetCSharpCodeActionEditsAsync(
+    Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(
+      DocumentContext documentContext,
+      FormattingOptions options,
+      int hostDocumentIndex,
+      char triggerCharacter,
+      CancellationToken cancellationToken);
+
+    Task<TextEdit?> GetSingleCSharpEditAsync(
+        DocumentContext documentContext,
+        TextEdit initialEdit,
+        FormattingOptions options,
+        CancellationToken cancellationToken);
+
+    Task<TextEdit?> GetCSharpCodeActionEditAsync(
        DocumentContext documentContext,
        TextEdit[] formattedEdits,
        FormattingOptions options,
        CancellationToken cancellationToken);
 
-    Task<TextEdit[]> GetSnippetFormattingEditsAsync(
+    Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(
        DocumentContext documentContext,
-       RazorLanguageKind kind,
        TextEdit[] edits,
        FormattingOptions options,
        CancellationToken cancellationToken);

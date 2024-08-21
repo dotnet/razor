@@ -15,21 +15,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
-internal class DelegatedCompletionItemResolver : CompletionItemResolver
+internal class DelegatedCompletionItemResolver(
+    IDocumentContextFactory documentContextFactory,
+    IRazorFormattingService formattingService,
+    IClientConnection clientConnection) : CompletionItemResolver
 {
-    private readonly IDocumentContextFactory _documentContextFactory;
-    private readonly IRazorFormattingService _formattingService;
-    private readonly IClientConnection _clientConnection;
-
-    public DelegatedCompletionItemResolver(
-        IDocumentContextFactory documentContextFactory,
-        IRazorFormattingService formattingService,
-        IClientConnection clientConnection)
-    {
-        _documentContextFactory = documentContextFactory;
-        _formattingService = formattingService;
-        _clientConnection = clientConnection;
-    }
+    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
+    private readonly IRazorFormattingService _formattingService = formattingService;
+    private readonly IClientConnection _clientConnection = clientConnection;
 
     public override async Task<VSInternalCompletionItem?> ResolveAsync(
         VSInternalCompletionItem item,
@@ -122,14 +115,13 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
         {
             if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
             {
-                var formattedTextEdit = await _formattingService.GetSnippetFormattingEditsAsync(
+                var formattedTextEdit = await _formattingService.GetCSharpSnippetFormattingEditAsync(
                     documentContext,
-                    RazorLanguageKind.CSharp,
-                    new[] { textEdit },
+                    [textEdit],
                     formattingOptions,
                     cancellationToken).ConfigureAwait(false);
 
-                resolvedCompletionItem.TextEdit = formattedTextEdit.FirstOrDefault();
+                resolvedCompletionItem.TextEdit = formattedTextEdit;
             }
             else
             {
@@ -141,14 +133,13 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
 
         if (resolvedCompletionItem.AdditionalTextEdits is not null)
         {
-            var formattedTextEdits = await _formattingService.GetSnippetFormattingEditsAsync(
+            var formattedTextEdit = await _formattingService.GetCSharpSnippetFormattingEditAsync(
                 documentContext,
-                RazorLanguageKind.CSharp,
                 resolvedCompletionItem.AdditionalTextEdits,
                 formattingOptions,
                 cancellationToken).ConfigureAwait(false);
 
-            resolvedCompletionItem.AdditionalTextEdits = formattedTextEdits;
+            resolvedCompletionItem.AdditionalTextEdits = formattedTextEdit is null ? null : [formattedTextEdit];
         }
 
         return resolvedCompletionItem;

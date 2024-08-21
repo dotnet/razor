@@ -118,7 +118,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
 
         var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, version: 1);
 
-        var edits = await RazorFormattingService.GetDocumentFormattingEditsAsync(documentContext, range: null, options, CancellationToken.None);
+        var edits = await RazorFormattingService.GetDocumentFormattingEditsAsync(documentContext, [], range: null, options, CancellationToken.None);
 
 #if DEBUG
         // For debugging purposes only.

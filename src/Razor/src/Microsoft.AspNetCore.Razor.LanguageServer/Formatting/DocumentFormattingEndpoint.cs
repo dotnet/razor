@@ -50,7 +50,10 @@ internal class DocumentFormattingEndpoint(
             return null;
         }
 
-        var edits = await _razorFormattingService.GetDocumentFormattingEditsAsync(documentContext, range: null, request.Options, cancellationToken).ConfigureAwait(false);
+        // TODO: In the next commit, get the Html edits from the Html formatter
+        var htmlEdits = Array.Empty<TextEdit>();
+
+        var edits = await _razorFormattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, range: null, request.Options, cancellationToken).ConfigureAwait(false);
         return edits;
     }
 }

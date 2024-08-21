@@ -114,7 +114,23 @@ internal class DocumentOnTypeFormattingEndpoint(
 
         Debug.Assert(request.Character.Length > 0);
 
-        var formattedEdits = await _razorFormattingService.GetOnTypeFormattingEditsAsync(documentContext, triggerCharacterKind, Array.Empty<TextEdit>(), request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
+        TextEdit[] formattedEdits;
+        if (triggerCharacterKind == RazorLanguageKind.CSharp)
+        {
+            formattedEdits = await _razorFormattingService.GetCSharpOnTypeFormattingEditsAsync(documentContext, request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
+        }
+        else if (triggerCharacterKind == RazorLanguageKind.Html)
+        {
+            // TODO: In the next commit, get the Html edits from the Html formatter
+            var htmlEdits = Array.Empty<TextEdit>();
+            formattedEdits = await _razorFormattingService.GetHtmlOnTypeFormattingEditsAsync(documentContext, htmlEdits, request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            Assumed.Unreachable();
+            return null;
+        }
+
         if (formattedEdits.Length == 0)
         {
             _logger.LogInformation($"No formatting changes were necessary");
