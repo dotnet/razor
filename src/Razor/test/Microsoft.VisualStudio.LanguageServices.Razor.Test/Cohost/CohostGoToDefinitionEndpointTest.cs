@@ -124,6 +124,51 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         await VerifyGoToDefinitionAsync(input, FileKinds.Component);
     }
 
+    [Fact]
+    public async Task Component()
+    {
+        TestCode input = """
+            <Surv$$eyPrompt Title="InputValue" />
+            """;
+
+        TestCode surveyPrompt = """
+            [||]@namespace SomeProject
+
+            <div></div>
+
+            @code
+            {
+                [Parameter]
+                public string Title { get; set; }
+            }
+            """;
+
+        TestCode surveyPromptGeneratedCode = """
+            using Microsoft.AspNetCore.Components;
+
+            namespace SomeProject
+            {
+                public partial class SurveyPrompt : ComponentBase
+                {
+                    [Parameter]
+                    public string Title { get; set; }
+                }
+            }
+            """;
+
+        var result = await GetGoToDefinitionResultAsync(input, FileKinds.Component,
+            (FileName("SurveyPrompt.razor"), surveyPrompt.Text),
+            (FileName("SurveyPrompt.razor.g.cs"), surveyPromptGeneratedCode.Text));
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        var text = SourceText.From(surveyPrompt.Text);
+        var range = RoslynLspExtensions.GetRange(text, surveyPrompt.Span);
+        Assert.Equal(range, location.Range);
+    }
+
     [Theory]
     [InlineData("Ti$$tle")]
     [InlineData("$$@bind-Title")]
