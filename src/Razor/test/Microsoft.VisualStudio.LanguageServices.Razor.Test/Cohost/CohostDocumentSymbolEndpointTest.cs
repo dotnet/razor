@@ -1,23 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbols;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.DocumentSymbols;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
+public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
     [Theory]
     [CombinatorialData]
@@ -25,7 +21,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
         => VerifyDocumentSymbolsAsync(
             """
             @functions {
-                class {|AspNetCore.test.C:C|}
+                class {|SomeProject.File1.C:C|}
                 {
                     private void {|HandleString(string s):HandleString|}(string s)
                     {
@@ -70,61 +66,14 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
             
             """, hierarchical);
 
-    [Fact]
-    public async Task DocumentSymbols_DisabledWhenNotSingleServer()
-    {
-        var input = """
-            <p> Hello World </p>
-            """;
-
-        var codeDocument = CreateCodeDocument(input);
-        var razorFilePath = "C:/path/to/file.razor";
-
-        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
-
-        // This test requires the SingleServerSupport to be disabled
-        Assert.False(TestLanguageServerFeatureOptions.Instance.SingleServerSupport);
-        var documentSymbolService = new DocumentSymbolService(DocumentMappingService);
-        var endpoint = new DocumentSymbolEndpoint(languageServer, documentSymbolService, TestLanguageServerFeatureOptions.Instance);
-
-        var serverCapabilities = new VSInternalServerCapabilities();
-        var clientCapabilities = new VSInternalClientCapabilities();
-
-        endpoint.ApplyCapabilities(serverCapabilities, clientCapabilities);
-
-        Assert.Null(serverCapabilities.DocumentSymbolProvider?.Value);
-    }
-
     private async Task VerifyDocumentSymbolsAsync(string input, bool hierarchical = false)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spansDict);
-        var codeDocument = CreateCodeDocument(input);
-        var razorFilePath = "C:/path/to/file.razor";
+        var document = CreateProjectAndRazorDocument(input);
 
-        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath,
-            capabilitiesUpdater: c => c.TextDocument!.DocumentSymbol = new DocumentSymbolSetting() { HierarchicalDocumentSymbolSupport = hierarchical });
+        var endpoint = new CohostDocumentSymbolEndpoint(RemoteServiceInvoker);
 
-        var documentSymbolService = new DocumentSymbolService(DocumentMappingService);
-        var endpoint = new DocumentSymbolEndpoint(languageServer, documentSymbolService, TestLanguageServerFeatureOptions.Instance);
-
-        var request = new DocumentSymbolParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier
-            {
-                Uri = new Uri(razorFilePath),
-                ProjectContext = new VSProjectContext()
-                {
-                    Label = "test",
-                    Kind = VSProjectKind.CSharp,
-                    Id = "test"
-                }
-            }
-        };
-        Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
-        var requestContext = CreateRazorRequestContext(documentContext);
-
-        var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
-        Assert.NotNull(result);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, hierarchical, DisposalToken);
 
         if (hierarchical)
         {
@@ -156,7 +105,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
         foreach (var symbol in documentSymbols)
         {
             seen++;
-            Assert.True(spansDict.TryGetValue(symbol.Detail.AssumeNotNull(), out var spans), $"Expected {symbol.Name} to be in test provided markers");
+            Assert.True(spansDict.TryGetValue(symbol.Detail.AssumeNotNull(), out var spans), $"Expected {symbol.Detail} to be in test provided markers");
             var expectedRange = sourceText.GetRange(Assert.Single(spans));
             Assert.Equal(expectedRange, symbol.SelectionRange);
 
