@@ -171,9 +171,10 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         var startNodeContainsEndNode = endElementNode.Ancestors().Any(node => node == startElementNode);
 
         // If the start element is an ancestor, keep the original end; otherwise, use the end of the end element
-        if (!startNodeContainsEndNode)
+        if (startNodeContainsEndNode)
         {
-            actionParams.ExtractEnd = endElementNode.Span.End;
+            actionParams.ExtractEnd = startElementNode.Span.End;
+            return;
         }
 
         // If the start element is not an ancestor of the end element, we need to find a common parent
@@ -189,19 +190,17 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         //     Selected text ends here <span></span>
         //   </div>
         // In this case, we need to find the smallest set of complete elements that covers the entire selection.
-        if (!startNodeContainsEndNode)
-        {
-            // Find the closest containing sibling pair that encompasses both the start and end elements
-            var (extractStart, extractEnd) = FindContainingSiblingPair(startElementNode, endElementNode);
+        
+        // Find the closest containing sibling pair that encompasses both the start and end elements
+        var (extractStart, extractEnd) = FindContainingSiblingPair(startElementNode, endElementNode);
 
-            // If we found a valid containing pair, update the extraction range
-            if (extractStart is not null && extractEnd is not null)
-            {
-                actionParams.ExtractStart = extractStart.Span.Start;
-                actionParams.ExtractEnd = extractEnd.Span.End;
-            }
-            // Note: If we don't find a valid pair, we keep the original extraction range
+        // If we found a valid containing pair, update the extraction range
+        if (extractStart is not null && extractEnd is not null)
+        {
+            actionParams.ExtractStart = extractStart.Span.Start;
+            actionParams.ExtractEnd = extractEnd.Span.End;
         }
+        // Note: If we don't find a valid pair, we keep the original extraction range
     }
 
     private static bool IsMultiPointSelection(Range range) => range.Start != range.End;
