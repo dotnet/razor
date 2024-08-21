@@ -3,6 +3,8 @@
 
 using Microsoft.CodeAnalysis.Text;
 
+using VsLspPosition = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
+
 namespace Roslyn.LanguageServer.Protocol;
 
 internal static partial class RoslynLspExtensions
@@ -12,4 +14,11 @@ internal static partial class RoslynLspExtensions
 
     public static string ToDisplayString(this Position position)
         => $"({position.Line}, {position.Character})";
+
+    public static VsLspPosition ToVsLspPosition(this Position position)
+        => new ()
+        {
+            Character = position.Character,
+            Line = position.Line
+        };
 }

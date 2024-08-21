@@ -29,13 +29,6 @@ internal readonly record struct RemoteInsertTextEdit(
             edit.TextEdit.NewText,
             (RoslynInsertTextFormat)edit.InsertTextFormat);
 
-    public static RemoteInsertTextEdit FromRoslynAutoInsertResponse(
-        RoslynVSInternalDocumentOnAutoInsertResponseItem response)
-        => new(
-            response.TextEdit.Range.ToLinePositionSpan(),
-            response.TextEdit.NewText,
-            response.TextEditFormat);
-
     public static VSInternalDocumentOnAutoInsertResponseItem ToLspInsertTextEdit(RemoteInsertTextEdit edit)
         => new()
         {
