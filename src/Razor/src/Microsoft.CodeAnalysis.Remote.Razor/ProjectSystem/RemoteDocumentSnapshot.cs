@@ -117,4 +117,11 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
         // HACK: We're not in the same solution fork as the LSP server that provides content for this document
         return generatedDocument.WithText(csharpSourceText);
     }
+
+    public async Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
+    {
+        var document = await GetGeneratedDocumentAsync().ConfigureAwait(false);
+        var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        return tree.AssumeNotNull();
+    }
 }

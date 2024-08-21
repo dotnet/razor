@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -391,13 +390,11 @@ public class RazorComponentDefinitionHelpersTest(ITestOutputHelper testOutput) :
 
         var codeDocument = CreateCodeDocument(content);
         var expectedRange = codeDocument.Source.Text.GetRange(selection);
+        var snapshot = TestDocumentSnapshot.Create("test.razor", content).With(codeDocument);
 
         var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
-        var csharpText = codeDocument.GetCSharpSourceText();
-        var syntaxTree = CSharpSyntaxTree.ParseText(csharpText);
-
-        var range = await RazorComponentDefinitionHelpers.TryGetPropertyRangeAsync(codeDocument, syntaxTree, propertyName, documentMappingService, Logger, DisposalToken);
+        var range = await RazorComponentDefinitionHelpers.TryGetPropertyRangeAsync(snapshot, propertyName, documentMappingService, Logger, DisposalToken);
         Assert.NotNull(range);
         Assert.Equal(expectedRange, range);
     }
