@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -27,8 +29,10 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+            formattingService, clientConnection, documentVersionCache, documentMappingService, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams { TextDocument = new TextDocumentIdentifier { Uri = uri, } };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -56,8 +60,10 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+            formattingService, clientConnection, documentVersionCache, documentMappingService, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -91,8 +97,10 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+            formattingService, clientConnection, documentVersionCache, documentMappingService, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -127,8 +135,10 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var documentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Html);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
+            formattingService, clientConnection, documentVersionCache, documentMappingService.Object, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -163,8 +173,10 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var documentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Razor);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
+            formattingService, clientConnection, documentVersionCache, documentMappingService.Object, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -198,8 +210,10 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+            formattingService, clientConnection, documentVersionCache, documentMappingService, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },

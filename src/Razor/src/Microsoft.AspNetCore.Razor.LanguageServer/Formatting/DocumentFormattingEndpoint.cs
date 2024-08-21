@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -14,10 +14,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 [RazorLanguageServerEndpoint(Methods.TextDocumentFormattingName)]
 internal class DocumentFormattingEndpoint(
     IRazorFormattingService razorFormattingService,
+        IClientConnection clientConnection,
+    IDocumentVersionCache documentVersionCache,
     RazorLSPOptionsMonitor optionsMonitor) : IRazorRequestHandler<DocumentFormattingParams, TextEdit[]?>, ICapabilitiesProvider
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
+    private readonly HtmlFormatter _htmlFormatter = new HtmlFormatter(clientConnection, documentVersionCache);
 
     public bool MutatesSolutionState => false;
 
@@ -50,9 +53,7 @@ internal class DocumentFormattingEndpoint(
             return null;
         }
 
-        // TODO: In the next commit, get the Html edits from the Html formatter
-        var htmlEdits = Array.Empty<TextEdit>();
-
+        var htmlEdits = await _htmlFormatter.GetDocumentFormattingEditsAsync(documentContext.Snapshot, documentContext.Uri, request.Options, cancellationToken).ConfigureAwait(false);
         var edits = await _razorFormattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, range: null, request.Options, cancellationToken).ConfigureAwait(false);
         return edits;
     }

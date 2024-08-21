@@ -22,23 +22,12 @@ internal static class TestRazorFormattingService
     public static async Task<IRazorFormattingService> CreateWithFullSupportAsync(
         ILoggerFactory loggerFactory,
         RazorCodeDocument? codeDocument = null,
-        IDocumentSnapshot? documentSnapshot = null,
         RazorLSPOptions? razorLSPOptions = null)
     {
         codeDocument ??= TestRazorCodeDocument.CreateEmpty();
 
         var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
         var mappingService = new LspDocumentMappingService(filePathService, new TestDocumentContextFactory(), loggerFactory);
-
-        var projectManager = StrictMock.Of<IProjectSnapshotManager>();
-        var versionCache = new DocumentVersionCache(projectManager);
-        if (documentSnapshot is not null)
-        {
-            versionCache.TrackDocumentVersion(documentSnapshot, version: 1);
-        }
-
-        var client = new FormattingLanguageServerClient(loggerFactory);
-        client.AddCodeDocument(codeDocument);
 
         var configurationSyncService = new Mock<IConfigurationSyncService>(MockBehavior.Strict);
         configurationSyncService
@@ -55,7 +44,7 @@ internal static class TestRazorFormattingService
 
         var passes = new List<IFormattingPass>()
         {
-            new HtmlFormattingPass(mappingService, client, versionCache, loggerFactory),
+            new HtmlFormattingPass(mappingService, loggerFactory),
             new CSharpFormattingPass(mappingService, loggerFactory),
             new CSharpOnTypeFormattingPass(mappingService, loggerFactory),
             new LspRazorFormattingPass(mappingService, optionsMonitor),

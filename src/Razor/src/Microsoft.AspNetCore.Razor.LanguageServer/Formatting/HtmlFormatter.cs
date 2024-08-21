@@ -6,8 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.AspNetCore.Razor.TextDifferencing;
-using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Formatting;
 using Microsoft.CodeAnalysis.Text;
@@ -22,11 +21,13 @@ internal sealed class HtmlFormatter(
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly IClientConnection _clientConnection = clientConnection;
 
-    public async Task<TextEdit[]> FormatAsync(
-        FormattingContext context,
+    public async Task<TextEdit[]> GetDocumentFormattingEditsAsync(
+        IDocumentSnapshot documentSnapshot,
+        Uri uri,
+        FormattingOptions options,
         CancellationToken cancellationToken)
     {
-        if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
+        if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var documentVersion))
         {
             return [];
         }
@@ -35,10 +36,10 @@ internal sealed class HtmlFormatter(
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = context.Uri,
+                Uri = uri,
             },
             HostDocumentVersion = documentVersion.Value,
-            Options = context.Options
+            Options = options
         };
 
         var result = await _clientConnection.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
@@ -49,21 +50,25 @@ internal sealed class HtmlFormatter(
         return result?.Edits ?? [];
     }
 
-    public async Task<TextEdit[]> FormatOnTypeAsync(
-       FormattingContext context,
-       CancellationToken cancellationToken)
+    public async Task<TextEdit[]> GetOnTypeFormattingEditsAsync(
+        IDocumentSnapshot documentSnapshot,
+        Uri uri,
+        Position position,
+        string triggerCharacter,
+        FormattingOptions options,
+        CancellationToken cancellationToken)
     {
-        if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
+        if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var documentVersion))
         {
             return [];
         }
 
         var @params = new RazorDocumentOnTypeFormattingParams()
         {
-            Position = context.SourceText.GetPosition(context.HostDocumentIndex),
-            Character = context.TriggerCharacter.ToString(),
-            TextDocument = new TextDocumentIdentifier { Uri = context.Uri },
-            Options = context.Options,
+            Position = position,
+            Character = triggerCharacter.ToString(),
+            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            Options = options,
             HostDocumentVersion = documentVersion.Value,
         };
 

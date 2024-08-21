@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Settings.Internal;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -77,11 +78,18 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             InsertSpaces = insertSpaces,
         };
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
-        // TODO: In the next commit, get the Html edits from the Html formatter
-        var htmlEdits = Array.Empty<TextEdit>();
+        var projectManager = StrictMock.Of<IProjectSnapshotManager>();
+        var versionCache = new DocumentVersionCache(projectManager);
+        versionCache.TrackDocumentVersion(documentSnapshot, version: 1);
+
+        var client = new FormattingLanguageServerClient(LoggerFactory);
+        client.AddCodeDocument(codeDocument);
+
+        var htmlFormatter = new HtmlFormatter(client, versionCache);
+        var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
 
         // Act
         var edits = await formattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, range, options, DisposalToken);
@@ -124,8 +132,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(
-            LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
@@ -141,8 +148,15 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         }
         else
         {
-            // todo:
-            var htmlEdits = Array.Empty<TextEdit>();
+            var projectManager = StrictMock.Of<IProjectSnapshotManager>();
+            var versionCache = new DocumentVersionCache(projectManager);
+            versionCache.TrackDocumentVersion(documentSnapshot, version: 1);
+
+            var client = new FormattingLanguageServerClient(LoggerFactory);
+            client.AddCodeDocument(codeDocument);
+
+            var htmlFormatter = new HtmlFormatter(client, versionCache);
+            var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
             edits = await formattingService.GetHtmlOnTypeFormattingEditsAsync(documentContext, htmlEdits, options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
         }
 

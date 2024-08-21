@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -19,12 +18,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal sealed class HtmlFormattingPass(
     IDocumentMappingService documentMappingService,
-    IClientConnection clientConnection,
-    IDocumentVersionCache documentVersionCache,
     ILoggerFactory loggerFactory)
     : FormattingPassBase(documentMappingService)
 {
-    private readonly HtmlFormatter _htmlFormatter = new HtmlFormatter(clientConnection, documentVersionCache);
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlFormattingPass>();
 
     // We want this to run first because it uses the client HTML formatter.
@@ -36,21 +32,13 @@ internal sealed class HtmlFormattingPass(
     {
         var originalText = context.SourceText;
 
-        TextEdit[] htmlEdits;
-
-        if (context.IsFormatOnType && result.Kind == RazorLanguageKind.Html)
-        {
-            htmlEdits = await _htmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false);
-        }
-        else if (!context.IsFormatOnType)
-        {
-            htmlEdits = await _htmlFormatter.FormatAsync(context, cancellationToken).ConfigureAwait(false);
-        }
-        else
+        if (context.IsFormatOnType && result.Kind != RazorLanguageKind.Html)
         {
             // We don't want to handle on type formatting requests for other languages
             return result;
         }
+
+        var htmlEdits = result.Edits;
 
         var changedText = originalText;
         var changedContext = context;

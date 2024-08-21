@@ -4,6 +4,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,9 +24,12 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
 
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
+
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentRangeFormattingEndpoint(
-            formattingService, optionsMonitor);
+            formattingService, clientConnection, documentVersionCache, optionsMonitor);
         var @params = new DocumentRangeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, }
@@ -45,7 +50,9 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         // Arrange
         var formattingService = new DummyRazorFormattingService();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
+        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, clientConnection, documentVersionCache, optionsMonitor);
         var uri = new Uri("file://path/test.razor");
         var @params = new DocumentRangeFormattingParams()
         {
@@ -71,7 +78,9 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
+        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, clientConnection, documentVersionCache, optionsMonitor);
         var @params = new DocumentRangeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, }
@@ -91,7 +100,9 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         // Arrange
         var formattingService = new DummyRazorFormattingService();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
-        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var clientConnection = StrictMock.Of<IClientConnection>();
+        var documentVersionCache = StrictMock.Of<IDocumentVersionCache>();
+        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, clientConnection, documentVersionCache, optionsMonitor);
         var @params = new DocumentRangeFormattingParams();
         var requestContext = CreateRazorRequestContext(documentContext: null);
 

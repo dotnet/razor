@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -21,6 +22,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 [RazorLanguageServerEndpoint(Methods.TextDocumentOnTypeFormattingName)]
 internal class DocumentOnTypeFormattingEndpoint(
     IRazorFormattingService razorFormattingService,
+    IClientConnection clientConnection,
+    IDocumentVersionCache documentVersionCache,
     IDocumentMappingService documentMappingService,
     RazorLSPOptionsMonitor optionsMonitor,
     ILoggerFactory loggerFactory)
@@ -29,6 +32,7 @@ internal class DocumentOnTypeFormattingEndpoint(
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
     private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
+    private readonly HtmlFormatter _htmlFormatter = new HtmlFormatter(clientConnection, documentVersionCache);
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentOnTypeFormattingEndpoint>();
 
     private static readonly IReadOnlyList<string> s_csharpTriggerCharacters = new[] { "}", ";" };
@@ -74,7 +78,6 @@ internal class DocumentOnTypeFormattingEndpoint(
         }
 
         var documentContext = requestContext.DocumentContext;
-
         if (documentContext is null)
         {
             _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
@@ -121,8 +124,7 @@ internal class DocumentOnTypeFormattingEndpoint(
         }
         else if (triggerCharacterKind == RazorLanguageKind.Html)
         {
-            // TODO: In the next commit, get the Html edits from the Html formatter
-            var htmlEdits = Array.Empty<TextEdit>();
+            var htmlEdits = await _htmlFormatter.GetOnTypeFormattingEditsAsync(documentContext.Snapshot, documentContext.Uri, request.Position, request.Character, request.Options, cancellationToken).ConfigureAwait(false);
             formattedEdits = await _razorFormattingService.GetHtmlOnTypeFormattingEditsAsync(documentContext, htmlEdits, request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
         }
         else
