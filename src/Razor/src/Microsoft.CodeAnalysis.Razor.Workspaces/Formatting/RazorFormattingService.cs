@@ -78,8 +78,8 @@ internal class RazorFormattingService(
     public Task<TextEdit[]> GetOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         => ApplyFormattedEditsAsync(documentContext, kind, formattedEdits, options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
-    public Task<TextEdit[]> GetCodeActionEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
-        => ApplyFormattedEditsAsync(documentContext, kind, formattedEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: false, automaticallyAddUsings: true, cancellationToken: cancellationToken);
+    public Task<TextEdit[]> GetCSharpCodeActionEditsAsync(DocumentContext documentContext, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+        => ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, formattedEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: false, automaticallyAddUsings: true, cancellationToken: cancellationToken);
 
     public async Task<TextEdit[]> GetSnippetFormattingEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] edits, FormattingOptions options, CancellationToken cancellationToken)
     {

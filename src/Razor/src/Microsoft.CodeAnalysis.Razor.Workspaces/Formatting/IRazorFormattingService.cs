@@ -26,9 +26,8 @@ internal interface IRazorFormattingService
       char triggerCharacter,
       CancellationToken cancellationToken);
 
-    Task<TextEdit[]> GetCodeActionEditsAsync(
+    Task<TextEdit[]> GetCSharpCodeActionEditsAsync(
        DocumentContext documentContext,
-       RazorLanguageKind kind,
        TextEdit[] formattedEdits,
        FormattingOptions options,
        CancellationToken cancellationToken);

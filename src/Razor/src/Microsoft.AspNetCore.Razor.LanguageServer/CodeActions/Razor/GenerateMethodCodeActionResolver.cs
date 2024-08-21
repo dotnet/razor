@@ -210,9 +210,8 @@ internal sealed class GenerateMethodCodeActionResolver(
                     InsertSpaces = _razorLSPOptionsMonitor.CurrentValue.InsertSpaces,
                 };
 
-                var formattedEdits = await _razorFormattingService.GetCodeActionEditsAsync(
+                var formattedEdits = await _razorFormattingService.GetCSharpCodeActionEditsAsync(
                     documentContext,
-                    RazorLanguageKind.CSharp,
                     result,
                     formattingOptions,
                     cancellationToken).ConfigureAwait(false);

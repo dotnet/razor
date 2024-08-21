@@ -44,7 +44,7 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
             return SpecializedTasks.EmptyArray<TextEdit>();
         }
 
-        public Task<TextEdit[]> GetCodeActionEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextEdit[]> GetCSharpCodeActionEditsAsync(DocumentContext documentContext, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
         {
             return Task.FromResult(formattedEdits);
         }
