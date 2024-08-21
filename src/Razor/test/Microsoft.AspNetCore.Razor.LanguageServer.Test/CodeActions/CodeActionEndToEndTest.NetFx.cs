@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Castle.Core.Logging;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -17,25 +16,28 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Copilot.Internal;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.AspNetCore.Razor.LanguageServer.Formatting.FormattingLanguageServerTestBase;
+using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -64,12 +66,25 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                     razorFormattingService)
             ];
 
-    private ExtractToComponentCodeActionResolver[] CreateExtractComponentCodeActionResolver(string filePath, RazorCodeDocument codeDocument)
-    {
+    private ExtractToComponentCodeActionResolver[] CreateExtractComponentCodeActionResolver(
+        string filePath,
+        RazorCodeDocument codeDocument,
+        IRazorFormattingService razorFormattingService,
+        IClientConnection clientConnection,
+        RazorLSPOptionsMonitor? optionsMonitor = null)
+    { 
+        var projectManager = new StrictMock<IDocumentVersionCache>();
+        int? version = 1;
+        projectManager.Setup(x => x.TryGetDocumentVersion(It.IsAny<IDocumentSnapshot>(), out version)).Returns(true);
+
         return [
                 new ExtractToComponentCodeActionResolver(
                     new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
-                    TestLanguageServerFeatureOptions.Instance)
+                    optionsMonitor ?? TestRazorLSPOptionsMonitor.Create(),
+                    TestLanguageServerFeatureOptions.Instance,
+                    clientConnection,
+                    razorFormattingService,
+                    projectManager.Object)
             ];
     }
 
@@ -1117,6 +1132,74 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
     }
 
+    [Fact]
+    public async Task Handle_ExtractComponent_SiblingElement_ReturnsResult()
+    {
+        var input = """
+            <[|div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            <div id="b">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div|]>
+            """;
+
+        var expectedRazorComponent = """
+            <div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            <div id="b">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_StartNodeContainsEndNode_ReturnsResult()
+    {
+        var input = """
+            <[|div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <p>Deeply nested par</p|]>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            <div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <p>Deeply nested par</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
     #endregion
 
     private async Task ValidateCodeBehindFileAsync(
@@ -1267,7 +1350,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         int childActionIndex = 0,
         IEnumerable<(string filePath, string contents)>? additionalRazorDocuments = null,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<string, RazorCodeDocument, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        Func<string, RazorCodeDocument, IRazorFormattingService, IClientConnection, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -1307,7 +1390,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             codeActionToRun,
             requestContext,
             languageServer,
-            codeActionResolversCreator?.Invoke(razorFilePath, codeDocument) ?? []);
+            codeActionResolversCreator?.Invoke(razorFilePath, codeDocument, formattingService, languageServer, arg5: null) ?? []);
 
         var edits = changes.Where(change => change.TextDocument.Uri.AbsolutePath == componentFilePath).Single();
         var actual = edits.Edits.Select(edit => edit.NewText).Single();

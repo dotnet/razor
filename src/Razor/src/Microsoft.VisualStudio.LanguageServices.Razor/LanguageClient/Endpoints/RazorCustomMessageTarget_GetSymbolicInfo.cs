@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
 
 internal partial class RazorCustomMessageTarget
 {
-    [JsonRpcMethod(CustomMessageNames.RazorComponentInfoEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<RazorComponentInfo?> RazorComponentInfoAsync(RazorComponentInfoParams request, CancellationToken cancellationToken)
+    [JsonRpcMethod(CustomMessageNames.RazorGetSymbolicInfoEndpointName, UseSingleObjectParameterDeserialization = true)]
+    public async Task<SymbolicInfo?> RazorGetSymbolicInfoAsync(GetSymbolicInfoParams request, CancellationToken cancellationToken)
     {
         var (synchronized, virtualDocumentSnapshot) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(request.HostDocumentVersion, request.Document, cancellationToken);
         if (!synchronized || virtualDocumentSnapshot is null)
@@ -23,14 +23,12 @@ internal partial class RazorCustomMessageTarget
         }
 
         request.Document.Uri = virtualDocumentSnapshot.Uri;
+        ReinvokeResponse<SymbolicInfo?> response;
 
-        ReinvokeResponse<RazorComponentInfo?> response;
-
-        // This endpoint is special because it deals with a file that doesn't exist yet, so there is no document syncing necessary!
         try
         {
-            response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorComponentInfoParams, RazorComponentInfo?>(
-                RazorLSPConstants.RoslynRazorComponentInfoEndpointName,
+            response = await _requestInvoker.ReinvokeRequestOnServerAsync<GetSymbolicInfoParams, SymbolicInfo?>(
+                RazorLSPConstants.RoslynGetSymbolicInfoEndpointName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 request,
                 cancellationToken).ConfigureAwait(false);

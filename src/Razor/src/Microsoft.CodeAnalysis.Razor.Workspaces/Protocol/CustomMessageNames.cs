@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 internal static class CustomMessageNames
 {
     // VS Windows only
-    public const string RazorComponentInfoEndpointName = "razor/razorComponentInfo";
+    public const string RazorGetSymbolicInfoEndpointName = "razor/getSymbolicInfo";
     public const string RazorInlineCompletionEndpoint = "razor/inlineCompletion";
     public const string RazorValidateBreakpointRangeName = "razor/validateBreakpointRange";
     public const string RazorOnAutoInsertEndpointName = "razor/onAutoInsert";

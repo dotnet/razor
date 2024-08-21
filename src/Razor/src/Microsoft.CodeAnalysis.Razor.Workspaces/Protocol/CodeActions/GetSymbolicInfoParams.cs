@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 
-internal sealed record RazorComponentInfoParams
+[DataContract]
+internal record GetSymbolicInfoParams
 {
     [DataMember(Name = "document")]
     [JsonPropertyName("document")]
@@ -30,25 +30,33 @@ internal sealed record RazorComponentInfoParams
     [DataMember(Name = "newContents")]
     [JsonPropertyName("newContents")]
     public required string NewContents { get; set; }
+
+    [DataMember(Name = "mappedRange")]
+    [JsonPropertyName("mappedRange")]
+    public required Range MappedRange { get; set; }
+
+    [DataMember(Name = "intersectingSpansInGeneratedRange")]
+    [JsonPropertyName("intersectingSpansInGeneratedRange")]
+
+    public required Range[] IntersectingSpansInGeneratedMappings { get; set; }
 }
 
-// Not sure where to put these two records
-internal sealed record RazorComponentInfo
+internal sealed record SymbolicInfo
 {
-    public required List<MethodInsideRazorElementInfo> Methods { get; set; }
-    public required List<SymbolInsideRazorElementInfo> Fields { get; set; }
+    public required MethodInRazorInfo[] Methods { get; set; }
+    public required SymbolInRazorInfo[] Fields { get; set; }
 }
 
-internal sealed record MethodInsideRazorElementInfo
+internal sealed record MethodInRazorInfo
 {
     public required string Name { get; set; }
 
     public required string ReturnType { get; set; }
 
-    public required List<string> ParameterTypes { get; set; }
+    public required string[] ParameterTypes { get; set; }
 }
 
-internal sealed record SymbolInsideRazorElementInfo
+internal sealed record SymbolInRazorInfo
 {
     public required string Name { get; set; }
     public required string Type { get; set; }

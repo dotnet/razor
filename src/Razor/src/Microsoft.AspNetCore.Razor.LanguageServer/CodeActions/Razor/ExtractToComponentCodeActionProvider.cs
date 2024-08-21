@@ -63,7 +63,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
-            Action = LanguageServerConstants.CodeActions.ExtractToNewComponentAction,
+            Action = LanguageServerConstants.CodeActions.ExtractToComponentAction,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = actionParams,
         };

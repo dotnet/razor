@@ -37,6 +37,7 @@ using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 using static Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor.ExtractToComponentCodeActionProvider;
 using Microsoft.VisualStudio.Text;
 using ICSharpCode.Decompiler.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -58,7 +59,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
 
-    public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponentAction;
+    public string Action => LanguageServerConstants.CodeActions.ExtractToComponentAction;
 
     public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
     {
@@ -116,7 +117,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }.Uri;
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, newComponentUri, documentContext, cancellationToken).ConfigureAwait(false);
+        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, newComponentUri, documentContext, removeRange, cancellationToken).ConfigureAwait(false);
 
         if (newComponentResult is null)
         {
@@ -163,7 +164,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             DocumentChanges = documentChanges,
         };
     }
-    private ExtractToComponentCodeActionParams? DeserializeActionParams(JsonElement data)
+    private static ExtractToComponentCodeActionParams? DeserializeActionParams(JsonElement data)
     {
         return data.ValueKind == JsonValueKind.Undefined
             ? null
@@ -189,7 +190,17 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         endElementNode ??= startElementNode;
 
-        var (success, extractStart, extractEnd) = TryProcessMultiPointSelection(startElementNode, endElementNode, codeDocument, actionParams);
+        var success = TryProcessMultiPointSelection(startElementNode,
+            endElementNode,
+            codeDocument,
+            actionParams,
+            out var extractStart,
+            out var extractEnd);
+
+        if (!success)
+        {
+            return new SelectionAnalysisResult { Success = false };
+        }
 
         var dependencyScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
         var componentDependencies = AddComponentDependenciesInRange(dependencyScanRoot, extractStart, extractEnd);
@@ -276,32 +287,40 @@ internal sealed class ExtractToComponentCodeActionResolver(
     }
 
     /// <summary>
-    /// Processes a multi-point selection to determine the correct range for extraction.
+    /// Processes a multi-point selection, providing the start and end of the extraction range if successful.
     /// </summary>
     /// <param name="startElementNode">The starting element of the selection.</param>
     /// <param name="endElementNode">The ending element of the selection, if it exists.</param>
     /// <param name="codeDocument">The code document containing the selection.</param>
     /// <param name="actionParams">The parameters for the extraction action, which will be updated.</param>
-    /// one more line for output
-    /// <returns>A tuple containing a boolean indicating success, the start of the extraction range, and the end of the extraction range.</returns>
-    private static (bool success, int extractStart, int extractEnd) TryProcessMultiPointSelection(MarkupSyntaxNode startElementNode, MarkupSyntaxNode endElementNode, RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
+    /// <param name="extractStart">The start of the extraction range.</param>
+    /// <param name="extractEnd">The end of the extraction range</param>
+    /// <returns> <c>true</c> if the selection was successfully processed; otherwise, <c>false</c>.</returns>
+    private static bool TryProcessMultiPointSelection(MarkupSyntaxNode startElementNode, MarkupSyntaxNode endElementNode, RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams, out int extractStart, out int extractEnd)
     {
-        var extractStart = startElementNode.Span.Start;
-        var extractEnd = endElementNode.Span.End;
+        extractStart = startElementNode.Span.Start;
+        extractEnd = endElementNode.Span.End;
 
         // Check if it's a multi-point selection
         if (actionParams.SelectStart == actionParams.SelectEnd)
         {
-            return (true, extractStart, extractEnd);
+            return true;
         }
 
         // Check if the start element is an ancestor of the end element or vice versa
-        var selectionStartHasParentElement = endElementNode.Ancestors().Any(node => node == startElementNode);
-        var selectionEndHasParentElement = startElementNode.Ancestors().Any(node => node == endElementNode);
+        var startNodeContainsEndNode = endElementNode.Ancestors().Any(node => node == startElementNode);
+        var endNodeContainsStartNode = startElementNode.Ancestors().Any(node => node == endElementNode);
 
-        // If the start element is an ancestor of the end element (or vice versa), update the extraction range
-        extractStart = selectionEndHasParentElement ? endElementNode.Span.Start : extractStart;
-        extractEnd = selectionStartHasParentElement ? startElementNode.Span.End : extractEnd;
+        // If the start element is an ancestor of the end element (or vice versa), update the extraction 
+        if (endNodeContainsStartNode)
+        {
+            extractStart = endElementNode.Span.Start;
+        }
+
+        if (startNodeContainsEndNode)
+        {
+            extractEnd = startElementNode.Span.End;
+        }
 
         // If the start element is not an ancestor of the end element (or vice versa), we need to find a common parent
         // This conditional handles cases where the user's selection spans across different levels of the DOM.
@@ -316,7 +335,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         //     Selected text ends here <span></span>
         //   </div>
         // In this case, we need to find the smallest set of complete elements that covers the entire selection.
-        if (startElementNode != endElementNode && !(selectionStartHasParentElement || selectionEndHasParentElement))
+        if (startElementNode != endElementNode && !(startNodeContainsEndNode || endNodeContainsStartNode))
         {
             // Find the closest containing sibling pair that encompasses both the start and end elements
             var (selectStart, selectEnd) = FindContainingSiblingPair(startElementNode, endElementNode);
@@ -327,20 +346,20 @@ internal sealed class ExtractToComponentCodeActionResolver(
                 extractStart = selectStart.Span.Start;
                 extractEnd = selectEnd.Span.End;
 
-                return (true, extractStart, extractEnd);
+                return true;
             }
             // Note: If we don't find a valid pair, we keep the original extraction range
         }
 
         if (startElementNode != endElementNode)
         {
-            return (true, extractStart, extractEnd); // Will only trigger when the end of the selection does not include a code block.
+            return true; // Will only trigger when the end of the selection does not include a code block.
         }
 
         var endLocation = GetEndLocation(actionParams.SelectEnd, codeDocument.GetSourceText());
         if (!endLocation.HasValue)
         {
-            return (false, extractStart, extractEnd);
+            return false;
         }
 
         var endOwner = codeDocument.GetSyntaxTree().Root.FindInnermostNode(endLocation.Value.AbsoluteIndex, true);
@@ -353,7 +372,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         if (endCodeBlock is null)
         {
             // One of the cases where this triggers is when a single element is multi-pointedly selected
-            return (true, extractStart, extractEnd);
+            return true;
         }
 
         var (withCodeBlockStart, withCodeBlockEnd) = FindContainingSiblingPair(startElementNode, endCodeBlock);
@@ -362,7 +381,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         extractStart = withCodeBlockStart?.Span.Start ?? extractStart;
         extractEnd = withCodeBlockEnd?.Span.End ?? extractEnd;
 
-        return (true, extractStart, extractEnd);
+        return true;
     }
 
     private static (SyntaxNode? Start, SyntaxNode? End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
@@ -506,6 +525,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         Uri componentUri,
         Uri newComponentUri,
         DocumentContext documentContext,
+        Range relevantRange,
         CancellationToken cancellationToken)
     {
         var contents = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
@@ -542,7 +562,35 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return result;
         }
 
-        var parameters = new RazorComponentInfoParams()
+        var sourceMappings = razorCodeDocument.GetCSharpDocument().SourceMappings;
+        
+        var sourceMappingRanges = sourceMappings.Select(m =>
+        (
+            new Range
+            {
+                Start = new Position(m.OriginalSpan.LineIndex, m.OriginalSpan.CharacterIndex),
+                End = new Position(m.OriginalSpan.LineIndex, m.OriginalSpan.EndCharacterIndex)
+            },
+            m.GeneratedSpan
+         )).ToList();
+
+        var relevantTextSpan = relevantRange.ToTextSpan(razorCodeDocument.Source.Text);
+        var intersectingGeneratedSpans = sourceMappingRanges.Where(m => relevantRange.IntersectsOrTouches(m.Item1)).Select(m => m.GeneratedSpan).ToArray();
+        var intersectingGeneratedRanges = intersectingGeneratedSpans.Select(m =>
+        (
+            new Range
+            {
+                Start = new Position(m.LineIndex, m.CharacterIndex),
+                End = new Position(m.LineIndex, m.CharacterIndex)
+            }
+        )).ToArray();
+
+        if (!TryMapToClosestGeneratedDocumentRange(razorCodeDocument.GetCSharpDocument(), selectionAnalysis.ExtractStart, selectionAnalysis.ExtractEnd, out var selectionMappedRange))
+        {
+            return result;
+        }
+
+        var parameters = new GetSymbolicInfoParams()
         {
             Project = new TextDocumentIdentifier
             {
@@ -557,14 +605,18 @@ internal sealed class ExtractToComponentCodeActionResolver(
                 Uri = newComponentUri
             },
             NewContents = newFileContent,
-            HostDocumentVersion = version.Value
+            HostDocumentVersion = version.Value,
+            MappedRange = selectionMappedRange,
+            IntersectingSpansInGeneratedMappings = intersectingGeneratedRanges
         };
 
-        RazorComponentInfo? componentInfo;
-
+        SymbolicInfo? componentInfo;
         try
         {
-            componentInfo = await _clientConnection.SendRequestAsync<RazorComponentInfoParams, RazorComponentInfo?>(CustomMessageNames.RazorComponentInfoEndpointName, parameters, cancellationToken: default).ConfigureAwait(false);
+            componentInfo = await _clientConnection.SendRequestAsync<GetSymbolicInfoParams, SymbolicInfo?>(
+                CustomMessageNames.RazorGetSymbolicInfoEndpointName,
+                parameters,
+                cancellationToken: default).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -629,6 +681,44 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return cSharpCodeBlocks;
     }
 
+    private static bool TryMapToClosestGeneratedDocumentRange(RazorCSharpDocument generatedDocument, int start, int end, out Range mappedRange)
+    {
+        var sourceMappings = generatedDocument.SourceMappings;
+
+        var closestStartSourceMap = sourceMappings.OrderBy(m => Math.Abs(m.OriginalSpan.AbsoluteIndex - start)).First();
+        var closestEndSourceMap = sourceMappings.OrderBy(m => Math.Abs(m.OriginalSpan.AbsoluteIndex - end)).First();
+
+        var generatedStart = closestStartSourceMap.GeneratedSpan;
+        var generatedEnd = closestEndSourceMap.GeneratedSpan;
+
+        var generatedStartLinePosition = GetGeneratedPosition(generatedDocument, generatedStart.AbsoluteIndex);
+        var generatedEndLinePosition = GetGeneratedPosition(generatedDocument, generatedEnd.AbsoluteIndex);
+
+        mappedRange = new Range
+        {
+            Start = new Position(generatedStartLinePosition.Line, generatedStartLinePosition.Character),
+            End = new Position(generatedEndLinePosition.Line, generatedEndLinePosition.Character)
+        };
+
+        LinePosition GetGeneratedPosition(IRazorGeneratedDocument generatedDocument, int generatedIndex)
+        {
+            var generatedSource = GetGeneratedSourceText(generatedDocument);
+            return generatedSource.Lines.GetLinePosition(generatedIndex);
+        }
+
+        SourceText GetGeneratedSourceText(IRazorGeneratedDocument generatedDocument)
+        {
+            if (generatedDocument.CodeDocument is not { } codeDocument)
+            {
+                throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
+            }
+
+            return codeDocument.GetGeneratedSourceText(generatedDocument);
+        }
+
+        return true;
+    }
+
     // Get identifiers in code block to union with the identifiers in the extracted code
     private static HashSet<string> GetIdentifiersInContext(SyntaxNode codeBlockAtEnd, List<CSharpCodeBlockSyntax> previousCodeBlocks)
     {
@@ -667,9 +757,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return identifiersInLastCodeBlock;
     }
 
-    private static HashSet<MethodInsideRazorElementInfo> GetMethodsInContext(RazorComponentInfo componentInfo, IEnumerable<string> methodStringsInContext)
+    private static HashSet<MethodInRazorInfo> GetMethodsInContext(SymbolicInfo componentInfo, IEnumerable<string> methodStringsInContext)
     {
-        var methodsInContext = new HashSet<MethodInsideRazorElementInfo>();
+        var methodsInContext = new HashSet<MethodInRazorInfo>();
         if (componentInfo.Methods is null)
         {
             return methodsInContext;
@@ -704,7 +794,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
     // Create a series of [Parameter] attributes for extracted methods.
     // Void return functions are promoted to Action<T> delegates.
     // All other functions should be Func<T... TResult> delegates.
-    private static string GeneratePromotedMethods(HashSet<MethodInsideRazorElementInfo> methods)
+    private static string GeneratePromotedMethods(HashSet<MethodInRazorInfo> methods)
     {
         var builder = new StringBuilder();
         var parameterCount = 0;
@@ -727,11 +817,11 @@ internal sealed class ExtractToComponentCodeActionResolver(
                 builder.Append("Func<");
             }
 
-            if (method.ParameterTypes.Count > 0)
+            if (method.ParameterTypes.Count() > 0)
             {
                 if (method.ReturnType == "void")
                 {
-                    builder.Append("<");
+                    builder.Append('<');
                 }
 
                 builder.Append(string.Join(", ", method.ParameterTypes));
@@ -746,7 +836,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
                 builder.Append(method.ReturnType);
             }
 
-            builder.Append($"{(method.ReturnType == "void" ? (method.ParameterTypes.Count > 0 ? ">" : "") : ">")}? " +
+            builder.Append($"{(method.ReturnType == "void" ? (method.ParameterTypes.Count() > 0 ? ">" : "") : ">")}? " +
                            $"Parameter{(parameterCount > 0 ? parameterCount : "")} {{ get; set; }}");
             if (parameterCount < totalMethods - 1)
             {
@@ -779,7 +869,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
     }
 
     // GetFieldsInContext(componentInfo, identifiersInCodeBlock)
-    private static HashSet<string> GetFieldsInContext(RazorComponentInfo componentInfo, HashSet<string> identifiersInCodeBlock)
+    private static HashSet<string> GetFieldsInContext(SymbolicInfo componentInfo, HashSet<string> identifiersInCodeBlock)
     {
         if (componentInfo.Fields is null)
         {
@@ -803,7 +893,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
     }
 
     // Method invocations in the new file must be replaced with their respective parameter name. This is simply a case of replacing each string.
-    private static string ReplaceMethodInvocations(string newFileContent, HashSet<MethodInsideRazorElementInfo> methods)
+    private static string ReplaceMethodInvocations(string newFileContent, HashSet<MethodInRazorInfo> methods)
     {
         var parameterCount = 0;
         foreach (var method in methods)
@@ -815,7 +905,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return newFileContent;
     }
 
-    private static string GenerateComponentNameAndParameters(HashSet<MethodInsideRazorElementInfo>? methods, string componentName)
+    private static string GenerateComponentNameAndParameters(HashSet<MethodInRazorInfo>? methods, string componentName)
     {
         var builder = new StringBuilder();
         builder.Append(componentName + " ");
@@ -830,7 +920,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         {
             builder.Append($"Parameter{(parameterCount > 0 ? parameterCount : "")}");
             builder.Append($"={method.Name}");
-            builder.Append(" ");
+            builder.Append(' ');
             parameterCount++;
         }
 
@@ -840,6 +930,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
     internal sealed record NewRazorComponentInfo
     {
         public required string NewContents { get; set; }
-        public required HashSet<MethodInsideRazorElementInfo>? Methods { get; set; }
+        public required HashSet<MethodInRazorInfo>? Methods { get; set; }
     }
 }
