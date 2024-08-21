@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -34,9 +35,9 @@ internal class DocumentOnTypeFormattingEndpoint(
     private readonly IHtmlFormatter _htmlFormatter = htmlFormatter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentOnTypeFormattingEndpoint>();
 
-    private static readonly IReadOnlyList<string> s_csharpTriggerCharacters = new[] { "}", ";" };
-    private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = new[] { "\n", "{", "}", ";" };
-    private static readonly IReadOnlyList<string> s_allTriggerCharacters = s_csharpTriggerCharacters.Concat(s_htmlTriggerCharacters).ToArray();
+    private static readonly FrozenSet<string> s_csharpTriggerCharacters = FrozenSet.ToFrozenSet(["}", ";"]);
+    private static readonly FrozenSet<string> s_htmlTriggerCharacters = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"]);
+    private static readonly FrozenSet<string> s_allTriggerCharacters = FrozenSet.ToFrozenSet(s_csharpTriggerCharacters.Concat(s_htmlTriggerCharacters));
 
     public bool MutatesSolutionState => false;
 
@@ -44,7 +45,7 @@ internal class DocumentOnTypeFormattingEndpoint(
     {
         serverCapabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions
         {
-            FirstTriggerCharacter = s_allTriggerCharacters[0],
+            FirstTriggerCharacter = s_allTriggerCharacters.First(),
             MoreTriggerCharacter = s_allTriggerCharacters.Skip(1).ToArray(),
         };
     }
