@@ -5,12 +5,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal abstract class FormattingPassBase(IDocumentMappingService documentMappingService) : IFormattingPass
 {

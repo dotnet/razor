@@ -4,7 +4,7 @@
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal static class FormattingOptionsExtensions
 {

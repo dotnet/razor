@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -14,15 +15,17 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using RazorRazorSyntaxNodeList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.RazorSyntaxNode>;
+using RazorSyntaxNodeList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode>;
 
-internal sealed class RazorFormattingPass(
-    IDocumentMappingService documentMappingService,
-    RazorLSPOptionsMonitor optionsMonitor)
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
+
+using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
+
+internal abstract class RazorFormattingPassBase(
+    IDocumentMappingService documentMappingService)
     : FormattingPassBase(documentMappingService)
 {
-    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
-
     // Run after the C# formatter pass.
     public override int Order => DefaultOrder - 4;
 
@@ -63,6 +66,8 @@ internal sealed class RazorFormattingPass(
         return new FormattingResult(finalEdits);
     }
 
+    protected abstract bool CodeBlockBraceOnNextLine { get; }
+
     private IEnumerable<TextEdit> FormatRazor(FormattingContext context, RazorSyntaxTree syntaxTree)
     {
         var edits = new List<TextEdit>();
@@ -72,7 +77,7 @@ internal sealed class RazorFormattingPass(
         {
             // Disclaimer: CSharpCodeBlockSyntax is used a _lot_ in razor so these methods are probably
             // being overly careful to only try to format syntax forms they care about.
-            TryFormatCSharpBlockStructure(context, edits, source, node);
+            TryFormatCSharpBlockStructure(context, edits, source, node); // TODO
             TryFormatSingleLineDirective(edits, source, node);
             TryFormatBlocks(context, edits, source, node);
         }
@@ -126,7 +131,7 @@ internal sealed class RazorFormattingPass(
 
         return false;
 
-        static bool TryGetWhitespace(SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out CSharpStatementLiteralSyntax? whitespaceBeforeSectionName, [NotNullWhen(true)] out UnclassifiedTextLiteralSyntax? whitespaceAfterSectionName)
+        static bool TryGetWhitespace(RazorRazorSyntaxNodeList children, [NotNullWhen(true)] out CSharpStatementLiteralSyntax? whitespaceBeforeSectionName, [NotNullWhen(true)] out UnclassifiedTextLiteralSyntax? whitespaceAfterSectionName)
         {
             // If there is whitespace between the directive and the section name, and the section name and the brace, they will be in the first child
             // and third child of the 6 total children
@@ -266,7 +271,7 @@ internal sealed class RazorFormattingPass(
             directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
         {
             // If we're formatting a @code or @functions directive, the user might have indicated they always want a newline
-            var forceNewLine = _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine &&
+            var forceNewLine = CodeBlockBraceOnNextLine &&
                 directive.Body is RazorDirectiveBodySyntax { Keyword: { } keyword } &&
                 IsCodeOrFunctionsBlock(keyword);
 
@@ -290,7 +295,7 @@ internal sealed class RazorFormattingPass(
             }
         }
 
-        static bool TryGetLeadingWhitespace(SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out UnclassifiedTextLiteralSyntax? whitespace)
+        static bool TryGetLeadingWhitespace(RazorRazorSyntaxNodeList children, [NotNullWhen(true)] out UnclassifiedTextLiteralSyntax? whitespace)
         {
             // If there is whitespace between the directive and the brace, it will be in the first child
             // of the 4 total children
@@ -327,7 +332,7 @@ internal sealed class RazorFormattingPass(
             }
         }
 
-        static bool IsSingleLineDirective(SyntaxNode node, out SyntaxList<SyntaxNode> children)
+        static bool IsSingleLineDirective(SyntaxNode node, out RazorSyntaxNodeList children)
         {
             if (node is CSharpCodeBlockSyntax content &&
                 node.Parent?.Parent is RazorDirectiveSyntax directive &&

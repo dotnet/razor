@@ -4,9 +4,8 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal sealed class AdhocLanguageServices(
     AdhocWorkspaceServices workspaceServices,

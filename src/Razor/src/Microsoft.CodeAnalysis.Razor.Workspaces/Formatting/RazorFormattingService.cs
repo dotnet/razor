@@ -11,11 +11,12 @@ using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal class RazorFormattingService : IRazorFormattingService
 {

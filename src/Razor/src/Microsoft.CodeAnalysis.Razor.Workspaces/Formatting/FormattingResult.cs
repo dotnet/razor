@@ -5,9 +5,9 @@ using System;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal struct FormattingResult
+internal readonly struct FormattingResult
 {
     public FormattingResult(TextEdit[] edits, RazorLanguageKind kind = RazorLanguageKind.Razor)
     {

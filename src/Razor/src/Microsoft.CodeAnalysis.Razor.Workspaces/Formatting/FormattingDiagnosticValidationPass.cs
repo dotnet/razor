@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal sealed class FormattingDiagnosticValidationPass(
     IDocumentMappingService documentMappingService,
