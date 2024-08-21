@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Editor;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
 using RoslynFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
 
@@ -131,7 +130,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         var csharpDocument = codeDocument.GetCSharpDocument();
         if (_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
         {
-            var generatedDocument = await remoteDocumentContext.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
+            var generatedDocument = await remoteDocumentContext.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
             var formattingOptions = new RoslynFormattingOptions()
             {
                 InsertSpaces = !indentWithTabs,
