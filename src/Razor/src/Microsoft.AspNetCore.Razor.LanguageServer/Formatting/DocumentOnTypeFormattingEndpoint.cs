@@ -117,15 +117,17 @@ internal class DocumentOnTypeFormattingEndpoint(
 
         Debug.Assert(request.Character.Length > 0);
 
+        var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
+
         TextEdit[] formattedEdits;
         if (triggerCharacterKind == RazorLanguageKind.CSharp)
         {
-            formattedEdits = await _razorFormattingService.GetCSharpOnTypeFormattingEditsAsync(documentContext, request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
+            formattedEdits = await _razorFormattingService.GetCSharpOnTypeFormattingEditsAsync(documentContext, options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
         }
         else if (triggerCharacterKind == RazorLanguageKind.Html)
         {
             var htmlEdits = await _htmlFormatter.GetOnTypeFormattingEditsAsync(documentContext.Snapshot, documentContext.Uri, request.Position, request.Character, request.Options, cancellationToken).ConfigureAwait(false);
-            formattedEdits = await _razorFormattingService.GetHtmlOnTypeFormattingEditsAsync(documentContext, htmlEdits, request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
+            formattedEdits = await _razorFormattingService.GetHtmlOnTypeFormattingEditsAsync(documentContext, htmlEdits, options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
         }
         else
         {

@@ -204,10 +204,11 @@ internal sealed class GenerateMethodCodeActionResolver(
 
             if (result is not null)
             {
-                var formattingOptions = new FormattingOptions()
+                var formattingOptions = new RazorFormattingOptions()
                 {
                     TabSize = _razorLSPOptionsMonitor.CurrentValue.TabSize,
                     InsertSpaces = _razorLSPOptionsMonitor.CurrentValue.InsertSpaces,
+                    CodeBlockBraceOnNextLine = _razorLSPOptionsMonitor.CurrentValue.CodeBlockBraceOnNextLine
                 };
 
                 var formattedEdit = await _razorFormattingService.GetCSharpCodeActionEditAsync(

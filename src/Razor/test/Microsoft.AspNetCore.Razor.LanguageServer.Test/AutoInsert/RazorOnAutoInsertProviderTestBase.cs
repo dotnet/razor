@@ -39,7 +39,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);
         var codeDocument = CreateCodeDocument(source, uri.AbsolutePath, tagHelpers, fileKind: fileKind);
-        var options = new FormattingOptions()
+        var options = new RazorFormattingOptions()
         {
             TabSize = tabSize,
             InsertSpaces = insertSpaces,

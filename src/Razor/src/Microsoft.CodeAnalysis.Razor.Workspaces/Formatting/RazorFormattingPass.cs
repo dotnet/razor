@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal abstract class RazorFormattingPassBase(
+internal sealed class RazorFormattingPass(
     IDocumentMappingService documentMappingService)
     : FormattingPassBase(documentMappingService)
 {
@@ -65,8 +65,6 @@ internal abstract class RazorFormattingPassBase(
 
         return new FormattingResult(finalEdits);
     }
-
-    protected abstract bool CodeBlockBraceOnNextLine { get; }
 
     private IEnumerable<TextEdit> FormatRazor(FormattingContext context, RazorSyntaxTree syntaxTree)
     {
@@ -271,7 +269,7 @@ internal abstract class RazorFormattingPassBase(
             directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
         {
             // If we're formatting a @code or @functions directive, the user might have indicated they always want a newline
-            var forceNewLine = CodeBlockBraceOnNextLine &&
+            var forceNewLine = context.Options.CodeBlockBraceOnNextLine &&
                 directive.Body is RazorDirectiveBodySyntax { Keyword: { } keyword } &&
                 IsCodeOrFunctionsBlock(keyword);
 

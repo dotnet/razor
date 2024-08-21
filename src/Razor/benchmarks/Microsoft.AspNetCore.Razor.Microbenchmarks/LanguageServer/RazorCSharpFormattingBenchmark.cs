@@ -110,15 +110,9 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
     [Benchmark(Description = "Formatting")]
     public async Task RazorCSharpFormattingAsync()
     {
-        var options = new FormattingOptions()
-        {
-            TabSize = 4,
-            InsertSpaces = true
-        };
-
         var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, version: 1);
 
-        var edits = await RazorFormattingService.GetDocumentFormattingEditsAsync(documentContext, [], range: null, options, CancellationToken.None);
+        var edits = await RazorFormattingService.GetDocumentFormattingEditsAsync(documentContext, [], range: null, RazorFormattingOptions.Default, CancellationToken.None);
 
 #if DEBUG
         // For debugging purposes only.

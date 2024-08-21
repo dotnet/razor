@@ -104,7 +104,9 @@ internal class OnAutoInsertEndpoint(
         var uri = request.TextDocument.Uri;
         var position = request.Position;
 
-        using var formattingContext = FormattingContext.Create(uri, documentContext.Snapshot, codeDocument, request.Options, _workspaceFactory);
+        var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
+
+        using var formattingContext = FormattingContext.Create(uri, documentContext.Snapshot, codeDocument, options, _workspaceFactory);
         foreach (var provider in applicableProviders)
         {
             if (provider.TryResolveInsertion(position, formattingContext, out var textEdit, out var format))
@@ -206,9 +208,11 @@ internal class OnAutoInsertEndpoint(
         // For C# we run the edit through our formatting engine
         Debug.Assert(positionInfo.LanguageKind == RazorLanguageKind.CSharp);
 
+        var options = RazorFormattingOptions.From(originalRequest.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
+
         var mappedEdit = delegatedResponse.TextEditFormat == InsertTextFormat.Snippet
-            ? await _razorFormattingService.GetCSharpSnippetFormattingEditAsync(documentContext, [delegatedResponse.TextEdit], originalRequest.Options, cancellationToken).ConfigureAwait(false)
-            : await _razorFormattingService.GetSingleCSharpEditAsync(documentContext, delegatedResponse.TextEdit, originalRequest.Options, cancellationToken).ConfigureAwait(false);
+            ? await _razorFormattingService.GetCSharpSnippetFormattingEditAsync(documentContext, [delegatedResponse.TextEdit], options, cancellationToken).ConfigureAwait(false)
+            : await _razorFormattingService.GetSingleCSharpEditAsync(documentContext, delegatedResponse.TextEdit, options, cancellationToken).ConfigureAwait(false);
         if (mappedEdit is null)
         {
             return null;

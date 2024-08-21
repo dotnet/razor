@@ -12,16 +12,19 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using static Nerdbank.Streams.MultiplexingStream;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
 internal class DelegatedCompletionItemResolver(
     IDocumentContextFactory documentContextFactory,
     IRazorFormattingService formattingService,
+    RazorLSPOptionsMonitor optionsMonitor,
     IClientConnection clientConnection) : CompletionItemResolver
 {
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly IRazorFormattingService _formattingService = formattingService;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
     private readonly IClientConnection _clientConnection = clientConnection;
 
     public override async Task<VSInternalCompletionItem?> ResolveAsync(
@@ -111,6 +114,8 @@ internal class DelegatedCompletionItemResolver(
             return resolvedCompletionItem;
         }
 
+        var options = RazorFormattingOptions.From(formattingOptions, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
+
         if (resolvedCompletionItem.TextEdit is not null)
         {
             if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
@@ -118,7 +123,7 @@ internal class DelegatedCompletionItemResolver(
                 var formattedTextEdit = await _formattingService.GetCSharpSnippetFormattingEditAsync(
                     documentContext,
                     [textEdit],
-                    formattingOptions,
+                    options,
                     cancellationToken).ConfigureAwait(false);
 
                 resolvedCompletionItem.TextEdit = formattedTextEdit;
@@ -136,7 +141,7 @@ internal class DelegatedCompletionItemResolver(
             var formattedTextEdit = await _formattingService.GetCSharpSnippetFormattingEditAsync(
                 documentContext,
                 resolvedCompletionItem.AdditionalTextEdits,
-                formattingOptions,
+                options,
                 cancellationToken).ConfigureAwait(false);
 
             resolvedCompletionItem.AdditionalTextEdits = formattedTextEdit is null ? null : [formattedTextEdit];

@@ -123,7 +123,7 @@ public class Foo { }
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, fileKind: fileKind);
-        var options = new FormattingOptions()
+        var options = new RazorFormattingOptions()
         {
             TabSize = tabSize,
             InsertSpaces = insertSpaces,

@@ -29,6 +29,7 @@ internal sealed class InlineCompletionEndpoint(
     IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IAdhocWorkspaceFactory adhocWorkspaceFactory,
+    RazorLSPOptionsMonitor optionsMonitor,
     ILoggerFactory loggerFactory)
     : IRazorRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>, ICapabilitiesProvider
 {
@@ -40,6 +41,7 @@ internal sealed class InlineCompletionEndpoint(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     private readonly IAdhocWorkspaceFactory _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();
 
     public bool MutatesSolutionState => false;
@@ -123,7 +125,9 @@ internal sealed class InlineCompletionEndpoint(
                 continue;
             }
 
-            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, documentContext.Snapshot, codeDocument, request.Options, _adhocWorkspaceFactory);
+            var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
+
+            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, documentContext.Snapshot, codeDocument, options, _adhocWorkspaceFactory);
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;
@@ -148,7 +152,7 @@ internal sealed class InlineCompletionEndpoint(
         _logger.LogInformation($"Returning {items.Count} items.");
         return new VSInternalInlineCompletionList
         {
-            Items = items.ToArray()
+            Items = [.. items]
         };
     }
 

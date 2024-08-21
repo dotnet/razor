@@ -52,8 +52,10 @@ internal class DocumentRangeFormattingEndpoint(
             return null;
         }
 
+        var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
+
         var htmlEdits = await _htmlFormatter.GetDocumentFormattingEditsAsync(documentContext.Snapshot, documentContext.Uri, request.Options, cancellationToken).ConfigureAwait(false);
-        var edits = await _razorFormattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, request.Range, request.Options, cancellationToken).ConfigureAwait(false);
+        var edits = await _razorFormattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, request.Range, options, cancellationToken).ConfigureAwait(false);
 
         return edits;
     }

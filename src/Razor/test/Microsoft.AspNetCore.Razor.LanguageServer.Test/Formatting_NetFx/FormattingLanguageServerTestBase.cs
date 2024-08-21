@@ -37,33 +37,33 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
     {
         public bool Called { get; private set; }
 
-        public Task<TextEdit[]> GetDocumentFormattingEditsAsync(VersionedDocumentContext documentContext, TextEdit[] htmlEdits, Range? range, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextEdit[]> GetDocumentFormattingEditsAsync(VersionedDocumentContext documentContext, TextEdit[] htmlEdits, Range? range, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
             Called = true;
             return SpecializedTasks.EmptyArray<TextEdit>();
         }
 
-        public Task<TextEdit?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextEdit?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, TextEdit[] formattedEdits, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(DocumentContext documentContext, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        public Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, TextEdit[] edits, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, TextEdit[] edits, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task<TextEdit[]> GetHtmlOnTypeFormattingEditsAsync(DocumentContext documentContext, TextEdit[] htmlEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        public Task<TextEdit[]> GetHtmlOnTypeFormattingEditsAsync(DocumentContext documentContext, TextEdit[] htmlEdits, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         {
             return Task.FromResult(htmlEdits);
         }
 
-        public Task<TextEdit?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextEdit initialEdit, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextEdit?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextEdit initialEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

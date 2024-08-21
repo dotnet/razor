@@ -28,7 +28,7 @@ internal sealed class FormattingContext : IDisposable
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
-    private FormattingContext(IAdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
+    private FormattingContext(IAdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, RazorFormattingOptions options,
         bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
     {
         _workspaceFactory = workspaceFactory;
@@ -47,7 +47,7 @@ internal sealed class FormattingContext : IDisposable
     public Uri Uri { get; }
     public IDocumentSnapshot OriginalSnapshot { get; }
     public RazorCodeDocument CodeDocument { get; }
-    public FormattingOptions Options { get; }
+    public RazorFormattingOptions Options { get; }
     public bool IsFormatOnType { get; }
     public bool AutomaticallyAddUsings { get; }
     public int HostDocumentIndex { get; }
@@ -86,7 +86,7 @@ internal sealed class FormattingContext : IDisposable
     {
         if (_indentations is null)
         {
-            var sourceText = this.SourceText;
+            var sourceText = SourceText;
             var indentations = new Dictionary<int, IndentationContext>();
 
             var previousIndentationLevel = 0;
@@ -100,7 +100,7 @@ internal sealed class FormattingContext : IDisposable
                 // The existingIndentation above is measured in characters, and is used to create text edits
                 // The below is measured in columns, so takes into account tab size. This is useful for creating
                 // new indentation strings
-                var existingIndentationSize = line.GetIndentationSize(this.Options.TabSize);
+                var existingIndentationSize = line.GetIndentationSize(Options.TabSize);
 
                 var emptyOrWhitespaceLine = false;
                 if (nonWsPos is null)
@@ -179,11 +179,6 @@ internal sealed class FormattingContext : IDisposable
 
     private static IReadOnlyList<FormattingSpan> GetFormattingSpans(RazorSyntaxTree syntaxTree, bool inGlobalNamespace)
     {
-        if (syntaxTree is null)
-        {
-            throw new ArgumentNullException(nameof(syntaxTree));
-        }
-
         var visitor = new FormattingVisitor(inGlobalNamespace: inGlobalNamespace);
         visitor.Visit(syntaxTree.Root);
 
@@ -227,11 +222,10 @@ internal sealed class FormattingContext : IDisposable
     public bool TryGetFormattingSpan(int absoluteIndex, [NotNullWhen(true)] out FormattingSpan? result)
     {
         result = null;
-        var formattingspans = GetFormattingSpans();
-        for (var i = 0; i < formattingspans.Count; i++)
+        var formattingSpans = GetFormattingSpans();
+        foreach (var formattingSpan in formattingSpans)
         {
-            var formattingspan = formattingspans[i];
-            var span = formattingspan.Span;
+            var span = formattingSpan.Span;
 
             if (span.Start <= absoluteIndex && span.End >= absoluteIndex)
             {
@@ -242,7 +236,7 @@ internal sealed class FormattingContext : IDisposable
                     continue;
                 }
 
-                result = formattingspan;
+                result = formattingSpan;
                 return true;
             }
         }
@@ -261,11 +255,6 @@ internal sealed class FormattingContext : IDisposable
 
     public async Task<FormattingContext> WithTextAsync(SourceText changedText)
     {
-        if (changedText is null)
-        {
-            throw new ArgumentNullException(nameof(changedText));
-        }
-
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
         var codeDocument = await changedSnapshot.GetFormatterCodeDocumentAsync().ConfigureAwait(false);
@@ -308,7 +297,7 @@ internal sealed class FormattingContext : IDisposable
         Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
-        FormattingOptions options,
+        RazorFormattingOptions options,
         IAdhocWorkspaceFactory workspaceFactory,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
@@ -321,7 +310,7 @@ internal sealed class FormattingContext : IDisposable
         Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
-        FormattingOptions options,
+        RazorFormattingOptions options,
         IAdhocWorkspaceFactory workspaceFactory)
     {
         return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
@@ -331,42 +320,17 @@ internal sealed class FormattingContext : IDisposable
         Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
-        FormattingOptions options,
+        RazorFormattingOptions options,
         IAdhocWorkspaceFactory workspaceFactory,
         bool isFormatOnType,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
         char triggerCharacter)
     {
-        if (uri is null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
-
-        if (originalSnapshot is null)
-        {
-            throw new ArgumentNullException(nameof(originalSnapshot));
-        }
-
-        if (codeDocument is null)
-        {
-            throw new ArgumentNullException(nameof(codeDocument));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        if (workspaceFactory is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceFactory));
-        }
-
         // hostDocumentIndex, triggerCharacter and automaticallyAddUsings are only supported in on type formatting
         Debug.Assert(isFormatOnType || (hostDocumentIndex == 0 && triggerCharacter == '\0' && automaticallyAddUsings == false));
 
-        var result = new FormattingContext(
+        return new FormattingContext(
             workspaceFactory,
             uri,
             originalSnapshot,
@@ -377,7 +341,5 @@ internal sealed class FormattingContext : IDisposable
             hostDocumentIndex,
             triggerCharacter
         );
-
-        return result;
     }
 }

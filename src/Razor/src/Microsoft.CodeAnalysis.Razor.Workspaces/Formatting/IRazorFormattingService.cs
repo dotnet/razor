@@ -14,20 +14,20 @@ internal interface IRazorFormattingService
        VersionedDocumentContext documentContext,
        TextEdit[] htmlEdits,
        Range? range,
-       FormattingOptions options,
+       RazorFormattingOptions options,
        CancellationToken cancellationToken);
 
     Task<TextEdit[]> GetHtmlOnTypeFormattingEditsAsync(
       DocumentContext documentContext,
       TextEdit[] htmlEdits,
-      FormattingOptions options,
+      RazorFormattingOptions options,
       int hostDocumentIndex,
       char triggerCharacter,
       CancellationToken cancellationToken);
 
     Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(
       DocumentContext documentContext,
-      FormattingOptions options,
+      RazorFormattingOptions options,
       int hostDocumentIndex,
       char triggerCharacter,
       CancellationToken cancellationToken);
@@ -35,18 +35,18 @@ internal interface IRazorFormattingService
     Task<TextEdit?> GetSingleCSharpEditAsync(
         DocumentContext documentContext,
         TextEdit initialEdit,
-        FormattingOptions options,
+        RazorFormattingOptions options,
         CancellationToken cancellationToken);
 
     Task<TextEdit?> GetCSharpCodeActionEditAsync(
        DocumentContext documentContext,
        TextEdit[] formattedEdits,
-       FormattingOptions options,
+       RazorFormattingOptions options,
        CancellationToken cancellationToken);
 
     Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(
        DocumentContext documentContext,
        TextEdit[] edits,
-       FormattingOptions options,
+       RazorFormattingOptions options,
        CancellationToken cancellationToken);
 }

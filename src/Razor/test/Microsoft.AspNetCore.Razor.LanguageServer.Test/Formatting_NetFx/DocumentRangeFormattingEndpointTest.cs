@@ -28,7 +28,8 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
             formattingService, htmlFormatter, optionsMonitor);
         var @params = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri, }
+            TextDocument = new TextDocumentIdentifier { Uri = uri, },
+            Options = new FormattingOptions()
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 

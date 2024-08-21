@@ -191,7 +191,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
                         rfs => rfs.GetCSharpCodeActionEditAsync(
                             It.Is<DocumentContext>(c => c.Uri == documentUri),
                             It.IsAny<TextEdit[]>(),
-                            It.IsAny<FormattingOptions>(),
+                            It.IsAny<RazorFormattingOptions>(),
                             It.IsAny<CancellationToken>()) == Task.FromResult(s_defaultFormattedEdit), MockBehavior.Strict);
         return razorFormattingService;
     }

@@ -29,7 +29,7 @@ internal class RazorFormattingService(
         VersionedDocumentContext documentContext,
         TextEdit[] htmlEdits,
         Range? range,
-        FormattingOptions options,
+        RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
         Debug.Assert(_formattingPasses[0] is HtmlFormattingPass, "Formatting requires the first pass to be Html");
@@ -79,25 +79,25 @@ internal class RazorFormattingService(
         return originalText.NormalizeTextEdits(filteredEdits);
     }
 
-    public Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(DocumentContext documentContext, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+    public Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         => ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, [], options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
-    public Task<TextEdit[]> GetHtmlOnTypeFormattingEditsAsync(DocumentContext documentContext, TextEdit[] htmlEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+    public Task<TextEdit[]> GetHtmlOnTypeFormattingEditsAsync(DocumentContext documentContext, TextEdit[] htmlEdits, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         => ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.Html, htmlEdits, options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
-    public async Task<TextEdit?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextEdit edit, FormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextEdit?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextEdit edit, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var formattedEdits = await ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, [edit], options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         return formattedEdits.SingleOrDefault();
     }
 
-    public async Task<TextEdit?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, TextEdit[] initialEdits, FormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextEdit?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, TextEdit[] initialEdits, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var edits = await ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, initialEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: true, automaticallyAddUsings: true, cancellationToken: cancellationToken).ConfigureAwait(false);
         return edits.SingleOrDefault();
     }
 
-    public async Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, TextEdit[] edits, FormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, TextEdit[] edits, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         WrapCSharpSnippets(edits);
 
@@ -122,7 +122,7 @@ internal class RazorFormattingService(
         DocumentContext documentContext,
         RazorLanguageKind kind,
         TextEdit[] formattedEdits,
-        FormattingOptions options,
+        RazorFormattingOptions options,
         int hostDocumentIndex,
         char triggerCharacter,
         bool bypassValidationPasses,

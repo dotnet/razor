@@ -47,7 +47,7 @@ internal static class TestRazorFormattingService
             new HtmlFormattingPass(mappingService, loggerFactory),
             new CSharpFormattingPass(mappingService, loggerFactory),
             new CSharpOnTypeFormattingPass(mappingService, loggerFactory),
-            new LspRazorFormattingPass(mappingService, optionsMonitor),
+            new RazorFormattingPass(mappingService),
             new FormattingDiagnosticValidationPass(mappingService, loggerFactory),
             new FormattingContentValidationPass(mappingService, loggerFactory),
         };
