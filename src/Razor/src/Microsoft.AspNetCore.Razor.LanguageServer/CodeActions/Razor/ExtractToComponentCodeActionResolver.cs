@@ -307,19 +307,17 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return true;
         }
 
-        // Check if the start element is an ancestor of the end element or vice versa
-        var startNodeContainsEndNode = endElementNode.Ancestors().Any(node => node == startElementNode);
-        var endNodeContainsStartNode = startElementNode.Ancestors().Any(node => node == endElementNode);
-
-        // If the start element is an ancestor of the end element (or vice versa), update the extraction 
-        if (endNodeContainsStartNode)
-        {
-            extractStart = endElementNode.Span.Start;
-        }
-
-        if (startNodeContainsEndNode)
+        // If the start node contains the end node (or vice versa), we can extract the entire range
+        if (endElementNode.Ancestors().Contains(startElementNode))
         {
             extractEnd = startElementNode.Span.End;
+            return true;
+        }
+
+        if (startElementNode.Ancestors().Contains(endElementNode))
+        {
+            extractStart = endElementNode.Span.Start;
+            return true;
         }
 
         // If the start element is not an ancestor of the end element (or vice versa), we need to find a common parent
@@ -335,25 +333,19 @@ internal sealed class ExtractToComponentCodeActionResolver(
         //     Selected text ends here <span></span>
         //   </div>
         // In this case, we need to find the smallest set of complete elements that covers the entire selection.
-        if (startElementNode != endElementNode && !(startNodeContainsEndNode || endNodeContainsStartNode))
+        if (startElementNode != endElementNode)
         {
             // Find the closest containing sibling pair that encompasses both the start and end elements
             var (selectStart, selectEnd) = FindContainingSiblingPair(startElementNode, endElementNode);
-
-            // If we found a valid containing pair, update the extraction range
             if (selectStart is not null && selectEnd is not null)
             {
                 extractStart = selectStart.Span.Start;
                 extractEnd = selectEnd.Span.End;
-
                 return true;
             }
-            // Note: If we don't find a valid pair, we keep the original extraction range
-        }
 
-        if (startElementNode != endElementNode)
-        {
-            return true; // Will only trigger when the end of the selection does not include a code block.
+            // Note: If we don't find a valid pair, we keep the original extraction range
+            return true;
         }
 
         var endLocation = GetEndLocation(actionParams.SelectEnd, codeDocument.GetSourceText());
@@ -369,17 +361,12 @@ internal sealed class ExtractToComponentCodeActionResolver(
             endCodeBlock = previousSibling.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
         }
 
-        if (endCodeBlock is null)
+        if (endCodeBlock is not null)
         {
-            // One of the cases where this triggers is when a single element is multi-pointedly selected
-            return true;
+            var (withCodeBlockStart, withCodeBlockEnd) = FindContainingSiblingPair(startElementNode, endCodeBlock);
+            extractStart = withCodeBlockStart?.Span.Start ?? extractStart;
+            extractEnd = withCodeBlockEnd?.Span.End ?? extractEnd;
         }
-
-        var (withCodeBlockStart, withCodeBlockEnd) = FindContainingSiblingPair(startElementNode, endCodeBlock);
-
-        // If selection ends on code block, set the extract end to the end of the code block.
-        extractStart = withCodeBlockStart?.Span.Start ?? extractStart;
-        extractEnd = withCodeBlockEnd?.Span.End ?? extractEnd;
 
         return true;
     }
@@ -409,15 +396,16 @@ internal sealed class ExtractToComponentCodeActionResolver(
             if (startContainingNode is null && childSpan.Contains(startSpan))
             {
                 startContainingNode = child;
-                if (endContainingNode is not null)
-                    break; // Exit if we've found both
             }
 
             if (childSpan.Contains(endSpan))
             {
                 endContainingNode = child;
-                if (startContainingNode is not null)
-                    break; // Exit if we've found both
+            }
+
+            if (startContainingNode is not null && endContainingNode is not null)
+            {
+                break;
             }
         }
 
@@ -426,21 +414,18 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
     private static SyntaxNode? FindNearestCommonAncestor(SyntaxNode node1, SyntaxNode node2)
     {
-        var current = node1;
-        while (current is not null)
+        for (var current = node1; current is not null; current = current.Parent)
         {
-            if (CheckNode(current) && current.Span.Contains(node2.Span))
+            if (IsValidAncestorNode(current) && current.Span.Contains(node2.Span))
             {
                 return current;
             }
-
-            current = current.Parent;
         }
 
         return null;
     }
 
-    private static bool CheckNode(SyntaxNode node) => node is MarkupElementSyntax or MarkupTagHelperElementSyntax or MarkupBlockSyntax;
+    private static bool IsValidAncestorNode(SyntaxNode node) => node is MarkupElementSyntax or MarkupTagHelperElementSyntax or MarkupBlockSyntax;
 
     private static bool IsValidNode(SyntaxNode node, bool isCodeBlock)
     {
