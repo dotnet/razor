@@ -206,8 +206,8 @@ internal class OnAutoInsertEndpoint(
         var edits = new[] { delegatedResponse.TextEdit };
 
         var mappedEdits = delegatedResponse.TextEditFormat == InsertTextFormat.Snippet
-            ? await _razorFormattingService.FormatSnippetAsync(documentContext, positionInfo.LanguageKind, edits, originalRequest.Options, cancellationToken).ConfigureAwait(false)
-            : await _razorFormattingService.FormatOnTypeAsync(documentContext, positionInfo.LanguageKind, edits, originalRequest.Options, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
+            ? await _razorFormattingService.GetSnippetFormattingEditsAsync(documentContext, positionInfo.LanguageKind, edits, originalRequest.Options, cancellationToken).ConfigureAwait(false)
+            : await _razorFormattingService.GetOnTypeFormattingEditsAsync(documentContext, positionInfo.LanguageKind, edits, originalRequest.Options, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
         if (mappedEdits is not [{ } edit])
         {
             return null;

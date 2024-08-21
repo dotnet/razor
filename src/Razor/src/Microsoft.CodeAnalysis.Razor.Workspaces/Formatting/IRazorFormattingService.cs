@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal interface IRazorFormattingService
 {
-    Task<TextEdit[]> FormatAsync(
+    Task<TextEdit[]> GetDocumentFormattingEditsAsync(
        VersionedDocumentContext documentContext,
        Range? range,
        FormattingOptions options,
        CancellationToken cancellationToken);
 
-    Task<TextEdit[]> FormatOnTypeAsync(
+    Task<TextEdit[]> GetOnTypeFormattingEditsAsync(
       DocumentContext documentContext,
       RazorLanguageKind kind,
       TextEdit[] formattedEdits,
@@ -26,14 +26,14 @@ internal interface IRazorFormattingService
       char triggerCharacter,
       CancellationToken cancellationToken);
 
-    Task<TextEdit[]> FormatCodeActionAsync(
+    Task<TextEdit[]> GetCodeActionEditsAsync(
        DocumentContext documentContext,
        RazorLanguageKind kind,
        TextEdit[] formattedEdits,
        FormattingOptions options,
        CancellationToken cancellationToken);
 
-    Task<TextEdit[]> FormatSnippetAsync(
+    Task<TextEdit[]> GetSnippetFormattingEditsAsync(
        DocumentContext documentContext,
        RazorLanguageKind kind,
        TextEdit[] edits,

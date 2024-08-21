@@ -92,7 +92,7 @@ internal class HtmlFormatter
     /// minimal text edits
     /// </summary>
     // Internal for testing
-    public static TextEdit[] FixHtmlTestEdits(SourceText htmlSourceText, TextEdit[] edits)
+    public static TextEdit[] FixHtmlTextEdits(SourceText htmlSourceText, TextEdit[] edits)
     {
         // Avoid computing a minimal diff if we don't need to
         if (!edits.Any(e => e.NewText.Contains("~")))

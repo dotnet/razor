@@ -38,23 +38,23 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
     {
         public bool Called { get; private set; }
 
-        public Task<TextEdit[]> FormatAsync(VersionedDocumentContext documentContext, Range? range, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextEdit[]> GetDocumentFormattingEditsAsync(VersionedDocumentContext documentContext, Range? range, FormattingOptions options, CancellationToken cancellationToken)
         {
             Called = true;
             return SpecializedTasks.EmptyArray<TextEdit>();
         }
 
-        public Task<TextEdit[]> FormatCodeActionAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextEdit[]> GetCodeActionEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
         {
             return Task.FromResult(formattedEdits);
         }
 
-        public Task<TextEdit[]> FormatOnTypeAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        public Task<TextEdit[]> GetOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         {
             return Task.FromResult(formattedEdits);
         }
 
-        public Task<TextEdit[]> FormatSnippetAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextEdit[]> GetSnippetFormattingEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
         {
             return Task.FromResult(formattedEdits);
         }

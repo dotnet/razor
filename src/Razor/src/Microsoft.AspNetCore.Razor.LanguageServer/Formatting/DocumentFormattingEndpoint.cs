@@ -56,7 +56,7 @@ internal class DocumentFormattingEndpoint : IRazorRequestHandler<DocumentFormatt
             return null;
         }
 
-        var edits = await _razorFormattingService.FormatAsync(documentContext, range: null, request.Options, cancellationToken).ConfigureAwait(false);
+        var edits = await _razorFormattingService.GetDocumentFormattingEditsAsync(documentContext, range: null, request.Options, cancellationToken).ConfigureAwait(false);
         return edits;
     }
 }

@@ -81,7 +81,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
-        var edits = await formattingService.FormatAsync(documentContext, range, options, DisposalToken);
+        var edits = await formattingService.GetDocumentFormattingEditsAsync(documentContext, range, options, DisposalToken);
 
         // Assert
         var edited = ApplyEdits(source, edits);
@@ -131,7 +131,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
-        var edits = await formattingService.FormatOnTypeAsync(documentContext, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+        var edits = await formattingService.GetOnTypeFormattingEditsAsync(documentContext, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
 
         // Assert
         var edited = ApplyEdits(razorSourceText, edits);
@@ -199,7 +199,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
-        var edits = await formattingService.FormatCodeActionAsync(documentContext, languageKind, codeActionEdits, options, DisposalToken);
+        var edits = await formattingService.GetCodeActionEditsAsync(documentContext, languageKind, codeActionEdits, options, DisposalToken);
 
         // Assert
         var edited = ApplyEdits(razorSourceText, edits);

@@ -122,7 +122,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
         {
             if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
             {
-                var formattedTextEdit = await _formattingService.FormatSnippetAsync(
+                var formattedTextEdit = await _formattingService.GetSnippetFormattingEditsAsync(
                     documentContext,
                     RazorLanguageKind.CSharp,
                     new[] { textEdit },
@@ -141,7 +141,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
 
         if (resolvedCompletionItem.AdditionalTextEdits is not null)
         {
-            var formattedTextEdits = await _formattingService.FormatSnippetAsync(
+            var formattedTextEdits = await _formattingService.GetSnippetFormattingEditsAsync(
                 documentContext,
                 RazorLanguageKind.CSharp,
                 resolvedCompletionItem.AdditionalTextEdits,

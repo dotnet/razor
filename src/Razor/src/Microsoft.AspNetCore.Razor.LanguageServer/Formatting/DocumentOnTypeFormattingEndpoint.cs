@@ -114,7 +114,7 @@ internal class DocumentOnTypeFormattingEndpoint(
 
         Debug.Assert(request.Character.Length > 0);
 
-        var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(documentContext, triggerCharacterKind, Array.Empty<TextEdit>(), request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
+        var formattedEdits = await _razorFormattingService.GetOnTypeFormattingEditsAsync(documentContext, triggerCharacterKind, Array.Empty<TextEdit>(), request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
         if (formattedEdits.Length == 0)
         {
             _logger.LogInformation($"No formatting changes were necessary");
