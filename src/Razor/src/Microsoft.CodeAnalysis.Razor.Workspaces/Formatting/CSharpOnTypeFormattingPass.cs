@@ -24,14 +24,12 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-
-internal abstract class CSharpOnTypeFormattingPassBase(
+internal sealed class CSharpOnTypeFormattingPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
     : CSharpFormattingPassBase(documentMappingService)
 {
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPassBase>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
@@ -208,7 +206,20 @@ internal abstract class CSharpOnTypeFormattingPassBase(
         return new FormattingResult(finalEdits);
     }
 
-    protected abstract Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken);
+    private static async Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(CodeAnalysis.Razor.Formatting.FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
+    {
+        if (context.AutomaticallyAddUsings)
+        {
+            // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
+            if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
+            {
+                var usingStatementEdits = await AddUsingsHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
+                finalEdits = [.. usingStatementEdits, .. finalEdits];
+            }
+        }
+
+        return finalEdits;
+    }
 
     // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
     private static SourceText ApplyChangesAndTrackChange(SourceText oldText, IEnumerable<TextChange> changes, out TextSpan spanBeforeChange, out TextSpan spanAfterChange)
@@ -323,7 +334,7 @@ internal abstract class CSharpOnTypeFormattingPassBase(
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.TryGetPreviousSibling(out var prevNode) &&
-            prevNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            prevNode.FirstAncestorOrSelf<RazorSyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
             owner.SpanStart == template.Span.End &&
             IsOnSingleLine(template, text))
         {
@@ -477,7 +488,7 @@ internal abstract class CSharpOnTypeFormattingPassBase(
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.NextSpan() is { } nextNode &&
-            nextNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            nextNode.FirstAncestorOrSelf<RazorSyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
             template.SpanStart == owner.Span.End &&
             IsOnSingleLine(template, text))
         {
@@ -523,7 +534,7 @@ internal abstract class CSharpOnTypeFormattingPassBase(
         changes.Add(change);
     }
 
-    private static bool IsOnSingleLine(SyntaxNode node, SourceText text)
+    private static bool IsOnSingleLine(RazorSyntaxNode node, SourceText text)
     {
         var linePositionSpan = text.GetLinePositionSpan(node.Span);
 

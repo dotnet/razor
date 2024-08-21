@@ -64,7 +64,7 @@ internal static class IServiceCollectionExtensions
         // Formatting Passes
         services.AddSingleton<IFormattingPass, HtmlFormattingPass>();
         services.AddSingleton<IFormattingPass, CSharpFormattingPass>();
-        services.AddSingleton<IFormattingPass, LspCSharpOnTypeFormattingPass>();
+        services.AddSingleton<IFormattingPass, CSharpOnTypeFormattingPass>();
         services.AddSingleton<IFormattingPass, FormattingDiagnosticValidationPass>();
         services.AddSingleton<IFormattingPass, FormattingContentValidationPass>();
         services.AddSingleton<IFormattingPass, LspRazorFormattingPass>();
