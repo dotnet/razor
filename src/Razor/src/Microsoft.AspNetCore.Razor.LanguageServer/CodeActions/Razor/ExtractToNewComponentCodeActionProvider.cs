@@ -119,20 +119,15 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return null;
         }
 
-        var endLocation = GetEndLocation(selectionEnd, context.CodeDocument);
-        if (!endLocation.HasValue)
-        {
-            return null;
-        }
-
-        var endOwner = syntaxTree.Root.FindInnermostNode(endLocation.Value.AbsoluteIndex, true);
+        var endAbsoluteIndex = context.SourceText.GetRequiredAbsoluteIndex(selectionEnd);
+        var endOwner = syntaxTree.Root.FindInnermostNode(endAbsoluteIndex, true);
         if (endOwner is null)
         {
             return null;
         }
 
         // Correct selection to include the current node if the selection ends immediately after a closing tag.
-        if (endOwner is MarkupTextLiteralSyntax && string.IsNullOrWhiteSpace(endOwner.ToFullString()) && endOwner.TryGetPreviousSibling(out var previousSibling))
+        if (endOwner is MarkupTextLiteralSyntax && endOwner.ContainsOnlyWhitespace() && endOwner.TryGetPreviousSibling(out var previousSibling))
         {
             endOwner = previousSibling;
         }
@@ -178,13 +173,14 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         // This conditional handles cases where the user's selection spans across different levels of the DOM.
         // For example:
         //   <div>
-        //     <span>
-        //      Selected text starts here<p>Some text</p>
+        //     {|result:<span>
+        //      {|selection:<p>Some text</p>
         //     </span>
         //     <span>
         //       <p>More text</p>
         //     </span>
-        //     Selected text ends here <span></span>
+        //     <span>
+        //     </span>|}|}
         //   </div>
         // In this case, we need to find the smallest set of complete elements that covers the entire selection.
         
@@ -198,16 +194,6 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             actionParams.ExtractEnd = extractEnd.Span.End;
         }
         // Note: If we don't find a valid pair, we keep the original extraction range
-    }
-
-    private static SourceLocation? GetEndLocation(Position selectionEnd, RazorCodeDocument codeDocument)
-    {
-        if (!codeDocument.Source.Text.TryGetSourceLocation(selectionEnd, out var location))
-        {
-            return null;
-        }
-
-        return location;
     }
 
     private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
