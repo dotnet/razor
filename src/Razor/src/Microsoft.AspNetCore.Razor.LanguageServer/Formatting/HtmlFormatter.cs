@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal sealed class HtmlFormatter(
     IClientConnection clientConnection,
-    IDocumentVersionCache documentVersionCache)
+    IDocumentVersionCache documentVersionCache) : IHtmlFormatter
 {
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly IClientConnection _clientConnection = clientConnection;

@@ -22,8 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 [RazorLanguageServerEndpoint(Methods.TextDocumentOnTypeFormattingName)]
 internal class DocumentOnTypeFormattingEndpoint(
     IRazorFormattingService razorFormattingService,
-    IClientConnection clientConnection,
-    IDocumentVersionCache documentVersionCache,
+    IHtmlFormatter htmlFormatter,
     IDocumentMappingService documentMappingService,
     RazorLSPOptionsMonitor optionsMonitor,
     ILoggerFactory loggerFactory)
@@ -32,7 +31,7 @@ internal class DocumentOnTypeFormattingEndpoint(
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
     private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
-    private readonly HtmlFormatter _htmlFormatter = new HtmlFormatter(clientConnection, documentVersionCache);
+    private readonly IHtmlFormatter _htmlFormatter = htmlFormatter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentOnTypeFormattingEndpoint>();
 
     private static readonly IReadOnlyList<string> s_csharpTriggerCharacters = new[] { "}", ";" };

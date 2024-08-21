@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,8 @@ internal class RazorFormattingService(
         FormattingOptions options,
         CancellationToken cancellationToken)
     {
+        Debug.Assert(_formattingPasses[0].GetType().Name == "HtmlFormattingPass", "Formatting requires the first pass to be Html");
+
         var codeDocument = await documentContext.Snapshot.GetFormatterCodeDocumentAsync().ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
@@ -127,6 +130,8 @@ internal class RazorFormattingService(
         bool automaticallyAddUsings,
         CancellationToken cancellationToken)
     {
+        Debug.Assert(_formattingPasses[0].GetType().Name == "HtmlFormattingPass", "Formatting requires the first pass to be Html");
+
         // If we only received a single edit, let's always return a single edit back.
         // Otherwise, merge only if explicitly asked.
         collapseEdits |= formattedEdits.Length == 1;

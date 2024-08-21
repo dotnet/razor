@@ -59,6 +59,7 @@ internal static class IServiceCollectionExtensions
     public static void AddFormattingServices(this IServiceCollection services)
     {
         // Formatting
+        services.AddSingleton<IHtmlFormatter, HtmlFormatter>();
         services.AddSingleton<IRazorFormattingService, RazorFormattingService>();
 
         // Formatting Passes

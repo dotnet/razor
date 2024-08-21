@@ -14,13 +14,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 [RazorLanguageServerEndpoint(Methods.TextDocumentRangeFormattingName)]
 internal class DocumentRangeFormattingEndpoint(
     IRazorFormattingService razorFormattingService,
-    IClientConnection clientConnection,
-    IDocumentVersionCache documentVersionCache,
+    IHtmlFormatter htmlFormatter,
     RazorLSPOptionsMonitor optionsMonitor) : IRazorRequestHandler<DocumentRangeFormattingParams, TextEdit[]?>, ICapabilitiesProvider
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
-    private readonly HtmlFormatter _htmlFormatter = new HtmlFormatter(clientConnection, documentVersionCache);
+    private readonly IHtmlFormatter _htmlFormatter = htmlFormatter;
 
     public bool MutatesSolutionState => false;
 
