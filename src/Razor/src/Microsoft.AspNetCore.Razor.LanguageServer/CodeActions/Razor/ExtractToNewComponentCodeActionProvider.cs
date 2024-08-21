@@ -66,10 +66,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
         var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);
 
-        if (IsMultiPointSelection(context.Request.Range))
-        {
-            ProcessMultiPointSelection(startElementNode, endElementNode, actionParams);
-        }
+        ProcessSelection(startElementNode, endElementNode, actionParams);
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
@@ -160,7 +157,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
     /// <param name="startElementNode">The starting element of the selection.</param>
     /// <param name="endElementNode">The ending element of the selection, if it exists.</param>
     /// <param name="actionParams">The parameters for the extraction action, which will be updated.</param>
-    private static void ProcessMultiPointSelection(MarkupElementSyntax startElementNode, MarkupElementSyntax? endElementNode, ExtractToNewComponentCodeActionParams actionParams)
+    private static void ProcessSelection(MarkupElementSyntax startElementNode, MarkupElementSyntax? endElementNode, ExtractToNewComponentCodeActionParams actionParams)
     {
         // If there's no end element, we can't process a multi-point selection
         if (endElementNode is null)
@@ -202,8 +199,6 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         }
         // Note: If we don't find a valid pair, we keep the original extraction range
     }
-
-    private static bool IsMultiPointSelection(Range range) => range.Start != range.End;
 
     private static SourceLocation? GetEndLocation(Position selectionEnd, RazorCodeDocument codeDocument)
     {
