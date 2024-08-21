@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class FormattingContentValidationPass(
+internal class FormattingContentValidationPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
     : FormattingPassBase(documentMappingService)

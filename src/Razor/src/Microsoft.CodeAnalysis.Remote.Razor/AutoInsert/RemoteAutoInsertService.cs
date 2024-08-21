@@ -8,14 +8,19 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
 using RoslynFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
+using RoslynInsertTextFormat = Roslyn.LanguageServer.Protocol.InsertTextFormat;
+using VsLspFormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -34,6 +39,11 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
     private readonly IFilePathService _filePathService =
         args.ExportProvider.GetExportedValue<IFilePathService>();
+    private readonly IRazorFormattingService _razorFormattingService =
+        args.ExportProvider.GetExportedValue<IRazorFormattingService>();
+    private readonly ILogger _logger =
+        args.ExportProvider.GetExportedValue<ILoggerFactory>()
+        .GetOrCreateLogger(nameof(RemoteAutoInsertService));
 
     public ValueTask<Response> TryResolveInsertionAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
@@ -82,7 +92,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         // that adds closing tag instead of HTML even though we are in HTML
         var insertTextEdit = _autoInsertService.TryResolveInsertion(
             codeDocument,
-            linePosition.ToPosition(),
+            VsLspExtensions.ToPosition(linePosition),
             character,
             autoCloseTags);
 
@@ -104,8 +114,34 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
                 : Response.NoFurtherHandling;
         }
 
-        // C# case
+        // C# case (we hope)
+        if (languageKind is not RazorLanguageKind.CSharp)
+        {
+            _logger.LogError($"Unsupported language {languageKind}");
+            return Response.NoFurtherHandling;
+        }
 
+        return await TryResolveInsertionAsyncInCSharpAsync(
+                remoteDocumentContext,
+                codeDocument,
+                index,
+                character,
+                formatOnType,
+                indentWithTabs,
+                indentSize,
+                cancellationToken);
+    }
+
+    private async ValueTask<Response> TryResolveInsertionAsyncInCSharpAsync(
+        RemoteDocumentContext remoteDocumentContext,
+        RazorCodeDocument codeDocument,
+        int index,
+        string character,
+        bool formatOnType,
+        bool indentWithTabs,
+        int indentSize,
+        CancellationToken cancellationToken)
+    {
         if (!AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters.Contains(character))
         {
             return Response.NoFurtherHandling;
@@ -128,26 +164,63 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         }
 
         var csharpDocument = codeDocument.GetCSharpDocument();
-        if (_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
+        if (!_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
         {
-            var generatedDocument = await remoteDocumentContext.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
-            var formattingOptions = new RoslynFormattingOptions()
-            {
-                InsertSpaces = !indentWithTabs,
-                TabSize = indentSize
-            };
-            var autoInsertResponseItem = await OnAutoInsert.GetOnAutoInsertResponseAsync(
-                generatedDocument,
-                mappedPosition,
-                character,
-                formattingOptions,
-                cancellationToken
-            );
-            return autoInsertResponseItem is not null
-                ? Response.Results(RemoteInsertTextEdit.FromRoslynAutoInsertResponse(autoInsertResponseItem))
-                : Response.NoFurtherHandling;
+            return Response.NoFurtherHandling;
         }
 
-        return Response.NoFurtherHandling;
+        var generatedDocument = await remoteDocumentContext.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
+        var formattingOptions = new RoslynFormattingOptions()
+        {
+            InsertSpaces = !indentWithTabs,
+            TabSize = indentSize
+        };
+        var autoInsertResponseItem = await OnAutoInsert.GetOnAutoInsertResponseAsync(
+            generatedDocument,
+            mappedPosition,
+            character,
+            formattingOptions,
+            cancellationToken
+        );
+
+        if (autoInsertResponseItem is null)
+        {
+            return Response.NoFurtherHandling;
+        }
+
+        var razorFormattingOptions = new VsLspFormattingOptions()
+        {
+            InsertSpaces = !indentWithTabs,
+            TabSize = indentSize
+        };
+
+        var mappedEdits = autoInsertResponseItem.TextEditFormat == RoslynInsertTextFormat.Snippet
+            ? await _razorFormattingService.FormatSnippetAsync(
+                remoteDocumentContext,
+                RazorLanguageKind.CSharp,
+                [autoInsertResponseItem.TextEdit.ToVsLspTextEdit()],
+                razorFormattingOptions,
+                cancellationToken)
+            .ConfigureAwait(false)
+            : await _razorFormattingService.FormatOnTypeAsync(
+                remoteDocumentContext,
+                RazorLanguageKind.CSharp,
+                [autoInsertResponseItem.TextEdit.ToVsLspTextEdit()],
+                razorFormattingOptions,
+                hostDocumentIndex: 0,
+                triggerCharacter: '\0',
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        if (mappedEdits is not [{ } edit])
+        {
+            return Response.NoFurtherHandling;
+        }
+
+        return Response.Results(
+            new RemoteInsertTextEdit(
+                edit.Range.ToLinePositionSpan(),
+                edit.NewText,
+                autoInsertResponseItem.TextEditFormat));
     }
 }

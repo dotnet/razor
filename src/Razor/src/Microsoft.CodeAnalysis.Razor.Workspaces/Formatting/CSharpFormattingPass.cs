@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class CSharpFormattingPass(
+internal class CSharpFormattingPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
     : CSharpFormattingPassBase(documentMappingService)
