@@ -190,7 +190,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         endElementNode ??= startElementNode;
 
-        var success = TryProcessMultiPointSelection(startElementNode,
+        var success = TryProcessSelection(startElementNode,
             endElementNode,
             codeDocument,
             actionParams,
@@ -268,7 +268,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         // Correct selection to include the current node if the selection ends at the "edge" (i.e. immediately after the ">") of a tag.
-        if (string.IsNullOrWhiteSpace(endOwner.ToFullString()) && endOwner.TryGetPreviousSibling(out var previousSibling))
+        if (endOwner is MarkupTextLiteralSyntax && endOwner.ContainsOnlyWhitespace() && endOwner.TryGetPreviousSibling(out var previousSibling))
         {
             endOwner = previousSibling;
         }
@@ -287,16 +287,16 @@ internal sealed class ExtractToComponentCodeActionResolver(
     }
 
     /// <summary>
-    /// Processes a multi-point selection, providing the start and end of the extraction range if successful.
+    /// Processes a selection, providing the start and end of the extraction range if successful.
     /// </summary>
     /// <param name="startElementNode">The starting element of the selection.</param>
-    /// <param name="endElementNode">The ending element of the selection, if it exists.</param>
+    /// <param name="endElementNode">The ending element of the selection</param>
     /// <param name="codeDocument">The code document containing the selection.</param>
-    /// <param name="actionParams">The parameters for the extraction action, which will be updated.</param>
+    /// <param name="actionParams">The parameters for the extraction action</param>
     /// <param name="extractStart">The start of the extraction range.</param>
     /// <param name="extractEnd">The end of the extraction range</param>
     /// <returns> <c>true</c> if the selection was successfully processed; otherwise, <c>false</c>.</returns>
-    private static bool TryProcessMultiPointSelection(MarkupSyntaxNode startElementNode, MarkupSyntaxNode endElementNode, RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams, out int extractStart, out int extractEnd)
+    private static bool TryProcessSelection(MarkupSyntaxNode startElementNode, MarkupSyntaxNode endElementNode, RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams, out int extractStart, out int extractEnd)
     {
         extractStart = startElementNode.Span.Start;
         extractEnd = endElementNode.Span.End;
@@ -389,10 +389,14 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         var endIsCodeBlock = endNode is CSharpCodeBlockSyntax;
 
-        foreach (var child in nearestCommonAncestor.ChildNodes().Where(node => IsValidNode(node, endIsCodeBlock)))
+        foreach (var child in nearestCommonAncestor.ChildNodes())
         {
-            var childSpan = child.Span;
+            if (!IsValidNode(child, endIsCodeBlock))
+            {
+                continue;
+            }
 
+            var childSpan = child.Span;
             if (startContainingNode is null && childSpan.Contains(startSpan))
             {
                 startContainingNode = child;
