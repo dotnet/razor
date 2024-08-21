@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -91,7 +90,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             }
         }
 
-        var normalizedEdits = NormalizeTextEdits(csharpText, textEdits, out var originalTextWithChanges);
+        var normalizedEdits = csharpText.NormalizeTextEdits(textEdits, out var originalTextWithChanges);
         var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits, result.Kind);
         var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
         if (filteredEdits.Length == 0)
@@ -206,7 +205,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return new FormattingResult(finalEdits);
     }
 
-    private static async Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(CodeAnalysis.Razor.Formatting.FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
+    private static async Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
     {
         if (context.AutomaticallyAddUsings)
         {
@@ -539,14 +538,5 @@ internal sealed class CSharpOnTypeFormattingPass(
         var linePositionSpan = text.GetLinePositionSpan(node.Span);
 
         return linePositionSpan.Start.Line == linePositionSpan.End.Line;
-    }
-
-    private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)
-    {
-        var changes = edits.Select(originalText.GetTextChange);
-        originalTextWithChanges = originalText.WithChanges(changes);
-        var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, DiffKind.Char);
-        var cleanEdits = cleanChanges.Select(originalText.GetTextEdit).ToArray();
-        return cleanEdits;
     }
 }

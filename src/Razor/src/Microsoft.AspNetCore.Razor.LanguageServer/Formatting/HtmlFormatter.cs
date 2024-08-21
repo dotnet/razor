@@ -15,31 +15,20 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal class HtmlFormatter
+internal sealed class HtmlFormatter(
+    IClientConnection clientConnection,
+    IDocumentVersionCache documentVersionCache)
 {
-    private readonly IDocumentVersionCache _documentVersionCache;
-    private readonly IClientConnection _clientConnection;
-
-    public HtmlFormatter(
-        IClientConnection clientConnection,
-        IDocumentVersionCache documentVersionCache)
-    {
-        _clientConnection = clientConnection;
-        _documentVersionCache = documentVersionCache;
-    }
+    private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
+    private readonly IClientConnection _clientConnection = clientConnection;
 
     public async Task<TextEdit[]> FormatAsync(
         FormattingContext context,
         CancellationToken cancellationToken)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
         if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
         {
-            return Array.Empty<TextEdit>();
+            return [];
         }
 
         var @params = new RazorDocumentFormattingParams()
@@ -57,7 +46,7 @@ internal class HtmlFormatter
             @params,
             cancellationToken).ConfigureAwait(false);
 
-        return result?.Edits ?? Array.Empty<TextEdit>();
+        return result?.Edits ?? [];
     }
 
     public async Task<TextEdit[]> FormatOnTypeAsync(
@@ -66,7 +55,7 @@ internal class HtmlFormatter
     {
         if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
         {
-            return Array.Empty<TextEdit>();
+            return [];
         }
 
         var @params = new RazorDocumentOnTypeFormattingParams()
@@ -83,7 +72,7 @@ internal class HtmlFormatter
             @params,
             cancellationToken).ConfigureAwait(false);
 
-        return result?.Edits ?? Array.Empty<TextEdit>();
+        return result?.Edits ?? [];
     }
 
     /// <summary>
@@ -98,14 +87,6 @@ internal class HtmlFormatter
         if (!edits.Any(e => e.NewText.Contains("~")))
             return edits;
 
-        // First we apply the edits that the Html language server wanted, to the Html document
-        var textChanges = edits.Select(htmlSourceText.GetTextChange);
-        var changedText = htmlSourceText.WithChanges(textChanges);
-
-        // Now we use our minimal text differ algorithm to get the bare minimum of edits
-        var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, changedText, DiffKind.Char);
-        var minimalEdits = minimalChanges.Select(htmlSourceText.GetTextEdit).ToArray();
-
-        return minimalEdits;
+        return htmlSourceText.NormalizeTextEdits(edits);
     }
 }

@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -18,23 +17,12 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal class RazorFormattingService : IRazorFormattingService
+internal class RazorFormattingService(
+    IEnumerable<IFormattingPass> formattingPasses,
+    IAdhocWorkspaceFactory workspaceFactory) : IRazorFormattingService
 {
-    private readonly List<IFormattingPass> _formattingPasses;
-    private readonly IAdhocWorkspaceFactory _workspaceFactory;
-
-    public RazorFormattingService(
-        IEnumerable<IFormattingPass> formattingPasses,
-        IAdhocWorkspaceFactory workspaceFactory)
-    {
-        if (formattingPasses is null)
-        {
-            throw new ArgumentNullException(nameof(formattingPasses));
-        }
-
-        _formattingPasses = formattingPasses.OrderBy(f => f.Order).ToList();
-        _workspaceFactory = workspaceFactory ?? throw new ArgumentNullException(nameof(workspaceFactory));
-    }
+    private readonly ImmutableArray<IFormattingPass> _formattingPasses = formattingPasses.OrderByAsArray(f => f.Order);
+    private readonly IAdhocWorkspaceFactory _workspaceFactory = workspaceFactory;
 
     public async Task<TextEdit[]> GetDocumentFormattingEditsAsync(
         VersionedDocumentContext documentContext,
@@ -82,26 +70,9 @@ internal class RazorFormattingService : IRazorFormattingService
 
         var filteredEdits = range is null
             ? result.Edits
-            : result.Edits.Where(e => range.LineOverlapsWith(e.Range));
+            : result.Edits.Where(e => range.LineOverlapsWith(e.Range)).ToArray();
 
-        return GetMinimalEdits(originalText, filteredEdits);
-    }
-
-    private static TextEdit[] GetMinimalEdits(SourceText originalText, IEnumerable<TextEdit> filteredEdits)
-    {
-        // Make sure the edits actually change something, or its not worth responding
-        var textChanges = filteredEdits.Select(originalText.GetTextChange);
-        var changedText = originalText.WithChanges(textChanges);
-        if (changedText.ContentEquals(originalText))
-        {
-            return Array.Empty<TextEdit>();
-        }
-
-        // Only send back the minimum edits
-        var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, DiffKind.Char);
-        var finalEdits = minimalChanges.Select(originalText.GetTextEdit).ToArray();
-
-        return finalEdits;
+        return originalText.NormalizeTextEdits(filteredEdits);
     }
 
     public Task<TextEdit[]> GetOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
@@ -171,7 +142,7 @@ internal class RazorFormattingService : IRazorFormattingService
         }
 
         var originalText = context.SourceText;
-        var edits = GetMinimalEdits(originalText, result.Edits);
+        var edits = originalText.NormalizeTextEdits(result.Edits);
 
         if (collapseEdits)
         {
@@ -179,10 +150,10 @@ internal class RazorFormattingService : IRazorFormattingService
             if (collapsedEdit.NewText.Length == 0 &&
                 collapsedEdit.Range.IsZeroWidth())
             {
-                return Array.Empty<TextEdit>();
+                return [];
             }
 
-            return new[] { collapsedEdit };
+            return [collapsedEdit];
         }
 
         return edits;
@@ -196,14 +167,7 @@ internal class RazorFormattingService : IRazorFormattingService
             return edits[0];
         }
 
-        var textChanges = new List<TextChange>();
-        foreach (var edit in edits)
-        {
-            var change = new TextChange(sourceText.GetTextSpan(edit.Range), edit.NewText);
-            textChanges.Add(change);
-        }
-
-        var changedText = sourceText.WithChanges(textChanges);
+        var changedText = sourceText.WithChanges(edits.Select(sourceText.GetTextChange));
         var affectedRange = changedText.GetEncompassingTextChangeRange(sourceText);
         var spanBeforeChange = affectedRange.Span;
         var spanAfterChange = new TextSpan(spanBeforeChange.Start, affectedRange.NewLength);
@@ -218,26 +182,21 @@ internal class RazorFormattingService : IRazorFormattingService
     {
         // Currently this method only supports wrapping `$0`, any additional markers aren't formatted properly.
 
-        for (var i = 0; i < snippetEdits.Length; i++)
+        foreach (var snippetEdit in snippetEdits)
         {
-            var snippetEdit = snippetEdits[i];
-
             // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
             // So, let's avoid the error by wrapping the cursor marker in a comment.
-            var wrappedText = snippetEdit.NewText.Replace("$0", "/*$0*/");
-            snippetEdit.NewText = wrappedText;
+            snippetEdit.NewText = snippetEdit.NewText.Replace("$0", "/*$0*/");
         }
     }
 
     private static void UnwrapCSharpSnippets(TextEdit[] snippetEdits)
     {
-        for (var i = 0; i < snippetEdits.Length; i++)
+        foreach (var snippetEdit in snippetEdits)
         {
-            var snippetEdit = snippetEdits[i];
-
-            // Unwrap the cursor marker.
-            var unwrappedText = snippetEdit.NewText.Replace("/*$0*/", "$0");
-            snippetEdit.NewText = unwrappedText;
+            // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
+            // So, let's avoid the error by wrapping the cursor marker in a comment.
+            snippetEdit.NewText = snippetEdit.NewText.Replace("/*$0*/", "$0");
         }
     }
 }

@@ -12,18 +12,12 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentFormattingName)]
-internal class DocumentFormattingEndpoint : IRazorRequestHandler<DocumentFormattingParams, TextEdit[]?>, ICapabilitiesProvider
+internal class DocumentFormattingEndpoint(
+    IRazorFormattingService razorFormattingService,
+    RazorLSPOptionsMonitor optionsMonitor) : IRazorRequestHandler<DocumentFormattingParams, TextEdit[]?>, ICapabilitiesProvider
 {
-    private readonly IRazorFormattingService _razorFormattingService;
-    private readonly RazorLSPOptionsMonitor _optionsMonitor;
-
-    public DocumentFormattingEndpoint(
-        IRazorFormattingService razorFormattingService,
-        RazorLSPOptionsMonitor optionsMonitor)
-    {
-        _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
-        _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
-    }
+    private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
 
     public bool MutatesSolutionState => false;
 
