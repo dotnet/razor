@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -1228,9 +1229,9 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         Assert.NotNull(resolveResult.Edit);
 
         var workspaceEdit = resolveResult.Edit;
-        Assert.True(workspaceEdit.TryGetDocumentChanges(out var changes));
+        Assert.True(workspaceEdit.TryGetTextDocumentEdits(out var documentEdits));
 
-        return changes;
+        return documentEdits;
     }
 
     private class GenerateMethodResolverDocumentContextFactory : TestDocumentContextFactory

@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -251,6 +252,29 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         {
             TextDocument = new() { Uri = uri },
             Position = VsLspFactory.CreatePosition(1, 3),
+            NewName = "Test2"
+        };
+
+        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        // Act
+        var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+
+        // Assert
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task Handle_Rename_OnComponentEndTag_ReturnsResult()
+    {
+        // Arrange
+        var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync();
+        var uri = PathUtilities.GetUri(s_componentWithParamFilePath);
+        var request = new RenameParams
+        {
+            TextDocument = new() { Uri = uri },
+            Position = VsLspFactory.CreatePosition(1, 36),
             NewName = "Test2"
         };
 
@@ -539,7 +563,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
         var editMappingServiceMock = new StrictMock<IEditMappingService>();
         editMappingServiceMock
-            .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+            .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedEdit);
 
         var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync(
@@ -708,9 +732,9 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
         clientConnection ??= StrictMock.Of<IClientConnection>();
 
+        var renameService = new RenameService(searchEngine, projectManager, options);
         var endpoint = new RenameEndpoint(
-            searchEngine,
-            projectManager,
+            renameService,
             options,
             documentMappingService,
             editMappingService,
