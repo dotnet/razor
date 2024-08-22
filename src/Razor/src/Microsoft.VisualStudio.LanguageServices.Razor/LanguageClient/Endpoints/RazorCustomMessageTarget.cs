@@ -153,7 +153,9 @@ internal partial class RazorCustomMessageTarget
         if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath ||
             typeof(TVirtualDocumentSnapshot) == typeof(HtmlVirtualDocumentSnapshot))
         {
-            return await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug($"{(htmlResult.Synchronized ? "Did" : "Did NOT")} synchronize for {caller}: Version {requiredHostDocumentVersion} for {htmlResult.VirtualSnapshot?.Uri}");
+            return htmlResult;
         }
 
         var virtualDocument = FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, hostDocument.GetProjectContext());

@@ -176,7 +176,6 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
                 TextDocument = new OptionalVersionedTextDocumentIdentifier()
                 {
                     Uri = razorDocumentUri,
-                    Version = hostDocumentVersion
                 },
                 Edits = [.. remappedEdits]
             });

@@ -89,12 +89,9 @@ internal sealed class DefaultCSharpCodeActionResolver(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var documentVersion = documentContext.Snapshot.Version;
-
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
         {
-            Uri = csharpParams.RazorFileIdentifier.Uri,
-            Version = documentVersion,
+            Uri = csharpParams.RazorFileIdentifier.Uri
         };
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {

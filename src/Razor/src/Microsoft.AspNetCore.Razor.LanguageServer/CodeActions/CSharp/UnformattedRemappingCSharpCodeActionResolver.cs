@@ -87,7 +87,6 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver(
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
         {
             Uri = csharpParams.RazorFileIdentifier.Uri,
-            Version = documentContext.Snapshot.Version,
         };
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {

@@ -144,7 +144,6 @@ internal abstract class AbstractEditMappingService(
                 TextDocument = new OptionalVersionedTextDocumentIdentifier()
                 {
                     Uri = razorDocumentUri,
-                    Version = documentContext.Snapshot.Version
                 },
                 Edits = remappedEdits
             });
