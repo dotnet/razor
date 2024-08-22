@@ -146,12 +146,7 @@ internal class CohostOnAutoInsertEndpoint(
             return null;
         }
 
-        var autoInsertParams = new VSInternalDocumentOnAutoInsertParams
-        {
-            TextDocument = new TextDocumentIdentifier { Uri = htmlDocument.Uri },
-            Character = request.Character,
-            Position = request.Position
-        };
+        request.TextDocument = request.TextDocument.WithUri(htmlDocument.Uri);
 
         _logger.LogDebug($"Resolving auto-insertion edit for {htmlDocument.Uri}");
 
@@ -159,7 +154,7 @@ internal class CohostOnAutoInsertEndpoint(
             htmlDocument.Buffer,
             VSInternalMethods.OnAutoInsertName,
             RazorLSPConstants.HtmlLanguageServerName,
-            autoInsertParams,
+            request,
             cancellationToken).ConfigureAwait(false);
 
         if (result?.Response is null)
