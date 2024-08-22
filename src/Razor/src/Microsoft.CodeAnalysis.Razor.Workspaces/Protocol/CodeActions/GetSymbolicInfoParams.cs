@@ -31,23 +31,19 @@ internal record GetSymbolicInfoParams
     [JsonPropertyName("newContents")]
     public required string NewContents { get; set; }
 
-    [DataMember(Name = "mappedRange")]
-    [JsonPropertyName("mappedRange")]
-    public required Range MappedRange { get; set; }
+    [DataMember(Name = "intersectingRangesInGeneratedMappings")]
+    [JsonPropertyName("intersectingRangesInGeneratedMappings")]
 
-    [DataMember(Name = "intersectingSpansInGeneratedRange")]
-    [JsonPropertyName("intersectingSpansInGeneratedRange")]
-
-    public required Range[] IntersectingSpansInGeneratedMappings { get; set; }
+    public required Range[] IntersectingRangesInGeneratedMappings { get; set; }
 }
 
 internal sealed record SymbolicInfo
 {
-    public required MethodInRazorInfo[] Methods { get; set; }
-    public required SymbolInRazorInfo[] Fields { get; set; }
+    public required MethodSymbolicInfo[] Methods { get; set; }
+    public required FieldSymbolicInfo[] Fields { get; set; }
 }
 
-internal sealed record MethodInRazorInfo
+internal sealed record MethodSymbolicInfo
 {
     public required string Name { get; set; }
 
@@ -56,8 +52,10 @@ internal sealed record MethodInRazorInfo
     public required string[] ParameterTypes { get; set; }
 }
 
-internal sealed record SymbolInRazorInfo
+internal sealed record FieldSymbolicInfo
 {
     public required string Name { get; set; }
     public required string Type { get; set; }
+    public required bool IsValueType { get; set; }
+    public required bool IsWrittenTo { get; set; }
 }

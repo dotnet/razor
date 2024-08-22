@@ -38,6 +38,7 @@ using static Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor.Extract
 using Microsoft.VisualStudio.Text;
 using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using System.Reflection.Metadata.Ecma335;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -324,13 +325,14 @@ internal sealed class ExtractToComponentCodeActionResolver(
         // This conditional handles cases where the user's selection spans across different levels of the DOM.
         // For example:
         //   <div>
-        //     <span>
-        //      Selected text starts here<p>Some text</p>
+        //     {|result:<span>
+        //      {|selection:<p>Some text</p>
         //     </span>
         //     <span>
         //       <p>More text</p>
         //     </span>
-        //     Selected text ends here <span></span>
+        //     <span>|}|}
+        //     </span>
         //   </div>
         // In this case, we need to find the smallest set of complete elements that covers the entire selection.
         if (startElementNode != endElementNode)
@@ -552,7 +554,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var sourceMappings = razorCodeDocument.GetCSharpDocument().SourceMappings;
-        
         var sourceMappingRanges = sourceMappings.Select(m =>
         (
             new Range
@@ -565,19 +566,16 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         var relevantTextSpan = relevantRange.ToTextSpan(razorCodeDocument.Source.Text);
         var intersectingGeneratedSpans = sourceMappingRanges.Where(m => relevantRange.IntersectsOrTouches(m.Item1)).Select(m => m.GeneratedSpan).ToArray();
+
+        // I'm not sure why, but for some reason the endCharacterIndex is lower than the CharacterIndex so they must be swapped.
         var intersectingGeneratedRanges = intersectingGeneratedSpans.Select(m =>
         (
             new Range
             {
-                Start = new Position(m.LineIndex, m.CharacterIndex),
+                Start = new Position(m.LineIndex, m.EndCharacterIndex),
                 End = new Position(m.LineIndex, m.CharacterIndex)
             }
         )).ToArray();
-
-        if (!TryMapToClosestGeneratedDocumentRange(razorCodeDocument.GetCSharpDocument(), selectionAnalysis.ExtractStart, selectionAnalysis.ExtractEnd, out var selectionMappedRange))
-        {
-            return result;
-        }
 
         var parameters = new GetSymbolicInfoParams()
         {
@@ -595,8 +593,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             },
             NewContents = newFileContent,
             HostDocumentVersion = version.Value,
-            MappedRange = selectionMappedRange,
-            IntersectingSpansInGeneratedMappings = intersectingGeneratedRanges
+            IntersectingRangesInGeneratedMappings = intersectingGeneratedRanges
         };
 
         SymbolicInfo? componentInfo;
@@ -612,7 +609,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
             throw new InvalidOperationException("Failed to send request to RazorComponentInfoEndpoint", ex);
         }
 
-        // Check if client connection call was successful
         if (componentInfo is null)
         {
             return result;
@@ -625,7 +621,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var identifiersInCodeBlock = GetIdentifiersInContext(codeBlockAtEnd, cSharpCodeBlocks);
-
         if (componentInfo.Methods is null)
         {
             return result;
@@ -636,8 +631,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
         var methodsInContext = GetMethodsInContext(componentInfo, methodStringsInContext);
         var promotedMethods = GeneratePromotedMethods(methodsInContext);
 
-        var fieldsInContext = GetFieldsInContext(componentInfo, identifiersInCodeBlock);
-        var forwardedFields = GenerateForwardedConstantFields(codeBlockAtEnd, fieldsInContext);
+        var fieldsInContext = GetFieldsInContext(componentInfo.Fields, identifiersInCodeBlock);
+        var forwardedFields = GenerateForwardedConstantFields(fieldsInContext, Path.GetFileName(razorCodeDocument.Source.FilePath));
+
         var newFileCodeBlock = GenerateNewFileCodeBlock(promotedMethods, forwardedFields);
 
         newFileContent = ReplaceMethodInvocations(newFileContent, methodsInContext);
@@ -668,44 +664,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
         .ToList();
 
         return cSharpCodeBlocks;
-    }
-
-    private static bool TryMapToClosestGeneratedDocumentRange(RazorCSharpDocument generatedDocument, int start, int end, out Range mappedRange)
-    {
-        var sourceMappings = generatedDocument.SourceMappings;
-
-        var closestStartSourceMap = sourceMappings.OrderBy(m => Math.Abs(m.OriginalSpan.AbsoluteIndex - start)).First();
-        var closestEndSourceMap = sourceMappings.OrderBy(m => Math.Abs(m.OriginalSpan.AbsoluteIndex - end)).First();
-
-        var generatedStart = closestStartSourceMap.GeneratedSpan;
-        var generatedEnd = closestEndSourceMap.GeneratedSpan;
-
-        var generatedStartLinePosition = GetGeneratedPosition(generatedDocument, generatedStart.AbsoluteIndex);
-        var generatedEndLinePosition = GetGeneratedPosition(generatedDocument, generatedEnd.AbsoluteIndex);
-
-        mappedRange = new Range
-        {
-            Start = new Position(generatedStartLinePosition.Line, generatedStartLinePosition.Character),
-            End = new Position(generatedEndLinePosition.Line, generatedEndLinePosition.Character)
-        };
-
-        LinePosition GetGeneratedPosition(IRazorGeneratedDocument generatedDocument, int generatedIndex)
-        {
-            var generatedSource = GetGeneratedSourceText(generatedDocument);
-            return generatedSource.Lines.GetLinePosition(generatedIndex);
-        }
-
-        SourceText GetGeneratedSourceText(IRazorGeneratedDocument generatedDocument)
-        {
-            if (generatedDocument.CodeDocument is not { } codeDocument)
-            {
-                throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
-            }
-
-            return codeDocument.GetGeneratedSourceText(generatedDocument);
-        }
-
-        return true;
     }
 
     // Get identifiers in code block to union with the identifiers in the extracted code
@@ -746,9 +704,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return identifiersInLastCodeBlock;
     }
 
-    private static HashSet<MethodInRazorInfo> GetMethodsInContext(SymbolicInfo componentInfo, IEnumerable<string> methodStringsInContext)
+    private static HashSet<MethodSymbolicInfo> GetMethodsInContext(SymbolicInfo componentInfo, IEnumerable<string> methodStringsInContext)
     {
-        var methodsInContext = new HashSet<MethodInRazorInfo>();
+        var methodsInContext = new HashSet<MethodSymbolicInfo>();
         if (componentInfo.Methods is null)
         {
             return methodsInContext;
@@ -783,7 +741,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
     // Create a series of [Parameter] attributes for extracted methods.
     // Void return functions are promoted to Action<T> delegates.
     // All other functions should be Func<T... TResult> delegates.
-    private static string GeneratePromotedMethods(HashSet<MethodInRazorInfo> methods)
+    private static string GeneratePromotedMethods(HashSet<MethodSymbolicInfo> methods)
     {
         var builder = new StringBuilder();
         var parameterCount = 0;
@@ -839,34 +797,48 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return builder.ToString();
     }
 
-    private static string GenerateForwardedConstantFields(SyntaxNode codeBlockAtEnd, HashSet<string> relevantFields)
+    private static HashSet<FieldSymbolicInfo> GetFieldsInContext(FieldSymbolicInfo[] fields, HashSet<string> identifiersInCodeBlock)
     {
-        var builder = new StringBuilder();
-
-        var codeBlockString = codeBlockAtEnd.ToFullString();
-
-        var lines = codeBlockString.Split('\n');
-        foreach (var line in lines)
-        {
-            if (relevantFields.Any(field => line.Contains(field)))
-            {
-                builder.AppendLine(line.Trim());
-            }
-        }
-
-        return builder.ToString();
-    }
-
-    // GetFieldsInContext(componentInfo, identifiersInCodeBlock)
-    private static HashSet<string> GetFieldsInContext(SymbolicInfo componentInfo, HashSet<string> identifiersInCodeBlock)
-    {
-        if (componentInfo.Fields is null)
+        if (fields is null)
         {
             return [];
         }
 
-        var identifiersInFile = componentInfo.Fields.Select(field => field.Name).ToHashSet();
-        return identifiersInFile.Intersect(identifiersInCodeBlock).ToHashSet();
+        var fieldsInContext = new HashSet<FieldSymbolicInfo>();
+
+        foreach (var fieldInfo in fields)
+        {
+            if (identifiersInCodeBlock.Contains(fieldInfo.Name))
+            {
+                fieldsInContext.Add(fieldInfo);
+            }
+        }
+
+        return fieldsInContext;
+    }
+
+    private static string GenerateForwardedConstantFields(HashSet<FieldSymbolicInfo> relevantFields, string? sourceDocumentFileName)
+    {
+        var builder = new StringBuilder();
+        var fieldCount = 0;
+        var totalFields = relevantFields.Count;
+
+        foreach (var field in relevantFields)
+        {
+            if (field.IsValueType || field.Type == "string")
+            {
+                builder.AppendLine($"// Warning: Field '{field.Name}' was passed by value and may not be referenced correctly. Please check its usage in the original document: '{sourceDocumentFileName}'.");
+            }
+
+            builder.AppendLine($"public {field.Type} {field.Name}");
+
+            if (fieldCount < totalFields - 1)
+            {
+                builder.AppendLine();
+            }
+        }
+
+        return builder.ToString();
     }
 
     private static string GenerateNewFileCodeBlock(string promotedMethods, string carryoverFields)
@@ -882,7 +854,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
     }
 
     // Method invocations in the new file must be replaced with their respective parameter name. This is simply a case of replacing each string.
-    private static string ReplaceMethodInvocations(string newFileContent, HashSet<MethodInRazorInfo> methods)
+    private static string ReplaceMethodInvocations(string newFileContent, HashSet<MethodSymbolicInfo> methods)
     {
         var parameterCount = 0;
         foreach (var method in methods)
@@ -894,7 +866,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return newFileContent;
     }
 
-    private static string GenerateComponentNameAndParameters(HashSet<MethodInRazorInfo>? methods, string componentName)
+    private static string GenerateComponentNameAndParameters(HashSet<MethodSymbolicInfo>? methods, string componentName)
     {
         var builder = new StringBuilder();
         builder.Append(componentName + " ");
@@ -919,6 +891,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
     internal sealed record NewRazorComponentInfo
     {
         public required string NewContents { get; set; }
-        public required HashSet<MethodInRazorInfo>? Methods { get; set; }
+        public required HashSet<MethodSymbolicInfo>? Methods { get; set; }
     }
 }
