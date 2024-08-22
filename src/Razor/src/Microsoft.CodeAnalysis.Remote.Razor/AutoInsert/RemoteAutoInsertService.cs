@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
@@ -101,7 +100,9 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
             return Response.Results(RemoteInsertTextEdit.FromLspInsertTextEdit(edit));
         }
 
-        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, index, rightAssociative: true);
+        var positionInfo = PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance.GetPositionInfo(_documentMappingService, codeDocument, index);
+        var languageKind = positionInfo.LanguageKind;
+
         if (languageKind is RazorLanguageKind.Razor)
         {
             // If we are in Razor and got no edit from our own service, there is nothing else to do
@@ -113,29 +114,26 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
                 ? Response.CallHtml
                 : Response.NoFurtherHandling;
         }
-
-        // C# case (we hope)
-        if (languageKind is not RazorLanguageKind.CSharp)
+        else if (languageKind is RazorLanguageKind.CSharp)
         {
-            _logger.LogError($"Unsupported language {languageKind}");
-            return Response.NoFurtherHandling;
+            var mappedPosition = positionInfo.Position.ToLinePosition();
+            return await TryResolveInsertionAsyncInCSharpAsync(
+                    remoteDocumentContext,
+                    mappedPosition,
+                    character,
+                    formatOnType,
+                    indentWithTabs,
+                    indentSize,
+                    cancellationToken);
         }
 
-        return await TryResolveInsertionAsyncInCSharpAsync(
-                remoteDocumentContext,
-                codeDocument,
-                index,
-                character,
-                formatOnType,
-                indentWithTabs,
-                indentSize,
-                cancellationToken);
+        _logger.LogError($"Unsupported language {languageKind}");
+        return Response.NoFurtherHandling;
     }
 
     private async ValueTask<Response> TryResolveInsertionAsyncInCSharpAsync(
         RemoteDocumentContext remoteDocumentContext,
-        RazorCodeDocument codeDocument,
-        int index,
+        LinePosition mappedPosition,
         string character,
         bool formatOnType,
         bool indentWithTabs,
@@ -159,12 +157,6 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         // smarter, but at least the user can always turn the setting back on, type their "///", and turn it back off, without
         // having to restart VS. Not the worst compromise (hopefully!)
         if (!formatOnType)
-        {
-            return Response.NoFurtherHandling;
-        }
-
-        var csharpDocument = codeDocument.GetCSharpDocument();
-        if (!_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
         {
             return Response.NoFurtherHandling;
         }
