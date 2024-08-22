@@ -62,13 +62,13 @@ public static class InjectDirective
                     continue;
                 }
 
-                var isMalformed = directive is MalformedDirectiveIntermediateNode;
-
                 var typeName = tokens[0].Content;
                 var typeSpan = tokens[0].Source;
 
+                var isMalformed = directive is MalformedDirectiveIntermediateNode;
                 var hasMemberName = tokens.Length > 1 && !string.IsNullOrWhiteSpace(tokens[1].Content);
                 Debug.Assert(hasMemberName || isMalformed);
+
                 var memberName = hasMemberName ? tokens[1].Content : null;
                 var memberSpan = hasMemberName ? tokens[1].Source : null;
 

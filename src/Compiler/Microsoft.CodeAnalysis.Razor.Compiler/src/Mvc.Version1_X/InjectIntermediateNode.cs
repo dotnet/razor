@@ -62,9 +62,6 @@ public class InjectIntermediateNode : ExtensionIntermediateNode
 
         formatter.WriteProperty(nameof(MemberName), MemberName);
         formatter.WriteProperty(nameof(TypeName), TypeName);
-        if (IsMalformed)
-        {
-            formatter.WriteProperty(nameof(IsMalformed), IsMalformed.ToString());
-        }
+        formatter.WriteProperty(nameof(IsMalformed), IsMalformed.ToString());
     }
 }

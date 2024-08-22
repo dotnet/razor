@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -33,13 +32,13 @@ internal class ComponentInjectDirectivePass : IntermediateNodePassBase, IRazorDi
                 continue;
             }
 
-            bool isMalformed = directive is MalformedDirectiveIntermediateNode;
-
             var typeName = tokens[0].Content;
             var typeSpan = tokens[0].Source;
 
+            var isMalformed = directive is MalformedDirectiveIntermediateNode;
             var hasMemberName = tokens.Length > 1 && !string.IsNullOrWhiteSpace(tokens[1].Content);
             Debug.Assert(hasMemberName || isMalformed);
+
             var memberName = hasMemberName ? tokens[1].Content : null;
             var memberSpan = hasMemberName ? tokens[1].Source : null;
 

@@ -40,7 +40,6 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
 
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
-
     public override void Accept(IntermediateNodeVisitor visitor)
     {
         if (visitor == null)
