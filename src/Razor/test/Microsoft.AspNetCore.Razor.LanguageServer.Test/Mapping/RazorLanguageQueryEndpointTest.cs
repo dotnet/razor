@@ -2,12 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -90,9 +87,9 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
-            "@",
-            "/* CSharp */",
-            new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
+            razorSource: "@",
+            projectedCSharpSource: "/* CSharp */",
+            sourceMappings: [new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12))]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
         var request = new RazorLanguageQueryParams()
@@ -120,9 +117,9 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
-            "@",
-            "/* CSharp */",
-            new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
+            razorSource: "@",
+            projectedCSharpSource: "/* CSharp */",
+            sourceMappings: [new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12))]);
         codeDocument.SetUnsupported();
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
@@ -145,16 +142,16 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         Assert.Equal(1337, response.HostDocumentVersion);
     }
 
-    private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, IEnumerable<SourceMapping> sourceMappings)
+    private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, ImmutableArray<SourceMapping> sourceMappings)
     {
-        var codeDocument = CreateCodeDocument(razorSource, ImmutableArray<TagHelperDescriptor>.Empty);
-        var csharpDocument = RazorCSharpDocument.Create(
+        var codeDocument = CreateCodeDocument(razorSource, tagHelpers: []);
+        var csharpDocument = new RazorCSharpDocument(
             codeDocument,
             projectedCSharpSource,
-            RazorCodeGenerationOptions.CreateDefault(),
-            Enumerable.Empty<RazorDiagnostic>(),
-            sourceMappings.ToImmutableArray(),
-            Enumerable.Empty<LinePragma>());
+            RazorCodeGenerationOptions.Default,
+            diagnostics: [],
+            sourceMappings,
+            linePragmas: []);
         codeDocument.SetCSharpDocument(csharpDocument);
         return codeDocument;
     }

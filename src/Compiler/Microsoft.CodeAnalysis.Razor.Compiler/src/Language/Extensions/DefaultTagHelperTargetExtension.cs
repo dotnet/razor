@@ -101,7 +101,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
 
             // Assign a unique ID for this instance of the source HTML tag. This must be unique
             // per call site, e.g. if the tag is on the view twice, there should be two IDs.
-            var uniqueId = (string)context.Items[CodeRenderingContext.SuppressUniqueIds];
+            var uniqueId = context.Options.SuppressUniqueIds;
             if (uniqueId == null)
             {
                 uniqueId = GetDeterministicId(context);
@@ -584,13 +584,13 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         else if (node is CSharpCodeIntermediateNode)
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_CodeBlocksNotSupportedInAttributes(span);
-            context.Diagnostics.Add(diagnostic);
+            context.AddDiagnostic(diagnostic);
         }
         else if (node is TemplateIntermediateNode)
         {
             var expectedTypeName = property.IsIndexerNameMatch ? property.BoundAttribute.IndexerTypeName : property.BoundAttribute.TypeName;
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InlineMarkupBlocksNotSupportedInAttributes(span, expectedTypeName);
-            context.Diagnostics.Add(diagnostic);
+            context.AddDiagnostic(diagnostic);
         }
     }
 
