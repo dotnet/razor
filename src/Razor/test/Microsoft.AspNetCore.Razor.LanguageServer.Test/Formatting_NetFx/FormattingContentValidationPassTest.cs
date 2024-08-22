@@ -111,9 +111,7 @@ public class Foo { }
 
     private FormattingContentValidationPass GetPass()
     {
-        var mappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
-
-        var pass = new FormattingContentValidationPass(mappingService, LoggerFactory)
+        var pass = new FormattingContentValidationPass(LoggerFactory)
         {
             DebugAssertsEnabled = false
         };

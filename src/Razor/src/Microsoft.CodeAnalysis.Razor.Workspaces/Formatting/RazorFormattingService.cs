@@ -36,11 +36,11 @@ internal class RazorFormattingService : IRazorFormattingService
         _workspaceFactory = workspaceFactory;
 
         var cSharpFormattingPass = new CSharpFormattingPass(documentMappingService, loggerFactory);
-        var razorFormattingPass = new RazorFormattingPass(documentMappingService);
-        var diagnosticValidationPass = new FormattingDiagnosticValidationPass(documentMappingService, loggerFactory);
-        var contentValidationPass = new FormattingContentValidationPass(documentMappingService, loggerFactory);
+        var razorFormattingPass = new RazorFormattingPass();
+        var diagnosticValidationPass = new FormattingDiagnosticValidationPass(loggerFactory);
+        var contentValidationPass = new FormattingContentValidationPass(loggerFactory);
 
-        _htmlFormattingPass = new HtmlFormattingPass(documentMappingService, loggerFactory);
+        _htmlFormattingPass = new HtmlFormattingPass(loggerFactory);
         _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, loggerFactory);
         _validationPasses = [diagnosticValidationPass, contentValidationPass];
         _documentFormattingPasses = [_htmlFormattingPass, razorFormattingPass, cSharpFormattingPass, .. _validationPasses];

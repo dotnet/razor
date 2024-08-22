@@ -108,9 +108,7 @@ public class Foo { }
 
     private FormattingDiagnosticValidationPass GetPass()
     {
-        var mappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
-
-        var pass = new FormattingDiagnosticValidationPass(mappingService, LoggerFactory)
+        var pass = new FormattingDiagnosticValidationPass(LoggerFactory)
         {
             DebugAssertsEnabled = false
         };

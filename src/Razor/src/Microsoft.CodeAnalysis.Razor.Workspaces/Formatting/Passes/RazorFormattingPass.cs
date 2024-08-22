@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -22,11 +21,9 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal sealed class RazorFormattingPass(
-    IDocumentMappingService documentMappingService)
-    : FormattingPassBase(documentMappingService)
+internal sealed class RazorFormattingPass : IFormattingPass
 {
-    public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public async Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
         if (context.IsFormatOnType)
         {
@@ -244,7 +241,7 @@ internal sealed class RazorFormattingPass(
         return false;
     }
 
-    private void TryFormatCSharpBlockStructure(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
+    private static void TryFormatCSharpBlockStructure(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
     {
         // We're looking for a code block like this:
         //

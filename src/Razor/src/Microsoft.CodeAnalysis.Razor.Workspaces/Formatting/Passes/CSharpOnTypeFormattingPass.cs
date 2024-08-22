@@ -205,6 +205,24 @@ internal sealed class CSharpOnTypeFormattingPass(
         return new FormattingResult(finalEdits);
     }
 
+    private TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits, RazorLanguageKind projectedKind)
+    {
+        if (projectedKind != RazorLanguageKind.CSharp)
+        {
+            // Non C# projections map directly to Razor. No need to remap.
+            return projectedTextEdits;
+        }
+
+        if (codeDocument.IsUnsupported())
+        {
+            return [];
+        }
+
+        var edits = DocumentMappingService.GetHostDocumentEdits(codeDocument.GetCSharpDocument(), projectedTextEdits);
+
+        return edits;
+    }
+
     private static async Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
     {
         if (context.AutomaticallyAddUsings)

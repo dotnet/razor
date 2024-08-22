@@ -20,15 +20,12 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal abstract class CSharpFormattingPassBase : FormattingPassBase
+internal abstract class CSharpFormattingPassBase(IDocumentMappingService documentMappingService) : IFormattingPass
 {
-    protected CSharpFormattingPassBase(IDocumentMappingService documentMappingService)
-        : base(documentMappingService)
-    {
-        CSharpFormatter = new CSharpFormatter(documentMappingService);
-    }
+    protected IDocumentMappingService DocumentMappingService { get; } = documentMappingService;
+    protected CSharpFormatter CSharpFormatter { get; } = new CSharpFormatter(documentMappingService);
 
-    protected CSharpFormatter CSharpFormatter { get; }
+    public abstract Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
 
     protected async Task<List<TextChange>> AdjustIndentationAsync(FormattingContext context, CancellationToken cancellationToken, Range? range = null)
     {
