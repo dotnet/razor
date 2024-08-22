@@ -26,17 +26,13 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 internal sealed class CSharpOnTypeFormattingPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
-    : CSharpFormattingPassBase(documentMappingService)
+    : CSharpFormattingPassBase(documentMappingService, isFormatOnType: true)
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
-        if (!context.IsFormatOnType || result.Kind != RazorLanguageKind.CSharp)
-        {
-            // We don't want to handle regular formatting or non-C# on type formatting here.
-            return result;
-        }
+        Debug.Assert(result.Kind == RazorLanguageKind.CSharp);
 
         // Normalize and re-map the C# edits.
         var codeDocument = context.CodeDocument;

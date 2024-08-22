@@ -26,7 +26,7 @@ internal class RazorFormattingService : IRazorFormattingService
     private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
     private readonly ImmutableArray<IFormattingPass> _validationPasses;
     private readonly CSharpOnTypeFormattingPass _csharpOnTypeFormattingPass;
-    private readonly HtmlFormattingPass _htmlFormattingPass;
+    private readonly HtmlOnTypeFormattingPass _htmlOnTypeFormattingPass;
 
     public RazorFormattingService(
         IDocumentMappingService documentMappingService,
@@ -35,15 +35,20 @@ internal class RazorFormattingService : IRazorFormattingService
     {
         _workspaceFactory = workspaceFactory;
 
-        var cSharpFormattingPass = new CSharpFormattingPass(documentMappingService, loggerFactory);
-        var razorFormattingPass = new RazorFormattingPass();
-        var diagnosticValidationPass = new FormattingDiagnosticValidationPass(loggerFactory);
-        var contentValidationPass = new FormattingContentValidationPass(loggerFactory);
-
-        _htmlFormattingPass = new HtmlFormattingPass(loggerFactory);
+        _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
         _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, loggerFactory);
-        _validationPasses = [diagnosticValidationPass, contentValidationPass];
-        _documentFormattingPasses = [_htmlFormattingPass, razorFormattingPass, cSharpFormattingPass, .. _validationPasses];
+        _validationPasses =
+        [
+            new FormattingDiagnosticValidationPass(loggerFactory),
+            new FormattingContentValidationPass(loggerFactory)
+        ];
+        _documentFormattingPasses =
+        [
+            new HtmlFormattingPass(loggerFactory),
+            new RazorFormattingPass(),
+            new CSharpFormattingPass(documentMappingService, loggerFactory),
+            .. _validationPasses
+        ];
     }
 
     public async Task<TextEdit[]> GetDocumentFormattingEditsAsync(
@@ -120,7 +125,7 @@ internal class RazorFormattingService : IRazorFormattingService
             options,
             hostDocumentIndex,
             triggerCharacter,
-            [_htmlFormattingPass, .. _validationPasses],
+            [_htmlOnTypeFormattingPass, .. _validationPasses],
             collapseEdits: false,
             automaticallyAddUsings: false,
             cancellationToken: cancellationToken);

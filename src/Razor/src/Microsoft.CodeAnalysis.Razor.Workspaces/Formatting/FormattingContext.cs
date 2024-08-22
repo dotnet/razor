@@ -29,14 +29,13 @@ internal sealed class FormattingContext : IDisposable
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
     private FormattingContext(IAdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, RazorFormattingOptions options,
-        bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
+        bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
     {
         _workspaceFactory = workspaceFactory;
         Uri = uri;
         OriginalSnapshot = originalSnapshot;
         CodeDocument = codeDocument;
         Options = options;
-        IsFormatOnType = isFormatOnType;
         AutomaticallyAddUsings = automaticallyAddUsings;
         HostDocumentIndex = hostDocumentIndex;
         TriggerCharacter = triggerCharacter;
@@ -48,7 +47,6 @@ internal sealed class FormattingContext : IDisposable
     public IDocumentSnapshot OriginalSnapshot { get; }
     public RazorCodeDocument CodeDocument { get; }
     public RazorFormattingOptions Options { get; }
-    public bool IsFormatOnType { get; }
     public bool AutomaticallyAddUsings { get; }
     public int HostDocumentIndex { get; }
     public char TriggerCharacter { get; }
@@ -267,7 +265,6 @@ internal sealed class FormattingContext : IDisposable
             OriginalSnapshot,
             codeDocument,
             Options,
-            IsFormatOnType,
             AutomaticallyAddUsings,
             HostDocumentIndex,
             TriggerCharacter);
@@ -303,7 +300,16 @@ internal sealed class FormattingContext : IDisposable
         int hostDocumentIndex,
         char triggerCharacter)
     {
-        return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: true, automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+        return new FormattingContext(
+            workspaceFactory,
+            uri,
+            originalSnapshot,
+            codeDocument,
+            options,
+            automaticallyAddUsings,
+            hostDocumentIndex,
+            triggerCharacter
+       );
     }
 
     public static FormattingContext Create(
@@ -313,33 +319,15 @@ internal sealed class FormattingContext : IDisposable
         RazorFormattingOptions options,
         IAdhocWorkspaceFactory workspaceFactory)
     {
-        return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
-    }
-
-    private static FormattingContext CreateCore(
-        Uri uri,
-        IDocumentSnapshot originalSnapshot,
-        RazorCodeDocument codeDocument,
-        RazorFormattingOptions options,
-        IAdhocWorkspaceFactory workspaceFactory,
-        bool isFormatOnType,
-        bool automaticallyAddUsings,
-        int hostDocumentIndex,
-        char triggerCharacter)
-    {
-        // hostDocumentIndex, triggerCharacter and automaticallyAddUsings are only supported in on type formatting
-        Debug.Assert(isFormatOnType || (hostDocumentIndex == 0 && triggerCharacter == '\0' && automaticallyAddUsings == false));
-
         return new FormattingContext(
             workspaceFactory,
             uri,
             originalSnapshot,
             codeDocument,
             options,
-            isFormatOnType,
-            automaticallyAddUsings,
-            hostDocumentIndex,
-            triggerCharacter
-        );
+            automaticallyAddUsings: false,
+            hostDocumentIndex: 0,
+            triggerCharacter: '\0'
+       );
     }
 }

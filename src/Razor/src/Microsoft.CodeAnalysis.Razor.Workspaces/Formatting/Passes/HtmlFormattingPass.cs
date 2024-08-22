@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,19 +15,33 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class HtmlFormattingPass(ILoggerFactory loggerFactory) : IFormattingPass
+internal sealed class HtmlFormattingPass(ILoggerFactory loggerFactory) : HtmlFormattingPassBase(loggerFactory.GetOrCreateLogger<HtmlFormattingPass>())
 {
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlFormattingPass>();
+}
 
-    public async Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+internal sealed class HtmlOnTypeFormattingPass(ILoggerFactory loggerFactory) : HtmlFormattingPassBase(loggerFactory.GetOrCreateLogger<HtmlOnTypeFormattingPass>())
+{
+    public override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    {
+        Debug.Assert(result.Kind == RazorLanguageKind.Html);
+
+        if (result.Edits.Length == 0)
+        {
+            // There are no HTML edits for us to apply. No op.
+            return Task.FromResult(new FormattingResult([]));
+        }
+
+        return base.ExecuteAsync(context, result, cancellationToken);
+    }
+}
+
+internal abstract class HtmlFormattingPassBase(ILogger logger) : IFormattingPass
+{
+    private readonly ILogger _logger = logger;
+
+    public virtual async Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
         var originalText = context.SourceText;
-
-        if (context.IsFormatOnType && result.Kind != RazorLanguageKind.Html)
-        {
-            // We don't want to handle on type formatting requests for other languages
-            return result;
-        }
 
         var htmlEdits = result.Edits;
 
@@ -43,11 +58,6 @@ internal sealed class HtmlFormattingPass(ILoggerFactory loggerFactory) : IFormat
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
 
             _logger.LogTestOnly($"After normalizedEdits:\r\n{changedText}");
-        }
-        else if (context.IsFormatOnType)
-        {
-            // There are no HTML edits for us to apply. No op.
-            return new FormattingResult(htmlEdits);
         }
 
         var indentationChanges = AdjustRazorIndentation(changedContext);

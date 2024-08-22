@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,17 +21,14 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 internal sealed class CSharpFormattingPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
-    : CSharpFormattingPassBase(documentMappingService)
+    : CSharpFormattingPassBase(documentMappingService, isFormatOnType: false)
 {
+    private readonly CSharpFormatter _csharpFormatter = new CSharpFormatter(documentMappingService);
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpFormattingPass>();
 
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
-        if (context.IsFormatOnType || result.Kind != RazorLanguageKind.Razor)
-        {
-            // We don't want to handle OnTypeFormatting here.
-            return result;
-        }
+        Debug.Assert(result.Kind == RazorLanguageKind.Razor);
 
         // Apply previous edits if any.
         var originalText = context.SourceText;
@@ -91,7 +89,7 @@ internal sealed class CSharpFormattingPass(
 
             // These should already be remapped.
             var range = sourceText.GetRange(span);
-            var edits = await CSharpFormatter.FormatAsync(context, range, cancellationToken).ConfigureAwait(false);
+            var edits = await _csharpFormatter.FormatAsync(context, range, cancellationToken).ConfigureAwait(false);
             csharpEdits.AddRange(edits.Where(e => range.Contains(e.Range)));
         }
 

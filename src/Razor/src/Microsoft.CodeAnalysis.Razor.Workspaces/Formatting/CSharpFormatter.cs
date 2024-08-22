@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -27,16 +26,6 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
 
     public async Task<TextEdit[]> FormatAsync(FormattingContext context, Range rangeToFormat, CancellationToken cancellationToken)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (rangeToFormat is null)
-        {
-            throw new ArgumentNullException(nameof(rangeToFormat));
-        }
-
         if (!_documentMappingService.TryMapToGeneratedDocumentRange(context.CodeDocument.GetCSharpDocument(), rangeToFormat, out var projectedRange))
         {
             return [];
@@ -52,16 +41,6 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
         IReadOnlyCollection<int> projectedDocumentLocations,
         CancellationToken cancellationToken)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (projectedDocumentLocations is null)
-        {
-            throw new ArgumentNullException(nameof(projectedDocumentLocations));
-        }
-
         // Sorting ensures we count the marker offsets correctly.
         // We also want to ensure there are no duplicates to avoid duplicate markers.
         var filteredLocations = projectedDocumentLocations.Distinct().OrderBy(l => l).ToList();

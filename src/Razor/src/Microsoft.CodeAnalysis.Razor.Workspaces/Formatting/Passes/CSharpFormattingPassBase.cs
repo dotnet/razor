@@ -15,15 +15,15 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-
-internal abstract class CSharpFormattingPassBase(IDocumentMappingService documentMappingService) : IFormattingPass
+internal abstract class CSharpFormattingPassBase(IDocumentMappingService documentMappingService, bool isFormatOnType) : IFormattingPass
 {
+    private readonly bool _isFormatOnType = isFormatOnType;
+
     protected IDocumentMappingService DocumentMappingService { get; } = documentMappingService;
-    protected CSharpFormatter CSharpFormatter { get; } = new CSharpFormatter(documentMappingService);
 
     public abstract Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
 
@@ -250,7 +250,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
             if (indentations[i].StartsInHtmlContext)
             {
                 // This is a non-C# line.
-                if (context.IsFormatOnType)
+                if (_isFormatOnType)
                 {
                     // HTML formatter doesn't run in the case of format on type.
                     // Let's stick with our syntax understanding of HTML to figure out the desired indentation.
@@ -291,13 +291,13 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
     protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
         => ShouldFormat(context, mappingSpan, allowImplicitStatements, out _);
 
-    protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out SyntaxNode? foundOwner)
+    protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out RazorSyntaxNode? foundOwner)
         => ShouldFormat(context, mappingSpan, new ShouldFormatOptions(allowImplicitStatements, isLineRequest: false), out foundOwner);
 
     private static bool ShouldFormatLine(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
         => ShouldFormat(context, mappingSpan, new ShouldFormatOptions(allowImplicitStatements, isLineRequest: true), out _);
 
-    private static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, ShouldFormatOptions options, out SyntaxNode? foundOwner)
+    private static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, ShouldFormatOptions options, out RazorSyntaxNode? foundOwner)
     {
         // We should be called with the range of various C# SourceMappings.
 
@@ -437,10 +437,10 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
 
             return owner is MarkupTextLiteralSyntax
             {
-                Parent: MarkupTagHelperAttributeSyntax { TagHelperAttributeInfo: { Bound: true } } or
-                        MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo: { Bound: true } } or
-                        MarkupMinimizedTagHelperAttributeSyntax { TagHelperAttributeInfo: { Bound: true } } or
-                        MarkupMinimizedTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo: { Bound: true } }
+                Parent: MarkupTagHelperAttributeSyntax { TagHelperAttributeInfo.Bound: true } or
+                        MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo.Bound: true } or
+                        MarkupMinimizedTagHelperAttributeSyntax { TagHelperAttributeInfo.Bound: true } or
+                        MarkupMinimizedTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo.Bound: true }
             } && !options.IsLineRequest;
         }
 
