@@ -23,7 +23,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     ]).ToFrozenSet();
 
     private static readonly Func<SyntaxToken, bool> IsValidStatementSpacingToken =
-        IsSpacingTokenIncludingNewLinesAndComments;
+        IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives;
 
     internal static readonly DirectiveDescriptor AddTagHelperDirectiveDescriptor = DirectiveDescriptor.CreateDirective(
         SyntaxConstants.CSharp.AddTagHelperKeyword,
@@ -239,7 +239,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 NextToken();
 
                 using var precedingWhitespace = new PooledArrayBuilder<SyntaxToken>();
-                ReadWhile(IsSpacingTokenIncludingNewLinesAndComments, ref precedingWhitespace.AsRef());
+                ReadWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives, ref precedingWhitespace.AsRef());
 
                 // We are usually called when the other parser sees a transition '@'. Look for it.
                 SyntaxToken? transitionToken = null;
@@ -726,7 +726,20 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         SetAcceptedCharacters(AcceptedCharactersInternal.Any);
         // Accept whitespace but always keep the last whitespace node so we can put it back if necessary
-        var lastWhitespace = AcceptWhitespaceInLines();
+        using var tokens = new PooledArrayBuilder<SyntaxToken>();
+        ReadWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives, ref tokens.AsRef());
+
+#pragma warning disable RS0042 // Do not copy value https://github.com/dotnet/roslyn-analyzers/issues/7389
+        var lastWhitespace = tokens is [.., { Kind: SyntaxKind.Whitespace } whitespace] ? whitespace : null;
+#pragma warning restore RS0042 // Do not copy value
+
+        if (lastWhitespace != null)
+        {
+            tokens.RemoveAt(^1);
+        }
+
+        Accept(in tokens);
+
         if (EndOfFile)
         {
             if (lastWhitespace != null)
@@ -1757,7 +1770,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         break;
                     case DirectiveKind.RazorBlock:
                         shouldCaptureWhitespaceToEndOfLine = true;
-                        AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
+                        AcceptWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives);
                         SetAcceptedCharacters(AcceptedCharactersInternal.AllWhitespace);
                         directiveBuilder.Add(OutputTokensAsUnclassifiedLiteral());
 
@@ -1784,7 +1797,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         break;
                     case DirectiveKind.CodeBlock:
                         shouldCaptureWhitespaceToEndOfLine = true;
-                        AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
+                        AcceptWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives);
                         SetAcceptedCharacters(AcceptedCharactersInternal.AllWhitespace);
                         directiveBuilder.Add(OutputTokensAsUnclassifiedLiteral());
 
@@ -2089,12 +2102,12 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     private void ParseConditionalBlock(in SyntaxListBuilder<RazorSyntaxNode> builder, Block block)
     {
         AcceptAndMoveNext();
-        AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
+        AcceptWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives);
 
         // Parse the condition, if present (if not present, we'll let the C# compiler complain)
         if (TryParseCondition(builder))
         {
-            AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
+            AcceptWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives);
 
             ParseExpectedCodeBlock(builder, block);
         }
@@ -2162,7 +2175,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         Assert(SyntaxKind.Keyword);
         var block = new Block(GetBlockName(CurrentToken), CurrentStart);
         AcceptAndMoveNext();
-        AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
+        AcceptWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives);
         ParseExpectedCodeBlock(builder, block);
     }
 
@@ -2239,7 +2252,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         var block = new Block(GetBlockName(CurrentToken), CurrentStart);
 
         AcceptAndMoveNext();
-        AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
+        AcceptWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives);
         if (At(CSharpSyntaxKind.IfKeyword))
         {
             // ElseIf
@@ -2363,7 +2376,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             Accept(in whitespace);
             Assert(CSharpSyntaxKind.WhileKeyword);
             AcceptAndMoveNext();
-            AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
+            AcceptWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives);
             if (TryParseCondition(builder) && TryAccept(SyntaxKind.Semicolon))
             {
                 SetAcceptedCharacters(AcceptedCharactersInternal.None);
@@ -2461,7 +2474,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         // Parse condition
         if (TryParseCondition(builder))
         {
-            AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
+            AcceptWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives);
 
             // Parse code block
             ParseExpectedCodeBlock(builder, block);
@@ -2487,7 +2500,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 nonNamespaceTokenCount = TokenBuilder.Count;
                 TryParseNamespaceOrTypeName(directiveBuilder);
                 using var whitespace = new PooledArrayBuilder<SyntaxToken>();
-                ReadWhile(IsSpacingTokenIncludingNewLinesAndComments, ref whitespace.AsRef());
+                ReadWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives, ref whitespace.AsRef());
                 if (At(SyntaxKind.Assign))
                 {
                     // Alias
@@ -2495,7 +2508,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                     Assert(SyntaxKind.Assign);
                     AcceptAndMoveNext();
 
-                    AcceptWhile(IsSpacingTokenIncludingNewLinesAndComments);
+                    AcceptWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives);
 
                     // One more namespace or type name
                     TryParseNamespaceOrTypeName(directiveBuilder);
@@ -2695,7 +2708,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
         while (!EndOfFile)
         {
-            ReadWhile(IsSpacingTokenIncludingNewLinesAndComments, ref whitespace);
+            ReadWhile(IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives, ref whitespace);
             if (At(SyntaxKind.RazorCommentTransition))
             {
                 Accept(in whitespace);

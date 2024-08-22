@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Xunit;
 using Xunit.Sdk;
 
@@ -31,7 +32,7 @@ public class RazorIntegrationTestBase
     // so making sure it doesn't happen for each test.
     protected static readonly CSharpCompilation DefaultBaseCompilation;
 
-    private static CSharpParseOptions CSharpParseOptions { get; }
+    protected static CSharpParseOptions CSharpParseOptions { get; }
 
     static RazorIntegrationTestBase()
     {
@@ -103,7 +104,7 @@ public class RazorIntegrationTestBase
     internal virtual string WorkingDirectory { get; }
 
     // intentionally private - we don't want individual tests messing with the project engine
-    private RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration, MetadataReference[] references, bool supportLocalizedComponentNames)
+    private RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration, MetadataReference[] references, bool supportLocalizedComponentNames, CSharpParseOptions csharpParseOptions)
     {
         return RazorProjectEngine.Create(configuration, FileSystem, b =>
         {
@@ -130,7 +131,10 @@ public class RazorIntegrationTestBase
                 References = references,
             });
 
-            b.SetCSharpLanguageVersion(CSharpParseOptions.LanguageVersion);
+            csharpParseOptions ??= CSharpParseOptions;
+
+            b.SetCSharpLanguageVersion(csharpParseOptions.LanguageVersion);
+            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, csharpParseOptions));
 
             CompilerFeatures.Register(b);
         });
@@ -179,6 +183,7 @@ public class RazorIntegrationTestBase
         bool nullableEnable = false,
         RazorConfiguration configuration = null,
         CSharpCompilation baseCompilation = null,
+        CSharpParseOptions csharpParseOptions = null,
         params DiagnosticDescription[] expectedCSharpDiagnostics)
     {
         return CompileToCSharp(
@@ -189,6 +194,7 @@ public class RazorIntegrationTestBase
             nullableEnable: nullableEnable,
             configuration: configuration,
             baseCompilation: baseCompilation,
+            csharpParseOptions: csharpParseOptions,
             expectedCSharpDiagnostics: expectedCSharpDiagnostics);
     }
 
@@ -201,6 +207,7 @@ public class RazorIntegrationTestBase
         bool nullableEnable = false,
         RazorConfiguration configuration = null,
         CSharpCompilation baseCompilation = null,
+        CSharpParseOptions csharpParseOptions = null,
         params DiagnosticDescription[] expectedCSharpDiagnostics)
     {
         if (DeclarationOnly && DesignTime)
@@ -227,7 +234,7 @@ public class RazorIntegrationTestBase
         {
             // The first phase won't include any metadata references for component discovery. This mirrors
             // what the build does.
-            var projectEngine = CreateProjectEngine(configuration, Array.Empty<MetadataReference>(), supportLocalizedComponentNames);
+            var projectEngine = CreateProjectEngine(configuration, Array.Empty<MetadataReference>(), supportLocalizedComponentNames, csharpParseOptions);
 
             RazorCodeDocument codeDocument;
             foreach (var item in AdditionalRazorItems)
@@ -256,7 +263,7 @@ public class RazorIntegrationTestBase
 
             // Add the 'temp' compilation as a metadata reference
             var references = baseCompilation.References.Concat(new[] { tempAssembly.Compilation.ToMetadataReference() }).ToArray();
-            projectEngine = CreateProjectEngine(configuration, references, supportLocalizedComponentNames);
+            projectEngine = CreateProjectEngine(configuration, references, supportLocalizedComponentNames, csharpParseOptions);
 
             // Now update the any additional files
             foreach (var item in AdditionalRazorItems)
@@ -285,7 +292,7 @@ public class RazorIntegrationTestBase
         {
             // For single phase compilation tests just use the base compilation's references.
             // This will include the built-in components.
-            var projectEngine = CreateProjectEngine(configuration, baseCompilation.References.ToArray(), supportLocalizedComponentNames);
+            var projectEngine = CreateProjectEngine(configuration, baseCompilation.References.ToArray(), supportLocalizedComponentNames, csharpParseOptions);
 
             var projectItem = CreateProjectItem(cshtmlRelativePath, cshtmlContent, fileKind, cssScope);
 

@@ -84,12 +84,24 @@ public class CSharpPreprocessorTest() : ParserTestBase(layer: TestProject.Layer.
     }
 
     [Fact]
-    public void SimpleIfDef()
+    public void SimpleIfDef_01()
     {
         ParseDocumentTest("""
             @{
             #if true
                 var x = 1;
+            #endif
+            }
+            """);
+    }
+
+    [Fact]
+    public void SimpleIfDef_02()
+    {
+        ParseDocumentTest("""
+            @{
+            #if true
+                <p>Some text</p>
             #endif
             }
             """);
