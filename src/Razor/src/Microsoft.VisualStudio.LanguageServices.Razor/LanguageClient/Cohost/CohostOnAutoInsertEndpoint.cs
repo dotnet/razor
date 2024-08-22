@@ -87,7 +87,7 @@ internal class CohostOnAutoInsertEndpoint(
         var enableAutoClosingTags = clientSettings.AdvancedSettings.AutoClosingTags;
         var formatOnType = clientSettings.AdvancedSettings.FormatOnType;
         var indentWithTabs = clientSettings.ClientSpaceSettings.IndentWithTabs;
-        var indentSize = clientSettings.ClientSpaceSettings.IndentSize;
+        var indentSize = clientSettings.ClientSpaceSettings.IndentSize;        
 
         _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(
@@ -116,19 +116,27 @@ internal class CohostOnAutoInsertEndpoint(
             return null;
         }
 
-        // Got no data but no signal to stop handling, so try HTML
-        return await TryResolveHtmlInsertionAsync(razorDocument, request, cancellationToken)
+        // Got no data but no signal to stop handling
+
+        return await TryResolveHtmlInsertionAsync(
+            razorDocument,
+            request,
+            clientSettings.AdvancedSettings.AutoInsertAttributeQuotes,
+            cancellationToken)
             .ConfigureAwait(false);
     }
 
     private async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryResolveHtmlInsertionAsync(
         TextDocument razorDocument,
         VSInternalDocumentOnAutoInsertParams request,
+        bool autoInsertAttributeQuotes,
         CancellationToken cancellationToken)
     {
-        // We support auto-insert in HTML only on "="
-        if (request.Character != "=")
+        if (!autoInsertAttributeQuotes && request.Character == "=")
         {
+            // Use Razor setting for auto insert attribute quotes. HTML Server doesn't have a way to pass that
+            // information along so instead we just don't delegate the request.
+            _logger.LogTrace($"Not delegating to HTML completion because AutoInsertAttributeQuotes is disabled");
             return null;
         }
 
