@@ -23,15 +23,15 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal sealed class RazorFormattingPass : IFormattingPass
 {
-    public async Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public async Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
         // Apply previous edits if any.
         var originalText = context.SourceText;
         var changedText = originalText;
         var changedContext = context;
-        if (result.Edits.Length > 0)
+        if (edits.Length > 0)
         {
-            var changes = result.Edits.Select(originalText.GetTextChange).ToArray();
+            var changes = edits.Select(originalText.GetTextChange);
             changedText = changedText.WithChanges(changes);
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
 
@@ -40,16 +40,16 @@ internal sealed class RazorFormattingPass : IFormattingPass
 
         // Format the razor bits of the file
         var syntaxTree = changedContext.CodeDocument.GetSyntaxTree();
-        var edits = FormatRazor(changedContext, syntaxTree);
+        var razorEdits = FormatRazor(changedContext, syntaxTree);
 
         // Compute the final combined set of edits
-        var formattingChanges = edits.Select(changedText.GetTextChange);
+        var formattingChanges = razorEdits.Select(changedText.GetTextChange);
         changedText = changedText.WithChanges(formattingChanges);
 
         var finalChanges = changedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        return new FormattingResult(finalEdits);
+        return finalEdits;
     }
 
     private static ImmutableArray<TextEdit> FormatRazor(FormattingContext context, RazorSyntaxTree syntaxTree)

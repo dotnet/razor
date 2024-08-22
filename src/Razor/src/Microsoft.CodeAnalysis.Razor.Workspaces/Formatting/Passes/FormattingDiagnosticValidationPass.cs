@@ -20,12 +20,11 @@ internal sealed class FormattingDiagnosticValidationPass(ILoggerFactory loggerFa
     // Internal for testing.
     internal bool DebugAssertsEnabled { get; set; } = true;
 
-    public async Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public async Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
         var originalDiagnostics = context.CodeDocument.GetSyntaxTree().Diagnostics;
 
         var text = context.SourceText;
-        var edits = result.Edits;
         var changes = edits.Select(text.GetTextChange);
         var changedText = text.WithChanges(changes);
         var changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
@@ -56,10 +55,10 @@ internal sealed class FormattingDiagnosticValidationPass(ILoggerFactory loggerFa
                 Debug.Fail("A formatting result was rejected because the formatted text produced different diagnostics compared to the original text.");
             }
 
-            return new FormattingResult([]);
+            return [];
         }
 
-        return result;
+        return edits;
     }
 
     private class LocationIgnoringDiagnosticComparer : IEqualityComparer<RazorDiagnostic>

@@ -32,14 +32,14 @@ public class Foo { }
         {
             VsLspFactory.CreateTextEdit(2, 0, "    ")
         };
-        var input = new FormattingResult(edits);
+        var input = edits;
         var pass = GetPass();
 
         // Act
         var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
         // Assert
-        Assert.Equal(input, result);
+        Assert.Same(input, result);
     }
 
     [Fact]
@@ -53,14 +53,13 @@ public class Foo { }
 ");
         using var context = CreateFormattingContext(source);
         var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ "); // Creates a diagnostic
-        var input = new FormattingResult([badEdit]);
         var pass = GetPass();
 
         // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
+        var result = await pass.ExecuteAsync(context, [badEdit], DisposalToken);
 
         // Assert
-        Assert.Empty(result.Edits);
+        Assert.Empty(result);
     }
 
     private FormattingDiagnosticValidationPass GetPass()

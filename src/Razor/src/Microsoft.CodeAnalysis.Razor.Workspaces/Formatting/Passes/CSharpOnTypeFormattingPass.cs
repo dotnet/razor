@@ -32,19 +32,18 @@ internal sealed class CSharpOnTypeFormattingPass(
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
-    public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public async override Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
         // Normalize and re-map the C# edits.
         var codeDocument = context.CodeDocument;
         var csharpText = codeDocument.GetCSharpSourceText();
 
-        var textEdits = result.Edits;
-        if (textEdits.Length == 0)
+        if (edits.Length == 0)
         {
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
                 _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
-                return result;
+                return edits;
             }
 
             // Ask C# for formatting changes.
@@ -63,18 +62,18 @@ internal sealed class CSharpOnTypeFormattingPass(
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation($"Received no results.");
-                return result;
+                return edits;
             }
 
-            textEdits = formattingChanges.Select(csharpText.GetTextEdit).ToArray();
-            _logger.LogInformation($"Received {textEdits.Length} results from C#.");
+            edits = formattingChanges.Select(csharpText.GetTextEdit).ToArray();
+            _logger.LogInformation($"Received {edits.Length} results from C#.");
         }
 
         // Sometimes the C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
         // to normalize them. Instead of having this flow up and log a NFW, we just capture it here. Since this only happens when typing
         // very quickly, it is a safe assumption that we'll get another chance to do on type formatting, since we know the user is typing.
         // The proper fix for this is https://github.com/dotnet/razor-tooling/issues/6650 at which point this can be removed
-        foreach (var edit in textEdits)
+        foreach (var edit in edits)
         {
             var startLine = edit.Range.Start.Line;
             var endLine = edit.Range.End.Line;
@@ -82,11 +81,11 @@ internal sealed class CSharpOnTypeFormattingPass(
             if (startLine >= count || endLine >= count)
             {
                 _logger.LogWarning($"Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.");
-                return result;
+                return edits;
             }
         }
          
-        var normalizedEdits = csharpText.NormalizeTextEdits(textEdits, out var originalTextWithChanges);
+        var normalizedEdits = csharpText.NormalizeTextEdits((TextEdit[])edits, out var originalTextWithChanges);
         var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits);
         var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
         if (filteredEdits.Length == 0)
@@ -96,9 +95,9 @@ internal sealed class CSharpOnTypeFormattingPass(
             //
             // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
 
-            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
+            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, edits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
 
-            return new FormattingResult(filteredEdits);
+            return filteredEdits;
         }
 
         // Find the lines that were affected by these edits.
@@ -196,9 +195,9 @@ internal sealed class CSharpOnTypeFormattingPass(
         var finalChanges = cleanedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
+        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, edits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
 
-        return new FormattingResult(finalEdits);
+        return finalEdits;
     }
 
     private TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits)

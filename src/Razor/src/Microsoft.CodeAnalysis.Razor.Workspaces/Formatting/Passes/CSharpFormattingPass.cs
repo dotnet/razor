@@ -27,15 +27,15 @@ internal sealed class CSharpFormattingPass(
     private readonly CSharpFormatter _csharpFormatter = new CSharpFormatter(documentMappingService);
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpFormattingPass>();
 
-    public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public async override Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
         // Apply previous edits if any.
         var originalText = context.SourceText;
         var changedText = originalText;
         var changedContext = context;
-        if (result.Edits.Length > 0)
+        if (edits.Length > 0)
         {
-            var changes = result.Edits.Select(originalText.GetTextChange).ToArray();
+            var changes = edits.Select(originalText.GetTextChange);
             changedText = changedText.WithChanges(changes);
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
         }
@@ -69,7 +69,7 @@ internal sealed class CSharpFormattingPass(
         var finalChanges = changedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        return new FormattingResult(finalEdits);
+        return finalEdits;
     }
 
     private async Task<ImmutableArray<TextEdit>> FormatCSharpAsync(FormattingContext context, CancellationToken cancellationToken)

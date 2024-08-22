@@ -88,8 +88,7 @@ internal class RazorFormattingService : IRazorFormattingService
         using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
         var originalText = context.SourceText;
 
-        var result = new FormattingResult(htmlEdits);
-
+        var result = htmlEdits;
         foreach (var pass in _documentFormattingPasses)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -97,8 +96,8 @@ internal class RazorFormattingService : IRazorFormattingService
         }
 
         var filteredEdits = range is null
-            ? result.Edits
-            : result.Edits.Where(e => range.LineOverlapsWith(e.Range)).ToArray();
+            ? result
+            : result.Where(e => range.LineOverlapsWith(e.Range)).ToArray();
 
         return originalText.NormalizeTextEdits(filteredEdits);
     }
@@ -196,7 +195,7 @@ internal class RazorFormattingService : IRazorFormattingService
         var uri = documentContext.Uri;
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
-        var result = new FormattingResult(generatedDocumentEdits);
+        var result = generatedDocumentEdits;
 
         foreach (var pass in formattingPasses)
         {
@@ -205,7 +204,7 @@ internal class RazorFormattingService : IRazorFormattingService
         }
 
         var originalText = context.SourceText;
-        var razorEdits = originalText.NormalizeTextEdits(result.Edits);
+        var razorEdits = originalText.NormalizeTextEdits(result);
 
         if (collapseEdits)
         {

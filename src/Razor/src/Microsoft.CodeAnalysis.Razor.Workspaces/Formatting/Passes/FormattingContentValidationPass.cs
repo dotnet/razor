@@ -18,10 +18,9 @@ internal sealed class FormattingContentValidationPass(ILoggerFactory loggerFacto
     // Internal for testing.
     internal bool DebugAssertsEnabled { get; set; } = true;
 
-    public Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
         var text = context.SourceText;
-        var edits = result.Edits;
         var changes = edits.Select(text.GetTextChange);
         var changedText = text.WithChanges(changes);
 
@@ -49,9 +48,9 @@ internal sealed class FormattingContentValidationPass(ILoggerFactory loggerFacto
                 Debug.Fail("A formatting result was rejected because it was going to change non-whitespace content in the document.");
             }
 
-            return Task.FromResult(new FormattingResult([]));
+            return Task.FromResult<TextEdit[]>([]);
         }
 
-        return Task.FromResult(result);
+        return Task.FromResult(edits);
     }
 }

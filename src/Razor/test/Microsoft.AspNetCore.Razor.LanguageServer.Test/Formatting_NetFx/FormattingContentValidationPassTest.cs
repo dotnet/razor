@@ -34,14 +34,14 @@ public class Foo { }
         {
             VsLspFactory.CreateTextEdit(2, 0, "    ")
         };
-        var input = new FormattingResult(edits);
+        var input = edits;
         var pass = GetPass();
 
         // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
+        var result = await pass.ExecuteAsync(context, edits, DisposalToken);
 
         // Assert
-        Assert.Equal(input, result);
+        Assert.Same(input, result);
     }
 
     [Fact]
@@ -58,14 +58,14 @@ public class Foo { }
         {
             VsLspFactory.CreateTextEdit(2, 0, 3, 0, "    ") // Nukes a line
         };
-        var input = new FormattingResult(edits);
+        var input = edits;
         var pass = GetPass();
 
         // Act
         var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
         // Assert
-        Assert.Empty(result.Edits);
+        Assert.Empty(result);
     }
 
     private FormattingContentValidationPass GetPass()

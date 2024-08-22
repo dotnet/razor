@@ -17,20 +17,18 @@ internal abstract class HtmlFormattingPassBase(ILogger logger) : IFormattingPass
 {
     private readonly ILogger _logger = logger;
 
-    public virtual async Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public virtual async Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
         var originalText = context.SourceText;
-
-        var htmlEdits = result.Edits;
 
         var changedText = originalText;
         var changedContext = context;
 
         _logger.LogTestOnly($"Before HTML formatter:\r\n{changedText}");
 
-        if (htmlEdits.Length > 0)
+        if (edits.Length > 0)
         {
-            var changes = htmlEdits.Select(originalText.GetTextChange);
+            var changes = edits.Select(originalText.GetTextChange);
             changedText = originalText.WithChanges(changes);
             // Create a new formatting context for the changed razor document.
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
@@ -49,7 +47,7 @@ internal abstract class HtmlFormattingPassBase(ILogger logger) : IFormattingPass
         var finalChanges = changedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        return new FormattingResult(finalEdits);
+        return finalEdits;
     }
 
     private static List<TextChange> AdjustRazorIndentation(FormattingContext context)

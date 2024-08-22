@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
@@ -12,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 /// </summary>
 internal sealed class HtmlOnTypeFormattingPass(ILoggerFactory loggerFactory) : HtmlFormattingPassBase(loggerFactory.GetOrCreateLogger<HtmlOnTypeFormattingPass>())
 {
-    public override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public override Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
-        if (result.Edits.Length == 0)
+        if (edits.Length == 0)
         {
             // There are no HTML edits for us to apply. No op.
-            return Task.FromResult(new FormattingResult([]));
+            return Task.FromResult<TextEdit[]>([]);
         }
 
-        return base.ExecuteAsync(context, result, cancellationToken);
+        return base.ExecuteAsync(context, edits, cancellationToken);
     }
 }

@@ -25,7 +25,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
 
     protected IDocumentMappingService DocumentMappingService { get; } = documentMappingService;
 
-    public abstract Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
+    public abstract Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken);
 
     protected async Task<List<TextChange>> AdjustIndentationAsync(FormattingContext context, CancellationToken cancellationToken, Range? range = null)
     {
