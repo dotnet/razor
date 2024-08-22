@@ -119,67 +119,6 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_CodeInsideDiv_ScansCorrect()
-    {
-        // Arrange
-        var documentPath = "c:/Test.cs";
-        var contents = """
-            @page "/"
-
-            <PageTitle>Home</PageTitle>
-
-            <$$div id="codeInside">
-                @for(int idx = 0; idx < 10; idx++) {
-                    string s = someFunc(idx * myField);
-                }
-            </div>
-
-            <div id="parent">
-                <div>
-                    <h1>Div a title</h1>
-                    <p>Div a par</p>
-                </div>
-                <div>
-                    <h1>Div b title</h1>
-                    <p>Div b par</p>
-                </div>
-            </div>
-
-            @code {
-                public int myField = 7;
-
-                public string someFunc(int num) {
-                    return "Hello for number" + num;
-                }
-            }
-            """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
-
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
-            Context = new VSInternalCodeActionContext()
-        };
-
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
-
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
-
-        // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
-
-        // Assert
-        Assert.NotEmpty(commandOrCodeActionContainer);
-        var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
-        Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToNewComponentCodeActionParams>();
-        Assert.NotNull(actionParams);
-    }
-
-    [Fact]
     public async Task Handle_MultiPointSelection_ReturnsNotEmpty()
     {
         // Arrange
@@ -215,12 +154,11 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
-        AddMultiPointSelectionToContext(ref context, selectionSpan);
 
         var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
         request.Range = VsLspFactory.CreateRange(lineSpan);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -230,7 +168,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToNewComponentCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
         Assert.NotNull(actionParams);
     }
 
@@ -287,7 +225,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToNewComponentCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
         Assert.NotNull(actionParams);
         Assert.Equal(selectionSpan.Start, actionParams.ExtractStart);
         Assert.Equal(selectionSpan.End, actionParams.ExtractEnd);

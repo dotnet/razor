@@ -45,7 +45,7 @@ internal sealed class ExtractToComponentCodeActionResolver
             return null;
         }
 
-        var actionParams = JsonSerializer.Deserialize<ExtractToNewComponentCodeActionParams>(data.GetRawText());
+        var actionParams = JsonSerializer.Deserialize<ExtractToComponentCodeActionParams>(data.GetRawText());
         if (actionParams is null)
         {
             return null;

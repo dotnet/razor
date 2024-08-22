@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
@@ -72,10 +71,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
         var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);        
 
-        if (IsMultiPointSelection(context.Request.Range))
-        {
-            ProcessMultiPointSelection(startElementNode, endElementNode, actionParams);
-        }
+        ProcessSelection(startElementNode, endElementNode, actionParams);
 
         var utilityScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
         AddComponentDependenciesInRange(utilityScanRoot,
@@ -110,7 +106,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             return (null, null);
         }
 
-        var endElementNode = GetEndElementNode(context, syntaxTree, logger);
+        var endElementNode = GetEndElementNode(context, syntaxTree);
 
         return (startElementNode, endElementNode);
     }
@@ -152,9 +148,9 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
     }
 
-    private static ExtractToNewComponentCodeActionParams CreateInitialActionParams(RazorCodeActionContext context, MarkupElementSyntax startElementNode, string @namespace)
+    private static ExtractToComponentCodeActionParams CreateInitialActionParams(RazorCodeActionContext context, MarkupElementSyntax startElementNode, string @namespace)
     {
-        return new ExtractToNewComponentCodeActionParams
+        return new ExtractToComponentCodeActionParams
         {
             Uri = context.Request.TextDocument.Uri,
             ExtractStart = startElementNode.Span.Start,
@@ -172,7 +168,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
     /// <param name="startElementNode">The starting element of the selection.</param>
     /// <param name="endElementNode">The ending element of the selection, if it exists.</param>
     /// <param name="actionParams">The parameters for the extraction action, which will be updated.</param>
-    private static void ProcessSelection(MarkupElementSyntax startElementNode, MarkupElementSyntax? endElementNode, ExtractToNewComponentCodeActionParams actionParams)
+    private static void ProcessSelection(MarkupElementSyntax startElementNode, MarkupElementSyntax? endElementNode, ExtractToComponentCodeActionParams actionParams)
     {
         // If there's no end element, we can't process a multi-point selection
         if (endElementNode is null)
@@ -278,7 +274,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return null;
     }
 
-    private static void AddComponentDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd, ExtractToNewComponentCodeActionParams actionParams)
+    private static void AddComponentDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
     {
         var components = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
@@ -312,7 +308,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return null;
     }
 
-    private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, ExtractToNewComponentCodeActionParams actionParams)
+    private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, ExtractToComponentCodeActionParams actionParams)
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {
@@ -332,7 +328,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         }
     }
 
-    private static void GetUsedIdentifiers(SyntaxNode divNode, SyntaxNode documentRoot, ExtractToNewComponentCodeActionParams actionParams)
+    private static void GetUsedIdentifiers(SyntaxNode divNode, SyntaxNode documentRoot, ExtractToComponentCodeActionParams actionParams)
     {
         HashSet<string> identifiersInScope = [];
         HashSet<string> identifiersInBlock = [];
