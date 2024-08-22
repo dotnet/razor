@@ -24,9 +24,6 @@ internal sealed class CSharpFormattingPass(
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpFormattingPass>();
 
-    // Run after the HTML and Razor formatter pass.
-    public override int Order => DefaultOrder - 3;
-
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
         if (context.IsFormatOnType || result.Kind != RazorLanguageKind.Razor)

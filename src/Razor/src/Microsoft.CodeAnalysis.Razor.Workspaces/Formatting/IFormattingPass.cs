@@ -8,9 +8,5 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal interface IFormattingPass
 {
-    int Order { get; }
-
-    bool IsValidationPass { get; }
-
     Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
 }

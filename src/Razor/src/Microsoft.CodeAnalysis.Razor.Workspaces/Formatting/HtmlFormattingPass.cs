@@ -22,11 +22,6 @@ internal sealed class HtmlFormattingPass(
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlFormattingPass>();
 
-    // We want this to run first because it uses the client HTML formatter.
-    public override int Order => DefaultOrder - 5;
-
-    public override bool IsValidationPass => false;
-
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
         var originalText = context.SourceText;

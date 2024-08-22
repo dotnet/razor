@@ -26,11 +26,6 @@ internal sealed class RazorFormattingPass(
     IDocumentMappingService documentMappingService)
     : FormattingPassBase(documentMappingService)
 {
-    // Run after the C# formatter pass.
-    public override int Order => DefaultOrder - 4;
-
-    public override bool IsValidationPass => false;
-
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
         if (context.IsFormatOnType)

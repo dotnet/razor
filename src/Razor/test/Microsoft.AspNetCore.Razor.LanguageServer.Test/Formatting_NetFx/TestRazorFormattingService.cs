@@ -1,18 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -42,16 +39,6 @@ internal static class TestRazorFormattingService
             await optionsMonitor.UpdateAsync(CancellationToken.None);
         }
 
-        var passes = new List<IFormattingPass>()
-        {
-            new HtmlFormattingPass(mappingService, loggerFactory),
-            new CSharpFormattingPass(mappingService, loggerFactory),
-            new CSharpOnTypeFormattingPass(mappingService, loggerFactory),
-            new RazorFormattingPass(mappingService),
-            new FormattingDiagnosticValidationPass(mappingService, loggerFactory),
-            new FormattingContentValidationPass(mappingService, loggerFactory),
-        };
-
-        return new RazorFormattingService(passes, TestAdhocWorkspaceFactory.Instance);
+        return new RazorFormattingService(mappingService, TestAdhocWorkspaceFactory.Instance, loggerFactory);
     }
 }

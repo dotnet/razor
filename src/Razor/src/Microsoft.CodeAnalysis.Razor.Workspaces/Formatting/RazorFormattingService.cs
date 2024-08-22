@@ -3,12 +3,13 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -18,12 +19,32 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal class RazorFormattingService(
-    IEnumerable<IFormattingPass> formattingPasses,
-    IAdhocWorkspaceFactory workspaceFactory) : IRazorFormattingService
+internal class RazorFormattingService : IRazorFormattingService
 {
-    private readonly ImmutableArray<IFormattingPass> _formattingPasses = formattingPasses.OrderByAsArray(f => f.Order);
-    private readonly IAdhocWorkspaceFactory _workspaceFactory = workspaceFactory;
+    private readonly IAdhocWorkspaceFactory _workspaceFactory;
+
+    private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
+    private readonly ImmutableArray<IFormattingPass> _validationPasses;
+    private readonly CSharpOnTypeFormattingPass _csharpOnTypeFormattingPass;
+    private readonly HtmlFormattingPass _htmlFormattingPass;
+
+    public RazorFormattingService(
+        IDocumentMappingService documentMappingService,
+        IAdhocWorkspaceFactory workspaceFactory,
+        ILoggerFactory loggerFactory)
+    {
+        _workspaceFactory = workspaceFactory;
+
+        var cSharpFormattingPass = new CSharpFormattingPass(documentMappingService, loggerFactory);
+        var razorFormattingPass = new RazorFormattingPass(documentMappingService);
+        var diagnosticValidationPass = new FormattingDiagnosticValidationPass(documentMappingService, loggerFactory);
+        var contentValidationPass = new FormattingContentValidationPass(documentMappingService, loggerFactory);
+
+        _htmlFormattingPass = new HtmlFormattingPass(documentMappingService, loggerFactory);
+        _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, loggerFactory);
+        _validationPasses = [diagnosticValidationPass, contentValidationPass];
+        _documentFormattingPasses = [_htmlFormattingPass, razorFormattingPass, cSharpFormattingPass, .. _validationPasses];
+    }
 
     public async Task<TextEdit[]> GetDocumentFormattingEditsAsync(
         VersionedDocumentContext documentContext,
@@ -32,8 +53,6 @@ internal class RazorFormattingService(
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        Debug.Assert(_formattingPasses[0] is HtmlFormattingPass, "Formatting requires the first pass to be Html");
-
         var codeDocument = await documentContext.Snapshot.GetFormatterCodeDocumentAsync().ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
@@ -66,7 +85,8 @@ internal class RazorFormattingService(
         var originalText = context.SourceText;
 
         var result = new FormattingResult(htmlEdits);
-        foreach (var pass in _formattingPasses)
+
+        foreach (var pass in _documentFormattingPasses)
         {
             cancellationToken.ThrowIfCancellationRequested();
             result = await pass.ExecuteAsync(context, result, cancellationToken).ConfigureAwait(false);
@@ -80,20 +100,60 @@ internal class RazorFormattingService(
     }
 
     public Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
-        => ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, [], options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
+        => ApplyFormattedEditsAsync(
+            documentContext,
+            RazorLanguageKind.CSharp,
+            formattedEdits: [],
+            options,
+            hostDocumentIndex,
+            triggerCharacter,
+            [_csharpOnTypeFormattingPass, .. _validationPasses],
+            collapseEdits: false,
+            automaticallyAddUsings: false,
+            cancellationToken: cancellationToken);
 
     public Task<TextEdit[]> GetHtmlOnTypeFormattingEditsAsync(DocumentContext documentContext, TextEdit[] htmlEdits, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
-        => ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.Html, htmlEdits, options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
+        => ApplyFormattedEditsAsync(
+            documentContext,
+            RazorLanguageKind.Html,
+            htmlEdits,
+            options,
+            hostDocumentIndex,
+            triggerCharacter,
+            [_htmlFormattingPass, .. _validationPasses],
+            collapseEdits: false,
+            automaticallyAddUsings: false,
+            cancellationToken: cancellationToken);
 
     public async Task<TextEdit?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextEdit edit, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var formattedEdits = await ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, [edit], options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var formattedEdits = await ApplyFormattedEditsAsync(
+            documentContext,
+            RazorLanguageKind.CSharp,
+            [edit],
+            options,
+            hostDocumentIndex: 0,
+            triggerCharacter: '\0',
+            [_csharpOnTypeFormattingPass, .. _validationPasses],
+            collapseEdits: false,
+            automaticallyAddUsings: false,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
         return formattedEdits.SingleOrDefault();
     }
 
     public async Task<TextEdit?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, TextEdit[] initialEdits, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var edits = await ApplyFormattedEditsAsync(documentContext, RazorLanguageKind.CSharp, initialEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: true, automaticallyAddUsings: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var edits = await ApplyFormattedEditsAsync(
+            documentContext,
+            RazorLanguageKind.CSharp,
+            initialEdits,
+            options,
+            hostDocumentIndex: 0,
+            triggerCharacter: '\0',
+            [_csharpOnTypeFormattingPass],
+            collapseEdits: true,
+            automaticallyAddUsings: true,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
         return edits.SingleOrDefault();
     }
 
@@ -108,7 +168,7 @@ internal class RazorFormattingService(
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
-            bypassValidationPasses: true,
+            [_csharpOnTypeFormattingPass],
             collapseEdits: true,
             automaticallyAddUsings: false,
             cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -125,13 +185,11 @@ internal class RazorFormattingService(
         RazorFormattingOptions options,
         int hostDocumentIndex,
         char triggerCharacter,
-        bool bypassValidationPasses,
+        ImmutableArray<IFormattingPass> formattingPasses,
         bool collapseEdits,
         bool automaticallyAddUsings,
         CancellationToken cancellationToken)
     {
-        Debug.Assert(_formattingPasses[0] is HtmlFormattingPass, "Formatting requires the first pass to be Html");
-
         // If we only received a single edit, let's always return a single edit back.
         // Otherwise, merge only if explicitly asked.
         collapseEdits |= formattedEdits.Length == 1;
@@ -142,13 +200,8 @@ internal class RazorFormattingService(
         using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
         var result = new FormattingResult(formattedEdits, kind);
 
-        foreach (var pass in _formattingPasses)
+        foreach (var pass in formattingPasses)
         {
-            if (pass.IsValidationPass && bypassValidationPasses)
-            {
-                continue;
-            }
-
             cancellationToken.ThrowIfCancellationRequested();
             result = await pass.ExecuteAsync(context, result, cancellationToken).ConfigureAwait(false);
         }

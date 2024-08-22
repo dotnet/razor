@@ -30,8 +30,6 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
 
     protected CSharpFormatter CSharpFormatter { get; }
 
-    public override bool IsValidationPass => false;
-
     protected async Task<List<TextChange>> AdjustIndentationAsync(FormattingContext context, CancellationToken cancellationToken, Range? range = null)
     {
         // In this method, the goal is to make final adjustments to the indentation of each line.
