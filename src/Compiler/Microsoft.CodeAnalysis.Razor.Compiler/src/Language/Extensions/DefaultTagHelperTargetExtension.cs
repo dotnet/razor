@@ -646,7 +646,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
     // Internal for testing
     internal static string GetDeterministicId(CodeRenderingContext context)
     {
-        var uniqueId = (string)context.Items[CodeRenderingContext.SuppressUniqueIds];
+        var uniqueId = context.Options.SuppressUniqueIds;
         if (uniqueId is null)
         {
             // Use the file checksum along with the absolute position in the generated code to create a unique id for each tag helper call site.

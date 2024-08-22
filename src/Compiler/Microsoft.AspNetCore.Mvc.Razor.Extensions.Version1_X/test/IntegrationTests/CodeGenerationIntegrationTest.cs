@@ -90,7 +90,7 @@ public class MyService<TModel>
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
 
         // We expect this test to generate a bunch of errors.
-        Assert.True(compiled.CodeDocument.GetCSharpDocument().Diagnostics.Count > 0);
+        Assert.True(compiled.CodeDocument.GetCSharpDocument().Diagnostics.Length > 0);
     }
 
     [Fact]
