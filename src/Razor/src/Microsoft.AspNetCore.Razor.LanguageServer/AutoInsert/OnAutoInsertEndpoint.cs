@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -57,7 +58,8 @@ internal class OnAutoInsertEndpoint(
         {
             triggerCharacters = triggerCharacters
                 .Concat(AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters)
-                .Concat(AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters);
+                .Concat(AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters)
+                .ToFrozenSet(StringComparer.Ordinal);
         }
 
         serverCapabilities.EnableOnAutoInsert(triggerCharacters);
@@ -88,12 +90,12 @@ internal class OnAutoInsertEndpoint(
             _optionsMonitor.CurrentValue.AutoClosingTags
         );
 
-        if (insertTextEdit is not null)
+        if (insertTextEdit is { } edit)
         { 
             return new VSInternalDocumentOnAutoInsertResponseItem()
             {
-                TextEdit = insertTextEdit.Value.TextEdit,
-                TextEditFormat = insertTextEdit.Value.InsertTextFormat,
+                TextEdit = edit.TextEdit,
+                TextEditFormat = edit.TextEditFormat,
             };
         }
 

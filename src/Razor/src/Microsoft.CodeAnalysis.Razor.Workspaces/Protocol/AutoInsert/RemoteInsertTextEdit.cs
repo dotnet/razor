@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.VisualStudio.LanguageServer.Protocol.VsLspExtensions;
@@ -21,11 +20,11 @@ internal readonly record struct RemoteInsertTextEdit(
         RoslynInsertTextFormat InsertTextFormat
     )
 {
-    public static RemoteInsertTextEdit FromLspInsertTextEdit(InsertTextEdit edit)
+    public static RemoteInsertTextEdit FromLspInsertTextEdit(VSInternalDocumentOnAutoInsertResponseItem edit)
         => new (
             edit.TextEdit.Range.ToLinePositionSpan(),
             edit.TextEdit.NewText,
-            (RoslynInsertTextFormat)edit.InsertTextFormat);
+            (RoslynInsertTextFormat)edit.TextEditFormat);
 
     public static VSInternalDocumentOnAutoInsertResponseItem ToLspInsertTextEdit(RemoteInsertTextEdit edit)
         => new()

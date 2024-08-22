@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
-using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -194,10 +192,10 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
 
         public string TriggerCharacter { get; } = triggerCharacter;
 
-        public InsertTextEdit? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
+        public VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
         {
             Called = true;
-            return canResolve ? new(ResolvedTextEdit!, default) : default;
+            return canResolve ? new() { TextEdit = ResolvedTextEdit!, TextEditFormat = default } : default;
         }
     }
 

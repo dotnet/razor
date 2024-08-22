@@ -39,7 +39,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
     public string TriggerCharacter => ">";
 
-    public InsertTextEdit? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
+    public VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
     {
         if (!(enableAutoClosingTags
             && codeDocument.Source.Text is { } sourceText
@@ -54,7 +54,11 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
             var formatForEndTag = InsertTextFormat.Snippet;
             var editForEndTag = VsLspFactory.CreateTextEdit(position, $"$0</{tagNameWithClosingBehavior.TagName}>");
 
-            return new InsertTextEdit(editForEndTag, formatForEndTag);
+            return new()
+            {
+                TextEdit = editForEndTag,
+                TextEditFormat = formatForEndTag
+            };
         }
 
         Debug.Assert(tagNameWithClosingBehavior.AutoClosingBehavior == AutoClosingBehavior.SelfClosing);
@@ -65,7 +69,11 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         var insertionText = char.IsWhiteSpace(sourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
         var edit = VsLspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
 
-        return new InsertTextEdit(edit, format);
+        return new()
+        {
+            TextEdit = edit,
+            TextEditFormat = format
+        };
     }
 
     private static TagNameWithClosingBehavior? TryResolveAutoClosingBehavior(RazorCodeDocument codeDocument, int afterCloseAngleIndex)

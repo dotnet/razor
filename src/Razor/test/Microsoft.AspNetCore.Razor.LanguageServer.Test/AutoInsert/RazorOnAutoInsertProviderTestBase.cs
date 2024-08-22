@@ -6,11 +6,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
-using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -46,7 +43,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         var edit = provider.TryResolveInsertion(position, codeDocument, enableAutoClosingTags: enableAutoClosingTags);
 
         // Assert
-        var edited = edit is null ? source : ApplyEdit(source, edit.Value.TextEdit);
+        var edited = edit is null ? source : ApplyEdit(source, edit.TextEdit);
         var actual = edited.ToString();
         Assert.Equal(expected, actual);
     }

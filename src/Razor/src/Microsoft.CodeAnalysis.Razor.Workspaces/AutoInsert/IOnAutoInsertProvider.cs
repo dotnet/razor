@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
 internal interface IOnAutoInsertProvider : IOnAutoInsertTriggerCharacterProvider
 {
-    public InsertTextEdit? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags);
+    public VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags);
 }

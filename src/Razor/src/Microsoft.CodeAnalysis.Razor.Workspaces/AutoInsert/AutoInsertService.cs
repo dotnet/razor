@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -14,13 +15,15 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
 {
     private readonly IEnumerable<IOnAutoInsertProvider> _onAutoInsertProviders = onAutoInsertProviders;
 
-    public static HashSet<string> HtmlAllowedAutoInsertTriggerCharacters { get; } = new(StringComparer.Ordinal) { "=", };
-    public static HashSet<string> CSharpAllowedAutoInsertTriggerCharacters { get; } = new(StringComparer.Ordinal) { "'", "/", "\n" };
+    public static FrozenSet<string> HtmlAllowedAutoInsertTriggerCharacters { get; }
+        = new string[] { "=" }.ToFrozenSet(StringComparer.Ordinal);
+    public static FrozenSet<string> CSharpAllowedAutoInsertTriggerCharacters { get; }
+        = new string[] { "'", "/", "\n" }.ToFrozenSet(StringComparer.Ordinal);
 
     // This gets called just once
-    public IEnumerable<string> TriggerCharacters => _onAutoInsertProviders.Select((provider) => provider.TriggerCharacter);
+    public FrozenSet<string> TriggerCharacters => _onAutoInsertProviders.Select((provider) => provider.TriggerCharacter).ToFrozenSet(StringComparer.Ordinal);
 
-    public InsertTextEdit? TryResolveInsertion(
+    public VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(
         RazorCodeDocument codeDocument,
         Position position,
         string character,
