@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.Settings;
 using RazorLSPConstants = Microsoft.VisualStudio.Razor.LanguageClient.RazorLSPConstants;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteAutoInsertTextEdit?>;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 
@@ -93,7 +93,7 @@ internal class CohostOnAutoInsertEndpoint(
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)
-                => service.TryResolveInsertionAsync(
+                => service.GetAutoInsertTextEditAsync(
                         solutionInfo,
                         razorDocument.Id,
                         request.Position.ToLinePosition(),
@@ -108,7 +108,7 @@ internal class CohostOnAutoInsertEndpoint(
         if (data.Result is { } remoteInsertTextEdit)
         {
             _logger.LogDebug($"Got insert text edit from OOP {remoteInsertTextEdit}");
-            return RemoteInsertTextEdit.ToLspInsertTextEdit(remoteInsertTextEdit);
+            return RemoteAutoInsertTextEdit.ToLspInsertTextEdit(remoteInsertTextEdit);
         }
 
         if (data.StopHandling)

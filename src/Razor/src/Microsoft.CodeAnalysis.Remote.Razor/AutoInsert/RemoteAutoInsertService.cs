@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.LanguageServer.Protocol;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteAutoInsertTextEdit?>;
 using RoslynFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
 using RoslynInsertTextFormat = Roslyn.LanguageServer.Protocol.InsertTextFormat;
 using VsLspFormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
@@ -44,7 +44,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         args.ExportProvider.GetExportedValue<ILoggerFactory>()
         .GetOrCreateLogger(nameof(RemoteAutoInsertService));
 
-    public ValueTask<Response> TryResolveInsertionAsync(
+    public ValueTask<Response> GetAutoInsertTextEditAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId documentId,
         LinePosition linePosition,
@@ -97,7 +97,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
 
         if (insertTextEdit is { } edit)
         {
-            return Response.Results(RemoteInsertTextEdit.FromLspInsertTextEdit(edit));
+            return Response.Results(RemoteAutoInsertTextEdit.FromLspInsertTextEdit(edit));
         }
 
         var positionInfo = PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance.GetPositionInfo(_documentMappingService, codeDocument, index);
@@ -210,7 +210,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         }
 
         return Response.Results(
-            new RemoteInsertTextEdit(
+            new RemoteAutoInsertTextEdit(
                 edit.Range.ToLinePositionSpan(),
                 edit.NewText,
                 autoInsertResponseItem.TextEditFormat));

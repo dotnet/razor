@@ -8,11 +8,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteInsertTextEdit?>;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteAutoInsertTextEdit?>;
 
-internal interface IRemoteAutoInsertService : IDisposable
+internal interface IRemoteAutoInsertService
 {
-    ValueTask<Response> TryResolveInsertionAsync(
+    ValueTask<Response> GetAutoInsertTextEditAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId documentId,
         LinePosition position,

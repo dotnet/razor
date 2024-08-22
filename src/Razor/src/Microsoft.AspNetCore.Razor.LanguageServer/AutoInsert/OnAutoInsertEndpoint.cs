@@ -87,8 +87,7 @@ internal class OnAutoInsertEndpoint(
             codeDocument,
             request.Position,
             character,
-            _optionsMonitor.CurrentValue.AutoClosingTags
-        );
+            _optionsMonitor.CurrentValue.AutoClosingTags);
 
         if (insertTextEdit is { } edit)
         { 

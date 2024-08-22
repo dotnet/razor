@@ -11,7 +11,7 @@ using RoslynInsertTextFormat = Roslyn.LanguageServer.Protocol.InsertTextFormat;
 namespace Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
 
 [DataContract]
-internal readonly record struct RemoteInsertTextEdit(
+internal readonly record struct RemoteAutoInsertTextEdit(
         [property: DataMember(Order = 0)]
         LinePositionSpan LinePositionSpan,
         [property: DataMember(Order = 1)]
@@ -20,13 +20,13 @@ internal readonly record struct RemoteInsertTextEdit(
         RoslynInsertTextFormat InsertTextFormat
     )
 {
-    public static RemoteInsertTextEdit FromLspInsertTextEdit(VSInternalDocumentOnAutoInsertResponseItem edit)
+    public static RemoteAutoInsertTextEdit FromLspInsertTextEdit(VSInternalDocumentOnAutoInsertResponseItem edit)
         => new (
             edit.TextEdit.Range.ToLinePositionSpan(),
             edit.TextEdit.NewText,
             (RoslynInsertTextFormat)edit.TextEditFormat);
 
-    public static VSInternalDocumentOnAutoInsertResponseItem ToLspInsertTextEdit(RemoteInsertTextEdit edit)
+    public static VSInternalDocumentOnAutoInsertResponseItem ToLspInsertTextEdit(RemoteAutoInsertTextEdit edit)
         => new()
         {
             TextEdit = new()
