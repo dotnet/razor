@@ -192,10 +192,16 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
 
         public string TriggerCharacter { get; } = triggerCharacter;
 
-        public VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
+        public bool TryResolveInsertion(
+            Position position,
+            RazorCodeDocument codeDocument,
+            bool enableAutoClosingTags,
+            out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
         {
             Called = true;
-            return canResolve ? new() { TextEdit = ResolvedTextEdit!, TextEditFormat = default } : default;
+            autoInsertEdit = canResolve ? new() { TextEdit = ResolvedTextEdit!, TextEditFormat = InsertTextFormat.Plaintext } : null;
+
+            return canResolve;
         }
     }
 

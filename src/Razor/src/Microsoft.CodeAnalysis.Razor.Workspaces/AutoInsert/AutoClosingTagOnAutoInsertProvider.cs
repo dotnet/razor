@@ -39,14 +39,16 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
     public string TriggerCharacter => ">";
 
-    public VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
+    public bool TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags, out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
     {
+        autoInsertEdit = null;
+
         if (!(enableAutoClosingTags
             && codeDocument.Source.Text is { } sourceText
             && sourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex)
             && TryResolveAutoClosingBehavior(codeDocument, afterCloseAngleIndex) is { } tagNameWithClosingBehavior))
         {
-            return default;
+            return false;
         }
 
         if (tagNameWithClosingBehavior.AutoClosingBehavior == AutoClosingBehavior.EndTag)
@@ -54,11 +56,13 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
             var formatForEndTag = InsertTextFormat.Snippet;
             var editForEndTag = VsLspFactory.CreateTextEdit(position, $"$0</{tagNameWithClosingBehavior.TagName}>");
 
-            return new()
+            autoInsertEdit = new()
             {
                 TextEdit = editForEndTag,
                 TextEditFormat = formatForEndTag
             };
+
+            return true;
         }
 
         Debug.Assert(tagNameWithClosingBehavior.AutoClosingBehavior == AutoClosingBehavior.SelfClosing);
@@ -69,11 +73,13 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         var insertionText = char.IsWhiteSpace(sourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
         var edit = VsLspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
 
-        return new()
+        autoInsertEdit = new()
         {
             TextEdit = edit,
             TextEditFormat = format
         };
+
+        return true;
     }
 
     private static TagNameWithClosingBehavior? TryResolveAutoClosingBehavior(RazorCodeDocument codeDocument, int afterCloseAngleIndex)

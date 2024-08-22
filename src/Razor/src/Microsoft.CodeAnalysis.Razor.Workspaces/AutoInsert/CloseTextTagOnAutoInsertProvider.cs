@@ -14,22 +14,25 @@ internal class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
 {
     public string TriggerCharacter => ">";
 
-    public VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags)
+    public bool TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags, out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
     {
         if (!(enableAutoClosingTags && IsAtTextTag(codeDocument, position)))
         {
-            return default;
+            autoInsertEdit = null;
+            return false;
         }
 
         // This is a text tag.
         var format = InsertTextFormat.Snippet;
         var edit = VsLspFactory.CreateTextEdit(position, $"$0</{SyntaxConstants.TextTagName}>");
 
-        return new()
+        autoInsertEdit = new()
         {
             TextEdit = edit,
             TextEditFormat = format
         };
+
+        return true;
     }
 
     private static bool IsAtTextTag(RazorCodeDocument codeDocument, Position position)

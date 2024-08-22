@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -20,8 +21,24 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
     public static FrozenSet<string> CSharpAllowedAutoInsertTriggerCharacters { get; }
         = new string[] { "'", "/", "\n" }.ToFrozenSet(StringComparer.Ordinal);
 
-    // This gets called just once
-    public FrozenSet<string> TriggerCharacters => _onAutoInsertProviders.Select((provider) => provider.TriggerCharacter).ToFrozenSet(StringComparer.Ordinal);
+    private readonly ImmutableArray<string> _triggerCharacters = CalculateTriggerCharacters(onAutoInsertProviders);
+
+    private static ImmutableArray<string> CalculateTriggerCharacters(IEnumerable<IOnAutoInsertProvider> onAutoInsertProviders)
+    {
+        var builder = ImmutableArray.CreateBuilder<string>(onAutoInsertProviders.Count());
+        foreach (var provider in onAutoInsertProviders)
+        {
+            var triggerCharacter = provider.TriggerCharacter;
+            if (!builder.Contains(triggerCharacter))
+            {
+                builder.Add(triggerCharacter);
+            }
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public ImmutableArray<string> TriggerCharacters => _triggerCharacters;
 
     public VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(
         RazorCodeDocument codeDocument,
@@ -47,13 +64,11 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
 
         foreach (var provider in applicableProviders)
         {
-            var insertTextEdit = provider.TryResolveInsertion(
-                position,
-                codeDocument,
-                autoCloseTags
-            );
-
-            if (insertTextEdit is not null)
+            if (provider.TryResolveInsertion(
+                    position,
+                    codeDocument,
+                    autoCloseTags,
+                    out var insertTextEdit))
             {
                 return insertTextEdit;
             }

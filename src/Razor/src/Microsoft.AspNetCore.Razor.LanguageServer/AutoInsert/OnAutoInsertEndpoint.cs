@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,10 +57,10 @@ internal class OnAutoInsertEndpoint(
 
         if (_languageServerFeatureOptions.SingleServerSupport)
         {
-            triggerCharacters = triggerCharacters
-                .Concat(AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters)
-                .Concat(AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters)
-                .ToFrozenSet(StringComparer.Ordinal);
+            triggerCharacters = [
+                .. triggerCharacters,
+                .. AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters,
+                .. AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters];
         }
 
         serverCapabilities.EnableOnAutoInsert(triggerCharacters);
