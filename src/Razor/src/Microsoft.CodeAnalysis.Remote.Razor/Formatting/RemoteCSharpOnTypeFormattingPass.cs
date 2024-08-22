@@ -23,7 +23,8 @@ internal sealed class RemoteCSharpOnTypeFormattingPass(
 {
     protected override Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(CodeAnalysis.Razor.Formatting.FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
     {
-        Debug.Fail("Implement this when code actions are migrated to cohosting");
+        // Implement this when code actions are migrated to cohosting,
+        // probably will be able to move it back into base class and make that non-abstract.
 
         return Task.FromResult(finalEdits);
     }
