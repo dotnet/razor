@@ -124,4 +124,7 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
         var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         return tree.AssumeNotNull();
     }
+
+    public Task<RazorCodeDocument> GetFormatterCodeDocumentAsync()
+        => GetGeneratedOutputAsync();
 }

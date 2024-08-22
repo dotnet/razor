@@ -79,4 +79,7 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
 
     public Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
+
+    public Task<RazorCodeDocument> GetFormatterCodeDocumentAsync()
+        => throw new NotSupportedException();
 }

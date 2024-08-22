@@ -31,5 +31,7 @@ internal interface IDocumentSnapshot
     bool TryGetTextVersion(out VersionStamp result);
     bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result);
 
+    Task<RazorCodeDocument> GetFormatterCodeDocumentAsync();
+
     IDocumentSnapshot WithText(SourceText text);
 }
