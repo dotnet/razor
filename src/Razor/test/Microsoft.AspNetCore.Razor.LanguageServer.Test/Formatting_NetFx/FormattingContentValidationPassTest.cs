@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
@@ -72,11 +73,7 @@ public class Foo { }
         using var context = CreateFormattingContext(source);
         var edits = new[]
         {
-            new TextEdit()
-            {
-                NewText = "    ",
-                Range = new Range{ Start = new Position(2, 0), End = new Position(2, 0) }
-            }
+            VsLspFactory.CreateTextEdit(2, 0, "    ")
         };
         var input = new FormattingResult(edits, RazorLanguageKind.Razor);
         var pass = GetPass();
@@ -100,11 +97,7 @@ public class Foo { }
         using var context = CreateFormattingContext(source);
         var edits = new[]
         {
-            new TextEdit()
-            {
-                NewText = "    ",
-                Range = new Range{ Start = new Position(2, 0), End = new Position(3, 0) } // Nukes a line
-            }
+            VsLspFactory.CreateTextEdit(2, 0, 3, 0, "    ") // Nukes a line
         };
         var input = new FormattingResult(edits, RazorLanguageKind.Razor);
         var pass = GetPass();
@@ -118,7 +111,7 @@ public class Foo { }
 
     private FormattingContentValidationPass GetPass()
     {
-        var mappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var mappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var pass = new FormattingContentValidationPass(mappingService, LoggerFactory)
         {

@@ -2,21 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using static System.StringExtensions;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
-public sealed partial class CodeWriter
+public sealed partial class CodeWriter : IDisposable
 {
     // This is the size of each "page", which are arrays of ReadOnlyMemory<char>.
     // This number was chosen arbitrarily as a "best guess". If changed, care should be
     // taken to ensure that pages are not allocated on the LOH. ReadOnlyMemory<char>
     // takes up 16 bytes, so a page size of 1000 is 16k.
-    private const int PageSize = 1000;
+    private const int MinimumPageSize = 1000;
 
     // Rather than using a StringBuilder, we maintain a linked list of pages, which are arrays
     // of "chunks of text", represented by ReadOnlyMemory<char>. This avoids copying strings
@@ -41,13 +43,13 @@ public sealed partial class CodeWriter
     private int _currentLineCharacterIndex;
 
     public CodeWriter()
-        : this(Environment.NewLine, RazorCodeGenerationOptions.CreateDefault())
+        : this(RazorCodeGenerationOptions.Default)
     {
     }
 
-    public CodeWriter(string newLine, RazorCodeGenerationOptions options)
+    public CodeWriter(RazorCodeGenerationOptions options)
     {
-        SetNewLine(newLine);
+        SetNewLine(options.NewLine);
         IndentWithTabs = options.IndentWithTabs;
         TabSize = options.IndentSize;
 
@@ -65,9 +67,17 @@ public sealed partial class CodeWriter
         }
 
         // If we're at the start of a page, we need to add the page first.
-        var lastPage = _pageOffset == 0
-            ? _pages.AddLast(new ReadOnlyMemory<char>[PageSize]).Value
-            : _pages.Last!.Value;
+        ReadOnlyMemory<char>[] lastPage;
+
+        if (_pageOffset == 0)
+        {
+            lastPage = ArrayPool<ReadOnlyMemory<char>>.Shared.Rent(MinimumPageSize);
+            _pages.AddLast(lastPage);
+        }
+        else
+        {
+            lastPage = _pages.Last!.Value;
+        }
 
         // Add our chunk of text (the ReadOnlyMemory<char>) and increment the offset.
         lastPage[_pageOffset] = value;
@@ -75,7 +85,9 @@ public sealed partial class CodeWriter
 
         // We've reached the end of a page, so we reset the offset to 0.
         // This will cause a new page to be added next time.
-        if (_pageOffset == PageSize)
+        // _pageOffset is checked against the lastPage.Length as the Rent call that
+        // return that array may return an array longer that MinimumPageSize.
+        if (_pageOffset == lastPage.Length)
         {
             _pageOffset = 0;
         }
@@ -89,10 +101,7 @@ public sealed partial class CodeWriter
         get => _indentSize;
         set
         {
-            if (value < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(value));
-            }
+            ArgHelper.ThrowIfNegative(value);
 
             if (_indentSize != value)
             {
@@ -115,10 +124,7 @@ public sealed partial class CodeWriter
     [MemberNotNull(nameof(_newLine))]
     private void SetNewLine(string value)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgHelper.ThrowIfNull(value);
 
         if (value != "\r\n" && value != "\n")
         {
@@ -208,10 +214,7 @@ public sealed partial class CodeWriter
 
     public CodeWriter Write(string value)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgHelper.ThrowIfNull(value);
 
         return WriteCore(value.AsMemory());
     }
@@ -221,25 +224,10 @@ public sealed partial class CodeWriter
 
     public CodeWriter Write(string value, int startIndex, int count)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
-
-        if (startIndex < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(startIndex));
-        }
-
-        if (count < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count));
-        }
-
-        if (startIndex > value.Length - count)
-        {
-            throw new ArgumentOutOfRangeException(nameof(startIndex));
-        }
+        ArgHelper.ThrowIfNull(value);
+        ArgHelper.ThrowIfNegative(startIndex);
+        ArgHelper.ThrowIfNegative(count);
+        ArgHelper.ThrowIfGreaterThan(startIndex, value.Length - count);
 
         return WriteCore(value.AsMemory(startIndex, count));
     }
@@ -248,7 +236,7 @@ public sealed partial class CodeWriter
         => this;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe CodeWriter WriteCore(ReadOnlyMemory<char> value, bool allowIndent = true)
+    private CodeWriter WriteCore(ReadOnlyMemory<char> value, bool allowIndent = true)
     {
         if (value.IsEmpty)
         {
@@ -312,10 +300,7 @@ public sealed partial class CodeWriter
 
     public CodeWriter WriteLine(string value)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgHelper.ThrowIfNull(value);
 
         return WriteCore(value.AsMemory()).WriteLine();
     }
@@ -325,49 +310,38 @@ public sealed partial class CodeWriter
 
     public string GenerateCode()
     {
-        unsafe
+        // Eventually, we need to remove this and not return a giant string, which can
+        // easily be allocated on the LOH. The work to remove this is tracked by
+        // https://github.com/dotnet/razor/issues/8076.
+        return CreateString(Length, _pages, static (span, pages) =>
         {
-            // This might look a bit scary, but it's pretty simple. We allocate our string
-            // with the correct length up front and then use simple pointer math to copy
-            // the pages of ReadOnlyMemory<char> directly into it.
-
-            // Eventually, we need to remove this and not return a giant string, which can
-            // easily be allocated on the LOH. The work to remove this is tracked by
-            // https://github.com/dotnet/razor/issues/8076.
-
-            var length = Length;
-            var result = new string('\0', length);
-
-            fixed (char* stringPtr = result)
+            foreach (var page in pages)
             {
-                var destination = stringPtr;
-
-                // destinationSize and sourceSize track the number of bytes (not chars).
-                var destinationSize = length * sizeof(char);
-
-                foreach (var page in _pages)
+                foreach (var chars in page)
                 {
-                    foreach (var chars in page)
+                    if (chars.IsEmpty)
                     {
-                        var source = chars.Span;
-                        var sourceSize = source.Length * sizeof(char);
-
-                        fixed (char* srcPtr = source)
-                        {
-                            Buffer.MemoryCopy(srcPtr, destination, destinationSize, sourceSize);
-                        }
-
-                        destination += source.Length;
-                        destinationSize -= sourceSize;
-
-                        Debug.Assert(destinationSize >= 0);
+                        return;
                     }
-                }
 
-                Debug.Assert(destinationSize == 0, "We didn't exhaust our destination pointer!");
+                    chars.Span.CopyTo(span);
+                    span = span[chars.Length..];
+
+                    Debug.Assert(span.Length >= 0);
+                }
             }
 
-            return result;
+            Debug.Assert(span.Length == 0, "We didn't fill the whole span!");
+        });
+    }
+
+    public void Dispose()
+    {
+        foreach (var page in _pages)
+        {
+            ArrayPool<ReadOnlyMemory<char>>.Shared.Return(page, clearArray: true);
         }
+
+        _pages.Clear();
     }
 }

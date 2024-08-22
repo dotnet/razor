@@ -8,11 +8,8 @@
     <IsShippingPackage>false</IsShippingPackage>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
+    <RootNamespace>Microsoft.VisualStudio.Razor</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Using Alias="Range" Include="Microsoft.VisualStudio.LanguageServer.Protocol.Range" />
-  </ItemGroup>
 
   <ItemGroup>
     <AdditionalFiles Include="$(RepoRoot)eng\BannedSymbols.MEFv2.txt" />
@@ -27,6 +24,9 @@
 
     <PackageReference Include="Microsoft.VisualStudio.LiveShare" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
+    <!-- Manually upgrade to address CG alert. When the VS packages
+         pull in the right version, this can be removed. -->
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'" />
 
     <!--
       Pinning packages to avoid misaligned reference CI failures.
@@ -58,6 +58,19 @@
     <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
     <AdditionalFiles Include="$(RepoRoot)src\Razor\vs-threading.MainThreadAssertingMethods.txt" Link="AnalyzerConfig\vs-threading.MainThreadAssertingMethods.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.ProjectEngineHost.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LegacyEditor.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LegacyEditor.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Razor.IntegrationTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.RazorExtension" Key="$(RazorKey)" />
   </ItemGroup>
 
   <!--

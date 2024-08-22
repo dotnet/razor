@@ -145,7 +145,39 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var ((compilationA, razorSourceGeneratorOptionsA), hasRazorFilesA) = a;
                     var ((compilationB, razorSourceGeneratorOptionsB), hasRazorFilesB) = b;
 
-                    if (!compilationA.References.SequenceEqual(compilationB.References))
+                    // When using the generator cache in the compiler it's possible to encounter metadata references that are different instances
+                    // but ultimately represent the same underlying assembly. We compare the module version ids to determine if the references are the same
+                    if (!compilationA.References.SequenceEqual(compilationB.References, new LambdaComparer<MetadataReference>((old, @new) => 
+                    {
+                        if (ReferenceEquals(old, @new))
+                        {
+                            return true;
+                        }
+
+                        if (old is null || @new is null)
+                        {
+                            return false;
+                        }
+
+                        var oldSymbol = compilationA.GetAssemblyOrModuleSymbol(old);
+                        var newSymbol = compilationB.GetAssemblyOrModuleSymbol(@new);
+
+                        if (SymbolEqualityComparer.Default.Equals(oldSymbol, newSymbol))
+                        {
+                            return true;
+                        }
+
+                        if (oldSymbol is IAssemblySymbol oldAssembly && newSymbol is IAssemblySymbol newAssembly)
+                        {
+                            var oldModuleMVIDs = oldAssembly.Modules.Select(GetMVID);
+                            var newModuleMVIDs = newAssembly.Modules.Select(GetMVID);
+                            return oldModuleMVIDs.SequenceEqual(newModuleMVIDs);
+
+                            static Guid GetMVID(IModuleSymbol m) => m.GetMetadata()?.GetModuleVersionId() ?? Guid.Empty;
+                        }
+
+                        return false;
+                    })))
                     {
                         return false;
                     }
@@ -210,8 +242,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 {
                     var compilation = CSharpCompilation.Create("components", references: refs);
                     return compilation.GetTypesByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder")
-                        .Any(static (t, compilation) => t.DeclaredAccessibility == Accessibility.Public &&
-                            t.GetMembers("AddComponentParameter").Any(static m => m.DeclaredAccessibility == Accessibility.Public), compilation);
+                        .Any(static t =>
+                            t.DeclaredAccessibility == Accessibility.Public &&
+                            t.GetMembers("AddComponentParameter")
+                                .Any(static m => m.DeclaredAccessibility == Accessibility.Public));
                 });
 
             IncrementalValuesProvider<(string, SourceGeneratorRazorCodeDocument)> processed(bool designTime)
@@ -279,7 +313,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .WithLambdaComparer(static (a, b) =>
                 {
-                    if (a.csharpDocument.Diagnostics.Count > 0 || b.csharpDocument.Diagnostics.Count > 0)
+                    if (a.csharpDocument.Diagnostics.Length > 0 || b.csharpDocument.Diagnostics.Length > 0)
                     {
                         // if there are any diagnostics, treat the documents as unequal and force RegisterSourceOutput to be called uncached.
                         return false;
@@ -305,9 +339,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var hintName = GetIdentifierFromPath(filePath) + ".g.cs";
 
                     RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
-                    for (var i = 0; i < csharpDocument.Diagnostics.Count; i++)
+                    foreach (var razorDiagnostic in csharpDocument.Diagnostics)
                     {
-                        var razorDiagnostic = csharpDocument.Diagnostics[i];
                         var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
                         context.ReportDiagnostic(csharpDiagnostic);
                     }

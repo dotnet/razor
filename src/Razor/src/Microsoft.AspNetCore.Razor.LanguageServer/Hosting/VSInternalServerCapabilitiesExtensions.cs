@@ -17,11 +17,6 @@ internal static class VSInternalServerCapabilitiesExtensions
         };
     }
 
-    public static void EnableDocumentColorProvider(this VSInternalServerCapabilities serverCapabilities)
-    {
-        serverCapabilities.DocumentColorProvider = new DocumentColorOptions();
-    }
-
     public static void EnableSemanticTokens(this VSInternalServerCapabilities serverCapabilities, ISemanticTokensLegendService legend)
     {
         serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions().EnableSemanticTokens(legend);
@@ -36,6 +31,19 @@ internal static class VSInternalServerCapabilitiesExtensions
             TokenTypes = legend.TokenTypes.All
         };
         options.Range = true;
+
+        return options;
+    }
+
+    public static void EnableSignatureHelp(this VSInternalServerCapabilities serverCapabilities)
+    {
+        serverCapabilities.SignatureHelpProvider = new SignatureHelpOptions().EnableSignatureHelp();
+    }
+
+    public static SignatureHelpOptions EnableSignatureHelp(this SignatureHelpOptions options)
+    {
+        options.TriggerCharacters = ["(", ",", "<"];
+        options.RetriggerCharacters = [">", ")"];
 
         return options;
     }

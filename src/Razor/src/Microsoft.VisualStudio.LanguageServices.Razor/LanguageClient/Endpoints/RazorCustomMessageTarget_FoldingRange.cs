@@ -8,10 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Folding;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
@@ -54,7 +51,6 @@ internal partial class RazorCustomMessageTarget
                     csharpSnapshot.Snapshot.TextBuffer,
                     Methods.TextDocumentFoldingRange.Name,
                     RazorLSPConstants.RazorCSharpLanguageServerName,
-                    SupportsFoldingRange,
                     csharpRequestParams,
                     cancellationToken).ConfigureAwait(false);
 
@@ -90,7 +86,6 @@ internal partial class RazorCustomMessageTarget
                     htmlDocument.Snapshot.TextBuffer,
                     Methods.TextDocumentFoldingRange.Name,
                     RazorLSPConstants.HtmlLanguageServerName,
-                    SupportsFoldingRange,
                     htmlRequestParams,
                     cancellationToken).ConfigureAwait(false);
 
@@ -125,16 +120,5 @@ internal partial class RazorCustomMessageTarget
         }
 
         return new(htmlRanges.ToImmutableArray(), csharpRanges.ToImmutableArray());
-    }
-
-    private static bool SupportsFoldingRange(JToken token)
-    {
-        var serverCapabilities = token.ToObject<ServerCapabilities>();
-
-        var supportsFoldingRange = serverCapabilities?.FoldingRangeProvider?.Match(
-            boolValue => boolValue,
-            options => options is not null) ?? false;
-
-        return supportsFoldingRange;
     }
 }

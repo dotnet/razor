@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -77,6 +76,8 @@ public abstract class IntegrationTestBase
 
     protected bool NullableEnable { get; set; }
 
+    protected Dictionary<SourceLocation, string>? ExpectedMissingSourceMappings { get; set; }
+
     /// <summary>
     /// Gets the
     /// </summary>
@@ -91,7 +92,7 @@ public abstract class IntegrationTestBase
 
     protected string TestProjectRoot { get; }
 
-    public virtual string GetTestFileName(string? testName)
+    public virtual string GetTestFileName([CallerMemberName] string? testName = null)
     {
         return $"TestFiles/IntegrationTests/{this.GetType().Name}/{testName}";
     }
@@ -297,7 +298,7 @@ public abstract class IntegrationTestBase
     {
         return RazorProjectEngine.Create(configuration, FileSystem, b =>
         {
-            b.Phases.Insert(0, new ConfigureCodeRenderingPhase(LineEnding));
+            b.Features.Add(new ConfigureCodeGenerationOptionsFeature(LineEnding));
 
             b.RegisterExtensions();
 
@@ -507,12 +508,32 @@ public abstract class IntegrationTestBase
                 }
             }
 
-            if (!found)
+            if (ExpectedMissingSourceMappings?.TryGetValue(SourceLocation.FromSpan(sourceSpan), out var expectedMissingSpan) == true)
+            {
+                if (found)
+                {
+                    throw new XunitException($"Remove {sourceSpan} from {nameof(ExpectedMissingSourceMappings)}.");
+                }
+                else if (expectedSpan != expectedMissingSpan)
+                {
+                    throw new XunitException($"Missing span {sourceSpan} has different content '{EscapeWhitespace(expectedSpan)}' " +
+                        $"than expected '{EscapeWhitespace(expectedMissingSpan)}'.");
+                }
+
+                ExpectedMissingSourceMappings.Remove(SourceLocation.FromSpan(sourceSpan));
+            }
+            else if (!found)
             {
                 throw new XunitException(
                     $"Could not find the span {sourceSpan} - containing '{EscapeWhitespace(expectedSpan)}' " +
                     $"in the output.");
             }
+        }
+
+        if (ExpectedMissingSourceMappings?.Count > 0)
+        {
+            throw new XunitException($"Found unused {nameof(ExpectedMissingSourceMappings)} ({ExpectedMissingSourceMappings.Count}), " +
+                $"for example {ExpectedMissingSourceMappings.First()}.");
         }
     }
 
@@ -760,19 +781,14 @@ public abstract class IntegrationTestBase
         return Regex.Replace(content, "(?<!\r)\n", lineEnding, RegexOptions.None, TimeSpan.FromSeconds(10));
     }
 
-    private class ConfigureCodeRenderingPhase : RazorEnginePhaseBase
+    private sealed class ConfigureCodeGenerationOptionsFeature(string lineEnding) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
-        public ConfigureCodeRenderingPhase(string lineEnding)
-        {
-            LineEnding = lineEnding;
-        }
+        public int Order { get; }
 
-        public string LineEnding { get; }
-
-        protected override void ExecuteCore(RazorCodeDocument codeDocument)
+        public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
-            codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = "test";
-            codeDocument.Items[CodeRenderingContext.NewLineString] = LineEnding;
+            options.NewLine = lineEnding;
+            options.SuppressUniqueIds = "test";
         }
     }
 

@@ -13,16 +13,16 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Protocol.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Protocol.Folding;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location,
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
     Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
 using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -125,7 +125,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 _cancellationToken);
         }
 
-        private Task<SymbolInformation[]> HandleDocumentSymbolAsync<TParams>(TParams @params)
+        private Task<SumType<DocumentSymbol[], SymbolInformation[]>?> HandleDocumentSymbolAsync<TParams>(TParams @params)
         {
             Assert.IsType<DelegatedDocumentSymbolParams>(@params);
 
@@ -137,7 +137,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 },
             };
 
-            return _csharpServer.ExecuteRequestAsync<DocumentSymbolParams, SymbolInformation[]>(
+            return _csharpServer.ExecuteRequestAsync<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(
                 Methods.TextDocumentDocumentSymbolName,
                 delegatedRequest,
                 _cancellationToken);

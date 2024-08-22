@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -22,18 +23,28 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Moq;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
-public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
+public abstract class LanguageServerTestBase : ToolingTestBase
 {
-    private ThrowingRazorSpanMappingService? _spanMappingService;
-    private LSPFilePathService? _filePathService;
+    private protected IRazorSpanMappingService SpanMappingService { get; }
+    private protected IFilePathService FilePathService { get; }
+    private protected JsonSerializerOptions SerializerOptions { get; }
 
-    private protected IRazorSpanMappingService SpanMappingService => _spanMappingService ??= new();
-    private protected IFilePathService FilePathService => _filePathService ??= new(TestLanguageServerFeatureOptions.Instance);
+    protected LanguageServerTestBase(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+        SpanMappingService = new ThrowingRazorSpanMappingService();
+
+        SerializerOptions = new JsonSerializerOptions();
+        // In its infinite wisdom, the LSP client has a public method that takes Newtonsoft.Json types, but an internal method that takes System.Text.Json types.
+        typeof(VSInternalExtensionUtilities).GetMethod("AddVSInternalExtensionConverters", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, [SerializerOptions]);
+
+        FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+    }
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
@@ -117,23 +128,6 @@ public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : Too
     private protected static VersionedDocumentContext CreateDocumentContext(Uri uri, IDocumentSnapshot snapshot)
     {
         return new VersionedDocumentContext(uri, snapshot, projectContext: null, version: 0);
-    }
-
-    protected static TextLoader CreateTextLoader(string filePath, string text)
-    {
-        return CreateTextLoader(filePath, SourceText.From(text));
-    }
-
-    protected static TextLoader CreateTextLoader(string filePath, SourceText text)
-    {
-        var mock = new StrictMock<TextLoader>();
-
-        var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create(), filePath);
-
-        mock.Setup(x => x.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(textAndVersion);
-
-        return mock.Object;
     }
 
     private protected static RazorLSPOptionsMonitor GetOptionsMonitor(bool enableFormatting = true, bool autoShowCompletion = true, bool autoListParams = true, bool formatOnType = true, bool autoInsertAttributeQuotes = true, bool colorBackground = false, bool codeBlockBraceOnNextLine = false, bool commitElementsWithSpace = true)

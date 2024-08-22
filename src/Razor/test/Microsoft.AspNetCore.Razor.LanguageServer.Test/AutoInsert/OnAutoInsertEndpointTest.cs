@@ -5,8 +5,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,7 +31,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(0, 0),
+            Position = VsLspFactory.DefaultPosition,
             Character = "!",
             Options = new FormattingOptions
             {
@@ -66,7 +66,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(0, 0),
+            Position = VsLspFactory.DefaultPosition,
             Character = ">",
             Options = new FormattingOptions
             {
@@ -101,7 +101,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(0, 0),
+            Position = VsLspFactory.DefaultPosition,
             Character = ">",
             Options = new FormattingOptions
             {
@@ -135,7 +135,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
-            Position = new Position(1, 3),
+            Position = VsLspFactory.CreatePosition(1, 3),
             Character = "/",
             Options = new FormattingOptions
             {

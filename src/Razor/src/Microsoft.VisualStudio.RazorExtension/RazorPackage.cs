@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.RazorExtension;
 [ProvideMenuResource("SyntaxVisualizerMenu.ctmenu", 1)]
 [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
 [ProvideLanguageEditorOptionPage(typeof(AdvancedOptionPage), RazorConstants.RazorLSPContentTypeName, category: null, "Advanced", pageNameResourceId: "#1050", keywordListResourceId: 1060)]
+[ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\razor.registration.json")]
 [Guid(PackageGuidString)]
 // We activate cohosting when the first Razor file is opened. This matches the previous behavior where the
 // LSP client MEF export had the Razor content type metadata.
@@ -128,8 +129,11 @@ internal sealed class RazorPackage : AsyncPackage
         // Initialize command handlers in the window
         if (!window.CommandHandlersInitialized)
         {
-            var mcs = (IMenuCommandService)GetService(typeof(IMenuCommandService));
-            window.InitializeCommands(mcs, GuidSyntaxVisualizerMenuCmdSet);
+            var mcs = (IMenuCommandService?)GetService(typeof(IMenuCommandService));
+            if (mcs is not null)
+            {
+                window.InitializeCommands(mcs, GuidSyntaxVisualizerMenuCmdSet);
+            }
         }
 
         ErrorHandler.ThrowOnFailure(windowFrame.Show());

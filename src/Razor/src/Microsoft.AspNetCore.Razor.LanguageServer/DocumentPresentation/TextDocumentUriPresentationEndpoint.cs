@@ -2,12 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.DocumentPresentation;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -20,12 +17,12 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
 internal class TextDocumentUriPresentationEndpoint(
-    IRazorDocumentMappingService razorDocumentMappingService,
+    IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IFilePathService filePathService,
     IDocumentContextFactory documentContextFactory,
     ILoggerFactory loggerFactory)
-    : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.GetOrCreateLogger<TextDocumentUriPresentationEndpoint>()), ITextDocumentUriPresentationHandler
+    : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>(documentMappingService, clientConnection, filePathService, loggerFactory.GetOrCreateLogger<TextDocumentUriPresentationEndpoint>()), ITextDocumentUriPresentationHandler
 {
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
 
@@ -79,14 +76,7 @@ internal class TextDocumentUriPresentationEndpoint(
                     {
                         Uri = request.TextDocument.Uri
                     },
-                    Edits =
-                    [
-                        new TextEdit
-                        {
-                            NewText = componentTagText,
-                            Range = request.Range
-                        }
-                    ]
+                    Edits = [VsLspFactory.CreateTextEdit(request.Range, componentTagText)]
                 }
             }
         };

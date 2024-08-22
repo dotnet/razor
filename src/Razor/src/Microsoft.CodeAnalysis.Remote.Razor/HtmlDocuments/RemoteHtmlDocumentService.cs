@@ -3,20 +3,25 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed class RemoteHtmlDocumentService(
-    IServiceBroker serviceBroker,
-    DocumentSnapshotFactory documentSnapshotFactory)
-    : RazorDocumentServiceBase(serviceBroker, documentSnapshotFactory), IRemoteHtmlDocumentService
+internal sealed class RemoteHtmlDocumentService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteHtmlDocumentService
 {
-    public ValueTask<string?> GetHtmlDocumentTextAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken)
+    internal sealed class Factory : FactoryBase<IRemoteHtmlDocumentService>
+    {
+        protected override IRemoteHtmlDocumentService CreateService(in ServiceArgs args)
+            => new RemoteHtmlDocumentService(in args);
+    }
+
+    public ValueTask<string?> GetHtmlDocumentTextAsync(
+        RazorPinnedSolutionInfoWrapper solutionInfo,
+        DocumentId razorDocumentId,
+        CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,

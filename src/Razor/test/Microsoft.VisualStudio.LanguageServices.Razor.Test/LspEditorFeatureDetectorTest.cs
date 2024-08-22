@@ -1,16 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Moq;
 using Xunit;
@@ -20,53 +17,50 @@ namespace Microsoft.VisualStudio.Razor;
 
 public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public static TheoryData<bool, bool, bool> IsLspEditorEnabledTestData { get; } = new()
+    public static TheoryData<bool, bool> IsLspEditorEnabledTestData { get; } = new()
     {
-        // legacyEditorFeatureFlag, legacyEditorSetting, expectedResult
-        { false, false, true },
-        { false, true, false },
-        { true, false, false },
-        { true, true, false }
+        // legacyEditorSetting, expectedResult
+        { false, true },
+        { true, false },
     };
 
     [UITheory]
     [MemberData(nameof(IsLspEditorEnabledTestData))]
-    public void IsLspEditorEnabled(bool legacyEditorFeatureFlag, bool legacyEditorSetting, bool expectedResult)
+    public void IsLspEditorEnabled(bool legacyEditorSetting, bool expectedResult)
     {
         // Arrange
-        var featureDetector = CreateLspEditorFeatureDetector(legacyEditorFeatureFlag, legacyEditorSetting);
+        var featureDetector = CreateLspEditorFeatureDetector(legacyEditorSetting);
 
         // Act
-        var result = featureDetector.IsLspEditorEnabledAndAvailable(@"c:\TestProject\TestFile.cshtml");
+        var result = featureDetector.IsLspEditorEnabled();
 
         // Assert
         Assert.Equal(expectedResult, result);
     }
 
-    public static TheoryData<bool, bool, bool, bool, bool> IsLspEditorAvailableTestData { get; } = new()
+    public static TheoryData<bool, bool, bool, bool> IsLspEditorEnabledAndSupportedTestData { get; } = new()
     {
-        // legacyEditorFeatureFlag, legacyEditorSetting, hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability, expectedResult
-        { false, false, true, false, false }, // .Net Framework project - always non-LSP
-        { false, false, false, true, true },  // .Net Core project
-        { false, false, true, true, false },  // .Net Core project opts-in into legacy razor editor (exists in reality?)
-        { true, false, false, true, false },  // .Net Core project but legacy editor via feature flag
-        { false, true, false, true, false },  // .Net Core project but legacy editor via editor option
+        // legacyEditorSetting, hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability, expectedResult
+        { false, true, false, false }, // .Net Framework project - always non-LSP
+        { false, false, true, true },  // .Net Core project
+        { false, true, true, false },  // .Net Core project opts-in into legacy razor editor (exists in reality?)
+        { true, false, true, false },  // .Net Core project but legacy editor via editor option
     };
 
     [UITheory]
-    [MemberData(nameof(IsLspEditorAvailableTestData))]
-    public void IsLspEditorAvailable(
-        bool legacyEditorFeatureFlag,
+    [MemberData(nameof(IsLspEditorEnabledAndSupportedTestData))]
+    public void IsLspEditorEnabledAndSupported(
         bool legacyEditorSetting,
         bool hasLegacyRazorEditorCapability,
         bool hasDotNetCoreCSharpCapability,
         bool expectedResult)
     {
         // Arrange
-        var featureDetector = CreateLspEditorFeatureDetector(legacyEditorFeatureFlag, legacyEditorSetting, hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability);
+        var featureDetector = CreateLspEditorFeatureDetector(legacyEditorSetting, hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability);
 
         // Act
-        var result = featureDetector.IsLspEditorEnabledAndAvailable(@"c:\TestProject\TestFile.cshtml");
+        var result = featureDetector.IsLspEditorEnabled() &&
+                     featureDetector.IsLspEditorSupported(@"c:\TestProject\TestFile.cshtml");
 
         // Assert
         Assert.Equal(expectedResult, result);
@@ -125,19 +119,17 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
     }
 
     private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(IUIContextService uiContextService)
-        => CreateLspEditorFeatureDetector(legacyEditorFeatureFlag: false, legacyEditorSetting: false, uiContextService, hasLegacyRazorEditorCapability: false, hasDotNetCoreCSharpCapability: true);
+        => CreateLspEditorFeatureDetector(legacyEditorSetting: false, uiContextService, hasLegacyRazorEditorCapability: false, hasDotNetCoreCSharpCapability: true);
 
     private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(
-        bool legacyEditorFeatureFlag = false,
         bool legacyEditorSetting = false,
         bool hasLegacyRazorEditorCapability = false,
         bool hasDotNetCoreCSharpCapability = true)
     {
-        return CreateLspEditorFeatureDetector(legacyEditorFeatureFlag, legacyEditorSetting, CreateUIContextService(), hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability);
+        return CreateLspEditorFeatureDetector(legacyEditorSetting, CreateUIContextService(), hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability);
     }
 
     private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(
-        bool legacyEditorFeatureFlag,
         bool legacyEditorSetting,
         IUIContextService uiContextService,
         bool hasLegacyRazorEditorCapability,
@@ -146,50 +138,15 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         uiContextService ??= CreateUIContextService();
 
         var featureDetector = new LspEditorFeatureDetector(
-            CreateAggregateProjectCapabilityResolver(hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability),
-            CreateVsFeatureFlagsService(legacyEditorFeatureFlag),
             CreateVsSettingsManagerService(legacyEditorSetting),
             uiContextService,
+            CreateProjectCapabilityResolver(hasLegacyRazorEditorCapability, hasDotNetCoreCSharpCapability),
             JoinableTaskContext,
-            CreateRazorActivityLog(),
-            CreateVSUIShellOpenDocument());
+            CreateRazorActivityLog());
 
         AddDisposable(featureDetector);
 
         return featureDetector;
-    }
-
-    private static IAggregateProjectCapabilityResolver CreateAggregateProjectCapabilityResolver(bool hasLegacyRazorEditorCapability, bool hasDotNetCoreCSharpCapability)
-    {
-        var aggregateProjectCapabilityResolverMock = new StrictMock<IAggregateProjectCapabilityResolver>();
-        aggregateProjectCapabilityResolverMock
-            .Setup(x => x.HasCapability(It.IsAny<string>(), It.IsAny<object>(), LspEditorFeatureDetector.LegacyRazorEditorCapability))
-            .Returns(hasLegacyRazorEditorCapability);
-        aggregateProjectCapabilityResolverMock
-            .Setup(x => x.HasCapability(It.IsAny<string>(), It.IsAny<object>(), LspEditorFeatureDetector.DotNetCoreCSharpCapability))
-            .Returns(hasDotNetCoreCSharpCapability);
-
-        return aggregateProjectCapabilityResolverMock.Object;
-    }
-
-    private static Lazy<IVsUIShellOpenDocument> CreateVSUIShellOpenDocument()
-    {
-        var vsUIShellOpenDocumentMock = new StrictMock<IVsUIShellOpenDocument>();
-        var hierarchy = new StrictMock<IVsUIHierarchy>().Object;
-        vsUIShellOpenDocumentMock
-            .Setup(x => x.IsDocumentInAProject(It.IsAny<string>(), out hierarchy, out It.Ref<uint>.IsAny, out It.Ref<OLE.Interop.IServiceProvider>.IsAny, out It.Ref<int>.IsAny))
-            .Returns(VSConstants.S_OK);
-
-        return new Lazy<IVsUIShellOpenDocument>(() => vsUIShellOpenDocumentMock.Object);
-    }
-
-    private static IVsService<SVsFeatureFlags, IVsFeatureFlags> CreateVsFeatureFlagsService(bool useLegacyEditor)
-    {
-        var vsFeatureFlagsMock = new StrictMock<IVsFeatureFlags>();
-        vsFeatureFlagsMock
-            .Setup(x => x.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, It.IsAny<bool>()))
-            .Returns(useLegacyEditor);
-        return VsMocks.CreateVsService<SVsFeatureFlags, IVsFeatureFlags>(vsFeatureFlagsMock);
     }
 
     private static IVsService<SVsSettingsPersistenceManager, ISettingsManager> CreateVsSettingsManagerService(bool useLegacyEditor)
@@ -220,6 +177,21 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
 
         return mock.Object;
     }
+
+    private static IProjectCapabilityResolver CreateProjectCapabilityResolver(bool hasLegacyRazorEditorCapability, bool hasDotNetCoreCSharpCapability)
+    {
+        var projectCapabilityResolverMock = new StrictMock<IProjectCapabilityResolver>();
+
+        projectCapabilityResolverMock
+            .Setup(x => x.ResolveCapability(WellKnownProjectCapabilities.LegacyRazorEditor, It.IsAny<string>()))
+            .Returns(hasLegacyRazorEditorCapability);
+        projectCapabilityResolverMock
+            .Setup(x => x.ResolveCapability(WellKnownProjectCapabilities.DotNetCoreCSharp, It.IsAny<string>()))
+            .Returns(hasDotNetCoreCSharpCapability);
+
+        return projectCapabilityResolverMock.Object;
+    }
+
     private RazorActivityLog CreateRazorActivityLog()
     {
         var vsActivityLogMock = new StrictMock<IVsActivityLog>();
@@ -248,12 +220,10 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
             })
             .Returns(VSConstants.S_OK);
 
-        var serviceProviderMock = new StrictMock<IAsyncServiceProvider>();
-        serviceProviderMock
-            .Setup(x => x.GetServiceAsync(typeof(SVsActivityLog)))
-            .ReturnsAsync(vsActivityLogMock.Object);
+        var serviceProvider = VsMocks.CreateAsyncServiceProvider(b =>
+            b.AddService<SVsActivityLog, IVsActivityLog>(vsActivityLogMock.Object));
 
-        var activityLog = new RazorActivityLog(serviceProviderMock.Object, JoinableTaskContext);
+        var activityLog = new RazorActivityLog(serviceProvider);
 
         AddDisposable(activityLog);
 

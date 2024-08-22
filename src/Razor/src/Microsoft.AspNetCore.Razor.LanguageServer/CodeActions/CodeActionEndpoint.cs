@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -21,15 +22,15 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 [RazorLanguageServerEndpoint(LspEndpointName)]
 internal sealed class CodeActionEndpoint(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
     IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,
     IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
@@ -41,7 +42,7 @@ internal sealed class CodeActionEndpoint(
 {
     private const string LspEndpointName = Methods.TextDocumentCodeActionName;
 
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly IEnumerable<IRazorCodeActionProvider> _razorCodeActionProviders = razorCodeActionProviders ?? throw new ArgumentNullException(nameof(razorCodeActionProviders));
     private readonly IEnumerable<ICSharpCodeActionProvider> _csharpCodeActionProviders = csharpCodeActionProviders ?? throw new ArgumentNullException(nameof(csharpCodeActionProviders));
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders ?? throw new ArgumentNullException(nameof(htmlCodeActionProviders));
@@ -58,11 +59,6 @@ internal sealed class CodeActionEndpoint(
 
     public async Task<SumType<Command, CodeAction>[]?> HandleRequestAsync(VSCodeActionParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
-
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
@@ -87,7 +83,7 @@ internal sealed class CodeActionEndpoint(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var _ = ArrayBuilderPool<SumType<Command, CodeAction>>.GetPooledObject(out var commandsOrCodeActions);
+        using var commandsOrCodeActions = new PooledArrayBuilder<SumType<Command, CodeAction>>();
 
         // Grouping the code actions causes VS to sort them into groups, rather than just alphabetically sorting them
         // by title. The latter is bad for us because it can put "Remove <div>" at the top in some locales, and our fully
@@ -127,12 +123,12 @@ internal sealed class CodeActionEndpoint(
 
         serverCapabilities.CodeActionProvider = new CodeActionOptions
         {
-            CodeActionKinds = new[]
-            {
+            CodeActionKinds =
+            [
                 CodeActionKind.RefactorExtract,
                 CodeActionKind.QuickFix,
                 CodeActionKind.Refactor
-            },
+            ],
             ResolveProvider = true,
         };
     }
@@ -156,13 +152,13 @@ internal sealed class CodeActionEndpoint(
         // context.
         //
         // Note: VS Code doesn't provide a `SelectionRange`.
-        var vsCodeActionContext = (VSInternalCodeActionContext)request.Context;
+        var vsCodeActionContext = request.Context;
         if (vsCodeActionContext.SelectionRange != null)
         {
             request.Range = vsCodeActionContext.SelectionRange;
         }
 
-        if (!request.Range.Start.TryGetSourceLocation(sourceText, _logger, out var location))
+        if (!sourceText.TryGetSourceLocation(request.Range.Start, out var location))
         {
             return null;
         }
@@ -171,7 +167,7 @@ internal sealed class CodeActionEndpoint(
             request,
             documentSnapshot,
             codeDocument,
-            location.Value,
+            location,
             sourceText,
             _languageServerFeatureOptions.SupportsFileManipulation,
             _supportsCodeActionResolve);
@@ -186,13 +182,13 @@ internal sealed class CodeActionEndpoint(
         // No point delegating if we're in a Razor context
         if (languageKind == RazorLanguageKind.Razor)
         {
-            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
+            return [];
         }
 
         var codeActions = await GetCodeActionsFromLanguageServerAsync(languageKind, documentContext, context, correlationId, cancellationToken).ConfigureAwait(false);
         if (codeActions is not [_, ..])
         {
-            return ImmutableArray<RazorVSInternalCodeAction>.Empty;
+            return [];
         }
 
         IEnumerable<ICodeActionProvider> providers;
@@ -206,18 +202,18 @@ internal sealed class CodeActionEndpoint(
             providers = _htmlCodeActionProviders;
         }
 
-        return await FilterCodeActionsAsync(context, codeActions, providers, cancellationToken).ConfigureAwait(false);
+        return await FilterCodeActionsAsync(context, codeActions.ToImmutableArray(), providers, cancellationToken).ConfigureAwait(false);
     }
 
     private RazorVSInternalCodeAction[] ExtractCSharpCodeActionNamesFromData(RazorVSInternalCodeAction[] codeActions)
     {
-        using var _ = ArrayBuilderPool<RazorVSInternalCodeAction>.GetPooledObject(out var actions);
+        using var actions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
         foreach (var codeAction in codeActions)
         {
-            // Note: we may see a perf benefit from using a JsonConverter
-            var tags = ((JToken?)codeAction.Data)?["CustomTags"]?.ToObject<string[]>();
-            if (tags is null || tags.Length == 0)
+            if (codeAction.Data is not JsonElement jsonData ||
+                !jsonData.TryGetProperty("CustomTags", out var value) ||
+                value.Deserialize<string[]>() is not [..] tags)
             {
                 continue;
             }
@@ -244,20 +240,19 @@ internal sealed class CodeActionEndpoint(
 
     private static async Task<ImmutableArray<RazorVSInternalCodeAction>> FilterCodeActionsAsync(
         RazorCodeActionContext context,
-        RazorVSInternalCodeAction[] codeActions,
+        ImmutableArray<RazorVSInternalCodeAction> codeActions,
         IEnumerable<ICodeActionProvider> providers,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var _ = ArrayBuilderPool<Task<IReadOnlyList<RazorVSInternalCodeAction>?>>.GetPooledObject(out var tasks);
-
+        using var tasks = new PooledArrayBuilder<Task<ImmutableArray<RazorVSInternalCodeAction>>>();
         foreach (var provider in providers)
         {
             tasks.Add(provider.ProvideAsync(context, codeActions, cancellationToken));
         }
 
-        return await ConsolidateCodeActionsFromProvidersAsync(tasks.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+        return await ConsolidateCodeActionsFromProvidersAsync(tasks.ToImmutable(), cancellationToken).ConfigureAwait(false);
     }
 
     // Internal for testing
@@ -268,7 +263,7 @@ internal sealed class CodeActionEndpoint(
             // For C# we have to map the ranges to the generated document
             if (!_documentMappingService.TryMapToGeneratedDocumentRange(context.CodeDocument.GetCSharpDocument(), context.Request.Range, out var projectedRange))
             {
-                return Array.Empty<RazorVSInternalCodeAction>();
+                return [];
             }
 
             var newContext = context.Request.Context;
@@ -301,7 +296,7 @@ internal sealed class CodeActionEndpoint(
         {
             _telemetryReporter?.ReportFault(e, "Error getting code actions from delegate language server for {languageKind}", languageKind);
             _logger.LogError(e, $"Error getting code actions from delegate language server for {languageKind}");
-            return Array.Empty<RazorVSInternalCodeAction>();
+            return [];
         }
     }
 
@@ -309,35 +304,32 @@ internal sealed class CodeActionEndpoint(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var _ = ArrayBuilderPool<Task<IReadOnlyList<RazorVSInternalCodeAction>?>>.GetPooledObject(out var tasks);
+        using var tasks = new PooledArrayBuilder<Task<ImmutableArray<RazorVSInternalCodeAction>>>();
 
         foreach (var provider in _razorCodeActionProviders)
         {
             tasks.Add(provider.ProvideAsync(context, cancellationToken));
         }
 
-        return await ConsolidateCodeActionsFromProvidersAsync(tasks.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+        return await ConsolidateCodeActionsFromProvidersAsync(tasks.ToImmutable(), cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<ImmutableArray<RazorVSInternalCodeAction>> ConsolidateCodeActionsFromProvidersAsync(
-        ImmutableArray<Task<IReadOnlyList<RazorVSInternalCodeAction>?>> tasks,
+        ImmutableArray<Task<ImmutableArray<RazorVSInternalCodeAction>>> tasks,
         CancellationToken cancellationToken)
     {
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-        using var _ = ArrayBuilderPool<RazorVSInternalCodeAction>.GetPooledObject(out var codeActions);
+        using var codeActions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
         cancellationToken.ThrowIfCancellationRequested();
 
         foreach (var result in results)
         {
-            if (result is not null)
-            {
-                codeActions.AddRange(result);
-            }
+            codeActions.AddRange(result);
         }
 
-        return codeActions.ToImmutableArray();
+        return codeActions.ToImmutable();
     }
 
     private static ImmutableHashSet<string> GetAllAvailableCodeActionNames()
@@ -348,12 +340,12 @@ internal sealed class CodeActionEndpoint(
             .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
             .Select(property => property.GetValue(null) as string)
-            .WithoutNull();
+            .WhereNotNull();
         var codeFixProviderNames = typeof(RazorPredefinedCodeFixProviderNames)
             .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
             .Select(property => property.GetValue(null) as string)
-            .WithoutNull();
+            .WhereNotNull();
 
         availableCodeActionNames.AddRange(refactoringProviderNames);
         availableCodeActionNames.AddRange(codeFixProviderNames);

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -12,12 +13,10 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -39,7 +38,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -53,7 +52,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -70,7 +69,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -83,7 +82,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -100,7 +99,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -113,7 +112,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -130,7 +129,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -143,7 +142,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -165,7 +164,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -178,7 +177,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Theory]
@@ -206,7 +205,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -219,11 +218,10 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JObject)codeAction.Data!).ToObject<RazorCodeActionResolutionParams>();
+        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
 
         Assert.Equal(removeSpan, TextSpan.FromBounds(actionParams.RemoveStart, actionParams.RemoveEnd));
@@ -250,7 +248,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -263,11 +261,10 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JObject)codeAction.Data!).ToObject<RazorCodeActionResolutionParams>();
+        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
 
         Assert.Equal(removeSpan, TextSpan.FromBounds(actionParams.RemoveStart, actionParams.RemoveEnd));
@@ -288,7 +285,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -301,7 +298,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -324,7 +321,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -337,11 +334,10 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JObject)codeAction.Data!).ToObject<RazorCodeActionResolutionParams>();
+        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
 
         Assert.Equal(removeSpan, TextSpan.FromBounds(actionParams.RemoveStart, actionParams.RemoveEnd));
@@ -362,7 +358,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = null!
         };
 
@@ -375,7 +371,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
@@ -401,11 +397,11 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
             document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()), MockBehavior.Strict);
+            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text), MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve: true);
+        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
 
         return context;
     }

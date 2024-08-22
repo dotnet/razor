@@ -39,6 +39,12 @@
   <!-- Import the list of service hub services we proffer, to generate various files to include in the VSIX -->
   <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
 
+  <!-- Shared code -->
+  <ItemGroup>
+    <Compile Include="..\..\..\Compiler\shared\JsonReaderExtensions.cs" LinkBase="Shared" />
+    <Compile Include="..\..\..\Compiler\shared\TagHelperDescriptorJsonConverter.cs" LinkBase="Shared" />
+  </ItemGroup>
+  
   <!-- Include Razor SDK design time assets in the VSIX -->
   <ItemGroup>
     <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\build\netstandard2.0\Microsoft.NET.Sdk.Razor.DesignTime.targets">
@@ -205,6 +211,9 @@
     <PackageReference Include="Microsoft.NET.Sdk.Razor" IncludeAssets="None" PrivateAssets="All" GeneratePathProperty="true" />
     <PackageReference Include="System.Resources.Extensions" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
+    <!-- Manually upgrade to address CG alert. When the VS packages
+         pull in the right version, this can be removed. -->
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'" />
 
     <!--
       Pinning packages to avoid misaligned reference CI failures.

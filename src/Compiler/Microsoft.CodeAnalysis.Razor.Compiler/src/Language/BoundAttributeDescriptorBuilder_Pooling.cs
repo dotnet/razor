@@ -25,6 +25,7 @@ public partial class BoundAttributeDescriptorBuilder
         _parent = null;
         _kind = null;
         _documentationObject = default;
+        _caseSensitive = null;
 
         Name = null;
         TypeName = null;
@@ -34,6 +35,7 @@ public partial class BoundAttributeDescriptorBuilder
         IndexerAttributeNamePrefix = null;
         IndexerValueTypeName = null;
         DisplayName = null;
+        ContainingType = null;
         Parameters.Clear();
         _metadata.Clear();
     }

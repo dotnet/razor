@@ -50,7 +50,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         }
     };
 
-    private static Regex s_matchNewLines = MyRegex();
+    private static readonly Regex s_matchNewLines = MyRegex();
 
 #if NET
     [GeneratedRegex("\r\n")]
@@ -878,7 +878,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             for (var i = 0; i < csharpRanges.Length; i++)
             {
                 var csharpRange = csharpRanges[i];
-                var textSpan = csharpRange.ToTextSpan(csharpSourceText);
+                var textSpan = csharpSourceText.GetTextSpan(csharpRange);
                 Assert.Equal(spans[i].Length, textSpan.Length);
             }
         }
@@ -887,7 +887,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             // Note that the expected lengths are different on Windows vs. Unix.
             var expectedCsharpRangeLength = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 945 : 911;
             Assert.True(codeDocument.TryGetMinimalCSharpRange(razorRange, out var csharpRange));
-            var textSpan = csharpRange.ToTextSpan(csharpSourceText);
+            var textSpan = csharpSourceText.GetTextSpan(csharpRange);
             Assert.Equal(expectedCsharpRangeLength, textSpan.Length);
         }
     }
@@ -923,34 +923,31 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         string documentText,
         bool isRazorFile,
         ImmutableArray<TagHelperDescriptor> tagHelpers,
-        int? documentVersion)
+        int version)
     {
         var document = CreateCodeDocument(documentText, isRazorFile, tagHelpers);
-        var random = new Random();
 
-        var projectSnapshot = new Mock<IProjectSnapshot>(MockBehavior.Strict);
+        var projectSnapshot = new StrictMock<IProjectSnapshot>();
         projectSnapshot
-            .Setup(p => p.Version)
-            .Returns(default(VersionStamp));
+            .SetupGet(p => p.Version)
+            .Returns(VersionStamp.Default);
 
-        var documentSnapshot = Mock.Of<IDocumentSnapshot>(MockBehavior.Strict);
-        var documentContext = new Mock<VersionedDocumentContext>(MockBehavior.Strict, new Uri("c:/path/to/file.razor"), documentSnapshot, /* projectContext */ null, 0);
-        documentContext.Setup(d => d.GetCodeDocumentAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(document);
-
-        documentContext.SetupGet(d => d.Version)
-            .Returns(documentVersion ?? random.Next());
-
-        documentContext.Setup(d => d.Project)
+        var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
+        documentSnapshotMock
+            .SetupGet(x => x.Project)
             .Returns(projectSnapshot.Object);
+        documentSnapshotMock
+            .Setup(x => x.GetGeneratedOutputAsync())
+            .ReturnsAsync(document);
+        documentSnapshotMock
+            .Setup(x => x.GetTextAsync())
+            .ReturnsAsync(document.Source.Text);
 
-        documentContext.Setup(d => d.GetSourceTextAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(document.GetSourceText()));
-
-        documentContext.Setup(d => d.Uri)
-            .Returns(new Uri($"c:\\${(isRazorFile ? RazorFile : CSHtmlFile)}"));
-
-        return documentContext.Object;
+        return new VersionedDocumentContext(
+            uri: new Uri($@"c:\${GetFileName(isRazorFile)}"),
+            snapshot: documentSnapshotMock.Object,
+            projectContext: null,
+            version);
     }
 
     private async Task<IRazorSemanticTokensInfoService> CreateServiceAsync(
@@ -977,7 +974,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
                 : It.Is<ProvideSemanticTokensResponse>(x => x.Tokens == null));
 
         var documentContextFactory = new TestDocumentContextFactory(documentSnapshot);
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
+        var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var configurationSyncService = new Mock<IConfigurationSyncService>(MockBehavior.Strict);
 
@@ -1021,6 +1018,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             csharpDocumentUri,
             s_semanticTokensServerCapabilities,
             SpanMappingService,
+            capabilitiesUpdater: null,
             DisposalToken);
 
         var razorRange = GetSpan(documentText);
@@ -1112,7 +1110,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     private ImmutableArray<LinePositionSpan>? GetMappedCSharpRanges(RazorCodeDocument codeDocument, LinePositionSpan razorRange, bool precise)
     {
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         if (precise)
         {

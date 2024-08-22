@@ -8,23 +8,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
+[RazorLanguageServerEndpoint(Methods.TextDocumentCompletionName)]
 internal class RazorCompletionEndpoint(
     CompletionListProvider completionListProvider,
     ITelemetryReporter? telemetryReporter,
-    RazorLSPOptionsMonitor optionsMonitor,
-    ILoggerFactory loggerFactory)
-    : IVSCompletionEndpoint
+    RazorLSPOptionsMonitor optionsMonitor)
+    : IRazorRequestHandler<CompletionParams, VSInternalCompletionList?>, ICapabilitiesProvider
 {
     private readonly CompletionListProvider _completionListProvider = completionListProvider;
     private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCompletionEndpoint>();
 
     private VSInternalClientCapabilities? _clientCapabilities;
 
@@ -56,7 +54,7 @@ internal class RazorCompletionEndpoint(
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+        if (!sourceText.TryGetAbsoluteIndex(request.Position, out var hostDocumentIndex))
         {
             return null;
         }

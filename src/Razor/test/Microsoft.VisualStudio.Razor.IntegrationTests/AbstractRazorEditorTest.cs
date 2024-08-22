@@ -14,15 +14,15 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 [LogIntegrationTest]
-public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper) : AbstractIntegrationTest
+public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : AbstractIntegrationTest
 {
-    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+    private readonly ITestOutputHelper _testOutput = testOutput;
     private ILogger? _testLogger;
     private string? _projectFilePath;
 
@@ -38,7 +38,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     {
         await base.InitializeAsync();
 
-        _testLogger = await TestServices.Output.SetupIntegrationTestLoggerAsync(_testOutputHelper, ControlledHangMitigatingCancellationToken);
+        _testLogger = await TestServices.Output.SetupIntegrationTestLoggerAsync(_testOutput, ControlledHangMitigatingCancellationToken);
 
         _testLogger.LogInformation($"#### Razor integration test initialize.");
 
@@ -144,19 +144,16 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     {
         var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
         Assumes.Present(settingsManager);
-        var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
-        var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseLegacyRazorEditor, defaultValue: false);
-        Assert.AreEqual(false, legacyEditorFeatureFlagEnabled, "Expected Legacy Editor Feature Flag to be disabled, but it was enabled");
 
         var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(WellKnownSettingNames.UseLegacyASPNETCoreEditor);
-        Assert.AreEqual(false, useLegacyEditor, "Expected the Legacy Razor Editor to be disabled, but it was enabled");
+        Assert.False(useLegacyEditor, "Expected the Legacy Razor Editor to be disabled, but it was enabled");
     }
 
     private async Task EnsureTextViewRolesAsync(CancellationToken cancellationToken)
     {
         var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
         var contentType = textView.TextSnapshot.ContentType;
-        Assert.AreEqual("Razor", contentType.TypeName);
+        Assert.Equal("Razor", contentType.TypeName);
     }
 
     private async Task EnsureExtensionInstalledAsync(CancellationToken cancellationToken)

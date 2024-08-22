@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -52,7 +53,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
 
         // If the data was merged to combine resultId with original data, undo that merge and set the data back
         // to what it originally was for the delegated request
-        if (CompletionListMerger.TrySplit(associatedDelegatedCompletion.Data, out var splitData) && splitData.Count == 2)
+        if (CompletionListMerger.TrySplit(associatedDelegatedCompletion.Data, out var splitData) && splitData.Length == 2)
         {
             item.Data = splitData[1];
         }
@@ -105,7 +106,13 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             return resolvedCompletionItem;
         }
 
-        var formattingOptions = await _clientConnection.SendRequestAsync<TextDocumentIdentifierAndVersion, FormattingOptions?>(CodeAnalysis.Razor.Protocol.LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await _clientConnection
+            .SendRequestAsync<TextDocumentIdentifierAndVersion, FormattingOptions?>(
+                LanguageServerConstants.RazorGetFormattingOptionsEndpointName,
+                documentContext.GetTextDocumentIdentifierAndVersion(),
+                cancellationToken)
+            .ConfigureAwait(false);
+
         if (formattingOptions is null)
         {
             return resolvedCompletionItem;

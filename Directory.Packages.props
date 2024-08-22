@@ -6,9 +6,9 @@
   -->
   <PropertyGroup>
     <_MicrosoftWebToolsPackageVersion>17.9.67-preview-0001</_MicrosoftWebToolsPackageVersion>
-    <_MicrosoftVisualStudioShellPackagesVersion>17.10.39563</_MicrosoftVisualStudioShellPackagesVersion>
-    <_MicrosoftVisualStudioPackagesVersion>17.10.151</_MicrosoftVisualStudioPackagesVersion>
-    <_VisualStudioLanguageServerProtocolVersion>17.11.1-preview</_VisualStudioLanguageServerProtocolVersion>
+    <_MicrosoftVisualStudioShellPackagesVersion>17.11.39721</_MicrosoftVisualStudioShellPackagesVersion>
+    <_MicrosoftVisualStudioPackagesVersion>17.11.191</_MicrosoftVisualStudioPackagesVersion>
+    <_VisualStudioLanguageServerProtocolVersion>17.12.1-preview</_VisualStudioLanguageServerProtocolVersion>
     <_MicrosoftExtensionsPackageVersion>8.0.0</_MicrosoftExtensionsPackageVersion>
     <_BasicReferenceAssembliesVersion>1.7.2</_BasicReferenceAssembliesVersion>
     <_BenchmarkDotNetPackageVersion>0.13.5.2136</_BenchmarkDotNetPackageVersion>
@@ -16,7 +16,7 @@
     <_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.11.0-beta1.24170.2</_MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <_MicrosoftVisualStudioLanguageServicesPackageVersion>$(MicrosoftVisualStudioLanguageServicesPackageVersion)</_MicrosoftVisualStudioLanguageServicesPackageVersion>
     <_XunitPackageVersion>2.6.3</_XunitPackageVersion>
-    <_MicrosoftBuildPackageVersion>17.3.0-preview-22364-05</_MicrosoftBuildPackageVersion>
+    <_MicrosoftBuildPackageVersion>17.11.0-preview-24309-01</_MicrosoftBuildPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +26,7 @@
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(_BenchmarkDotNetPackageVersion)" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="FluentAssertions" Version="6.7.0" />
-    <PackageVersion Include="MessagePack" Version="2.5.108" />
+    <PackageVersion Include="MessagePack" Version="2.5.168" />
     <PackageVersion Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="$(_MicrosoftBuildPackageVersion)" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.4.1" />
@@ -70,7 +70,7 @@
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.NET.Sdk.Razor" Version="$(MicrosoftNETSdkRazorPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="0.2.28-beta" />
-    <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="17.10.151" />
+    <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(_MicrosoftVisualStudioExtensibilityTestingVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="$(_MicrosoftVisualStudioExtensibilityTestingVersion)" />
@@ -86,14 +86,14 @@
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LiveShare" Version="0.3.1074" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="17.7.294-pre" />
-    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.10.21" />
+    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.11.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.9.102" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.11.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Implementation" Version="$(_MicrosoftVisualStudioPackagesVersion)" NoWarn="NU1701" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.10.41" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.11.20" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Web" Version="16.10.0-preview-1-31008-014" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html" Version="$(_MicrosoftWebToolsPackageVersion)" />
@@ -103,24 +103,32 @@
     <PackageVersion Include="Microsoft.WebTools.Languages.Shared.Editor" Version="$(_MicrosoftWebToolsPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Shared.VS" Version="$(_MicrosoftWebToolsPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Shared" Version="$(_MicrosoftWebToolsPackageVersion)" />
-    <PackageVersion Include="Moq" Version="4.16.0" />
+    <PackageVersion Include="Moq" Version="4.18.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="Nerdbank.Streams" Version="2.10.69" />
-    <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
+    <PackageVersion Include="Nerdbank.Streams" Version="2.11.74" />
+    <PackageVersion Include="NuGet.VisualStudio" Version="17.9.1" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(_MicrosoftCodeAnalysisAnalyzersPackageVersion)" />
     <PackageVersion Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutablePackageVersion)" />
-    <PackageVersion Include="System.Resources.Extensions" Version="6.0.0" />
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
+    <PackageVersion Include="System.Resources.Extensions" Version="8.0.0" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
     <PackageVersion Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataPackageVersion)" />
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="6.0.1" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="7.0.1" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="8.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="6.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageVersion Include="xunit" Version="$(_XunitPackageVersion)" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.5.25" />
     <PackageVersion Include="xunit.extensibility.execution" Version="$(_XunitPackageVersion)" />
     <PackageVersion Include="xunit.runner.utility" Version="2.4.1" />
     <PackageVersion Include="Xunit.StaFact" Version="1.2.46-alpha" />
+
+    <!--
+      These package references exist solely to fix component governance issues. Referencing them here
+      at the appropriate version, in combination with using CentralPackageTransitivePinningEnabled, will
+      ensure the correct version is used in all places
+    -->
+    <PackageVersion Include="Microsoft.IO.Redist" Version="6.0.1" />
+    <PackageVersion Include="System.Formats.Asn1" Version="8.0.1" />
   </ItemGroup>
 </Project>

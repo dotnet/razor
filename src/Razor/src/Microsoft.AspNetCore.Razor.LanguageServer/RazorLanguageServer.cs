@@ -2,13 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Json;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbol;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbols;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
@@ -19,25 +20,24 @@ using Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.FoldingRanges;
+using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
+using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorRequestContext>, IDisposable
+internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorRequestContext>, IDisposable
 {
     private readonly JsonRpc _jsonRpc;
     private readonly ILoggerFactory _loggerFactory;
@@ -52,14 +52,14 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
-        JsonSerializer serializer,
+        JsonSerializerOptions options,
         ILoggerFactory loggerFactory,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServices,
         RazorLSPOptions? lspOptions,
         ILspServerActivationTracker? lspServerActivationTracker,
         ITelemetryReporter telemetryReporter)
-        : base(jsonRpc, serializer, CreateILspLogger(loggerFactory, telemetryReporter))
+        : base(jsonRpc, options, CreateILspLogger(loggerFactory, telemetryReporter))
     {
         _jsonRpc = jsonRpc;
         _loggerFactory = loggerFactory;
@@ -129,7 +129,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         services.AddDiagnosticServices();
         services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
-        services.AddCompletionServices(featureOptions);
+        services.AddCompletionServices();
         services.AddFormattingServices();
         services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);
@@ -153,7 +153,7 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
         }
 
         // Other
-        services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
+        services.AddSingleton<IRazorComponentSearchEngine, RazorComponentSearchEngine>();
 
         // Get the DefaultSession for telemetry. This is set by VS with
         // TelemetryService.SetDefaultSession and provides the correct
@@ -178,37 +178,40 @@ internal partial class RazorLanguageServer : NewtonsoftLanguageServer<RazorReque
             services.AddTransient<IOnInitialized>(sp => sp.GetRequiredService<RazorConfigurationEndpoint>());
 
             services.AddHandlerWithCapabilities<ImplementationEndpoint>();
-            services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
-            services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
             services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
-
-            services.AddHandlerWithCapabilities<RenameEndpoint>();
-            services.AddHandlerWithCapabilities<DefinitionEndpoint>();
 
             if (!featureOptions.UseRazorCohostServer)
             {
+                services.AddSingleton<IRazorComponentDefinitionService, RazorComponentDefinitionService>();
+                services.AddHandlerWithCapabilities<DefinitionEndpoint>();
+
+                services.AddSingleton<IRenameService, RenameService>();
+                services.AddHandlerWithCapabilities<RenameEndpoint>();
+
+                services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
+                services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
                 services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
                 services.AddHandlerWithCapabilities<FoldingRangeEndpoint>();
+
+                services.AddSingleton<IInlayHintService, InlayHintService>();
+                services.AddHandlerWithCapabilities<InlayHintEndpoint>();
+                services.AddHandler<InlayHintResolveEndpoint>();
+
+                services.AddHandlerWithCapabilities<DocumentSymbolEndpoint>();
+                services.AddSingleton<IDocumentSymbolService, DocumentSymbolService>();
+
+                services.AddHandlerWithCapabilities<DocumentColorEndpoint>();
+                services.AddHandler<ColorPresentationEndpoint>();
             }
 
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();
             services.AddHandler<RazorProximityExpressionsEndpoint>();
 
-            services.AddHandlerWithCapabilities<DocumentColorEndpoint>();
-            services.AddSingleton<IDocumentColorService, DocumentColorService>();
-
-            services.AddHandler<ColorPresentationEndpoint>();
             services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
             services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
             services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
-            services.AddHandlerWithCapabilities<DocumentSymbolEndpoint>();
             services.AddHandlerWithCapabilities<MapCodeEndpoint>();
-
-            services.AddSingleton<IInlayHintService, InlayHintService>();
-
-            services.AddHandlerWithCapabilities<InlayHintEndpoint>();
-            services.AddHandler<InlayHintResolveEndpoint>();
         }
     }
 }

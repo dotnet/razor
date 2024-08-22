@@ -14,10 +14,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorLanguageQueryEndpoint)]
-internal sealed class RazorLanguageQueryEndpoint(IRazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
+internal sealed class RazorLanguageQueryEndpoint(IDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
     : IRazorRequestHandler<RazorLanguageQueryParams, RazorLanguageQueryResponse?>
 {
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorLanguageQueryEndpoint>();
 
     public bool MutatesSolutionState { get; } = false;
@@ -43,8 +43,7 @@ internal sealed class RazorLanguageQueryEndpoint(IRazorDocumentMappingService do
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-        var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-        var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+        var hostDocumentIndex = sourceText.GetPosition(request.Position);
         var responsePosition = request.Position;
 
         if (codeDocument.IsUnsupported())

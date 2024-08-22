@@ -11,5 +11,6 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteUriPresentationService
 {
-    ValueTask<TextChange?> GetPresentationAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan span, Uri[]? uris, CancellationToken cancellationToken);
+    ValueTask<RemoteResponse<TextChange?>> GetPresentationAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan span, Uri[]? uris, CancellationToken cancellationToken);
+
 }

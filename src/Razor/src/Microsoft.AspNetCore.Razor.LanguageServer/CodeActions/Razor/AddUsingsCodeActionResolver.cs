@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -15,31 +17,20 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
+internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory documentContextFactory) : IRazorCodeActionResolver
 {
-    private readonly IDocumentContextFactory _documentContextFactory;
-
-    public AddUsingsCodeActionResolver(IDocumentContextFactory documentContextFactory)
-    {
-        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-    }
+    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
 
     public string Action => LanguageServerConstants.CodeActions.AddUsing;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
     {
-        if (data is null)
-        {
-            return null;
-        }
-
-        var actionParams = data.ToObject<AddUsingsCodeActionParams>();
+        var actionParams = data.Deserialize<AddUsingsCodeActionParams>();
         if (actionParams is null)
         {
             return null;
@@ -51,12 +42,6 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         }
 
         var documentSnapshot = documentContext.Snapshot;
-
-        var text = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-        if (text is null)
-        {
-            return null;
-        }
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
@@ -85,7 +70,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
          * that now I can come up with a more sophisticated heuristic (something along the lines of checking if
          * there's already an ordering, etc.).
          */
-        using var _ = ListPool<TextDocumentEdit>.GetPooledObject(out var documentChanges);
+        using var documentChanges = new PooledArrayBuilder<TextDocumentEdit>();
 
         // Need to add the additional edit first, as the actual usings go at the top of the file, and would
         // change the ranges needed in the additional edit if they went in first
@@ -94,11 +79,12 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
             documentChanges.Add(additionalEdit);
         }
 
-        var usingDirectives = FindUsingDirectives(codeDocument);
+        using var usingDirectives = new PooledArrayBuilder<RazorUsingDirective>();
+        CollectUsingDirectives(codeDocument, ref usingDirectives.AsRef());
         if (usingDirectives.Count > 0)
         {
             // Interpolate based on existing @using statements
-            var edits = GenerateSingleUsingEditsInterpolated(codeDocument, codeDocumentIdentifier, @namespace, usingDirectives);
+            var edits = GenerateSingleUsingEditsInterpolated(codeDocument, codeDocumentIdentifier, @namespace, in usingDirectives);
             documentChanges.Add(edits);
         }
         else
@@ -118,9 +104,11 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         RazorCodeDocument codeDocument,
         OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
         string newUsingNamespace,
-        List<RazorUsingDirective> existingUsingDirectives)
+        ref readonly PooledArrayBuilder<RazorUsingDirective> existingUsingDirectives)
     {
-        var edits = new List<TextEdit>();
+        Debug.Assert(existingUsingDirectives.Count > 0);
+
+        using var edits = new PooledArrayBuilder<TextEdit>();
         var newText = $"@using {newUsingNamespace}{Environment.NewLine}";
 
         foreach (var usingDirective in existingUsingDirectives)
@@ -134,9 +122,8 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
 
             if (string.CompareOrdinal(newUsingNamespace, usingDirectiveNamespace) < 0)
             {
-                var usingDirectiveLineIndex = codeDocument.Source.Text.Lines.GetLinePosition(usingDirective.Node.Span.Start).Line;
-                var head = new Position(usingDirectiveLineIndex, 0);
-                var edit = new TextEdit() { Range = new Range { Start = head, End = head }, NewText = newText };
+                var usingDirectiveLineIndex = codeDocument.Source.Text.GetLinePosition(usingDirective.Node.Span.Start).Line;
+                var edit = VsLspFactory.CreateTextEdit(line: usingDirectiveLineIndex, character: 0, newText);
                 edits.Add(edit);
                 break;
             }
@@ -145,17 +132,16 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         // If we haven't actually found a place to insert the using directive, do so at the end
         if (edits.Count == 0)
         {
-            var endIndex = existingUsingDirectives.Last().Node.Span.End;
+            var endIndex = existingUsingDirectives[^1].Node.Span.End;
             var lineIndex = GetLineIndexOrEnd(codeDocument, endIndex - 1) + 1;
-            var head = new Position(lineIndex, 0);
-            var edit = new TextEdit() { Range = new Range { Start = head, End = head }, NewText = newText };
+            var edit = VsLspFactory.CreateTextEdit(line: lineIndex, character: 0, newText);
             edits.Add(edit);
         }
 
         return new TextDocumentEdit()
         {
             TextDocument = codeDocumentIdentifier,
-            Edits = edits.ToArray(),
+            Edits = edits.ToArray()
         };
     }
 
@@ -164,33 +150,25 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
         string newUsingNamespace)
     {
-        var head = new Position(0, 0);
+        var insertPosition = (0, 0);
 
         // If we don't have usings, insert after the last namespace or page directive, which ever comes later
         var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
         var lastNamespaceOrPageDirective = syntaxTreeRoot
             .DescendantNodes()
-            .Where(n => IsNamespaceOrPageDirective(n))
-            .LastOrDefault();
+            .LastOrDefault(IsNamespaceOrPageDirective);
+
         if (lastNamespaceOrPageDirective != null)
         {
             var lineIndex = GetLineIndexOrEnd(codeDocument, lastNamespaceOrPageDirective.Span.End - 1) + 1;
-            head = new Position(lineIndex, 0);
+            insertPosition = (lineIndex, 0);
         }
 
         // Insert all usings at the given point
-        var range = new Range { Start = head, End = head };
         return new TextDocumentEdit
         {
             TextDocument = codeDocumentIdentifier,
-            Edits = new[]
-            {
-                new TextEdit()
-                {
-                    NewText = string.Concat($"@using {newUsingNamespace}{Environment.NewLine}"),
-                    Range = range,
-                }
-            }
+            Edits = [VsLspFactory.CreateTextEdit(insertPosition, newText: $"@using {newUsingNamespace}{Environment.NewLine}")]
         };
     }
 
@@ -198,7 +176,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
     {
         if (endIndex < codeDocument.Source.Text.Length)
         {
-            return codeDocument.Source.Text.Lines.GetLinePosition(endIndex).Line;
+            return codeDocument.Source.Text.GetLinePosition(endIndex).Line;
         }
         else
         {
@@ -206,9 +184,8 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         }
     }
 
-    private static List<RazorUsingDirective> FindUsingDirectives(RazorCodeDocument codeDocument)
+    private static void CollectUsingDirectives(RazorCodeDocument codeDocument, ref PooledArrayBuilder<RazorUsingDirective> directives)
     {
-        var directives = new List<RazorUsingDirective>();
         var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
         foreach (var node in syntaxTreeRoot.DescendantNodes())
         {
@@ -223,8 +200,6 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
                 }
             }
         }
-
-        return directives;
     }
 
     private static bool IsNamespaceOrPageDirective(SyntaxNode node)
@@ -239,15 +214,5 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         return false;
     }
 
-    private readonly struct RazorUsingDirective
-    {
-        readonly public RazorDirectiveSyntax Node { get; }
-        readonly public AddImportChunkGenerator Statement { get; }
-
-        public RazorUsingDirective(RazorDirectiveSyntax node, AddImportChunkGenerator statement)
-        {
-            Node = node;
-            Statement = statement;
-        }
-    }
+    private readonly record struct RazorUsingDirective(RazorDirectiveSyntax Node, AddImportChunkGenerator Statement);
 }

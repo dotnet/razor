@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -26,7 +25,6 @@ using Microsoft.VisualStudio.Razor.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -116,7 +114,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
             HostDocumentVersion = 1337,
-            Changes = Array.Empty<TextChange>(),
+            Changes = [],
         };
 
         // Act
@@ -170,7 +168,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             ProjectKeyId = projectKey2.Id,
             HostDocumentFilePath = "C:/path/to/file.razor",
             HostDocumentVersion = 1337,
-            Changes = Array.Empty<TextChange>(),
+            Changes = [],
         };
 
         // Act
@@ -216,7 +214,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 },
-                Range = new Range(),
+                Range = VsLspFactory.DefaultRange,
                 Context = new VSInternalCodeActionContext()
             }
         };
@@ -262,7 +260,6 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSCodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
                 _textBuffer,
                 Methods.TextDocumentCodeActionName,
-                It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<VSCodeActionParams>(),
                 It.IsAny<CancellationToken>()))
             .Returns(expectedResults);
@@ -298,7 +295,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 {
                     Uri = testDocUri
                 },
-                Range = new Range(),
+                Range = VsLspFactory.DefaultRange,
                 Context = new VSInternalCodeActionContext()
             }
         };
@@ -345,7 +342,6 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             .Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeAction, VSInternalCodeAction>(
                 It.IsAny<ITextBuffer>(),
                 Methods.CodeActionResolveName,
-                It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<VSInternalCodeAction>(),
                 It.IsAny<CancellationToken>()))
             .Returns(expectedResponses);
@@ -424,7 +420,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 1,
-            ranges: new[] { new Range() },
+            ranges: [VsLspFactory.DefaultRange],
             correlationId: Guid.Empty);
 
         // Act
@@ -473,7 +469,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            ranges: new[] { new Range() },
+            ranges: [VsLspFactory.DefaultRange],
             correlationId: Guid.Empty);
 
         // Act
@@ -512,7 +508,6 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 _textBuffer,
                 It.IsAny<string>(),
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ReinvocationResponse<SemanticTokens>("languageClient", expectedCSharpResults));
@@ -551,7 +546,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            ranges: new[] { new Range() { Start = It.IsAny<Position>(), End = It.IsAny<Position>() } },
+            ranges: [VsLspFactory.DefaultRange],
             correlationId: Guid.Empty);
 
         // Act
@@ -591,7 +586,6 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 _textBuffer,
                 It.IsAny<string>(),
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ReinvocationResponse<SemanticTokens>("languageClient", expectedCSharpResults));
@@ -630,7 +624,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            ranges: new[] { new Range() },
+            ranges: [VsLspFactory.DefaultRange],
             correlationId: Guid.Empty);
         var expectedResults = new ProvideSemanticTokensResponse(null, documentVersion);
 
