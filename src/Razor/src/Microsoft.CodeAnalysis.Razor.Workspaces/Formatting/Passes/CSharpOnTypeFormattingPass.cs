@@ -16,13 +16,15 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
+/// <summary>
+/// Gets edits in C# files, and returns edits to Razor files, with nicely formatted Html
+/// </summary>
 internal sealed class CSharpOnTypeFormattingPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
@@ -32,8 +34,6 @@ internal sealed class CSharpOnTypeFormattingPass(
 
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
-        Debug.Assert(result.Kind == RazorLanguageKind.CSharp);
-
         // Normalize and re-map the C# edits.
         var codeDocument = context.CodeDocument;
         var csharpText = codeDocument.GetCSharpSourceText();
@@ -85,9 +85,9 @@ internal sealed class CSharpOnTypeFormattingPass(
                 return result;
             }
         }
-
+         
         var normalizedEdits = csharpText.NormalizeTextEdits(textEdits, out var originalTextWithChanges);
-        var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits, result.Kind);
+        var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits);
         var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
         if (filteredEdits.Length == 0)
         {
@@ -201,14 +201,8 @@ internal sealed class CSharpOnTypeFormattingPass(
         return new FormattingResult(finalEdits);
     }
 
-    private TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits, RazorLanguageKind projectedKind)
+    private TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits)
     {
-        if (projectedKind != RazorLanguageKind.CSharp)
-        {
-            // Non C# projections map directly to Razor. No need to remap.
-            return projectedTextEdits;
-        }
-
         if (codeDocument.IsUnsupported())
         {
             return [];

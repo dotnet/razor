@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +11,14 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
+/// <summary>
+/// Gets edits in Razor files, and returns edits to Razor files, with nicely formatted Html
+/// </summary>
 internal sealed class CSharpFormattingPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
@@ -28,8 +29,6 @@ internal sealed class CSharpFormattingPass(
 
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
-        Debug.Assert(result.Kind == RazorLanguageKind.Razor);
-
         // Apply previous edits if any.
         var originalText = context.SourceText;
         var changedText = originalText;

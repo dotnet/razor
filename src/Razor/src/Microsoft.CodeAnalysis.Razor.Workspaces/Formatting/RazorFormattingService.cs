@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -107,8 +106,7 @@ internal class RazorFormattingService : IRazorFormattingService
     public Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         => ApplyFormattedEditsAsync(
             documentContext,
-            RazorLanguageKind.CSharp,
-            formattedEdits: [],
+            generatedDocumentEdits: [],
             options,
             hostDocumentIndex,
             triggerCharacter,
@@ -120,7 +118,6 @@ internal class RazorFormattingService : IRazorFormattingService
     public Task<TextEdit[]> GetHtmlOnTypeFormattingEditsAsync(DocumentContext documentContext, TextEdit[] htmlEdits, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         => ApplyFormattedEditsAsync(
             documentContext,
-            RazorLanguageKind.Html,
             htmlEdits,
             options,
             hostDocumentIndex,
@@ -130,12 +127,11 @@ internal class RazorFormattingService : IRazorFormattingService
             automaticallyAddUsings: false,
             cancellationToken: cancellationToken);
 
-    public async Task<TextEdit?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextEdit edit, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextEdit?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextEdit csharpEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var formattedEdits = await ApplyFormattedEditsAsync(
+        var razorEdits = await ApplyFormattedEditsAsync(
             documentContext,
-            RazorLanguageKind.CSharp,
-            [edit],
+            [csharpEdit],
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
@@ -143,15 +139,14 @@ internal class RazorFormattingService : IRazorFormattingService
             collapseEdits: false,
             automaticallyAddUsings: false,
             cancellationToken: cancellationToken).ConfigureAwait(false);
-        return formattedEdits.SingleOrDefault();
+        return razorEdits.SingleOrDefault();
     }
 
-    public async Task<TextEdit?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, TextEdit[] initialEdits, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextEdit?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, TextEdit[] csharpEdits, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var edits = await ApplyFormattedEditsAsync(
+        var razorEdits = await ApplyFormattedEditsAsync(
             documentContext,
-            RazorLanguageKind.CSharp,
-            initialEdits,
+            csharpEdits,
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
@@ -159,17 +154,16 @@ internal class RazorFormattingService : IRazorFormattingService
             collapseEdits: true,
             automaticallyAddUsings: true,
             cancellationToken: cancellationToken).ConfigureAwait(false);
-        return edits.SingleOrDefault();
+        return razorEdits.SingleOrDefault();
     }
 
-    public async Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, TextEdit[] edits, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, TextEdit[] csharpEdits, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        WrapCSharpSnippets(edits);
+        WrapCSharpSnippets(csharpEdits);
 
-        var formattedEdits = await ApplyFormattedEditsAsync(
+        var razorEdits = await ApplyFormattedEditsAsync(
             documentContext,
-            RazorLanguageKind.CSharp,
-            edits,
+            csharpEdits,
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
@@ -178,15 +172,14 @@ internal class RazorFormattingService : IRazorFormattingService
             automaticallyAddUsings: false,
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        UnwrapCSharpSnippets(formattedEdits);
+        UnwrapCSharpSnippets(razorEdits);
 
-        return formattedEdits.SingleOrDefault();
+        return razorEdits.SingleOrDefault();
     }
 
     private async Task<TextEdit[]> ApplyFormattedEditsAsync(
         DocumentContext documentContext,
-        RazorLanguageKind kind,
-        TextEdit[] formattedEdits,
+        TextEdit[] generatedDocumentEdits,
         RazorFormattingOptions options,
         int hostDocumentIndex,
         char triggerCharacter,
@@ -197,13 +190,13 @@ internal class RazorFormattingService : IRazorFormattingService
     {
         // If we only received a single edit, let's always return a single edit back.
         // Otherwise, merge only if explicitly asked.
-        collapseEdits |= formattedEdits.Length == 1;
+        collapseEdits |= generatedDocumentEdits.Length == 1;
 
         var documentSnapshot = documentContext.Snapshot;
         var uri = documentContext.Uri;
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
-        var result = new FormattingResult(formattedEdits, kind);
+        var result = new FormattingResult(generatedDocumentEdits);
 
         foreach (var pass in formattingPasses)
         {
@@ -212,11 +205,11 @@ internal class RazorFormattingService : IRazorFormattingService
         }
 
         var originalText = context.SourceText;
-        var edits = originalText.NormalizeTextEdits(result.Edits);
+        var razorEdits = originalText.NormalizeTextEdits(result.Edits);
 
         if (collapseEdits)
         {
-            var collapsedEdit = MergeEdits(edits, originalText);
+            var collapsedEdit = MergeEdits(razorEdits, originalText);
             if (collapsedEdit.NewText.Length == 0 &&
                 collapsedEdit.Range.IsZeroWidth())
             {
@@ -226,7 +219,7 @@ internal class RazorFormattingService : IRazorFormattingService
             return [collapsedEdit];
         }
 
-        return edits;
+        return razorEdits;
     }
 
     // Internal for testing
@@ -248,25 +241,25 @@ internal class RazorFormattingService : IRazorFormattingService
         return sourceText.GetTextEdit(encompassingChange);
     }
 
-    private static void WrapCSharpSnippets(TextEdit[] snippetEdits)
+    private static void WrapCSharpSnippets(TextEdit[] csharpEdits)
     {
         // Currently this method only supports wrapping `$0`, any additional markers aren't formatted properly.
 
-        foreach (var snippetEdit in snippetEdits)
+        foreach (var edit in csharpEdits)
         {
             // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
             // So, let's avoid the error by wrapping the cursor marker in a comment.
-            snippetEdit.NewText = snippetEdit.NewText.Replace("$0", "/*$0*/");
+            edit.NewText = edit.NewText.Replace("$0", "/*$0*/");
         }
     }
 
-    private static void UnwrapCSharpSnippets(TextEdit[] snippetEdits)
+    private static void UnwrapCSharpSnippets(TextEdit[] razorEdits)
     {
-        foreach (var snippetEdit in snippetEdits)
+        foreach (var edit in razorEdits)
         {
             // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
             // So, let's avoid the error by wrapping the cursor marker in a comment.
-            snippetEdit.NewText = snippetEdit.NewText.Replace("/*$0*/", "$0");
+            edit.NewText = edit.NewText.Replace("/*$0*/", "$0");
         }
     }
 }

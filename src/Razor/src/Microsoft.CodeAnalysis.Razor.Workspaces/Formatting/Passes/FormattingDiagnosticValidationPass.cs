@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
@@ -23,12 +22,6 @@ internal sealed class FormattingDiagnosticValidationPass(ILoggerFactory loggerFa
 
     public async Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
-        if (result.Kind != RazorLanguageKind.Razor)
-        {
-            // We don't care about changes to projected documents here.
-            return result;
-        }
-
         var originalDiagnostics = context.CodeDocument.GetSyntaxTree().Diagnostics;
 
         var text = context.SourceText;

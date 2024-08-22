@@ -34,19 +34,19 @@ internal interface IRazorFormattingService
 
     Task<TextEdit?> GetSingleCSharpEditAsync(
         DocumentContext documentContext,
-        TextEdit initialEdit,
+        TextEdit csharpEdit,
         RazorFormattingOptions options,
         CancellationToken cancellationToken);
 
     Task<TextEdit?> GetCSharpCodeActionEditAsync(
        DocumentContext documentContext,
-       TextEdit[] formattedEdits,
+       TextEdit[] csharpEdits,
        RazorFormattingOptions options,
        CancellationToken cancellationToken);
 
     Task<TextEdit?> GetCSharpSnippetFormattingEditAsync(
        DocumentContext documentContext,
-       TextEdit[] edits,
+       TextEdit[] csharpEdits,
        RazorFormattingOptions options,
        CancellationToken cancellationToken);
 }

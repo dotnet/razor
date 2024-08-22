@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -21,46 +20,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    [Fact]
-    public async Task Execute_LanguageKindCSharp_Noops()
-    {
-        // Arrange
-        var source = SourceText.From(@"
-@code {
-    public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var input = new FormattingResult([], RazorLanguageKind.CSharp);
-        var pass = GetPass();
-
-        // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
-
-        // Assert
-        Assert.Equal(input, result);
-    }
-
-    [Fact]
-    public async Task Execute_LanguageKindHtml_Noops()
-    {
-        // Arrange
-        var source = SourceText.From(@"
-@code {
-    public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var input = new FormattingResult([], RazorLanguageKind.Html);
-        var pass = GetPass();
-
-        // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
-
-        // Assert
-        Assert.Equal(input, result);
-    }
-
     [Fact]
     public async Task Execute_NonDestructiveEdit_Allowed()
     {
@@ -75,7 +34,7 @@ public class Foo { }
         {
             VsLspFactory.CreateTextEdit(2, 0, "    ")
         };
-        var input = new FormattingResult(edits, RazorLanguageKind.Razor);
+        var input = new FormattingResult(edits);
         var pass = GetPass();
 
         // Act
@@ -99,7 +58,7 @@ public class Foo { }
         {
             VsLspFactory.CreateTextEdit(2, 0, 3, 0, "    ") // Nukes a line
         };
-        var input = new FormattingResult(edits, RazorLanguageKind.Razor);
+        var input = new FormattingResult(edits);
         var pass = GetPass();
 
         // Act

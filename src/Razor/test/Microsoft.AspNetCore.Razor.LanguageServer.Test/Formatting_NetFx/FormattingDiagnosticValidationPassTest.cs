@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
@@ -19,48 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    [Fact]
-    public async Task ExecuteAsync_LanguageKindCSharp_Noops()
-    {
-        // Arrange
-        var source = SourceText.From(@"
-@code {
-    public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ ");
-        var input = new FormattingResult([badEdit], RazorLanguageKind.CSharp);
-        var pass = GetPass();
-
-        // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
-
-        // Assert
-        Assert.Equal(input, result);
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_LanguageKindHtml_Noops()
-    {
-        // Arrange
-        var source = SourceText.From(@"
-@code {
-    public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ ");
-        var input = new FormattingResult([badEdit], RazorLanguageKind.Html);
-        var pass = GetPass();
-
-        // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
-
-        // Assert
-        Assert.Equal(input, result);
-    }
-
     [Fact]
     public async Task ExecuteAsync_NonDestructiveEdit_Allowed()
     {
@@ -75,7 +32,7 @@ public class Foo { }
         {
             VsLspFactory.CreateTextEdit(2, 0, "    ")
         };
-        var input = new FormattingResult(edits, RazorLanguageKind.Razor);
+        var input = new FormattingResult(edits);
         var pass = GetPass();
 
         // Act
@@ -96,7 +53,7 @@ public class Foo { }
 ");
         using var context = CreateFormattingContext(source);
         var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ "); // Creates a diagnostic
-        var input = new FormattingResult([badEdit], RazorLanguageKind.Razor);
+        var input = new FormattingResult([badEdit]);
         var pass = GetPass();
 
         // Act

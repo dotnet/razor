@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -21,12 +20,6 @@ internal sealed class FormattingContentValidationPass(ILoggerFactory loggerFacto
 
     public Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
-        if (result.Kind != RazorLanguageKind.Razor)
-        {
-            // We don't care about changes to projected documents here.
-            return Task.FromResult(result);
-        }
-
         var text = context.SourceText;
         var edits = result.Edits;
         var changes = edits.Select(text.GetTextChange);
