@@ -5,10 +5,8 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using static Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
 using static Microsoft.VisualStudio.LanguageServer.Protocol.VsLspExtensions;
-
-using RoslynVSInternalDocumentOnAutoInsertResponseItem = Roslyn.LanguageServer.Protocol.VSInternalDocumentOnAutoInsertResponseItem;
+using static Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
 using RoslynInsertTextFormat = Roslyn.LanguageServer.Protocol.InsertTextFormat;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
