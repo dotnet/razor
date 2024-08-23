@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
 internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsertProviders) : IAutoInsertService
 {
-    private readonly IEnumerable<IOnAutoInsertProvider> _onAutoInsertProviders = onAutoInsertProviders;
+    private readonly ImmutableArray<IOnAutoInsertProvider> _onAutoInsertProviders = onAutoInsertProviders.ToImmutableArray();
 
     public static FrozenSet<string> HtmlAllowedAutoInsertTriggerCharacters { get; }
         = new string[] { "=" }.ToFrozenSet(StringComparer.Ordinal);
@@ -46,7 +46,7 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
         string character,
         bool autoCloseTags)
     {
-        using var applicableProviders = new PooledArrayBuilder<IOnAutoInsertProvider>();
+        using var applicableProviders = new PooledArrayBuilder<IOnAutoInsertProvider>(capacity: _onAutoInsertProviders.Length);
         foreach (var provider in _onAutoInsertProviders)
         {
             if (provider.TriggerCharacter == character)
