@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal record struct RazorFormattingOptions
+internal readonly record struct RazorFormattingOptions
 {
     public static readonly RazorFormattingOptions Default = new();
 
