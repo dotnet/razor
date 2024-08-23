@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -39,7 +40,12 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
     public string TriggerCharacter => ">";
 
-    public bool TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags, out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
+    public bool TryResolveInsertion(
+        Position position,
+        RazorCodeDocument codeDocument,
+        bool enableAutoClosingTags,
+        [NotNullWhen(true)]
+        out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
     {
         autoInsertEdit = null;
 

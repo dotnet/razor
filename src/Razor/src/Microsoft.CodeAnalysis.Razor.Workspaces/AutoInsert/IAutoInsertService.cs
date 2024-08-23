@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -11,10 +12,11 @@ internal interface IAutoInsertService
 {
     ImmutableArray<string> TriggerCharacters { get; }
 
-    VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(
+    bool TryResolveInsertion(
         RazorCodeDocument codeDocument,
         Position position,
         string character,
-        bool autoCloseTags
-    );
+        bool autoCloseTags,
+        [NotNullWhen(true)]
+        out VSInternalDocumentOnAutoInsertResponseItem? insertTextEdit);
 }

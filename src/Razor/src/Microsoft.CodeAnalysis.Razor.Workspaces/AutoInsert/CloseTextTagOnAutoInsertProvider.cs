@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -14,7 +15,12 @@ internal class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
 {
     public string TriggerCharacter => ">";
 
-    public bool TryResolveInsertion(Position position, RazorCodeDocument codeDocument, bool enableAutoClosingTags, out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
+    public bool TryResolveInsertion(
+        Position position,
+        RazorCodeDocument codeDocument,
+        bool enableAutoClosingTags,
+        [NotNullWhen(true)]
+        out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
     {
         if (!(enableAutoClosingTags && IsAtTextTag(codeDocument, position)))
         {

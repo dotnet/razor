@@ -5,6 +5,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -40,11 +41,13 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
 
     public ImmutableArray<string> TriggerCharacters => _triggerCharacters;
 
-    public VSInternalDocumentOnAutoInsertResponseItem? TryResolveInsertion(
+    public bool TryResolveInsertion(
         RazorCodeDocument codeDocument,
         Position position,
         string character,
-        bool autoCloseTags)
+        bool autoCloseTags,
+        [NotNullWhen(true)]
+        out VSInternalDocumentOnAutoInsertResponseItem? insertTextEdit)
     {
         using var applicableProviders = new PooledArrayBuilder<IOnAutoInsertProvider>(capacity: _onAutoInsertProviders.Length);
         foreach (var provider in _onAutoInsertProviders)
@@ -59,7 +62,8 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
         {
             // There's currently a bug in the LSP platform where other language clients OnAutoInsert trigger characters influence every language clients trigger characters.
             // To combat this we need to preemptively return so we don't try having our providers handle characters that they can't.
-            return null;
+            insertTextEdit = null;
+            return false;
         }
 
         foreach (var provider in applicableProviders)
@@ -68,13 +72,14 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
                     position,
                     codeDocument,
                     autoCloseTags,
-                    out var insertTextEdit))
+                    out insertTextEdit))
             {
-                return insertTextEdit;
+                return true;
             }
         }
 
         // No provider could handle the text edit.
-        return null;
+        insertTextEdit = null;
+        return false;
     }
 }

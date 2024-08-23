@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
@@ -196,6 +197,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
             Position position,
             RazorCodeDocument codeDocument,
             bool enableAutoClosingTags,
+            [NotNullWhen(true)]
             out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
         {
             Called = true;

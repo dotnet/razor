@@ -32,17 +32,10 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
             => new RemoteAutoInsertService(in args);
     }
 
-    private readonly IAutoInsertService _autoInsertService
-        = args.ExportProvider.GetExportedValue<IAutoInsertService>();
-    private readonly IDocumentMappingService _documentMappingService
-        = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
-    private readonly IFilePathService _filePathService =
-        args.ExportProvider.GetExportedValue<IFilePathService>();
-    private readonly IRazorFormattingService _razorFormattingService =
-        args.ExportProvider.GetExportedValue<IRazorFormattingService>();
-    private readonly ILogger _logger =
-        args.ExportProvider.GetExportedValue<ILoggerFactory>()
-        .GetOrCreateLogger(nameof(RemoteAutoInsertService));
+    private readonly IAutoInsertService _autoInsertService = args.ExportProvider.GetExportedValue<IAutoInsertService>();
+    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
+    private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
+    private readonly IRazorFormattingService _razorFormattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
 
     public ValueTask<Response> GetAutoInsertTextEditAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
@@ -89,15 +82,14 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
         // Always try our own service first, regardless of language
         // E.g. if ">" is typed for html tag, it's actually our auto-insert provider
         // that adds closing tag instead of HTML even though we are in HTML
-        var insertTextEdit = _autoInsertService.TryResolveInsertion(
-            codeDocument,
-            VsLspExtensions.ToPosition(linePosition),
-            character,
-            autoCloseTags);
-
-        if (insertTextEdit is { } edit)
+        if (_autoInsertService.TryResolveInsertion(
+                codeDocument,
+                VsLspExtensions.ToPosition(linePosition),
+                character,
+                autoCloseTags,
+                out var insertTextEdit))
         {
-            return Response.Results(RemoteAutoInsertTextEdit.FromLspInsertTextEdit(edit));
+            return Response.Results(RemoteAutoInsertTextEdit.FromLspInsertTextEdit(insertTextEdit));
         }
 
         var positionInfo = PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance.GetPositionInfo(_documentMappingService, codeDocument, index);
@@ -127,7 +119,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
                     cancellationToken);
         }
 
-        _logger.LogError($"Unsupported language {languageKind}");
+        Logger.LogError($"Unsupported language {languageKind} in {nameof(RemoteAutoInsertService)}");
         return Response.NoFurtherHandling;
     }
 

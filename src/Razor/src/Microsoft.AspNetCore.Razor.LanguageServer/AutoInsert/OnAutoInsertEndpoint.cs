@@ -84,18 +84,17 @@ internal class OnAutoInsertEndpoint(
 
         var character = request.Character;
 
-        var insertTextEdit = _autoInsertService.TryResolveInsertion(
-            codeDocument,
-            request.Position,
-            character,
-            _optionsMonitor.CurrentValue.AutoClosingTags);
-
-        if (insertTextEdit is { } edit)
-        { 
+        if(_autoInsertService.TryResolveInsertion(
+                codeDocument,
+                request.Position,
+                character,
+                _optionsMonitor.CurrentValue.AutoClosingTags,
+                out var insertTextEdit))
+        {
             return new VSInternalDocumentOnAutoInsertResponseItem()
             {
-                TextEdit = edit.TextEdit,
-                TextEditFormat = edit.TextEditFormat,
+                TextEdit = insertTextEdit.TextEdit,
+                TextEditFormat = insertTextEdit.TextEditFormat,
             };
         }
 
