@@ -10,3 +10,5 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 [Export(typeof(IAutoInsertService)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPAutoInsertService([ImportMany] IEnumerable<IOnAutoInsertProvider> providers) : AutoInsertService(providers)
+{
+}

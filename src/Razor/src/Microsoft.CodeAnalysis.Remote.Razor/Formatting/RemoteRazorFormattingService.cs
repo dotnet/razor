@@ -4,13 +4,15 @@
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 [Export(typeof(IRazorFormattingService)), Shared]
 [method: ImportingConstructor]
 internal class RemoteRazorFormattingService(
-    [ImportMany] IEnumerable<IFormattingPass> formattingPasses)
-    : RazorFormattingService(formattingPasses, new RemoteAdhocWorkspaceFactory())
+    [ImportMany] IEnumerable<IFormattingPass> formattingPasses,
+    IAdhocWorkspaceFactory adhocWorkspaceFactory)
+    : RazorFormattingService(formattingPasses, adhocWorkspaceFactory)
 {
 }
