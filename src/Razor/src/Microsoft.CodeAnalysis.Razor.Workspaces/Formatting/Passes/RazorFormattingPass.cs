@@ -411,7 +411,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
 
         return didFormat;
 
-        static bool RangeHasBeenModified(ref PooledArrayBuilder<TextEdit> edits, Range range)
+        static bool RangeHasBeenModified(ref readonly PooledArrayBuilder<TextEdit> edits, Range range)
         {
             // Because we don't always know what kind of Razor object we're operating on we have to do this to avoid duplicate edits.
             // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.

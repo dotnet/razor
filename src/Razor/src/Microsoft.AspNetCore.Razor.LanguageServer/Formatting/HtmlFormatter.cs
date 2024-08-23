@@ -89,7 +89,7 @@ internal sealed class HtmlFormatter(
     public static TextEdit[] FixHtmlTextEdits(SourceText htmlSourceText, TextEdit[] edits)
     {
         // Avoid computing a minimal diff if we don't need to
-        if (!edits.Any(e => e.NewText.Contains("~")))
+        if (!edits.Any(static e => e.NewText.Contains("~")))
             return edits;
 
         return htmlSourceText.NormalizeTextEdits(edits);

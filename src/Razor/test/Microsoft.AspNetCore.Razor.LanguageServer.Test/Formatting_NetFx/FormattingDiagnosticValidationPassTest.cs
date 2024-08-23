@@ -95,7 +95,7 @@ public class Foo { }
         var projectEngine = RazorProjectEngine.Create(builder => builder.SetRootNamespace("Test"));
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
 
-        var documentSnapshot = FormattingTestBase.CreateDocumentSnapshot(path, tagHelpers, fileKind, [], [], projectEngine, codeDocument);
+        var documentSnapshot = FormattingTestBase.CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments: [], imports: [], projectEngine, codeDocument);
 
         return (codeDocument, documentSnapshot);
     }

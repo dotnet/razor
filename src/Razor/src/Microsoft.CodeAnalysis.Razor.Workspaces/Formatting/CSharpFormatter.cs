@@ -63,7 +63,7 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
         var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         Assumes.NotNull(root);
 
-        var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(context.CSharpWorkspace.Services, root, spanToFormat, context.Options.GetIndentationOptions(), cancellationToken);
+        var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(context.CSharpWorkspace.Services, root, spanToFormat, context.Options.ToIndentationOptions(), cancellationToken);
 
         var edits = changes.Select(csharpSourceText.GetTextEdit).ToArray();
         return edits;
@@ -85,7 +85,7 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
 
         // At this point, we have added all the necessary markers and attached annotations.
         // Let's invoke the C# formatter and hope for the best.
-        var formattedRoot = RazorCSharpFormattingInteractionService.Format(context.CSharpWorkspace.Services, root, context.Options.GetIndentationOptions(), cancellationToken);
+        var formattedRoot = RazorCSharpFormattingInteractionService.Format(context.CSharpWorkspace.Services, root, context.Options.ToIndentationOptions(), cancellationToken);
         var formattedText = formattedRoot.GetText();
 
         var desiredIndentationMap = new Dictionary<int, int>();

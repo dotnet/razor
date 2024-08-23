@@ -6,18 +6,17 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed record RazorFormattingOptions
+internal record struct RazorFormattingOptions
 {
-    public bool InsertSpaces { get; init; }
-    public int TabSize { get; init; }
-    public bool CodeBlockBraceOnNextLine { get; init; }
+    public static readonly RazorFormattingOptions Default = new();
 
-    public static RazorFormattingOptions Default => new RazorFormattingOptions()
+    public bool InsertSpaces { get; init; } = true;
+    public int TabSize { get; init; } = 4;
+    public bool CodeBlockBraceOnNextLine { get; init; } = false;
+
+    public RazorFormattingOptions()
     {
-        InsertSpaces = true,
-        TabSize = 4,
-        CodeBlockBraceOnNextLine = false
-    };
+    }
 
     public static RazorFormattingOptions From(FormattingOptions options, bool codeBlockBraceOnNextLine)
     {
@@ -29,7 +28,7 @@ internal sealed record RazorFormattingOptions
         };
     }
 
-    public RazorIndentationOptions GetIndentationOptions()
+    public RazorIndentationOptions ToIndentationOptions()
         => new(
             UseTabs: !InsertSpaces,
             TabSize: TabSize,

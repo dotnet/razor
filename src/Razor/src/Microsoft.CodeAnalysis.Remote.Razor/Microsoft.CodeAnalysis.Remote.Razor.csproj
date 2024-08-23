@@ -57,8 +57,4 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Formatting\" />
-  </ItemGroup>
-
 </Project>

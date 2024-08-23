@@ -54,7 +54,7 @@ internal sealed class CSharpOnTypeFormattingPass(
                 context.CSharpWorkspaceDocument,
                 typedChar: context.TriggerCharacter,
                 projectedIndex,
-                context.Options.GetIndentationOptions(),
+                context.Options.ToIndentationOptions(),
                 autoFormattingOptions,
                 indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
                 cancellationToken).ConfigureAwait(false);
@@ -84,7 +84,7 @@ internal sealed class CSharpOnTypeFormattingPass(
                 return edits;
             }
         }
-         
+
         var normalizedEdits = csharpText.NormalizeTextEdits((TextEdit[])edits, out var originalTextWithChanges);
         var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits);
         var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
@@ -94,7 +94,6 @@ internal sealed class CSharpOnTypeFormattingPass(
             // because they are non mappable, but might be the only thing changed (eg from the Add Using code action)
             //
             // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
-
             filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, edits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
 
             return filteredEdits;
@@ -217,7 +216,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         if (context.AutomaticallyAddUsings)
         {
             // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
-            if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
+            if (textEdits.Any(static e => e.NewText.IndexOf("using") != -1))
             {
                 var usingStatementEdits = await AddUsingsHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
                 finalEdits = [.. usingStatementEdits, .. finalEdits];
@@ -340,7 +339,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.TryGetPreviousSibling(out var prevNode) &&
-            prevNode.FirstAncestorOrSelf<RazorSyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            prevNode.FirstAncestorOrSelf<RazorSyntaxNode>(static a => a is CSharpTemplateBlockSyntax) is { } template &&
             owner.SpanStart == template.Span.End &&
             IsOnSingleLine(template, text))
         {
@@ -494,7 +493,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.NextSpan() is { } nextNode &&
-            nextNode.FirstAncestorOrSelf<RazorSyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            nextNode.FirstAncestorOrSelf<RazorSyntaxNode>(static a => a is CSharpTemplateBlockSyntax) is { } template &&
             template.SpanStart == owner.Span.End &&
             IsOnSingleLine(template, text))
         {
