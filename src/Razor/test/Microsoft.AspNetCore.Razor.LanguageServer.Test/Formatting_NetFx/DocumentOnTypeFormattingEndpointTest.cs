@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -18,6 +19,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) : FormattingLanguageServerTestBase(testOutput)
 {
+    [Fact]
+    public void AllTriggerCharacters_IncludesCSharpTriggerCharacters()
+    {
+        var allChars = DocumentOnTypeFormattingEndpoint.TestAccessor.GetAllTriggerCharacters();
+
+        foreach (var character in DocumentOnTypeFormattingEndpoint.TestAccessor.GetCSharpTriggerCharacterSet())
+        {
+            Assert.Contains(character, allChars);
+        }
+    }
+
+    [Fact]
+    public void AllTriggerCharacters_IncludesHtmlTriggerCharacters()
+    {
+        var allChars = DocumentOnTypeFormattingEndpoint.TestAccessor.GetAllTriggerCharacters();
+
+        foreach (var character in DocumentOnTypeFormattingEndpoint.TestAccessor.GetHtmlTriggerCharacterSet())
+        {
+            Assert.Contains(character, allChars);
+        }
+    }
+
+    [Fact]
+    public void AllTriggerCharacters_ContainsUniqueCharacters()
+    {
+        var allChars = DocumentOnTypeFormattingEndpoint.TestAccessor.GetAllTriggerCharacters();
+        var distinctChars = allChars.Distinct().ToArray();
+
+        Assert.Equal(distinctChars, allChars);
+    }
+
     [Fact]
     public async Task Handle_OnTypeFormatting_FormattingDisabled_ReturnsNull()
     {

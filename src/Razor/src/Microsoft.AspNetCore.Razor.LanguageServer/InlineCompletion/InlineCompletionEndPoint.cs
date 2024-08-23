@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -113,7 +114,7 @@ internal sealed class InlineCompletionEndpoint(
             return null;
         }
 
-        var items = new List<VSInternalInlineCompletionItem>();
+        using var items = new PooledArrayBuilder<VSInternalInlineCompletionItem>(list.Items.Length);
         foreach (var item in list.Items)
         {
             var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
@@ -152,7 +153,7 @@ internal sealed class InlineCompletionEndpoint(
         _logger.LogInformation($"Returning {items.Count} items.");
         return new VSInternalInlineCompletionList
         {
-            Items = [.. items]
+            Items = items.ToArray()
         };
     }
 

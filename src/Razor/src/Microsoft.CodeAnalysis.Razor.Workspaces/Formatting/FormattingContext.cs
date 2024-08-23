@@ -221,7 +221,7 @@ internal sealed class FormattingContext : IDisposable
     {
         result = null;
         var formattingSpans = GetFormattingSpans();
-        foreach (var formattingSpan in formattingSpans)
+        foreach (var formattingSpan in formattingSpans.AsEnumerable())
         {
             var span = formattingSpan.Span;
 

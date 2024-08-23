@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -35,9 +36,11 @@ internal class DocumentOnTypeFormattingEndpoint(
     private readonly IHtmlFormatter _htmlFormatter = htmlFormatter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentOnTypeFormattingEndpoint>();
 
-    private static readonly FrozenSet<string> s_csharpTriggerCharacters = FrozenSet.ToFrozenSet(["}", ";"]);
-    private static readonly FrozenSet<string> s_htmlTriggerCharacters = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"]);
-    private static readonly FrozenSet<string> s_allTriggerCharacters = FrozenSet.ToFrozenSet(s_csharpTriggerCharacters.Concat(s_htmlTriggerCharacters));
+    private static readonly ImmutableArray<string> s_allTriggerCharacters = ["}", ";", "\n", "{"];
+
+    private static readonly FrozenSet<string> s_csharpTriggerCharacterSet = FrozenSet.ToFrozenSet(["}", ";"], StringComparer.Ordinal);
+    private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
+    private static readonly FrozenSet<string> s_allTriggerCharacterSet = s_allTriggerCharacters.ToFrozenSet(StringComparer.Ordinal);
 
     public bool MutatesSolutionState => false;
 
@@ -45,8 +48,8 @@ internal class DocumentOnTypeFormattingEndpoint(
     {
         serverCapabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions
         {
-            FirstTriggerCharacter = s_allTriggerCharacters.First(),
-            MoreTriggerCharacter = s_allTriggerCharacters.Skip(1).ToArray(),
+            FirstTriggerCharacter = s_allTriggerCharacters[0],
+            MoreTriggerCharacter = s_allTriggerCharacters.AsSpan()[1..].ToArray(),
         };
     }
 
@@ -71,7 +74,7 @@ internal class DocumentOnTypeFormattingEndpoint(
             return null;
         }
 
-        if (!s_allTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
+        if (!s_allTriggerCharacterSet.Contains(request.Character))
         {
             _logger.LogWarning($"Unexpected trigger character '{request.Character}'.");
             return null;
@@ -149,14 +152,21 @@ internal class DocumentOnTypeFormattingEndpoint(
     {
         if (languageKind == RazorLanguageKind.CSharp)
         {
-            return s_csharpTriggerCharacters.Contains(triggerCharacter);
+            return s_csharpTriggerCharacterSet.Contains(triggerCharacter);
         }
         else if (languageKind == RazorLanguageKind.Html)
         {
-            return s_htmlTriggerCharacters.Contains(triggerCharacter);
+            return s_htmlTriggerCharacterSet.Contains(triggerCharacter);
         }
 
         // Unknown trigger character.
         return false;
+    }
+
+    internal static class TestAccessor
+    {
+        public static ImmutableArray<string> GetAllTriggerCharacters() => s_allTriggerCharacters;
+        public static FrozenSet<string> GetCSharpTriggerCharacterSet() => s_csharpTriggerCharacterSet;
+        public static FrozenSet<string> GetHtmlTriggerCharacterSet() => s_htmlTriggerCharacterSet;
     }
 }
