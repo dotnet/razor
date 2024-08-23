@@ -113,7 +113,7 @@ public class ComponentDirectiveIntegrationTest : RazorIntegrationTestBase
         var injectableProperties = component.GetMembers().OfType<IPropertySymbol>()
             .Where(p => p.GetAttributes().Any(a => a.AttributeClass.Name == "InjectAttribute"));
         Assert.Collection(injectableProperties.OrderBy(p => p.Name),
-            s => AssertEx.Equal("private System.DateTime Test.TestComponent.Member_test { get; set; }", s.ToTestDisplayString()),
+            s => AssertEx.Equal("private System.DateTime Test.TestComponent.Member___UniqueIdSuppressedForTesting__ { get; set; }", s.ToTestDisplayString()),
             s => AssertEx.Equal("private System.DateTime Test.TestComponent.Value { get; set; }", s.ToTestDisplayString()));
     }
 

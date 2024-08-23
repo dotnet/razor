@@ -505,7 +505,7 @@ public class RazorIntegrationTestBase
 
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
-            options.SuppressUniqueIds = "test";
+            options.SuppressUniqueIds = "__UniqueIdSuppressedForTesting__";
         }
     }
 
