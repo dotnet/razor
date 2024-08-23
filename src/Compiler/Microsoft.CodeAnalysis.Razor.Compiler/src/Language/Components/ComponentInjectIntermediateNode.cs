@@ -62,18 +62,26 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
             throw new ArgumentNullException(nameof(context));
         }
 
-        var memberName = MemberName ?? "Member_" + DefaultTagHelperTargetExtension.GetDeterministicId(context);
-
-        if (!context.Options.DesignTime || !IsMalformed)
+        if (TypeName == string.Empty && TypeSpan.HasValue && !context.Options.DesignTime)
         {
-            context.CodeWriter.WriteAutoPropertyDeclaration(
-                _injectedPropertyModifiers,
-                TypeName,
-                memberName,
-                TypeSpan,
-                MemberSpan,
-                context,
-                defaultValue: true);
+            // if we don't even have a type name, just emit an empty mapped region so that intellisense still works
+            context.CodeWriter.BuildEnhancedLinePragma(TypeSpan.Value, context).Dispose();
+        }
+        else
+        {
+            var memberName = MemberName ?? "Member_" + DefaultTagHelperTargetExtension.GetDeterministicId(context);
+
+            if (!context.Options.DesignTime || !IsMalformed)
+            {
+                context.CodeWriter.WriteAutoPropertyDeclaration(
+                    _injectedPropertyModifiers,
+                    TypeName,
+                    memberName,
+                    TypeSpan,
+                    MemberSpan,
+                    context,
+                    defaultValue: true);
+            }
         }
     }
 }

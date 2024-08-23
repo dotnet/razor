@@ -57,22 +57,19 @@ public static class InjectDirective
             {
                 var directive = visitor.Directives[i];
                 var tokens = directive.Children.OfType<DirectiveTokenIntermediateNode>().ToArray();
-                if (tokens.Length < 1 || string.IsNullOrWhiteSpace(tokens[0].Content))
-                {
-                    continue;
-                }
-
-                var typeName = tokens[0].Content;
-                var typeSpan = tokens[0].Source;
-
                 var isMalformed = directive is MalformedDirectiveIntermediateNode;
+
+                var hasType = tokens.Length > 0 && !string.IsNullOrWhiteSpace(tokens[0].Content);
+                Debug.Assert(hasType || isMalformed);
+                var typeName = hasType ? tokens[0].Content : string.Empty;
+                var typeSpan = hasType ? tokens[0].Source : directive.Source?.GetZeroWidthEndSpan();
+
                 var hasMemberName = tokens.Length > 1 && !string.IsNullOrWhiteSpace(tokens[1].Content);
                 Debug.Assert(hasMemberName || isMalformed);
-
                 var memberName = hasMemberName ? tokens[1].Content : null;
                 var memberSpan = hasMemberName ? tokens[1].Source : null;
 
-                if (!properties.Add(memberName))
+                if (hasMemberName && !properties.Add(memberName))
                 {
                     continue;
                 }

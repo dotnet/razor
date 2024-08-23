@@ -46,6 +46,18 @@ MyService<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDir
 #nullable disable
          Member_test { get; private set; }
          = default!;
+#nullable restore
+#line (11,9)-(11,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (10,8)-(10,8) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
+
+#line default
+#line hidden
+#nullable disable
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

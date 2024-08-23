@@ -58,6 +58,14 @@ MyService<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDir
 #line default
 #line hidden
          Member_test { get; private set; }
+#line (11,9)-(11,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
+
+#line default
+#line hidden
+#line (10,8)-(10,8) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
+
+#line default
+#line hidden
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
