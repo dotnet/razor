@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -48,6 +49,20 @@ internal class CohostOnAutoInsertEndpoint(
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostOnAutoInsertEndpoint>();
 
+    private readonly ImmutableArray<string> _triggerCharacters = CalculateTriggerChars(onAutoInsertTriggerCharacterProviders);
+
+    private static ImmutableArray<string> CalculateTriggerChars(IEnumerable<IOnAutoInsertTriggerCharacterProvider> onAutoInsertTriggerCharacterProviders)
+    {
+        var providerTriggerCharacters = onAutoInsertTriggerCharacterProviders.Select((provider) => provider.TriggerCharacter).Distinct();
+
+        ImmutableArray<string> _triggerCharacters = [
+            .. providerTriggerCharacters,
+            .. AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters,
+            .. AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters ];
+
+        return _triggerCharacters;
+    }
+
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
@@ -56,18 +71,11 @@ internal class CohostOnAutoInsertEndpoint(
     {
         if (clientCapabilities.SupportsVisualStudioExtensions)
         {
-            var providerTriggerChars = _onAutoInsertTriggerCharacterProviders
-                .Select((provider) => provider.TriggerCharacter);
-
-            var triggerCharacters = providerTriggerChars
-                .Concat(AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters)
-                .Concat(AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters);
-
             return new Registration
             {
                 Method = VSInternalMethods.OnAutoInsertName,
                 RegisterOptions = new VSInternalDocumentOnAutoInsertOptions()
-                    .EnableOnAutoInsert(triggerCharacters)
+                    .EnableOnAutoInsert(_triggerCharacters)
             };
         }
 
@@ -87,7 +95,7 @@ internal class CohostOnAutoInsertEndpoint(
         var enableAutoClosingTags = clientSettings.AdvancedSettings.AutoClosingTags;
         var formatOnType = clientSettings.AdvancedSettings.FormatOnType;
         var indentWithTabs = clientSettings.ClientSpaceSettings.IndentWithTabs;
-        var indentSize = clientSettings.ClientSpaceSettings.IndentSize;        
+        var indentSize = clientSettings.ClientSpaceSettings.IndentSize;
 
         _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(

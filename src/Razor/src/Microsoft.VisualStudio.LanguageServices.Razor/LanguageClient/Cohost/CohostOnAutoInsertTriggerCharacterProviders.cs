@@ -10,9 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 // during registration of CohostOnAutoInsertProvider without using a remote service
 
 [Export(typeof(IOnAutoInsertTriggerCharacterProvider))]
-internal sealed class CohostAutoClosingTagOnAutoInsertTriggerCharacterProvider
-    : AutoClosingTagOnAutoInsertProvider;
+internal sealed class CohostAutoClosingTagOnAutoInsertTriggerCharacterProvider : AutoClosingTagOnAutoInsertProvider;
 
 [Export(typeof(IOnAutoInsertTriggerCharacterProvider))]
-internal sealed class CohostCloseTextTagOnAutoInsertTriggerCharacterProvider
-    : CloseTextTagOnAutoInsertProvider;
+internal sealed class CohostCloseTextTagOnAutoInsertTriggerCharacterProvider : CloseTextTagOnAutoInsertProvider;
