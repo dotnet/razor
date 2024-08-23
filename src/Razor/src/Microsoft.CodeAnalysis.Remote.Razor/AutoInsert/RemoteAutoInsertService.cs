@@ -33,9 +33,10 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
     }
 
     private readonly IAutoInsertService _autoInsertService = args.ExportProvider.GetExportedValue<IAutoInsertService>();
-    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
     private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
     private readonly IRazorFormattingService _razorFormattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
+
+    protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance;
 
     public ValueTask<Response> GetAutoInsertTextEditAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
@@ -92,7 +93,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
             return Response.Results(RemoteAutoInsertTextEdit.FromLspInsertTextEdit(insertTextEdit));
         }
 
-        var positionInfo = PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance.GetPositionInfo(_documentMappingService, codeDocument, index);
+        var positionInfo = GetPositionInfo(codeDocument, index);
         var languageKind = positionInfo.LanguageKind;
 
         if (languageKind is RazorLanguageKind.Razor)
