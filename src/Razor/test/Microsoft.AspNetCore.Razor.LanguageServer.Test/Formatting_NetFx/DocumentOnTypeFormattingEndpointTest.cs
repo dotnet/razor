@@ -48,8 +48,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 @{
  if(true){}
 }";
-        var sourceMappings = new List<SourceMapping> { new SourceMapping(new SourceSpan(17, 0), new SourceSpan(17, 0)) };
-        var codeDocument = CreateCodeDocument(content, sourceMappings);
+        var codeDocument = CreateCodeDocument(content, sourceMappings: [new SourceMapping(new SourceSpan(17, 0), new SourceSpan(17, 0))]);
         var uri = new Uri("file://path/test.razor");
 
         var documentContext = CreateDocumentContext(new Uri("file://path/testDifferentFile.razor"), codeDocument);
@@ -84,8 +83,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 @{
  if(true){}
 }";
-        var sourceMappings = new List<SourceMapping> { };
-        var codeDocument = CreateCodeDocument(content, sourceMappings);
+        var codeDocument = CreateCodeDocument(content, sourceMappings: []);
         var uri = new Uri("file://path/test.razor");
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -120,8 +118,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 @{
  if(true){}
 }";
-        var sourceMappings = new List<SourceMapping> { new SourceMapping(new SourceSpan(17, 0), new SourceSpan(17, 0)) };
-        var codeDocument = CreateCodeDocument(content, sourceMappings);
+        var codeDocument = CreateCodeDocument(content, sourceMappings: [new SourceMapping(new SourceSpan(17, 0), new SourceSpan(17, 0))]);
         var uri = new Uri("file://path/test.razor");
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -157,8 +154,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 @{
  if(true){}
 }";
-        var sourceMappings = new List<SourceMapping> { new SourceMapping(new SourceSpan(17, 0), new SourceSpan(17, 0)) };
-        var codeDocument = CreateCodeDocument(content, sourceMappings);
+        var codeDocument = CreateCodeDocument(content, sourceMappings: [new SourceMapping(new SourceSpan(17, 0), new SourceSpan(17, 0))]);
         var uri = new Uri("file://path/test.razor");
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -194,8 +190,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 @{
  if(true){}
 }";
-        var sourceMappings = new List<SourceMapping> { new SourceMapping(new SourceSpan(17, 0), new SourceSpan(17, 0)) };
-        var codeDocument = CreateCodeDocument(content, sourceMappings);
+        var codeDocument = CreateCodeDocument(content, [new SourceMapping(new SourceSpan(17, 0), new SourceSpan(17, 0))]);
         var uri = new Uri("file://path/test.razor");
 
         var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);

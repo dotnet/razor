@@ -128,7 +128,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         var csharpDocument = codeDocument.GetCSharpDocument();
         var diagnostics = csharpDocument.Diagnostics;
 
-        if (diagnostics.Count == 0)
+        if (diagnostics.Length == 0)
         {
             return null;
         }
