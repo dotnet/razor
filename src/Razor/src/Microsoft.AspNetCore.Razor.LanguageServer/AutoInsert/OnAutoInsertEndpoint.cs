@@ -84,7 +84,7 @@ internal class OnAutoInsertEndpoint(
 
         var character = request.Character;
 
-        if(_autoInsertService.TryResolveInsertion(
+        if (_autoInsertService.TryResolveInsertion(
                 codeDocument,
                 request.Position,
                 character,

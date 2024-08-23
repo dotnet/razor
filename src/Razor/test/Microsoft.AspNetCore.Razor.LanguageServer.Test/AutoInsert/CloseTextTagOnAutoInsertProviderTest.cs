@@ -13,28 +13,28 @@ public class CloseTextTagOnAutoInsertProviderTest(ITestOutputHelper testOutput) 
     public void OnTypeCloseAngle_ClosesTextTag()
     {
         RunAutoInsertTest(
-input: @"
-@{
-    <text>$$
-}
-",
-expected: @"
-@{
-    <text>$0</text>
-}
-");
+            input: """
+            @{
+                <text>$$
+            }
+            """,
+            expected: """
+            @{
+                <text>$0</text>
+            }
+            """);
     }
 
     [Fact]
     public void OnTypeCloseAngle_OutsideRazorBlock_DoesNotCloseTextTag()
     {
         RunAutoInsertTest(
-input: @"
-    <text>$$
-",
-expected: @"
-    <text>
-");
+            input: """
+                <text>$$
+                """,
+            expected: """
+                <text>
+                """);
     }
 
     internal override IOnAutoInsertProvider CreateProvider() =>
