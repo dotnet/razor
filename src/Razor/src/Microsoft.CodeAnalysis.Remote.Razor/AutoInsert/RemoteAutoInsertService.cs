@@ -23,7 +23,7 @@ using VsLspFormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.Fo
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal class RemoteAutoInsertService(in ServiceArgs args)
+internal sealed class RemoteAutoInsertService(in ServiceArgs args)
     : RazorDocumentServiceBase(in args), IRemoteAutoInsertService
 {
     internal sealed class Factory : FactoryBase<IRemoteAutoInsertService>
@@ -160,6 +160,7 @@ internal class RemoteAutoInsertService(in ServiceArgs args)
             InsertSpaces = !indentWithTabs,
             TabSize = indentSize
         };
+
         var autoInsertResponseItem = await OnAutoInsert.GetOnAutoInsertResponseAsync(
             generatedDocument,
             mappedPosition,
