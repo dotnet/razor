@@ -3,8 +3,6 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-using VsLspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-
 namespace Roslyn.LanguageServer.Protocol;
 
 internal static partial class RoslynLspExtensions
@@ -14,11 +12,4 @@ internal static partial class RoslynLspExtensions
 
     public static string ToDisplayString(this Range range)
         => $"{range.Start.ToDisplayString()}-{range.End.ToDisplayString()}";
-
-    public static VsLspRange ToVsLspRange(this Range range)
-        => new()
-        {
-            Start = range.Start.ToVsLspPosition(),
-            End = range.End.ToVsLspPosition()
-        };
 }

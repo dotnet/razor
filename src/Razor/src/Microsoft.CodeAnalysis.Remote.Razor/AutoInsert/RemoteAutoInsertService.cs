@@ -180,18 +180,21 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             TabSize = indentSize
         };
 
+        var vsLspTextEdit = VsLspFactory.CreateTextEdit(
+            autoInsertResponseItem.TextEdit.Range.ToLinePositionSpan(),
+            autoInsertResponseItem.TextEdit.NewText);
         var mappedEdits = autoInsertResponseItem.TextEditFormat == RoslynInsertTextFormat.Snippet
             ? await _razorFormattingService.FormatSnippetAsync(
                 remoteDocumentContext,
                 RazorLanguageKind.CSharp,
-                [autoInsertResponseItem.TextEdit.ToVsLspTextEdit()],
+                [vsLspTextEdit],
                 razorFormattingOptions,
                 cancellationToken)
             .ConfigureAwait(false)
             : await _razorFormattingService.FormatOnTypeAsync(
                 remoteDocumentContext,
                 RazorLanguageKind.CSharp,
-                [autoInsertResponseItem.TextEdit.ToVsLspTextEdit()],
+                [vsLspTextEdit],
                 razorFormattingOptions,
                 hostDocumentIndex: 0,
                 triggerCharacter: '\0',
