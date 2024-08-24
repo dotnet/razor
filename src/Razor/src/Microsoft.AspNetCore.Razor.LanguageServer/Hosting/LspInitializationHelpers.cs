@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
-internal static class VSInternalServerCapabilitiesExtensions
+internal static class LspInitializationHelpers
 {
     public static void EnableInlayHints(this VSInternalServerCapabilities serverCapabilities)
     {
