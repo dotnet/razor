@@ -74,7 +74,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         ProcessSelection(startElementNode, endElementNode, actionParams);
 
         var utilityScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
-        AddComponentDependenciesInRange(utilityScanRoot,
+        AddUsingDirectivesInRange(utilityScanRoot,
                                         actionParams.ExtractStart,
                                         actionParams.ExtractEnd,
                                         actionParams);
@@ -274,7 +274,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return null;
     }
 
-    private static void AddComponentDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
+    private static void AddUsingDirectivesInRange(SyntaxNode root, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
     {
         var components = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
@@ -283,12 +283,12 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         {
             if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
             {
-                AddDependenciesFromTagHelperInfo(tagHelperInfo, components, actionParams);
+                AddUsingFromTagHelperInfo(tagHelperInfo, components, actionParams);
             }
         }
     }
 
-    private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, ExtractToComponentCodeActionParams actionParams)
+    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, ExtractToComponentCodeActionParams actionParams)
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {
