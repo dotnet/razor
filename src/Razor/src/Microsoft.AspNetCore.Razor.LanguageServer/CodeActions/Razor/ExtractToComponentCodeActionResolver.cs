@@ -93,8 +93,8 @@ internal sealed class ExtractToComponentCodeActionResolver
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
         var newComponentContent = string.Empty;
 
-        newComponentContent += string.Join(Environment.NewLine, actionParams.Dependencies);
-        if (actionParams.Dependencies.Count > 0)
+        newComponentContent += string.Join(Environment.NewLine, actionParams.usingDirectives);
+        if (actionParams.usingDirectives.Count > 0)
         {
             newComponentContent += Environment.NewLine + Environment.NewLine; // Ensure there's a newline after the dependencies if any exist.
         }

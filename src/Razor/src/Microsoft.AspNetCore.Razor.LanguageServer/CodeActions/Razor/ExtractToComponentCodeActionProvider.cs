@@ -78,7 +78,6 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
                                         actionParams.ExtractStart,
                                         actionParams.ExtractEnd,
                                         actionParams);
-        GetUsedIdentifiers(utilityScanRoot, syntaxTree.Root, actionParams);
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
@@ -156,9 +155,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             ExtractStart = startElementNode.Span.Start,
             ExtractEnd = startElementNode.Span.End,
             Namespace = @namespace,
-            Dependencies = [],
-            UsedIdentifiers = [],
-            UsedMembers = [],
+            usingDirectives = []
         };
     }
 
@@ -303,36 +300,8 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             var typeNamespace = descriptor.GetTypeNamespace();
             if (components.Add(typeNamespace))
             {
-                actionParams.Dependencies.Add($"@using {typeNamespace}");
+                actionParams.usingDirectives.Add($"@using {typeNamespace}");
             }
         }
-    }
-
-    private static void GetUsedIdentifiers(SyntaxNode divNode, SyntaxNode documentRoot, ExtractToComponentCodeActionParams actionParams)
-    {
-        HashSet<string> identifiersInScope = [];
-        HashSet<string> identifiersInBlock = [];
-
-        HashSet<SyntaxNode> nodesInScope = [];
-        HashSet<SyntaxNode> nodesInBlock = [];
-
-        foreach (var node in divNode.DescendantNodes().Where(static node => node.Kind is SyntaxKind.Identifier))
-        {
-            identifiersInScope.Add(node.GetContent());
-            nodesInScope.Add(node);
-        }
-
-        foreach (var codeBlock in documentRoot.DescendantNodes().Where(static node => node.Kind is SyntaxKind.RazorDirective))
-        {
-            foreach (var node in codeBlock.DescendantNodes().Where(static node => node.Kind is SyntaxKind.Identifier))
-            {
-                identifiersInBlock.Add(node.GetContent());
-                nodesInBlock.Add(node);
-            }
-        }
-
-        nodesInBlock.IntersectWith(nodesInScope);
-        identifiersInBlock.IntersectWith(identifiersInScope);
-        actionParams.UsedIdentifiers = identifiersInBlock;
     }
 }

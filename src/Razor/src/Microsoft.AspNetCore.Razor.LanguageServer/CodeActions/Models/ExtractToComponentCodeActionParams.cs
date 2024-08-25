@@ -23,12 +23,6 @@ internal sealed class ExtractToComponentCodeActionParams
     [JsonPropertyName("namespace")]
     public required string Namespace { get; set; }
 
-    [JsonPropertyName("dependencies")]
-    public required List<string> Dependencies { get; set; }
-
-    [JsonPropertyName("usedIdentifiers")]
-    public required HashSet<string> UsedIdentifiers { get; set; }
-
-    [JsonPropertyName("usedMembers")]
-    public required HashSet<string> UsedMembers { get; set; }
+    [JsonPropertyName("usingDirectives")]
+    public required List<string> usingDirectives { get; set; }
 }
