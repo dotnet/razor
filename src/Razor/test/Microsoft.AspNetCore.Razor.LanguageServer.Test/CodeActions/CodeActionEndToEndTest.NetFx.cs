@@ -61,10 +61,9 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                     razorFormattingService)
             ];
 
-    // TODO: Make this func
-    private ExtractToComponentCodeActionResolver[] CreateExtractComponentCodeActionResolvers(string filePath, RazorCodeDocument codeDocument)
+
+    private ExtractToComponentCodeActionResolver[] CreateExtractComponentCodeActionResolver(string filePath, RazorCodeDocument codeDocument)
     {
-        var emptyDocumentContextFactory = new TestDocumentContextFactory();
         return [
                 new ExtractToComponentCodeActionResolver(
                     new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
@@ -1019,7 +1018,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     }
 
     [Fact]
-    public async Task Handle_ExtractComponent()
+    public async Task Handle_ExtractComponent_SingleElement_ReturnsResult()
     {
         var input = """
             <[||]div id="a">
@@ -1045,7 +1044,75 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             expectedRazorComponent,
             ExtractToComponentTitle,
             razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
-            codeActionResolversCreator: CreateExtractComponentCodeActionResolvers);
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_SiblingElement_ReturnsResult()
+    {
+        var input = """
+            <[|div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            <div id="b">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div|]>
+            """;
+
+        var expectedRazorComponent = """
+            <div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            <div id="b">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_StartNodeContainsEndNode_ReturnsResult()
+    {
+        var input = """
+            <[|div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <p>Deeply nested par</p|]>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            <div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <p>Deeply nested par</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
     }
 
     #endregion
@@ -1196,6 +1263,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         string? expected,
         string codeAction,
         int childActionIndex = 0,
+        IEnumerable<(string filePath, string contents)>? additionalRazorDocuments = null,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
         Func<string, RazorCodeDocument, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
@@ -1203,12 +1271,12 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     {
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
 
-        var razorFilePath = "C:/path/test.razor";
-        var componentFilePath = "C:/path/Component.razor";
+        var razorFilePath = "C:/path/to/test.razor";
+        var componentFilePath = "C:/path/to/Component.razor";
         var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
         var sourceText = codeDocument.Source.Text;
         var uri = new Uri(razorFilePath);
-        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath, additionalRazorDocuments);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
 
@@ -1239,15 +1307,9 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             languageServer,
             codeActionResolversCreator?.Invoke(razorFilePath, codeDocument) ?? []);
 
-        var edits = new List<TextChange>();
+        var edits = changes.Where(change => change.TextDocument.Uri.AbsolutePath == componentFilePath).Single();
+        var actual = edits.Edits.Select(edit => edit.NewText).Single();
 
-        // Only get changes made in the new component file
-        foreach (var change in changes.Where(e => e.TextDocument.Uri.AbsolutePath == componentFilePath))
-        {
-            edits.AddRange(change.Edits.Select(sourceText.GetTextChange));
-        }
-
-        var actual = sourceText.WithChanges(edits).ToString();
         AssertEx.EqualOrDiff(expected, actual);
     }
 

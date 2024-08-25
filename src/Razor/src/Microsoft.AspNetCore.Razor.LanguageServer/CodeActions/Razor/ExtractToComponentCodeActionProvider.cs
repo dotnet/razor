@@ -261,7 +261,10 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
     {
         var current = node1;
 
-        while (current is MarkupElementSyntax && current is not null)
+        while (current is MarkupElementSyntax or
+                MarkupTagHelperAttributeSyntax or
+                MarkupBlockSyntax &&
+            current is not null)
         {
             if (current.Span.Contains(node2.Span))
             {
@@ -279,51 +282,28 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         var components = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
 
-        foreach (var node in root.DescendantNodes())
+        foreach (var node in root.DescendantNodes().Where(node => extractSpan.Contains(node.Span)))
         {
-            if (IsMarkupTagHelperElement(node, extractSpan))
+            if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
             {
-                var tagHelperInfo = GetTagHelperInfo(node);
-                if (tagHelperInfo is not null)
-                {
-                    AddDependenciesFromTagHelperInfo(tagHelperInfo, components, actionParams);
-                }
+                AddDependenciesFromTagHelperInfo(tagHelperInfo, components, actionParams);
             }
         }
-    }
-
-    private static bool IsMarkupTagHelperElement(SyntaxNode node, TextSpan extractSpan)
-    {
-        return node is MarkupTagHelperElementSyntax markupElement &&
-                extractSpan.Contains(markupElement.Span);
-    }
-
-    private static TagHelperInfo? GetTagHelperInfo(SyntaxNode node)
-    {
-        if (node is MarkupTagHelperElementSyntax markupElement)
-        {
-            return markupElement.TagHelperInfo;
-        }
-
-        return null;
     }
 
     private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, ExtractToComponentCodeActionParams actionParams)
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {
-            if (descriptor is not null)
+            if (descriptor is null)
             {
-                foreach (var metadata in descriptor.Metadata)
-                {
-                    if (metadata.Key == TagHelperMetadata.Common.TypeNamespace &&
-                        metadata.Value is not null &&
-                        !components.Contains(metadata.Value))
-                    {
-                        components.Add(metadata.Value);
-                        actionParams.Dependencies.Add($"@using {metadata.Value}");
-                    }
-                }
+                continue;
+            }
+
+            var typeNamespace = descriptor.GetTypeNamespace();
+            if (components.Add(typeNamespace))
+            {
+                actionParams.Dependencies.Add($"@using {typeNamespace}");
             }
         }
     }
