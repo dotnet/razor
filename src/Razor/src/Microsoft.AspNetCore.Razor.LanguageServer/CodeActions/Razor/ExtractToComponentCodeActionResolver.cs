@@ -179,7 +179,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         public required bool Success;
         public int ExtractStart;
         public int ExtractEnd;
-        public HashSet<string>? ComponentDependencies;
+        public HashSet<string>? UsingDirectives;
         public HashSet<string>? TentativeVariableDependencies;
     }
 
@@ -206,7 +206,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var dependencyScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
-        var componentDependencies = AddComponentDependenciesInRange(dependencyScanRoot, extractStart, extractEnd);
+        var componentDependencies = AddUsingDirectivesInRange(dependencyScanRoot, extractStart, extractEnd);
         var variableDependencies = AddVariableDependenciesInRange(dependencyScanRoot, extractStart, extractEnd);
 
         return new SelectionAnalysisResult
@@ -214,7 +214,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             Success = success,
             ExtractStart = extractStart,
             ExtractEnd = extractEnd,
-            ComponentDependencies = componentDependencies,
+            UsingDirectives = componentDependencies,
             TentativeVariableDependencies = variableDependencies,
         };
     }
@@ -440,9 +440,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return node is MarkupElementSyntax or MarkupTagHelperElementSyntax || (isCodeBlock && node is CSharpCodeBlockSyntax);
     }
 
-    private static HashSet<string> AddComponentDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd)
+    private static HashSet<string> AddUsingDirectivesInRange(SyntaxNode root, int extractStart, int extractEnd)
     {
-        var dependencies = new HashSet<string>();
+        var usings = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
 
         // Only analyze nodes within the extract span
@@ -450,11 +450,11 @@ internal sealed class ExtractToComponentCodeActionResolver(
         {
             if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
             {
-                AddDependenciesFromTagHelperInfo(tagHelperInfo, dependencies);
+                AddUsingFromTagHelperInfo(tagHelperInfo, usings);
             }
         }
 
-        return dependencies;
+        return usings;
     }
 
     private static HashSet<string> AddVariableDependenciesInRange(SyntaxNode root, int extractStart, int extractEnd)
@@ -479,7 +479,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return dependencies;
     }
 
-    private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> dependencies)
+    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> dependencies)
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {
@@ -509,9 +509,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         var inst = PooledStringBuilder.GetInstance();
         var newFileContentBuilder = inst.Builder;
-        if (selectionAnalysis.ComponentDependencies is not null)
+        if (selectionAnalysis.UsingDirectives is not null)
         {
-            foreach (var dependency in selectionAnalysis.ComponentDependencies)
+            foreach (var dependency in selectionAnalysis.UsingDirectives)
             {
                 newFileContentBuilder.AppendLine($"@using {dependency}");
             }
@@ -751,40 +751,34 @@ internal sealed class ExtractToComponentCodeActionResolver(
             builder.AppendLine($"/// Delegate for the '{method.Name}' method.");
             builder.AppendLine("/// </summary>");
             builder.AppendLine("[Parameter]");
+
+            // Start building delegate type
             builder.Append("public ");
+            builder.Append(method.ReturnType == "void" ? "Action" : "Func");
 
-            if (method.ReturnType == "void")
+            // If delegate type is Action, only add generic parameters if needed. 
+            if (method.ParameterTypes.Length > 0 || method.ReturnType != "void")
             {
-                builder.Append("Action");
-            }
-            else
-            {
-                builder.Append("Func<");
-            }
-
-            if (method.ParameterTypes.Count() > 0)
-            {
-                if (method.ReturnType == "void")
-                {
-                    builder.Append('<');
-                }
-
+                builder.Append("<");
                 builder.Append(string.Join(", ", method.ParameterTypes));
+
                 if (method.ReturnType != "void")
                 {
-                    builder.Append(", ");
+                    if (method.ParameterTypes.Length > 0)
+                    {
+                        // Add one last comma in the list of generic parameters for the result: "<..., TResult>"
+                        builder.Append(", ");
+                    }
+                    builder.Append(method.ReturnType);
                 }
+
+                builder.Append('>');
             }
 
-            if (method.ReturnType != "void")
-            {
-                builder.Append(method.ReturnType);
-            }
-
-            builder.Append($"{(method.ReturnType == "void" ? (method.ParameterTypes.Count() > 0 ? ">" : "") : ">")}? " +
-                           $"Parameter{(parameterCount > 0 ? parameterCount : "")} {{ get; set; }}");
+            builder.Append($"Parameter{(parameterCount > 0 ? parameterCount : "")} {{ get; set; }}");
             if (parameterCount < totalMethods - 1)
             {
+                // Space between methods except for the last method.
                 builder.AppendLine();
                 builder.AppendLine();
             }

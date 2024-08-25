@@ -32,13 +32,13 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        if (!IsSelectionValid(context, syntaxTree))
+        if (!TryGetNamespace(context.CodeDocument, out var @namespace))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (!TryGetNamespace(context.CodeDocument, out var @namespace))
+        var syntaxTree = context.CodeDocument.GetSyntaxTree();
+        if (!IsSelectionValid(context, syntaxTree))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -94,6 +94,10 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
     private static bool IsInsideProperHtmlContent(RazorCodeActionContext context, SyntaxNode owner)
     {
+        // The selection could start either in a MarkupElement or MarkupTagHelperElement.
+        // Both of these have the necessary properties to do this check, but not the base MarkupSyntaxNode.
+        // The workaround for this is to try to cast to the specific types and then do the check.
+
         var tryMakeMarkupElement = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
         var tryMakeMarkupTagHelperElement = owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
 
