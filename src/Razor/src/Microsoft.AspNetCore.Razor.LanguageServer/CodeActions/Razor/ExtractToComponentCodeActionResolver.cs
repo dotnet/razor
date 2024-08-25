@@ -39,6 +39,7 @@ using Microsoft.VisualStudio.Text;
 using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.VisualStudio.Utilities;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -118,7 +119,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }.Uri;
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, newComponentUri, documentContext, removeRange, cancellationToken).ConfigureAwait(false);
+        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, documentContext, removeRange, cancellationToken).ConfigureAwait(false);
 
         if (newComponentResult is null)
         {
@@ -165,6 +166,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             DocumentChanges = documentChanges,
         };
     }
+
     private static ExtractToComponentCodeActionParams? DeserializeActionParams(JsonElement data)
     {
         return data.ValueKind == JsonValueKind.Undefined
@@ -446,13 +448,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
         // Only analyze nodes within the extract span
         foreach (var node in root.DescendantNodes().Where(node => extractSpan.Contains(node.Span)))
         {
-            if (node is MarkupTagHelperElementSyntax)
+            if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
             {
-                var tagHelperInfo = GetTagHelperInfo(node);
-                if (tagHelperInfo is not null)
-                {
-                    AddDependenciesFromTagHelperInfo(tagHelperInfo, ref dependencies);
-                }
+                AddDependenciesFromTagHelperInfo(tagHelperInfo, dependencies);
             }
         }
 
@@ -481,32 +479,17 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return dependencies;
     }
 
-    private static TagHelperInfo? GetTagHelperInfo(SyntaxNode node)
-    {
-        if (node is MarkupTagHelperElementSyntax markupElement)
-        {
-            return markupElement.TagHelperInfo;
-        }
-
-        return null;
-    }
-
-    private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, ref HashSet<string> dependencies)
+    private static void AddDependenciesFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> dependencies)
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {
-            if (descriptor is not null)
+            if (descriptor is null)
             {
-                foreach (var metadata in descriptor.Metadata)
-                {
-                    if (metadata.Key == TagHelperMetadata.Common.TypeNamespace &&
-                        metadata.Value is not null &&
-                        !dependencies.Contains($"@using {metadata.Value}"))
-                    {
-                        dependencies.Add($"@using {metadata.Value}");
-                    }
-                }
+                continue;
             }
+
+            var typeNamespace = descriptor.GetTypeNamespace();
+            dependencies.Add(typeNamespace);
         }
     }
 
@@ -514,7 +497,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
         SelectionAnalysisResult selectionAnalysis,
         RazorCodeDocument razorCodeDocument,
         Uri componentUri,
-        Uri newComponentUri,
         DocumentContext documentContext,
         Range relevantRange,
         CancellationToken cancellationToken)
@@ -525,12 +507,27 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return null;
         }
 
-        var dependencies = selectionAnalysis.ComponentDependencies is not null
-        ? string.Join(Environment.NewLine, selectionAnalysis.ComponentDependencies)
-        : string.Empty;
+        var inst = PooledStringBuilder.GetInstance();
+        var newFileContentBuilder = inst.Builder;
+        if (selectionAnalysis.ComponentDependencies is not null)
+        {
+            foreach (var dependency in selectionAnalysis.ComponentDependencies)
+            {
+                newFileContentBuilder.AppendLine($"@using {dependency}");
+            }
 
-        var extractedContents = contents.GetSubTextString(new CodeAnalysis.Text.TextSpan(selectionAnalysis.ExtractStart, selectionAnalysis.ExtractEnd - selectionAnalysis.ExtractStart)).Trim();
-        var newFileContent = $"{dependencies}{(dependencies.Length > 0 ? Environment.NewLine + Environment.NewLine : "")}{extractedContents}";
+            if (newFileContentBuilder.Length > 0)
+            {
+                newFileContentBuilder.AppendLine();
+            }
+        }
+
+        var extractedContents = contents.GetSubTextString(
+                    new TextSpan(selectionAnalysis.ExtractStart,
+                    selectionAnalysis.ExtractEnd - selectionAnalysis.ExtractStart))
+                .Trim();
+
+        newFileContentBuilder.Append(extractedContents);
 
         // Get CSharpStatements within component
         var syntaxTree = razorCodeDocument.GetSyntaxTree();
@@ -538,18 +535,20 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         var result = new NewRazorComponentInfo
         {
-            NewContents = newFileContent,
+            NewContents = newFileContentBuilder.ToString(),
             Methods = []
         };
 
         // Only make the Roslyn call if there is valid CSharp in the selected code.
         if (cSharpCodeBlocks.Count == 0)
         {
+            inst.Free();
             return result;
         }
 
         if (!_documentVersionCache.TryGetDocumentVersion(documentContext.Snapshot, out var version))
         {
+            inst.Free();
             return result;
         }
 
@@ -587,11 +586,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
             {
                 Uri = componentUri
             },
-            NewDocument = new TextDocumentIdentifier
-            {
-                Uri = newComponentUri
-            },
-            NewContents = newFileContent,
             HostDocumentVersion = version.Value,
             IntersectingRangesInGeneratedMappings = intersectingGeneratedRanges
         };
@@ -611,18 +605,21 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         if (componentInfo is null)
         {
+            inst.Free();
             return result;
         }
 
         var codeBlockAtEnd = GetCodeBlockAtEnd(syntaxTree);
         if (codeBlockAtEnd is null)
         {
+            inst.Free();
             return result;
         }
 
         var identifiersInCodeBlock = GetIdentifiersInContext(codeBlockAtEnd, cSharpCodeBlocks);
         if (componentInfo.Methods is null)
         {
+            inst.Free();
             return result;
         }
 
@@ -636,12 +633,13 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         var newFileCodeBlock = GenerateNewFileCodeBlock(promotedMethods, forwardedFields);
 
-        newFileContent = ReplaceMethodInvocations(newFileContent, methodsInContext);
-        newFileContent += newFileCodeBlock;
+        ReplaceMethodInvocations(newFileContentBuilder, methodsInContext);
+        newFileContentBuilder.Append(newFileCodeBlock);
 
-        result.NewContents = newFileContent;
+        result.NewContents = newFileContentBuilder.ToString();
         result.Methods = methodsInContext;
 
+        inst.Free();
         return result;
     }
 
@@ -853,17 +851,15 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return builder.ToString();
     }
 
-    // Method invocations in the new file must be replaced with their respective parameter name. This is simply a case of replacing each string.
-    private static string ReplaceMethodInvocations(string newFileContent, HashSet<MethodSymbolicInfo> methods)
+    // Method invocations in the new file must be replaced with their respective parameter name.
+    private static void ReplaceMethodInvocations(StringBuilder newFileContentBuilder, HashSet<MethodSymbolicInfo> methods)
     {
         var parameterCount = 0;
         foreach (var method in methods)
         {
-            newFileContent = newFileContent.Replace(method.Name, $"Parameter{(parameterCount > 0 ? parameterCount : "")}");
+            newFileContentBuilder.Replace(method.Name, $"Parameter{(parameterCount > 0 ? parameterCount : "")}");
             parameterCount++;
         }
-
-        return newFileContent;
     }
 
     private static string GenerateComponentNameAndParameters(HashSet<MethodSymbolicInfo>? methods, string componentName)

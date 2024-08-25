@@ -15,10 +15,6 @@ internal record GetSymbolicInfoParams
     [JsonPropertyName("document")]
     public required TextDocumentIdentifier Document { get; set; }
 
-    [DataMember(Name = "newDocument")]
-    [JsonPropertyName("newDocument")]
-    public required TextDocumentIdentifier NewDocument { get; set; }
-
     [DataMember(Name = "project")]
     [JsonPropertyName("project")]
     public required TextDocumentIdentifier Project { get; set; }
@@ -26,10 +22,6 @@ internal record GetSymbolicInfoParams
     [DataMember(Name = "hostDocumentVersion")]
     [JsonPropertyName("hostDocumentVersion")]
     public required int HostDocumentVersion { get; set; }
-
-    [DataMember(Name = "newContents")]
-    [JsonPropertyName("newContents")]
-    public required string NewContents { get; set; }
 
     [DataMember(Name = "intersectingRangesInGeneratedMappings")]
     [JsonPropertyName("intersectingRangesInGeneratedMappings")]
