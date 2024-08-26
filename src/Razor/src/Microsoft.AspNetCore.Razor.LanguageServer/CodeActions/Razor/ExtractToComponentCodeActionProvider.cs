@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -16,8 +17,11 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -71,13 +75,19 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
         var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);        
 
+        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
+        var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
+        var importsBuilder = new StringBuilder();
+        var usingsInImportsFile = GetUsingsInImportsFile(directoryName, importsBuilder);
+
         ProcessSelection(startElementNode, endElementNode, actionParams);
 
         var utilityScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
         AddUsingDirectivesInRange(utilityScanRoot,
-                                        actionParams.ExtractStart,
-                                        actionParams.ExtractEnd,
-                                        actionParams);
+                                  usingsInImportsFile,
+                                  actionParams.ExtractStart,
+                                  actionParams.ExtractEnd,
+                                  actionParams);
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
@@ -157,6 +167,29 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             Namespace = @namespace,
             usingDirectives = []
         };
+    }
+
+    // When adding usings, we must check for the first _Imports.razor file in the current directory or any parent directories.
+    // In the new component, only add usings that are not already present in the _Imports.razor file.
+    public static string GetUsingsInImportsFile(string currentDirectory, StringBuilder importsBuilder)
+    {
+        var importsFile = Path.Combine(currentDirectory, "_Imports.razor");
+        if (File.Exists(importsFile))
+        {
+            return File.ReadAllLines(importsFile)
+                .Where(line => line.TrimStart().StartsWith("@using"))
+                .Select(line => line.Trim())
+                .Aggregate(importsBuilder, (sb, line) => sb.AppendLine(line))
+                .ToString();
+        }
+
+        var parentDirectory = Path.GetDirectoryName(currentDirectory);
+        if (parentDirectory is not null && Directory.Exists(parentDirectory))
+        {
+            return GetUsingsInImportsFile(parentDirectory, importsBuilder);
+        }
+
+        return string.Empty;
     }
 
     /// <summary>
@@ -274,7 +307,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return null;
     }
 
-    private static void AddUsingDirectivesInRange(SyntaxNode root, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
+    private static void AddUsingDirectivesInRange(SyntaxNode root, string usingsInImportsFile, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
     {
         var components = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
@@ -283,12 +316,12 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         {
             if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
             {
-                AddUsingFromTagHelperInfo(tagHelperInfo, components, actionParams);
+                AddUsingFromTagHelperInfo(tagHelperInfo, components, usingsInImportsFile, actionParams);
             }
         }
     }
 
-    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, ExtractToComponentCodeActionParams actionParams)
+    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, string usingsInImportsFile, ExtractToComponentCodeActionParams actionParams)
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {
@@ -300,7 +333,11 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             var typeNamespace = descriptor.GetTypeNamespace();
             if (components.Add(typeNamespace))
             {
-                actionParams.usingDirectives.Add($"@using {typeNamespace}");
+                var usingDirective = $"@using {typeNamespace}";
+                if (!usingsInImportsFile.Contains(usingDirective))
+                {
+                    actionParams.usingDirectives.Add(usingDirective);
+                }
             }
         }
     }
