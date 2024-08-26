@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -9,14 +10,15 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     public partial class RazorSourceGenerator
     {
-        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions(((AnalyzerConfigOptionsProvider, ParseOptions), bool) pair, CancellationToken ct)
+        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((((AnalyzerConfigOptionsProvider, ParseOptions), ImmutableArray<MetadataReference>), bool) pair, CancellationToken ct)
         {
-            var ((options, parseOptions), isSuppressed) = pair;
+            var (((options, parseOptions), references), isSuppressed) = pair;
             var globalOptions = options.GlobalOptions;
             
             if (isSuppressed)
@@ -42,7 +44,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 razorLanguageVersion = RazorLanguageVersion.Latest;
             }
 
-            var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true);
+            var isComponentParameterSupported = CSharpCompilation.Create("components", references: references).HasAddComponentParameter();
+
+            var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported);
 
             var razorSourceGenerationOptions = new RazorSourceGenerationOptions()
             {

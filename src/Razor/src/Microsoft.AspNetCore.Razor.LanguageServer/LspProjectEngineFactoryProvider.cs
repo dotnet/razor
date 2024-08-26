@@ -41,11 +41,11 @@ internal sealed class LspProjectEngineFactoryProvider(RazorLSPOptionsMonitor opt
             void Configure(RazorProjectEngineBuilder builder)
             {
                 configure?.Invoke(builder);
-                builder.Features.Add(new CodeGenFeature(optionsMonitor, configuration));
+                builder.Features.Add(new CodeGenFeature(optionsMonitor));
             }
         }
 
-        private class CodeGenFeature(RazorLSPOptionsMonitor optionsMonitor, RazorConfiguration configuration) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
+        private class CodeGenFeature(RazorLSPOptionsMonitor optionsMonitor) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
         {
             public int Order { get; set; }
 
@@ -57,7 +57,6 @@ internal sealed class LspProjectEngineFactoryProvider(RazorLSPOptionsMonitor opt
                 options.IndentSize = currentOptions.TabSize;
                 options.IndentWithTabs = !currentOptions.InsertSpaces;
                 options.RemapLinePragmaPathsOnWindows = true;
-                options.SuppressAddComponentParameter = configuration.SuppressAddComponentParameter;
             }
         }
     }

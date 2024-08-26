@@ -45,6 +45,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var razorSourceGeneratorOptions = analyzerConfigOptions
                 .Combine(parseOptions)
+                .Combine(metadataRefs.Collect())
                 .SuppressIfNeeded(isGeneratorSuppressed)
                 .Select(ComputeRazorSourceGeneratorOptions)
                 .ReportDiagnostics(context);
@@ -236,26 +237,16 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var razorHostOutputsEnabled = analyzerConfigOptions.CheckGlobalFlagSet("EnableRazorHostOutputs");
             var withOptionsDesignTime = withOptions.EmptyOrCachedWhen(razorHostOutputsEnabled, false);
 
-            var isAddComponentParameterAvailable = metadataRefs
-                .Where(r => r.Display is { } display && display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal))
-                .Collect()
-                .Select((refs, _) =>
-                {
-                    var compilation = CSharpCompilation.Create("components", references: refs);
-                    return compilation.HasAddComponentParameter();
-                });
-
             IncrementalValuesProvider<(string, SourceGeneratorRazorCodeDocument)> processed(bool designTime)
             {
                 return (designTime ? withOptionsDesignTime : withOptions)
-                    .Combine(isAddComponentParameterAvailable)
                     .Select((pair, _) =>
                     {
-                        var (((sourceItem, imports), razorSourceGeneratorOptions), isAddComponentParameterAvailable) = pair;
+                        var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
 
                         RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
 
-                        var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions, isAddComponentParameterAvailable);
+                        var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
 
                         var document = projectEngine.ProcessInitialParse(sourceItem, designTime);
 

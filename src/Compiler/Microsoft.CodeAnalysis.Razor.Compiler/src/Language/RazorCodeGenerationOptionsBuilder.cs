@@ -91,11 +91,6 @@ public abstract class RazorCodeGenerationOptionsBuilder
     internal string SuppressUniqueIds { get; set; }
 
     /// <summary>
-    /// Determines whether RenderTreeBuilder.AddComponentParameter should not be used.
-    /// </summary>
-    internal bool SuppressAddComponentParameter { get; set; }
-
-    /// <summary>
     /// Determines if the file paths emitted as part of line pragmas should be mapped back to a valid path on windows.
     /// </summary>
     internal bool RemapLinePragmaPathsOnWindows { get; set; }
