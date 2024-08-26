@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -17,7 +15,7 @@ public sealed class RazorSyntaxTree
     public RazorSourceDocument Source { get; }
 
     private readonly List<RazorDiagnostic> _diagnostics;
-    private IReadOnlyList<RazorDiagnostic> _allDiagnostics;
+    private IReadOnlyList<RazorDiagnostic>? _allDiagnostics;
 
     internal RazorSyntaxTree(
         SyntaxNode root,
@@ -74,18 +72,12 @@ public sealed class RazorSyntaxTree
         }
     }
 
-    public static RazorSyntaxTree Parse(RazorSourceDocument source)
+    public static RazorSyntaxTree Parse(RazorSourceDocument source, RazorParserOptions? options = null)
     {
         ArgHelper.ThrowIfNull(source);
 
-        return Parse(source, options: null);
-    }
-
-    public static RazorSyntaxTree Parse(RazorSourceDocument source, RazorParserOptions options)
-    {
-        ArgHelper.ThrowIfNull(source);
-
-        var parser = new RazorParser(options ?? RazorParserOptions.CreateDefault());
+        options ??= RazorParserOptions.CreateDefault();
+        var parser = new RazorParser(options);
         return parser.Parse(source);
     }
 }
