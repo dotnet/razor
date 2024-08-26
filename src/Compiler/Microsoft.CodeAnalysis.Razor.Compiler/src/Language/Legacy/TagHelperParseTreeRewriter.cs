@@ -16,7 +16,7 @@ internal static class TagHelperParseTreeRewriter
 {
     public static RazorSyntaxTree Rewrite(RazorSyntaxTree syntaxTree, TagHelperBinder binder, out ISet<TagHelperDescriptor> usedDescriptors)
     {
-        var errorSink = new ErrorSink();
+        using var errorSink = new ErrorSink();
 
         var rewriter = new Rewriter(
             syntaxTree.Source,
@@ -26,15 +26,25 @@ internal static class TagHelperParseTreeRewriter
 
         var rewritten = rewriter.Visit(syntaxTree.Root);
 
-        var errorList = new List<RazorDiagnostic>();
-        errorList.AddRange(errorSink.Errors);
-        errorList.AddRange(binder.TagHelpers.SelectMany(d => d.GetAllDiagnostics()));
+        var treeDiagnostics = syntaxTree.Diagnostics;
+        var sinkDiagnostics = errorSink.GetErrorsAndClear();
 
-        ImmutableArray<RazorDiagnostic> diagnostics = [.. syntaxTree.Diagnostics, .. errorList];
-        diagnostics.Unsafe().OrderBy(static d => d.Span.AbsoluteIndex);
+        using var builder = new PooledArrayBuilder<RazorDiagnostic>(capacity: treeDiagnostics.Length + sinkDiagnostics.Length);
+
+        builder.AddRange(treeDiagnostics);
+        builder.AddRange(sinkDiagnostics);
+
+        foreach (var tagHelper in binder.TagHelpers)
+        {
+            foreach (var diagnostic in tagHelper.GetAllDiagnostics())
+            {
+                builder.Add(diagnostic);
+            }
+        }
+
+        var diagnostics = builder.ToImmutableOrderedBy(static d => d.Span.AbsoluteIndex);
 
         usedDescriptors = rewriter.UsedDescriptors;
-
         return new RazorSyntaxTree(rewritten, syntaxTree.Source, diagnostics, syntaxTree.Options);
     }
 

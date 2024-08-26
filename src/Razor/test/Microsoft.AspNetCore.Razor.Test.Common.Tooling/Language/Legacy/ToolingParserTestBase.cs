@@ -180,12 +180,13 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
 
     internal virtual RazorSyntaxTree ParseDocument(RazorLanguageVersion version, string document, IEnumerable<DirectiveDescriptor> directives, bool designTime = false, RazorParserFeatureFlags featureFlags = null, string fileKind = null)
     {
-        directives ??= Array.Empty<DirectiveDescriptor>();
+        directives ??= [];
 
         var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
 
         var options = CreateParserOptions(version, directives, designTime, EnableSpanEditHandlers, featureFlags, fileKind);
-        var context = new ParserContext(source, options);
+        using var errorSink = new ErrorSink();
+        var context = new ParserContext(source, options, errorSink);
 
         var codeParser = new CSharpCodeParser(directives, context);
         var markupParser = new HtmlMarkupParser(context);
@@ -195,7 +196,7 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
 
         var root = markupParser.ParseDocument().CreateRed();
 
-        var diagnostics = context.ErrorSink.Errors;
+        var diagnostics = errorSink.GetErrorsAndClear();
 
         var codeDocument = RazorCodeDocument.Create(source);
 

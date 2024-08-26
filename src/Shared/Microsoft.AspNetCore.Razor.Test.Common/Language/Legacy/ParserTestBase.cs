@@ -197,7 +197,8 @@ public abstract class ParserTestBase : IParserTest
         var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
 
         var options = CreateParserOptions(version, directives, designTime, _validateSpanEditHandlers, featureFlags, fileKind);
-        var context = new ParserContext(source, options);
+        using var errorSink = new ErrorSink();
+        var context = new ParserContext(source, options, errorSink);
 
         var codeParser = new CSharpCodeParser(directives, context);
         var markupParser = new HtmlMarkupParser(context);
@@ -207,7 +208,7 @@ public abstract class ParserTestBase : IParserTest
 
         var root = markupParser.ParseDocument().CreateRed();
 
-        var diagnostics = context.ErrorSink.Errors;
+        var diagnostics = errorSink.GetErrorsAndClear();
 
         var codeDocument = RazorCodeDocument.Create(source);
 

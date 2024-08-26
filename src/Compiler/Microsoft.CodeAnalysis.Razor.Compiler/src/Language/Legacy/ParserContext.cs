@@ -9,12 +9,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal partial class ParserContext
 {
-    public ParserContext(RazorSourceDocument source, RazorParserOptions options)
+    private ErrorSink _errorSink;
+
+    public ParserContext(RazorSourceDocument source, RazorParserOptions options, ErrorSink? errorSink = null)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         SourceDocument = source;
 
@@ -22,12 +21,12 @@ internal partial class ParserContext
         DesignTimeMode = options.DesignTime;
         FeatureFlags = options.FeatureFlags;
         ParseLeadingDirectives = options.ParseLeadingDirectives;
-        ErrorSink = new ErrorSink();
+        _errorSink = errorSink ?? new();
         SeenDirectives = new HashSet<string>(StringComparer.Ordinal);
         EnableSpanEditHandlers = options.EnableSpanEditHandlers;
     }
 
-    public ErrorSink ErrorSink { get; set; }
+    public ErrorSink ErrorSink => _errorSink;
 
     public RazorParserFeatureFlags FeatureFlags { get; }
 
@@ -58,6 +57,13 @@ internal partial class ParserContext
     public bool EndOfFile
     {
         get { return Source.Peek() == -1; }
+    }
+
+    public ErrorScope PushNewErrorScope(ErrorSink errorSink)
+    {
+        var scope = new ErrorScope(this);
+        _errorSink = errorSink;
+        return scope;
     }
 }
 
