@@ -4,9 +4,9 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -42,20 +42,32 @@ public sealed class RazorSyntaxTree
         {
             if (_allDiagnostics == null)
             {
-                var allDiagnostics = new HashSet<RazorDiagnostic>();
+                using var allDiagnostics = new PooledArrayBuilder<RazorDiagnostic>();
+                using var pooledList = ListPool<RazorDiagnostic>.GetPooledObject(out var rootDiagnostics);
+                using var diagnosticSet = new PooledHashSet<RazorDiagnostic>();
+
                 foreach (var diagnostic in _diagnostics)
                 {
-                    allDiagnostics.Add(diagnostic);
+                    if (diagnosticSet.Add(diagnostic))
+                    {
+                        allDiagnostics.Add(diagnostic);
+                    }
                 }
 
-                var rootDiagnostics = Root.GetAllDiagnostics();
-                for (var i = 0; i < rootDiagnostics.Count; i++)
+                Root.CollectAllDiagnostics(rootDiagnostics);
+
+                if (rootDiagnostics.Count > 0)
                 {
-                    allDiagnostics.Add(rootDiagnostics[i]);
+                    foreach (var diagnostic in rootDiagnostics)
+                    {
+                        if (diagnosticSet.Add(diagnostic))
+                        {
+                            allDiagnostics.Add(diagnostic);
+                        }
+                    }
                 }
 
-                var allOrderedDiagnostics = allDiagnostics.OrderBy(diagnostic => diagnostic.Span.AbsoluteIndex);
-                _allDiagnostics = allOrderedDiagnostics.ToArray();
+                _allDiagnostics = diagnosticSet.OrderByAsArray(static d => d.Span.AbsoluteIndex);
             }
 
             return _allDiagnostics;
