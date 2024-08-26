@@ -615,7 +615,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var outputTree = codeDocument.GetSyntaxTree();
         Assert.Empty(originalTree.Diagnostics);
         Assert.NotSame(erroredOriginalTree, outputTree);
-        Assert.Equal([initialError, expectedRewritingError], outputTree.Diagnostics);
+        Assert.Equal<RazorDiagnostic>([initialError, expectedRewritingError], outputTree.Diagnostics);
     }
 
     private static string AssemblyA => "TestAssembly";

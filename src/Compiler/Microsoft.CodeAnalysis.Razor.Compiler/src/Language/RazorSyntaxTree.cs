@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -15,7 +16,7 @@ public sealed class RazorSyntaxTree
     public RazorSourceDocument Source { get; }
 
     private readonly List<RazorDiagnostic> _diagnostics;
-    private IReadOnlyList<RazorDiagnostic>? _allDiagnostics;
+    private ImmutableArray<RazorDiagnostic> _allDiagnostics;
 
     internal RazorSyntaxTree(
         SyntaxNode root,
@@ -34,17 +35,24 @@ public sealed class RazorSyntaxTree
         Options = options;
     }
 
-    public IReadOnlyList<RazorDiagnostic> Diagnostics
+    public ImmutableArray<RazorDiagnostic> Diagnostics
     {
         get
         {
-            if (_allDiagnostics == null)
+            if (_allDiagnostics.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(ref _allDiagnostics, ComputeAllDiagnostics(_diagnostics, Root));
+            }
+
+            return _allDiagnostics;
+
+            static ImmutableArray<RazorDiagnostic> ComputeAllDiagnostics(List<RazorDiagnostic> treeDiagnostics, SyntaxNode root)
             {
                 using var allDiagnostics = new PooledArrayBuilder<RazorDiagnostic>();
                 using var pooledList = ListPool<RazorDiagnostic>.GetPooledObject(out var rootDiagnostics);
                 using var diagnosticSet = new PooledHashSet<RazorDiagnostic>();
 
-                foreach (var diagnostic in _diagnostics)
+                foreach (var diagnostic in treeDiagnostics)
                 {
                     if (diagnosticSet.Add(diagnostic))
                     {
@@ -52,7 +60,7 @@ public sealed class RazorSyntaxTree
                     }
                 }
 
-                Root.CollectAllDiagnostics(rootDiagnostics);
+                root.CollectAllDiagnostics(rootDiagnostics);
 
                 if (rootDiagnostics.Count > 0)
                 {
@@ -65,10 +73,8 @@ public sealed class RazorSyntaxTree
                     }
                 }
 
-                _allDiagnostics = diagnosticSet.OrderByAsArray(static d => d.Span.AbsoluteIndex);
+                return diagnosticSet.OrderByAsArray(static d => d.Span.AbsoluteIndex);
             }
-
-            return _allDiagnostics;
         }
     }
 

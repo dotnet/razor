@@ -30,20 +30,12 @@ internal static class TagHelperParseTreeRewriter
         errorList.AddRange(errorSink.Errors);
         errorList.AddRange(binder.TagHelpers.SelectMany(d => d.GetAllDiagnostics()));
 
-        var diagnostics = CombineErrors(syntaxTree.Diagnostics, errorList).OrderBy(error => error.Span.AbsoluteIndex);
+        ImmutableArray<RazorDiagnostic> diagnostics = [.. syntaxTree.Diagnostics, .. errorList];
+        diagnostics.Unsafe().OrderBy(static d => d.Span.AbsoluteIndex);
 
         usedDescriptors = rewriter.UsedDescriptors;
 
         return new RazorSyntaxTree(rewritten, syntaxTree.Source, diagnostics, syntaxTree.Options);
-    }
-
-    private static IReadOnlyList<RazorDiagnostic> CombineErrors(IReadOnlyList<RazorDiagnostic> errors1, IReadOnlyList<RazorDiagnostic> errors2)
-    {
-        var combinedErrors = new List<RazorDiagnostic>(errors1.Count + errors2.Count);
-        combinedErrors.AddRange(errors1);
-        combinedErrors.AddRange(errors2);
-
-        return combinedErrors;
     }
 
     // Internal for testing.
