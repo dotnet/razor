@@ -211,7 +211,7 @@ public abstract class ParserTestBase : IParserTest
 
         var codeDocument = RazorCodeDocument.Create(source);
 
-        var syntaxTree = RazorSyntaxTree.Create(root, source, diagnostics, options);
+        var syntaxTree = new RazorSyntaxTree(root, source, diagnostics, options);
         codeDocument.SetSyntaxTree(syntaxTree);
 
         var defaultDirectivePass = new DefaultDirectiveSyntaxTreePass();

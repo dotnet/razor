@@ -16,18 +16,23 @@ public sealed class RazorSyntaxTree
     public RazorParserOptions Options { get; }
     public RazorSourceDocument Source { get; }
 
-    private readonly IReadOnlyList<RazorDiagnostic> _diagnostics;
+    private readonly List<RazorDiagnostic> _diagnostics;
     private IReadOnlyList<RazorDiagnostic> _allDiagnostics;
 
     internal RazorSyntaxTree(
         SyntaxNode root,
         RazorSourceDocument source,
-        IReadOnlyList<RazorDiagnostic> diagnostics,
+        IEnumerable<RazorDiagnostic> diagnostics,
         RazorParserOptions options)
     {
+        ArgHelper.ThrowIfNull(root);
+        ArgHelper.ThrowIfNull(source);
+        ArgHelper.ThrowIfNull(diagnostics);
+        ArgHelper.ThrowIfNull(options);
+
         Root = root;
         Source = source;
-        _diagnostics = diagnostics;
+        _diagnostics = new List<RazorDiagnostic>(diagnostics);
         Options = options;
     }
 
@@ -38,9 +43,9 @@ public sealed class RazorSyntaxTree
             if (_allDiagnostics == null)
             {
                 var allDiagnostics = new HashSet<RazorDiagnostic>();
-                for (var i = 0; i < _diagnostics.Count; i++)
+                foreach (var diagnostic in _diagnostics)
                 {
-                    allDiagnostics.Add(_diagnostics[i]);
+                    allDiagnostics.Add(diagnostic);
                 }
 
                 var rootDiagnostics = Root.GetAllDiagnostics();
@@ -55,20 +60,6 @@ public sealed class RazorSyntaxTree
 
             return _allDiagnostics;
         }
-    }
-
-    internal static RazorSyntaxTree Create(
-        SyntaxNode root,
-        RazorSourceDocument source,
-        IEnumerable<RazorDiagnostic> diagnostics,
-        RazorParserOptions options)
-    {
-        ArgHelper.ThrowIfNull(root);
-        ArgHelper.ThrowIfNull(source);
-        ArgHelper.ThrowIfNull(diagnostics);
-        ArgHelper.ThrowIfNull(options);
-
-        return new RazorSyntaxTree(root, source, new List<RazorDiagnostic>(diagnostics), options);
     }
 
     public static RazorSyntaxTree Parse(RazorSourceDocument source)

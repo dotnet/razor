@@ -604,7 +604,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var expectedRewritingError = RazorDiagnosticFactory.CreateParsing_TagHelperFoundMalformedTagHelper(
             new SourceSpan(new SourceLocation((Environment.NewLine.Length * 2) + 30, 2, 1), contentLength: 4), "form");
 
-        var erroredOriginalTree = RazorSyntaxTree.Create(originalTree.Root, originalTree.Source, [initialError], originalTree.Options);
+        var erroredOriginalTree = new RazorSyntaxTree(originalTree.Root, originalTree.Source, [initialError], originalTree.Options);
         codeDocument.SetSyntaxTree(erroredOriginalTree);
 
         // Act

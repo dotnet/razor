@@ -34,8 +34,7 @@ internal static class TagHelperParseTreeRewriter
 
         usedDescriptors = rewriter.UsedDescriptors;
 
-        var newSyntaxTree = RazorSyntaxTree.Create(rewritten, syntaxTree.Source, diagnostics, syntaxTree.Options);
-        return newSyntaxTree;
+        return new RazorSyntaxTree(rewritten, syntaxTree.Source, diagnostics, syntaxTree.Options);
     }
 
     private static IReadOnlyList<RazorDiagnostic> CombineErrors(IReadOnlyList<RazorDiagnostic> errors1, IReadOnlyList<RazorDiagnostic> errors2)

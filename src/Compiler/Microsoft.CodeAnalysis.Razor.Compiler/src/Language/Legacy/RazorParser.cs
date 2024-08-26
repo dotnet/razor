@@ -44,7 +44,6 @@ internal class RazorParser
 
         var root = markupParser.ParseDocument().CreateRed();
 
-        var syntaxTree = RazorSyntaxTree.Create(root, source, diagnostics, Options);
-        return syntaxTree;
+        return new RazorSyntaxTree(root, source, diagnostics, Options);
     }
 }
