@@ -80,9 +80,10 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         var utilityScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
 
         // The new component usings are going to be a subset of the usings in the source razor file
-        var usingsInFile = context.SourceText.ToString()
-            .Split('\n')
-            .Where(line => line.TrimStart().StartsWith("@using"))
+        var usingsInFile = syntaxTree.Root.DescendantNodes()
+            .OfType<CSharpStatementLiteralSyntax>()
+            .Where(literal => literal.SerializedValue.Contains("using"))
+            .Select(literal => literal.SerializedValue)
             .Aggregate(new StringBuilder(), (sb, line) => sb.AppendLine(line))
             .ToString();
 
