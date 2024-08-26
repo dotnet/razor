@@ -75,16 +75,19 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
         var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);        
 
-        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
-        var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
-        var importsBuilder = new StringBuilder();
-        var usingsInImportsFile = GetUsingsInImportsFile(directoryName, importsBuilder);
-
         ProcessSelection(startElementNode, endElementNode, actionParams);
 
         var utilityScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
+
+        // The new component usings are going to be a subset of the usings in the source razor file
+        var usingsInFile = context.SourceText.ToString()
+            .Split('\n')
+            .Where(line => line.TrimStart().StartsWith("@using"))
+            .Aggregate(new StringBuilder(), (sb, line) => sb.AppendLine(line))
+            .ToString();
+
         AddUsingDirectivesInRange(utilityScanRoot,
-                                  usingsInImportsFile,
+                                  usingsInFile,
                                   actionParams.ExtractStart,
                                   actionParams.ExtractEnd,
                                   actionParams);
@@ -167,29 +170,6 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             Namespace = @namespace,
             usingDirectives = []
         };
-    }
-
-    // When adding usings, we must check for the first _Imports.razor file in the current directory or any parent directories.
-    // In the new component, only add usings that are not already present in the _Imports.razor file.
-    public static string GetUsingsInImportsFile(string currentDirectory, StringBuilder importsBuilder)
-    {
-        var importsFile = Path.Combine(currentDirectory, "_Imports.razor");
-        if (File.Exists(importsFile))
-        {
-            return File.ReadAllLines(importsFile)
-                .Where(line => line.TrimStart().StartsWith("@using"))
-                .Select(line => line.Trim())
-                .Aggregate(importsBuilder, (sb, line) => sb.AppendLine(line))
-                .ToString();
-        }
-
-        var parentDirectory = Path.GetDirectoryName(currentDirectory);
-        if (parentDirectory is not null && Directory.Exists(parentDirectory))
-        {
-            return GetUsingsInImportsFile(parentDirectory, importsBuilder);
-        }
-
-        return string.Empty;
     }
 
     /// <summary>
@@ -307,7 +287,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return null;
     }
 
-    private static void AddUsingDirectivesInRange(SyntaxNode root, string usingsInImportsFile, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
+    private static void AddUsingDirectivesInRange(SyntaxNode root, string usingsInFile, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
     {
         var components = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
@@ -316,7 +296,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         {
             if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
             {
-                AddUsingFromTagHelperInfo(tagHelperInfo, components, usingsInImportsFile, actionParams);
+                AddUsingFromTagHelperInfo(tagHelperInfo, components, usingsInFile, actionParams);
             }
         }
     }
@@ -331,13 +311,9 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             }
 
             var typeNamespace = descriptor.GetTypeNamespace();
-            if (components.Add(typeNamespace))
+            if (components.Add(typeNamespace) && usingsInImportsFile.Contains(typeNamespace))
             {
-                var usingDirective = $"@using {typeNamespace}";
-                if (!usingsInImportsFile.Contains(usingDirective))
-                {
-                    actionParams.usingDirectives.Add(usingDirective);
-                }
+                actionParams.usingDirectives.Add($"@using {typeNamespace}");
             }
         }
     }
