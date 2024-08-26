@@ -1333,4 +1333,196 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         // Since _inlineCount tracks the number of inline items used, we zero it out here.
         _inlineCount = 0;
     }
+
+    public readonly ImmutableArray<T> ToImmutableOrdered()
+    {
+        var result = ToImmutable();
+        result.Unsafe().Order();
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrdered(IComparer<T> comparer)
+    {
+        var result = ToImmutable();
+        result.Unsafe().Order(comparer);
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrdered(Comparison<T> comparison)
+    {
+        var result = ToImmutable();
+        result.Unsafe().Order(comparison);
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrderedDescending()
+    {
+        var result = ToImmutable();
+        result.Unsafe().OrderDescending();
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrderedDescending(IComparer<T> comparer)
+    {
+        var result = ToImmutable();
+        result.Unsafe().OrderDescending(comparer);
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrderedDescending(Comparison<T> comparison)
+    {
+        var result = ToImmutable();
+        result.Unsafe().OrderDescending(comparison);
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrderedBy<TKey>(Func<T, TKey> keySelector)
+    {
+        var result = ToImmutable();
+        result.Unsafe().OrderBy(keySelector);
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrderedBy<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
+    {
+        var result = ToImmutable();
+        result.Unsafe().OrderBy(keySelector, comparer);
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrderedBy<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
+    {
+        var result = ToImmutable();
+        result.Unsafe().OrderBy(keySelector, comparison);
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrderedByDescending<TKey>(Func<T, TKey> keySelector)
+    {
+        var result = ToImmutable();
+        result.Unsafe().OrderByDescending(keySelector);
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrderedByDescending<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
+    {
+        var result = ToImmutable();
+        result.Unsafe().OrderByDescending(keySelector, comparer);
+
+        return result;
+    }
+
+    public readonly ImmutableArray<T> ToImmutableOrderedByDescending<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
+    {
+        var result = ToImmutable();
+        result.Unsafe().OrderByDescending(keySelector, comparison);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrdered()
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().Order();
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrdered(IComparer<T> comparer)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().Order(comparer);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrdered(Comparison<T> comparison)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().Order(comparison);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrderedDescending()
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().OrderDescending();
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrderedDescending(IComparer<T> comparer)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().OrderDescending(comparer);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrderedDescending(Comparison<T> comparison)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().OrderDescending(comparison);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrderedBy<TKey>(Func<T, TKey> keySelector)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().OrderBy(keySelector);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrderedBy<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().OrderBy(keySelector, comparer);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrderedBy<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().OrderBy(keySelector, comparison);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrderedByDescending<TKey>(Func<T, TKey> keySelector)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().OrderByDescending(keySelector);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrderedByDescending<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().OrderByDescending(keySelector, comparer);
+
+        return result;
+    }
+
+    public ImmutableArray<T> DrainToImmutableOrderedByDescending<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
+    {
+        var result = DrainToImmutable();
+        result.Unsafe().OrderByDescending(keySelector, comparison);
+
+        return result;
+    }
 }

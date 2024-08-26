@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Xunit;
 using SR = Microsoft.AspNetCore.Razor.Utilities.Shared.Resources.SR;
@@ -85,6 +86,100 @@ public class PooledArrayBuilderTests
             }
         }
     }
+
+    private static Comparison<int> OddBeforeEven
+        => (x, y) => (x % 2 != 0, y % 2 != 0) switch
+        {
+            (true, false) => -1,
+            (false, true) => 1,
+            _ => x.CompareTo(y)
+        };
+
+    public readonly record struct ValueHolder(int Value)
+    {
+        public static implicit operator ValueHolder(int value)
+            => new(value);
+    }
+
+    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+        };
+
+    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+        };
+
+    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderDescendingTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+        };
+
+    public static TheoryData<ImmutableArray<int>, ImmutableArray<int>> OrderDescendingTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+        };
+
+    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+        };
+
+    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [1, 3, 5, 7, 9, 2, 4, 6, 8, 10] },
+        };
+
+    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByDescendingTestData
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+        };
+
+    public static TheoryData<ImmutableArray<ValueHolder>, ImmutableArray<ValueHolder>> OrderByDescendingTestData_OddBeforeEven
+        => new()
+        {
+            { [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [1, 3, 5, 7, 9, 2, 4, 6, 8, 10], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [2, 5, 8, 1, 3, 9, 7, 4, 10, 6], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+            { [6, 10, 4, 7, 9, 3, 1, 8, 5, 2], [10, 8, 6, 4, 2, 9, 7, 5, 3, 1] },
+        };
 
     private static Func<int, bool> IsEven => x => x % 2 == 0;
     private static Func<int, bool> IsOdd => x => x % 2 != 0;
@@ -252,5 +347,181 @@ public class PooledArrayBuilderTests
 
         Assert.Equal(42, builder.Single(IsEven));
         Assert.Equal(42, builder.SingleOrDefault(IsEven));
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData))]
+    public void ToImmutableOrdered(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.ToImmutableOrdered();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData_OddBeforeEven))]
+    public void ToImmutableOrdered_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.ToImmutableOrdered(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData))]
+    public void ToImmutableOrderedDescending(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.ToImmutableOrderedDescending();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData_OddBeforeEven))]
+    public void ToImmutableOrderedDescending_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.ToImmutableOrderedDescending(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData))]
+    public void ToImmutableOrderedBy(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        using var builder = new PooledArrayBuilder<ValueHolder>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.ToImmutableOrderedBy(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData_OddBeforeEven))]
+    public void ToImmutableOrderedBy_OddBeforeEven(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        using var builder = new PooledArrayBuilder<ValueHolder>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.ToImmutableOrderedBy(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData))]
+    public void ToImmutableOrderedByDescending(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        using var builder = new PooledArrayBuilder<ValueHolder>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.ToImmutableOrderedByDescending(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData_OddBeforeEven))]
+    public void ToImmutableOrderedByDescending_OddBeforeEven(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        using var builder = new PooledArrayBuilder<ValueHolder>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.ToImmutableOrderedByDescending(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData))]
+    public void DrainToImmutableOrdered(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.DrainToImmutableOrdered();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderTestData_OddBeforeEven))]
+    public void DrainToImmutableOrdered_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.DrainToImmutableOrdered(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData))]
+    public void DrainToImmutableOrderedDescending(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.DrainToImmutableOrderedDescending();
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderDescendingTestData_OddBeforeEven))]
+    public void DrainToImmutableOrderedDescending_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
+    {
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.DrainToImmutableOrderedDescending(OddBeforeEven);
+        Assert.Equal<int>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData))]
+    public void DrainToImmutableOrderedBy(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        using var builder = new PooledArrayBuilder<ValueHolder>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.DrainToImmutableOrderedBy(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByTestData_OddBeforeEven))]
+    public void DrainToImmutableOrderedBy_OddBeforeEven(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        using var builder = new PooledArrayBuilder<ValueHolder>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.DrainToImmutableOrderedBy(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData))]
+    public void DrainToImmutableOrderedByDescending(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        using var builder = new PooledArrayBuilder<ValueHolder>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.DrainToImmutableOrderedByDescending(static x => x.Value);
+        Assert.Equal<ValueHolder>(expected, sorted);
+    }
+
+    [Theory]
+    [MemberData(nameof(OrderByDescendingTestData_OddBeforeEven))]
+    public void DrainToImmutableOrderedByDescending_OddBeforeEven(ImmutableArray<ValueHolder> data, ImmutableArray<ValueHolder> expected)
+    {
+        using var builder = new PooledArrayBuilder<ValueHolder>(capacity: data.Length);
+        builder.AddRange(data);
+
+        var sorted = builder.DrainToImmutableOrderedByDescending(static x => x.Value, OddBeforeEven);
+        Assert.Equal<ValueHolder>(expected, sorted);
     }
 }
