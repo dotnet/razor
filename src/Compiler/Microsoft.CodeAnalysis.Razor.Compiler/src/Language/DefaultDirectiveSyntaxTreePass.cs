@@ -41,8 +41,8 @@ internal class DefaultDirectiveSyntaxTreePass : RazorEngineFeatureBase, IRazorSy
         public RazorSyntaxTree Verify()
         {
             var root = Visit(_syntaxTree.Root);
-            var rewrittenTree = new DefaultRazorSyntaxTree(root, _syntaxTree.Source, _diagnostics, _syntaxTree.Options);
-            return rewrittenTree;
+
+            return new RazorSyntaxTree(root, _syntaxTree.Source, _diagnostics, _syntaxTree.Options);
         }
 
         public override SyntaxNode Visit(SyntaxNode node)
