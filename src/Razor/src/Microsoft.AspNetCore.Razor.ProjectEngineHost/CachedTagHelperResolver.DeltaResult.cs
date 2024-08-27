@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor;
 
 internal partial class CachedTagHelperResolver
 {
-    public record DeltaResult(
+    public sealed record class DeltaResult(
         bool IsDelta,
         int ResultId,
         ImmutableArray<Checksum> Added,
