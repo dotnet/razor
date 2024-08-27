@@ -57,6 +57,9 @@ internal static class TestRazorFormattingService
             new FormattingContentValidationPass(mappingService, loggerFactory),
         };
 
-        return new RazorFormattingService(passes, TestAdhocWorkspaceFactory.Instance);
+        return new RazorFormattingService(
+            passes,
+            new FormattingCodeDocumentProvider(),
+            TestAdhocWorkspaceFactory.Instance);
     }
 }

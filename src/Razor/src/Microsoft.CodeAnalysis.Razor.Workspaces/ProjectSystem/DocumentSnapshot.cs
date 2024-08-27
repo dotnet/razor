@@ -74,22 +74,8 @@ internal class DocumentSnapshot : IDocumentSnapshot
         return CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
     }
 
-    public Task<RazorCodeDocument> GetFormatterCodeDocumentAsync()
-    {
-        var forceRuntimeCodeGeneration = Project.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
-        if (!forceRuntimeCodeGeneration)
-        {
-            return GetGeneratedOutputAsync();
-        }
-
-        // if forceRuntimeCodeGeneration is on, GetGeneratedOutputAsync will get runtime code. As of now
-        // the formatting service doesn't expect the form of code generated to be what the compiler does with
-        // runtime. For now force usage of design time and avoid the cache. There may be a slight perf hit
-        // but either the user is typing (which will invalidate the cache) or the user is manually attempting to
-        // format. We expect formatting to invalidate the cache if it changes things and consider this an
-        // acceptable overhead for now.
-        return GetDesignTimeGeneratedOutputAsync();
-    }
+    public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool useDesignTimeGeneratedOutput)
+        => useDesignTimeGeneratedOutput ? GetDesignTimeGeneratedOutputAsync() : GetGeneratedOutputAsync();
 
     private async Task<RazorCodeDocument> GetDesignTimeGeneratedOutputAsync()
     {

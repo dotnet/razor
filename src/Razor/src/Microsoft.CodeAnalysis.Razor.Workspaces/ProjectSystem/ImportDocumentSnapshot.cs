@@ -50,6 +50,9 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
         return _sourceText;
     }
 
+    public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool _)
+        => GetGeneratedOutputAsync();
+
     public Task<VersionStamp> GetTextVersionAsync()
     {
         return Task.FromResult(_version);

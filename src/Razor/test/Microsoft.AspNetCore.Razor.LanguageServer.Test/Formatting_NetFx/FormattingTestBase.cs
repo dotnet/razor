@@ -290,6 +290,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             .Setup(d => d.GetGeneratedOutputAsync())
             .ReturnsAsync(codeDocument);
         documentSnapshot
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
+            .ReturnsAsync(codeDocument);
+        documentSnapshot
             .Setup(d => d.FilePath)
             .Returns(path);
         documentSnapshot

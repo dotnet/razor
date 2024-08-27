@@ -24,13 +24,24 @@ internal sealed class FormattingContext : IDisposable
     private Document? _csharpWorkspaceDocument;
 
     private AdhocWorkspace? _csharpWorkspace;
+    private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
 
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
-    private FormattingContext(IAdhocWorkspaceFactory workspaceFactory, Uri uri, IDocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
-        bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
+    private FormattingContext(
+        IFormattingCodeDocumentProvider codeDocumentProvider,
+        IAdhocWorkspaceFactory workspaceFactory,
+        Uri uri,
+        IDocumentSnapshot originalSnapshot,
+        RazorCodeDocument codeDocument,
+        FormattingOptions options,
+        bool isFormatOnType,
+        bool automaticallyAddUsings,
+        int hostDocumentIndex,
+        char triggerCharacter)
     {
+        _codeDocumentProvider = codeDocumentProvider;
         _workspaceFactory = workspaceFactory;
         Uri = uri;
         OriginalSnapshot = originalSnapshot;
@@ -268,11 +279,12 @@ internal sealed class FormattingContext : IDisposable
 
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
-        var codeDocument = await changedSnapshot.GetFormatterCodeDocumentAsync().ConfigureAwait(false);
+        var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(changedSnapshot).ConfigureAwait(false);
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 
         var newContext = new FormattingContext(
+            _codeDocumentProvider,
             _workspaceFactory,
             Uri,
             OriginalSnapshot,
@@ -309,12 +321,23 @@ internal sealed class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
+        IFormattingCodeDocumentProvider codeDocumentProvider,
         IAdhocWorkspaceFactory workspaceFactory,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
         char triggerCharacter)
     {
-        return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: true, automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+        return CreateCore(
+            uri,
+            originalSnapshot,
+            codeDocument,
+            options,
+            codeDocumentProvider,
+            workspaceFactory,
+            isFormatOnType: true,
+            automaticallyAddUsings,
+            hostDocumentIndex,
+            triggerCharacter);
     }
 
     public static FormattingContext Create(
@@ -322,9 +345,20 @@ internal sealed class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
+        IFormattingCodeDocumentProvider codeDocumentProvider,
         IAdhocWorkspaceFactory workspaceFactory)
     {
-        return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
+        return CreateCore(
+            uri,
+            originalSnapshot,
+            codeDocument,
+            options,
+            codeDocumentProvider,
+            workspaceFactory,
+            isFormatOnType: false,
+            automaticallyAddUsings: false,
+            hostDocumentIndex: 0,
+            triggerCharacter: '\0');
     }
 
     private static FormattingContext CreateCore(
@@ -332,6 +366,7 @@ internal sealed class FormattingContext : IDisposable
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         FormattingOptions options,
+        IFormattingCodeDocumentProvider codeDocumentProvider,
         IAdhocWorkspaceFactory workspaceFactory,
         bool isFormatOnType,
         bool automaticallyAddUsings,
@@ -367,6 +402,7 @@ internal sealed class FormattingContext : IDisposable
         Debug.Assert(isFormatOnType || (hostDocumentIndex == 0 && triggerCharacter == '\0' && automaticallyAddUsings == false));
 
         var result = new FormattingContext(
+            codeDocumentProvider,
             workspaceFactory,
             uri,
             originalSnapshot,

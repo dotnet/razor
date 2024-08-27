@@ -132,7 +132,13 @@ public class Foo { }
             InsertSpaces = insertSpaces,
         };
 
-        var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, TestAdhocWorkspaceFactory.Instance);
+        var context = FormattingContext.Create(
+            uri,
+            documentSnapshot,
+            codeDocument,
+            options,
+            new FormattingCodeDocumentProvider(),
+            TestAdhocWorkspaceFactory.Instance);
         return context;
     }
 

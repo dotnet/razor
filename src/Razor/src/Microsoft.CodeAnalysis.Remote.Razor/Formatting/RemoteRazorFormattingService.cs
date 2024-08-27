@@ -12,7 +12,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 [method: ImportingConstructor]
 internal class RemoteRazorFormattingService(
     [ImportMany] IEnumerable<IFormattingPass> formattingPasses,
+    IFormattingCodeDocumentProvider codeDocumentProvider,
     IAdhocWorkspaceFactory adhocWorkspaceFactory)
-    : RazorFormattingService(formattingPasses, adhocWorkspaceFactory)
+    : RazorFormattingService(
+        formattingPasses,
+        codeDocumentProvider,
+        adhocWorkspaceFactory)
 {
 }
