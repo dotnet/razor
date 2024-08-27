@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -58,14 +57,13 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         var stringSourceDocument = RazorSourceDocument.Create(GetFileContents(), UTF8Encoding.UTF8, RazorSourceDocumentProperties.Default);
         var mockRazorCodeDocument = new Mock<RazorCodeDocument>(MockBehavior.Strict);
 
-        var mockRazorCSharpDocument = RazorCSharpDocument.Create(
+        var mockRazorCSharpDocument = new RazorCSharpDocument(
             mockRazorCodeDocument.Object,
             GeneratedCode,
-            RazorCodeGenerationOptions.CreateDesignTimeDefault(),
-            Array.Empty<RazorDiagnostic>(),
+            RazorCodeGenerationOptions.DesignTimeDefault,
+            diagnostics: [],
             SourceMappings,
-            new List<LinePragma>()
-        );
+            linePragmas: []);
 
         var itemCollection = new ItemCollection();
         itemCollection[typeof(RazorCSharpDocument)] = mockRazorCSharpDocument;
@@ -115,9 +113,9 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
             MockBehavior.Strict);
     }
 
-    private IRazorDocumentMappingService BuildRazorDocumentMappingService()
+    private IDocumentMappingService BuildRazorDocumentMappingService()
     {
-        var razorDocumentMappingService = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
+        var razorDocumentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
 
         Range? hostDocumentRange;
         razorDocumentMappingService.Setup(

@@ -16,10 +16,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 internal sealed class DefaultHtmlCodeActionResolver(
     IDocumentContextFactory documentContextFactory,
     IClientConnection clientConnection,
-    IRazorDocumentMappingService documentMappingService) : HtmlCodeActionResolver(clientConnection)
+    IEditMappingService editMappingService) : HtmlCodeActionResolver(clientConnection)
 {
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IEditMappingService _editMappingService = editMappingService;
 
     public override string Action => LanguageServerConstants.CodeActions.Default;
 
@@ -40,8 +40,7 @@ internal sealed class DefaultHtmlCodeActionResolver(
             return codeAction;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        await DefaultHtmlCodeActionProvider.RemapAndFixHtmlCodeActionEditAsync(_documentMappingService, codeDocument, resolvedCodeAction, cancellationToken).ConfigureAwait(false);
+        await DefaultHtmlCodeActionProvider.RemapAndFixHtmlCodeActionEditAsync(_editMappingService, documentContext.Snapshot, resolvedCodeAction, cancellationToken).ConfigureAwait(false);
 
         return resolvedCodeAction;
     }

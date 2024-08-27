@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -28,13 +29,13 @@ internal class DelegatedCompletionListProvider
             .Union(s_razorTriggerCharacters);
 
     private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _responseRewriters;
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
     private readonly IClientConnection _clientConnection;
     private readonly CompletionListCache _completionListCache;
 
     public DelegatedCompletionListProvider(
         IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         CompletionListCache completionListCache)
     {
@@ -77,7 +78,7 @@ internal class DelegatedCompletionListProvider
         var shouldIncludeSnippets = await ShouldIncludeSnippetsAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
         var delegatedParams = new DelegatedCompletionParams(
-            documentContext.Identifier,
+            documentContext.GetTextDocumentIdentifierAndVersion(),
             positionInfo.Position,
             positionInfo.LanguageKind,
             completionContext,

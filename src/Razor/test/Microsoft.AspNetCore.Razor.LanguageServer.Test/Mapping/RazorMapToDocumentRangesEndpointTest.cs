@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -18,12 +17,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
 public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
 {
-    private readonly IRazorDocumentMappingService _mappingService;
+    private readonly IDocumentMappingService _documentMappingService;
 
     public RazorMapToDocumentRangesEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _mappingService = new RazorDocumentMappingService(
+        _documentMappingService = new LspDocumentMappingService(
             FilePathService,
             new TestDocumentContextFactory(),
             LoggerFactory);
@@ -36,15 +35,11 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
-            "<p>@DateTime.Now</p>",
-            "var __o = DateTime.Now",
-            [
-                new SourceMapping(
-                    new SourceSpan(4, 12),
-                    new SourceSpan(10, 12))
-            ]);
+            razorSource: "<p>@DateTime.Now</p>",
+            projectedCSharpSource: "var __o = DateTime.Now",
+            sourceMappings: [new SourceMapping(new SourceSpan(4, 12), new SourceSpan(10, 12))]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
@@ -70,15 +65,11 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
-            "<p>@DateTime.Now</p>",
-            "var __o = DateTime.Now",
-            [
-                new SourceMapping(
-                    new SourceSpan(4, 12),
-                    new SourceSpan(10, 12))
-            ]);
+            razorSource: "<p>@DateTime.Now</p>",
+            projectedCSharpSource: "var __o = DateTime.Now",
+            sourceMappings: [new SourceMapping(new SourceSpan(4, 12), new SourceSpan(10, 12))]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
@@ -103,15 +94,11 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
-            "<p>@DateTime.Now</p>",
-            "var __o = DateTime.Now",
-            [
-                new SourceMapping(
-                    new SourceSpan(4, 12),
-                    new SourceSpan(10, 12))
-            ]);
+            razorSource: "<p>@DateTime.Now</p>",
+            projectedCSharpSource: "var __o = DateTime.Now",
+            sourceMappings: [new SourceMapping(new SourceSpan(4, 12), new SourceSpan(10, 12))]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
@@ -136,15 +123,11 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
-            "<p>@DateTime.Now</p>",
-            "var __o = DateTime.Now",
-            [
-                new SourceMapping(
-                    new SourceSpan(4, 12),
-                    new SourceSpan(10, 12))
-            ]);
+            razorSource: "<p>@DateTime.Now</p>",
+            projectedCSharpSource: "var __o = DateTime.Now",
+            sourceMappings: [new SourceMapping(new SourceSpan(4, 12), new SourceSpan(10, 12))]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
@@ -170,7 +153,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.Html,
@@ -196,7 +179,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.Razor,
@@ -221,16 +204,12 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
-            "<p>@DateTime.Now</p>",
-            "var __o = DateTime.Now",
-            [
-                new SourceMapping(
-                    new SourceSpan(4, 12),
-                    new SourceSpan(10, 12))
-            ]);
+            razorSource: "<p>@DateTime.Now</p>",
+            projectedCSharpSource: "var __o = DateTime.Now",
+            sourceMappings: [new SourceMapping(new SourceSpan(4, 12), new SourceSpan(10, 12))]);
         codeDocument.SetUnsupported();
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
+        var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
@@ -249,15 +228,15 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         Assert.Equal(1337, response.HostDocumentVersion);
     }
 
-    private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, IEnumerable<SourceMapping> sourceMappings)
+    private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, ImmutableArray<SourceMapping> sourceMappings)
     {
         var codeDocument = CreateCodeDocument(razorSource, tagHelpers: []);
-        var csharpDocument = RazorCSharpDocument.Create(
+        var csharpDocument = new RazorCSharpDocument(
             codeDocument,
             projectedCSharpSource,
-            RazorCodeGenerationOptions.CreateDefault(),
+            RazorCodeGenerationOptions.Default,
             diagnostics: [],
-            sourceMappings.ToImmutableArray(),
+            sourceMappings,
             linePragmas: []);
         codeDocument.SetCSharpDocument(csharpDocument);
         return codeDocument;

@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.DocumentPresentation;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -24,8 +23,6 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
         protected override IRemoteUriPresentationService CreateService(in ServiceArgs args)
             => new RemoteUriPresentationService(in args);
     }
-
-    private readonly IRazorDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IRazorDocumentMappingService>();
 
     public ValueTask<Response> GetPresentationAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
@@ -54,7 +51,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
 
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, index, rightAssociative: true);
+        var languageKind = DocumentMappingService.GetLanguageKind(codeDocument, index, rightAssociative: true);
         if (languageKind is not RazorLanguageKind.Html)
         {
             // Roslyn doesn't currently support Uri presentation, and whilst it might seem counter intuitive,
@@ -71,18 +68,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
         }
 
         var solution = context.TextDocument.Project.Solution;
-
-        // Make sure we go through Roslyn to go from the Uri the client sent us, to one that it has a chance of finding in the solution
-        var uriToFind = RazorUri.GetDocumentFilePathFromUri(razorFileUri);
-        var ids = solution.GetDocumentIdsWithFilePath(uriToFind);
-        if (ids.Length == 0)
-        {
-            return Response.CallHtml;
-        }
-
-        // We assume linked documents would produce the same component tag so just take the first
-        var otherDocument = solution.GetAdditionalDocument(ids[0]);
-        if (otherDocument is null)
+        if (!solution.TryGetRazorDocument(razorFileUri, out var otherDocument))
         {
             return Response.CallHtml;
         }
