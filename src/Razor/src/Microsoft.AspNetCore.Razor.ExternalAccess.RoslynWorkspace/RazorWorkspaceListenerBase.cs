@@ -342,12 +342,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
             return (false, null);
         }
 
-        if (entry.RootNamespace is null)
-        {
-            return await GetChangedValueAsync().ConfigureAwait(false);
-        }
-
-        if (!entry.RootNamespace.Equals(rootNamespace))
+        if (string.Equals(entry.RootNamespace, rootNamesapce))
         {
             return await GetChangedValueAsync().ConfigureAwait(false);
         }
