@@ -75,7 +75,6 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
             if (previouslyPublishedData.HostDocumentVersion > hostDocumentVersion)
             {
                 // We've already published a newer version of this document. No-op.
-                Debug.Fail("C# document being published that is older than one we've previously published!");
                 _logger.LogWarning($"Skipping publish of C# for {filePath} because we've already published version {previouslyPublishedData.HostDocumentVersion}, and this request is for {hostDocumentVersion}.");
                 return;
             }
@@ -122,7 +121,6 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
             if (previouslyPublishedData.HostDocumentVersion > hostDocumentVersion)
             {
                 // We've already published a newer version of this document. No-op.
-                Debug.Fail("Html document being published that is older than one we've previously published!");
                 _logger.LogWarning($"Skipping publish of Html for {filePath} because we've already published version {previouslyPublishedData.HostDocumentVersion}, and this request is for {hostDocumentVersion}.");
                 return;
             }
