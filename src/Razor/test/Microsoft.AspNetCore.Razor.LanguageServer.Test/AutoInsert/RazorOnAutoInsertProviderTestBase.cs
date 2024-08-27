@@ -40,7 +40,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         var provider = CreateProvider();
 
         // Act
-        var result = provider.TryResolveInsertion(position, codeDocument, enableAutoClosingTags: enableAutoClosingTags, out var edit);
+        provider.TryResolveInsertion(position, codeDocument, enableAutoClosingTags: enableAutoClosingTags, out var edit);
 
         // Assert
         var edited = edit is null ? source : ApplyEdit(source, edit.TextEdit);
