@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor;
 
 internal partial class CachedTagHelperResolver
 {
-    public record DeltaResult(
+    public sealed record class DeltaResult(
         bool IsDelta,
         int ResultId,
         ImmutableArray<Checksum> Added,
@@ -26,8 +26,7 @@ internal partial class CachedTagHelperResolver
                 return baseChecksums;
             }
 
-            using var _ = ArrayBuilderPool<Checksum>.GetPooledObject(out var result);
-            result.SetCapacityIfLarger(baseChecksums.Length + Added.Length - Removed.Length);
+            using var result = ArrayBuilderPool<Checksum>.GetPooledObject(capacity: baseChecksums.Length + Added.Length - Removed.Length);
 
             result.AddRange(Added);
             result.AddRange(Delta.Compute(Removed, baseChecksums));
