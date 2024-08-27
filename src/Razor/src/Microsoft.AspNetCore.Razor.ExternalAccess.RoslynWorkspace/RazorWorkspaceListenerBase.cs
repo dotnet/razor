@@ -35,6 +35,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
     internal record Work(ProjectId ProjectId);
     internal record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
     internal record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
+
     internal class ProjectEntry
     {
         public int? TagHelpersResultId { get; set; }
@@ -307,12 +308,11 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
             return;
         }
 
-        var entry = _projectEntryMap.GetOrAdd(project.Id, static () => new());
+        var entry = _projectEntryMap.GetOrAdd(project.Id, static _ => new ProjectEntry());
 
-        var (didChange, projectInfo) = await DidProjectInfoChangeAsync(project, entry, projectPath, intermediateOutputPath, cancellationToken).ConfigureAwait(false);
-        if (didChange)
+        var projectInfo = await TryCalculateProjectInfoAsync(project, entry, projectPath, intermediateOutputPath, cancellationToken).ConfigureAwait(false);
+        if (projectInfo is not null)
         {
-            projectInfo.AssumeNotNull();
             UpdateEntry(project, projectInfo, entry);
 
             stream.WriteProjectInfoAction(ProjectInfoAction.Update);
@@ -330,71 +330,52 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         entry.TagHelpersResultId = resultId;
     }
 
-    private async Task<(bool, RazorProjectInfo? projectInfo)> DidProjectInfoChangeAsync(Project project, ProjectEntry entry, string projectPath, string intermediateOutputPath, CancellationToken cancellationToken)
+    private async Task<RazorProjectInfo?> TryCalculateProjectInfoAsync(Project project, ProjectEntry entry, string projectPath, string intermediateOutputPath, CancellationToken cancellationToken)
     {
-        ImmutableArray<DocumentSnapshotHandle> documents = default;
-        var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
-        CachedTagHelperResolver.DeltaResult? delta = null;
-
-        var configuration = RazorProjectInfoHelpers.ComputeRazorConfigurationOptions(project.AnalyzerOptions.AnalyzerConfigOptionsProvider, out var rootNamespace);
-        if (configuration is null)
+        var (configuration, rootNamespace) = RazorProjectInfoHelpers.ComputeRazorConfigurationOptions(project.AnalyzerOptions.AnalyzerConfigOptionsProvider);
+        if (string.Equals(entry.RootNamespace, rootNamespace))
         {
-            return (false, null);
+            return null;
         }
 
-        if (string.Equals(entry.RootNamespace, rootNamesapce))
+        // TODO: Use checksum
+        if (entry.ConfigurationHash == configuration.GetHashCode())
         {
-            return await GetChangedValueAsync().ConfigureAwait(false);
+            return null;
         }
 
-        if (entry.ConfigurationHash != configuration.GetHashCode())
-        {
-            return await GetChangedValueAsync().ConfigureAwait(false);
-        }
-
-        documents = RazorProjectInfoHelpers.GetDocuments(project, projectPath);
+        var documents = RazorProjectInfoHelpers.GetDocuments(project, projectPath);
         if (documents.Length == 0)
         {
             _logger.LogInformation("No razor documents in {projectId}", project.Id);
-            return (false, null);
+            return null;
         }
 
-        if (entry.DocumentsHash != documents.GetHashCode())
+        // TODO: Use checksum
+        if (entry.DocumentsHash == documents.GetHashCode())
         {
-            return await GetChangedValueAsync().ConfigureAwait(false);
+            return null;
         }
 
-        delta = await _cachedTagHelperResolver.GetDeltaAsync(project, entry.TagHelpersResultId, cancellationToken).ConfigureAwait(false);
-        if (delta.IsDelta)
+        var delta = await _cachedTagHelperResolver.GetDeltaAsync(project, entry.TagHelpersResultId, cancellationToken).ConfigureAwait(false);
+        if (!delta.IsDelta)
         {
-            return await GetChangedValueAsync().ConfigureAwait(false);
+            return null;
         }
 
-        return (false, null);
+        var tagHelpers = _cachedTagHelperResolver.GetValues(project.Id, delta.ResultId);
+        var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
+        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
 
-        async Task<(bool, RazorProjectInfo?)> GetChangedValueAsync()
-        {
-            // Always make sure the cache is up to date since tag helpers will need to be computed anyways
-            if (delta is null)
-            {
-                delta = await _cachedTagHelperResolver.GetDeltaAsync(project, entry.TagHelpersResultId, cancellationToken).ConfigureAwait(false);
-            }
-
-            var tagHelpers = _cachedTagHelperResolver.GetValues(project.Id, delta.ResultId);
-            var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
-
-            var projectInfo = await RazorProjectInfoHelpers.ConvertAsync(
-               project,
-               projectPath,
-               intermediateOutputPath,
-               configuration,
-               rootNamespace,
-               projectWorkspaceState,
-               documents,
-               cancellationToken).ConfigureAwait(false);
-
-            return (projectInfo is null, projectInfo);
-        }
+        return await RazorProjectInfoHelpers.ConvertAsync(
+           project,
+           projectPath,
+           intermediateOutputPath,
+           configuration,
+           rootNamespace,
+           projectWorkspaceState,
+           documents,
+           cancellationToken).ConfigureAwait(false);
     }
 
     private static Task ReportRemovalAsync(Stream stream, RemovalWork unit, ILogger logger, CancellationToken cancellationToken)

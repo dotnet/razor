@@ -38,7 +38,7 @@ internal static class RazorProjectInfoHelpers
         string projectPath,
         string intermediateOutputPath,
         RazorConfiguration? razorConfiguration,
-        string? defaultNamespace,
+        string? rootNamespace,
         ProjectWorkspaceState? projectWorkspaceState,
         ImmutableArray<DocumentSnapshotHandle> documents,
         CancellationToken cancellationToken)
@@ -57,12 +57,12 @@ internal static class RazorProjectInfoHelpers
         if (razorConfiguration is null)
         {
             var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-            razorConfiguration = ComputeRazorConfigurationOptions(options, out defaultNamespace);
+            (razorConfiguration, rootNamespace) = ComputeRazorConfigurationOptions(options);
         }
 
         if (projectWorkspaceState is null)
         {
-            projectWorkspaceState = await GetWorkspaceStateAsync(project, razorConfiguration, defaultNamespace, projectPath, cancellationToken).ConfigureAwait(false);
+            projectWorkspaceState = await GetWorkspaceStateAsync(project, razorConfiguration, rootNamespace, projectPath, cancellationToken).ConfigureAwait(false);
             if (projectWorkspaceState is null)
             {
                 return null;
@@ -72,11 +72,11 @@ internal static class RazorProjectInfoHelpers
         return new RazorProjectInfo(
             projectKey: new ProjectKey(intermediateOutputPath),
             filePath: project.FilePath!,
-            configuration: razorConfiguration,
-            rootNamespace: defaultNamespace,
+            razorConfiguration,
+            rootNamespace,
             displayName: project.Name,
-            projectWorkspaceState: projectWorkspaceState,
-            documents: documents);
+            projectWorkspaceState,
+            documents);
     }
 
     public static async Task<ProjectWorkspaceState?> GetWorkspaceStateAsync(Project project, RazorConfiguration configuration, string? defaultNamespace, string projectPath, CancellationToken cancellationToken)
@@ -111,14 +111,14 @@ internal static class RazorProjectInfoHelpers
     public static RazorProjectEngine? GetProjectEngine(Project project, string projectPath)
     {
         var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-        var configuration = ComputeRazorConfigurationOptions(options, out var defaultNamespace);
+        var (configuration, rootNamespace) = ComputeRazorConfigurationOptions(options);
         var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
         var fileSystem = RazorProjectFileSystem.Create(projectPath);
         var defaultConfigure = (RazorProjectEngineBuilder builder) =>
         {
-            if (defaultNamespace is not null)
+            if (rootNamespace is not null)
             {
-                builder.SetRootNamespace(defaultNamespace);
+                builder.SetRootNamespace(rootNamespace);
             }
 
             builder.SetCSharpLanguageVersion(csharpLanguageVersion);
@@ -133,7 +133,7 @@ internal static class RazorProjectInfoHelpers
             configure: defaultConfigure);
     }
 
-    public static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, out string defaultNamespace)
+    public static (RazorConfiguration razorConfiguration, string rootNamespace) ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options)
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
@@ -153,9 +153,9 @@ internal static class RazorProjectInfoHelpers
 
         var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true);
 
-        defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
+        rootNamespace ??= "ASP"; // TODO: Source generator does this. Do we want it?
 
-        return razorConfiguration;
+        return (razorConfiguration, rootNamespace);
     }
 
     public static ImmutableArray<DocumentSnapshotHandle> GetDocuments(Project project, string projectPath)
