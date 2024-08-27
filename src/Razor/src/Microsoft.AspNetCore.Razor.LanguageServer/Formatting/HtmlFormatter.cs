@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.TextDifferencing;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Formatting;
 using Microsoft.CodeAnalysis.Text;
@@ -16,15 +17,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal class HtmlFormatter
 {
-    private readonly IDocumentVersionCache _documentVersionCache;
     private readonly IClientConnection _clientConnection;
 
-    public HtmlFormatter(
-        IClientConnection clientConnection,
-        IDocumentVersionCache documentVersionCache)
+    public HtmlFormatter(IClientConnection clientConnection)
     {
         _clientConnection = clientConnection;
-        _documentVersionCache = documentVersionCache;
     }
 
     public async Task<TextEdit[]> FormatAsync(
@@ -36,10 +33,7 @@ internal class HtmlFormatter
             throw new ArgumentNullException(nameof(context));
         }
 
-        if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
-        {
-            return Array.Empty<TextEdit>();
-        }
+        var documentVersion = context.OriginalSnapshot.Version;
 
         var @params = new RazorDocumentFormattingParams()
         {
@@ -47,7 +41,7 @@ internal class HtmlFormatter
             {
                 Uri = context.Uri,
             },
-            HostDocumentVersion = documentVersion.Value,
+            HostDocumentVersion = documentVersion,
             Options = context.Options
         };
 
@@ -63,10 +57,7 @@ internal class HtmlFormatter
        FormattingContext context,
        CancellationToken cancellationToken)
     {
-        if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
-        {
-            return Array.Empty<TextEdit>();
-        }
+        var documentVersion = context.OriginalSnapshot.Version;
 
         var @params = new RazorDocumentOnTypeFormattingParams()
         {
@@ -74,7 +65,7 @@ internal class HtmlFormatter
             Character = context.TriggerCharacter.ToString(),
             TextDocument = new TextDocumentIdentifier { Uri = context.Uri },
             Options = context.Options,
-            HostDocumentVersion = documentVersion.Value,
+            HostDocumentVersion = documentVersion,
         };
 
         var result = await _clientConnection.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(

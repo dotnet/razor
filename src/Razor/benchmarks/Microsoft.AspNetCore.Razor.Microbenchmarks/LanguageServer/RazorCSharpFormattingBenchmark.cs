@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -116,7 +116,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
             InsertSpaces = true
         };
 
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, version: 1);
+        var documentContext = new DocumentContext(DocumentUri, DocumentSnapshot, projectContext: null);
 
         var edits = await RazorFormattingService.FormatAsync(documentContext, range: null, options, CancellationToken.None);
 

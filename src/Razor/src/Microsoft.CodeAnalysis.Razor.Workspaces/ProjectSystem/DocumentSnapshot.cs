@@ -3,8 +3,10 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -16,6 +18,8 @@ internal class DocumentSnapshot : IDocumentSnapshot
     public string TargetPath => State.HostDocument.TargetPath;
     public IProjectSnapshot Project => ProjectInternal;
     public bool SupportsOutput => true;
+
+    public int Version => State.Version;
 
     public ProjectSnapshot ProjectInternal { get; }
     public DocumentState State { get; }
@@ -61,5 +65,12 @@ internal class DocumentSnapshot : IDocumentSnapshot
     public IDocumentSnapshot WithText(SourceText text)
     {
         return new DocumentSnapshot(ProjectInternal, State.WithText(text, VersionStamp.Create()));
+    }
+
+    public async Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
+    {
+        var codeDocument = await GetGeneratedOutputAsync().ConfigureAwait(false);
+        var csharpText = codeDocument.GetCSharpSourceText();
+        return CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
     }
 }

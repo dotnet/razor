@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
@@ -51,7 +52,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
             }
         };
 
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml");
         _csharpCompletionParams = new DelegatedCompletionParams(
             documentContext.GetTextDocumentIdentifierAndVersion(),
             VsLspFactory.CreatePosition(10, 6),
@@ -222,7 +223,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         await using var csharpServer = await CreateCSharpServerAsync(codeDocument);
 
         var server = TestDelegatedCompletionItemResolverServer.Create(csharpServer, DisposalToken);
-        var documentContextFactory = new TestDocumentContextFactory("C:/path/to/file.razor", codeDocument, version: 123);
+        var documentContextFactory = new TestDocumentContextFactory("C:/path/to/file.razor", codeDocument);
         var resolver = new DelegatedCompletionItemResolver(documentContextFactory, _formattingService.GetValue(), server);
         var (containingCompletionList, csharpCompletionParams) = await GetCompletionListAndOriginalParamsAsync(
             cursorPosition, codeDocument, csharpServer);
@@ -268,7 +269,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         CSharpTestLspServer csharpServer)
     {
         var completionContext = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked };
-        var documentContext = TestDocumentContext.From("C:/path/to/file.razor", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.From("C:/path/to/file.razor", codeDocument);
         var provider = TestDelegatedCompletionListProvider.Create(csharpServer, LoggerFactory, DisposalToken);
 
         var completionList = await provider.GetCompletionListAsync(

@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
@@ -31,6 +32,8 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
         _importItem = item;
         _version = VersionStamp.Default;
     }
+
+    public int Version => 1;
 
     public Task<RazorCodeDocument> GetGeneratedOutputAsync()
         => throw new NotSupportedException();
@@ -74,5 +77,8 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
         => throw new NotSupportedException();
 
     public IDocumentSnapshot WithText(SourceText text)
+        => throw new NotSupportedException();
+
+    public Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
 }
