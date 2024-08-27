@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -79,16 +80,14 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
         var utilityScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
 
-        // The new component usings are going to be a subset of the usings in the source razor file
-        var usingsInFile = syntaxTree.Root.DescendantNodes()
-            .OfType<CSharpStatementLiteralSyntax>()
-            .Where(literal => literal.SerializedValue.Contains("using"))
-            .Select(literal => literal.SerializedValue)
-            .Aggregate(new StringBuilder(), (sb, line) => sb.AppendLine(line))
-            .ToString();
+        // The new component usings are going to be a subset of the usings in the source razor file.
+        var usingStrings = syntaxTree.Root.DescendantNodes().Where(node => node.IsUsingDirective(out var _)).Select(node => node.ToFullString().TrimEnd());
+
+        // Get only the namespace after the "using" keyword.
+        var usingNamespaceStrings = usingStrings.Select(usingString => usingString.Substring("using  ".Length));
 
         AddUsingDirectivesInRange(utilityScanRoot,
-                                  usingsInFile,
+                                  usingNamespaceStrings,
                                   actionParams.ExtractStart,
                                   actionParams.ExtractEnd,
                                   actionParams);
@@ -288,7 +287,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return null;
     }
 
-    private static void AddUsingDirectivesInRange(SyntaxNode root, string usingsInFile, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
+    private static void AddUsingDirectivesInRange(SyntaxNode root, IEnumerable<string> usingsInSourceRazor, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
     {
         var components = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
@@ -297,12 +296,12 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         {
             if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
             {
-                AddUsingFromTagHelperInfo(tagHelperInfo, components, usingsInFile, actionParams);
+                AddUsingFromTagHelperInfo(tagHelperInfo, components, usingsInSourceRazor, actionParams);
             }
         }
     }
 
-    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, string usingsInImportsFile, ExtractToComponentCodeActionParams actionParams)
+    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, IEnumerable<string> usingsInSourceRazor, ExtractToComponentCodeActionParams actionParams)
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {
@@ -312,9 +311,30 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             }
 
             var typeNamespace = descriptor.GetTypeNamespace();
-            if (components.Add(typeNamespace) && usingsInImportsFile.Contains(typeNamespace))
+
+            // Since the using directive at the top of the file may be relative and not absolute,
+            // we need to generate all possible partial namespaces from `typeNamespace`.
+
+            // Potentially, the alternative could be to ask if the using namespace at the top is a substring of `typeNamespace`.
+            // The only potential edge case is if there are very similar namespaces where one
+            // is a substring of the other, but they're actually different (e.g., "My.App" and "My.Apple").
+
+            // Generate all possible partial namespaces from `typeNamespace`, from least to most specific
+            // (assuming that the user writes absolute `using` namespaces most of the time)
+
+            // This is a bit inefficient because at most 'k' string operations are performed (k = parts in the namespace),
+            // for each potential using directive.
+            
+            var parts = typeNamespace.Split('.');
+            for (var i = 0; i < parts.Length; i++)
             {
-                actionParams.usingDirectives.Add($"@using {typeNamespace}");
+                var partialNamespace = string.Join(".", parts.Skip(i));
+
+                if (components.Add(partialNamespace) && usingsInSourceRazor.Contains(partialNamespace))
+                {
+                    actionParams.usingDirectives.Add($"@using {partialNamespace}");
+                    break;
+                }
             }
         }
     }
