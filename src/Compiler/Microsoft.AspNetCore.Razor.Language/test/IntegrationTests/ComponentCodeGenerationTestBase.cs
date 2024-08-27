@@ -2750,7 +2750,6 @@ namespace Test
         AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Components;
-//namespace Blah;
 
 public class MyComponent : ComponentBase
 {
