@@ -307,10 +307,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
             return;
         }
 
-        if (!_projectEntryMap.TryGetValue(project.Id, out var entry))
-        {
-            _projectEntryMap[project.Id] = entry = new();
-        }
+        var entry = _projectEntryMap.GetOrAdd(project.Id, static () => new());
 
         var (didChange, projectInfo) = await DidProjectInfoChangeAsync(project, entry, projectPath, intermediateOutputPath, cancellationToken).ConfigureAwait(false);
         if (didChange)
