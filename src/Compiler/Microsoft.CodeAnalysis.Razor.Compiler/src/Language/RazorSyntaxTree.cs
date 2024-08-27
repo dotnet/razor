@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -15,23 +14,22 @@ public sealed class RazorSyntaxTree
     public RazorParserOptions Options { get; }
     public RazorSourceDocument Source { get; }
 
-    private readonly List<RazorDiagnostic> _diagnostics;
+    private readonly ImmutableArray<RazorDiagnostic> _diagnostics;
     private ImmutableArray<RazorDiagnostic> _allDiagnostics;
 
     internal RazorSyntaxTree(
         SyntaxNode root,
         RazorSourceDocument source,
-        IEnumerable<RazorDiagnostic> diagnostics,
+        ImmutableArray<RazorDiagnostic> diagnostics,
         RazorParserOptions options)
     {
         ArgHelper.ThrowIfNull(root);
         ArgHelper.ThrowIfNull(source);
-        ArgHelper.ThrowIfNull(diagnostics);
         ArgHelper.ThrowIfNull(options);
 
         Root = root;
         Source = source;
-        _diagnostics = new List<RazorDiagnostic>(diagnostics);
+        _diagnostics = diagnostics.NullToEmpty();
         Options = options;
     }
 
@@ -46,7 +44,7 @@ public sealed class RazorSyntaxTree
 
             return _allDiagnostics;
 
-            static ImmutableArray<RazorDiagnostic> ComputeAllDiagnostics(List<RazorDiagnostic> treeDiagnostics, SyntaxNode root)
+            static ImmutableArray<RazorDiagnostic> ComputeAllDiagnostics(ImmutableArray<RazorDiagnostic> treeDiagnostics, SyntaxNode root)
             {
                 using var allDiagnostics = new PooledArrayBuilder<RazorDiagnostic>();
                 using var pooledList = ListPool<RazorDiagnostic>.GetPooledObject(out var rootDiagnostics);
