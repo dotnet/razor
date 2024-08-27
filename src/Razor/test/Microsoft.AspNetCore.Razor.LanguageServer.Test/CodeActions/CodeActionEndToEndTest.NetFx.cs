@@ -1200,6 +1200,148 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
     }
 
+    [Fact]
+    public async Task Handle_ExtractComponent_IndentedNode_ReturnsResult()
+    {
+        var input = """
+            <div id="parent">
+                <div>
+                    <[||]div>
+                        <div>
+                            <p>Deeply nested par</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            <div>
+                <div>
+                    <p>Deeply nested par</p>
+                </div>
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_IndentedSiblingNodes_ReturnsResult()
+    {
+        var input = """
+            <div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <[|div>
+                                <p>Deeply nested par</p>
+                            </div>
+                            <div>
+                                <p>Deeply nested par</p>
+                            </div>
+                            <div>
+                                <p>Deeply nested par</p>
+                            </div>
+                            <div>
+                                <p>Deeply nested par</p>
+                            </div|]>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            <div>
+                <p>Deeply nested par</p>
+            </div>
+            <div>
+                <p>Deeply nested par</p>
+            </div>
+            <div>
+                <p>Deeply nested par</p>
+            </div>
+            <div>
+                <p>Deeply nested par</p>
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_IndentedStartNodeContainsEndNode_ReturnsResult()
+    {
+        var input = """
+            <div id="parent">
+                <div>
+                    <[|div>
+                        <div>
+                            <p>Deeply nested par</p|]>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            <div>
+                <div>
+                    <p>Deeply nested par</p>
+                </div>
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_IndentedEndNodeContainsStartNode_ReturnsResult()
+    {
+        var input = """
+            <div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <[|p>Deeply nested par</p>
+                        </div>
+                    </div|]>
+                </div>
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            <div>
+                <div>
+                    <p>Deeply nested par</p>
+                </div>
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
     #endregion
 
     private async Task ValidateCodeBehindFileAsync(

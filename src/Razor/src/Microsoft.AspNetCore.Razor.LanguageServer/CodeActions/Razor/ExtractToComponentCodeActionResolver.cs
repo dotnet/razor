@@ -93,6 +93,17 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return null;
         }
 
+        // For the purposes of determining the indentation of the extracted code, get the whitespace before the start of the selection.
+        var whitespaceReferenceOwner = codeDocument.GetSyntaxTree().Root.FindInnermostNode(selectionAnalysis.ExtractStart, includeWhitespace: true).AssumeNotNull();
+        var whitespaceReferenceNode = whitespaceReferenceOwner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupElementSyntax or MarkupTagHelperElementSyntax);
+        var whitespace = string.Empty;
+        if (whitespaceReferenceNode.TryGetPreviousSibling(out var startPreviousSibling) && startPreviousSibling.ContainsOnlyWhitespace())
+        {
+            // Get the whitespace substring so we know how much to dedent the extracted code. Remove any carriage return and newline escape characters.
+            whitespace = startPreviousSibling.ToFullString();
+            whitespace = whitespace.Replace("\r", string.Empty).Replace("\n", string.Empty);
+        }
+
         var start = codeDocument.Source.Text.Lines.GetLinePosition(selectionAnalysis.ExtractStart);
         var end = codeDocument.Source.Text.Lines.GetLinePosition(selectionAnalysis.ExtractEnd);
         var removeRange = new Range
@@ -119,7 +130,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }.Uri;
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, documentContext, removeRange, cancellationToken).ConfigureAwait(false);
+        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, documentContext, removeRange, newComponentUri, whitespace, cancellationToken).ConfigureAwait(false);
 
         if (newComponentResult is null)
         {
@@ -499,6 +510,8 @@ internal sealed class ExtractToComponentCodeActionResolver(
         Uri componentUri,
         DocumentContext documentContext,
         Range relevantRange,
+        Uri newComponentUri,
+        string whitespace,
         CancellationToken cancellationToken)
     {
         var contents = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
@@ -527,6 +540,18 @@ internal sealed class ExtractToComponentCodeActionResolver(
                     selectionAnalysis.ExtractEnd - selectionAnalysis.ExtractStart))
                 .Trim();
 
+        // Go through each line of the extractedContents and remove the whitespace from the beginning of each line.
+        var extractedLines = extractedContents.Split('\n');
+        for (var i = 1; i < extractedLines.Length; i++)
+        {
+            var line = extractedLines[i];
+            if (line.StartsWith(whitespace, StringComparison.Ordinal))
+            {
+                extractedLines[i] = line.Substring(whitespace.Length);
+            }
+        }
+
+        extractedContents = string.Join("\n", extractedLines);
         newFileContentBuilder.Append(extractedContents);
 
         // Get CSharpStatements within component
@@ -809,6 +834,8 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return fieldsInContext;
     }
 
+    // By forwarded fields, I mean fields that are present in the extraction, but get directly added/copied to the extracted component's code block, instead of being passed as an attribute.
+    // If you have naming suggestions that make more sense, please let me know.
     private static string GenerateForwardedConstantFields(HashSet<FieldSymbolicInfo> relevantFields, string? sourceDocumentFileName)
     {
         var builder = new StringBuilder();
