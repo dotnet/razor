@@ -41,16 +41,6 @@ internal sealed class ErrorSink : IDisposable
     }
 
     /// <summary>
-    /// Gets the <see cref="RazorDiagnostic">RazorDiagnostics</see> collected.
-    /// </summary>
-    public ImmutableArray<RazorDiagnostic> GetErrors()
-    {
-        return _errors is { } errors
-            ? errors.ToImmutable()
-            : [] ;
-    }
-
-    /// <summary>
     /// Tracks the given <paramref name="error"/>.
     /// </summary>
     /// <param name="error">The <see cref="RazorDiagnostic"/> to track.</param>
