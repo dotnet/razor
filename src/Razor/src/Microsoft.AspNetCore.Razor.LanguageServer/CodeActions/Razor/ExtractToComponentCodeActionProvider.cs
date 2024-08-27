@@ -5,26 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -74,7 +62,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);        
+        var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);
 
         ProcessSelection(startElementNode, endElementNode, actionParams);
 
@@ -209,7 +197,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         //     </span>|}|}
         //   </div>
         // In this case, we need to find the smallest set of complete elements that covers the entire selection.
-        
+
         // Find the closest containing sibling pair that encompasses both the start and end elements
         var (extractStart, extractEnd) = FindContainingSiblingPair(startElementNode, endElementNode);
 
@@ -324,7 +312,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
             // This is a bit inefficient because at most 'k' string operations are performed (k = parts in the namespace),
             // for each potential using directive.
-            
+
             var parts = typeNamespace.Split('.');
             for (var i = 0; i < parts.Length; i++)
             {

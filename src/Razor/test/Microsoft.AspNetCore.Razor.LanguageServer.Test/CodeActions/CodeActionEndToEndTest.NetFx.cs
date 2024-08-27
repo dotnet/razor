@@ -61,7 +61,6 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                     razorFormattingService)
             ];
 
-
     private ExtractToComponentCodeActionResolver[] CreateExtractComponentCodeActionResolver(string filePath, RazorCodeDocument codeDocument)
     {
         return [
