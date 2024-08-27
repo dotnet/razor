@@ -205,13 +205,14 @@ public class TokenizerLookaheadTest : HtmlTokenizerTestBase
 
     private class TestTokenizerBackedParser : TokenizerBackedParser<HtmlTokenizer>, IDisposable
     {
-        internal TestTokenizerBackedParser(LanguageCharacteristics<HtmlTokenizer> language, ParserContext context) : base(language, context)
+        internal TestTokenizerBackedParser(LanguageCharacteristics<HtmlTokenizer> language, ParserContext context)
+            : base(language, context)
         {
         }
 
         public void Dispose()
         {
-            Context.ErrorSink.Dispose();
+            Context.Dispose();
         }
 
         internal new bool LookaheadUntil(Func<SyntaxToken, IEnumerable<SyntaxToken>, bool> condition)

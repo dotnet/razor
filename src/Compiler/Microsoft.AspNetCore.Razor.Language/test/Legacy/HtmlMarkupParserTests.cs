@@ -197,6 +197,17 @@ public class HtmlMarkupParserTests
 
     private class TestHtmlMarkupParser : HtmlMarkupParser, IDisposable
     {
+        public TestHtmlMarkupParser(ParserContext context)
+            : base(context)
+        {
+            EnsureCurrent();
+        }
+
+        public void Dispose()
+        {
+            Context.Dispose();
+        }
+
         public new SyntaxToken PreviousToken
         {
             get => base.PreviousToken;
@@ -207,19 +218,9 @@ public class HtmlMarkupParserTests
             return base.IsHtmlCommentAhead();
         }
 
-        public TestHtmlMarkupParser(ParserContext context) : base(context)
-        {
-            EnsureCurrent();
-        }
-
         public new SyntaxToken AcceptAllButLastDoubleHyphens()
         {
             return base.AcceptAllButLastDoubleHyphens();
-        }
-
-        public void Dispose()
-        {
-            Context.ErrorSink.Dispose();
         }
     }
 

@@ -23,8 +23,7 @@ internal class RazorParser
     {
         ArgHelper.ThrowIfNull(source);
 
-        using var errorSink = new ErrorSink();
-        var context = new ParserContext(source, Options, errorSink);
+        using var context = new ParserContext(source, Options);
         var codeParser = new CSharpCodeParser(Options.Directives, context);
         var markupParser = new HtmlMarkupParser(context);
 
@@ -32,7 +31,7 @@ internal class RazorParser
         markupParser.CodeParser = codeParser;
 
         var root = markupParser.ParseDocument().CreateRed();
-        var diagnostics = errorSink.GetErrorsAndClear();
+        var diagnostics = context.ErrorSink.GetErrorsAndClear();
 
         return new RazorSyntaxTree(root, source, diagnostics, Options);
     }

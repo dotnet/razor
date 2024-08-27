@@ -215,8 +215,7 @@ public class CSharpCodeParserTest
         // Arrange
         var source = TestRazorSourceDocument.Create();
         var options = RazorParserOptions.CreateDefault();
-        using var errorSink = new ErrorSink();
-        var context = new ParserContext(source, options, errorSink);
+        using var context = new ParserContext(source, options);
 
         // Act & Assert (Does not throw)
         var directiveDescriptors = new[]

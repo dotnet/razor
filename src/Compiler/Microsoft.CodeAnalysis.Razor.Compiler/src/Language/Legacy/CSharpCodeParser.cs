@@ -85,22 +85,15 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     private readonly ImmutableDictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>> _directiveParserMap;
 
     public CSharpCodeParser(ParserContext context)
-        : this(directives: Enumerable.Empty<DirectiveDescriptor>(), context: context)
+        : this(directives: [], context)
     {
     }
 
     public CSharpCodeParser(IEnumerable<DirectiveDescriptor> directives, ParserContext context)
         : base(context.ParseLeadingDirectives ? FirstDirectiveCSharpLanguageCharacteristics.Instance : CSharpLanguageCharacteristics.Instance, context)
     {
-        if (directives == null)
-        {
-            throw new ArgumentNullException(nameof(directives));
-        }
-
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgHelper.ThrowIfNull(directives);
+        ArgHelper.ThrowIfNull(context);
 
         var keywordsBuilder = ImmutableHashSet<string>.Empty.ToBuilder();
         var keywordParserMapBuilder = ImmutableDictionary<CSharpSyntaxKind, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?>>.Empty.ToBuilder();
@@ -299,7 +292,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         {
                             var diagnostic = RazorDiagnosticFactory.CreateParsing_HelperDirectiveNotAvailable(
                                 new SourceSpan(CurrentStart, CurrentToken.Content.Length));
-                            CurrentToken.SetDiagnostics(new[] { diagnostic });
+                            CurrentToken.SetDiagnostics([diagnostic]);
                             Context.ErrorSink.OnError(diagnostic);
                         }
 

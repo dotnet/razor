@@ -42,14 +42,13 @@ internal static class SyntaxNodeExtensions
         return (TNode)node.Green.SetDiagnostics(diagnostics).CreateRed(node.Parent, node.Position);
     }
 
-    public static TNode AppendDiagnostic<TNode>(this TNode node, params RazorDiagnostic[] diagnostics) where TNode : SyntaxNode
+    public static TNode AppendDiagnostic<TNode>(this TNode node, params ReadOnlySpan<RazorDiagnostic> diagnostics) where TNode : SyntaxNode
     {
-        var existingDiagnostics = node.GetDiagnostics();
-        var allDiagnostics = new RazorDiagnostic[diagnostics.Length + existingDiagnostics.Length];
-        Array.Copy(existingDiagnostics, allDiagnostics, existingDiagnostics.Length);
-        Array.Copy(diagnostics, 0, allDiagnostics, existingDiagnostics.Length, diagnostics.Length);
+        RazorDiagnostic[] allDiagnostics = [
+            .. node.GetDiagnostics(),
+            .. diagnostics];
 
-        return (TNode)node.WithDiagnostics(allDiagnostics);
+        return node.WithDiagnostics(allDiagnostics);
     }
 
     /// <summary>

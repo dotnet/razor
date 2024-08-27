@@ -5,20 +5,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal partial class ParserContext
 {
-    public readonly ref struct ErrorScope
+    public readonly ref struct ErrorScope(ParserContext context)
     {
-        private readonly ParserContext _context;
-        private readonly ErrorSink _oldErrorSink;
-
-        public ErrorScope(ParserContext context)
-        {
-            _context = context;
-            _oldErrorSink = context._errorSink;
-        }
+        private readonly ParserContext _context = context;
 
         public void Dispose()
         {
-            _context._errorSink = _oldErrorSink;
+            _context._errorSinkStack.Pop();
         }
     }
 }
