@@ -92,6 +92,6 @@ internal sealed class HtmlFormatter(
         if (!edits.Any(static e => e.NewText.Contains("~")))
             return edits;
 
-        return htmlSourceText.NormalizeTextEdits(edits);
+        return htmlSourceText.MinimizeTextEdits(edits);
     }
 }

@@ -99,7 +99,7 @@ internal class RazorFormattingService : IRazorFormattingService
             ? result
             : result.Where(e => range.LineOverlapsWith(e.Range)).ToArray();
 
-        return originalText.NormalizeTextEdits(filteredEdits);
+        return originalText.MinimizeTextEdits(filteredEdits);
     }
 
     public Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
@@ -204,7 +204,7 @@ internal class RazorFormattingService : IRazorFormattingService
         }
 
         var originalText = context.SourceText;
-        var razorEdits = originalText.NormalizeTextEdits(result);
+        var razorEdits = originalText.MinimizeTextEdits(result);
 
         if (collapseEdits)
         {

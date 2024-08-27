@@ -273,10 +273,16 @@ internal static class SourceTextExtensions
         return false;
     }
 
-    public static TextEdit[] NormalizeTextEdits(this SourceText text, TextEdit[] edits)
-        => NormalizeTextEdits(text, edits, out _);
+    /// <summary>
+    /// Applies the set of edits specified, and returns the minimal set needed to make the same changes
+    /// </summary>
+    public static TextEdit[] MinimizeTextEdits(this SourceText text, TextEdit[] edits)
+        => MinimizeTextEdits(text, edits, out _);
 
-    public static TextEdit[] NormalizeTextEdits(this SourceText text, TextEdit[] edits, out SourceText originalTextWithChanges)
+    /// <summary>
+    /// Applies the set of edits specified, and returns the minimal set needed to make the same changes
+    /// </summary>
+    public static TextEdit[] MinimizeTextEdits(this SourceText text, TextEdit[] edits, out SourceText originalTextWithChanges)
     {
         var changes = edits.Select(text.GetTextChange);
         originalTextWithChanges = text.WithChanges(changes);

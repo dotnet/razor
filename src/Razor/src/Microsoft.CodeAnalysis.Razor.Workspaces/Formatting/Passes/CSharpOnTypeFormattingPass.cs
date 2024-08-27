@@ -85,7 +85,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             }
         }
 
-        var normalizedEdits = csharpText.NormalizeTextEdits((TextEdit[])edits, out var originalTextWithChanges);
+        var normalizedEdits = csharpText.MinimizeTextEdits(edits, out var originalTextWithChanges);
         var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits);
         var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
         if (filteredEdits.Length == 0)
