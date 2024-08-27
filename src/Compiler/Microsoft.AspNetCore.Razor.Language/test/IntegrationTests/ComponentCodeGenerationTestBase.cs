@@ -2744,6 +2744,37 @@ namespace Test
     }
 
     [IntegrationTestFact]
+    public void BindToComponent_SpecifiesValue_WithMatchingProperties_GlobalNamespaceComponent()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+//namespace Blah;
+
+public class MyComponent : ComponentBase
+{
+    [Parameter]
+    public int Value { get; set; }
+
+    [Parameter]
+    public Action<int> ValueChanged { get; set; }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent @bind-Value=""ParentValue"" />
+@code {
+    public int ParentValue { get; set; } = 42;
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
     public void BindToElement_WritesAttributes()
     {
         // Arrange
