@@ -1271,7 +1271,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
             chunkGenerator = chunkGeneratorFactory(
                 directiveValue,
-                directiveErrorSink.GetErrorsAndClear().ToList(),
+                [.. directiveErrorSink.GetErrorsAndClear()],
                 valueStartLocation ?? CurrentStart);
         }
 
