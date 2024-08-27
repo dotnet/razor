@@ -46,16 +46,12 @@ public sealed class RazorSyntaxTree
 
             static ImmutableArray<RazorDiagnostic> ComputeAllDiagnostics(ImmutableArray<RazorDiagnostic> treeDiagnostics, SyntaxNode root)
             {
-                using var allDiagnostics = new PooledArrayBuilder<RazorDiagnostic>();
                 using var pooledList = ListPool<RazorDiagnostic>.GetPooledObject(out var rootDiagnostics);
                 using var diagnosticSet = new PooledHashSet<RazorDiagnostic>();
 
                 foreach (var diagnostic in treeDiagnostics)
                 {
-                    if (diagnosticSet.Add(diagnostic))
-                    {
-                        allDiagnostics.Add(diagnostic);
-                    }
+                    diagnosticSet.Add(diagnostic);
                 }
 
                 root.CollectAllDiagnostics(rootDiagnostics);
@@ -64,10 +60,7 @@ public sealed class RazorSyntaxTree
                 {
                     foreach (var diagnostic in rootDiagnostics)
                     {
-                        if (diagnosticSet.Add(diagnostic))
-                        {
-                            allDiagnostics.Add(diagnostic);
-                        }
+                        diagnosticSet.Add(diagnostic);
                     }
                 }
 
