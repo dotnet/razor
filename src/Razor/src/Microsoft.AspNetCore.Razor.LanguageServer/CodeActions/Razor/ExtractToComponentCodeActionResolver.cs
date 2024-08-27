@@ -46,19 +46,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class ExtractToComponentCodeActionResolver(
     IDocumentContextFactory documentContextFactory,
-    RazorLSPOptionsMonitor razorLSPOptionsMonitor,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
-    IRazorFormattingService razorFormattingService,
     IDocumentVersionCache documentVersionCache) : IRazorCodeActionResolver
 {
-    private static readonly Workspace s_workspace = new AdhocWorkspace();
-
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
-    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IClientConnection _clientConnection = clientConnection;
-    private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToComponentAction;
@@ -95,7 +89,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         // For the purposes of determining the indentation of the extracted code, get the whitespace before the start of the selection.
         var whitespaceReferenceOwner = codeDocument.GetSyntaxTree().Root.FindInnermostNode(selectionAnalysis.ExtractStart, includeWhitespace: true).AssumeNotNull();
-        var whitespaceReferenceNode = whitespaceReferenceOwner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupElementSyntax or MarkupTagHelperElementSyntax);
+        var whitespaceReferenceNode = whitespaceReferenceOwner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupElementSyntax or MarkupTagHelperElementSyntax).AssumeNotNull();
         var whitespace = string.Empty;
         if (whitespaceReferenceNode.TryGetPreviousSibling(out var startPreviousSibling) && startPreviousSibling.ContainsOnlyWhitespace())
         {
@@ -130,7 +124,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }.Uri;
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, documentContext, removeRange, newComponentUri, whitespace, cancellationToken).ConfigureAwait(false);
+        var newComponentResult = await GenerateNewComponentAsync(selectionAnalysis, codeDocument, actionParams.Uri, documentContext, removeRange, whitespace, cancellationToken).ConfigureAwait(false);
 
         if (newComponentResult is null)
         {
@@ -510,7 +504,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
         Uri componentUri,
         DocumentContext documentContext,
         Range relevantRange,
-        Uri newComponentUri,
         string whitespace,
         CancellationToken cancellationToken)
     {
@@ -547,7 +540,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             var line = extractedLines[i];
             if (line.StartsWith(whitespace, StringComparison.Ordinal))
             {
-                extractedLines[i] = line.Substring(whitespace.Length);
+                extractedLines[i] = line[whitespace.Length..];
             }
         }
 
@@ -593,13 +586,12 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         // I'm not sure why, but for some reason the endCharacterIndex is lower than the CharacterIndex so they must be swapped.
         var intersectingGeneratedRanges = intersectingGeneratedSpans.Select(m =>
-        (
             new Range
             {
                 Start = new Position(m.LineIndex, m.EndCharacterIndex),
                 End = new Position(m.LineIndex, m.CharacterIndex)
             }
-        )).ToArray();
+        ).ToArray();
 
         var parameters = new GetSymbolicInfoParams()
         {
@@ -784,7 +776,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             // If delegate type is Action, only add generic parameters if needed. 
             if (method.ParameterTypes.Length > 0 || method.ReturnType != "void")
             {
-                builder.Append("<");
+                builder.Append('<');
                 builder.Append(string.Join(", ", method.ParameterTypes));
 
                 if (method.ReturnType != "void")
@@ -794,6 +786,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
                         // Add one last comma in the list of generic parameters for the result: "<..., TResult>"
                         builder.Append(", ");
                     }
+
                     builder.Append(method.ReturnType);
                 }
 

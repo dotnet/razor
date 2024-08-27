@@ -80,11 +80,12 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
                context.CodeDocument.GetSyntaxTree()?.Root is not null;
     }
 
-    private static bool IsSelectionValid(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
+    private bool IsSelectionValid(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
         var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex, includeWhitespace: true);
         if (owner is null)
         {
+            _logger.LogWarning($"Owner should never be null.");
             return false;
         }
 
