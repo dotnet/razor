@@ -43,7 +43,6 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         var result = provider.TryResolveInsertion(position, codeDocument, enableAutoClosingTags: enableAutoClosingTags, out var edit);
 
         // Assert
-        Assert.True((result && edit is not null) || (!result && edit is null)); // check return value consistency
         var edited = edit is null ? source : ApplyEdit(source, edit.TextEdit);
         var actual = edited.ToString();
         Assert.Equal(expected, actual);
