@@ -15,51 +15,25 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
-[Export(typeof(RazorProximityExpressionResolver))]
-internal class DefaultRazorProximityExpressionResolver : RazorProximityExpressionResolver
+[Export(typeof(IRazorProximityExpressionResolver))]
+[method: ImportingConstructor]
+internal class RazorProximityExpressionResolver(
+    FileUriProvider fileUriProvider,
+    LSPDocumentManager documentManager,
+    ILSPProximityExpressionsProvider proximityExpressionsProvider) : IRazorProximityExpressionResolver
 {
-    private readonly FileUriProvider _fileUriProvider;
-    private readonly LSPDocumentManager _documentManager;
-    private readonly LSPProximityExpressionsProvider _proximityExpressionsProvider;
-    private readonly MemoryCache<CacheKey, IReadOnlyList<string>> _cache;
+    private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
 
-    [ImportingConstructor]
-    public DefaultRazorProximityExpressionResolver(
-        FileUriProvider fileUriProvider,
-        LSPDocumentManager documentManager,
-        LSPProximityExpressionsProvider proximityExpressionsProvider)
+    private readonly FileUriProvider _fileUriProvider = fileUriProvider;
+    private readonly LSPDocumentManager _documentManager = documentManager;
+    private readonly ILSPProximityExpressionsProvider _proximityExpressionsProvider = proximityExpressionsProvider;
+
+    // 10 is a magic number where this effectively represents our ability to cache the last 10 "hit" breakpoint locations
+    // corresponding proximity expressions which enables us not to go "async" in those re-hit scenarios.
+    private readonly MemoryCache<CacheKey, IReadOnlyList<string>> _cache = new(sizeLimit: 10);
+
+    public async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
     {
-        if (fileUriProvider is null)
-        {
-            throw new ArgumentNullException(nameof(fileUriProvider));
-        }
-
-        if (documentManager is null)
-        {
-            throw new ArgumentNullException(nameof(documentManager));
-        }
-
-        if (proximityExpressionsProvider is null)
-        {
-            throw new ArgumentNullException(nameof(proximityExpressionsProvider));
-        }
-
-        _fileUriProvider = fileUriProvider;
-        _documentManager = documentManager;
-        _proximityExpressionsProvider = proximityExpressionsProvider;
-
-        // 10 is a magic number where this effectively represents our ability to cache the last 10 "hit" breakpoint locations
-        // corresponding proximity expressions which enables us not to go "async" in those re-hit scenarios.
-        _cache = new MemoryCache<CacheKey, IReadOnlyList<string>>(sizeLimit: 10);
-    }
-
-    public override async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
-    {
-        if (textBuffer is null)
-        {
-            throw new ArgumentNullException(nameof(textBuffer));
-        }
-
         if (!_fileUriProvider.TryGet(textBuffer, out var documentUri))
         {
             // Not an addressable Razor document. Do not allow expression resolution here. In practice this shouldn't happen, just being defensive.
@@ -100,10 +74,8 @@ internal class DefaultRazorProximityExpressionResolver : RazorProximityExpressio
 
         // Cache range so if we're asked again for this document/line/character we don't have to go async.
         // Note: If we didn't get any proximity expressions back--likely due to an error--we cache an empty array.
-        _cache.Set(cacheKey, proximityExpressions ?? Array.Empty<string>());
+        _cache.Set(cacheKey, proximityExpressions ?? []);
 
         return proximityExpressions;
     }
-
-    private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
 }

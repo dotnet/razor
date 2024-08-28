@@ -15,52 +15,26 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
-[Export(typeof(RazorBreakpointResolver))]
-internal class DefaultRazorBreakpointResolver : RazorBreakpointResolver
+[Export(typeof(IRazorBreakpointResolver))]
+[method: ImportingConstructor]
+internal class RazorBreakpointResolver(
+    FileUriProvider fileUriProvider,
+    LSPDocumentManager documentManager,
+    ILSPBreakpointSpanProvider breakpointSpanProvider) : IRazorBreakpointResolver
 {
-    private readonly FileUriProvider _fileUriProvider;
-    private readonly LSPDocumentManager _documentManager;
-    private readonly LSPBreakpointSpanProvider _breakpointSpanProvider;
-    private readonly MemoryCache<CacheKey, Range> _cache;
+    private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
 
-    [ImportingConstructor]
-    public DefaultRazorBreakpointResolver(
-        FileUriProvider fileUriProvider,
-        LSPDocumentManager documentManager,
-        LSPBreakpointSpanProvider breakpointSpanProvider)
+    private readonly FileUriProvider _fileUriProvider = fileUriProvider;
+    private readonly LSPDocumentManager _documentManager = documentManager;
+    private readonly ILSPBreakpointSpanProvider _breakpointSpanProvider = breakpointSpanProvider;
+
+    // 4 is a magic number that was determined based on the functionality of VisualStudio. Currently when you set or edit a breakpoint
+    // we get called with two different locations for the same breakpoint. Because of this 2 time call our size must be at least 2,
+    // we grow it to 4 just to be safe for lesser known scenarios.
+    private readonly MemoryCache<CacheKey, Range> _cache = new(sizeLimit: 4);
+
+    public async Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
     {
-        if (fileUriProvider is null)
-        {
-            throw new ArgumentNullException(nameof(fileUriProvider));
-        }
-
-        if (documentManager is null)
-        {
-            throw new ArgumentNullException(nameof(documentManager));
-        }
-
-        if (breakpointSpanProvider is null)
-        {
-            throw new ArgumentNullException(nameof(breakpointSpanProvider));
-        }
-
-        _fileUriProvider = fileUriProvider;
-        _documentManager = documentManager;
-        _breakpointSpanProvider = breakpointSpanProvider;
-
-        // 4 is a magic number that was determined based on the functionality of VisualStudio. Currently when you set or edit a breakpoint
-        // we get called with two different locations for the same breakpoint. Because of this 2 time call our size must be at least 2,
-        // we grow it to 4 just to be safe for lesser known scenarios.
-        _cache = new MemoryCache<CacheKey, Range>(sizeLimit: 4);
-    }
-
-    public override async Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
-    {
-        if (textBuffer is null)
-        {
-            throw new ArgumentNullException(nameof(textBuffer));
-        }
-
         if (!_fileUriProvider.TryGet(textBuffer, out var documentUri))
         {
             // Not an addressable Razor document. Do not allow a breakpoint here. In practice this shouldn't happen, just being defensive.
@@ -111,6 +85,4 @@ internal class DefaultRazorBreakpointResolver : RazorBreakpointResolver
 
         return hostDocumentRange;
     }
-
-    private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
 }
