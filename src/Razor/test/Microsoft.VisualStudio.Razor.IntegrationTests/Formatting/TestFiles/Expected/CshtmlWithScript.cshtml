@@ -48,7 +48,5 @@
         @(Model.IncludeData15.HasValue ? FormattableString.Invariant($"data15: {(Model.Data15.Value ? "true" : "false")},") : null)
         @(Model.IncludeData16.HasValue ? FormattableString.Invariant($"data16: {(Model.Data16.Value ? "true" : "false")},") : null)
         @(Model.IncludeData17.Length > 0 ? Html.Raw(FormattableString.Invariant($"static: {{ data1: {Json.Serialize(Model.Data1)}, data2: {Json.Serialize(Model.Data2)}, data3: {Json.Serialize(Model.Data3)}, data4: {Json.Serialize(Model.Data4)} }},")) : null)
-                    }).start();
-                };
     </script>
 }
