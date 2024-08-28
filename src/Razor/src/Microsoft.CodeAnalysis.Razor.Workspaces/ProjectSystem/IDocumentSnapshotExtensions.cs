@@ -58,4 +58,10 @@ internal static class IDocumentSnapshotExtensions
         var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
         return fileName.AsSpan().Equals(path.Span, FilePathComparison.Instance);
     }
+
+    public static Task<RazorCodeDocument> GetGeneratedOutputAsync(this IDocumentSnapshot documentSnapshot)
+    {
+        return documentSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false);
+    }
+
 }

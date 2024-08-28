@@ -74,8 +74,8 @@ internal class DocumentSnapshot : IDocumentSnapshot
         return CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
     }
 
-    public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool useDesignTimeGeneratedOutput)
-        => useDesignTimeGeneratedOutput ? GetDesignTimeGeneratedOutputAsync() : GetGeneratedOutputAsync();
+    public virtual Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
+        => forceDesignTimeGeneratedOutput ? GetDesignTimeGeneratedOutputAsync() : GetGeneratedOutputAsync();
 
     private async Task<RazorCodeDocument> GetDesignTimeGeneratedOutputAsync()
     {

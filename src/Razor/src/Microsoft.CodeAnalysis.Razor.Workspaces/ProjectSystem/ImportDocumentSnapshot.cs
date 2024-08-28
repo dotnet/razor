@@ -35,9 +35,6 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
 
     public int Version => 1;
 
-    public Task<RazorCodeDocument> GetGeneratedOutputAsync()
-        => throw new NotSupportedException();
-
     public async Task<SourceText> GetTextAsync()
     {
         using (var stream = _importItem.Read())
@@ -51,7 +48,7 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
     }
 
     public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool _)
-        => GetGeneratedOutputAsync();
+        => throw new NotSupportedException();
 
     public Task<VersionStamp> GetTextVersionAsync()
     {
