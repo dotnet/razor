@@ -61,7 +61,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
         {
             // Disclaimer: CSharpCodeBlockSyntax is used a _lot_ in razor so these methods are probably
             // being overly careful to only try to format syntax forms they care about.
-            TryFormatCSharpBlockStructure(context, ref edits.AsRef(), source, node); // TODO
+            TryFormatCSharpBlockStructure(context, ref edits.AsRef(), source, node);
             TryFormatSingleLineDirective(ref edits.AsRef(), source, node);
             TryFormatBlocks(context, ref edits.AsRef(), source, node);
         }
