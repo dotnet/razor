@@ -19,8 +19,7 @@ internal class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
         Position position,
         RazorCodeDocument codeDocument,
         bool enableAutoClosingTags,
-        [NotNullWhen(true)]
-        out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
+        [NotNullWhen(true)] out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
     {
         if (!(enableAutoClosingTags && IsAtTextTag(codeDocument, position)))
         {

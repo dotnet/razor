@@ -44,8 +44,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         Position position,
         RazorCodeDocument codeDocument,
         bool enableAutoClosingTags,
-        [NotNullWhen(true)]
-        out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
+        [NotNullWhen(true)] out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
     {
         autoInsertEdit = null;
 
@@ -254,5 +253,5 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         SelfClosing,
     }
 
-    private record struct TagNameWithClosingBehavior(string TagName, AutoClosingBehavior AutoClosingBehavior);
+    private readonly record struct TagNameWithClosingBehavior(string TagName, AutoClosingBehavior AutoClosingBehavior);
 }

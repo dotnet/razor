@@ -6,7 +6,6 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,17 +25,17 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
 
     private static ImmutableArray<string> CalculateTriggerCharacters(IEnumerable<IOnAutoInsertProvider> onAutoInsertProviders)
     {
-        var builder = ImmutableArray.CreateBuilder<string>(onAutoInsertProviders.Count());
+        using var builder = new PooledArrayBuilder<string>();
         foreach (var provider in onAutoInsertProviders)
         {
             var triggerCharacter = provider.TriggerCharacter;
-            if (!builder.Contains(triggerCharacter))
+            if (!builder.Any(character => character == triggerCharacter))
             {
                 builder.Add(triggerCharacter);
             }
         }
 
-        return builder.ToImmutable();
+        return builder.DrainToImmutable();
     }
 
     public ImmutableArray<string> TriggerCharacters => _triggerCharacters;
@@ -46,8 +45,7 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
         Position position,
         string character,
         bool autoCloseTags,
-        [NotNullWhen(true)]
-        out VSInternalDocumentOnAutoInsertResponseItem? insertTextEdit)
+        [NotNullWhen(true)] out VSInternalDocumentOnAutoInsertResponseItem? insertTextEdit)
     {
         using var applicableProviders = new PooledArrayBuilder<IOnAutoInsertProvider>(capacity: _onAutoInsertProviders.Length);
         foreach (var provider in _onAutoInsertProviders)
@@ -68,11 +66,7 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
 
         foreach (var provider in applicableProviders)
         {
-            if (provider.TryResolveInsertion(
-                    position,
-                    codeDocument,
-                    autoCloseTags,
-                    out insertTextEdit))
+            if (provider.TryResolveInsertion(position, codeDocument, autoCloseTags, out insertTextEdit))
             {
                 return true;
             }

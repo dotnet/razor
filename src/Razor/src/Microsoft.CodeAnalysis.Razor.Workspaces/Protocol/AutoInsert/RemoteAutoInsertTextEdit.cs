@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
 
 [DataContract]
 internal readonly record struct RemoteAutoInsertTextEdit(
-        [property: DataMember(Order = 0)] LinePositionSpan LinePositionSpan,
-        [property: DataMember(Order = 1)] string NewText,
-        [property: DataMember(Order = 2)] RoslynInsertTextFormat InsertTextFormat)
+    [property: DataMember(Order = 0)] LinePositionSpan LinePositionSpan,
+    [property: DataMember(Order = 1)] string NewText,
+    [property: DataMember(Order = 2)] RoslynInsertTextFormat InsertTextFormat)
 {
     public static RemoteAutoInsertTextEdit FromLspInsertTextEdit(VSInternalDocumentOnAutoInsertResponseItem edit)
         => new (
@@ -31,6 +31,6 @@ internal readonly record struct RemoteAutoInsertTextEdit(
 
     public override string ToString()
     {
-        return $"({LinePositionSpan.Start.Line}, {LinePositionSpan.Start.Character})-({LinePositionSpan.End.Line}, {LinePositionSpan.End.Character}), '{NewText}', {InsertTextFormat}";
+        return $"({LinePositionSpan}), '{NewText}', {InsertTextFormat}";
     }
 }
