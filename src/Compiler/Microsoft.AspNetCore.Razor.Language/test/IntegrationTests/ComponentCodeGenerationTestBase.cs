@@ -2743,7 +2743,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10609")]
     public void BindToComponent_SpecifiesValue_WithMatchingProperties_GlobalNamespaceComponent()
     {
         // Arrange
