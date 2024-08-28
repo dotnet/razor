@@ -59,7 +59,7 @@ internal static class TestRazorFormattingService
 
         return new RazorFormattingService(
             passes,
-            new FormattingCodeDocumentProvider(),
+            new LspFormattingCodeDocumentProvider(),
             TestAdhocWorkspaceFactory.Instance);
     }
 }

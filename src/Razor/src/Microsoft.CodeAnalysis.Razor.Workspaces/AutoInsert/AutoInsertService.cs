@@ -26,10 +26,11 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
     private static ImmutableArray<string> CalculateTriggerCharacters(IEnumerable<IOnAutoInsertProvider> onAutoInsertProviders)
     {
         using var builder = new PooledArrayBuilder<string>();
+        using var _ = StringHashSetPool.Ordinal.GetPooledObject(out var set);
         foreach (var provider in onAutoInsertProviders)
         {
             var triggerCharacter = provider.TriggerCharacter;
-            if (!builder.Any(character => character == triggerCharacter))
+            if (set.Add(triggerCharacter))
             {
                 builder.Add(triggerCharacter);
             }

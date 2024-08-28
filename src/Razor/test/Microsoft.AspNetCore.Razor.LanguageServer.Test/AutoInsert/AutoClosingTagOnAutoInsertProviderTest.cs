@@ -190,7 +190,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
-    public void OnTypeCloseAngle_VoidTagHasEndTag_ShouldStillose()
+    public void OnTypeCloseAngle_VoidTagHasEndTag_ShouldStillClose()
     {
         RunAutoInsertTest(
             input: """

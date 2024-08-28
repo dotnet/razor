@@ -137,7 +137,7 @@ public class Foo { }
             documentSnapshot,
             codeDocument,
             options,
-            new FormattingCodeDocumentProvider(),
+            new LspFormattingCodeDocumentProvider(),
             TestAdhocWorkspaceFactory.Instance);
         return context;
     }

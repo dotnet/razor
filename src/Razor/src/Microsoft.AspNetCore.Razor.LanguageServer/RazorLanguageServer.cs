@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
@@ -24,7 +25,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.FoldingRanges;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -122,7 +122,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         services.AddSingleton<IAdhocWorkspaceFactory, AdhocWorkspaceFactory>();
         services.AddSingleton<IWorkspaceProvider, LspWorkspaceProvider>();
 
-        services.AddSingleton<IFormattingCodeDocumentProvider, FormattingCodeDocumentProvider>();
+        services.AddSingleton<IFormattingCodeDocumentProvider, LspFormattingCodeDocumentProvider>();
 
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);

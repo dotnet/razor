@@ -106,10 +106,10 @@ internal class CohostOnAutoInsertEndpoint(
                         razorDocument.Id,
                         request.Position.ToLinePosition(),
                         request.Character,
-                        autoCloseTags: enableAutoClosingTags,
-                        formatOnType: formatOnType,
-                        indentWithTabs: indentWithTabs,
-                        indentSize: indentSize,
+                        enableAutoClosingTags,
+                        formatOnType,
+                        indentWithTabs,
+                        indentSize,
                         cancellationToken),
             cancellationToken).ConfigureAwait(false);
 

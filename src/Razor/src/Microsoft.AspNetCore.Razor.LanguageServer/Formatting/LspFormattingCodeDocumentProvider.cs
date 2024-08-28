@@ -3,11 +3,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal sealed class FormattingCodeDocumentProvider : IFormattingCodeDocumentProvider
+internal sealed class LspFormattingCodeDocumentProvider : IFormattingCodeDocumentProvider
 {
     public Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot snapshot)
     {

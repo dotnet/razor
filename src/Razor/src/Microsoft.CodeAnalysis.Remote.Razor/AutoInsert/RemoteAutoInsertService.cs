@@ -96,35 +96,32 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
         var positionInfo = GetPositionInfo(codeDocument, index);
         var languageKind = positionInfo.LanguageKind;
 
-        if (languageKind is RazorLanguageKind.Razor)
+        switch (languageKind)
         {
-            // If we are in Razor and got no edit from our own service, there is nothing else to do
-            return Response.NoFurtherHandling;
+            case RazorLanguageKind.Razor:
+                // If we are in Razor and got no edit from our own service, there is nothing else to do
+                return Response.NoFurtherHandling;
+            case RazorLanguageKind.Html:
+                return AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters.Contains(character)
+                    ? Response.CallHtml
+                    : Response.NoFurtherHandling;
+            case RazorLanguageKind.CSharp:
+                var mappedPosition = positionInfo.Position.ToLinePosition();
+                return await TryResolveInsertionInCSharpAsync(
+                        remoteDocumentContext,
+                        mappedPosition,
+                        character,
+                        formatOnType,
+                        indentWithTabs,
+                        indentSize,
+                        cancellationToken);
+            default:
+                Logger.LogError($"Unsupported language {languageKind} in {nameof(RemoteAutoInsertService)}");
+                return Response.NoFurtherHandling;
         }
-        else if (languageKind is RazorLanguageKind.Html)
-        {
-            return AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters.Contains(character)
-                ? Response.CallHtml
-                : Response.NoFurtherHandling;
-        }
-        else if (languageKind is RazorLanguageKind.CSharp)
-        {
-            var mappedPosition = positionInfo.Position.ToLinePosition();
-            return await TryResolveInsertionAsyncInCSharpAsync(
-                    remoteDocumentContext,
-                    mappedPosition,
-                    character,
-                    formatOnType,
-                    indentWithTabs,
-                    indentSize,
-                    cancellationToken);
-        }
-
-        Logger.LogError($"Unsupported language {languageKind} in {nameof(RemoteAutoInsertService)}");
-        return Response.NoFurtherHandling;
     }
 
-    private async ValueTask<Response> TryResolveInsertionAsyncInCSharpAsync(
+    private async ValueTask<Response> TryResolveInsertionInCSharpAsync(
         RemoteDocumentContext remoteDocumentContext,
         LinePosition mappedPosition,
         string character,

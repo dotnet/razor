@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 internal sealed class FormattingContext : IDisposable
 {
     private readonly IAdhocWorkspaceFactory _workspaceFactory;
-    private Document? _csharpWorkspaceDocument;
-
-    private AdhocWorkspace? _csharpWorkspace;
     private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
+
+    private Document? _csharpWorkspaceDocument;
+    private AdhocWorkspace? _csharpWorkspace;
 
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
