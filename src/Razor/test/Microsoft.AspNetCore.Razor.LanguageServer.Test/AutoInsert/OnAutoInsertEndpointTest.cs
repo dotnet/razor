@@ -197,8 +197,7 @@ public partial class OnAutoInsertEndpointTest(ITestOutputHelper testOutput) : Si
             Position position,
             RazorCodeDocument codeDocument,
             bool enableAutoClosingTags,
-            [NotNullWhen(true)]
-            out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
+            [NotNullWhen(true)] out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit)
         {
             Called = true;
             autoInsertEdit = canResolve ? new() { TextEdit = ResolvedTextEdit!, TextEditFormat = InsertTextFormat.Plaintext } : null;

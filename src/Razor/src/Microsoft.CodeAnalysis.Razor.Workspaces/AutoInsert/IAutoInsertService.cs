@@ -17,6 +17,5 @@ internal interface IAutoInsertService
         Position position,
         string character,
         bool autoCloseTags,
-        [NotNullWhen(true)]
-        out VSInternalDocumentOnAutoInsertResponseItem? insertTextEdit);
+        [NotNullWhen(true)] out VSInternalDocumentOnAutoInsertResponseItem? insertTextEdit);
 }

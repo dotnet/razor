@@ -13,6 +13,5 @@ internal interface IOnAutoInsertProvider : IOnAutoInsertTriggerCharacterProvider
         Position position,
         RazorCodeDocument codeDocument,
         bool enableAutoClosingTags,
-        [NotNullWhen(true)]
-        out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit);
+        [NotNullWhen(true)] out VSInternalDocumentOnAutoInsertResponseItem? autoInsertEdit);
 }
