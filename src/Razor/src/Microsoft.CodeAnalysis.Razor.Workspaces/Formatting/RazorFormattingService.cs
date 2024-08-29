@@ -252,7 +252,11 @@ internal class RazorFormattingService : IRazorFormattingService
         if (lfCount > crlfCount)
         {
             minimalEdits = minimalEdits
-                .Where(edit => edit.NewText != "\r")
+                .Select(edit =>
+                {
+                    edit.NewText = edit.NewText.Replace("\r", string.Empty);
+                    return edit;
+                })
                 .ToArray();
         }
 

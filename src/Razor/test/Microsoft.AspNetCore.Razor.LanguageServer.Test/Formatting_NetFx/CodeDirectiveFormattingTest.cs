@@ -38,6 +38,44 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Formatt
     }
 
     [Fact]
+    public async Task FormatsCodeBlockDirectiveWithCRLFLineEnding()
+    {
+        await RunFormattingTestAsync(
+            input:
+                "@code {\r\n" +
+                " public class Foo{}\r\n" +
+                "        public interface Bar {\r\n" +
+                "}\r\n" +
+                "}",
+            expected:
+                "@code {\r\n" +
+                "    public class Foo { }\r\n" +
+                "    public interface Bar\r\n" +
+                "    {\r\n" +
+                "    }\r\n" +
+                "}");
+    }
+
+    [Fact]
+    public async Task FormatsCodeBlockDirectiveWithLFLineEnding()
+    {
+        await RunFormattingTestAsync(
+            input:
+                "@code {\n" +
+                " public class Foo{}\n" +
+                "        public interface Bar {\n" +
+                "}\n" +
+                "}",
+            expected:
+                "@code {\n" +
+                "    public class Foo { }\n" +
+                "    public interface Bar\n" +
+                "    {\n" +
+                "    }\n" +
+                "}");
+    }
+
+    [Fact]
     public async Task FormatCSharpInsideHtmlTag()
     {
         await RunFormattingTestAsync(
@@ -147,6 +185,64 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Formatt
                     <div>
                     </div>
                     """);
+    }
+
+    [Fact]
+    public async Task Formats_MultipleBlocksInADirectiveWithCRLFLineEnding()
+    {
+        await RunFormattingTestAsync(
+            input:
+                "@{\r\n" +
+                "void Method(){\r\n" +
+                "var x = \"foo\";\r\n" +
+                "@(DateTime.Now)\r\n" +
+                "    <p></p>\r\n" +
+                "var y= \"fooo\";\r\n" +
+                "}\r\n" +
+                "}\r\n" +
+                "<div>\r\n" +
+                "        </div>",
+            expected:
+                "@{\r\n" +
+                "    void Method()\r\n" +
+                "    {\r\n" +
+                "        var x = \"foo\";\r\n" +
+                "        @(DateTime.Now)\r\n" +
+                "        <p></p>\r\n" +
+                "        var y = \"fooo\";\r\n" +
+                "    }\r\n" +
+                "}\r\n" +
+                "<div>\r\n" +
+                "</div>");
+    }
+
+    [Fact]
+    public async Task Formats_MultipleBlocksInADirectiveWithLFLineEnding()
+    {
+        await RunFormattingTestAsync(
+            input:
+                "@{\n" +
+                "void Method(){\n" +
+                "var x = \"foo\";\n" +
+                "@(DateTime.Now)\n" +
+                "    <p></p>\n" +
+                "var y= \"fooo\";\n" +
+                "}\n" +
+                "}\n" +
+                "<div>\n" +
+                "        </div>",
+            expected:
+                "@{\n" +
+                "    void Method()\n" +
+                "    {\n" +
+                "        var x = \"foo\";\n" +
+                "        @(DateTime.Now)\n" +
+                "        <p></p>\n" +
+                "        var y = \"fooo\";\n" +
+                "    }\n" +
+                "}\n" +
+                "<div>\n" +
+                "</div>");
     }
 
     [Fact]
