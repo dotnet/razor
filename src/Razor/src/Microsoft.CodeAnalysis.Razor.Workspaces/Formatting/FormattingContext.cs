@@ -313,12 +313,12 @@ internal sealed class FormattingContext : IDisposable
         char triggerCharacter)
     {
         return new FormattingContext(
+            codeDocumentProvider,
+            workspaceFactory,
             uri,
             originalSnapshot,
             codeDocument,
             options,
-            codeDocumentProvider,
-            workspaceFactory,
             automaticallyAddUsings,
             hostDocumentIndex,
             triggerCharacter);

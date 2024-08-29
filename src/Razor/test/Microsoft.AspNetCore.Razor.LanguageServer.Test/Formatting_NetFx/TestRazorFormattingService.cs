@@ -39,6 +39,8 @@ internal static class TestRazorFormattingService
             await optionsMonitor.UpdateAsync(CancellationToken.None);
         }
 
-        return new RazorFormattingService(mappingService, TestAdhocWorkspaceFactory.Instance, loggerFactory);
+        var formattingCodeDocumentProvider = new LspFormattingCodeDocumentProvider();
+
+        return new RazorFormattingService(formattingCodeDocumentProvider, mappingService, TestAdhocWorkspaceFactory.Instance, loggerFactory);
     }
 }

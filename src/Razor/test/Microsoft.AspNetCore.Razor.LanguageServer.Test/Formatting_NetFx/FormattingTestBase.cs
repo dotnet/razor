@@ -25,7 +25,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Settings.Internal;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -83,14 +82,10 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
-        var projectManager = StrictMock.Of<IProjectSnapshotManager>();
-        var versionCache = new DocumentVersionCache(projectManager);
-        versionCache.TrackDocumentVersion(documentSnapshot, version: 1);
-
         var client = new FormattingLanguageServerClient(LoggerFactory);
         client.AddCodeDocument(codeDocument);
 
-        var htmlFormatter = new HtmlFormatter(client, versionCache);
+        var htmlFormatter = new HtmlFormatter(client);
         var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
 
         // Act
@@ -152,14 +147,10 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         }
         else
         {
-            var projectManager = StrictMock.Of<IProjectSnapshotManager>();
-            var versionCache = new DocumentVersionCache(projectManager);
-            versionCache.TrackDocumentVersion(documentSnapshot, version: 1);
-
             var client = new FormattingLanguageServerClient(LoggerFactory);
             client.AddCodeDocument(codeDocument);
 
-            var htmlFormatter = new HtmlFormatter(client, versionCache);
+            var htmlFormatter = new HtmlFormatter(client);
             var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
             edits = await formattingService.GetHtmlOnTypeFormattingEditsAsync(documentContext, htmlEdits, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
         }
@@ -292,7 +283,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             ]);
 
         var projectEngine = RazorProjectEngine.Create(
-            new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", ImmutableArray<RazorExtension>.Empty, new LanguageServerFlags(forceRuntimeCodeGeneration)),
+            new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", Extensions: [], new LanguageServerFlags(forceRuntimeCodeGeneration)),
             projectFileSystem,
             builder =>
             {
@@ -301,7 +292,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
                 RazorExtensions.Register(builder);
             });
 
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, ImmutableArray.Create(importsDocument), tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, [importsDocument], tagHelpers);
 
         if (!allowDiagnostics)
         {
