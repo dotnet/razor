@@ -11,5 +11,5 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
 internal interface ILSPProximityExpressionsProvider
 {
-    Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
+    Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, long hostDocumentSyncVersion, Position position, CancellationToken cancellationToken);
 }

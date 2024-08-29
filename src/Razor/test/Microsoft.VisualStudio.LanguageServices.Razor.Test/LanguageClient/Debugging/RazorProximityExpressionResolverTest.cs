@@ -130,7 +130,7 @@ public class RazorProximityExpressionResolverTest : ToolingTestBase
         {
         }
 
-        public Task<IReadOnlyList<string>> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<string>> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, long hostDocumentSyncVersion, Position position, CancellationToken cancellationToken)
         {
             return SpecializedTasks.Null<IReadOnlyList<string>>();
         }

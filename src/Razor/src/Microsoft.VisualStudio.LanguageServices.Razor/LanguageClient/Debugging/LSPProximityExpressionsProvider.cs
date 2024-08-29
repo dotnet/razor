@@ -22,12 +22,13 @@ internal class LSPProximityExpressionsProvider(
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<LSPProximityExpressionsProvider>();
 
-    public async Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, long hostDocumentSyncVersion, Position position, CancellationToken cancellationToken)
     {
         var proximityExpressionsParams = new RazorProximityExpressionsParams()
         {
             Position = position,
-            Uri = documentSnapshot.Uri
+            Uri = documentSnapshot.Uri,
+            HostDocumentSyncVersion = hostDocumentSyncVersion
         };
 
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorProximityExpressionsParams, RazorProximityExpressionsResponse>(

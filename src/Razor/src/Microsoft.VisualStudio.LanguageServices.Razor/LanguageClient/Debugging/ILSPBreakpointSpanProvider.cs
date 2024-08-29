@@ -10,5 +10,5 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
 internal interface ILSPBreakpointSpanProvider
 {
-    Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
+    Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, long hostDocumentSyncVersion, Position position, CancellationToken cancellationToken);
 }

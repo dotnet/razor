@@ -164,6 +164,7 @@ public class RazorBreakpointResolverTest : ToolingTestBase
             Mock.Get(projectionProvider)
                 .Setup(projectionProvider => projectionProvider.GetBreakpointSpanAsync(
                     It.IsAny<LSPDocumentSnapshot>(),
+                    It.IsAny<long>(),
                     It.IsAny<Position>(),
                     DisposalToken))
                 .ReturnsAsync(value: null);

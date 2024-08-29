@@ -21,9 +21,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorProximityExpressionsEndpoint)]
 internal class RazorProximityExpressionsEndpoint(
-        IDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory) : IRazorDocumentlessRequestHandler<RazorProximityExpressionsParams, RazorProximityExpressionsResponse?>, ITextDocumentIdentifierHandler<RazorProximityExpressionsParams, Uri>
-    {
+{
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorBreakpointSpanEndpoint>();
 
@@ -37,6 +37,12 @@ internal class RazorProximityExpressionsEndpoint(
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
+            return null;
+        }
+
+        if (documentContext.Snapshot.Version != request.HostDocumentSyncVersion)
+        {
+            // Whether we are being asked about an old version of the C# document, or somehow a future one, we can't rely on the result.
             return null;
         }
 

@@ -22,12 +22,13 @@ internal class LSPBreakpointSpanProvider(
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<LSPBreakpointSpanProvider>();
 
-    public async Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+    public async Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, long hostDocumentSyncVersion, Position position, CancellationToken cancellationToken)
     {
         var languageQueryParams = new RazorBreakpointSpanParams()
         {
             Position = position,
-            Uri = documentSnapshot.Uri
+            Uri = documentSnapshot.Uri,
+            HostDocumentSyncVersion = hostDocumentSyncVersion
         };
 
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorBreakpointSpanParams, RazorBreakpointSpanResponse>(

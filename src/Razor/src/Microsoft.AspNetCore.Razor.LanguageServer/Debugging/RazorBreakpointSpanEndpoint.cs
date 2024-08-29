@@ -39,6 +39,12 @@ internal class RazorBreakpointSpanEndpoint(
             return null;
         }
 
+        if (documentContext.Snapshot.Version != request.HostDocumentSyncVersion)
+        {
+            // Whether we are being asked about an old version of the C# document, or somehow a future one, we can't rely on the result.
+            return null;
+        }
+
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         var hostDocumentIndex = sourceText.GetPosition(request.Position);

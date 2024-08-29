@@ -36,7 +36,7 @@ internal class TestLSPBreakpointSpanProvider : ILSPBreakpointSpanProvider
         _mappings = mappings;
     }
 
-    public Task<Range> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+    public Task<Range> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, long hostDocumentSyncVersion, Position position, CancellationToken cancellationToken)
     {
         if (documentSnapshot.Uri != _documentUri)
         {

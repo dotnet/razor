@@ -22,7 +22,7 @@ internal class RazorProximityExpressionResolver(
     LSPDocumentManager documentManager,
     ILSPProximityExpressionsProvider proximityExpressionsProvider) : IRazorProximityExpressionResolver
 {
-    private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
+    private record CacheKey(Uri DocumentUri, long? HostDocumentSyncVersion, int Line, int Character);
 
     private readonly FileUriProvider _fileUriProvider = fileUriProvider;
     private readonly LSPDocumentManager _documentManager = documentManager;
@@ -47,22 +47,14 @@ internal class RazorProximityExpressionResolver(
         }
 
         // TODO: Support multiple C# documents per Razor document.
-        if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var virtualDocument))
+        if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var virtualDocument) ||
+            virtualDocument.HostDocumentSyncVersion is not { } hostDocumentSyncVersion)
         {
             Debug.Fail($"Some how there's no C# document associated with the host Razor document {documentUri.OriginalString} when resolving proximity expressions.");
             return null;
         }
 
-        if (virtualDocument.HostDocumentSyncVersion != documentSnapshot.Version)
-        {
-            // C# document isn't up-to-date with the Razor document. Because VS' debugging tech is synchronous on the UI thread we have to bail. Ideally we'd wait
-            // for the C# document to become "updated"; however, that'd require the UI thread to see that the C# buffer is updated. Because this call path blocks
-            // the UI thread the C# document will never update until this path has exited. This means as a user types around the point of interest data may get stale
-            // but will re-adjust later.
-            return null;
-        }
-
-        var cacheKey = new CacheKey(documentSnapshot.Uri, documentSnapshot.Version, lineIndex, characterIndex);
+        var cacheKey = new CacheKey(documentSnapshot.Uri, virtualDocument.HostDocumentSyncVersion, lineIndex, characterIndex);
         if (_cache.TryGetValue(cacheKey, out var cachedExpressions))
         {
             // We've seen this request before, no need to go async.
@@ -70,7 +62,7 @@ internal class RazorProximityExpressionResolver(
         }
 
         var position = VsLspFactory.CreatePosition(lineIndex, characterIndex);
-        var proximityExpressions = await _proximityExpressionsProvider.GetProximityExpressionsAsync(documentSnapshot, position, cancellationToken).ConfigureAwait(false);
+        var proximityExpressions = await _proximityExpressionsProvider.GetProximityExpressionsAsync(documentSnapshot, hostDocumentSyncVersion, position, cancellationToken).ConfigureAwait(false);
 
         // Cache range so if we're asked again for this document/line/character we don't have to go async.
         // Note: If we didn't get any proximity expressions back--likely due to an error--we cache an empty array.
