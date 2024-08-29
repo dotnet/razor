@@ -1,12 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
-internal static class VSInternalServerCapabilitiesExtensions
+internal static class LspInitializationHelpers
 {
     public static void EnableInlayHints(this VSInternalServerCapabilities serverCapabilities)
     {
@@ -64,5 +66,22 @@ internal static class VSInternalServerCapabilitiesExtensions
     public static void EnableMapCodeProvider(this VSInternalServerCapabilities serverCapabilities)
     {
         serverCapabilities.MapCodeProvider = true;
+    }
+
+    public static void EnableOnAutoInsert(
+        this VSInternalServerCapabilities serverCapabilities,
+        IEnumerable<string> triggerCharacters)
+    {
+        serverCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
+            .EnableOnAutoInsert(triggerCharacters);
+    }
+
+    public static VSInternalDocumentOnAutoInsertOptions EnableOnAutoInsert(
+        this VSInternalDocumentOnAutoInsertOptions options,
+        IEnumerable<string> triggerCharacters)
+    {
+        options.TriggerCharacters = triggerCharacters.Distinct().ToArray();
+
+        return options;
     }
 }

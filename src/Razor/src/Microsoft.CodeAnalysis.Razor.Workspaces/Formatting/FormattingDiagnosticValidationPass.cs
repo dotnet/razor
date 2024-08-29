@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class FormattingDiagnosticValidationPass(
+internal class FormattingDiagnosticValidationPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
     : FormattingPassBase(documentMappingService)
