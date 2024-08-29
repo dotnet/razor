@@ -83,8 +83,8 @@ internal class RazorFormattingService : IRazorFormattingService
         var filteredEdits = range is null
             ? result.Edits
             : result.Edits.Where(e => range.LineOverlapsWith(e.Range));
+        filteredEdits = NormalizeLineEndings(originalText, filteredEdits);
         var minimalEdits = GetMinimalEdits(originalText, filteredEdits);
-        minimalEdits = NormalizeLineEndings(originalText, minimalEdits);
 
         return minimalEdits;
     }
@@ -244,11 +244,10 @@ internal class RazorFormattingService : IRazorFormattingService
 
     // This method counts the occurrences of CRLF and LF line endings in the original text. If LF line endings are more
     // prevalent, it removes any CR characters from the text edits to ensure consistency with the LF style.
-    // This can be removed once we figure out how to get proper line ending information from the client.
-    private TextEdit[] NormalizeLineEndings(SourceText originalText, TextEdit[] minimalEdits)
+    // This can be removed once we figure out how to generate the formatted CSharp file with the correct line endings.
+    private IEnumerable<TextEdit> NormalizeLineEndings(SourceText originalText, IEnumerable<TextEdit> minimalEdits)
     {
-        var (crlfCount, lfCount) = CountLineEndings(originalText);
-        if (lfCount > crlfCount)
+        if (originalText.HasLFLineEndings())
         {
             minimalEdits = minimalEdits
                 .Select(edit =>
@@ -260,29 +259,5 @@ internal class RazorFormattingService : IRazorFormattingService
         }
 
         return minimalEdits;
-    }
-
-    private (int crlfCount, int lfCount) CountLineEndings(SourceText sourceText)
-    {
-        var crlfCount = 0;
-        var lfCount = 0;
-
-        for (var i = 0; i < sourceText.Length; i++)
-        {
-            if (sourceText[i] == '\r')
-            {
-                if (i + 1 < sourceText.Length && sourceText[i + 1] == '\n')
-                {
-                    crlfCount++;
-                    i++; // Skip the next character as it's part of the CRLF sequence
-                }
-            }
-            else if (sourceText[i] == '\n')
-            {
-                lfCount++;
-            }
-        }
-
-        return (crlfCount, lfCount);
     }
 }
