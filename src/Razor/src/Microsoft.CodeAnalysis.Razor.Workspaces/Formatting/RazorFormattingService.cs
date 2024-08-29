@@ -249,13 +249,10 @@ internal class RazorFormattingService : IRazorFormattingService
     {
         if (originalText.HasLFLineEndings())
         {
-            minimalEdits = minimalEdits
-                .Select(edit =>
-                {
-                    edit.NewText = edit.NewText.Replace("\r", string.Empty);
-                    return edit;
-                })
-                .ToArray();
+            foreach (var edit in minimalEdits)
+            {
+                edit.NewText = edit.NewText.Replace("\r", "");
+            }
         }
 
         return minimalEdits;
