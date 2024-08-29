@@ -287,9 +287,6 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
     {
         var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync())
-            .ReturnsAsync(codeDocument);
-        documentSnapshot
             .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
             .ReturnsAsync(codeDocument);
         documentSnapshot

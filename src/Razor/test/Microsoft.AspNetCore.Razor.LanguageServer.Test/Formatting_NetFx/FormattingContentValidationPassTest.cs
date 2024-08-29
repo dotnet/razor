@@ -152,7 +152,7 @@ public class Foo { }
 
         var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync())
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.TargetPath)
