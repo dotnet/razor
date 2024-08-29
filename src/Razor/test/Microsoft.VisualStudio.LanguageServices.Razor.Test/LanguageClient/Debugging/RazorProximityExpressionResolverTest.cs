@@ -20,16 +20,16 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
-public class DefaultRazorProximityExpressionResolverTest : ToolingTestBase
+public class RazorProximityExpressionResolverTest : ToolingTestBase
 {
     private readonly string _validProximityExpressionRoot;
     private readonly string _invalidProximityExpressionRoot;
     private readonly ITextBuffer _csharpTextBuffer;
     private readonly Uri _documentUri;
     private readonly Uri _csharpDocumentUri;
-    private readonly ITextBuffer _hostTextbuffer;
+    private readonly ITextBuffer _hostTextBuffer;
 
-    public DefaultRazorProximityExpressionResolverTest(ITestOutputHelper testOutput)
+    public RazorProximityExpressionResolverTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _documentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
@@ -51,7 +51,7 @@ public class DefaultRazorProximityExpressionResolverTest : ToolingTestBase
         _csharpTextBuffer = new TestTextBuffer(csharpTextSnapshot);
 
         var textBufferSnapshot = new StringTextSnapshot($$"""@{{{_invalidProximityExpressionRoot}}} @code {{{_validProximityExpressionRoot}}}""");
-        _hostTextbuffer = new TestTextBuffer(textBufferSnapshot);
+        _hostTextBuffer = new TestTextBuffer(textBufferSnapshot);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class DefaultRazorProximityExpressionResolverTest : ToolingTestBase
         var resolver = CreateResolverWith(documentManager: documentManager);
 
         // Act
-        var result = await resolver.TryResolveProximityExpressionsAsync(_hostTextbuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
+        var result = await resolver.TryResolveProximityExpressionsAsync(_hostTextBuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
 
         // Assert
         Assert.Null(result);
@@ -96,25 +96,25 @@ public class DefaultRazorProximityExpressionResolverTest : ToolingTestBase
         var resolver = CreateResolverWith(documentManager: documentManager);
 
         // Act
-        var expressions = await resolver.TryResolveProximityExpressionsAsync(_hostTextbuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
+        var expressions = await resolver.TryResolveProximityExpressionsAsync(_hostTextBuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
 
         // Assert
         Assert.Null(expressions);
     }
 
-    private RazorProximityExpressionResolver CreateResolverWith(
+    private IRazorProximityExpressionResolver CreateResolverWith(
         FileUriProvider uriProvider = null,
         LSPDocumentManager documentManager = null)
     {
         var documentUri = _documentUri;
-        uriProvider ??= Mock.Of<FileUriProvider>(provider => provider.TryGet(_hostTextbuffer, out documentUri) == true && provider.TryGet(It.IsNotIn(_hostTextbuffer), out It.Ref<Uri>.IsAny) == false, MockBehavior.Strict);
+        uriProvider ??= Mock.Of<FileUriProvider>(provider => provider.TryGet(_hostTextBuffer, out documentUri) == true && provider.TryGet(It.IsNotIn(_hostTextBuffer), out It.Ref<Uri>.IsAny) == false, MockBehavior.Strict);
         var csharpVirtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(projectKey: default, _csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
         LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(_documentUri, 0, csharpVirtualDocumentSnapshot);
         documentManager ??= Mock.Of<LSPDocumentManager>(
             manager => manager.TryGetDocument(_documentUri, out documentSnapshot) == true,
             MockBehavior.Strict);
 
-        var razorProximityExpressionResolver = new DefaultRazorProximityExpressionResolver(
+        var razorProximityExpressionResolver = new RazorProximityExpressionResolver(
             uriProvider,
             documentManager,
             TestLSPProximityExpressionProvider.Instance);
@@ -122,7 +122,7 @@ public class DefaultRazorProximityExpressionResolverTest : ToolingTestBase
         return razorProximityExpressionResolver;
     }
 
-    private class TestLSPProximityExpressionProvider : LSPProximityExpressionsProvider
+    private class TestLSPProximityExpressionProvider : ILSPProximityExpressionsProvider
     {
         public static readonly TestLSPProximityExpressionProvider Instance = new();
 
@@ -130,7 +130,7 @@ public class DefaultRazorProximityExpressionResolverTest : ToolingTestBase
         {
         }
 
-        public override Task<IReadOnlyList<string>> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<string>> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, long hostDocumentSyncVersion, Position position, CancellationToken cancellationToken)
         {
             return SpecializedTasks.Null<IReadOnlyList<string>>();
         }
