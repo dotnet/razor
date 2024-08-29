@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -22,6 +23,7 @@ internal sealed class RemoteClientInitializationService(in ServiceArgs args) : R
     public ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(ct =>
             {
+                RazorAnalyzerAssemblyResolverProvider.EnsureRazorAssemblyLoaderHooked();
                 _remoteLanguageServerFeatureOptions.SetOptions(options);
                 return default;
             },
