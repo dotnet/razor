@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
@@ -131,7 +132,13 @@ public class Foo { }
             InsertSpaces = insertSpaces,
         };
 
-        var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, TestAdhocWorkspaceFactory.Instance);
+        var context = FormattingContext.Create(
+            uri,
+            documentSnapshot,
+            codeDocument,
+            options,
+            new LspFormattingCodeDocumentProvider(),
+            TestAdhocWorkspaceFactory.Instance);
         return context;
     }
 
@@ -145,7 +152,7 @@ public class Foo { }
 
         var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync())
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.TargetPath)

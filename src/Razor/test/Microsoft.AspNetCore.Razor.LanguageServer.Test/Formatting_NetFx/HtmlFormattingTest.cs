@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -207,6 +208,38 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBa
                             }
                         </div>
                     }
+                    """);
+    }
+
+    [Fact]
+    public async Task FormatAttributeStyles()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <div class=@className>Some Text</div>
+                    <div class=@className style=@style>Some Text</div>
+                    <div class=@className style="@style">Some Text</div>
+                    <div class='@className'>Some Text</div>
+                    <div class="@className">Some Text</div>
+                    
+                    <br class=@className/>
+                    <br class=@className style=@style/>
+                    <br class=@className style="@style"/>
+                    <br class='@className'/>
+                    <br class="@className"/>
+                    """,
+            expected: """
+                    <div class=@className>Some Text</div>
+                    <div class=@className style=@style>Some Text</div>
+                    <div class=@className style="@style">Some Text</div>
+                    <div class='@className'>Some Text</div>
+                    <div class="@className">Some Text</div>
+
+                    <br class=@className/>
+                    <br class=@className style=@style/>
+                    <br class=@className style="@style"/>
+                    <br class='@className'/>
+                    <br class="@className"/>
                     """);
     }
 

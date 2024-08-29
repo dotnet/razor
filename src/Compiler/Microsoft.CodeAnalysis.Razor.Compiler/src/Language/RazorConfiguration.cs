@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -13,7 +12,7 @@ public sealed record class RazorConfiguration(
     string ConfigurationName,
     ImmutableArray<RazorExtension> Extensions,
     LanguageServerFlags? LanguageServerFlags = null,
-    bool UseConsolidatedMvcViews = false,
+    bool UseConsolidatedMvcViews = true,
     bool SuppressAddComponentParameter = false)
 {
     public static readonly RazorConfiguration Default = new(
@@ -21,7 +20,7 @@ public sealed record class RazorConfiguration(
         ConfigurationName: "unnamed",
         Extensions: [],
         LanguageServerFlags: null,
-        UseConsolidatedMvcViews: false);
+        UseConsolidatedMvcViews: true);
 
     public bool Equals(RazorConfiguration? other)
         => other is not null &&
