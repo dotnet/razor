@@ -5,7 +5,6 @@
   "Configuration": {
     "ConfigurationName": "MVC-3.0",
     "LanguageVersion": "3.0",
-    "SuppressAddComponentParameter": false,
     "Extensions": [ "MVC-3.0" ]
   },
   "ProjectWorkspaceState": {

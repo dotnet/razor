@@ -26,12 +26,6 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
 
         count -= 3;
 
-        if (reader.NextMessagePackType is MessagePackType.Boolean)
-        {
-            reader.ReadBoolean(); // forceRuntimeCodeGeneration
-            count -= 1;
-        }
-
         using var builder = new PooledArrayBuilder<RazorExtension>();
 
         for (var i = 0; i < count; i++)
