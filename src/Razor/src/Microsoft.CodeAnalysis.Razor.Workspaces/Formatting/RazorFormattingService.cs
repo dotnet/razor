@@ -197,7 +197,6 @@ internal class RazorFormattingService : IRazorFormattingService
         {
             return edits[0];
         }
-
         var textChanges = new List<TextChange>();
         foreach (var edit in edits)
         {
@@ -244,7 +243,7 @@ internal class RazorFormattingService : IRazorFormattingService
     }
 
     // This method counts the occurrences of CRLF and LF line endings in the original text. If LF line endings are more
-    // prevalent, it removes any standalone CR characters from the text edits to ensure consistency with the LF style.
+    // prevalent, it removes any CR characters from the text edits to ensure consistency with the LF style.
     // This can be removed once we figure out how to get proper line ending information from the client.
     private TextEdit[] NormalizeLineEndings(SourceText originalText, TextEdit[] minimalEdits)
     {
