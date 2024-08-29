@@ -24,15 +24,6 @@ namespace Microsoft.AspNetCore.Razor;
 
 internal static class RazorProjectInfoHelpers
 {
-    private static readonly StringComparison s_stringComparison;
-
-    static RazorProjectInfoHelpers()
-    {
-        s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-            ? StringComparison.Ordinal
-            : StringComparison.OrdinalIgnoreCase;
-    }
-
     public static RazorProjectInfo? TryConvert(
         Project project,
         string projectPath,
@@ -181,7 +172,7 @@ internal static class RazorProjectInfoHelpers
     private static string GetTargetPath(string documentFilePath, string normalizedProjectPath)
     {
         var targetFilePath = FilePathNormalizer.Normalize(documentFilePath);
-        if (targetFilePath.StartsWith(normalizedProjectPath, s_stringComparison))
+        if (targetFilePath.StartsWith(normalizedProjectPath, FilePathComparison.Instance))
         {
             // Make relative
             targetFilePath = documentFilePath[normalizedProjectPath.Length..];
@@ -197,12 +188,12 @@ internal static class RazorProjectInfoHelpers
     {
         var extension = Path.GetExtension(filePath);
 
-        if (extension.Equals(".cshtml", s_stringComparison))
+        if (extension.Equals(".cshtml", FilePathComparison.Instance))
         {
             fileKind = FileKinds.Legacy;
             return true;
         }
-        else if (extension.Equals(".razor", s_stringComparison))
+        else if (extension.Equals(".razor", FilePathComparison.Instance))
         {
             fileKind = FileKinds.GetComponentFileKindFromFilePath(filePath);
             return true;
@@ -228,7 +219,7 @@ internal static class RazorProjectInfoHelpers
 
         // Generated files have a path like: virtualcsharp-razor:///e:/Scratch/RazorInConsole/Goo.cshtml__virtual.cs
         if (filePath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
-            (filePath.EndsWith(generatedRazorExtension, s_stringComparison) || filePath.EndsWith(generatedCshtmlExtension, s_stringComparison)))
+            (filePath.EndsWith(generatedRazorExtension, FilePathComparison.Instance) || filePath.EndsWith(generatedCshtmlExtension, FilePathComparison.Instance)))
         {
             // Go through the file path normalizer because it also does Uri decoding, and we're converting from a Uri to a path
             // but "new Uri(filePath).LocalPath" seems wasteful

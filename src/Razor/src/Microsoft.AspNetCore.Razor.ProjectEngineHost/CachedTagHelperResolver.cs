@@ -29,7 +29,7 @@ internal partial class CachedTagHelperResolver(ITelemetryReporter telemetryRepor
             return [];
         }
 
-        using var _ = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var builder);
+        using var builder = new PooledArrayBuilder<TagHelperDescriptor>();
         foreach (var checksum in cachedChecksums)
         {
             var value = TryGet(checksum);
@@ -41,7 +41,7 @@ internal partial class CachedTagHelperResolver(ITelemetryReporter telemetryRepor
             builder.Add(value);
         }
 
-        return builder.ToImmutableArray();
+        return builder.DrainToImmutable();
     }
 
     public async ValueTask<DeltaResult> GetDeltaAsync(Project project, int? lastResultIdNullable, CancellationToken cancellationToken)

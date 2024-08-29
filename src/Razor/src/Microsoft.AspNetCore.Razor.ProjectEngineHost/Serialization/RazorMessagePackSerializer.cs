@@ -2,13 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
-using MessagePack.Resolvers;
-using MessagePack;
-using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using System.Buffers;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using MessagePack;
+using MessagePack.Resolvers;
+using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 
 namespace Microsoft.AspNetCore.Razor.Serialization;
 
@@ -29,6 +29,9 @@ internal static class RazorMessagePackSerializer
         => MessagePackSerializer.Serialize(stream, instance, s_options);
 
     public static T? DeserializeFrom<T>(ReadOnlyMemory<byte> buffer)
+        => MessagePackSerializer.Deserialize<T>(buffer, s_options);
+
+    public static T? DeserializeFrom<T>(ReadOnlySequence<byte> buffer)
         => MessagePackSerializer.Deserialize<T>(buffer, s_options);
 
     public static T? DeserializeFrom<T>(Stream stream)
