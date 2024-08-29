@@ -80,6 +80,7 @@ internal static class StreamExtensions
         WriteSize(stream, bytes.Length);
         await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
     }
+
     public static async Task WriteProjectInfoAsync(this Stream stream, RazorProjectInfo projectInfo, CancellationToken cancellationToken)
     {
         var bytes = RazorMessagePackSerializer.Serialize(projectInfo);
