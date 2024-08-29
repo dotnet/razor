@@ -15,10 +15,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal sealed class HtmlFormatter(
-    IClientConnection clientConnection,
-    IDocumentVersionCache documentVersionCache) : IHtmlFormatter
+    IClientConnection clientConnection) : IHtmlFormatter
 {
-    private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
     private readonly IClientConnection _clientConnection = clientConnection;
 
     public async Task<TextEdit[]> GetDocumentFormattingEditsAsync(
@@ -27,18 +25,13 @@ internal sealed class HtmlFormatter(
         FormattingOptions options,
         CancellationToken cancellationToken)
     {
-        if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var documentVersion))
-        {
-            return [];
-        }
-
         var @params = new RazorDocumentFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = uri,
             },
-            HostDocumentVersion = documentVersion.Value,
+            HostDocumentVersion = documentSnapshot.Version,
             Options = options
         };
 
@@ -58,18 +51,13 @@ internal sealed class HtmlFormatter(
         FormattingOptions options,
         CancellationToken cancellationToken)
     {
-        if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var documentVersion))
-        {
-            return [];
-        }
-
         var @params = new RazorDocumentOnTypeFormattingParams()
         {
             Position = position,
             Character = triggerCharacter.ToString(),
             TextDocument = new TextDocumentIdentifier { Uri = uri },
             Options = options,
-            HostDocumentVersion = documentVersion.Value,
+            HostDocumentVersion = documentSnapshot.Version,
         };
 
         var result = await _clientConnection.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(

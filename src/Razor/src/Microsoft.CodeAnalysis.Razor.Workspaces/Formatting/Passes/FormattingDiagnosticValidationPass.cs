@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class FormattingDiagnosticValidationPass(ILoggerFactory loggerFactory) : IFormattingPass
+internal class FormattingDiagnosticValidationPass(ILoggerFactory loggerFactory) : IFormattingPass
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<FormattingDiagnosticValidationPass>();
 

@@ -81,7 +81,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var razorOptions = RazorFormattingOptions.From(options, codeBlockBraceOnNextLine: razorLSPOptions?.CodeBlockBraceOnNextLine ?? false);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
-        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
+        var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         var projectManager = StrictMock.Of<IProjectSnapshotManager>();
         var versionCache = new DocumentVersionCache(projectManager);
@@ -142,7 +142,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         };
         var razorOptions = RazorFormattingOptions.From(options, codeBlockBraceOnNextLine: razorLSPOptions?.CodeBlockBraceOnNextLine ?? false);
 
-        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
+        var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
         TextEdit[] edits;
@@ -227,8 +227,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
-
-        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
+        var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
         var edit = await formattingService.GetCSharpCodeActionEditAsync(documentContext, codeActionEdits, options, DisposalToken);
@@ -320,7 +319,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
     {
         var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync())
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.FilePath)
@@ -346,6 +345,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         documentSnapshot
             .Setup(d => d.FileKind)
             .Returns(fileKind);
+        documentSnapshot
+            .Setup(d => d.Version)
+            .Returns(1);
         documentSnapshot
             .Setup(d => d.WithText(It.IsAny<SourceText>()))
             .Returns<SourceText>(text =>

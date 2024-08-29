@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 internal interface IRazorFormattingService
 {
     Task<TextEdit[]> GetDocumentFormattingEditsAsync(
-       VersionedDocumentContext documentContext,
+       DocumentContext documentContext,
        TextEdit[] htmlEdits,
        Range? range,
        RazorFormattingOptions options,

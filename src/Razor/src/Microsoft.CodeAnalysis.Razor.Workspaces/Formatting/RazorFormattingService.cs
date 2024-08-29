@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal class RazorFormattingService : IRazorFormattingService
 {
+    private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
     private readonly IAdhocWorkspaceFactory _workspaceFactory;
 
     private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
@@ -28,10 +29,12 @@ internal class RazorFormattingService : IRazorFormattingService
     private readonly HtmlOnTypeFormattingPass _htmlOnTypeFormattingPass;
 
     public RazorFormattingService(
+        IFormattingCodeDocumentProvider codeDocumentProvider,
         IDocumentMappingService documentMappingService,
         IAdhocWorkspaceFactory workspaceFactory,
         ILoggerFactory loggerFactory)
     {
+        _codeDocumentProvider = codeDocumentProvider;
         _workspaceFactory = workspaceFactory;
 
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
@@ -51,13 +54,13 @@ internal class RazorFormattingService : IRazorFormattingService
     }
 
     public async Task<TextEdit[]> GetDocumentFormattingEditsAsync(
-        VersionedDocumentContext documentContext,
+        DocumentContext documentContext,
         TextEdit[] htmlEdits,
         Range? range,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetFormatterCodeDocumentAsync().ConfigureAwait(false);
+        var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(documentContext.Snapshot).ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -84,8 +87,14 @@ internal class RazorFormattingService : IRazorFormattingService
 
         var uri = documentContext.Uri;
         var documentSnapshot = documentContext.Snapshot;
-        var hostDocumentVersion = documentContext.Version;
-        using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
+        var hostDocumentVersion = documentContext.Snapshot.Version;
+        using var context = FormattingContext.Create(
+            uri,
+            documentSnapshot,
+            codeDocument,
+            options,
+            _codeDocumentProvider,
+            _workspaceFactory);
         var originalText = context.SourceText;
 
         var result = htmlEdits;
@@ -194,7 +203,16 @@ internal class RazorFormattingService : IRazorFormattingService
         var documentSnapshot = documentContext.Snapshot;
         var uri = documentContext.Uri;
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-        using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+        using var context = FormattingContext.CreateForOnTypeFormatting(
+            uri,
+            documentSnapshot,
+            codeDocument,
+            options,
+            _codeDocumentProvider,
+            _workspaceFactory,
+            automaticallyAddUsings: automaticallyAddUsings,
+            hostDocumentIndex,
+            triggerCharacter);
         var result = generatedDocumentEdits;
 
         foreach (var pass in formattingPasses)

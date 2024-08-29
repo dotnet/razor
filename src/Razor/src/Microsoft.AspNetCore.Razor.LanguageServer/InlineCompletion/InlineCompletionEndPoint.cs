@@ -29,6 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 internal sealed class InlineCompletionEndpoint(
     IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
+    IFormattingCodeDocumentProvider formattingCodeDocumentProvider,
     IAdhocWorkspaceFactory adhocWorkspaceFactory,
     RazorLSPOptionsMonitor optionsMonitor,
     ILoggerFactory loggerFactory)
@@ -41,6 +42,7 @@ internal sealed class InlineCompletionEndpoint(
 
     private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
+    private readonly IFormattingCodeDocumentProvider _formattingCodeDocumentProvider = formattingCodeDocumentProvider;
     private readonly IAdhocWorkspaceFactory _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();
@@ -127,8 +129,13 @@ internal sealed class InlineCompletionEndpoint(
             }
 
             var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
-
-            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, documentContext.Snapshot, codeDocument, options, _adhocWorkspaceFactory);
+            using var formattingContext = FormattingContext.Create(
+                request.TextDocument.Uri,
+                documentContext.Snapshot,
+                codeDocument,
+                options,
+                _formattingCodeDocumentProvider,
+                _adhocWorkspaceFactory);
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;

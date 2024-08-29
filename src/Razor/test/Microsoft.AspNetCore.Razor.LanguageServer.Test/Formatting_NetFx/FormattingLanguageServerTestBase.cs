@@ -35,7 +35,7 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
     {
         public bool Called { get; private set; }
 
-        public Task<TextEdit[]> GetDocumentFormattingEditsAsync(VersionedDocumentContext documentContext, TextEdit[] htmlEdits, Range? range, RazorFormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextEdit[]> GetDocumentFormattingEditsAsync(DocumentContext documentContext, TextEdit[] htmlEdits, Range? range, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
             Called = true;
             return SpecializedTasks.EmptyArray<TextEdit>();
