@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.Extensions.Internal;
 
@@ -22,6 +24,10 @@ public sealed record class RazorConfiguration(
         Extensions: [],
         LanguageServerFlags: null,
         UseConsolidatedMvcViews: true);
+
+    private Checksum? _checksum;
+    internal Checksum Checksum
+        => _checksum ?? InterlockedOperations.Initialize(ref _checksum, CalculateChecksum());
 
     public bool Equals(RazorConfiguration? other)
         => other is not null &&
@@ -53,5 +59,12 @@ public sealed record class RazorConfiguration(
         {
             builder.AppendData(extension.ExtensionName);
         }
+    }
+
+    private Checksum CalculateChecksum()
+    {
+        var builder = new Checksum.Builder();
+        CalculateChecksum(builder);
+        return builder.FreeAndGetChecksum();
     }
 }

@@ -76,6 +76,7 @@ internal sealed record class RazorProjectInfo
         builder.AppendData(FilePath);
         builder.AppendData(ProjectKey.Id);
         builder.AppendData(DisplayName);
+        builder.AppendData(RootNamespace);
 
         Configuration.CalculateChecksum(builder);
         foreach (var document in Documents)
