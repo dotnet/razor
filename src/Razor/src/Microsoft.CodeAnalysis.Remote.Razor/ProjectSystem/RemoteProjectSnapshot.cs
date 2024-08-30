@@ -11,17 +11,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 internal class RemoteProjectSnapshot : IProjectSnapshot
 {
     public ProjectKey Key { get; }
@@ -29,8 +33,7 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
     private readonly Project _project;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory;
     private readonly ITelemetryReporter _telemetryReporter;
-    private readonly Lazy<RazorConfiguration> _lazyConfiguration;
-    private readonly Lazy<RazorProjectEngine> _lazyProjectEngine;
+    private readonly Dictionary<string, ImmutableArray<string>> _importsToRelatedDocuments = new();
 
     private ImmutableArray<TagHelperDescriptor> _tagHelpers;
 
@@ -40,20 +43,6 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
         _documentSnapshotFactory = documentSnapshotFactory;
         _telemetryReporter = telemetryReporter;
         Key = _project.ToProjectKey();
-
-        _lazyConfiguration = new Lazy<RazorConfiguration>(CreateRazorConfiguration);
-        _lazyProjectEngine = new Lazy<RazorProjectEngine>(() =>
-        {
-            return ProjectEngineFactories.DefaultProvider.Create(
-                _lazyConfiguration.Value,
-                rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
-                configure: builder =>
-                {
-                    builder.SetRootNamespace(RootNamespace);
-                    builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
-                    builder.SetSupportLocalizedComponentNames();
-                });
-        });
     }
 
     public RazorConfiguration Configuration => throw new InvalidOperationException("Should not be called for cohosted projects.");
@@ -96,21 +85,12 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
     {
         if (_tagHelpers.IsDefault)
         {
-            var computedTagHelpers = await ComputeTagHelpersAsync(_project, _lazyProjectEngine.Value, _telemetryReporter, cancellationToken);
+            var runResult = await GetRazorRunResultAsync(cancellationToken);
+            var computedTagHelpers = (ImmutableArray<TagHelperDescriptor>)runResult.Value.HostOutputs["TagHelpers"];
             ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
         }
 
         return _tagHelpers;
-
-        static ValueTask<ImmutableArray<TagHelperDescriptor>> ComputeTagHelpersAsync(
-            Project project,
-            RazorProjectEngine projectEngine,
-            ITelemetryReporter telemetryReporter,
-            CancellationToken cancellationToken)
-        {
-            var resolver = new CompilationTagHelperResolver(telemetryReporter);
-            return resolver.GetTagHelpersAsync(project, projectEngine, cancellationToken);
-        }
     }
 
     public ProjectWorkspaceState ProjectWorkspaceState => throw new InvalidOperationException("Should not be called for cohosted projects.");
@@ -134,28 +114,84 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
 
     public RazorProjectEngine GetProjectEngine() => throw new InvalidOperationException("Should not be called for cohosted projects.");
 
-    /// <summary>
-    /// NOTE: To be called only from CohostDocumentSnapshot.GetGeneratedOutputAsync(). Will be removed when that method uses the source generator directly.
-    /// </summary>
-    /// <returns></returns>
-    internal RazorProjectEngine GetProjectEngine_CohostOnly() => _lazyProjectEngine.Value;
-
-    private RazorConfiguration CreateRazorConfiguration()
+    internal async Task<RazorCodeDocument?> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        // See RazorSourceGenerator.RazorProviders.cs
-
-        var globalOptions = _project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
-
-        globalOptions.TryGetValue("build_property.RazorConfiguration", out var configurationName);
-
-        configurationName ??= "MVC-3.0"; // TODO: Source generator uses "default" here??
-
-        if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
-            !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
+        var runResult = await GetRazorRunResultAsync(cancellationToken);
+        if (runResult is null)
         {
-            razorLanguageVersion = RazorLanguageVersion.Latest;
+            // There was no generator, so we couldn't get anything from it
+            return null;
         }
 
-        return new(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true);
+        var relativePath = GetDocumentRelativePath(documentSnapshot);
+        if (!runResult.Value.HostOutputs.TryGetValue(relativePath, out var objectCodeDocument) || objectCodeDocument is not RazorCodeDocument codeDocument)
+        {
+            return null;
+        }
+
+        var targetPath = documentSnapshot.TargetPath.AssumeNotNull();
+        if (!_importsToRelatedDocuments.ContainsKey(targetPath))
+        {
+            lock (_importsToRelatedDocuments)
+            {
+                if (!_importsToRelatedDocuments.ContainsKey(targetPath))
+                {
+                    _importsToRelatedDocuments[documentSnapshot.TargetPath!] = codeDocument.Imports.SelectAsArray(i => i.FilePath!);
+                }
+            }
+        }
+
+        return codeDocument;
+    }
+
+    private async Task<GeneratorRunResult?> GetRazorRunResultAsync(CancellationToken cancellationToken)
+    {
+        var result = await _project.GetSourceGeneratorRunResultAsync(cancellationToken);
+        return result?.Results.SingleOrDefault(r => r.Generator.GetGeneratorType().Name == typeof(RazorSourceGenerator).Name);
+    }
+
+    internal async Task<Document> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    {
+        // TODO: we should filter the documents by generator to make sure its actually ours.
+        // That info isn't public in Roslyn but we can create an EA method to do it.
+        var generatedDocuments = await _project.GetSourceGeneratedDocumentsAsync(cancellationToken);
+        var relativePath = GetDocumentRelativePath(documentSnapshot);
+        var generatedIdentifier = RazorSourceGenerator.GetIdentifierFromPath(relativePath);
+        return generatedDocuments.Single(d => d.HintName == generatedIdentifier); 
+    }
+
+    private string GetDocumentRelativePath(IDocumentSnapshot documentSnapshot)
+    {
+        var projectRoot = Path.GetDirectoryName(_project.FilePath);
+        Debug.Assert(documentSnapshot.TargetPath!.StartsWith(projectRoot));
+        return documentSnapshot.TargetPath[(projectRoot.Length + 1)..];
+    }
+
+    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
+    {
+        var targetPath = document.TargetPath.AssumeNotNull();
+
+        if (!_importsToRelatedDocuments.TryGetValue(targetPath, out var relatedDocuments))
+        {
+            return [];
+        }
+
+        using var builder = new PooledArrayBuilder<IDocumentSnapshot>(relatedDocuments.Length);
+
+        foreach (var relatedDocumentFilePath in relatedDocuments)
+        {
+            if (TryGetDocument(relatedDocumentFilePath, out var relatedDocument))
+            {
+                builder.Add(relatedDocument);
+            }
+        }
+
+        return builder.DrainToImmutable();
+    }
+
+    public bool IsImportDocument(IDocumentSnapshot document)
+    {
+        return document.TargetPath is { } targetPath &&
+               _importsToRelatedDocuments.ContainsKey(targetPath);
     }
 }

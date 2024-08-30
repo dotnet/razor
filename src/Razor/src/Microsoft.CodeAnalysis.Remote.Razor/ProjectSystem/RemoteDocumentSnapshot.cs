@@ -56,26 +56,8 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
             return codeDocument;
         }
 
-        // The non-cohosted DocumentSnapshot implementation uses DocumentState to get the generated output, and we could do that too
-        // but most of that code is optimized around caching pre-computed results when things change that don't affect the compilation.
-        // We can't do that here because we are using Roslyn's project snapshots, which don't contain the info that Razor needs. We could
-        // in future provide a side-car mechanism so we can cache things, but still take advantage of snapshots etc. but the working
-        // assumption for this code is that the source generator will be used, and it will do all of that, so this implementation is naive
-        // and simply compiles when asked, and if a new document snapshot comes in, we compile again. This is presumably worse for perf
-        // but since we don't expect users to ever use cohosting without source generators, it's fine for now.
-
-        var projectEngine = _projectSnapshot.GetProjectEngine_CohostOnly();
-        var tagHelpers = await _projectSnapshot.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
-        var imports = await DocumentState.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
-
-        // TODO: Get the configuration for forceRuntimeCodeGeneration
-        // var forceRuntimeCodeGeneration = _projectSnapshot.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
-
-        codeDocument = await DocumentState
-            .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false)
-            .ConfigureAwait(false);
-
-        return InterlockedOperations.Initialize(ref _codeDocument, codeDocument);
+        codeDocument = await _projectSnapshot.GetCodeDocumentAsync(this, cancellationToken: CancellationToken.None);
+        return InterlockedOperations.Initialize(ref _codeDocument, codeDocument.AssumeNotNull());
     }
 
     public IDocumentSnapshot WithText(SourceText text)
@@ -99,25 +81,8 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
             return generatedDocument;
         }
 
-        generatedDocument = await HACK_GenerateDocumentAsync().ConfigureAwait(false);
+        generatedDocument = await _projectSnapshot.GetGeneratedDocumentAsync(this, cancellationToken: CancellationToken.None);
         return InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
-    }
-
-    private async Task<Document> HACK_GenerateDocumentAsync()
-    {
-        // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
-
-        var solution = TextDocument.Project.Solution;
-        var generatedFilePath = _filePathService.GetRazorCSharpFilePath(Project.Key, FilePath.AssumeNotNull());
-        var projectId = TextDocument.Project.Id;
-        var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == projectId);
-        var generatedDocument = solution.GetRequiredDocument(generatedDocumentId);
-
-        var codeDocument = await this.GetGeneratedOutputAsync().ConfigureAwait(false);
-        var csharpSourceText = codeDocument.GetCSharpSourceText();
-
-        // HACK: We're not in the same solution fork as the LSP server that provides content for this document
-        return generatedDocument.WithText(csharpSourceText);
     }
 
     public async Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
