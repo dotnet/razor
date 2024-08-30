@@ -23,7 +23,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions.Razor;
 
-public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
     public async Task Handle_InvalidFileKind()
@@ -63,7 +63,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -109,7 +109,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -158,7 +158,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
         request.Range = VsLspFactory.CreateRange(lineSpan);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -168,7 +168,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToNewComponentCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
         Assert.NotNull(actionParams);
     }
 
@@ -179,6 +179,9 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var documentPath = "c:/Test.razor";
         var contents = """
             @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
 
             <PageTitle>Home</PageTitle>
 
@@ -212,7 +215,7 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
         request.Range = VsLspFactory.CreateRange(lineSpan);
 
-        var provider = new ExtractToNewComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -222,10 +225,56 @@ public class ExtractToNewComponentCodeActionProviderTest(ITestOutputHelper testO
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToNewComponentCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
         Assert.NotNull(actionParams);
         Assert.Equal(selectionSpan.Start, actionParams.ExtractStart);
         Assert.Equal(selectionSpan.End, actionParams.ExtractEnd);
+    }
+
+    [Fact]
+    public async Task Handle_InProperMarkup_ReturnsEmpty()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = """
+            @page "/"
+            
+            <PageTitle>Home</PageTitle>
+            
+            <div id="parent">
+                <div>
+                    <h1>Div a title</h1>
+                    <p>Div $$a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range(),
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var location = new SourceLocation(cursorPosition, -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)

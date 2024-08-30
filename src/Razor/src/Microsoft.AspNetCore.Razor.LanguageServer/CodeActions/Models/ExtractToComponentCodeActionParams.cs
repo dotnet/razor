@@ -2,18 +2,27 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
-internal sealed class ExtractToNewComponentCodeActionParams
+// NOTE: As mentioned before, these have changed in future PRs, where much of the Provider logic was moved to the resolver.
+// The last three properties are not used in the current implementation.
+internal sealed class ExtractToComponentCodeActionParams
 {
     [JsonPropertyName("uri")]
     public required Uri Uri { get; set; }
+
     [JsonPropertyName("extractStart")]
     public int ExtractStart { get; set; }
+
     [JsonPropertyName("extractEnd")]
     public int ExtractEnd { get; set; }
+
     [JsonPropertyName("namespace")]
     public required string Namespace { get; set; }
+
+    [JsonPropertyName("usingDirectives")]
+    public required List<string> usingDirectives { get; set; }
 }

@@ -6,27 +6,21 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
-internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
+internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
 {
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToNewComponentCodeActionProvider>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToComponentCodeActionProvider>();
 
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
@@ -51,12 +45,16 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var (startElementNode, endElementNode) = GetStartAndEndElements(context, syntaxTree, _logger);
-
         // Make sure the selection starts on an element tag
+        var (startElementNode, endElementNode) = GetStartAndEndElements(context, syntaxTree, _logger);
         if (startElementNode is null)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
+        }
+
+        if (endElementNode is null)
+        {
+            endElementNode = startElementNode;
         }
 
         if (!TryGetNamespace(context.CodeDocument, out var @namespace))
@@ -68,6 +66,20 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
 
         ProcessSelection(startElementNode, endElementNode, actionParams);
 
+        var utilityScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
+
+        // The new component usings are going to be a subset of the usings in the source razor file.
+        var usingStrings = syntaxTree.Root.DescendantNodes().Where(node => node.IsUsingDirective(out var _)).Select(node => node.ToFullString().TrimEnd());
+
+        // Get only the namespace after the "using" keyword.
+        var usingNamespaceStrings = usingStrings.Select(usingString => usingString.Substring("using  ".Length));
+
+        AddUsingDirectivesInRange(utilityScanRoot,
+                                  usingNamespaceStrings,
+                                  actionParams.ExtractStart,
+                                  actionParams.ExtractEnd,
+                                  actionParams);
+
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
             Action = LanguageServerConstants.CodeActions.ExtractToNewComponentAction,
@@ -75,7 +87,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
             Data = actionParams,
         };
 
-        var codeAction = RazorCodeActionFactory.CreateExtractToNewComponent(resolutionParams);
+        var codeAction = RazorCodeActionFactory.CreateExtractToComponent(resolutionParams);
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
@@ -95,6 +107,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         }
 
         var endElementNode = GetEndElementNode(context, syntaxTree);
+
         return (startElementNode, endElementNode);
     }
 
@@ -135,14 +148,15 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         return endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
     }
 
-    private static ExtractToNewComponentCodeActionParams CreateInitialActionParams(RazorCodeActionContext context, MarkupElementSyntax startElementNode, string @namespace)
+    private static ExtractToComponentCodeActionParams CreateInitialActionParams(RazorCodeActionContext context, MarkupElementSyntax startElementNode, string @namespace)
     {
-        return new ExtractToNewComponentCodeActionParams
+        return new ExtractToComponentCodeActionParams
         {
             Uri = context.Request.TextDocument.Uri,
             ExtractStart = startElementNode.Span.Start,
             ExtractEnd = startElementNode.Span.End,
-            Namespace = @namespace
+            Namespace = @namespace,
+            usingDirectives = []
         };
     }
 
@@ -152,7 +166,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
     /// <param name="startElementNode">The starting element of the selection.</param>
     /// <param name="endElementNode">The ending element of the selection, if it exists.</param>
     /// <param name="actionParams">The parameters for the extraction action, which will be updated.</param>
-    private static void ProcessSelection(MarkupElementSyntax startElementNode, MarkupElementSyntax? endElementNode, ExtractToNewComponentCodeActionParams actionParams)
+    private static void ProcessSelection(MarkupElementSyntax startElementNode, MarkupElementSyntax? endElementNode, ExtractToComponentCodeActionParams actionParams)
     {
         // If there's no end element, we can't process a multi-point selection
         if (endElementNode is null)
@@ -183,7 +197,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         //     </span>|}|}
         //   </div>
         // In this case, we need to find the smallest set of complete elements that covers the entire selection.
-        
+
         // Find the closest containing sibling pair that encompasses both the start and end elements
         var (extractStart, extractEnd) = FindContainingSiblingPair(startElementNode, endElementNode);
 
@@ -207,7 +221,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
     {
         // Find the lowest common ancestor of both nodes
         var nearestCommonAncestor = FindNearestCommonAncestor(startNode, endNode);
-        if (nearestCommonAncestor == null)
+        if (nearestCommonAncestor is null)
         {
             return (null, null);
         }
@@ -223,7 +237,7 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         {
             var childSpan = child.Span;
 
-            if (startContainingNode == null && childSpan.Contains(startSpan))
+            if (startContainingNode is null && childSpan.Contains(startSpan))
             {
                 startContainingNode = child;
                 if (endContainingNode is not null)
@@ -245,7 +259,10 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
     {
         var current = node1;
 
-        while (current.Kind == SyntaxKind.MarkupElement && current is not null)
+        while (current is MarkupElementSyntax or
+                MarkupTagHelperAttributeSyntax or
+                MarkupBlockSyntax &&
+            current is not null)
         {
             if (current.Span.Contains(node2.Span))
             {
@@ -256,5 +273,57 @@ internal sealed class ExtractToNewComponentCodeActionProvider(ILoggerFactory log
         }
 
         return null;
+    }
+
+    private static void AddUsingDirectivesInRange(SyntaxNode root, IEnumerable<string> usingsInSourceRazor, int extractStart, int extractEnd, ExtractToComponentCodeActionParams actionParams)
+    {
+        var components = new HashSet<string>();
+        var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
+
+        foreach (var node in root.DescendantNodes().Where(node => extractSpan.Contains(node.Span)))
+        {
+            if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
+            {
+                AddUsingFromTagHelperInfo(tagHelperInfo, components, usingsInSourceRazor, actionParams);
+            }
+        }
+    }
+
+    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> components, IEnumerable<string> usingsInSourceRazor, ExtractToComponentCodeActionParams actionParams)
+    {
+        foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
+        {
+            if (descriptor is null)
+            {
+                continue;
+            }
+
+            var typeNamespace = descriptor.GetTypeNamespace();
+
+            // Since the using directive at the top of the file may be relative and not absolute,
+            // we need to generate all possible partial namespaces from `typeNamespace`.
+
+            // Potentially, the alternative could be to ask if the using namespace at the top is a substring of `typeNamespace`.
+            // The only potential edge case is if there are very similar namespaces where one
+            // is a substring of the other, but they're actually different (e.g., "My.App" and "My.Apple").
+
+            // Generate all possible partial namespaces from `typeNamespace`, from least to most specific
+            // (assuming that the user writes absolute `using` namespaces most of the time)
+
+            // This is a bit inefficient because at most 'k' string operations are performed (k = parts in the namespace),
+            // for each potential using directive.
+
+            var parts = typeNamespace.Split('.');
+            for (var i = 0; i < parts.Length; i++)
+            {
+                var partialNamespace = string.Join(".", parts.Skip(i));
+
+                if (components.Add(partialNamespace) && usingsInSourceRazor.Contains(partialNamespace))
+                {
+                    actionParams.usingDirectives.Add($"@using {partialNamespace}");
+                    break;
+                }
+            }
+        }
     }
 }

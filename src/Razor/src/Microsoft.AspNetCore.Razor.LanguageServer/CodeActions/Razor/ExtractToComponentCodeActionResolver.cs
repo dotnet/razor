@@ -27,7 +27,8 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
-internal sealed class ExtractToNewComponentCodeActionResolver(
+internal sealed class ExtractToComponentCodeActionResolver
+    (
     IDocumentContextFactory documentContextFactory,
     LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
@@ -44,7 +45,7 @@ internal sealed class ExtractToNewComponentCodeActionResolver(
             return null;
         }
 
-        var actionParams = JsonSerializer.Deserialize<ExtractToNewComponentCodeActionParams>(data.GetRawText());
+        var actionParams = JsonSerializer.Deserialize<ExtractToComponentCodeActionParams>(data.GetRawText());
         if (actionParams is null)
         {
             return null;
@@ -90,7 +91,15 @@ internal sealed class ExtractToNewComponentCodeActionResolver(
         }
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentContent = text.GetSubTextString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
+        var newComponentContent = string.Empty;
+
+        newComponentContent += string.Join(Environment.NewLine, actionParams.usingDirectives);
+        if (actionParams.usingDirectives.Count > 0)
+        {
+            newComponentContent += Environment.NewLine + Environment.NewLine; // Ensure there's a newline after the dependencies if any exist.
+        }
+
+        newComponentContent += text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
 
         var start = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractStart);
         var end = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractEnd);
