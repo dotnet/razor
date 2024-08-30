@@ -7,9 +7,8 @@ namespace Microsoft.AspNetCore.Razor.Serialization;
 
 internal record DocumentSnapshotHandle(string FilePath, string TargetPath, string FileKind)
 {
-    internal void CalculateChecksum(Checksum.Builder builder)
+    internal void AppendChecksum(Checksum.Builder builder)
     {
-
         builder.AppendData(FilePath);
         builder.AppendData(TargetPath);
         builder.AppendData(FileKind);

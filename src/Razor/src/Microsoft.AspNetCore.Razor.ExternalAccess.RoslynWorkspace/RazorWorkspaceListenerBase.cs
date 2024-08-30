@@ -19,7 +19,8 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
     private readonly ILogger _logger;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
     private readonly CachedTagHelperResolver _cachedTagHelperResolver = new(NoOpTelemetryReporter.Instance);
-    private readonly Dictionary<ProjectId, ImmutableArray<DocumentSnapshotHandle>> _documentSnapshots = new();
+
+    // Only modified in the batching work queue so no need to lock for mutation
     private readonly Dictionary<ProjectId, ProjectEntry> _projectEntryMap = new();
 
     // Use an immutable dictionary for ImmutableInterlocked operations. The value isn't checked, just

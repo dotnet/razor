@@ -48,12 +48,21 @@ public sealed record class RazorConfiguration(
         return hash;
     }
 
-    internal void CalculateChecksum(Checksum.Builder builder)
+    internal void AppendChecksum(Checksum.Builder builder)
     {
         builder.AppendData(LanguageVersion.Major);
         builder.AppendData(LanguageVersion.Minor);
         builder.AppendData(ConfigurationName);
         builder.AppendData(UseConsolidatedMvcViews);
+
+        if (LanguageServerFlags is null)
+        {
+            builder.AppendNull();
+        }
+        else
+        {
+            builder.AppendData(LanguageServerFlags.ForceRuntimeCodeGeneration);
+        }
 
         foreach (var extension in Extensions)
         {
@@ -64,7 +73,7 @@ public sealed record class RazorConfiguration(
     private Checksum CalculateChecksum()
     {
         var builder = new Checksum.Builder();
-        CalculateChecksum(builder);
+        AppendChecksum(builder);
         return builder.FreeAndGetChecksum();
     }
 }

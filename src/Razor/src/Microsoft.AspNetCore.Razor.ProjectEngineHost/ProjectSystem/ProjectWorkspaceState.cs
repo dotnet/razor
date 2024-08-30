@@ -56,7 +56,7 @@ internal sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
         return hash.CombinedHash;
     }
 
-    internal void CalculateChecksum(Checksum.Builder builder)
+    internal void AppendChecksum(Checksum.Builder builder)
     {
         builder.AppendData((int)CSharpLanguageVersion);
         foreach (var tagHelper in TagHelpers)

@@ -44,30 +44,11 @@ internal sealed record class RazorProjectInfo
         Documents = documents.NullToEmpty();
     }
 
-    public bool Equals(RazorProjectInfo? other)
-        => other is not null &&
-           ProjectKey == other.ProjectKey &&
-           FilePath == other.FilePath &&
-           Configuration.Equals(other.Configuration) &&
-           RootNamespace == other.RootNamespace &&
-           DisplayName == other.DisplayName &&
-           ProjectWorkspaceState.Equals(other.ProjectWorkspaceState) &&
-           Documents.SequenceEqual(other.Documents);
+    public bool Equals(RazorConfiguration? other)
+        => other is not null && Checksum.Equals(other.Checksum);
 
     public override int GetHashCode()
-    {
-        var hash = HashCodeCombiner.Start();
-
-        hash.Add(ProjectKey);
-        hash.Add(FilePath);
-        hash.Add(Configuration);
-        hash.Add(RootNamespace);
-        hash.Add(DisplayName);
-        hash.Add(ProjectWorkspaceState);
-        hash.Add(Documents);
-
-        return hash.CombinedHash;
-    }
+        => Checksum.GetHashCode();
 
     private Checksum ComputeChecksum()
     {
@@ -78,13 +59,13 @@ internal sealed record class RazorProjectInfo
         builder.AppendData(DisplayName);
         builder.AppendData(RootNamespace);
 
-        Configuration.CalculateChecksum(builder);
+        Configuration.AppendChecksum(builder);
         foreach (var document in Documents)
         {
-            document.CalculateChecksum(builder);
+            document.AppendChecksum(builder);
         }
 
-        ProjectWorkspaceState.CalculateChecksum(builder);
+        ProjectWorkspaceState.AppendChecksum(builder);
 
         return builder.FreeAndGetChecksum();
     }
