@@ -47,7 +47,7 @@ internal static class RazorProjectInfoHelpers
 
         return new RazorProjectInfo(
             projectKey: new ProjectKey(intermediateOutputPath),
-            filePath: project.FilePath!,
+            filePath: project.FilePath.AssumeNotNull(),
             razorConfiguration,
             rootNamespace,
             displayName: project.Name,
