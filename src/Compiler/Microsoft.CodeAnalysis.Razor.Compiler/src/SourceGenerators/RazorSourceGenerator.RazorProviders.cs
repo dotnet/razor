@@ -62,6 +62,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var (additionalText, globalOptions) = pair;
             var options = globalOptions.GetOptions(additionalText);
 
+            // PROTOTYPE: we should get rid of TargetPath and just calculate it here. We just need to pass in the project root. 
             if (!options.TryGetValue("build_metadata.AdditionalFiles.TargetPath", out var encodedRelativePath) ||
                 string.IsNullOrWhiteSpace(encodedRelativePath))
             {
@@ -72,6 +73,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return (null, diagnostic);
             }
 
+            // PROTOTYPE: CssScope is calculated by the StaticWebAssetsSdk. It seems easy enough to move the actual generation logic in here though if we need to.
+            //            The tricky bit is knowing if we need to generate it or not
             options.TryGetValue("build_metadata.AdditionalFiles.CssScope", out var cssScope);
             var relativePath = Encoding.UTF8.GetString(Convert.FromBase64String(encodedRelativePath));
 

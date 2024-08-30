@@ -13,7 +13,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     public partial class RazorSourceGenerator
     {
-        private static string GetIdentifierFromPath(string filePath)
+        internal static string GetIdentifierFromPath(string filePath)
         {
             var builder = new StringBuilder(filePath.Length);
 
@@ -31,6 +31,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 }
             }
 
+            builder.Append(".g.cs");
             return builder.ToString();
         }
 

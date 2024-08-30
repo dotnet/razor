@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -39,6 +38,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             // determine if we should suppress this run and filter out all the additional files and references if so
             var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator");
+
             var additionalTexts = context.AdditionalTextsProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
             var metadataRefs = context.MetadataReferencesProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
 
@@ -305,8 +305,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     });
             }
 
-            var csharpDocuments = processed(designTime: false)
-                .Select(static (pair, _) =>
+            var razorCodeDocuments = processed(designTime: false);
+
+            var csharpDocuments = razorCodeDocuments
+                .Select((pair, _) =>
                 {
                     var (filePath, document) = pair;
                     return (filePath, csharpDocument: document.CodeDocument.GetCSharpDocument());
@@ -336,7 +338,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 if (!isGeneratorSuppressed)
                 {
                     // Add a generated suffix so tools, such as coverlet, consider the file to be generated
-                    var hintName = GetIdentifierFromPath(filePath) + ".g.cs";
+                    var hintName = GetIdentifierFromPath(filePath);
 
                     RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
                     foreach (var razorDiagnostic in csharpDocument.Diagnostics)
@@ -348,6 +350,23 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     context.AddSource(hintName, csharpDocument.GeneratedCode);
                 }
             });
+
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            context.RegisterHostOutput(razorCodeDocuments, (context, pair) =>
+            {
+                var (filePath, razorDocument) = pair;
+                if (filePath is not null)
+                {
+                    context.AddOutput(filePath, razorDocument.CodeDocument);
+                }
+            });
+
+            context.RegisterHostOutput(allTagHelpers, (context, allTagHelpers) =>
+            {
+                context.AddOutput("TagHelpers", allTagHelpers.ToImmutableArray());
+            });
+
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         }
     }
 }
