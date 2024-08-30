@@ -19,7 +19,6 @@ using Roslyn.LanguageServer.Protocol;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteAutoInsertTextEdit?>;
 using RoslynFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
 using RoslynInsertTextFormat = Roslyn.LanguageServer.Protocol.InsertTextFormat;
-using VsLspFormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -171,7 +170,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        var razorFormattingOptions = new VsLspFormattingOptions()
+        var razorFormattingOptions = new RazorFormattingOptions()
         {
             InsertSpaces = !indentWithTabs,
             TabSize = indentSize
@@ -180,33 +179,29 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
         var vsLspTextEdit = VsLspFactory.CreateTextEdit(
             autoInsertResponseItem.TextEdit.Range.ToLinePositionSpan(),
             autoInsertResponseItem.TextEdit.NewText);
-        var mappedEdits = autoInsertResponseItem.TextEditFormat == RoslynInsertTextFormat.Snippet
-            ? await _razorFormattingService.FormatSnippetAsync(
+        var mappedEdit = autoInsertResponseItem.TextEditFormat == RoslynInsertTextFormat.Snippet
+            ? await _razorFormattingService.GetCSharpSnippetFormattingEditAsync(
                 remoteDocumentContext,
-                RazorLanguageKind.CSharp,
                 [vsLspTextEdit],
                 razorFormattingOptions,
                 cancellationToken)
             .ConfigureAwait(false)
-            : await _razorFormattingService.FormatOnTypeAsync(
+            : await _razorFormattingService.GetSingleCSharpEditAsync(
                 remoteDocumentContext,
-                RazorLanguageKind.CSharp,
-                [vsLspTextEdit],
+                vsLspTextEdit,
                 razorFormattingOptions,
-                hostDocumentIndex: 0,
-                triggerCharacter: '\0',
                 cancellationToken)
             .ConfigureAwait(false);
 
-        if (mappedEdits is not [{ } edit])
+        if (mappedEdit is null)
         {
             return Response.NoFurtherHandling;
         }
 
         return Response.Results(
             new RemoteAutoInsertTextEdit(
-                edit.Range.ToLinePositionSpan(),
-                edit.NewText,
+                mappedEdit.Range.ToLinePositionSpan(),
+                mappedEdit.NewText,
                 autoInsertResponseItem.TextEditFormat));
     }
 }

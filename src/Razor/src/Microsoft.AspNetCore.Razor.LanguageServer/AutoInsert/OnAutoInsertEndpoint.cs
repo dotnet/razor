@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -185,19 +185,21 @@ internal class OnAutoInsertEndpoint(
         }
 
         // For C# we run the edit through our formatting engine
-        var edits = new[] { delegatedResponse.TextEdit };
+        Debug.Assert(positionInfo.LanguageKind == RazorLanguageKind.CSharp);
 
-        var mappedEdits = delegatedResponse.TextEditFormat == InsertTextFormat.Snippet
-            ? await _razorFormattingService.FormatSnippetAsync(documentContext, positionInfo.LanguageKind, edits, originalRequest.Options, cancellationToken).ConfigureAwait(false)
-            : await _razorFormattingService.FormatOnTypeAsync(documentContext, positionInfo.LanguageKind, edits, originalRequest.Options, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
-        if (mappedEdits is not [{ } edit])
+        var options = RazorFormattingOptions.From(originalRequest.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
+
+        var mappedEdit = delegatedResponse.TextEditFormat == InsertTextFormat.Snippet
+            ? await _razorFormattingService.GetCSharpSnippetFormattingEditAsync(documentContext, [delegatedResponse.TextEdit], options, cancellationToken).ConfigureAwait(false)
+            : await _razorFormattingService.GetSingleCSharpEditAsync(documentContext, delegatedResponse.TextEdit, options, cancellationToken).ConfigureAwait(false);
+        if (mappedEdit is null)
         {
             return null;
         }
 
         return new VSInternalDocumentOnAutoInsertResponseItem()
         {
-            TextEdit = edit,
+            TextEdit = mappedEdit,
             TextEditFormat = delegatedResponse.TextEditFormat,
         };
     }

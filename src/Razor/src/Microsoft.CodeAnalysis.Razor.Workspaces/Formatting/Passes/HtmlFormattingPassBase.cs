@@ -7,68 +7,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class HtmlFormattingPass(
-    IDocumentMappingService documentMappingService,
-    IClientConnection clientConnection,
-    ILoggerFactory loggerFactory)
-    : FormattingPassBase(documentMappingService)
+internal abstract class HtmlFormattingPassBase(ILogger logger) : IFormattingPass
 {
-    private readonly HtmlFormatter _htmlFormatter = new HtmlFormatter(clientConnection);
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlFormattingPass>();
+    private readonly ILogger _logger = logger;
 
-    // We want this to run first because it uses the client HTML formatter.
-    public override int Order => DefaultOrder - 5;
-
-    public override bool IsValidationPass => false;
-
-    public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public virtual async Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
         var originalText = context.SourceText;
-
-        TextEdit[] htmlEdits;
-
-        if (context.IsFormatOnType && result.Kind == RazorLanguageKind.Html)
-        {
-            htmlEdits = await _htmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false);
-        }
-        else if (!context.IsFormatOnType)
-        {
-            htmlEdits = await _htmlFormatter.FormatAsync(context, cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            // We don't want to handle on type formatting requests for other languages
-            return result;
-        }
 
         var changedText = originalText;
         var changedContext = context;
 
         _logger.LogTestOnly($"Before HTML formatter:\r\n{changedText}");
 
-        if (htmlEdits.Length > 0)
+        if (edits.Length > 0)
         {
-            var changes = htmlEdits.Select(originalText.GetTextChange);
+            var changes = edits.Select(originalText.GetTextChange);
             changedText = originalText.WithChanges(changes);
             // Create a new formatting context for the changed razor document.
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
 
             _logger.LogTestOnly($"After normalizedEdits:\r\n{changedText}");
-        }
-        else if (context.IsFormatOnType)
-        {
-            // There are no HTML edits for us to apply. No op.
-            return new FormattingResult(htmlEdits);
         }
 
         var indentationChanges = AdjustRazorIndentation(changedContext);
@@ -82,7 +47,7 @@ internal sealed class HtmlFormattingPass(
         var finalChanges = changedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        return new FormattingResult(finalEdits);
+        return finalEdits;
     }
 
     private static List<TextChange> AdjustRazorIndentation(FormattingContext context)

@@ -5,39 +5,22 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal class FormattingContentValidationPass(
-    IDocumentMappingService documentMappingService,
-    ILoggerFactory loggerFactory)
-    : FormattingPassBase(documentMappingService)
+internal sealed class FormattingContentValidationPass(ILoggerFactory loggerFactory) : IFormattingPass
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<FormattingContentValidationPass>();
-
-    // We want this to run at the very end.
-    public override int Order => DefaultOrder + 1000;
-
-    public override bool IsValidationPass => true;
 
     // Internal for testing.
     internal bool DebugAssertsEnabled { get; set; } = true;
 
-    public override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
-        if (result.Kind != RazorLanguageKind.Razor)
-        {
-            // We don't care about changes to projected documents here.
-            return Task.FromResult(result);
-        }
-
         var text = context.SourceText;
-        var edits = result.Edits;
         var changes = edits.Select(text.GetTextChange);
         var changedText = text.WithChanges(changes);
 
@@ -65,9 +48,9 @@ internal class FormattingContentValidationPass(
                 Debug.Fail("A formatting result was rejected because it was going to change non-whitespace content in the document.");
             }
 
-            return Task.FromResult(new FormattingResult([]));
+            return Task.FromResult<TextEdit[]>([]);
         }
 
-        return Task.FromResult(result);
+        return Task.FromResult(edits);
     }
 }
