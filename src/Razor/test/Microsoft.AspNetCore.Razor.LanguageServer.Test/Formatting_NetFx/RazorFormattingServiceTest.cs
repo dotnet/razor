@@ -40,4 +40,31 @@ public class Foo{}
 
         Assert.Equal(multiEditChange.ToString(), singleEditChange.ToString());
     }
+
+    [Fact]
+    public void AllTriggerCharacters_IncludesCSharpTriggerCharacters()
+    {
+        foreach (var character in RazorFormattingService.TestAccessor.GetCSharpTriggerCharacterSet())
+        {
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacters);
+        }
+    }
+
+    [Fact]
+    public void AllTriggerCharacters_IncludesHtmlTriggerCharacters()
+    {
+        foreach (var character in RazorFormattingService.TestAccessor.GetHtmlTriggerCharacterSet())
+        {
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacters);
+        }
+    }
+
+    [Fact]
+    public void AllTriggerCharacters_ContainsUniqueCharacters()
+    {
+        var allChars = RazorFormattingService.AllTriggerCharacters;
+        var distinctChars = allChars.Distinct().ToArray();
+
+        Assert.Equal(distinctChars, allChars);
+    }
 }

@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -19,37 +17,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) : FormattingLanguageServerTestBase(testOutput)
 {
-    [Fact]
-    public void AllTriggerCharacters_IncludesCSharpTriggerCharacters()
-    {
-        var allChars = DocumentOnTypeFormattingEndpoint.TestAccessor.GetAllTriggerCharacters();
-
-        foreach (var character in DocumentOnTypeFormattingEndpoint.TestAccessor.GetCSharpTriggerCharacterSet())
-        {
-            Assert.Contains(character, allChars);
-        }
-    }
-
-    [Fact]
-    public void AllTriggerCharacters_IncludesHtmlTriggerCharacters()
-    {
-        var allChars = DocumentOnTypeFormattingEndpoint.TestAccessor.GetAllTriggerCharacters();
-
-        foreach (var character in DocumentOnTypeFormattingEndpoint.TestAccessor.GetHtmlTriggerCharacterSet())
-        {
-            Assert.Contains(character, allChars);
-        }
-    }
-
-    [Fact]
-    public void AllTriggerCharacters_ContainsUniqueCharacters()
-    {
-        var allChars = DocumentOnTypeFormattingEndpoint.TestAccessor.GetAllTriggerCharacters();
-        var distinctChars = allChars.Distinct().ToArray();
-
-        Assert.Equal(distinctChars, allChars);
-    }
-
     [Fact]
     public async Task Handle_OnTypeFormatting_FormattingDisabled_ReturnsNull()
     {
@@ -154,7 +121,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var uri = new Uri("file://path/test.razor");
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var formattingService = new DummyRazorFormattingService();
+        var formattingService = new DummyRazorFormattingService(RazorLanguageKind.Html);
 
         var documentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Html);
@@ -190,7 +157,7 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var uri = new Uri("file://path/test.razor");
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var formattingService = new DummyRazorFormattingService();
+        var formattingService = new DummyRazorFormattingService(RazorLanguageKind.Razor);
 
         var documentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Razor);

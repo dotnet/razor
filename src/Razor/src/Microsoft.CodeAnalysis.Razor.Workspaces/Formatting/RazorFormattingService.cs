@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,7 +23,14 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal class RazorFormattingService : IRazorFormattingService
 {
+    public static readonly ImmutableArray<string> AllTriggerCharacters = ["}", ";", "\n", "{"];
+    public static readonly FrozenSet<string> AllTriggerCharacterSet = AllTriggerCharacters.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> s_csharpTriggerCharacterSet = FrozenSet.ToFrozenSet(["}", ";"], StringComparer.Ordinal);
+    private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
+
     private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
+    private readonly IDocumentMappingService _documentMappingService;
     private readonly IAdhocWorkspaceFactory _workspaceFactory;
 
     private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
@@ -35,6 +45,7 @@ internal class RazorFormattingService : IRazorFormattingService
         ILoggerFactory loggerFactory)
     {
         _codeDocumentProvider = codeDocumentProvider;
+        _documentMappingService = documentMappingService;
         _workspaceFactory = workspaceFactory;
 
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
@@ -185,6 +196,26 @@ internal class RazorFormattingService : IRazorFormattingService
         return razorEdits.SingleOrDefault();
     }
 
+    public bool TryGetOnTypeFormattingTriggerKind(RazorCodeDocument codeDocument, int hostDocumentIndex, string triggerCharacter, out RazorLanguageKind triggerCharacterKind)
+    {
+        triggerCharacterKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
+        if (triggerCharacterKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
+        {
+            return false;
+        }
+
+        if (triggerCharacterKind == RazorLanguageKind.CSharp)
+        {
+            return s_csharpTriggerCharacterSet.Contains(triggerCharacter);
+        }
+        else if (triggerCharacterKind == RazorLanguageKind.Html)
+        {
+            return s_htmlTriggerCharacterSet.Contains(triggerCharacter);
+        }
+
+        return true;
+    }
+
     private async Task<TextEdit[]> ApplyFormattedEditsAsync(
         DocumentContext documentContext,
         TextEdit[] generatedDocumentEdits,
@@ -278,5 +309,11 @@ internal class RazorFormattingService : IRazorFormattingService
             // So, let's avoid the error by wrapping the cursor marker in a comment.
             edit.NewText = edit.NewText.Replace("/*$0*/", "$0");
         }
+    }
+
+    internal static class TestAccessor
+    {
+        public static FrozenSet<string> GetCSharpTriggerCharacterSet() => s_csharpTriggerCharacterSet;
+        public static FrozenSet<string> GetHtmlTriggerCharacterSet() => s_htmlTriggerCharacterSet;
     }
 }
