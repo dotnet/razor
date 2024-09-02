@@ -82,15 +82,6 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 The end.
                 """,
             additionalFiles: [
-                // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
-                (File("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
-                // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
                 (File("Component.razor"), "")
             ],
             uris: [FileUri("Component.razor")],
@@ -167,13 +158,6 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 }
                 """,
             additionalFiles: [
-                (File("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
                 (File("Component.razor"), "")
             ],
             uris: [FileUri("Component.razor")],
@@ -194,13 +178,6 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 The end.
                 """,
             additionalFiles: [
-                (File("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
                 (File("Component.razor"), "")
             ],
             uris: [
@@ -225,13 +202,6 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 The end.
                 """,
             additionalFiles: [
-                (File("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
                 (File("Component.razor"), "")
             ],
             uris: [
@@ -256,22 +226,18 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 The end.
                 """,
             additionalFiles: [
-                (File("Component.cs"), """
-                    using Microsoft.AspNetCore.Components;
+                (File("Component.razor"), """
+                    @using Microsoft.AspNetCore.Components;
 
-                    namespace SomeProject;
-
-                    public class Component : ComponentBase
-                    {
+                    @code {
                         [Parameter]
                         [EditorRequired]
                         public string RequiredParameter { get; set; }
-
+                
                         [Parameter]
                         public string NormalParameter { get; set; }
                     }
-                    """),
-                (File("Component.razor"), "")
+                    """)
             ],
             uris: [FileUri("Component.razor")],
             expected: """<Component RequiredParameter="" />""");

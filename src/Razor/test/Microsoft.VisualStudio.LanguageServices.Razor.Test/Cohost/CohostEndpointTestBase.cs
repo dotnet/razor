@@ -4,17 +4,22 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -82,6 +87,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         var projectId = ProjectId.CreateNewId(debugName: projectName);
         var documentId = DocumentId.CreateNewId(projectId, debugName: documentFilePath);
 
+        var sgAssembly = typeof(RazorSourceGenerator).Assembly;
+
         var projectInfo = ProjectInfo
             .Create(
                 projectId,
@@ -91,7 +98,9 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                 LanguageNames.CSharp,
                 documentFilePath)
             .WithDefaultNamespace(TestProjectData.SomeProject.RootNamespace)
-            .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference));
+            .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference))
+            // TODO: Can we just use an object reference? Trying to do so now results in a serialization error from Roslyn
+            .WithAnalyzerReferences([new AnalyzerFileReference(sgAssembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)]);
 
         // Importantly, we use Roslyn's remote workspace here so that when our OOP services call into Roslyn, their code
         // will be able to access their services.
@@ -137,6 +146,37 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                     : solution.AddAdditionalDocument(DocumentId.CreateNewId(projectId), name: file.fileName, text: SourceText.From(file.contents), filePath: file.fileName);
             }
         }
+
+        var globalConfigContent = new StringBuilder();
+        globalConfigContent.AppendLine($"""
+                    is_global = true
+
+                    build_property.RazorLangVersion = {FallbackRazorConfiguration.Latest.LanguageVersion}
+                    build_property.RazorConfiguration = {FallbackRazorConfiguration.Latest.ConfigurationName}
+                    build_property.RootNamespace = {TestProjectData.SomeProject.RootNamespace}
+                    """);
+
+        var projectBasePath = TestProjectData.SomeProjectPath;
+        // Normally MS Build targets do this for us, but we're on our own!
+        foreach (var razorDocument in solution.Projects.Single().AdditionalDocuments)
+        {
+            if (razorDocument.FilePath is not null &&
+                razorDocument.FilePath.StartsWith(projectBasePath))
+            {
+                var relativePath = razorDocument.FilePath[(projectBasePath.Length + 1)..];
+                globalConfigContent.AppendLine($"""
+
+                [{razorDocument.FilePath.AssumeNotNull().Replace('\\', '/')}]
+                build_metadata.AdditionalFiles.TargetPath = {Convert.ToBase64String(Encoding.UTF8.GetBytes(relativePath))}
+                """);
+            }
+        }
+
+        solution = solution.AddAnalyzerConfigDocument(
+                DocumentId.CreateNewId(projectId),
+                name: ".globalconfig",
+                text: SourceText.From(globalConfigContent.ToString()),
+                filePath: Path.Combine(TestProjectData.SomeProjectPath, ".globalconfig"));
 
         return solution.GetAdditionalDocument(documentId).AssumeNotNull();
     }
