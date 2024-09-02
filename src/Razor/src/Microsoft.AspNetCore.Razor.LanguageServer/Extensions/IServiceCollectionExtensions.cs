@@ -158,12 +158,13 @@ internal static class IServiceCollectionExtensions
         {
             services.AddHandlerWithCapabilities<TextDocumentTextPresentationEndpoint>();
             services.AddHandlerWithCapabilities<TextDocumentUriPresentationEndpoint>();
+
+            services.AddSingleton<ISpellCheckService, SpellCheckService>();
+            services.AddSingleton<ICSharpSpellCheckService, LspCSharpSpellCheckService>();
+            services.AddHandlerWithCapabilities<DocumentSpellCheckEndpoint>();
+            services.AddHandler<WorkspaceSpellCheckEndpoint>();
         }
 
-        services.AddSingleton<ISpellCheckService, SpellCheckService>();
-        services.AddSingleton<ICSharpSpellCheckService, LspCSharpSpellCheckService>();
-        services.AddHandlerWithCapabilities<DocumentSpellCheckEndpoint>();
-        services.AddHandler<WorkspaceSpellCheckEndpoint>();
 
         services.AddHandlerWithCapabilities<DocumentDidChangeEndpoint>();
         services.AddHandler<DocumentDidCloseEndpoint>();

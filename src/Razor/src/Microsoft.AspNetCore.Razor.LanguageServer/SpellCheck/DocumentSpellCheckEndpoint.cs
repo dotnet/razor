@@ -36,11 +36,13 @@ internal sealed class DocumentSpellCheckEndpoint(
 
         var data = await _spellCheckService.GetSpellCheckRangeTriplesAsync(documentContext, cancellationToken).ConfigureAwait(false);
 
-        return [new VSInternalSpellCheckableRangeReport
-                    {
-                        Ranges =data,
-                        ResultId = Guid.NewGuid().ToString()
-                    }
-                ];
+        return
+            [
+                new VSInternalSpellCheckableRangeReport
+                {
+                    Ranges =data,
+                    ResultId = Guid.NewGuid().ToString()
+                }
+            ];
     }
 }
