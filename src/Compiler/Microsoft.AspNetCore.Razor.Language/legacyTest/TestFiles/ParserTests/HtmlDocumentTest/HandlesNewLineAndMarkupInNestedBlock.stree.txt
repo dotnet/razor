@@ -23,7 +23,7 @@
                                 LeftBrace;[{];
                                 NewLine;[LF];
                                 RightBrace;[}];
-                        MarkupBlock - [17..26)::9
+                        MarkupBlock - [17..25)::8
                             MarkupTextLiteral - [17..18)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
                                 Whitespace;[ ];
                             MarkupElement - [18..25)::7
@@ -31,10 +31,8 @@
                                     OpenAngle;[<];
                                     Text;[input];
                                     CloseAngle;[>];
-                            MarkupTextLiteral - [25..26)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:None
-                                Whitespace;[ ];
-                        CSharpStatementLiteral - [26..26)::0 - [] - Gen<Stmt> - SpanEditHandler;Accepts:Any
-                            Marker;[];
+                        CSharpStatementLiteral - [25..26)::1 - [ ] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                            Whitespace;[ ];
                     RazorMetaCode - [26..27)::1 - Gen<None> - SpanEditHandler;Accepts:None
                         RightBrace;[}];
         MarkupTextLiteral - [27..27)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any

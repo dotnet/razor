@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -59,7 +60,46 @@ internal partial class ParserContext
     {
         get { return Source.Peek() == -1; }
     }
+
+    public ParserContextState TakeSnapshot()
+    {
+        return new ParserContextState(
+            new ErrorSink(ErrorSink.Errors),
+            SeenDirectives.ToImmutableArray(),
+            SourcePosition: Source.Position,
+            WhiteSpaceIsSignificantToAncestorBlock: WhiteSpaceIsSignificantToAncestorBlock,
+            NullGenerateWhitespaceAndNewLine: NullGenerateWhitespaceAndNewLine,
+            InTemplateContext: InTemplateContext,
+            StartOfLine: StartOfLine,
+            MakeMarkerNode: MakeMarkerNode,
+            CurrentAcceptedCharacters: CurrentAcceptedCharacters);
+    }
+
+    public void Restore(ParserContextState state)
+    {
+        ErrorSink = state.ErrorSink;
+        SeenDirectives.Clear();
+        SeenDirectives.UnionWith(state.SeenDirectives);
+        Source.Position = state.SourcePosition;
+        WhiteSpaceIsSignificantToAncestorBlock = state.WhiteSpaceIsSignificantToAncestorBlock;
+        NullGenerateWhitespaceAndNewLine = state.NullGenerateWhitespaceAndNewLine;
+        InTemplateContext = state.InTemplateContext;
+        StartOfLine = state.StartOfLine;
+        MakeMarkerNode = state.MakeMarkerNode;
+        CurrentAcceptedCharacters = state.CurrentAcceptedCharacters;
+    }
 }
+
+internal sealed record ParserContextState(
+    ErrorSink ErrorSink,
+    ImmutableArray<string> SeenDirectives,
+    int SourcePosition,
+    bool WhiteSpaceIsSignificantToAncestorBlock,
+    bool NullGenerateWhitespaceAndNewLine,
+    bool InTemplateContext,
+    bool StartOfLine,
+    bool MakeMarkerNode,
+    AcceptedCharactersInternal CurrentAcceptedCharacters);
 
 // Debug Helpers
 

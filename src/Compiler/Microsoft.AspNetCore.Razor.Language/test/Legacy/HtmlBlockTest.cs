@@ -335,4 +335,134 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         ParseDocumentTest(@"@{<p / class=foo />}");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void Component_Row()
+    {
+        ParseDocumentTest("@{<Row>in code block</Row>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void Component_Col()
+    {
+        ParseDocumentTest("@{<Col>in code block</Col>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void Component_Input()
+    {
+        ParseDocumentTest("@{<Input>in code block</Input>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_Standalone()
+    {
+        ParseDocumentTest("@{<col>while (true) { }}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_SelfClosed()
+    {
+        ParseDocumentTest("@{<col />while (true) { }}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_ClosedImmediately()
+    {
+        ParseDocumentTest("@{<col> </col>while (true) { }}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_ClosedLater()
+    {
+        ParseDocumentTest("@{<col>while (true) { }</col>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_ClosedInScript()
+    {
+        ParseDocumentTest("@{<col>x = 1;<script>const text = '</col>';</script>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_Wrapped()
+    {
+        ParseDocumentTest("@{<p>@{<input>}</p>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_ErrorsInMarkup()
+    {
+        ParseDocumentTest("""@{<input>var x = "<a></b>";}""");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_SingleLine()
+    {
+        ParseDocumentTest("""
+            @{
+                @:<Link>content</Link>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_MultipleLines()
+    {
+        ParseDocumentTest("""
+            @{
+                @:<Link>
+                @:content
+                @:</Link>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_SingleLineSpilled()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{
+                    <Link>
+                    content
+                    </Link>
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_Text_SingleLine()
+    {
+        ParseDocumentTest("""@{<text><Link>content</Link></text>}""");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_Text_MultipleLines()
+    {
+        ParseDocumentTest("""
+            @{
+                <text>
+                    <Link>
+                    content
+                    </Link>
+                </text>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_MarkupTransition_Text_Block()
+    {
+        ParseDocumentTest("""
+            @{
+                <text>@{
+                    <Link>
+                    content
+                    </Link>
+                }</text>
+            }
+            """);
+    }
 }
