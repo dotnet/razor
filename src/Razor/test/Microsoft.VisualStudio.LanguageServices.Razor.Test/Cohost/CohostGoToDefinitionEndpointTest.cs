@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
@@ -362,7 +363,8 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
 
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentDefinitionName, htmlResponse)]);
 
-        var endpoint = new CohostGoToDefinitionEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker);
+        var filePathService = new VisualStudioFilePathService(FeatureOptions);
+        var endpoint = new CohostGoToDefinitionEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, filePathService);
 
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
