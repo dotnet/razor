@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -33,6 +34,8 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     /// </summary>
     private const int InlineCapacity = 4;
 
+    private ObjectPool<ImmutableArray<T>.Builder>? _builderPool;
+
     /// <summary>
     ///  A builder to be used as storage after the first time that the number
     ///  of items exceeds <see cref="InlineCapacity"/>. Once the builder is used,
@@ -56,9 +59,10 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     /// </summary>
     private int _inlineCount;
 
-    public PooledArrayBuilder(int? capacity = null)
+    public PooledArrayBuilder(int? capacity = null, ObjectPool<ImmutableArray<T>.Builder>? builderPool = null)
     {
         _capacity = capacity is > InlineCapacity ? capacity : null;
+        _builderPool = builderPool;
         _element0 = default!;
         _element1 = default!;
         _element2 = default!;
@@ -81,7 +85,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         // stack after the last use of a reference to them.
         if (_builder is { } builder)
         {
-            ArrayBuilderPool<T>.Default.Return(builder);
+            _builderPool?.Return(builder);
             _builder = null;
         }
     }
@@ -1314,7 +1318,8 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     {
         Debug.Assert(_builder is null);
 
-        var builder = ArrayBuilderPool<T>.Default.Get();
+        _builderPool ??= ArrayBuilderPool<T>.Default;
+        var builder = _builderPool.Get();
 
         if (_capacity is int capacity)
         {
@@ -1524,5 +1529,14 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         result.Unsafe().OrderByDescending(keySelector, comparison);
 
         return result;
+    }
+
+    internal readonly TestAccessor GetTestAccessor() => new(in this);
+
+    internal readonly struct TestAccessor(ref readonly PooledArrayBuilder<T> builder)
+    {
+        public ImmutableArray<T>.Builder? InnerArrayBuilder { get; } = builder._builder;
+        public int? Capacity { get; } = builder._capacity;
+        public int InlineItemCount { get; } = builder._inlineCount;
     }
 }

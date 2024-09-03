@@ -102,87 +102,115 @@ public class PooledArrayBuilderOrderingTests : ImmutableArrayOrderingTestBase
     [MemberData(nameof(OrderTestData))]
     public void DrainToImmutableOrdered(ImmutableArray<int> data, ImmutableArray<int> expected)
     {
-        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        var builderPool = TestArrayBuilderPool<int>.Create();
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length, builderPool);
         builder.AddRange(data);
 
         var sorted = builder.DrainToImmutableOrdered();
         AssertEqual(expected, sorted);
+        AssertIsDrained(in builder);
     }
 
     [Theory]
     [MemberData(nameof(OrderTestData_OddBeforeEven))]
     public void DrainToImmutableOrdered_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
     {
-        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        var builderPool = TestArrayBuilderPool<int>.Create();
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length, builderPool);
         builder.AddRange(data);
 
         var sorted = builder.DrainToImmutableOrdered(OddBeforeEven);
         AssertEqual(expected, sorted);
+        AssertIsDrained(in builder);
     }
 
     [Theory]
     [MemberData(nameof(OrderDescendingTestData))]
     public void DrainToImmutableOrderedDescending(ImmutableArray<int> data, ImmutableArray<int> expected)
     {
-        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        var builderPool = TestArrayBuilderPool<int>.Create();
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length, builderPool);
         builder.AddRange(data);
 
         var sorted = builder.DrainToImmutableOrderedDescending();
         AssertEqual(expected, sorted);
+        AssertIsDrained(in builder);
     }
 
     [Theory]
     [MemberData(nameof(OrderDescendingTestData_OddBeforeEven))]
     public void DrainToImmutableOrderedDescending_OddBeforeEven(ImmutableArray<int> data, ImmutableArray<int> expected)
     {
-        using var builder = new PooledArrayBuilder<int>(capacity: data.Length);
+        var builderPool = TestArrayBuilderPool<int>.Create();
+        using var builder = new PooledArrayBuilder<int>(capacity: data.Length, builderPool);
         builder.AddRange(data);
 
         var sorted = builder.DrainToImmutableOrderedDescending(OddBeforeEven);
         AssertEqual(expected, sorted);
+        AssertIsDrained(in builder);
     }
 
     [Theory]
     [MemberData(nameof(OrderByTestData))]
     public void DrainToImmutableOrderedBy(ImmutableArray<ValueHolder<int>> data, ImmutableArray<ValueHolder<int>> expected)
     {
-        using var builder = new PooledArrayBuilder<ValueHolder<int>>(capacity: data.Length);
+        var builderPool = TestArrayBuilderPool<ValueHolder<int>>.Create();
+        using var builder = new PooledArrayBuilder<ValueHolder<int>>(capacity: data.Length, builderPool);
         builder.AddRange(data);
 
         var sorted = builder.DrainToImmutableOrderedBy(static x => x.Value);
         AssertEqual(expected, sorted);
+        AssertIsDrained(in builder);
     }
 
     [Theory]
     [MemberData(nameof(OrderByTestData_OddBeforeEven))]
     public void DrainToImmutableOrderedBy_OddBeforeEven(ImmutableArray<ValueHolder<int>> data, ImmutableArray<ValueHolder<int>> expected)
     {
-        using var builder = new PooledArrayBuilder<ValueHolder<int>>(capacity: data.Length);
+        var builderPool = TestArrayBuilderPool<ValueHolder<int>>.Create();
+        using var builder = new PooledArrayBuilder<ValueHolder<int>>(capacity: data.Length, builderPool);
         builder.AddRange(data);
 
         var sorted = builder.DrainToImmutableOrderedBy(static x => x.Value, OddBeforeEven);
         AssertEqual(expected, sorted);
+        AssertIsDrained(in builder);
     }
 
     [Theory]
     [MemberData(nameof(OrderByDescendingTestData))]
     public void DrainToImmutableOrderedByDescending(ImmutableArray<ValueHolder<int>> data, ImmutableArray<ValueHolder<int>> expected)
     {
-        using var builder = new PooledArrayBuilder<ValueHolder<int>>(capacity: data.Length);
+        var builderPool = TestArrayBuilderPool<ValueHolder<int>>.Create();
+        using var builder = new PooledArrayBuilder<ValueHolder<int>>(capacity: data.Length, builderPool);
         builder.AddRange(data);
 
         var sorted = builder.DrainToImmutableOrderedByDescending(static x => x.Value);
         AssertEqual(expected, sorted);
+        AssertIsDrained(in builder);
     }
 
     [Theory]
     [MemberData(nameof(OrderByDescendingTestData_OddBeforeEven))]
     public void DrainToImmutableOrderedByDescending_OddBeforeEven(ImmutableArray<ValueHolder<int>> data, ImmutableArray<ValueHolder<int>> expected)
     {
-        using var builder = new PooledArrayBuilder<ValueHolder<int>>(capacity: data.Length);
+        var builderPool = TestArrayBuilderPool<ValueHolder<int>>.Create();
+        using var builder = new PooledArrayBuilder<ValueHolder<int>>(capacity: data.Length, builderPool);
         builder.AddRange(data);
 
         var sorted = builder.DrainToImmutableOrderedByDescending(static x => x.Value, OddBeforeEven);
         AssertEqual(expected, sorted);
+        AssertIsDrained(in builder);
+    }
+
+    private static void AssertIsDrained<T>(ref readonly PooledArrayBuilder<T> builder)
+    {
+        builder.Validate(static t =>
+        {
+            Assert.NotNull(t.InnerArrayBuilder);
+            Assert.Empty(t.InnerArrayBuilder);
+
+            // After draining, the capacity of the inner array builder should be 0.
+            Assert.Equal(0, t.InnerArrayBuilder.Capacity);
+        });
     }
 }
