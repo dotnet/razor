@@ -806,22 +806,20 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         foreach (var method in methods)
         {
-            builder.AppendLine("/// <summary>");
-            builder.AppendLine($"/// Delegate for the '{method.Name}' method.");
-            builder.AppendLine("/// </summary>");
-            builder.AppendLine("[Parameter]");
+            builder.AppendLine($"\t/// Delegate for the '{method.Name}' method.");
+            builder.AppendLine("\t[Parameter]");
 
             // Start building delegate type
-            builder.Append("required public ");
-            builder.Append(method.ReturnType == "void" ? "Action" : "Func");
+            builder.Append("\trequired public ");
+            builder.Append(method.ReturnType == "Void" ? "Action" : "Func");
 
             // If delegate type is Action, only add generic parameters if needed. 
-            if (method.ParameterTypes.Length > 0 || method.ReturnType != "void")
+            if (method.ParameterTypes.Length > 0 || method.ReturnType != "Void")
             {
                 builder.Append('<');
                 builder.Append(string.Join(", ", method.ParameterTypes));
 
-                if (method.ReturnType != "void")
+                if (method.ReturnType != "Void")
                 {
                     if (method.ParameterTypes.Length > 0)
                     {
@@ -836,41 +834,40 @@ internal sealed class ExtractToComponentCodeActionResolver(
             }
 
             builder.Append($" {method.Name} {{ get; set; }}");
-            if (parameterCount < totalMethods - 1)
+            if (parameterCount++ < totalMethods - 1)
             {
                 // Space between methods except for the last method.
                 builder.AppendLine();
                 builder.AppendLine();
             }
-
-            parameterCount++;
         }
 
         return builder.ToString();
     }
 
-    private static string GeneratePromotedAttributes(AttributeSymbolicInfo[] relevantFields, string? sourceDocumentFileName)
+    private static string GeneratePromotedAttributes(AttributeSymbolicInfo[] attributes, string? sourceDocumentFileName)
     {
         var builder = new StringBuilder();
-        var fieldCount = 0;
-        var totalFields = relevantFields.Length;
+        var attributeCount = 0;
+        var totalAttributes = attributes.Length;
 
-        foreach (var field in relevantFields)
+        foreach (var field in attributes)
         {
             var capitalizedFieldName = CapitalizeString(field.Name);
 
-            if ((field.IsValueType || field.Type == "string") && field.IsWrittenTo)
+            if ((field.IsValueType || field.Type == "String") && field.IsWrittenTo)
             {
-                builder.AppendLine($"// Warning: Field '{capitalizedFieldName}' was passed by value and may not be referenced correctly. Please check its usage in the original document: '{sourceDocumentFileName}'.");
+                builder.AppendLine($"\t// Warning: Field '{capitalizedFieldName}' was passed by value and may not be referenced correctly. Please check its usage in the original document: '{sourceDocumentFileName}'.");
             }
 
-            builder.AppendLine("[Parameter]");
+            builder.AppendLine("\t[Parameter]");
 
             // Members cannot be less visible than their enclosing type, so we don't need to check for private fields.
-            builder.AppendLine($"required public {field.Type} {capitalizedFieldName} {{ get; set; }}");
+            builder.Append($"\trequired public {field.Type} {capitalizedFieldName} {{ get; set; }}");
 
-            if (fieldCount++ < totalFields - 1)
+            if (attributeCount++ < totalAttributes - 1)
             {
+                builder.AppendLine();
                 builder.AppendLine();
             }
         }
@@ -892,9 +889,21 @@ internal sealed class ExtractToComponentCodeActionResolver(
         builder.AppendLine();
         builder.AppendLine();
         builder.AppendLine("@code {");
-        builder.AppendLine(promotedProperties);
-        builder.AppendLine(promotedMethods);
-        builder.AppendLine("}");
+        if (promotedProperties.Length > 0)
+        {
+            builder.AppendLine(promotedProperties);
+        }
+
+        if (promotedProperties.Length > 0 && promotedMethods.Length > 0)
+        {
+            builder.AppendLine();
+        }
+
+        if (promotedMethods.Length > 0)
+        {
+            builder.AppendLine(promotedMethods);
+        }
+        builder.Append("}");
         return builder.ToString();
     }
 
