@@ -83,11 +83,48 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         // Return _builder to the pool if necessary. Note that we don't need to clear the inline elements here
         // because this type is intended to be allocated on the stack and the GC can reclaim objects from the
         // stack after the last use of a reference to them.
-        if (_builder is { } builder)
+        if (_builder is { } innerBuilder)
         {
-            _builderPool?.Return(builder);
+            _builderPool?.Return(innerBuilder);
             _builder = null;
         }
+    }
+
+    /// <summary>
+    ///  Retrieves the inner <see cref="_builder"/>.
+    /// </summary>
+    /// <returns>
+    ///  Returns <see langword="true"/> if <see cref="_builder"/> is available; otherwise <see langword="false"/>
+    /// </returns>
+    /// <remarks>
+    ///  This should only be used by methods that will not add to the inner <see cref="_builder"/>.
+    /// </remarks>
+    private readonly bool TryGetBuilder([NotNullWhen(true)] out ImmutableArray<T>.Builder? builder)
+    {
+        builder = _builder;
+        return builder is not null;
+    }
+
+    /// <summary>
+    ///  Retrieves the inner <see cref="_builder"/> and resets its capacity if necessary.
+    /// </summary>
+    /// <returns>
+    ///  Returns <see langword="true"/> if <see cref="_builder"/> is available; otherwise <see langword="false"/>
+    /// </returns>
+    /// <remarks>
+    ///  This should only be used by methods that will add to the inner <see cref="_builder"/>.
+    /// </remarks>
+    private readonly bool TryGetBuilderAndEnsureCapacity([NotNullWhen(true)] out ImmutableArray<T>.Builder? builder)
+    {
+        if (TryGetBuilder(out builder))
+        {
+            if (builder.Capacity == 0 && _capacity is int capacity)
+            {
+                builder.Capacity = capacity;
+            }
+        }
+
+        return builder is not null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -112,7 +149,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get
         {
-            if (_builder is { } builder)
+            if (TryGetBuilder(out var builder))
             {
                 return builder[index];
             }
@@ -128,7 +165,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            if (_builder is { } builder)
+            if (TryGetBuilder(out var builder))
             {
                 builder[index] = value;
                 return;
@@ -198,7 +235,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public void Add(T item)
     {
-        if (_builder is { } builder)
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
         {
             builder.Add(item);
         }
@@ -233,7 +270,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             return;
         }
 
-        if (_builder is { } builder)
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
         {
             builder.AddRange(items);
         }
@@ -254,7 +291,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public void AddRange(IEnumerable<T> items)
     {
-        if (_builder is { } builder)
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
         {
             builder.AddRange(items);
             return;
@@ -296,7 +333,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public void Clear()
     {
-        if (_builder is { } builder)
+        if (TryGetBuilder(out var builder))
         {
             // Keep using a real builder to avoid churn in the object pool.
             builder.Clear();
@@ -314,7 +351,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public void RemoveAt(int index)
     {
-        if (_builder is { } builder)
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
         {
             builder.RemoveAt(index);
             return;
@@ -384,7 +421,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     /// <returns>An immutable array.</returns>
     public ImmutableArray<T> DrainToImmutable()
     {
-        if (_builder is { } builder)
+        if (TryGetBuilder(out var builder))
         {
             return builder.DrainToImmutable();
         }
@@ -400,7 +437,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public readonly ImmutableArray<T> ToImmutable()
     {
-        if (_builder is { } builder)
+        if (TryGetBuilder(out var builder))
         {
             return builder.ToImmutable();
         }
@@ -424,7 +461,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public readonly T[] ToArray()
     {
-        if (_builder is { } builder)
+        if (TryGetBuilder(out var builder))
         {
             return builder.ToArray();
         }
