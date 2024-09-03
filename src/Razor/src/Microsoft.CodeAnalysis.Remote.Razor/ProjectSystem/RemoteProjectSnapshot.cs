@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -64,9 +65,14 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
         _importsToRelatedDocumentsLazy = new Lazy<ImmutableDictionary<string, ImmutableArray<string>>>(() =>
         {
             var importsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizingComparer.Instance);
+
+            // The project engine should already be created by the time _importsToRelatedDocumentsLazy is created.
+            Debug.Assert(_lazyProjectEngine.IsValueCreated);
+            var projectEngine = _lazyProjectEngine.GetValue();
+
             foreach (var documentFilePath in DocumentFilePaths)
             {
-                var importTargetPaths = ProjectState.GetImportDocumentTargetPaths(documentFilePath, FileKinds.GetFileKindFromFilePath(documentFilePath), _lazyProjectEngine.GetValue());
+                var importTargetPaths = ProjectState.GetImportDocumentTargetPaths(documentFilePath, FileKinds.GetFileKindFromFilePath(documentFilePath), projectEngine);
                 importsToRelatedDocuments = ProjectState.AddToImportsToRelatedDocuments(importsToRelatedDocuments, documentFilePath, importTargetPaths);
             }
 
