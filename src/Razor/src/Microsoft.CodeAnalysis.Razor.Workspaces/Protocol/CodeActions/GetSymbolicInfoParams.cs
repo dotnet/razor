@@ -23,16 +23,15 @@ internal record GetSymbolicInfoParams
     [JsonPropertyName("hostDocumentVersion")]
     public required int HostDocumentVersion { get; set; }
 
-    [DataMember(Name = "intersectingRangesInGeneratedMappings")]
-    [JsonPropertyName("intersectingRangesInGeneratedMappings")]
-
-    public required Range[] IntersectingRangesInGeneratedMappings { get; set; }
+    [DataMember(Name = "generatedDocumentRanges")]
+    [JsonPropertyName("generatedDocumentRanges")]
+    public required Range[] GeneratedDocumentRanges { get; set; }
 }
 
-internal sealed record SymbolicInfo
+internal sealed record MemberSymbolicInfo
 {
     public required MethodSymbolicInfo[] Methods { get; set; }
-    public required FieldSymbolicInfo[] Fields { get; set; }
+    public required AttributeSymbolicInfo[] Attributes { get; set; }
 }
 
 internal sealed record MethodSymbolicInfo
@@ -44,7 +43,7 @@ internal sealed record MethodSymbolicInfo
     public required string[] ParameterTypes { get; set; }
 }
 
-internal sealed record FieldSymbolicInfo
+internal sealed record AttributeSymbolicInfo
 {
     public required string Name { get; set; }
     public required string Type { get; set; }

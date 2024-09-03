@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
 internal partial class RazorCustomMessageTarget
 {
     [JsonRpcMethod(CustomMessageNames.RazorGetSymbolicInfoEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<SymbolicInfo?> RazorGetSymbolicInfoAsync(GetSymbolicInfoParams request, CancellationToken cancellationToken)
+    public async Task<MemberSymbolicInfo?> RazorGetSymbolicInfoAsync(GetSymbolicInfoParams request, CancellationToken cancellationToken)
     {
         var (synchronized, virtualDocumentSnapshot) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(request.HostDocumentVersion, request.Document, cancellationToken);
         if (!synchronized || virtualDocumentSnapshot is null)
@@ -23,11 +23,11 @@ internal partial class RazorCustomMessageTarget
         }
 
         request.Document.Uri = virtualDocumentSnapshot.Uri;
-        ReinvokeResponse<SymbolicInfo?> response;
+        ReinvokeResponse<MemberSymbolicInfo?> response;
 
         try
         {
-            response = await _requestInvoker.ReinvokeRequestOnServerAsync<GetSymbolicInfoParams, SymbolicInfo?>(
+            response = await _requestInvoker.ReinvokeRequestOnServerAsync<GetSymbolicInfoParams, MemberSymbolicInfo?>(
                 RazorLSPConstants.RoslynGetSymbolicInfoEndpointName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 request,

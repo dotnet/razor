@@ -38,7 +38,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         }
 
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        if (!IsSelectionValid(context, syntaxTree))
+        if (!IsValidSelection(context, syntaxTree))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -80,7 +80,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
                context.CodeDocument.GetSyntaxTree()?.Root is not null;
     }
 
-    private bool IsSelectionValid(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
+    private bool IsValidSelection(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
         var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex, includeWhitespace: true);
         if (owner is null)
@@ -90,33 +90,33 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         }
 
         var startElementNode = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupElementSyntax or MarkupTagHelperElementSyntax);
-        return startElementNode is not null && !HasDiagnosticErrors(startElementNode) && !IsInsideProperHtmlContent(context, owner);
+        return startElementNode is not null && HasNoDiagnosticErrors(startElementNode) && IsInsideMarkupTag(context, owner);
     }
 
-    private static bool IsInsideProperHtmlContent(RazorCodeActionContext context, SyntaxNode owner)
+    private static bool IsInsideMarkupTag(RazorCodeActionContext context, SyntaxNode owner)
     {
         // The selection could start either in a MarkupElement or MarkupTagHelperElement.
-        // Both of these have the necessary properties to do this check, but not the base MarkupSyntaxNode.
-        // The workaround for this is to try to cast to the specific types and then do the check.
+        // Both of these have the necessary properties to do this check, but the base class MarkupSyntaxNode does not.
+        // The workaround for this is to try to find the specific types as ancestors and then do the check.
 
         var tryMakeMarkupElement = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
         var tryMakeMarkupTagHelperElement = owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
 
-        var isLocationInProperMarkupElement = tryMakeMarkupElement is not null &&
-                                        context.Location.AbsoluteIndex > tryMakeMarkupElement.StartTag.Span.End &&
-                                        context.Location.AbsoluteIndex < tryMakeMarkupElement.EndTag.SpanStart;
+        var isLocationInElementTag = tryMakeMarkupElement is not null &&
+                                        (tryMakeMarkupElement.StartTag.Span.Contains(context.Location.AbsoluteIndex) ||
+                                        tryMakeMarkupElement.EndTag.Span.Contains(context.Location.AbsoluteIndex));
 
-        var isLocationInProperMarkupTagHelper = tryMakeMarkupTagHelperElement is not null &&
-                                                context.Location.AbsoluteIndex > tryMakeMarkupTagHelperElement.StartTag.Span.End &&
-                                                context.Location.AbsoluteIndex < tryMakeMarkupTagHelperElement.EndTag.SpanStart;
+        var isLocationInTagHelperTag = tryMakeMarkupTagHelperElement is not null &&
+                                                (tryMakeMarkupTagHelperElement.StartTag.Span.Contains(context.Location.AbsoluteIndex) ||
+                                                tryMakeMarkupTagHelperElement.EndTag.Span.Contains(context.Location.AbsoluteIndex));
 
-        return isLocationInProperMarkupElement || isLocationInProperMarkupTagHelper;
+        return isLocationInElementTag || isLocationInTagHelperTag;
     }
 
-    private static bool HasDiagnosticErrors(MarkupSyntaxNode markupElement)
+    private static bool HasNoDiagnosticErrors(MarkupSyntaxNode markupElement)
     {
         var diagnostics = markupElement.GetDiagnostics();
-        return diagnostics.Any(d => d.Severity == RazorDiagnosticSeverity.Error);
+        return !diagnostics.Any(d => d.Severity == RazorDiagnosticSeverity.Error);
     }
 
     private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
