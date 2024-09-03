@@ -33,7 +33,6 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
     private readonly Project _project;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory;
     private readonly ITelemetryReporter _telemetryReporter;
-    private readonly Dictionary<string, ImmutableArray<string>> _importsToRelatedDocuments = new();
 
     private ImmutableArray<TagHelperDescriptor> _tagHelpers;
 
@@ -129,18 +128,6 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
             return null;
         }
 
-        var targetPath = documentSnapshot.TargetPath.AssumeNotNull();
-        if (!_importsToRelatedDocuments.ContainsKey(targetPath))
-        {
-            lock (_importsToRelatedDocuments)
-            {
-                if (!_importsToRelatedDocuments.ContainsKey(targetPath))
-                {
-                    _importsToRelatedDocuments[documentSnapshot.TargetPath!] = codeDocument.Imports.SelectAsArray(i => i.FilePath!);
-                }
-            }
-        }
-
         return codeDocument;
     }
 
@@ -167,31 +154,8 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
         return documentSnapshot.TargetPath[(projectRoot.Length + 1)..];
     }
 
-    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
-    {
-        var targetPath = document.TargetPath.AssumeNotNull();
+    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document) => throw new InvalidOperationException("Should not be called for cohosted projects.");
 
-        if (!_importsToRelatedDocuments.TryGetValue(targetPath, out var relatedDocuments))
-        {
-            return [];
-        }
+    public bool IsImportDocument(IDocumentSnapshot document) => throw new InvalidOperationException("Should not be called for cohosted projects.");
 
-        using var builder = new PooledArrayBuilder<IDocumentSnapshot>(relatedDocuments.Length);
-
-        foreach (var relatedDocumentFilePath in relatedDocuments)
-        {
-            if (TryGetDocument(relatedDocumentFilePath, out var relatedDocument))
-            {
-                builder.Add(relatedDocument);
-            }
-        }
-
-        return builder.DrainToImmutable();
-    }
-
-    public bool IsImportDocument(IDocumentSnapshot document)
-    {
-        return document.TargetPath is { } targetPath &&
-               _importsToRelatedDocuments.ContainsKey(targetPath);
-    }
 }
