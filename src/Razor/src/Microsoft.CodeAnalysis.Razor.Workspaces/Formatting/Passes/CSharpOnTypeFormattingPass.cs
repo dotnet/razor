@@ -12,46 +12,38 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-
-internal abstract class CSharpOnTypeFormattingPassBase(
+/// <summary>
+/// Gets edits in C# files, and returns edits to Razor files, with nicely formatted Html
+/// </summary>
+internal sealed class CSharpOnTypeFormattingPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
-    : CSharpFormattingPassBase(documentMappingService)
+    : CSharpFormattingPassBase(documentMappingService, isFormatOnType: true)
 {
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPassBase>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
-    public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public async override Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
-        if (!context.IsFormatOnType || result.Kind != RazorLanguageKind.CSharp)
-        {
-            // We don't want to handle regular formatting or non-C# on type formatting here.
-            return result;
-        }
-
         // Normalize and re-map the C# edits.
         var codeDocument = context.CodeDocument;
         var csharpText = codeDocument.GetCSharpSourceText();
 
-        var textEdits = result.Edits;
-        if (textEdits.Length == 0)
+        if (edits.Length == 0)
         {
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
                 _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
-                return result;
+                return edits;
             }
 
             // Ask C# for formatting changes.
@@ -62,7 +54,7 @@ internal abstract class CSharpOnTypeFormattingPassBase(
                 context.CSharpWorkspaceDocument,
                 typedChar: context.TriggerCharacter,
                 projectedIndex,
-                context.Options.GetIndentationOptions(),
+                context.Options.ToIndentationOptions(),
                 autoFormattingOptions,
                 indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
                 cancellationToken).ConfigureAwait(false);
@@ -70,18 +62,18 @@ internal abstract class CSharpOnTypeFormattingPassBase(
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation($"Received no results.");
-                return result;
+                return edits;
             }
 
-            textEdits = formattingChanges.Select(csharpText.GetTextEdit).ToArray();
-            _logger.LogInformation($"Received {textEdits.Length} results from C#.");
+            edits = formattingChanges.Select(csharpText.GetTextEdit).ToArray();
+            _logger.LogInformation($"Received {edits.Length} results from C#.");
         }
 
         // Sometimes the C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
         // to normalize them. Instead of having this flow up and log a NFW, we just capture it here. Since this only happens when typing
         // very quickly, it is a safe assumption that we'll get another chance to do on type formatting, since we know the user is typing.
         // The proper fix for this is https://github.com/dotnet/razor-tooling/issues/6650 at which point this can be removed
-        foreach (var edit in textEdits)
+        foreach (var edit in edits)
         {
             var startLine = edit.Range.Start.Line;
             var endLine = edit.Range.End.Line;
@@ -89,12 +81,12 @@ internal abstract class CSharpOnTypeFormattingPassBase(
             if (startLine >= count || endLine >= count)
             {
                 _logger.LogWarning($"Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.");
-                return result;
+                return edits;
             }
         }
 
-        var normalizedEdits = NormalizeTextEdits(csharpText, textEdits, out var originalTextWithChanges);
-        var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits, result.Kind);
+        var normalizedEdits = csharpText.MinimizeTextEdits(edits, out var originalTextWithChanges);
+        var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits);
         var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
         if (filteredEdits.Length == 0)
         {
@@ -102,10 +94,9 @@ internal abstract class CSharpOnTypeFormattingPassBase(
             // because they are non mappable, but might be the only thing changed (eg from the Add Using code action)
             //
             // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
+            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, edits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
 
-            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
-
-            return new FormattingResult(filteredEdits);
+            return filteredEdits;
         }
 
         // Find the lines that were affected by these edits.
@@ -203,12 +194,37 @@ internal abstract class CSharpOnTypeFormattingPassBase(
         var finalChanges = cleanedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
+        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, edits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
 
-        return new FormattingResult(finalEdits);
+        return finalEdits;
     }
 
-    protected abstract Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken);
+    private TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits)
+    {
+        if (codeDocument.IsUnsupported())
+        {
+            return [];
+        }
+
+        var edits = DocumentMappingService.GetHostDocumentEdits(codeDocument.GetCSharpDocument(), projectedTextEdits);
+
+        return edits;
+    }
+
+    private static async Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
+    {
+        if (context.AutomaticallyAddUsings)
+        {
+            // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
+            if (textEdits.Any(static e => e.NewText.IndexOf("using") != -1))
+            {
+                var usingStatementEdits = await AddUsingsHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
+                finalEdits = [.. usingStatementEdits, .. finalEdits];
+            }
+        }
+
+        return finalEdits;
+    }
 
     // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
     private static SourceText ApplyChangesAndTrackChange(SourceText oldText, IEnumerable<TextChange> changes, out TextSpan spanBeforeChange, out TextSpan spanAfterChange)
@@ -323,7 +339,7 @@ internal abstract class CSharpOnTypeFormattingPassBase(
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.TryGetPreviousSibling(out var prevNode) &&
-            prevNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            prevNode.FirstAncestorOrSelf<RazorSyntaxNode>(static a => a is CSharpTemplateBlockSyntax) is { } template &&
             owner.SpanStart == template.Span.End &&
             IsOnSingleLine(template, text))
         {
@@ -477,7 +493,7 @@ internal abstract class CSharpOnTypeFormattingPassBase(
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.NextSpan() is { } nextNode &&
-            nextNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            nextNode.FirstAncestorOrSelf<RazorSyntaxNode>(static a => a is CSharpTemplateBlockSyntax) is { } template &&
             template.SpanStart == owner.Span.End &&
             IsOnSingleLine(template, text))
         {
@@ -523,19 +539,10 @@ internal abstract class CSharpOnTypeFormattingPassBase(
         changes.Add(change);
     }
 
-    private static bool IsOnSingleLine(SyntaxNode node, SourceText text)
+    private static bool IsOnSingleLine(RazorSyntaxNode node, SourceText text)
     {
         var linePositionSpan = text.GetLinePositionSpan(node.Span);
 
         return linePositionSpan.Start.Line == linePositionSpan.End.Line;
-    }
-
-    private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)
-    {
-        var changes = edits.Select(originalText.GetTextChange);
-        originalTextWithChanges = originalText.WithChanges(changes);
-        var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, DiffKind.Char);
-        var cleanEdits = cleanChanges.Select(originalText.GetTextEdit).ToArray();
-        return cleanEdits;
     }
 }

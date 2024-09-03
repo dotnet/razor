@@ -11,37 +11,31 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal class CSharpFormattingPass(
+/// <summary>
+/// Gets edits in Razor files, and returns edits to Razor files, with nicely formatted Html
+/// </summary>
+internal sealed class CSharpFormattingPass(
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
-    : CSharpFormattingPassBase(documentMappingService)
+    : CSharpFormattingPassBase(documentMappingService, isFormatOnType: false)
 {
+    private readonly CSharpFormatter _csharpFormatter = new CSharpFormatter(documentMappingService);
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpFormattingPass>();
 
-    // Run after the HTML and Razor formatter pass.
-    public override int Order => DefaultOrder - 3;
-
-    public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    public async override Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
     {
-        if (context.IsFormatOnType || result.Kind != RazorLanguageKind.Razor)
-        {
-            // We don't want to handle OnTypeFormatting here.
-            return result;
-        }
-
         // Apply previous edits if any.
         var originalText = context.SourceText;
         var changedText = originalText;
         var changedContext = context;
-        if (result.Edits.Length > 0)
+        if (edits.Length > 0)
         {
-            var changes = result.Edits.Select(originalText.GetTextChange).ToArray();
+            var changes = edits.Select(originalText.GetTextChange);
             changedText = changedText.WithChanges(changes);
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
         }
@@ -75,7 +69,7 @@ internal class CSharpFormattingPass(
         var finalChanges = changedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        return new FormattingResult(finalEdits);
+        return finalEdits;
     }
 
     private async Task<ImmutableArray<TextEdit>> FormatCSharpAsync(FormattingContext context, CancellationToken cancellationToken)
@@ -94,7 +88,7 @@ internal class CSharpFormattingPass(
 
             // These should already be remapped.
             var range = sourceText.GetRange(span);
-            var edits = await CSharpFormatter.FormatAsync(context, range, cancellationToken).ConfigureAwait(false);
+            var edits = await _csharpFormatter.FormatAsync(context, range, cancellationToken).ConfigureAwait(false);
             csharpEdits.AddRange(edits.Where(e => range.Contains(e.Range)));
         }
 
