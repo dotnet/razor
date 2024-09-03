@@ -43,23 +43,15 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var actionParams = CreateInitialActionParams(context, startElementNode, @namespace);        
+        var actionParams = new ExtractToComponentCodeActionParams
+        {
+            Uri = context.Request.TextDocument.Uri,
+            SelectStart = context.Request.Range.Start,
+            SelectEnd = context.Request.Range.End,
+            AbsoluteIndex = context.Location.AbsoluteIndex,
+            Namespace = @namespace,
+        };
 
-        ProcessSelection(startElementNode, endElementNode, actionParams);
-
-        var utilityScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
-
-        // The new component usings are going to be a subset of the usings in the source razor file.
-        var usingStrings = syntaxTree.Root.DescendantNodes().Where(node => node.IsUsingDirective(out var _)).Select(node => node.ToFullString().TrimEnd());
-
-        // Get only the namespace after the "using" keyword.
-        var usingNamespaceStrings = usingStrings.Select(usingString => usingString.Substring("using  ".Length));
-
-        AddUsingDirectivesInRange(utilityScanRoot,
-                                  usingNamespaceStrings,
-                                  actionParams.ExtractStart,
-                                  actionParams.ExtractEnd,
-                                  actionParams);
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {

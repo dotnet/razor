@@ -18,6 +18,12 @@ internal sealed class ExtractToCodeBehindCodeActionParams
     [JsonPropertyName("extractEnd")]
     public int ExtractEnd { get; set; }
 
+    [JsonPropertyName("removeStart")]
+    public int RemoveStart { get; set; }
+
+    [JsonPropertyName("removeEnd")]
+    public int RemoveEnd { get; set; }
+
     [JsonPropertyName("namespace")]
     public required string Namespace { get; set; }
 }

@@ -42,6 +42,7 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.VisualStudio.Utilities;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -72,6 +73,8 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = codeDocument.GetSyntaxTree();
+        
         if (codeDocument.IsUnsupported())
         {
             return null;
@@ -199,7 +202,10 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
     private static SelectionAnalysisResult TryAnalyzeSelection(RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
     {
-        var (startElementNode, endElementNode) = GetStartAndEndElements(codeDocument, actionParams);
+        var syntaxTree = codeDocument.GetSyntaxTree();
+        var sourceText = codeDocument.Source.Text;
+
+        var (startElementNode, endElementNode) = GetStartAndEndElements(sourceText, syntaxTree, actionParams);
         if (startElementNode is null)
         {
             return new SelectionAnalysisResult { Success = false };
@@ -221,7 +227,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var dependencyScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
-        var usingDirectives = GetUsingDirectivesInRange(dependencyScanRoot, extractStart, extractEnd);
+        var usingDirectives = GetUsingDirectivesInRange(syntaxTree, dependencyScanRoot, extractStart, extractEnd);
         var hasOtherIdentifiers = CheckHasOtherIdentifiers(dependencyScanRoot, extractStart, extractEnd);
 
         return new SelectionAnalysisResult
@@ -235,9 +241,8 @@ internal sealed class ExtractToComponentCodeActionResolver(
         };
     }
 
-    private static (MarkupSyntaxNode? Start, MarkupSyntaxNode? End) GetStartAndEndElements(RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
+    private static (MarkupSyntaxNode? Start, MarkupSyntaxNode? End) GetStartAndEndElements(SourceText sourceText, RazorSyntaxTree syntaxTree, ExtractToComponentCodeActionParams actionParams)
     {
-        var syntaxTree = codeDocument.GetSyntaxTree();
         if (syntaxTree is null)
         {
             return (null, null);
@@ -255,32 +260,23 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return (null, null);
         }
 
-        var sourceText = codeDocument.GetSourceText();
-        if (sourceText is null)
-        {
-            return (null, null);
-        }
-
-        var endElementNode = TryGetEndElementNode(actionParams.SelectStart, actionParams.SelectEnd, syntaxTree, sourceText);
+        var endElementNode = GetEndElementNode(sourceText, syntaxTree, actionParams);
 
         return (startElementNode, endElementNode);
     }
 
-    private static MarkupSyntaxNode? TryGetEndElementNode(Position selectionStart, Position selectionEnd, RazorSyntaxTree syntaxTree, SourceText sourceText)
+    private static MarkupSyntaxNode? GetEndElementNode(SourceText sourceText, RazorSyntaxTree syntaxTree, ExtractToComponentCodeActionParams actionParams)
     {
+        var selectionStart = actionParams.SelectStart;
+        var selectionEnd = actionParams.SelectEnd;
+
         if (selectionStart == selectionEnd)
         {
             return null;
         }
 
-        var endLocation = GetEndLocation(selectionEnd, sourceText);
-        if (!endLocation.HasValue)
-        {
-            return null;
-        }
-
-        var endOwner = syntaxTree.Root.FindInnermostNode(endLocation.Value.AbsoluteIndex, true);
-
+        var endAbsoluteIndex = sourceText.GetRequiredAbsoluteIndex(selectionEnd);
+        var endOwner = syntaxTree.Root.FindInnermostNode(endAbsoluteIndex, true);
         if (endOwner is null)
         {
             return null;
@@ -293,16 +289,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         return endOwner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupTagHelperElementSyntax or MarkupElementSyntax);
-    }
-
-    private static SourceLocation? GetEndLocation(Position selectionEnd, SourceText sourceText)
-    {
-        if (!selectionEnd.TryGetSourceLocation(sourceText, logger: default, out var location))
-        {
-            return null;
-        }
-
-        return location;
     }
 
     /// <summary>
@@ -377,13 +363,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return true;
         }
 
-        var endLocation = GetEndLocation(actionParams.SelectEnd, codeDocument.GetSourceText());
-        if (!endLocation.HasValue)
-        {
-            return false;
-        }
+        var endLocation = codeDocument.Source.Text.GetRequiredAbsoluteIndex(actionParams.SelectEnd);
 
-        var endOwner = codeDocument.GetSyntaxTree().Root.FindInnermostNode(endLocation.Value.AbsoluteIndex, true);
+        var endOwner = codeDocument.GetSyntaxTree().Root.FindInnermostNode(endLocation, true);
         var endCodeBlock = endOwner?.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
         if (endOwner is not null && endOwner.TryGetPreviousSibling(out var previousSibling))
         {
@@ -475,8 +457,48 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return node is MarkupElementSyntax or MarkupTagHelperElementSyntax || (isCodeBlock && node is CSharpCodeBlockSyntax);
     }
 
-    private static HashSet<string> GetUsingDirectivesInRange(SyntaxNode root, int extractStart, int extractEnd)
+    private static HashSet<string> GetUsingDirectivesInRange(RazorSyntaxTree syntaxTree, SyntaxNode root, int extractStart, int extractEnd)
     {
+        // The new component usings are going to be a subset of the usings in the source razor file.
+        using var pooledStringArray = new PooledArrayBuilder<string>();
+        foreach (var node in syntaxTree.Root.DescendantNodes())
+        {
+            if (node.IsUsingDirective(out var children))
+            {
+                var sb = new StringBuilder();
+                var identifierFound = false;
+                var lastIdentifierIndex = -1;
+
+                // First pass: find the last identifier
+                for (var i = 0; i < children.Count; i++)
+                {
+                    if (children[i] is Language.Syntax.SyntaxToken token && token.Kind == Language.SyntaxKind.Identifier)
+                    {
+                        lastIdentifierIndex = i;
+                    }
+                }
+
+                // Second pass: build the string
+                for (var i = 0; i <= lastIdentifierIndex; i++)
+                {
+                    var child = children[i];
+                    if (child is Language.Syntax.SyntaxToken tkn && tkn.Kind == Language.SyntaxKind.Identifier)
+                    {
+                        identifierFound = true;
+                    }
+                    if (identifierFound)
+                    {
+                        var token = child as Language.Syntax.SyntaxToken;
+                        sb.Append(token?.Content);
+                    }
+                }
+
+                pooledStringArray.Add(sb.ToString());
+            }
+        }
+
+        var usingsInSourceRazor = pooledStringArray.ToArray();
+
         var usings = new HashSet<string>();
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
 
@@ -490,7 +512,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
             if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
             {
-                AddUsingFromTagHelperInfo(tagHelperInfo, usings);
+                AddUsingFromTagHelperInfo(tagHelperInfo, usings, usingsInSourceRazor);
             }
         }
 
@@ -550,7 +572,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return false;
     }
 
-    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> dependencies)
+    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> usings, string[] usingsInSourceRazor)
     {
         foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
         {
@@ -560,7 +582,31 @@ internal sealed class ExtractToComponentCodeActionResolver(
             }
 
             var typeNamespace = descriptor.GetTypeNamespace();
-            dependencies.Add(typeNamespace);
+
+            // Since the using directive at the top of the file may be relative and not absolute,
+            // we need to generate all possible partial namespaces from `typeNamespace`.
+
+            // Potentially, the alternative could be to ask if the using namespace at the top is a substring of `typeNamespace`.
+            // The only potential edge case is if there are very similar namespaces where one
+            // is a substring of the other, but they're actually different (e.g., "My.App" and "My.Apple").
+
+            // Generate all possible partial namespaces from `typeNamespace`, from least to most specific
+            // (assuming that the user writes absolute `using` namespaces most of the time)
+
+            // This is a bit inefficient because at most 'k' string operations are performed (k = parts in the namespace),
+            // for each potential using directive.
+
+            var parts = typeNamespace.Split('.');
+            for (var i = 0; i < parts.Length; i++)
+            {
+                var partialNamespace = string.Join(".", parts.Skip(i));
+
+                if (usingsInSourceRazor.Contains(partialNamespace))
+                {
+                    usings.Add(partialNamespace);
+                    break;
+                }
+            }
         }
     }
 

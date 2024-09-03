@@ -331,23 +331,9 @@ public partial class CodeActionEndToEndTest : SingleServerDelegatingEndpointTest
         var razorFilePath = "C:/path/Test.razor";
         var componentFilePath = "C:/path/Component.razor";
         var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath, additionalRazorDocuments);
-
-        //var projectManager = CreateProjectSnapshotManager();
-
-        //await projectManager.UpdateAsync(updater =>
-        //{
-        //    updater.ProjectAdded(new(
-        //        projectFilePath: "C:/path/to/project.csproj",
-        //        intermediateOutputPath: "C:/path/to/obj",
-        //        razorConfiguration: RazorConfiguration.Default,
-        //        rootNamespace: "project"));
-        //});
-
-        //var componentSearchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
-        //var componentDefinitionService = new RazorComponentDe
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
