@@ -53,6 +53,12 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         // Run with and without forceRuntimeCodeGeneration
         await RunFormattingTestAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: true);
         await RunFormattingTestAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: false);
+
+        // flip the line endings of the stings (LF to CRLF and vice versa) and run again
+        input = FlipLineEndings(input);
+        expected = FlipLineEndings(expected);
+        await RunFormattingTestAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: true);
+        await RunFormattingTestAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: false);
     }
 
     private async Task RunFormattingTestAsync(string input, string expected, int tabSize, bool insertSpaces, string? fileKind, ImmutableArray<TagHelperDescriptor> tagHelpers, bool allowDiagnostics, RazorLSPOptions? razorLSPOptions, bool inGlobalNamespace, bool forceRuntimeCodeGeneration)
@@ -325,5 +331,27 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
                 return CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument, inGlobalNamespace: inGlobalNamespace);
             });
         return documentSnapshot.Object;
+    }
+
+    private static string FlipLineEndings(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
+        bool hasCRLF = input.Contains("\r\n");
+        bool hasLF = input.Contains("\n") && !hasCRLF;
+
+        if (hasCRLF)
+        {
+            return input.Replace("\r\n", "\n");
+        }
+        else if (hasLF)
+        {
+            return input.Replace("\n", "\r\n");
+        }
+
+        return input;
     }
 }
