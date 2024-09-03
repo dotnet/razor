@@ -26,10 +26,8 @@ internal static class RazorProjectInfoHelpers
     public static RazorProjectInfo? TryConvert(
         Project project,
         string projectPath,
-        string intermediateOutputPath,
         ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
-
         var documents = GetDocuments(project, projectPath);
 
         // Not a razor project
@@ -45,7 +43,7 @@ internal static class RazorProjectInfoHelpers
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
 
         return new RazorProjectInfo(
-            projectKey: new ProjectKey(intermediateOutputPath),
+            projectKey: project.ToProjectKey(),
             filePath: project.FilePath.AssumeNotNull(),
             razorConfiguration,
             rootNamespace,

@@ -288,20 +288,13 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
             return;
         }
 
-        var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
-        if (intermediateOutputPath is null)
-        {
-            _logger.LogInformation("intermediateOutputPath is null, skip update for {projectId}", project.Id);
-            return;
-        }
-
         var entry = _projectEntryMap.GetOrAdd(project.Id, static _ => new ProjectEntry());
 
         var delta = await _cachedTagHelperResolver.GetDeltaAsync(project, entry.TagHelpersResultId, cancellationToken).ConfigureAwait(false);
         entry.TagHelpersResultId = delta.ResultId;
 
         var tagHelpers = _cachedTagHelperResolver.GetValues(project.Id, delta.ResultId);
-        var projectInfo = RazorProjectInfoHelpers.TryConvert(project, projectPath, intermediateOutputPath, tagHelpers);
+        var projectInfo = RazorProjectInfoHelpers.TryConvert(project, projectPath, tagHelpers);
         if (projectInfo is not null)
         {
             var checkSum = projectInfo.Checksum;
