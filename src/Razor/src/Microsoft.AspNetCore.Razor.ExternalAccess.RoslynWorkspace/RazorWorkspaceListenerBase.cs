@@ -297,14 +297,14 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
         var projectInfo = RazorProjectInfoHelpers.TryConvert(project, projectPath, tagHelpers);
         if (projectInfo is not null)
         {
-            var checkSum = projectInfo.Checksum;
-            if (entry.ProjectChecksum == checkSum)
+            var checksum = projectInfo.Checksum;
+            if (entry.ProjectChecksum == checksum)
             {
                 _logger.LogInformation("Checksum for {projectId} did not change. Skipped sending update", project.Id);
                 return;
             }
 
-            entry.ProjectChecksum = checkSum;
+            entry.ProjectChecksum = checksum;
 
             stream.WriteProjectInfoAction(ProjectInfoAction.Update);
             await stream.WriteProjectInfoAsync(projectInfo, cancellationToken).ConfigureAwait(false);
