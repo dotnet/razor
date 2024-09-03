@@ -85,10 +85,11 @@ internal class CohostOnAutoInsertEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentOnAutoInsertParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-    {
-        var razorDocument = context.TextDocument.AssumeNotNull();
+    protected override Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+        => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
 
+    private async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
         _logger.LogDebug($"Resolving auto-insertion for {razorDocument.FilePath}");
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
@@ -172,5 +173,16 @@ internal class CohostOnAutoInsertEndpoint(
         }
 
         return result.Response;
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostOnAutoInsertEndpoint instance)
+    {
+        public Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+            VSInternalDocumentOnAutoInsertParams request,
+            TextDocument razorDocument,
+            CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }
