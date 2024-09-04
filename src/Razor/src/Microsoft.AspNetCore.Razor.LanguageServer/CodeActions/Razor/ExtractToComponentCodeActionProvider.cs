@@ -52,7 +52,6 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
             Namespace = @namespace,
         };
 
-
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
             Action = LanguageServerConstants.CodeActions.ExtractToComponentAction,
@@ -69,7 +68,8 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return context is not null &&
                context.SupportsFileCreation &&
                FileKinds.IsComponent(context.CodeDocument.GetFileKind()) &&
-               context.CodeDocument.GetSyntaxTree()?.Root is not null;
+               !context.CodeDocument.IsUnsupported() &&
+               context.CodeDocument.GetSyntaxTree() is not null;
     }
 
     private bool IsValidSelection(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
@@ -82,7 +82,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         }
 
         var startElementNode = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupElementSyntax or MarkupTagHelperElementSyntax);
-        return startElementNode is not null && HasNoDiagnosticErrors(startElementNode) && IsInsideMarkupTag(context, owner);
+        return startElementNode is not null && !startElementNode.GetDiagnostics().Any(d => d.Severity == RazorDiagnosticSeverity.Error) && IsInsideMarkupTag(context, owner);
     }
 
     private static bool IsInsideMarkupTag(RazorCodeActionContext context, SyntaxNode owner)
@@ -91,8 +91,26 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         // Both of these have the necessary properties to do this check, but the base class MarkupSyntaxNode does not.
         // The workaround for this is to try to find the specific types as ancestors and then do the check.
 
-        var tryMakeMarkupElement = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
-        var tryMakeMarkupTagHelperElement = owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
+        MarkupElementSyntax? tryMakeMarkupElement = null;
+        MarkupTagHelperElementSyntax? tryMakeMarkupTagHelperElement = null;
+
+        // Basically a custom form of FirstAncestorOrSelf for this specific case
+        for (var node = owner; node is not null; node = node.Parent)
+        {
+            if (node is MarkupElementSyntax markupElement)
+            {
+                tryMakeMarkupElement = markupElement;
+            }
+            else if (node is MarkupTagHelperElementSyntax tagHelper)
+            {
+                tryMakeMarkupTagHelperElement = tagHelper;
+            }
+
+            if (tryMakeMarkupElement is not null && tryMakeMarkupTagHelperElement is not null)
+            {
+                break;
+            }
+        }
 
         var isLocationInElementTag = tryMakeMarkupElement is not null &&
                                         (tryMakeMarkupElement.StartTag.Span.Contains(context.Location.AbsoluteIndex) ||
@@ -105,16 +123,12 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return isLocationInElementTag || isLocationInTagHelperTag;
     }
 
-    private static bool HasNoDiagnosticErrors(MarkupSyntaxNode markupElement)
-    {
-        var diagnostics = markupElement.GetDiagnostics();
-        return !diagnostics.Any(d => d.Severity == RazorDiagnosticSeverity.Error);
-    }
-
     private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
         // If the compiler can't provide a computed namespace it will fallback to "__GeneratedComponent" or
         // similar for the NamespaceNode. This would end up with extracting to a wrong namespace
         // and causing compiler errors. Avoid offering this refactoring if we can't accurately get a
         // good namespace to extract to
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
+
+
 }

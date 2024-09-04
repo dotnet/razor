@@ -6,43 +6,43 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.AccessControl;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.CSharp.Syntax;
+using ICSharpCode.Decompiler.Semantics;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json.Linq;
 using static System.Net.Mime.MediaTypeNames;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
-using ICSharpCode.Decompiler.Semantics;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using System.Security.AccessControl;
-using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 using static Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor.ExtractToComponentCodeActionProvider;
-using Microsoft.VisualStudio.Text;
-using ICSharpCode.Decompiler.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.VisualStudio.Utilities;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -61,7 +61,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
     public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
     {
-        var actionParams = DeserializeActionParams(data);
+        var actionParams = data.Deserialize<ExtractToComponentCodeActionParams>();
         if (actionParams is null)
         {
             return null;
@@ -74,16 +74,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var syntaxTree = codeDocument.GetSyntaxTree();
-        
-        if (codeDocument.IsUnsupported())
-        {
-            return null;
-        }
-
-        if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
-        {
-            return null;
-        }
 
         var selectionAnalysis = TryAnalyzeSelection(codeDocument, actionParams);
         if (!selectionAnalysis.Success)
@@ -183,13 +173,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
         };
     }
 
-    private static ExtractToComponentCodeActionParams? DeserializeActionParams(JsonElement data)
-    {
-        return data.ValueKind == JsonValueKind.Undefined
-            ? null
-            : JsonSerializer.Deserialize<ExtractToComponentCodeActionParams>(data.GetRawText());
-    }
-
     internal sealed record SelectionAnalysisResult
     {
         public required bool Success;
@@ -243,11 +226,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
     private static (MarkupSyntaxNode? Start, MarkupSyntaxNode? End) GetStartAndEndElements(SourceText sourceText, RazorSyntaxTree syntaxTree, ExtractToComponentCodeActionParams actionParams)
     {
-        if (syntaxTree is null)
-        {
-            return (null, null);
-        }
-
         var owner = syntaxTree.Root.FindInnermostNode(actionParams.AbsoluteIndex, includeWhitespace: true);
         if (owner is null)
         {
