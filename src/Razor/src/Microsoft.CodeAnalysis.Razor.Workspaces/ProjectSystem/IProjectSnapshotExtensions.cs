@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal static class IProjectSnapshotExtensions
 {
-    public static RazorProjectInfo ToRazorProjectInfo(this IProjectSnapshot project, string serializedFilePath)
+    public static RazorProjectInfo ToRazorProjectInfo(this IProjectSnapshot project)
     {
         using var documents = new PooledArrayBuilder<DocumentSnapshotHandle>();
 
@@ -28,7 +28,7 @@ internal static class IProjectSnapshotExtensions
         }
 
         return new RazorProjectInfo(
-            serializedFilePath: serializedFilePath,
+            projectKey: project.Key,
             filePath: project.FilePath,
             configuration: project.Configuration,
             rootNamespace: project.RootNamespace,
@@ -45,6 +45,9 @@ internal static class IProjectSnapshotExtensions
         Debug.Assert(canResolveTagHelpersSynchronously, "The ProjectSnapshot in the VisualStudioDocumentTracker should not be a cohosted project.");
         var tagHelperTask = projectSnapshot.GetTagHelpersAsync(CancellationToken.None);
         Debug.Assert(tagHelperTask.IsCompleted, "GetTagHelpersAsync should be synchronous for non-cohosted projects.");
+
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
         return tagHelperTask.Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
     }
 }

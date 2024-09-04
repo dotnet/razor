@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -30,7 +30,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
 }
 ");
         using var context = CreateFormattingContext(source);
-        var input = new FormattingResult(Array.Empty<TextEdit>(), RazorLanguageKind.CSharp);
+        var input = new FormattingResult([], RazorLanguageKind.CSharp);
         var pass = GetPass();
 
         // Act
@@ -50,7 +50,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
 }
 ");
         using var context = CreateFormattingContext(source);
-        var input = new FormattingResult(Array.Empty<TextEdit>(), RazorLanguageKind.Html);
+        var input = new FormattingResult([], RazorLanguageKind.Html);
         var pass = GetPass();
 
         // Act
@@ -120,8 +120,7 @@ public class Foo { }
     {
         var mappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
-        var clientConnection = Mock.Of<IClientConnection>(MockBehavior.Strict);
-        var pass = new FormattingContentValidationPass(mappingService, clientConnection, LoggerFactory)
+        var pass = new FormattingContentValidationPass(mappingService, LoggerFactory)
         {
             DebugAssertsEnabled = false
         };

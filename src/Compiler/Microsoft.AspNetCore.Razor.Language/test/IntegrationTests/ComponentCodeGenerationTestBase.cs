@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public class ComponentCodeGenerationTestBase(bool designTime = false)
-        : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler, generateBaselines: null)
+        : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
 {
     private RazorConfiguration _configuration;
 
@@ -521,7 +521,7 @@ public class Tag
         CompileToAssembly(generated);
 
         AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().GeneratedCode));
-        var useGenerated = CompileToCSharp("UseTestComponent.cshtml", @"
+        var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Items1=items1 Items2=items2 Items3=items3>
     <p>@context[0].description</p>
@@ -599,7 +599,7 @@ public class Tag
         CompileToAssembly(generated);
 
         AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().GeneratedCode));
-        var useGenerated = CompileToCSharp("UseTestComponent.cshtml", @"
+        var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=item1 Items2=items2>
     <p>@context</p>
@@ -742,7 +742,7 @@ public class Tag : ITag
         CompileToAssembly(generated);
 
         AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().GeneratedCode));
-        var useGenerated = CompileToCSharp("UseTestComponent.cshtml", @"
+        var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
     <p>@context</p>
@@ -819,7 +819,7 @@ public class Tag : ITag
         CompileToAssembly(generated);
 
         AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().GeneratedCode));
-        var useGenerated = CompileToCSharp("UseTestComponent.cshtml", @"
+        var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
     <p>@context</p>
@@ -913,11 +913,10 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var assembly = CompileToAssembly(generated, throwOnFailure: false);
-        // This has some errors
-        Assert.Collection(
-            assembly.Diagnostics.OrderBy(d => d.Id),
-            d => Assert.Equal("CS1503", d.Id));
+        CompileToAssembly(generated,
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,28): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //                            "very-cool"
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""very-cool""").WithArguments("1", "string", "int").WithLocation(1, 28));
     }
 
     [IntegrationTestFact]
@@ -991,10 +990,7 @@ namespace Test
     public void IncludesMinimizedAttributeValueParameterBeforeLanguageVersion5()
     {
         // Arrange
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         // Act
         var generated = CompileToCSharp(@"
@@ -1112,9 +1108,9 @@ namespace Test
 ");
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: false);
+        CompileToAssembly(generated);
 
-        var diagnostics = Assert.Single(generated.Diagnostics);
+        var diagnostics = Assert.Single(generated.RazorDiagnostics);
         Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostics.Severity);
         Assert.Equal("RZ2012", diagnostics.Id);
     }
@@ -1142,7 +1138,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        Assert.Empty(generated.Diagnostics);
+        Assert.Empty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact]
@@ -1168,7 +1164,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        Assert.Empty(generated.Diagnostics);
+        Assert.Empty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7395")]
@@ -1199,7 +1195,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
-        Assert.Empty(generated.Diagnostics);
+        Assert.Empty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact]
@@ -1223,9 +1219,9 @@ namespace Test
 ");
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: false);
+        CompileToAssembly(generated);
 
-        var diagnostics = Assert.Single(generated.Diagnostics);
+        var diagnostics = Assert.Single(generated.RazorDiagnostics);
         Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostics.Severity);
         Assert.Equal("RZ2012", diagnostics.Id);
     }
@@ -1256,7 +1252,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        Assert.Empty(generated.Diagnostics);
+        Assert.Empty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact]
@@ -1283,7 +1279,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        Assert.Empty(generated.Diagnostics);
+        Assert.Empty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact]
@@ -1314,7 +1310,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        Assert.Empty(generated.Diagnostics);
+        Assert.Empty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact]
@@ -1343,9 +1339,9 @@ namespace Test
 ");
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: false);
+        CompileToAssembly(generated);
 
-        var diagnostics = Assert.Single(generated.Diagnostics);
+        var diagnostics = Assert.Single(generated.RazorDiagnostics);
         Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostics.Severity);
         Assert.Equal("RZ2012", diagnostics.Id);
     }
@@ -1379,7 +1375,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        Assert.Empty(generated.Diagnostics);
+        Assert.Empty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
@@ -1442,7 +1438,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass<T>
             {
                 public static implicit operator string(MyClass<T> c) => throw null!;
@@ -1455,16 +1451,16 @@ namespace Test
 
                 [Parameter]
                 public EventCallback<MyClass<T>> MyParameterChanged { get; set; }
-            
+
                 [Parameter]
                 public bool BoolParameter { get; set; }
-            
+
                 [Parameter]
                 public string StringParameter { get; set; } = null!;
-            
+
                 [Parameter]
                 public System.Delegate DelegateParameter { get; set; } = null!;
-            
+
                 [Parameter]
                 public object ObjectParameter { get; set; } = null!;
             }
@@ -1496,7 +1492,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass<T>
             {
                 public static implicit operator string(MyClass<T> c) => throw null!;
@@ -1509,16 +1505,16 @@ namespace Test
 
                 [Parameter]
                 public EventCallback MyEvent { get; set; }
-            
+
                 [Parameter]
                 public bool BoolParameter { get; set; }
-            
+
                 [Parameter]
                 public string StringParameter { get; set; } = null!;
-            
+
                 [Parameter]
                 public System.Delegate DelegateParameter { get; set; } = null!;
-            
+
                 [Parameter]
                 public object ObjectParameter { get; set; } = null!;
             }
@@ -1551,7 +1547,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass
             {
                 public static implicit operator string(MyClass c) => throw null!;
@@ -1584,7 +1580,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass
             {
                 public static implicit operator string(MyClass c) => throw null!;
@@ -1618,7 +1614,7 @@ namespace Test
             using Microsoft.AspNetCore.Components;
 
             namespace Test;
-            
+
             public class MyClass<T>
             {
                 public static implicit operator bool(MyClass<T> c) => throw null!;
@@ -1628,7 +1624,7 @@ namespace Test
             {
                 [Parameter]
                 public MyClass<T> MyParameter { get; set; }
-            
+
                 [Parameter]
                 public bool BoolParameter { get; set; }
             }
@@ -1654,7 +1650,7 @@ namespace Test
             @typeparam T
 
             <TestComponent Param="42" />
-            
+
             @code {
                 [Parameter]
                 public T Param { get; set; }
@@ -1791,12 +1787,19 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var assembly = CompileToAssembly(generated, throwOnFailure: false);
-        // This has some errors
-        Assert.Collection(
-            assembly.Diagnostics.OrderBy(d => d.Id),
-            d => Assert.Equal("CS0029", d.Id),
-            d => Assert.Equal("CS1503", d.Id));
+        CompileToAssembly(generated, DesignTime
+            ? [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+               // ParentValue
+               Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
+               // (30,127): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               //             __builder.AddComponentParameter(2, "ValueChanged", (global::System.Action<System.Int32>)(__value => ParentValue = __value));
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "__value").WithArguments("int", "string").WithLocation(37, 38)]
+            : [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+               // ParentValue
+               Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
+               // (30,127): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               //             __builder.AddComponentParameter(2, "ValueChanged", (global::System.Action<System.Int32>)(__value => ParentValue = __value));
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "__value").WithArguments("int", "string").WithLocation(30, 127)]);
     }
 
     [IntegrationTestFact]
@@ -1863,12 +1866,21 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var assembly = CompileToAssembly(generated, throwOnFailure: false);
-        // This has some errors
-        Assert.Collection(
-            assembly.Diagnostics.OrderBy(d => d.Id),
-            d => Assert.Equal("CS1503", d.Id),
-            d => Assert.Equal("CS1503", d.Id));
+        CompileToAssembly(generated, DesignTime
+            ? [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+               //                           ParentValue
+               Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
+               // (37,13): error CS1503: Argument 2: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback<string>' to 'Microsoft.AspNetCore.Components.EventCallback'
+               //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)));
+               Diagnostic(ErrorCode.ERR_BadArgType, "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)").WithArguments("2", "Microsoft.AspNetCore.Components.EventCallback<string>", "Microsoft.AspNetCore.Components.EventCallback").WithLocation(37, 13)]
+            : [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+               //                           ParentValue
+               Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
+               // (37,13): error CS1503: Argument 2: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback<string>' to 'Microsoft.AspNetCore.Components.EventCallback'
+               //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)));
+               Diagnostic(ErrorCode.ERR_BadArgType, "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)").WithArguments("2", "Microsoft.AspNetCore.Components.EventCallback<string>", "Microsoft.AspNetCore.Components.EventCallback").WithLocation(30, 320)
+            ]
+        );
     }
 
     [IntegrationTestFact]
@@ -2063,12 +2075,21 @@ namespace Test
     public int ParentValue { get; set; } = 42;
 }");
 
-        var assembly = CompileToAssembly(generated, throwOnFailure: false);
-        // This has some errors
-        Assert.Collection(
-            assembly.Diagnostics.OrderBy(d => d.Id),
-            d => Assert.Equal("CS0029", d.Id),
-            d => Assert.Equal("CS1662", d.Id));
+
+        CompileToAssembly(generated, DesignTime
+            ? [// (31,227): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "ParentValue").WithArguments("int", "string").WithLocation(38, 179),
+               // (31,227): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+               //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
+               Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "ParentValue").WithArguments("lambda expression").WithLocation(38, 179)]
+            : [// (31,227): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "ParentValue").WithArguments("int", "string").WithLocation(31, 227),
+               // (31,227): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+               //             __builder.AddComponentParameter(3, "ValueExpression", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<System.Func<System.String>>>(() => ParentValue));
+               Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "ParentValue").WithArguments("lambda expression").WithLocation(31, 227)
+            ]);
     }
 
     [IntegrationTestFact]
@@ -2480,11 +2501,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        var error = Assert.Single(result.Diagnostics);
-        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
-        Assert.Equal("CS1503", error.Id);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -2519,11 +2536,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        var error = Assert.Single(result.Diagnostics);
-        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
-        Assert.Equal("CS1503", error.Id);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -2558,12 +2571,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        var error = Assert.Single(result.Diagnostics);
-        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
-        Assert.Equal("CS1503", error.Id);
-
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -2596,11 +2604,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        var error = Assert.Single(result.Diagnostics);
-        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
-        Assert.Equal("CS1503", error.Id);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -2633,11 +2637,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        var error = Assert.Single(result.Diagnostics);
-        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
-        Assert.Equal("CS1503", error.Id);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -3038,11 +3038,10 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        var error = Assert.Single(result.Diagnostics);
-        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
-        Assert.Equal("CS1503", error.Id);
+        CompileToAssembly(generated,
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,63): error CS1503: Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to 'System.Action'
+            //                                                               UpdateValue
+            Diagnostic(ErrorCode.ERR_BadArgType, "UpdateValue").WithArguments("1", "Microsoft.AspNetCore.Components.EventCallback", "System.Action").WithLocation(1, 63));
     }
 
     [IntegrationTestFact]
@@ -3423,11 +3422,10 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var assembly = CompileToAssembly(generated, throwOnFailure: false);
-        // This has some errors
-        Assert.Collection(
-            assembly.Diagnostics.OrderBy(d => d.Id),
-            d => Assert.Equal("CS8030", d.Id));
+        CompileToAssembly(generated,
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,94): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
+            // (value => { ParentValue = value; return Task.CompletedTask; })
+            Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(1, 94));
     }
 
     [IntegrationTestFact]
@@ -3848,10 +3846,10 @@ namespace Test
     public string ParentValue { get; set; } = ""hi"";
 
     public void UpdateValue(string value) => ParentValue = value;
-}", throwOnFailure: false);
+}");
 
         // Assert
-        Assert.Collection(generated.Diagnostics,
+        Assert.Collection(generated.RazorDiagnostics,
             diagnostic => Assert.Equal("RZ10015", diagnostic.Id));
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -3880,10 +3878,10 @@ namespace Test
     public string ParentValue { get; set; } = ""hi"";
 
     public void UpdateValue(string value) => ParentValue = value;
-}", throwOnFailure: false);
+}");
 
         // Assert
-        Assert.Collection(generated.Diagnostics,
+        Assert.Collection(generated.RazorDiagnostics,
             diagnostic => Assert.Equal("RZ10016", diagnostic.Id));
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -3912,10 +3910,10 @@ namespace Test
     public string ParentValue { get; set; } = ""hi"";
 
     public void UpdateValue(string value) => ParentValue = value;
-}", throwOnFailure: false);
+}");
 
         // Assert
-        Assert.Collection(generated.Diagnostics,
+        Assert.Collection(generated.RazorDiagnostics,
             diagnostic => Assert.Equal("RZ10018", diagnostic.Id),
             diagnostic => Assert.Equal("RZ10015", diagnostic.Id));
 
@@ -3956,10 +3954,10 @@ namespace Test
     public int ParentValue { get; set; } = 42;
 
     public void UpdateValue(int value) => ParentValue = value;
-}", throwOnFailure: false);
+}");
 
         // Assert
-        Assert.Collection(generated.Diagnostics,
+        Assert.Collection(generated.RazorDiagnostics,
             diagnostic => Assert.Equal("RZ10020", diagnostic.Id));
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -3989,10 +3987,10 @@ namespace Test
 
     public void UpdateValue(string value) => ParentValue = value;
     public void AfterUpdate() { }
-}", throwOnFailure: false);
+}");
 
         // Assert
-        Assert.Collection(generated.Diagnostics,
+        Assert.Collection(generated.RazorDiagnostics,
             diagnostic => Assert.Equal("RZ10019", diagnostic.Id));
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -4021,10 +4019,10 @@ namespace Test
     public string ParentValue { get; set; } = ""hi"";
 
     public void UpdateValue(string value) => ParentValue = value;
-}", throwOnFailure: false);
+}");
 
         // Assert
-        Assert.Collection(generated.Diagnostics,
+        Assert.Collection(generated.RazorDiagnostics,
             diagnostic => Assert.Equal("RZ10016", diagnostic.Id));
     }
 
@@ -4050,10 +4048,10 @@ namespace Test
     public string ParentValue { get; set; } = ""hi"";
 
     public void UpdateValue(string value) => ParentValue = value;
-}", throwOnFailure: false);
+}");
 
         // Assert
-        Assert.Collection(generated.Diagnostics,
+        Assert.Collection(generated.RazorDiagnostics,
             diagnostic => Assert.Equal("RZ10017", diagnostic.Id));
     }
 
@@ -4664,11 +4662,11 @@ namespace Test3
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
+        var result = CompileToAssembly(generated);
 
         if (DesignTime)
         {
-            Assert.Collection(generated.Diagnostics, d =>
+            Assert.Collection(generated.RazorDiagnostics, d =>
             {
                 Assert.Equal("RZ9985", d.Id);
                 Assert.Equal(RazorDiagnosticSeverity.Error, d.Severity);
@@ -4711,14 +4709,14 @@ namespace Test3
 @using static Test2.SomeComponent
 @using Foo = Test3
 <MyComponent />
-<SomeComponent /> <!-- Not a component -->", throwOnFailure: false);
+<SomeComponent /> <!-- Not a component -->");
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: false);
+        CompileToAssembly(generated);
     }
-    
+
     [IntegrationTestFact]
     public void Component_WithMultipleUsingDirectives()
     {
@@ -4897,10 +4895,10 @@ namespace AnotherTest
 @code {
     bool someVariable = false;
 }
-", throwOnFailure: false);
+");
 
         // Assert
-        Assert.Collection(generated.Diagnostics, d => { Assert.Equal("RZ1038", d.Id); });
+        Assert.Collection(generated.RazorDiagnostics, d => { Assert.Equal("RZ1038", d.Id); });
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
@@ -4928,21 +4926,13 @@ namespace AnotherTest
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var compiled = CompileToAssembly(generated, throwOnFailure: false);
-        if (DesignTime)
-        {
-            compiled.Diagnostics.Verify(
-                // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
-                // __o = _field.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 7));
-        }
-        else
-        {
-            compiled.Diagnostics.Verify(
-                // x:\dir\subdir\Test\TestComponent.cshtml(4,3): warning CS8602: Dereference of a possibly null reference.
-                // __builder.AddContent(1, _field.ToString());
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 3));
-        }
+        CompileToAssembly(generated, DesignTime
+            ? // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
+              // __o = _field.ToString();
+              Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 7)
+            : // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
+              // __o = _field.ToString();
+              Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 3));
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
@@ -4966,30 +4956,29 @@ namespace AnotherTest
             @(_field.ToString())
             """,
             nullableEnable: false,
-            throwOnFailure: false);
+            expectedCSharpDiagnostics:
+                // (18,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                //     public partial class TestComponent : BaseComponent<string?>
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(18, 62));
 
         // Assert
-        Assert.Empty(generated.Diagnostics);
+        Assert.Empty(generated.RazorDiagnostics);
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var compiled = CompileToAssembly(generated, throwOnFailure: false);
-        if (DesignTime)
-        {
-            compiled.Diagnostics.Verify(
+        CompileToAssembly(generated, DesignTime
+            ? [
                 // x:\dir\subdir\Test\TestComponent.cshtml(1,21): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 // BaseComponent<string?> __typeHelper = default!;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 21),
                 // (14,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62));
-        }
-        else
-        {
-            compiled.Diagnostics.Verify(
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62)
+            ]
+            : [
                 // (14,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62));
-        }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62)
+            ]);
     }
 
     #endregion
@@ -5467,11 +5456,10 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        // Cannot convert from method group to Action - this isn't a great error message, but it's
-        // what the compiler gives us.
-        Assert.Collection(result.Diagnostics, d => { Assert.Equal("CS1503", d.Id); });
+        CompileToAssembly(generated,
+            // x:\dir\subdir\Test\TestComponent.cshtml(2,24): error CS1503: Argument 2: cannot convert from 'method group' to 'Microsoft.AspNetCore.Components.EventCallback'
+            //                        Increment
+            Diagnostic(ErrorCode.ERR_BadArgType, "Increment").WithArguments("2", "method group", "Microsoft.AspNetCore.Components.EventCallback").WithLocation(2, 24));
     }
 
     [IntegrationTestFact]
@@ -5507,8 +5495,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: DesignTime);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        result.Diagnostics.Verify(
+        CompileToAssembly(generated,
             // x:\dir\subdir\Test\TestComponent.cshtml(4,17): warning CS0169: The field 'TestComponent.counter' is never used
             //     private int counter;
             Diagnostic(ErrorCode.WRN_UnreferencedField, "counter").WithArguments("Test.TestComponent.counter").WithLocation(4, 17));
@@ -5550,8 +5537,7 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: DesignTime);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        result.Diagnostics.Verify(
+        CompileToAssembly(generated,
             // x:\dir\subdir\Test\TestComponent.cshtml(4,17): warning CS0169: The field 'TestComponent.counter' is never used
             //     private int counter;
             Diagnostic(ErrorCode.WRN_UnreferencedField, "counter").WithArguments("Test.TestComponent.counter").WithLocation(4, 17));
@@ -6329,7 +6315,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
     }
 
@@ -6609,7 +6595,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.GenericComponentMissingTypeArgument.Id, diagnostic.Id);
     }
 
@@ -6790,7 +6776,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
     }
 
@@ -6938,7 +6924,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.GenericComponentTypeInferenceUnderspecified.Id, diagnostic.Id);
     }
 
@@ -7035,7 +7021,7 @@ namespace Test
             public partial class GridColumn<T> : ComponentBase
             {
             }
-            
+
             public class X { }
             """));
 
@@ -8156,7 +8142,7 @@ namespace Test
         // Arrange
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
-            
+
             namespace Test;
 
             public interface IInterfaceConstraint<T> { }
@@ -9178,10 +9164,7 @@ namespace Test
     public void Legacy_3_1_LeadingWhiteSpace_WithDirective()
     {
         // Arrange/Act
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         var generated = CompileToCSharp(@"
 
@@ -9199,10 +9182,7 @@ namespace Test
     public void Legacy_3_1_LeadingWhiteSpace_WithCSharpExpression()
     {
         // Arrange/Act
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         var generated = CompileToCSharp(@"
 
@@ -9220,10 +9200,7 @@ namespace Test
     public void Legacy_3_1_LeadingWhiteSpace_WithComponent()
     {
         // Arrange
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Components;
@@ -9256,10 +9233,7 @@ namespace Test
     public void Legacy_3_1_TrailingWhiteSpace_WithDirective()
     {
         // Arrange/Act
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         var generated = CompileToCSharp(@"
 <h1>Hello</h1>
@@ -9278,10 +9252,7 @@ namespace Test
     public void Legacy_3_1_TrailingWhiteSpace_WithCSharpExpression()
     {
         // Arrange/Act
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         var generated = CompileToCSharp(@"
 <h1>Hello</h1>
@@ -9300,10 +9271,7 @@ namespace Test
     public void Legacy_3_1_TrailingWhiteSpace_WithComponent()
     {
         // Arrange
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Components;
@@ -9334,10 +9302,7 @@ namespace Test
     public void Legacy_3_1_Whitespace_BetweenElementAndFunctions()
     {
         // Arrange
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         // Act
         var generated = CompileToCSharp(@"
@@ -9357,10 +9322,7 @@ namespace Test
     public void Legacy_3_1_WhiteSpace_InsideAttribute_InMarkupBlock()
     {
         // Arrange
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         // Act
         var generated = CompileToCSharp(@"<div class=""first second"">Hello</div>");
@@ -9375,10 +9337,7 @@ namespace Test
     public void Legacy_3_1_WhiteSpace_InMarkupInFunctionsBlock()
     {
         // Arrange
-        _configuration = new(
-            RazorLanguageVersion.Version_3_0,
-            base.Configuration.ConfigurationName,
-            base.Configuration.Extensions);
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 };
 
         // Act
         var generated = CompileToCSharp(@"
@@ -9463,12 +9422,48 @@ namespace Test
 @layout MainLayout
 @Foo
 <div>Hello</div>
-", throwOnFailure: false, fileKind: FileKinds.ComponentImport);
+", fileKind: FileKinds.ComponentImport, expectedCSharpDiagnostics: [
+            // (4,31): error CS0246: The type or namespace name 'ComponentBase' could not be found (are you missing a using directive or an assembly reference?)
+            //     public class MainLayout : ComponentBase, ILayoutComponent
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ComponentBase").WithArguments("ComponentBase").WithLocation(4, 31),
+            // (4,46): error CS0246: The type or namespace name 'ILayoutComponent' could not be found (are you missing a using directive or an assembly reference?)
+            //     public class MainLayout : ComponentBase, ILayoutComponent
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ILayoutComponent").WithArguments("ILayoutComponent").WithLocation(4, 46),
+            // (6,16): error CS0246: The type or namespace name 'RenderFragment' could not be found (are you missing a using directive or an assembly reference?)
+            //         public RenderFragment Body { get; set; }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RenderFragment").WithArguments("RenderFragment").WithLocation(6, 16)]);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: false);
+        CompileToAssembly(generated, DesignTime
+            ? [// (4,31): error CS0246: The type or namespace name 'ComponentBase' could not be found (are you missing a using directive or an assembly reference?)
+               //     public class MainLayout : ComponentBase, ILayoutComponent
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ComponentBase").WithArguments("ComponentBase").WithLocation(4, 31),
+               // (4,46): error CS0246: The type or namespace name 'ILayoutComponent' could not be found (are you missing a using directive or an assembly reference?)
+               //     public class MainLayout : ComponentBase, ILayoutComponent
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ILayoutComponent").WithArguments("ILayoutComponent").WithLocation(4, 46),
+               // (6,16): error CS0246: The type or namespace name 'RenderFragment' could not be found (are you missing a using directive or an assembly reference?)
+               //         public RenderFragment Body { get; set; }
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RenderFragment").WithArguments("RenderFragment").WithLocation(6, 16),
+               // x:\dir\subdir\Test\_Imports.razor(5,2): error CS0103: The name 'Foo' does not exist in the current context
+               // Foo
+               Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(5, 7)]
+            : [// (4,31): error CS0246: The type or namespace name 'ComponentBase' could not be found (are you missing a using directive or an assembly reference?)
+               //     public class MainLayout : ComponentBase, ILayoutComponent
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ComponentBase").WithArguments("ComponentBase").WithLocation(4, 31),
+               // (4,46): error CS0246: The type or namespace name 'ILayoutComponent' could not be found (are you missing a using directive or an assembly reference?)
+               //     public class MainLayout : ComponentBase, ILayoutComponent
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ILayoutComponent").WithArguments("ILayoutComponent").WithLocation(4, 46),
+               // (6,16): error CS0246: The type or namespace name 'RenderFragment' could not be found (are you missing a using directive or an assembly reference?)
+               //         public RenderFragment Body { get; set; }
+               Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RenderFragment").WithArguments("RenderFragment").WithLocation(6, 16),
+               // x:\dir\subdir\Test\_Imports.razor(5,2): error CS0103: The name 'Foo' does not exist in the current context
+               // Foo
+               Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(5, 2),
+               // (33,13): error CS0103: The name '__builder' does not exist in the current context
+               //             __builder.AddContent(0,
+               Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(33, 13)]);
     }
 
     [IntegrationTestFact]
@@ -9487,7 +9482,7 @@ namespace Test
             """));
 
         // Act
-        var generated = CompileToCSharp("Index.razor", """
+        var generated = CompileToCSharp("Index.razor", cshtmlContent: """
             @using global::MyComponents
 
             <Counter />
@@ -9557,7 +9552,7 @@ namespace New.Test
 "));
 
         // Act
-        var generated = CompileToCSharp("Pages/Counter.razor", @"
+        var generated = CompileToCSharp("Pages/Counter.razor", cshtmlContent: @"
 @namespace New.Test
 <Counter2 />
 ");
@@ -9626,6 +9621,39 @@ namespace New.Test
 ");
 
         // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    #endregion
+
+    #region Namespace
+
+    [IntegrationTestFact]
+    public void EmptyRootNamespace()
+    {
+        DefaultRootNamespace = string.Empty;
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            public class Component1 : ComponentBase { }
+            namespace Shared
+            {
+                public class Component2 : ComponentBase { }
+            }
+            class C
+            {
+                void M1(TestComponent t) { }
+                void M2(global::TestComponent t) { }
+            }
+            """));
+        var generated = CompileToCSharp("""
+            <h1>Generated</h1>
+            <Component1 />
+            <Shared.Component2 />
+            """);
+
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
@@ -9730,7 +9758,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateMarkupAttribute.Id, diagnostic.Id);
     }
 
@@ -9750,7 +9778,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateMarkupAttributeDirective.Id, diagnostic.Id);
     }
 
@@ -9769,7 +9797,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        Assert.All(generated.Diagnostics, d =>
+        Assert.All(generated.RazorDiagnostics, d =>
         {
             Assert.Same(ComponentDiagnosticFactory.DuplicateMarkupAttribute.Id, d.Id);
         });
@@ -9796,7 +9824,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateMarkupAttributeDirective.Id, diagnostic.Id);
     }
 
@@ -9820,7 +9848,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateMarkupAttributeDirective.Id, diagnostic.Id);
     }
 
@@ -9844,7 +9872,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateMarkupAttributeDirective.Id, diagnostic.Id);
     }
 
@@ -9873,7 +9901,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateComponentParameter.Id, diagnostic.Id);
     }
 
@@ -9902,7 +9930,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        Assert.All(generated.Diagnostics, d =>
+        Assert.All(generated.RazorDiagnostics, d =>
         {
             Assert.Same(ComponentDiagnosticFactory.DuplicateComponentParameter.Id, d.Id);
         });
@@ -9933,7 +9961,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateComponentParameter.Id, diagnostic.Id);
     }
 
@@ -9968,7 +9996,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateComponentParameterDirective.Id, diagnostic.Id);
     }
 
@@ -10003,7 +10031,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateComponentParameterDirective.Id, diagnostic.Id);
     }
 
@@ -10038,7 +10066,7 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
-        var diagnostic = Assert.Single(generated.Diagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.DuplicateComponentParameterDirective.Id, diagnostic.Id);
     }
 
@@ -10141,7 +10169,7 @@ Welcome to your new app.
 
         // This has some errors
         Assert.Collection(
-            generated.Diagnostics.OrderBy(d => d.Id),
+            generated.RazorDiagnostics.OrderBy(d => d.Id),
             d => Assert.Equal("RZ1034", d.Id),
             d => Assert.Equal("RZ1035", d.Id));
     }
@@ -10252,12 +10280,11 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        result.Diagnostics.Verify(
+        CompileToAssembly(generated,
             // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS0119: 'TestComponent.MyEnum' is a type, which is not valid in the given context
             //                               MyEnum
             Diagnostic(ErrorCode.ERR_BadSKunknown, "MyEnum").WithArguments("Test.TestComponent.MyEnum", "type").WithLocation(1, 31));
-        Assert.NotEmpty(generated.Diagnostics);
+        Assert.NotEmpty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9346")]
@@ -10292,12 +10319,11 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        result.Diagnostics.Verify(
+        CompileToAssembly(generated,
             // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS0119: 'TestComponent.MyEnum' is a type, which is not valid in the given context
             //                               MyEnum
             Diagnostic(ErrorCode.ERR_BadSKunknown, "MyEnum").WithArguments("Test.TestComponent.MyEnum", "type").WithLocation(1, 31));
-        Assert.NotEmpty(generated.Diagnostics);
+        Assert.NotEmpty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9346")]
@@ -10328,19 +10354,21 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        result.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,32): error CS1003: Syntax error, ',' expected
-            //                               x
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 32),
-            DesignTime
-            // (27,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
-            //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-            ? Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(27, 91)
-            // (21,138): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
-            //             __builder.AddComponentParameter(1, "StringProperty", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-            : Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(21, 138));
-        Assert.NotEmpty(generated.Diagnostics);
+        CompileToAssembly(generated, DesignTime
+            ? [// x:\dir\subdir\Test\TestComponent.cshtml(1,32): error CS1003: Syntax error, ',' expected
+              //                               x
+              Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 32),
+              // (27,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
+              //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
+              Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(27, 91)]
+            : [// x:\dir\subdir\Test\TestComponent.cshtml(1,32): error CS1003: Syntax error, ',' expected
+              //                               x
+              Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 32),
+              // (27,91): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
+              //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
+              Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(21, 138)]
+            );
+        Assert.NotEmpty(generated.RazorDiagnostics);
     }
 
     [IntegrationTestFact]
@@ -10473,6 +10501,36 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact]
+    public void AtTransitions()
+    {
+        var generated = CompileToCSharp("""
+            @{  
+                var x = "hello";  
+                @x x = "world"; @x  
+            }  
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/sdk/issues/42730")]
+    public void AtAtHandled()
+    {
+        var generated = CompileToCSharp("""
+            @{ var validationMessage = @Html.ValidationMessage("test", "", new { @@class = "invalid-feedback" }, "div"); }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,28): error CS0103: The name 'Html' does not exist in the current context
+                //    var validationMessage = @Html.ValidationMessage("test", "", new { @@class = "invalid-feedback" }, "div");
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@Html").WithArguments("Html").WithLocation(1, 28));
+    }
+
     #endregion
 
     #region LinePragmas
@@ -10524,18 +10582,18 @@ Time: @DateTime.Now
     [Parameter]
     public int IncrementAmount { get; set; }
 }
-", throwOnFailure: false);
+");
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: false);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
-    public void CanProduceLinePragmasForComponentWithRenderFragment()
+    public void CanProduceLinePragmasForComponentWithRenderFragment_01()
     {
-        var generated = CompileToCSharp(@"
+        var code = @"
 <div class=""row"">
   <a href=""#"" @onclick=Toggle class=""col-12"">@ActionText</a>
   @if (!Collapsed)
@@ -10556,12 +10614,73 @@ Time: @DateTime.Now
   {
     Collapsed = !Collapsed;
   }
-}", throwOnFailure: false);
+}";
+
+        DiagnosticDescription[] expectedDiagnostics = [
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,67): error CS1525: Invalid expression term '<'
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(13, 67),
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,67): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_IllegalStatement, """
+            <p>@context</p>
+              [Parameter]
+            """.NormalizeLineEndings()).WithLocation(13, 67),
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,68): error CS0103: The name 'p' does not exist in the current context
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p").WithArguments("p").WithLocation(13, 68),
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,79): error CS1525: Invalid expression term '/'
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "/").WithArguments("/").WithLocation(13, 79),
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,80): error CS0103: The name 'p' does not exist in the current context
+            //   public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p").WithArguments("p").WithLocation(13, 80),
+            // x:\dir\subdir\Test\TestComponent.cshtml(14,4): error CS0103: The name 'Parameter' does not exist in the current context
+            //   [Parameter]
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Parameter").WithArguments("Parameter").WithLocation(14, 4),
+            // x:\dir\subdir\Test\TestComponent.cshtml(14,14): error CS1002: ; expected
+            //   [Parameter]
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 14)]
+                    ;
+
+        var generated = CompileToCSharp(code, expectedDiagnostics);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: false);
+        CompileToAssembly(generated, expectedDiagnostics);
+    }
+
+    [IntegrationTestFact]
+    public void CanProduceLinePragmasForComponentWithRenderFragment_02()
+    {
+        var generated = CompileToCSharp(@"
+<div class=""row"">
+  <a href=""#"" @onclick=Toggle class=""col-12"">@ActionText</a>
+  @if (!Collapsed)
+  {
+    <div class=""col-12 card card-body"">
+      @ChildContent
+    </div>
+  }
+</div>
+@code
+{
+  [Parameter]
+  public RenderFragment<string> ChildContent { get; set; } = (context) => @<p>@context</p>;
+  [Parameter]
+  public bool Collapsed { get; set; }
+  string ActionText { get => Collapsed ? ""Expand"" : ""Collapse""; }
+  void Toggle()
+  {
+    Collapsed = !Collapsed;
+  }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9359")]
@@ -10587,45 +10706,45 @@ Time: @DateTime.Now
     public void RenderMode_Directive_FullyQualified()
     {
         var generated = CompileToCSharp("""
-                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
-                """, throwOnFailure: true);
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
     public void RenderMode_Directive_SimpleExpression()
     {
         var generated = CompileToCSharp("""
-                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
-                """, throwOnFailure: true);
+                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
     public void RenderMode_Directive_SimpleExpression_With_Code()
     {
         var generated = CompileToCSharp("""
-                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
+                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
 
                 @code
                 {
                     [Parameter]
                     public int Count { get; set; }
                 }
-                """, throwOnFailure: true);
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -10637,13 +10756,13 @@ Time: @DateTime.Now
                     [Parameter]
                     public int Count { get; set; }
                 }
-                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
-                """, throwOnFailure: true);
+                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -10657,12 +10776,12 @@ Time: @DateTime.Now
                     #pragma warning disable CS9113
                         public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
                     }
-                    """, throwOnFailure: true);
+                    """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -10671,26 +10790,26 @@ Time: @DateTime.Now
         var generated = CompileToCSharp("""
                 @namespace Custom.Namespace
 
-                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
-                """, throwOnFailure: true);
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
     public void RenderMode_Attribute_With_SimpleIdentifier()
     {
         var generated = CompileToCSharp($"""
-                <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" /> 
-                """, throwOnFailure: true);
+                <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" />
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -10704,74 +10823,74 @@ Time: @DateTime.Now
                     {
                         public string Extra {get;set;}
                     }
-                } 
-                """, throwOnFailure: true);
+                }
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
     public void RenderMode_Attribute_With_Existing_Attributes()
     {
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} P2="abc" @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" P1="def" />
+                <{{ComponentName}} P2="abc" @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" P1="def" />
 
                 @code
                 {
                     [Parameter]public string P1 {get; set;}
 
                     [Parameter]public string P2 {get; set;}
-                } 
-                """, throwOnFailure: true);
+                }
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
     public void Duplicate_RenderMode()
     {
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server"
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer"
                                    @rendermode="Value2" />
-                """, throwOnFailure: true);
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
     public void RenderMode_Multiple_Components()
     {
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
-                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
-                """, throwOnFailure: true);
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" />
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" />
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
     public void RenderMode_Child_Components()
     {
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
-                    <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
-                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer">
+                    <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" />
                     </{{ComponentName}}>
-                 <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
-                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
-                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                 <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" />
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" />
                     </{{ComponentName}}>
                 </{{ComponentName}}>
 
@@ -10780,12 +10899,12 @@ Time: @DateTime.Now
                     [Parameter]
                     public RenderFragment ChildContent { get; set; }
                 }
-                """, throwOnFailure: true);
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
@@ -10794,31 +10913,31 @@ Time: @DateTime.Now
         var generated = CompileToCSharp($$"""
                 @typeparam TRenderMode where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
 
-                <{{ComponentName}} @rendermode="RenderModeParam" RenderModeParam="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                <{{ComponentName}} @rendermode="RenderModeParam" RenderModeParam="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" />
 
                 @code
                 {
                     [Parameter] public TRenderMode RenderModeParam { get; set;}
                 }
-                """, throwOnFailure: true);
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact]
     public void RenderMode_With_Ternary()
     {
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="@(true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null)" />
-                """, throwOnFailure: true);
+                <{{ComponentName}} @rendermode="@(true ? Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer : null)" />
+                """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9343")]
@@ -10826,12 +10945,12 @@ Time: @DateTime.Now
     {
         var generated = CompileToCSharp($$"""
                 <{{ComponentName}} @rendermode="null" />
-                """, throwOnFailure: true, nullableEnable: false);
+                """, nullableEnable: false);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9343")]
@@ -10839,12 +10958,12 @@ Time: @DateTime.Now
     {
         var generated = CompileToCSharp($$"""
                 <{{ComponentName}} @rendermode="null" />
-                """, throwOnFailure: true, nullableEnable: true);
+                """, nullableEnable: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        CompileToAssembly(generated);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9343")]
@@ -10855,20 +10974,18 @@ Time: @DateTime.Now
                 {
                     public class RenderModeContainer
                     {
-                        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.Server;
+                        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer;
                     }
 
                     RenderModeContainer? Container => null;
                 }
                 <{{ComponentName}} @rendermode="@(Container.RenderMode)" />
-                """, throwOnFailure: true, nullableEnable: true);
+                """, nullableEnable: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-
-        result.Diagnostics.Verify(
+        CompileToAssembly(generated,
             DesignTime
             // x:\dir\subdir\Test\TestComponent.cshtml(10,29): warning CS8602: Dereference of a possibly null reference.
             //                             Container.RenderMode
@@ -10928,8 +11045,7 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        result.Diagnostics.Verify(
+        CompileToAssembly(generated,
             // x:\dir\subdir\Test\TestComponent.cshtml(2,55): error CS1503: Argument 1: cannot convert from 'int' to 'string'
             //                                                       x
             Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "string").WithLocation(2, 55));
@@ -10950,19 +11066,13 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        if (DesignTime)
-        {
-            result.Diagnostics.Verify(
+        CompileToAssembly(generated, DesignTime
+            ? [
                 // x:\dir\subdir\Test\TestComponent.cshtml(2,74): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //                                                                          x
-                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "string").WithLocation(2, 74));
-        }
-        else
-        {
-            result.Diagnostics.Verify();
-        }
-        Assert.NotEmpty(generated.Diagnostics);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "string").WithLocation(2, 74)
+               ]
+            : []);
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9077")]
@@ -10996,8 +11106,7 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        result.Diagnostics.Verify(
+        CompileToAssembly(generated,
             // x:\dir\subdir\Test\TestComponent.cshtml(2,55): error CS0103: The name 'x' does not exist in the current context
             //                                                       x
             Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(2, 55));
@@ -11015,14 +11124,14 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        var result = CompileToAssembly(generated, throwOnFailure: false);
-        result.Diagnostics.Verify(DesignTime
-            // (41,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
-            //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
-            ? Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(41, 85)
-            // (37,105): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
-            //             string __formName = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
-            : Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(37, 105));
+        CompileToAssembly(generated, DesignTime
+            ? [// (41,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
+             //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
+             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(41, 85)]
+            : [// (41,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
+               //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
+               Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(37, 105)]
+             );
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/9077")]
@@ -11297,7 +11406,7 @@ Time: @DateTime.Now
     public void FormName_NoAddNamedEventMethod()
     {
         // Arrange
-        var componentShim = BaseCompilation.References.Single(r => r.Display.EndsWith("Microsoft.AspNetCore.Razor.Test.ComponentShim.dll", StringComparison.Ordinal));
+        var componentsDll = BaseCompilation.References.Single(r => r.Display == "Microsoft.AspNetCore.Components (aspnet80)");
         var minimalShim = """
             namespace Microsoft.AspNetCore.Components
             {
@@ -11350,9 +11459,9 @@ Time: @DateTime.Now
                 assemblyName: "Microsoft.AspNetCore.Components",
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             .AddSyntaxTrees(Parse(minimalShim))
-            .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+            .AddReferences(ReferenceUtil.NetLatestAll)
             .EmitToImageReference();
-        var baseCompilation = BaseCompilation.ReplaceReference(componentShim, minimalShimRef);
+        var baseCompilation = BaseCompilation.ReplaceReference(componentsDll, minimalShimRef);
 
         // Act
         var generated = CompileToCSharp("""

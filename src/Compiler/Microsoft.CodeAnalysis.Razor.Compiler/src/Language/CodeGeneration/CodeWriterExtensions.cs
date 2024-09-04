@@ -169,7 +169,7 @@ internal static class CodeWriterExtensions
             .Write(characterEndAsString)
             .Write(") ");
 
-        // an offset of zero is indicated by its absence. 
+        // an offset of zero is indicated by its absence.
         if (characterOffset != 0)
         {
             var characterOffsetAsString = characterOffset.ToString(CultureInfo.InvariantCulture);
@@ -423,8 +423,14 @@ internal static class CodeWriterExtensions
         return scope;
     }
 
-    public static CSharpCodeWritingScope BuildNamespace(this CodeWriter writer, string name, SourceSpan? span, CodeRenderingContext context)
+#nullable enable
+    public static CSharpCodeWritingScope BuildNamespace(this CodeWriter writer, string? name, SourceSpan? span, CodeRenderingContext context)
     {
+        if (name.IsNullOrEmpty())
+        {
+            return new CSharpCodeWritingScope(writer, writeBraces: false);
+        }
+
         writer.Write("namespace ");
         if (context.Options.DesignTime || span is null)
         {
@@ -440,6 +446,7 @@ internal static class CodeWriterExtensions
         }
         return new CSharpCodeWritingScope(writer);
     }
+#nullable disable
 
     public static CSharpCodeWritingScope BuildClassDeclaration(
         this CodeWriter writer,
@@ -592,8 +599,7 @@ internal static class CodeWriterExtensions
             return NullDisposable.Default;
         }
 
-        var sourceSpan = RemapFilePathIfNecessary(span.Value, context);
-        return new LinePragmaWriter(writer, sourceSpan, context, 0, useEnhancedLinePragma: false, suppressLineDefaultAndHidden);
+        return new LinePragmaWriter(writer, span.Value, context, 0, useEnhancedLinePragma: false, suppressLineDefaultAndHidden);
     }
 
     public static IDisposable BuildEnhancedLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, int characterOffset = 0, bool suppressLineDefaultAndHidden = false)
@@ -604,8 +610,7 @@ internal static class CodeWriterExtensions
             return NullDisposable.Default;
         }
 
-        var sourceSpan = RemapFilePathIfNecessary(span.Value, context);
-        return new LinePragmaWriter(writer, sourceSpan, context, characterOffset, useEnhancedLinePragma: true, suppressLineDefaultAndHidden);
+        return new LinePragmaWriter(writer, span.Value, context, characterOffset, useEnhancedLinePragma: true, suppressLineDefaultAndHidden);
     }
 
     private static SourceSpan RemapFilePathIfNecessary(SourceSpan sourceSpan, CodeRenderingContext context)
@@ -711,13 +716,15 @@ internal static class CodeWriterExtensions
     {
         private readonly CodeWriter _writer;
         private readonly bool _autoSpace;
+        private readonly bool _writeBraces;
         private readonly int _tabSize;
         private int _startIndent;
 
-        public CSharpCodeWritingScope(CodeWriter writer, bool autoSpace = true)
+        public CSharpCodeWritingScope(CodeWriter writer, bool autoSpace = true, bool writeBraces = true)
         {
             _writer = writer;
             _autoSpace = autoSpace;
+            _writeBraces = writeBraces;
             _tabSize = writer.TabSize;
             _startIndent = -1; // Set in WriteStartScope
 
@@ -733,7 +740,15 @@ internal static class CodeWriterExtensions
         {
             TryAutoSpace(" ");
 
-            _writer.WriteLine("{");
+            if (_writeBraces)
+            {
+                _writer.WriteLine("{");
+            }
+            else
+            {
+                _writer.WriteLine();
+            }
+
             _writer.CurrentIndent += _tabSize;
             _startIndent = _writer.CurrentIndent;
         }
@@ -748,7 +763,14 @@ internal static class CodeWriterExtensions
                 _writer.CurrentIndent -= _tabSize;
             }
 
-            _writer.WriteLine("}");
+            if (_writeBraces)
+            {
+                _writer.WriteLine("}");
+            }
+            else
+            {
+                _writer.WriteLine();
+            }
         }
 
         private void TryAutoSpace(string spaceCharacter)
@@ -804,13 +826,14 @@ internal static class CodeWriterExtensions
                 _writer.WriteLine("#nullable restore");
             }
 
+            var sourceSpan = RemapFilePathIfNecessary(span, context);
             if (useEnhancedLinePragma && _context.Options.UseEnhancedLinePragma)
             {
-                WriteEnhancedLineNumberDirective(writer, span, characterOffset);
+                WriteEnhancedLineNumberDirective(writer, sourceSpan, characterOffset);
             }
             else
             {
-                WriteLineNumberDirective(writer, span);
+                WriteLineNumberDirective(writer, sourceSpan);
             }
 
             // Capture the line index after writing the #line directive.

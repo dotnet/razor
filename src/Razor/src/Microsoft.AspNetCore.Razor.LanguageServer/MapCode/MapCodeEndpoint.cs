@@ -11,16 +11,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode.Mappers;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Location = Microsoft.VisualStudio.LanguageServer.Protocol.Location;
@@ -76,7 +76,7 @@ internal sealed class MapCodeEndpoint(
     }
 
     private async Task<WorkspaceEdit?> HandleMappingsAsync(VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
-    { 
+    {
         using var _ = ArrayBuilderPool<TextDocumentEdit>.GetPooledObject(out var changes);
         foreach (var mapping in mappings)
         {
@@ -85,8 +85,7 @@ internal sealed class MapCodeEndpoint(
                 continue;
             }
 
-            var documentContext = _documentContextFactory.TryCreateForOpenDocument(mapping.TextDocument.Uri);
-            if (documentContext is null)
+            if (!_documentContextFactory.TryCreateForOpenDocument(mapping.TextDocument.Uri, out var documentContext))
             {
                 continue;
             }
@@ -317,7 +316,7 @@ internal sealed class MapCodeEndpoint(
             [nodeToMap.ToFullString()],
             FocusLocations: focusLocations);
 
-        WorkspaceEdit? edits = null;
+        WorkspaceEdit? edits;
         try
         {
             edits = await _clientConnection.SendRequestAsync<DelegatedMapCodeParams, WorkspaceEdit?>(
@@ -356,8 +355,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                var documentContext = _documentContextFactory.TryCreateForOpenDocument(potentialLocation.Uri);
-                if (documentContext is null)
+                if (!_documentContextFactory.TryCreateForOpenDocument(potentialLocation.Uri, out var documentContext))
                 {
                     continue;
                 }

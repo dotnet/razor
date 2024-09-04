@@ -5,13 +5,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -82,7 +83,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// will be used in <see cref="HandleRequestAsync(TRequest, RazorRequestContext, CancellationToken)"/>
     /// </summary>
     protected virtual Task<TResponse?> TryHandleAsync(TRequest request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
-        => Task.FromResult<TResponse?>(default);
+        => SpecializedTasks.Default<TResponse>();
 
     /// <summary>
     /// Returns true if the configuration supports this operation being handled, otherwise returns false. Use to
@@ -168,7 +169,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         }
         catch (RemoteInvocationException e)
         {
-            Logger.LogError(e, "Error calling delegate server for {method}", CustomMessageTarget);
+            Logger.LogError(e, $"Error calling delegate server for {CustomMessageTarget}");
             requestContext.GetRequiredService<ITelemetryReporter>().ReportFault(e, "Error calling delegate server for {method}", CustomMessageTarget);
             throw;
         }

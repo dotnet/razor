@@ -7,9 +7,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Exports;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.Extensions.Logging;
+using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -80,7 +80,7 @@ public class Program
         // a server.
         var loggerFactory = new LoggerFactory([]);
 
-        var server = RazorLanguageServerWrapper.Create(
+        using var host = RazorLanguageServerHost.Create(
             Console.OpenStandardInput(),
             Console.OpenStandardOutput(),
             loggerFactory,
@@ -88,13 +88,13 @@ public class Program
             featureOptions: languageServerFeatureOptions);
 
         // Now we have a server, and hence a connection, we have somewhere to log
-        var clientConnection = server.GetRequiredService<IClientConnection>();
+        var clientConnection = host.GetRequiredService<IClientConnection>();
         var loggerProvider = new LoggerProvider(logLevel, clientConnection);
         loggerFactory.AddLoggerProvider(loggerProvider);
 
-        loggerFactory.CreateLogger("RZLS").LogInformation("Razor Language Server started successfully.");
+        loggerFactory.GetOrCreateLogger("RZLS").LogInformation($"Razor Language Server started successfully.");
 
-        await server.WaitForExitAsync().ConfigureAwait(true);
+        await host.WaitForExitAsync().ConfigureAwait(true);
     }
 
     private static async Task<ITelemetryReporter?> TryGetTelemetryReporterAsync(string telemetryLevel, string sessionId, string telemetryExtensionPath)

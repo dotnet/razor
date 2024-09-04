@@ -42,7 +42,6 @@ internal static partial class ObjectReaders
     {
         var configurationName = reader.ReadNonNullString(nameof(RazorConfiguration.ConfigurationName));
         var languageVersionText = reader.ReadNonNullString(nameof(RazorConfiguration.LanguageVersion));
-        var forceRuntimeCodeGeneration = reader.ReadBooleanOrFalse(nameof(RazorConfiguration.ForceRuntimeCodeGeneration));
         var extensions = reader.ReadImmutableArrayOrEmpty(nameof(RazorConfiguration.Extensions),
             static r =>
             {
@@ -54,7 +53,7 @@ internal static partial class ObjectReaders
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return new(languageVersion, configurationName, extensions, ForceRuntimeCodeGeneration: forceRuntimeCodeGeneration);
+        return new(languageVersion, configurationName, extensions);
     }
 
     public static RazorDiagnostic ReadDiagnostic(JsonDataReader reader)
@@ -342,7 +341,7 @@ internal static partial class ObjectReaders
             throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        var serializedFilePath = reader.ReadNonNullString(nameof(RazorProjectInfo.SerializedFilePath));
+        var projectKeyId = reader.ReadNonNullString(nameof(RazorProjectInfo.ProjectKey));
         var filePath = reader.ReadNonNullString(nameof(RazorProjectInfo.FilePath));
         var configuration = reader.ReadObject(nameof(RazorProjectInfo.Configuration), ReadConfigurationFromProperties) ?? RazorConfiguration.Default;
         var projectWorkspaceState = reader.ReadObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties) ?? ProjectWorkspaceState.Default;
@@ -351,7 +350,7 @@ internal static partial class ObjectReaders
 
         var displayName = Path.GetFileNameWithoutExtension(filePath);
 
-        return new RazorProjectInfo(serializedFilePath, filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
+        return new RazorProjectInfo(new ProjectKey(projectKeyId), filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
     }
 
     public static Checksum ReadChecksum(JsonDataReader reader)

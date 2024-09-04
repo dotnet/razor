@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -16,8 +18,8 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -44,7 +46,8 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         string? fileKind = null,
         ImmutableArray<TagHelperDescriptor> tagHelpers = default,
         bool allowDiagnostics = false,
-        RazorLSPOptions? razorLSPOptions = null)
+        RazorLSPOptions? razorLSPOptions = null,
+        bool inGlobalNamespace = false)
     {
         // Arrange
         fileKind ??= FileKinds.Component;
@@ -59,16 +62,14 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
         var path = "file:///path/to/Document." + fileKind;
         var uri = new Uri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, tagHelpers, fileKind, allowDiagnostics);
+        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, tagHelpers, fileKind, allowDiagnostics, inGlobalNamespace);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
 
-        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
-
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, dispatcher, codeDocument, documentSnapshot, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
@@ -94,7 +95,8 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         bool insertSpaces = true,
         string? fileKind = null,
         int? expectedChangedLines = null,
-        RazorLSPOptions? razorLSPOptions = null)
+        RazorLSPOptions? razorLSPOptions = null,
+        bool inGlobalNamespace = false)
     {
         // Arrange
         fileKind ??= FileKinds.Component;
@@ -104,17 +106,15 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var razorSourceText = SourceText.From(input);
         var path = "file:///path/to/Document.razor";
         var uri = new Uri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
+        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
 
         var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
         var mappingService = new RazorDocumentMappingService(
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
-
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(
-            LoggerFactory, dispatcher, codeDocument, documentSnapshot, razorLSPOptions);
+            LoggerFactory, codeDocument, documentSnapshot, razorLSPOptions);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
@@ -151,7 +151,8 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         string expected,
         int tabSize = 4,
         bool insertSpaces = true,
-        string? fileKind = null)
+        string? fileKind = null,
+        bool inGlobalNamespace = false)
     {
         if (codeActionEdits is null)
         {
@@ -166,7 +167,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var razorSourceText = SourceText.From(input);
         var path = "file:///path/to/Document.razor";
         var uri = new Uri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
+        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
 
         var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
         var mappingService = new RazorDocumentMappingService(filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -181,9 +182,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             throw new InvalidOperationException("Could not map from Razor document to generated document");
         }
 
-        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
-
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, dispatcher, codeDocument);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
@@ -218,7 +217,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         return source.WithChanges(changes);
     }
 
-    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = default, bool allowDiagnostics = false)
+    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = default, bool allowDiagnostics = false, bool inGlobalNamespace = false)
     {
         fileKind ??= FileKinds.Component;
         tagHelpers = tagHelpers.NullToEmpty();
@@ -228,7 +227,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             tagHelpers = tagHelpers.AddRange(RazorTestResources.BlazorServerAppTagHelpers);
         }
 
-        var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
+        var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(
+            filePath: path,
+            relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
 
         const string DefaultImports = """
                 @using BlazorApp1
@@ -256,7 +257,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
-            builder.SetRootNamespace("Test");
+            builder.SetRootNamespace(inGlobalNamespace ? string.Empty : "Test");
             builder.Features.Add(new DefaultTypeNameFeature());
             RazorExtensions.Register(builder);
         });
@@ -269,12 +270,12 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
         var imports = ImmutableArray.Create(importsSnapshot.Object);
         var importsDocuments = ImmutableArray.Create(importsDocument);
-        var documentSnapshot = CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument);
+        var documentSnapshot = CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument, inGlobalNamespace: inGlobalNamespace);
 
         return (codeDocument, documentSnapshot);
     }
 
-    internal static IDocumentSnapshot CreateDocumentSnapshot(string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind, ImmutableArray<RazorSourceDocument> importsDocuments, ImmutableArray<IDocumentSnapshot> imports, RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
+    internal static IDocumentSnapshot CreateDocumentSnapshot(string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind, ImmutableArray<RazorSourceDocument> importsDocuments, ImmutableArray<IDocumentSnapshot> imports, RazorProjectEngine projectEngine, RazorCodeDocument codeDocument, bool inGlobalNamespace = false)
     {
         var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
@@ -299,9 +300,11 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             .Setup(d => d.WithText(It.IsAny<SourceText>()))
             .Returns<SourceText>(text =>
             {
-                var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
+                var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(
+                    filePath: path,
+                    relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
                 var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importsDocuments, tagHelpers);
-                return CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument);
+                return CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument, inGlobalNamespace: inGlobalNamespace);
             });
         return documentSnapshot.Object;
     }

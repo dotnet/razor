@@ -17,37 +17,20 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
+internal sealed class CSharpOnTypeFormattingPass(
+    IRazorDocumentMappingService documentMappingService,
+    ILoggerFactory loggerFactory)
+    : CSharpFormattingPassBase(documentMappingService)
 {
-    private readonly ILogger _logger;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
-
-    public CSharpOnTypeFormattingPass(
-        IRazorDocumentMappingService documentMappingService,
-        IClientConnection clientConnection,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-        IRazorLoggerFactory loggerFactory)
-        : base(documentMappingService, clientConnection)
-    {
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _logger = loggerFactory.CreateLogger<CSharpOnTypeFormattingPass>();
-        _optionsMonitor = optionsMonitor;
-    }
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
@@ -66,7 +49,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         {
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
-                _logger.LogWarning("Failed to map to projected position for document {context.Uri}.", context.Uri);
+                _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
                 return result;
             }
 
@@ -89,12 +72,12 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
             if (formattingChanges.IsEmpty)
             {
-                _logger.LogInformation("Received no results.");
+                _logger.LogInformation($"Received no results.");
                 return result;
             }
 
             textEdits = formattingChanges.Select(change => change.ToTextEdit(csharpText)).ToArray();
-            _logger.LogInformation("Received {textEditsLength} results from C#.", textEdits.Length);
+            _logger.LogInformation($"Received {textEdits.Length} results from C#.");
         }
 
         // Sometimes the C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
@@ -108,7 +91,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
             var count = csharpText.Lines.Count;
             if (startLine >= count || endLine >= count)
             {
-                _logger.LogWarning("Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.", startLine, endLine, count);
+                _logger.LogWarning($"Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.");
                 return result;
             }
         }
@@ -130,13 +113,13 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
         // Find the lines that were affected by these edits.
         var originalText = codeDocument.GetSourceText();
-        _logger.LogTestOnly("Original text:\r\n{originalText}", originalText);
+        _logger.LogTestOnly($"Original text:\r\n{originalText}");
 
         var changes = filteredEdits.Select(e => e.ToTextChange(originalText));
 
         // Apply the format on type edits sent over by the client.
         var formattedText = ApplyChangesAndTrackChange(originalText, changes, out _, out var spanAfterFormatting);
-        _logger.LogTestOnly("After C# changes:\r\n{formattedText}", formattedText);
+        _logger.LogTestOnly($"After C# changes:\r\n{formattedText}");
 
         var changedContext = await context.WithTextAsync(formattedText).ConfigureAwait(false);
         var rangeAfterFormatting = spanAfterFormatting.ToRange(formattedText);
@@ -146,7 +129,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         // We make an optimistic attempt at fixing corner cases.
         var cleanupChanges = CleanupDocument(changedContext, rangeAfterFormatting);
         var cleanedText = formattedText.WithChanges(cleanupChanges);
-        _logger.LogTestOnly("After CleanupDocument:\r\n{cleanedText}", cleanedText);
+        _logger.LogTestOnly($"After CleanupDocument:\r\n{cleanedText}");
 
         changedContext = await changedContext.WithTextAsync(cleanedText).ConfigureAwait(false);
 
@@ -216,7 +199,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
             // Apply the edits that modify indentation.
             cleanedText = cleanedText.WithChanges(indentationChanges);
 
-            _logger.LogTestOnly("After AdjustIndentationAsync:\r\n{cleanedText}", cleanedText);
+            _logger.LogTestOnly($"After AdjustIndentationAsync:\r\n{cleanedText}");
         }
 
         // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
@@ -236,7 +219,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
             if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
             {
                 var usingStatementEdits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
-                finalEdits = usingStatementEdits.Concat(finalEdits).ToArray();
+                finalEdits = [.. usingStatementEdits, .. finalEdits];
             }
         }
 

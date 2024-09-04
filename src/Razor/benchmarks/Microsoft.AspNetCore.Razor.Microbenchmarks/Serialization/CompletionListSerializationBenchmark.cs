@@ -7,6 +7,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -24,7 +25,8 @@ public class CompletionListSerializationBenchmark
     public CompletionListSerializationBenchmark()
     {
         var completionService = new LspTagHelperCompletionService();
-        var optionsMonitor = new BenchmarkOptionsMonitor<RazorLSPOptions>(RazorLSPOptions.Default);
+        var configurationService = new BenchmarkConfigurationSyncService();
+        var optionsMonitor = new RazorLSPOptionsMonitor(configurationService, RazorLSPOptions.Default);
         var tagHelperCompletionProvider = new TagHelperCompletionProvider(completionService, optionsMonitor);
 
         _serializer = JsonSerializer.Create();

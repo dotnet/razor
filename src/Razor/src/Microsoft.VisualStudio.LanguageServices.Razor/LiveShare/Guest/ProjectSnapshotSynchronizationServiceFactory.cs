@@ -4,20 +4,20 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.LiveShare.Razor.Serialization;
+using Microsoft.VisualStudio.LiveShare;
+using Microsoft.VisualStudio.Razor.LiveShare.Serialization;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor.Guest;
+namespace Microsoft.VisualStudio.Razor.LiveShare.Guest;
 
 [ExportCollaborationService(typeof(ProjectSnapshotSynchronizationService), Scope = SessionScope.Guest)]
 [method: ImportingConstructor]
 internal class ProjectSnapshotSynchronizationServiceFactory(
     IProjectSnapshotManager projectManager,
-    ProjectSnapshotManagerDispatcher dispatcher,
-    IErrorReporter errorReporter,
+    ILoggerFactory loggerFactory,
     JoinableTaskContext joinableTaskContext) : ICollaborationServiceFactory
 {
     public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession sessionContext, CancellationToken cancellationToken)
@@ -32,8 +32,7 @@ internal class ProjectSnapshotSynchronizationServiceFactory(
             sessionContext,
             projectSnapshotManagerProxy,
             projectManager,
-            dispatcher,
-            errorReporter,
+            loggerFactory,
             joinableTaskContext.Factory);
 
         await synchronizationService.InitializeAsync(cancellationToken);

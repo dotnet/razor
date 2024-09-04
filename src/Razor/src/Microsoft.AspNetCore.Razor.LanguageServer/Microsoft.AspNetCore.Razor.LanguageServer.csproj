@@ -5,11 +5,13 @@
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the language server library assets.</Description>
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>false</IsShippingPackage>
+    <!-- CLaSP is a source package, and has a more lenient approach to using statements than us-->
+    <NoWarn>IDE0005</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <Using Alias="Range" Include="Microsoft.VisualStudio.LanguageServer.Protocol.Range" />
-    <Using Alias="LanguageServerConstants" Include="Microsoft.AspNetCore.Razor.LanguageServer.Common.LanguageServerConstants"/>
+    <Using Alias="LanguageServerConstants" Include="Microsoft.CodeAnalysis.Razor.Protocol.LanguageServerConstants" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,27 +22,24 @@
 
   <ItemGroup>
     <!-- Need this reference to avoid 'The C# language is not supported' error during formatting. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion)" />
-    <PackageReference Include="Microsoft.CommonLanguageServerProtocol.Framework" Version="$(MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsPackageVersion)" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackageVersion)" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CommonLanguageServerProtocol.Framework" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <!-- Manually upgrade to address CG alert. When the VS packages
          pull in the right version, this can be removed. -->
-    <PackageReference Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistPackageVersion)" Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'" />
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'" />
 
     <!--
       Pinning packages to avoid misaligned reference CI failures.
       CI builds here: https://github.com/dotnet/razor-tooling/issues/4327
       Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
     -->
-    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsPackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Protocol\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
   </ItemGroup>
 
@@ -56,6 +55,16 @@
   <ItemGroup>
     <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <!-- Display files included by the Microsoft.CommonLanguageServerProtocol.Framework source package in a separate folder -->
+  <ItemGroup>
+    <Content Update="@(Content)">
+      <Link Condition="'%(NuGetPackageId)' == 'Microsoft.CommonLanguageServerProtocol.Framework'">CLaSP\%(Link)</Link>
+    </Content>
+    <Compile Update="@(Compile)">
+      <Link Condition="'%(NuGetPackageId)' == 'Microsoft.CommonLanguageServerProtocol.Framework'">CLaSP\%(Link)</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>

@@ -4,9 +4,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Settings;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,7 +18,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
     private readonly IClientConnection _clientConnection;
     private readonly ILogger _logger;
 
-    public DefaultRazorConfigurationService(IClientConnection clientConnection, IRazorLoggerFactory loggerFactory)
+    public DefaultRazorConfigurationService(IClientConnection clientConnection, ILoggerFactory loggerFactory)
     {
         if (clientConnection is null)
         {
@@ -31,7 +31,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         }
 
         _clientConnection = clientConnection;
-        _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
+        _logger = loggerFactory.GetOrCreateLogger<DefaultRazorConfigurationService>();
     }
 
     public async Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
             // LSP spec indicates result should be the same length as the number of ConfigurationItems we pass in.
             if (result?.Length != request.Items.Length || result[0] is null)
             {
-                _logger.LogWarning("Client failed to provide the expected configuration.");
+                _logger.LogWarning($"Client failed to provide the expected configuration.");
                 return null;
             }
 
@@ -54,7 +54,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning("Failed to sync client configuration on the server: {ex}", ex);
+            _logger.LogWarning($"Failed to sync client configuration on the server: {ex}");
             return null;
         }
     }
@@ -204,7 +204,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Malformed option: Token {token} cannot be converted to type {TypeOfT}.", token, typeof(T));
+            _logger.LogError(ex, $"Malformed option: Token {token} cannot be converted to type {typeof(T)}.");
             return defaultValue;
         }
     }

@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -28,11 +27,11 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = RazorCommitCharacter.CreateArray([">"]);
 
     private readonly ITagHelperCompletionService _tagHelperCompletionService;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor;
 
     public TagHelperCompletionProvider(
         ITagHelperCompletionService tagHelperCompletionService,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+        RazorLSPOptionsMonitor optionsMonitor)
     {
         _tagHelperCompletionService = tagHelperCompletionService;
         _optionsMonitor = optionsMonitor;

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -47,10 +48,10 @@ internal static class CSharpTestLspServerHelpers
             (csharpDocumentUri, csharpSourceText)
         };
 
-        return CreateCSharpLspServerAsync(files, serverCapabilities, razorSpanMappingService, cancellationToken);
+        return CreateCSharpLspServerAsync(files, serverCapabilities, razorSpanMappingService, multiTargetProject: true, cancellationToken);
     }
 
-    public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(IEnumerable<(Uri Uri, SourceText SourceText)> files, VSInternalServerCapabilities serverCapabilities, IRazorSpanMappingService razorSpanMappingService, CancellationToken cancellationToken)
+    public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(IEnumerable<(Uri Uri, SourceText SourceText)> files, VSInternalServerCapabilities serverCapabilities, IRazorSpanMappingService razorSpanMappingService, bool multiTargetProject, CancellationToken cancellationToken)
     {
         var csharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
@@ -58,8 +59,8 @@ internal static class CSharpTestLspServerHelpers
         var metadataReferences = (await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken))
             // ComponentBase here comes from our ComponentShim project, not the real ASP.NET libraries. It's enough for the generated C#
             // in tests to at least compile better.
-            .Add(MetadataReference.CreateFromFile(typeof(ComponentBase).Assembly.Location));
-        var workspace = CreateCSharpTestWorkspace(csharpFiles, exportProvider, metadataReferences, razorSpanMappingService);
+            .Add(ReferenceUtil.AspNetLatestComponents);
+        var workspace = CreateCSharpTestWorkspace(csharpFiles, exportProvider, metadataReferences, razorSpanMappingService, multiTargetProject);
         var clientCapabilities = new VSInternalClientCapabilities
         {
             SupportsVisualStudioExtensions = true,
@@ -96,7 +97,8 @@ internal static class CSharpTestLspServerHelpers
         IEnumerable<CSharpFile> files,
         ExportProvider exportProvider,
         ImmutableArray<MetadataReference> metadataReferences,
-        IRazorSpanMappingService razorSpanMappingService)
+        IRazorSpanMappingService razorSpanMappingService,
+        bool multiTargetProject)
     {
         var hostServices = MefHostServices.Create(exportProvider.AsCompositionContext());
         var workspace = TestWorkspace.Create(hostServices);
@@ -120,7 +122,9 @@ internal static class CSharpTestLspServerHelpers
             filePath: @"C:\TestSolution\TestProject.csproj",
             metadataReferences: metadataReferences);
 
-        var projectInfos = new ProjectInfo[] { projectInfoNet60, projectInfoNet80 };
+        ProjectInfo[] projectInfos = multiTargetProject
+            ? [projectInfoNet60, projectInfoNet80]
+            : [projectInfoNet80];
 
         var solutionInfo = SolutionInfo.Create(
             id: SolutionId.CreateNewId("TestSolution"),
@@ -133,7 +137,7 @@ internal static class CSharpTestLspServerHelpers
 
         // Add document to workspace. We use an IVT method to create the DocumentInfo variable because there's
         // a special constructor in Roslyn that will help identify the document as belonging to Razor.
-        var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
+        var languageServerFactory = exportProvider.GetExportedValue<AbstractRazorLanguageServerFactoryWrapper>();
 
         var documentCount = 0;
         foreach (var (documentUri, csharpSourceText) in files)
@@ -191,7 +195,7 @@ internal static class CSharpTestLspServerHelpers
     {
         public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableArray<RazorMappedSpanResult>.Empty);
+            return SpecializedTasks.EmptyImmutableArray<RazorMappedSpanResult>();
         }
     }
 }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -22,6 +24,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -1017,11 +1020,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
 
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
-        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
-        {
-            o.RootNamespace = "Test";
-        }));
+        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath, rootNamespace: "Test");
         var razorSourceText = codeDocument.GetSourceText();
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
@@ -1046,7 +1045,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             var codeActionToRun = GetCodeActionToRun(codeAction, childActionIndex, result);
             Assert.NotNull(codeActionToRun);
 
-            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, Dispatcher);
+            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
             var changes = await GetEditsAsync(
                 codeActionToRun,
                 requestContext,
@@ -1132,7 +1131,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
         Assert.NotNull(codeActionToRun);
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, Dispatcher, codeDocument, documentContext.Snapshot, optionsMonitor?.CurrentValue);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentContext.Snapshot, optionsMonitor?.CurrentValue);
         var changes = await GetEditsAsync(
             codeActionToRun,
             requestContext,
@@ -1213,7 +1212,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         IClientConnection clientConnection,
         IRazorCodeActionResolver[] razorResolvers)
     {
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, Dispatcher);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
 
         var csharpResolvers = new CSharpCodeActionResolver[]
         {
@@ -1245,7 +1244,6 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             int? version = null)
             : base(filePath, codeDocument, version)
         {
-
             _tagHelperDescriptors = CreateTagHelperDescriptors();
             if (tagHelpers is not null)
             {
@@ -1253,18 +1251,24 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             }
         }
 
-        public override DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned)
+        public override bool TryCreate(
+            Uri documentUri,
+            VSProjectContext? projectContext,
+            bool versioned,
+            [NotNullWhen(true)] out DocumentContext? context)
         {
             if (FilePath is null || CodeDocument is null)
             {
-                return null;
+                context = null;
+                return false;
             }
 
             var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
             var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.GetSourceText().ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
             testDocumentSnapshot.With(CodeDocument);
 
-            return CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
+            context = CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
+            return true;
         }
 
         private static List<TagHelperDescriptor> CreateTagHelperDescriptors()

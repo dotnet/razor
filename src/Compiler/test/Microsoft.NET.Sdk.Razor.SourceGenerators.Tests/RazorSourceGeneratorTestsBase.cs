@@ -414,7 +414,7 @@ internal static class Extensions
             for (int i = 0; i < result.GeneratedSources.Length; i++)
             {
                 var text = TrimChecksum(result.GeneratedSources[i].SourceText.ToString());
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(text, TrimChecksum(expectedOutput[i]));
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(TrimChecksum(expectedOutput[i]), text);
             }
         }
 
@@ -466,7 +466,7 @@ internal static class Extensions
 
         // Verify actual against baseline.
         var baselineText = File.ReadAllText(baselinePath);
-        AssertEx.EqualOrDiff(baselineText, actualText);
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(baselineText, actualText);
     }
 
     [Conditional("GENERATE_BASELINES")]

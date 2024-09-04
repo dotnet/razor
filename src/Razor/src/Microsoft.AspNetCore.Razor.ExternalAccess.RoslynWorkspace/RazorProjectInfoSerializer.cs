@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 
@@ -29,17 +30,19 @@ internal static class RazorProjectInfoSerializer
             : StringComparison.OrdinalIgnoreCase;
     }
 
-    public static async Task SerializeAsync(Project project, string configurationFileName, CancellationToken cancellationToken)
+    public static async Task SerializeAsync(Project project, string configurationFileName, ILogger? logger, CancellationToken cancellationToken)
     {
         var projectPath = Path.GetDirectoryName(project.FilePath);
         if (projectPath is null)
         {
+            logger?.LogTrace("projectPath is null, skipping writing info for {projectId}", project.Id);
             return;
         }
 
         var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
         if (intermediateOutputPath is null)
         {
+            logger?.LogTrace("intermediatePath is null, skipping writing info for {projectId}", project.Id);
             return;
         }
 
@@ -49,13 +52,14 @@ internal static class RazorProjectInfoSerializer
         // Not a razor project
         if (documents.Length == 0)
         {
+            logger?.LogTrace("No razor documents for {projectId}", project.Id);
             return;
         }
 
         var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
 
         var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-        var configuration = ComputeRazorConfigurationOptions(options, out var defaultNamespace);
+        var configuration = ComputeRazorConfigurationOptions(options, logger, out var defaultNamespace);
 
         var fileSystem = RazorProjectFileSystem.Create(projectPath);
 
@@ -85,7 +89,7 @@ internal static class RazorProjectInfoSerializer
         var configurationFilePath = Path.Combine(intermediateOutputPath, configurationFileName);
 
         var projectInfo = new RazorProjectInfo(
-            serializedFilePath: configurationFilePath,
+            projectKey: new ProjectKey(intermediateOutputPath),
             filePath: project.FilePath!,
             configuration: configuration,
             rootNamespace: defaultNamespace,
@@ -93,10 +97,10 @@ internal static class RazorProjectInfoSerializer
             projectWorkspaceState: projectWorkspaceState,
             documents: documents);
 
-        WriteToFile(configurationFilePath, projectInfo);
+        WriteToFile(configurationFilePath, projectInfo, logger);
     }
 
-    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, out string defaultNamespace)
+    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, ILogger? logger, out string defaultNamespace)
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
@@ -111,6 +115,7 @@ internal static class RazorProjectInfoSerializer
         if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
             !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
         {
+            logger?.LogTrace("Using default of latest language version");
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
@@ -121,7 +126,7 @@ internal static class RazorProjectInfoSerializer
         return razorConfiguration;
     }
 
-    private static void WriteToFile(string configurationFilePath, RazorProjectInfo projectInfo)
+    private static void WriteToFile(string configurationFilePath, RazorProjectInfo projectInfo, ILogger? logger)
     {
         // We need to avoid having an incomplete file at any point, but our
         // project configuration is large enough that it will be written as multiple operations.
@@ -131,6 +136,7 @@ internal static class RazorProjectInfoSerializer
         if (tempFileInfo.Exists)
         {
             // This could be caused by failures during serialization or early process termination.
+            logger?.LogTrace("deleting existing file {filePath}", tempFilePath);
             tempFileInfo.Delete();
         }
 
@@ -144,27 +150,43 @@ internal static class RazorProjectInfoSerializer
         var fileInfo = new FileInfo(configurationFilePath);
         if (fileInfo.Exists)
         {
+            logger?.LogTrace("deleting existing file {filePath}", configurationFilePath);
             fileInfo.Delete();
         }
 
+        logger?.LogTrace("Moving {tmpPath} to {newPath}", tempFilePath, configurationFilePath);
         File.Move(tempFileInfo.FullName, configurationFilePath);
     }
 
-    private static ImmutableArray<DocumentSnapshotHandle> GetDocuments(Project project, string projectPath)
+    internal static ImmutableArray<DocumentSnapshotHandle> GetDocuments(Project project, string projectPath)
     {
         using var documents = new PooledArrayBuilder<DocumentSnapshotHandle>();
 
         var normalizedProjectPath = FilePathNormalizer.NormalizeDirectory(projectPath);
 
         // We go through additional documents, because that's where the razor files will be
-        // We could alternatively go through the Documents and look for our virtual C# documents, that the dynamic file info
-        // would have added
         foreach (var document in project.AdditionalDocuments)
         {
-            if (document.FilePath is not null &&
-                TryGetFileKind(document.FilePath, out var kind))
+            if (document.FilePath is { } filePath &&
+                TryGetFileKind(filePath, out var kind))
             {
-                documents.Add(new DocumentSnapshotHandle(document.FilePath, GetTargetPath(document.FilePath, normalizedProjectPath), kind));
+                documents.Add(new DocumentSnapshotHandle(filePath, GetTargetPath(filePath, normalizedProjectPath), kind));
+            }
+        }
+
+        if (documents.Count == 0)
+        {
+            // If there were no Razor files as additional files, we go through the Documents and look for our virtual C#
+            // documents, that the dynamic file info would have added. We don't do this if there was any true AdditionalFile
+            // items, because we don't want to assume things about a real project, we just want to have some support for
+            // projects that don't use the Razor SDK.
+            foreach (var document in project.Documents)
+            {
+                if (TryGetRazorFileName(document.FilePath, out var razorFilePath) &&
+                    TryGetFileKind(razorFilePath, out var kind))
+                {
+                    documents.Add(new DocumentSnapshotHandle(razorFilePath, GetTargetPath(razorFilePath, normalizedProjectPath), kind));
+                }
             }
         }
 
@@ -186,22 +208,52 @@ internal static class RazorProjectInfoSerializer
         return normalizedTargetFilePath;
     }
 
-    private static bool TryGetFileKind(string? filePath, [NotNullWhen(true)] out string? fileKind)
+    private static bool TryGetFileKind(string filePath, [NotNullWhen(true)] out string? fileKind)
     {
-        var extension = Path.GetExtension(filePath);
+        var extension = Path.GetExtension(filePath.AsSpan());
 
-        if (string.Equals(extension, ".cshtml", s_stringComparison))
+        if (extension.Equals(".cshtml", s_stringComparison))
         {
             fileKind = FileKinds.Legacy;
             return true;
         }
-        else if (string.Equals(extension, ".razor", s_stringComparison))
+        else if (extension.Equals(".razor", s_stringComparison))
         {
             fileKind = FileKinds.GetComponentFileKindFromFilePath(filePath);
             return true;
         }
 
         fileKind = null;
+        return false;
+    }
+
+    private static bool TryGetRazorFileName(string? filePath, [NotNullWhen(true)] out string? razorFilePath)
+    {
+        if (filePath is null)
+        {
+            razorFilePath = null;
+            return false;
+        }
+
+        // Must match C# extension: https://github.com/dotnet/vscode-csharp/blob/main/src/razor/src/razorConventions.ts#L10
+        const string prefix = "virtualcsharp-razor:///";
+        const string suffix = "__virtual.cs";
+        const string generatedRazorExtension = $".razor{suffix}";
+        const string generatedCshtmlExtension = $".cshtml{suffix}";
+
+        var path = filePath.AsSpan();
+
+        // Generated files have a path like: virtualcsharp-razor:///e:/Scratch/RazorInConsole/Goo.cshtml__virtual.cs
+        if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
+            (path.EndsWith(generatedRazorExtension, s_stringComparison) || path.EndsWith(generatedCshtmlExtension, s_stringComparison)))
+        {
+            // Go through the file path normalizer because it also does Uri decoding, and we're converting from a Uri to a path
+            // but "new Uri(filePath).LocalPath" seems wasteful
+            razorFilePath = FilePathNormalizer.Normalize(filePath[prefix.Length..^suffix.Length]);
+            return true;
+        }
+
+        razorFilePath = null;
         return false;
     }
 }

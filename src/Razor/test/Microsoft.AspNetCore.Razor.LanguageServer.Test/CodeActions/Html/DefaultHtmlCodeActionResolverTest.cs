@@ -5,10 +5,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -31,8 +33,7 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
         var documentPath = "c:/Test.razor";
         var documentUri = new Uri(documentPath);
         var documentContextFactory = CreateDocumentContextFactory(documentUri, contents);
-        var context = documentContextFactory.TryCreate(documentUri);
-        Assert.NotNull(context);
+        Assert.True(documentContextFactory.TryCreate(documentUri, out var context));
         var sourceText = await context.GetSourceTextAsync(DisposalToken);
         var remappedEdit = new WorkspaceEdit
         {

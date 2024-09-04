@@ -11,36 +11,34 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentRenameName)]
 internal sealed class RenameEndpoint(
-    ProjectSnapshotManagerDispatcher dispatcher,
     RazorComponentSearchEngine componentSearchEngine,
     IProjectSnapshotManager projectManager,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IRazorDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
-        loggerFactory.CreateLogger<RenameEndpoint>()), ICapabilitiesProvider
+        loggerFactory.GetOrCreateLogger<RenameEndpoint>()), ICapabilitiesProvider
 {
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly RazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
@@ -60,7 +58,12 @@ internal sealed class RenameEndpoint(
 
     protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return null;
+        }
+
         // We only support renaming of .razor components, not .cshtml tag helpers
         if (!FileKinds.IsComponent(documentContext.FileKind))
         {
@@ -81,7 +84,12 @@ internal sealed class RenameEndpoint(
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return SpecializedTasks.Null<IDelegatedParams>();
+        }
+
         return Task.FromResult<IDelegatedParams?>(new DelegatedRenameParams(
                 documentContext.Identifier,
                 positionInfo.Position,
@@ -127,7 +135,7 @@ internal sealed class RenameEndpoint(
         documentChanges.Add(fileRename);
         AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument);
 
-        var documentSnapshots = await GetAllDocumentSnapshotsAsync(documentContext, cancellationToken).ConfigureAwait(false);
+        var documentSnapshots = GetAllDocumentSnapshots(documentContext);
 
         foreach (var documentSnapshot in documentSnapshots)
         {
@@ -149,14 +157,12 @@ internal sealed class RenameEndpoint(
         };
     }
 
-    private async Task<ImmutableArray<IDocumentSnapshot?>> GetAllDocumentSnapshotsAsync(DocumentContext skipDocumentContext, CancellationToken cancellationToken)
+    private ImmutableArray<IDocumentSnapshot?> GetAllDocumentSnapshots(DocumentContext skipDocumentContext)
     {
         using var documentSnapshots = new PooledArrayBuilder<IDocumentSnapshot?>();
         using var _ = StringHashSetPool.GetPooledObject(out var documentPaths);
 
-        var projects = await _dispatcher
-            .RunAsync(() => _projectManager.GetProjects(), cancellationToken)
-            .ConfigureAwait(false);
+        var projects = _projectManager.GetProjects();
 
         foreach (var project in projects)
         {

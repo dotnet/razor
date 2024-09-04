@@ -10,15 +10,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
 {
+    // AsyncSemaphore is banned. See https://github.com/dotnet/razor/issues/10390 for more info.
+#pragma warning disable RS0030 // Do not use banned APIs
+
     private static readonly DataflowLinkOptions s_dataflowLinkOptions = new DataflowLinkOptions() { PropagateCompletion = true };
 
     private readonly IServiceProvider _serviceProvider;
@@ -27,7 +32,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     private readonly Dictionary<ProjectConfigurationSlice, IDisposable> _projectSubscriptions = new();
     private readonly List<IDisposable> _disposables = new();
-    protected readonly ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore;
 
     internal const string BaseIntermediateOutputPathPropertyName = "BaseIntermediateOutputPath";
     internal const string IntermediateOutputPathPropertyName = "IntermediateOutputPath";
@@ -42,8 +46,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     protected WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
         IServiceProvider serviceProvider,
-        IProjectSnapshotManager projectManager,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
+        IProjectSnapshotManager projectManager)
         : base(commonServices.ThreadingService.JoinableTaskContext)
     {
         CommonServices = commonServices;
@@ -51,7 +54,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         _projectManager = projectManager;
 
         _lock = new AsyncSemaphore(initialCount: 1);
-        ProjectConfigurationFilePathStore = projectConfigurationFilePathStore;
     }
 
     protected abstract ImmutableHashSet<string> GetRuleNames();
@@ -281,7 +283,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     protected void RemoveProject(ProjectSnapshotManager.Updater updater, ProjectKey projectKey)
     {
         updater.ProjectRemoved(projectKey);
-        ProjectConfigurationFilePathStore.Remove(projectKey);
     }
 
     private async Task ExecuteWithLockAsync(Func<Task> func)

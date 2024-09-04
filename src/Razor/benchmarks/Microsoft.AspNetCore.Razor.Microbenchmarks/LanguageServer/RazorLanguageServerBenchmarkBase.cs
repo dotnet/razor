@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
@@ -18,8 +19,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
@@ -31,12 +30,12 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var (_, serverStream) = FullDuplexStream.CreatePair();
         Logger = new NoopLogger();
         var razorLoggerFactory = new NoopLoggerFactory();
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(
+        RazorLanguageServerHost = RazorLanguageServerHost.Create(
             serverStream,
             serverStream,
             razorLoggerFactory,
             NoOpTelemetryReporter.Instance,
-            configure: (collection) =>
+            configureServices: (collection) =>
             {
                 collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
                 collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
@@ -54,7 +53,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         return null;
     }
 
-    private protected RazorLanguageServerWrapper RazorLanguageServer { get; }
+    private protected RazorLanguageServerHost RazorLanguageServerHost { get; }
 
     private protected NoopLogger Logger { get; }
 
@@ -87,7 +86,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     private class NoopClientNotifierService : IClientConnection, IOnInitialized
     {
-        public Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }
@@ -108,9 +107,9 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         }
     }
 
-    internal class NoopLoggerFactory() : AbstractRazorLoggerFactory([new NoopLoggerProvider()]);
+    internal class NoopLoggerFactory() : AbstractLoggerFactory([new NoopLoggerProvider()]);
 
-    internal class NoopLoggerProvider : IRazorLoggerProvider
+    internal class NoopLoggerProvider : ILoggerProvider
     {
         public ILogger CreateLogger(string categoryName)
         {
@@ -124,17 +123,12 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     internal class NoopLogger : ILogger, ILspLogger
     {
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool IsEnabled(LogLevel logLevel)
         {
             return true;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log(LogLevel logLevel, string message, Exception exception)
         {
         }
 

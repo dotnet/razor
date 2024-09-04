@@ -43,8 +43,7 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
             return null;
         }
 
-        var documentContext = _documentContextFactory.TryCreate(actionParams.Uri);
-        if (documentContext is null)
+        if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
         {
             return null;
         }

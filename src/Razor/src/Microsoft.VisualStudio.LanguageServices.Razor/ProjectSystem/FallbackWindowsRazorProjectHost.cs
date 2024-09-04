@@ -13,15 +13,17 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
-using ContentItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ContentItem;
-using ItemReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ItemReference;
-using NoneItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.NoneItem;
-using ResolvedCompilationReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ResolvedCompilationReference;
+using ContentItem = Microsoft.VisualStudio.Razor.ProjectSystem.ManagedProjectSystemSchema.ContentItem;
+using ItemReference = Microsoft.VisualStudio.Razor.ProjectSystem.ManagedProjectSystemSchema.ItemReference;
+using NoneItem = Microsoft.VisualStudio.Razor.ProjectSystem.ManagedProjectSystemSchema.NoneItem;
+using ResolvedCompilationReference = Microsoft.VisualStudio.Razor.ProjectSystem.ManagedProjectSystemSchema.ResolvedCompilationReference;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 // This class is responsible for initializing the Razor ProjectSnapshotManager for cases where
 // MSBuild does not provides configuration support (SDK < 2.1).
@@ -37,18 +39,14 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             NoneItem.SchemaName,
             ConfigurationGeneralSchemaName,
         });
-    private readonly LanguageServerFeatureOptions? _languageServerFeatureOptions;
 
     [ImportingConstructor]
     public FallbackWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-        IProjectSnapshotManager projectManager,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        LanguageServerFeatureOptions? languageServerFeatureOptions)
-        : base(commonServices, serviceProvider, projectManager, projectConfigurationFilePathStore)
+        IProjectSnapshotManager projectManager)
+        : base(commonServices, serviceProvider, projectManager)
     {
-        _languageServerFeatureOptions = languageServerFeatureOptions;
     }
 
     protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
@@ -118,7 +116,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             await UpdateAsync(
                 updater =>
                 {
-                    var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                    var beforeProjectKey = new ProjectKey(beforeIntermediateOutputPath);
                     RemoveProject(updater, beforeProjectKey);
                 },
                 CancellationToken.None)
@@ -144,12 +142,6 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
                 : projectFileName;
 
             var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace: null, displayName);
-
-            if (_languageServerFeatureOptions is not null)
-            {
-                var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
-            }
 
             UpdateProject(updater, hostProject);
 

@@ -9,17 +9,16 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServices.Razor.Test;
+using Microsoft.VisualStudio.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTestBase
 {
@@ -68,9 +67,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         _workspaceProvider = workspaceProviderMock.Object;
     }
 
-    private protected override ProjectSnapshotManagerDispatcher CreateDispatcher()
-        => new VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter);
-
     [UIFact]
     public async Task Initialize_AttachesEventSink()
     {
@@ -96,7 +92,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
             projectManager,
             StrictMock.Of<IProjectWorkspaceStateGenerator>(),
             _workspaceProvider,
-            Dispatcher,
             JoinableTaskContext))
         {
             var testAccessor = trigger.GetTestAccessor();
@@ -136,7 +131,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
             projectManager,
             StrictMock.Of<IProjectWorkspaceStateGenerator>(),
             _workspaceProvider,
-            Dispatcher,
             JoinableTaskContext);
 
         var testAccessor = trigger.GetTestAccessor();
@@ -178,7 +172,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
             projectManager,
             workspaceStateGenerator,
             _workspaceProvider,
-            Dispatcher,
             JoinableTaskContext);
 
         var testAccessor = trigger.GetTestAccessor();
@@ -195,10 +188,11 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
             updater.ProjectRemoved(s_someProject.Key);
         });
 
-        var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+        var update = Assert.Single(workspaceStateGenerator.Updates);
+        Assert.NotNull(update.WorkspaceProject);
         Assert.Equal(update.WorkspaceProject.Id, _someWorkspaceProject.Id);
         Assert.Same(expectedProjectSnapshot, update.ProjectSnapshot);
-        Assert.True(update.CancellationToken.IsCancellationRequested);
+        Assert.True(update.IsCancelled);
     }
 
     [UIFact]
@@ -225,7 +219,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
             projectManager,
             workspaceStateGenerator,
             _workspaceProvider,
-            Dispatcher,
             JoinableTaskContext);
 
         var vsHierarchyMock = new StrictMock<IVsHierarchy>();
@@ -240,7 +233,8 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         await testAccessor.OnProjectBuiltAsync(vsHierarchyMock.Object, DisposalToken);
 
         // Assert
-        var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+        var update = Assert.Single(workspaceStateGenerator.Updates);
+        Assert.NotNull(update.WorkspaceProject);
         Assert.Equal(update.WorkspaceProject.Id, _someWorkspaceProject.Id);
         Assert.Same(expectedProjectSnapshot, update.ProjectSnapshot);
     }
@@ -276,7 +270,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
             projectManager,
             workspaceStateGenerator,
             _workspaceProvider,
-            Dispatcher,
             JoinableTaskContext);
 
         var testAccessor = trigger.GetTestAccessor();
@@ -285,7 +278,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         await testAccessor.OnProjectBuiltAsync(StrictMock.Of<IVsHierarchy>(), DisposalToken);
 
         // Assert
-        Assert.Empty(workspaceStateGenerator.UpdateQueue);
+        Assert.Empty(workspaceStateGenerator.Updates);
     }
 
     [UIFact]
@@ -313,7 +306,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
             projectManager,
             workspaceStateGenerator,
             _workspaceProvider,
-            Dispatcher,
             JoinableTaskContext);
 
         var testAccessor = trigger.GetTestAccessor();
@@ -322,6 +314,6 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         await testAccessor.OnProjectBuiltAsync(StrictMock.Of<IVsHierarchy>(), DisposalToken);
 
         // Assert
-        Assert.Empty(workspaceStateGenerator.UpdateQueue);
+        Assert.Empty(workspaceStateGenerator.Updates);
     }
 }
