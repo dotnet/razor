@@ -72,16 +72,6 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
         return false;
     }
 
-    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
-    {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        return ImmutableArray<IDocumentSnapshot>.Empty;
-    }
-
     public RazorProjectEngine GetProjectEngine()
     {
         return _projectEngine.Value;

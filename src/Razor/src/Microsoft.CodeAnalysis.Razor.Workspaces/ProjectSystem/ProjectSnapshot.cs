@@ -79,6 +79,11 @@ internal class ProjectSnapshot : IProjectSnapshot
         return document is not null;
     }
 
+    /// <summary>
+    /// If the provided document is an import document, gets the other documents in the project
+    /// that include directives specified by the provided document. Otherwise returns an empty
+    /// list.
+    /// </summary>
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
     {
         if (document is null)
