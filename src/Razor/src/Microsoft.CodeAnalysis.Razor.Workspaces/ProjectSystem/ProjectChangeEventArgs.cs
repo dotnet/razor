@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal class ProjectChangeEventArgs : EventArgs
 {
-    public ProjectChangeEventArgs(ProjectSnapshot older, ProjectSnapshot newer, ProjectChangeKind kind)
+    public ProjectChangeEventArgs(IProjectSnapshot older, IProjectSnapshot newer, ProjectChangeKind kind)
         : this(older, newer, null, kind, false)
     {
     }
 
-    public ProjectChangeEventArgs(ProjectSnapshot? older, ProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind, bool solutionIsClosing)
+    public ProjectChangeEventArgs(IProjectSnapshot? older, IProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind, bool solutionIsClosing)
     {
         if (older is null && newer is null)
         {
@@ -29,9 +29,9 @@ internal class ProjectChangeEventArgs : EventArgs
         ProjectKey = (older ?? newer)!.Key;
     }
 
-    public ProjectSnapshot? Older { get; }
+    public IProjectSnapshot? Older { get; }
 
-    public ProjectSnapshot? Newer { get; }
+    public IProjectSnapshot? Newer { get; }
 
     public ProjectKey ProjectKey { get; }
 
@@ -43,6 +43,6 @@ internal class ProjectChangeEventArgs : EventArgs
 
     public bool SolutionIsClosing { get; }
 
-    public static ProjectChangeEventArgs CreateTestInstance(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind, bool solutionIsClosing = false) =>
+    public static ProjectChangeEventArgs CreateTestInstance(IProjectSnapshot older, IProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind, bool solutionIsClosing = false) =>
         new(older, newer, documentFilePath, kind, solutionIsClosing);
 }

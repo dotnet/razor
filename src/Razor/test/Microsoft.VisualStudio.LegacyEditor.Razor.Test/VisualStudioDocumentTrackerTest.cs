@@ -161,8 +161,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_hostProject);
         });
 
-        var projectSnapshot = (ProjectSnapshot)_projectManager.GetLoadedProject(_hostProject.Key);
-        var e = new ProjectChangeEventArgs(null!, projectSnapshot, ProjectChangeKind.ProjectAdded);
+        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectAdded);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -188,8 +187,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_hostProject);
         });
 
-        var projectSnapshot = (ProjectSnapshot)_projectManager.GetLoadedProject(_hostProject.Key);
-        var e = new ProjectChangeEventArgs(null!, projectSnapshot, ProjectChangeKind.ProjectChanged);
+        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectChanged);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -215,7 +213,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_hostProject);
         });
 
-        var project = (ProjectSnapshot)_projectManager.GetLoadedProject(_hostProject.Key);
+        var project = _projectManager.GetLoadedProject(_hostProject.Key);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -249,8 +247,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_otherHostProject);
         });
 
-        var projectSnapshot = (ProjectSnapshot)_projectManager.GetLoadedProject(_otherHostProject.Key);
-        var e = new ProjectChangeEventArgs(null!, projectSnapshot, ProjectChangeKind.ProjectChanged);
+        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_otherHostProject.Key), ProjectChangeKind.ProjectChanged);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) => called = true;

@@ -383,7 +383,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void NotifyListeners(ProjectSnapshot? older, ProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)
+    private void NotifyListeners(IProjectSnapshot? older, IProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)
     {
         if (!_initialized)
         {
@@ -421,8 +421,8 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         ProjectKey projectKey,
         string? documentFilePath,
         IUpdateProjectAction action,
-        [NotNullWhen(true)] out ProjectSnapshot? oldSnapshot,
-        [NotNullWhen(true)] out ProjectSnapshot? newSnapshot)
+        [NotNullWhen(true)] out IProjectSnapshot? oldSnapshot,
+        [NotNullWhen(true)] out IProjectSnapshot? newSnapshot)
     {
         using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
 
