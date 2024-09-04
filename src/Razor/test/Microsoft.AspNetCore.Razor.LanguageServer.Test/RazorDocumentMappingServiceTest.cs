@@ -713,7 +713,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 32 + Environment.NewLine.Length, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 32 + Environment.NewLine.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -733,7 +733,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 42 + Environment.NewLine.Length, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 42 + Environment.NewLine.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Razor, languageKind);
@@ -759,7 +759,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 46 + Environment.NewLine.Length, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 46 + Environment.NewLine.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -773,7 +773,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -787,7 +787,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -801,7 +801,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length + 1, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length + 1, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Razor, languageKind);
@@ -829,7 +829,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var tagHelperSpans = ImmutableArray<TagHelperSpanInternal>.Empty;
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -843,7 +843,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -857,7 +857,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -871,7 +871,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -885,7 +885,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 12, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 12, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -899,7 +899,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -913,7 +913,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 4, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 4, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -927,7 +927,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 1, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 1, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -941,7 +941,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 3, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 3, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -955,7 +955,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -969,7 +969,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: false);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -983,7 +983,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act\
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: true);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: true);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -1005,7 +1005,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act\
-        var languageKind = LspDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 40, text.Length, rightAssociative: true);
+        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 40, text.Length, rightAssociative: true);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
