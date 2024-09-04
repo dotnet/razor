@@ -281,9 +281,11 @@ internal class RazorFormattingService : IRazorFormattingService
         }
     }
 
-    // This method counts the occurrences of CRLF and LF line endings in the original text. If LF line endings are more
-    // prevalent, it removes any CR characters from the text edits to ensure consistency with the LF style.
-    // This can be removed once we figure out how to generate the formatted CSharp file with the correct line endings.
+    /// <summary>
+    /// This method counts the occurrences of CRLF and LF line endings in the original text. 
+    /// If LF line endings are more prevalent, it removes any CR characters from the text edits 
+    /// to ensure consistency with the LF style.
+    /// </summary>
     private TextEdit[] NormalizeLineEndings(SourceText originalText, TextEdit[] edits)
     {
         if (originalText.HasLFLineEndings())
