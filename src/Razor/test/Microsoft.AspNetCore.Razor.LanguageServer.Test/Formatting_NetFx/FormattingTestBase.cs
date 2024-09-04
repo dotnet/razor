@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -57,7 +56,6 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: true);
         await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: false);
 
-
         // some tests are failing, skip for now, tracked by https://github.com/dotnet/razor/issues/10836 
         if (!skipFlipLineEndingTest)
         {
@@ -68,8 +66,6 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: true);
             await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: false);
         }
-
-        
     }
 
     private async Task RunFormattingTestInternalAsync(string input, string expected, int tabSize, bool insertSpaces, string? fileKind, ImmutableArray<TagHelperDescriptor> tagHelpers, bool allowDiagnostics, RazorLSPOptions? razorLSPOptions, bool inGlobalNamespace, bool forceRuntimeCodeGeneration)
@@ -375,8 +371,8 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             return input;
         }
 
-        bool hasCRLF = input.Contains("\r\n");
-        bool hasLF = input.Contains("\n") && !hasCRLF;
+        var hasCRLF = input.Contains("\r\n");
+        var hasLF = !hasCRLF && input.Contains("\n");
 
         if (hasCRLF)
         {
