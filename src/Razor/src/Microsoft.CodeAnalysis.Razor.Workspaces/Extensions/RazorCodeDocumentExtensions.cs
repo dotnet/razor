@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -138,5 +139,14 @@ internal static class RazorCodeDocumentExtensions
             .First(static n => n is NamespaceDeclarationIntermediateNode);
 
         return namespaceNode.Content == fullyQualifiedNamespace;
+    }
+
+    public static RazorLanguageKind GetLanguageKind(this RazorCodeDocument codeDocument, int hostDocumentIndex, bool rightAssociative)
+    {
+        var classifiedSpans = LanguageKindHelper.GetClassifiedSpans(codeDocument);
+        var tagHelperSpans = LanguageKindHelper.GetTagHelperSpans(codeDocument);
+        var documentLength = codeDocument.Source.Text.Length;
+
+        return LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, hostDocumentIndex, documentLength, rightAssociative);
     }
 }
