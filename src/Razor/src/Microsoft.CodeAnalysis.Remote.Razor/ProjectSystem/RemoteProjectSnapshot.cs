@@ -4,24 +4,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -84,7 +81,7 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
     {
         if (_tagHelpers.IsDefault)
         {
-            var runResult = await GetRazorRunResultAsync(cancellationToken);
+            var runResult = await _project.GetRazorGeneratorRunResultAsync(cancellationToken).ConfigureAwait(false);
             var computedTagHelpers = (ImmutableArray<TagHelperDescriptor>)runResult.Value.HostOutputs["TagHelpers"];
             ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
         }
@@ -113,35 +110,18 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
 
     public RazorProjectEngine GetProjectEngine() => throw new InvalidOperationException("Should not be called for cohosted projects.");
 
-    internal async Task<RazorCodeDocument?> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    internal Task<RazorCodeDocument?> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        var runResult = await GetRazorRunResultAsync(cancellationToken);
-        if (runResult is null)
-        {
-            // There was no generator, so we couldn't get anything from it
-            return null;
-        }
-
         var relativePath = GetDocumentRelativePath(documentSnapshot);
-        if (!runResult.Value.HostOutputs.TryGetValue(relativePath, out var objectCodeDocument) || objectCodeDocument is not RazorCodeDocument codeDocument)
-        {
-            return null;
-        }
 
-        return codeDocument;
-    }
-
-    private async Task<GeneratorRunResult?> GetRazorRunResultAsync(CancellationToken cancellationToken)
-    {
-        var result = await _project.GetSourceGeneratorRunResultAsync(cancellationToken);
-        return result?.Results.SingleOrDefault(r => r.Generator.GetGeneratorType().Name == typeof(RazorSourceGenerator).Name);
+        return _project.TryGetGeneratedRazorCodeDocumentAsync(relativePath, cancellationToken);
     }
 
     internal async Task<Document> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         // TODO: we should filter the documents by generator to make sure its actually ours.
         // That info isn't public in Roslyn but we can create an EA method to do it.
-        var generatedDocuments = await _project.GetSourceGeneratedDocumentsAsync(cancellationToken);
+        var generatedDocuments = await _project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
         var relativePath = GetDocumentRelativePath(documentSnapshot);
         var generatedIdentifier = RazorSourceGenerator.GetIdentifierFromPath(relativePath);
         return generatedDocuments.Single(d => d.HintName == generatedIdentifier); 

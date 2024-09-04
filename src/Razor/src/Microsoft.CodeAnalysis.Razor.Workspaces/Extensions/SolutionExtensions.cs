@@ -3,9 +3,14 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.CodeAnalysis;
@@ -41,5 +46,20 @@ internal static class SolutionExtensions
     {
         return solution.GetDocument(documentId)
             ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {solution.FilePath ?? "solution"}.");
+    }
+
+    public static async Task<RazorCodeDocument?> TryGetGeneratedRazorCodeDocumentAsync(this Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        Debug.Assert(generatedDocumentUri.Scheme == "source-generated");
+
+        foreach (var project in solution.Projects)
+        {
+            if (await project.TryGetGeneratedRazorCodeDocumentAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false) is { } codeDocument)
+            {
+                return codeDocument;
+            }
+        }
+
+        return null;
     }
 }

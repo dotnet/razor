@@ -15,7 +15,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
     public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
         => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
-    public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
+    public virtual Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
         var uriPath = virtualDocumentUri.AbsoluteUri;
         var razorFilePath = GetRazorFilePath(uriPath);
@@ -23,7 +23,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
         return uri;
     }
 
-    public bool IsVirtualCSharpFile(Uri uri)
+    public virtual bool IsVirtualCSharpFile(Uri uri)
         => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
     public bool IsVirtualHtmlFile(Uri uri)

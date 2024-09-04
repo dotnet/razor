@@ -2,11 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -32,11 +34,10 @@ internal sealed class RemoteDocumentMappingService(
         LinePositionSpan generatedDocumentRange,
         CancellationToken cancellationToken)
     {
-        var razorDocumentUri = FilePathService.GetRazorDocumentUri(generatedDocumentUri);
-
-        // For Html we just map the Uri, the range will be the same
+        // For Html we can just map the Uri, the range will be the same
         if (FilePathService.IsVirtualHtmlFile(generatedDocumentUri))
         {
+            var razorDocumentUri = FilePathService.GetRazorDocumentUri(generatedDocumentUri);
             return (razorDocumentUri, generatedDocumentRange);
         }
 
@@ -47,29 +48,25 @@ internal sealed class RemoteDocumentMappingService(
         }
 
         var solution = originSnapshot.TextDocument.Project.Solution;
-        if (!solution.TryGetRazorDocument(razorDocumentUri, out var razorDocument))
+        if (await solution.TryGetGeneratedRazorCodeDocumentAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false) is not { } razorCodeDocument)
         {
             return (generatedDocumentUri, generatedDocumentRange);
         }
-
-        var razorDocumentSnapshot = _documentSnapshotFactory.GetOrCreate(razorDocument);
-
-        var razorCodeDocument = await razorDocumentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
 
         if (razorCodeDocument is null)
         {
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
-        if (!razorCodeDocument.TryGetGeneratedDocument(generatedDocumentUri, FilePathService, out var generatedDocument))
-        {
-            return Assumed.Unreachable<(Uri, LinePositionSpan)>();
-        }
+        var generatedDocument = razorCodeDocument.GetCSharpDocument();
 
         if (TryMapToHostDocumentRange(generatedDocument, generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
         {
-            return (razorDocumentUri, mappedRange);
+            // TODO: Should we have a better way to do this? Store Uri in RazorCodeDocument?
+            var filePath = razorCodeDocument.Source.FilePath;
+            var documentId = solution.GetDocumentIdsWithFilePath(filePath).First();
+            var document = solution.GetAdditionalDocument(documentId).AssumeNotNull();
+            return (document.CreateUri(), mappedRange);
         }
 
         return (generatedDocumentUri, generatedDocumentRange);

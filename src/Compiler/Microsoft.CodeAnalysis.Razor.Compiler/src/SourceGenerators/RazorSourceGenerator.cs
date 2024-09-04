@@ -358,6 +358,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 if (filePath is not null)
                 {
                     context.AddOutput(filePath, razorDocument.CodeDocument);
+
+                    // HACK: Should find a better way for tooling to get from a generated document to its source code document
+                    var hintName = GetIdentifierFromPath(filePath);
+                    context.AddOutput(hintName, razorDocument.CodeDocument);
                 }
             });
 
