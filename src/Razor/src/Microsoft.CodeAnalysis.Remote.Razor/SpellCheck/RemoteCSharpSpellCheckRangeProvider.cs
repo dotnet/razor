@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
-[Export(typeof(ICSharpSpellCheckService)), Shared]
+[Export(typeof(ICSharpSpellCheckRangeProvider)), Shared]
 [method: ImportingConstructor]
-internal class RemoteCSharpSpellCheckService() : ICSharpSpellCheckService
+internal class RemoteCSharpSpellCheckRangeProvider() : ICSharpSpellCheckRangeProvider
 {
     public async Task<ImmutableArray<SpellCheckRange>> GetCSharpSpellCheckRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
     {

@@ -175,7 +175,7 @@ public class DocumentSpellCheckEndpointTest(ITestOutputHelper testOutput) : Sing
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
 
-        var csharpSpellCheckService = new LspCSharpSpellCheckService(LanguageServerFeatureOptions, languageServer);
+        var csharpSpellCheckService = new LspCSharpSpellCheckRangeProvider(LanguageServerFeatureOptions, languageServer);
         var spellCheckService = new SpellCheckService(csharpSpellCheckService, DocumentMappingService);
         var endpoint = new DocumentSpellCheckEndpoint(spellCheckService);
 

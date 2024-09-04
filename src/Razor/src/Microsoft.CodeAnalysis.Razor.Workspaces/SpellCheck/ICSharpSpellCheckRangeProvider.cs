@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.SpellCheck;
 
-internal interface ICSharpSpellCheckService
+internal interface ICSharpSpellCheckRangeProvider
 {
     Task<ImmutableArray<SpellCheckRange>> GetCSharpSpellCheckRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken);
 }

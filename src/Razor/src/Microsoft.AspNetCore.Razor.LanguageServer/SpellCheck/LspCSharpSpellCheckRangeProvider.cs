@@ -19,9 +19,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
 
-internal sealed class LspCSharpSpellCheckService(
+internal sealed class LspCSharpSpellCheckRangeProvider(
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IClientConnection clientConnection) : ICSharpSpellCheckService
+    IClientConnection clientConnection) : ICSharpSpellCheckRangeProvider
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IClientConnection _clientConnection = clientConnection;

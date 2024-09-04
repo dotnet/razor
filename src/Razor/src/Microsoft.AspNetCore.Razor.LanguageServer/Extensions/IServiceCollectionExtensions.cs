@@ -160,7 +160,7 @@ internal static class IServiceCollectionExtensions
             services.AddHandlerWithCapabilities<TextDocumentUriPresentationEndpoint>();
 
             services.AddSingleton<ISpellCheckService, SpellCheckService>();
-            services.AddSingleton<ICSharpSpellCheckService, LspCSharpSpellCheckService>();
+            services.AddSingleton<ICSharpSpellCheckRangeProvider, LspCSharpSpellCheckRangeProvider>();
             services.AddHandlerWithCapabilities<DocumentSpellCheckEndpoint>();
             services.AddHandler<WorkspaceSpellCheckEndpoint>();
         }

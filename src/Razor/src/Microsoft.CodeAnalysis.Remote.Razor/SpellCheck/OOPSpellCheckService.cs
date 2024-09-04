@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 [Export(typeof(ISpellCheckService)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPSpellCheckService(
-    ICSharpSpellCheckService csharpSpellCheckService,
+    ICSharpSpellCheckRangeProvider csharpSpellCheckService,
     IDocumentMappingService documentMappingService)
     : SpellCheckService(csharpSpellCheckService, documentMappingService)
 {

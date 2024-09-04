@@ -15,10 +15,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.Razor.SpellCheck;
 
 internal class SpellCheckService(
-    ICSharpSpellCheckService csharpSpellCheckService,
+    ICSharpSpellCheckRangeProvider csharpSpellCheckService,
     IDocumentMappingService documentMappingService) : ISpellCheckService
 {
-    private readonly ICSharpSpellCheckService _csharpSpellCheckService = csharpSpellCheckService;
+    private readonly ICSharpSpellCheckRangeProvider _csharpSpellCheckService = csharpSpellCheckService;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
     public async Task<int[]> GetSpellCheckRangeTriplesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
