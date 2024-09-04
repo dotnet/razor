@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
@@ -20,12 +20,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorWrapWithTagEndpoint)]
 internal class WrapWithTagEndpoint(
     IClientConnection clientConnection,
-    IRazorDocumentMappingService razorDocumentMappingService,
+    IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory)
     : IRazorRequestHandler<WrapWithTagParams, WrapWithTagResponse?>
 {
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-    private readonly IRazorDocumentMappingService _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<WrapWithTagEndpoint>();
 
     public bool MutatesSolutionState => false;
@@ -54,7 +54,8 @@ internal class WrapWithTagEndpoint(
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (request.Range?.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
+        if (request.Range?.Start is not { } start ||
+            !sourceText.TryGetAbsoluteIndex(start, out var hostDocumentIndex))
         {
             return null;
         }
@@ -68,7 +69,7 @@ internal class WrapWithTagEndpoint(
         //
         // Instead of C#, which certainly would be expected to go in an if statement, we'll see HTML, which obviously
         // is the better choice for this operation.
-        var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: true);
+        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: true);
         if (languageKind is not RazorLanguageKind.Html)
         {
             // In general, we don't support C# for obvious reasons, but we can support implicit expressions. ie
@@ -81,13 +82,13 @@ internal class WrapWithTagEndpoint(
             // <p>[|@currentCount|]</p>
 
             var tree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var requestSpan = request.Range.ToTextSpan(sourceText);
+            var requestSpan = sourceText.GetTextSpan(request.Range);
             var node = tree.Root.FindNode(requestSpan, includeWhitespace: false, getInnermostNodeForTie: true);
             if (node?.FirstAncestorOrSelf<CSharpImplicitExpressionSyntax>() is { Parent: CSharpCodeBlockSyntax codeBlock } &&
                 (requestSpan == codeBlock.FullSpan || requestSpan.Length == 0))
             {
                 // Pretend we're in Html so the rest of the logic can continue
-                request.Range = codeBlock.FullSpan.ToRange(sourceText);
+                request.Range = sourceText.GetRange(codeBlock.FullSpan);
                 languageKind = RazorLanguageKind.Html;
             }
         }

@@ -5,76 +5,72 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.DocumentPresentation;
-using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.ServiceHub.Framework;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Text.TextChange?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed class RemoteUriPresentationService(
-    IServiceBroker serviceBroker,
-    IRazorDocumentMappingService documentMappingService,
-    DocumentSnapshotFactory documentSnapshotFactory,
-    ILoggerFactory loggerFactory)
-    : RazorDocumentServiceBase(serviceBroker, documentSnapshotFactory), IRemoteUriPresentationService
+internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteUriPresentationService
 {
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RemoteUriPresentationService>();
+    internal sealed class Factory : FactoryBase<IRemoteUriPresentationService>
+    {
+        protected override IRemoteUriPresentationService CreateService(in ServiceArgs args)
+            => new RemoteUriPresentationService(in args);
+    }
 
-    public ValueTask<TextChange?> GetPresentationAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan span, Uri[]? uris, CancellationToken cancellationToken)
+    public ValueTask<Response> GetPresentationAsync(
+        RazorPinnedSolutionInfoWrapper solutionInfo,
+        DocumentId razorDocumentId,
+        LinePositionSpan span,
+        Uri[]? uris,
+        CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
             context => GetPresentationAsync(context, span, uris, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<TextChange?> GetPresentationAsync(RemoteDocumentContext context, LinePositionSpan span, Uri[]? uris, CancellationToken cancellationToken)
+    private async ValueTask<Response> GetPresentationAsync(
+        RemoteDocumentContext context,
+        LinePositionSpan span,
+        Uri[]? uris,
+        CancellationToken cancellationToken)
     {
         var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!sourceText.TryGetAbsoluteIndex(span.Start.Line, span.Start.Character, out var index))
+        if (!sourceText.TryGetAbsoluteIndex(span.Start, out var index))
         {
-            return null;
+            // If the position is invalid then we shouldn't expect to be able to handle a Html response
+            return Response.NoFurtherHandling;
         }
 
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, index, rightAssociative: true);
+        var languageKind = DocumentMappingService.GetLanguageKind(codeDocument, index, rightAssociative: true);
         if (languageKind is not RazorLanguageKind.Html)
         {
             // Roslyn doesn't currently support Uri presentation, and whilst it might seem counter intuitive,
             // our support for Uri presentation is to insert a Html tag, so we only support Html
 
             // If Roslyn add support in future then this is where it would go.
-            return null;
+            return Response.NoFurtherHandling;
         }
 
-        var razorFileUri = UriPresentationHelper.GetComponentFileNameFromUriPresentationRequest(uris, _logger);
+        var razorFileUri = UriPresentationHelper.GetComponentFileNameFromUriPresentationRequest(uris, Logger);
         if (razorFileUri is null)
         {
-            return null;
+            return Response.CallHtml;
         }
 
         var solution = context.TextDocument.Project.Solution;
-
-        // Make sure we go through Roslyn to go from the Uri the client sent us, to one that it has a chance of finding in the solution
-        var uriToFind = RazorUri.GetDocumentFilePathFromUri(razorFileUri);
-        var ids = solution.GetDocumentIdsWithFilePath(uriToFind);
-        if (ids.Length == 0)
+        if (!solution.TryGetRazorDocument(razorFileUri, out var otherDocument))
         {
-            return null;
-        }
-
-        // We assume linked documents would produce the same component tag so just take the first
-        var otherDocument = solution.GetAdditionalDocument(ids[0]);
-        if (otherDocument is null)
-        {
-            return null;
+            return Response.CallHtml;
         }
 
         var otherSnapshot = DocumentSnapshotFactory.GetOrCreate(otherDocument);
@@ -82,15 +78,15 @@ internal sealed class RemoteUriPresentationService(
 
         if (descriptor is null)
         {
-            return null;
+            return Response.CallHtml;
         }
 
         var tag = descriptor.TryGetComponentTag();
         if (tag is null)
         {
-            return null;
+            return Response.CallHtml;
         }
 
-        return new TextChange(span.ToTextSpan(sourceText), tag);
+        return Response.Results(new TextChange(sourceText.GetTextSpan(span), tag));
     }
 }

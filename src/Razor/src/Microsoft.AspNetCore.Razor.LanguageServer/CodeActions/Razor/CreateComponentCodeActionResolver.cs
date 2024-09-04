@@ -4,40 +4,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolver
+internal sealed class CreateComponentCodeActionResolver(IDocumentContextFactory documentContextFactory, LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
-    private readonly IDocumentContextFactory _documentContextFactory;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-
-    public CreateComponentCodeActionResolver(IDocumentContextFactory documentContextFactory, LanguageServerFeatureOptions languageServerFeatureOptions)
-    {
-        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentException(nameof(languageServerFeatureOptions));
-    }
+    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
     {
-        if (data is null)
-        {
-            return null;
-        }
-
-        var actionParams = data.ToObject<CreateComponentCodeActionParams>();
+        var actionParams = data.Deserialize<CreateComponentCodeActionParams>();
         if (actionParams is null)
         {
             return null;
@@ -70,12 +60,10 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
             Host = string.Empty,
         }.Uri;
 
-        var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>
-        {
-            new CreateFile() { Uri = newComponentUri },
-        };
+        using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+        documentChanges.Add(new CreateFile() { Uri = newComponentUri });
 
-        TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);
+        TryAddNamespaceDirective(codeDocument, newComponentUri, ref documentChanges.AsRef());
 
         return new WorkspaceEdit()
         {
@@ -83,14 +71,13 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
         };
     }
 
-    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, ref PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         var namespaceDirective = syntaxTree.Root.DescendantNodes()
             .Where(n => n.Kind == SyntaxKind.RazorDirective)
             .Cast<RazorDirectiveSyntax>()
-            .Where(n => n.DirectiveDescriptor == NamespaceDirective.Directive)
-            .FirstOrDefault();
+            .FirstOrDefault(static n => n.DirectiveDescriptor == NamespaceDirective.Directive);
 
         if (namespaceDirective != null)
         {
@@ -98,14 +85,7 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
             documentChanges.Add(new TextDocumentEdit
             {
                 TextDocument = documentIdentifier,
-                Edits = new[]
-                {
-                    new TextEdit()
-                    {
-                        NewText = namespaceDirective.GetContent(),
-                        Range = new Range{ Start = new Position(0, 0), End = new Position(0, 0) },
-                    }
-                }
+                Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), namespaceDirective.GetContent())]
             });
         }
     }

@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Threading;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -34,13 +34,14 @@ internal static class CSharpTestLspServerHelpers
         Uri csharpDocumentUri,
         VSInternalServerCapabilities serverCapabilities,
         CancellationToken cancellationToken) =>
-        CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService(), cancellationToken);
+        CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService(), capabilitiesUpdater: null, cancellationToken);
 
     public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
         SourceText csharpSourceText,
         Uri csharpDocumentUri,
         VSInternalServerCapabilities serverCapabilities,
         IRazorSpanMappingService razorSpanMappingService,
+        Action<VSInternalClientCapabilities> capabilitiesUpdater,
         CancellationToken cancellationToken)
     {
         var files = new[]
@@ -48,10 +49,16 @@ internal static class CSharpTestLspServerHelpers
             (csharpDocumentUri, csharpSourceText)
         };
 
-        return CreateCSharpLspServerAsync(files, serverCapabilities, razorSpanMappingService, multiTargetProject: true, cancellationToken);
+        return CreateCSharpLspServerAsync(files, serverCapabilities, razorSpanMappingService, multiTargetProject: true, capabilitiesUpdater, cancellationToken);
     }
 
-    public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(IEnumerable<(Uri Uri, SourceText SourceText)> files, VSInternalServerCapabilities serverCapabilities, IRazorSpanMappingService razorSpanMappingService, bool multiTargetProject, CancellationToken cancellationToken)
+    public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
+        IEnumerable<(Uri Uri, SourceText SourceText)> files,
+        VSInternalServerCapabilities serverCapabilities,
+        IRazorSpanMappingService razorSpanMappingService,
+        bool multiTargetProject,
+         Action<VSInternalClientCapabilities> capabilitiesUpdater,
+        CancellationToken cancellationToken)
     {
         var csharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
@@ -70,7 +77,7 @@ internal static class CSharpTestLspServerHelpers
                 {
                     CompletionListSetting = new()
                     {
-                        ItemDefaults = new string[] { EditRangeSetting }
+                        ItemDefaults = [EditRangeSetting]
                     },
                     CompletionItem = new()
                     {
@@ -88,6 +95,8 @@ internal static class CSharpTestLspServerHelpers
                 Configuration = true
             }
         };
+
+        capabilitiesUpdater?.Invoke(clientCapabilities);
 
         return await CSharpTestLspServer.CreateAsync(
             workspace, exportProvider, clientCapabilities, serverCapabilities, cancellationToken);
@@ -142,9 +151,7 @@ internal static class CSharpTestLspServerHelpers
         var documentCount = 0;
         foreach (var (documentUri, csharpSourceText) in files)
         {
-            // File path logic here has to match https://github.com/dotnet/roslyn/blob/3db75baf44332efd490bc0d166983103552370a3/src/Features/LanguageServer/Protocol/Extensions/ProtocolConversions.cs#L163
-            // or the Roslyn side won't see the file in the project/solution
-            var documentFilePath = documentUri.IsFile ? documentUri.LocalPath : documentUri.AbsolutePath;
+            var documentFilePath = documentUri.GetDocumentFilePath();
             var textAndVersion = TextAndVersion.Create(csharpSourceText, VersionStamp.Default, documentFilePath);
 
             foreach (var projectInfo in projectInfos)

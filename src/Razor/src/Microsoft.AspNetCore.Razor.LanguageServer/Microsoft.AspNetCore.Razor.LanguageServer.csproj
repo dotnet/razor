@@ -10,7 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Using Alias="Range" Include="Microsoft.VisualStudio.LanguageServer.Protocol.Range" />
     <Using Alias="LanguageServerConstants" Include="Microsoft.CodeAnalysis.Razor.Protocol.LanguageServerConstants" />
   </ItemGroup>
 
@@ -26,8 +25,6 @@
     <PackageReference Include="Microsoft.CommonLanguageServerProtocol.Framework" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <!-- Manually upgrade to address CG alert. When the VS packages
-         pull in the right version, this can be removed. -->
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'" />
 
     <!--
@@ -65,6 +62,20 @@
     <Compile Update="@(Compile)">
       <Link Condition="'%(NuGetPackageId)' == 'Microsoft.CommonLanguageServerProtocol.Framework'">CLaSP\%(Link)</Link>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="rzls" Key="$(RazorKey)" />
+
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Namespace="Microsoft.AspNetCore.Razor.LanguageServer.Hosting" Key="$(RazorKey)" />
+    <RestrictedInternalsVisibleTo Include="rzls" Namespace="Microsoft.AspNetCore.Razor.LanguageServer.Extensions" Key="$(RazorKey)" />
+    <RestrictedInternalsVisibleTo Include="rzls" Namespace="Microsoft.AspNetCore.Razor.LanguageServer.Hosting" Key="$(RazorKey)" />
   </ItemGroup>
 
 </Project>

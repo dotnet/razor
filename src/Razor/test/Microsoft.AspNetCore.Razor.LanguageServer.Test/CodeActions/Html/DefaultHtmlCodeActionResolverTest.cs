@@ -2,20 +2,20 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -38,14 +38,14 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
         var remappedEdit = new WorkspaceEdit
         {
             DocumentChanges = new TextDocumentEdit[]
-           {
-                new TextDocumentEdit
-                {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= documentUri, Version = 1 },
-                    Edits = new TextEdit[]
+            {
+                new() {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
-                        new TextEdit { NewText = "Goo ~~~~~~~~~~~~~~~ Bar", Range = span.ToRange(sourceText) }
-                    }
+                        Uri = documentUri,
+                        Version = 1
+                    },
+                    Edits = [VsLspFactory.CreateTextEdit(sourceText.GetRange(span), "Goo ~~~~~~~~~~~~~~~ Bar")]
                 }
            }
         };
@@ -55,12 +55,12 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
             Edit = remappedEdit
         };
 
-        var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
-        documentMappingServiceMock
-            .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+        var editMappingServiceMock = new StrictMock<IEditMappingService>();
+        editMappingServiceMock
+            .Setup(x => x.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remappedEdit);
 
-        var resolver = new DefaultHtmlCodeActionResolver(documentContextFactory, CreateLanguageServer(resolvedCodeAction), documentMappingServiceMock.Object);
+        var resolver = new DefaultHtmlCodeActionResolver(documentContextFactory, CreateLanguageServer(resolvedCodeAction), editMappingServiceMock.Object);
 
         var codeAction = new RazorVSInternalCodeAction()
         {
@@ -69,13 +69,14 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
             {
                 DocumentChanges = new TextDocumentEdit[]
                         {
-                            new TextDocumentEdit
+                            new()
                             {
-                                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= new Uri("c:/Test.razor.html"), Version = 1 },
-                                Edits = new TextEdit[]
+                                TextDocument = new OptionalVersionedTextDocumentIdentifier
                                 {
-                                    new TextEdit { NewText = "Goo" }
-                                }
+                                    Uri = new Uri("c:/Test.razor.html"),
+                                    Version = 1
+                                },
+                                Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                             }
                         }
             }
@@ -83,7 +84,7 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
 
         var codeActionParams = new CodeActionResolveParams()
         {
-            Data = new JObject(),
+            Data = new JsonElement(),
             RazorFileIdentifier = new VSTextDocumentIdentifier
             {
                 Uri = new Uri(documentPath)
@@ -95,10 +96,10 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
 
         // Assert
         Assert.NotNull(action.Edit);
-        Assert.True(action.Edit.TryGetDocumentChanges(out var changes));
-        Assert.Equal(documentPath, changes[0].TextDocument.Uri.AbsolutePath);
+        Assert.True(action.Edit.TryGetTextDocumentEdits(out var documentEdits));
+        Assert.Equal(documentPath, documentEdits[0].TextDocument.Uri.AbsolutePath);
         // Edit should be converted to 2 edits, to remove the tags
-        Assert.Collection(changes[0].Edits,
+        Assert.Collection(documentEdits[0].Edits,
             e =>
             {
                 Assert.Equal("", e.NewText);

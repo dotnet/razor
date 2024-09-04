@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -79,45 +81,45 @@ internal static class CompletionListMerger
         return new MergedCompletionListData(data1, data2);
     }
 
-    public static bool TrySplit(object? data, [NotNullWhen(true)] out IReadOnlyList<JObject>? splitData)
+    public static bool TrySplit(object? data, out ImmutableArray<JsonElement> splitData)
     {
         if (data is null)
         {
-            splitData = null;
+            splitData = default;
             return false;
         }
 
-        var collector = new List<JObject>();
-        Split(data, collector);
+        using var collector = new PooledArrayBuilder<JsonElement>();
+        Split(data, ref collector.AsRef());
 
         if (collector.Count == 0)
         {
-            splitData = null;
+            splitData = default;
             return false;
         }
 
-        splitData = collector;
+        splitData = collector.ToImmutable();
         return true;
     }
 
-    private static void Split(object data, List<JObject> collector)
+    private static void Split(object data, ref PooledArrayBuilder<JsonElement> collector)
     {
         if (data is MergedCompletionListData mergedData)
         {
             // Merged data adds an extra object wrapper around the original data, so remove
             // that to restore to the original form.
-            Split(mergedData.Data1, collector);
-            Split(mergedData.Data2, collector);
+            Split(mergedData.Data1, ref collector);
+            Split(mergedData.Data2, ref collector);
             return;
         }
 
         // We have to be agnostic to which serialization method the delegated servers use, including
         // the scenario where they use different ones, so we normalize the data to JObject.
-        TrySplitJsonElement(data, collector);
-        TrySplitJObject(data, collector);
+        TrySplitJsonElement(data, ref collector);
+        TrySplitJObject(data, ref collector);
     }
 
-    private static void TrySplitJsonElement(object data, List<JObject> collector)
+    private static void TrySplitJsonElement(object data, ref PooledArrayBuilder<JsonElement> collector)
     {
         if (data is not JsonElement jsonElement)
         {
@@ -136,27 +138,27 @@ internal static class CompletionListMerger
                 return;
             }
 
-            Split(mergedCompletionListData.Data1, collector);
-            Split(mergedCompletionListData.Data2, collector);
+            Split(mergedCompletionListData.Data1, ref collector);
+            Split(mergedCompletionListData.Data2, ref collector);
         }
         else
         {
-            collector.Add((JObject)JsonHelpers.TryConvertFromJsonElement(jsonElement).AssumeNotNull());
+            collector.Add(jsonElement);
         }
     }
 
-    private static void TrySplitJObject(object data, List<JObject> collector)
+    private static void TrySplitJObject(object data, ref PooledArrayBuilder<JsonElement> collector)
     {
-        if (data is not JObject jobject)
+        if (data is not JObject jObject)
         {
             return;
         }
 
-        if ((jobject.ContainsKey(Data1Key) || jobject.ContainsKey(Data1Key.ToLowerInvariant())) &&
-            (jobject.ContainsKey(Data2Key) || jobject.ContainsKey(Data2Key.ToLowerInvariant())))
+        if ((jObject.ContainsKey(Data1Key) || jObject.ContainsKey(Data1Key.ToLowerInvariant())) &&
+            (jObject.ContainsKey(Data2Key) || jObject.ContainsKey(Data2Key.ToLowerInvariant())))
         {
             // Merged data
-            var mergedCompletionListData = jobject.ToObject<MergedCompletionListData>();
+            var mergedCompletionListData = jObject.ToObject<MergedCompletionListData>();
 
             if (mergedCompletionListData is null)
             {
@@ -164,13 +166,13 @@ internal static class CompletionListMerger
                 return;
             }
 
-            Split(mergedCompletionListData.Data1, collector);
-            Split(mergedCompletionListData.Data2, collector);
+            Split(mergedCompletionListData.Data1, ref collector);
+            Split(mergedCompletionListData.Data2, ref collector);
         }
         else
         {
             // Normal, non-merged data
-            collector.Add(jobject);
+            collector.Add(JsonDocument.Parse(jObject.ToString()).RootElement);
         }
     }
 
@@ -209,7 +211,7 @@ internal static class CompletionListMerger
             VSInternalCompletionList? completionListToStopInheriting;
 
             // Decide which completion list has more items that benefit from "inheriting" commit characters.
-            if (inheritableCommitCharacterCompletionsA.Count >= inheritableCommitCharacterCompletionsB.Count)
+            if (inheritableCommitCharacterCompletionsA.Length >= inheritableCommitCharacterCompletionsB.Length)
             {
                 completionListToStopInheriting = completionListB;
                 completionItemsToStopInheriting = inheritableCommitCharacterCompletionsB;
@@ -241,10 +243,9 @@ internal static class CompletionListMerger
         }
     }
 
-    private static IReadOnlyList<VSInternalCompletionItem> GetCompletionsThatDoNotSpecifyCommitCharacters(VSInternalCompletionList completionList)
+    private static ImmutableArray<VSInternalCompletionItem> GetCompletionsThatDoNotSpecifyCommitCharacters(VSInternalCompletionList completionList)
     {
-        var inheritableCompletions = new List<VSInternalCompletionItem>();
-
+        using var inheritableCompletions = new PooledArrayBuilder<VSInternalCompletionItem>();
         for (var i = 0; i < completionList.Items.Length; i++)
         {
             var completionItem = completionList.Items[i] as VSInternalCompletionItem;
@@ -259,7 +260,7 @@ internal static class CompletionListMerger
             inheritableCompletions.Add(completionItem);
         }
 
-        return inheritableCompletions;
+        return inheritableCompletions.ToImmutable();
     }
 
     private record MergedCompletionListData(object Data1, object Data2);

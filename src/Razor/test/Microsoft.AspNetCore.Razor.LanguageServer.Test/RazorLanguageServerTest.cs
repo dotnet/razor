@@ -2,13 +2,20 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using Xunit;
@@ -21,24 +28,29 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
     [Fact]
     public async Task LocaleIsSetCorrectly()
     {
-        var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-        using var host = RazorLanguageServerHost.Create(serverStream, serverStream, LoggerFactory, NoOpTelemetryReporter.Instance);
+        var (_, serverStream) = FullDuplexStream.CreatePair();
+        using var host = CreateLanguageServerHost(serverStream, serverStream);
 
         var server = host.GetTestAccessor().Server;
         server.Initialize();
         var queue = server.GetTestAccessor().GetRequestExecutionQueue();
 
-        var initializeParams = new InitializeParams
+        var initializeParams = JsonSerializer.SerializeToElement(new InitializeParams
         {
             Capabilities = new(),
             Locale = "de-DE"
-        };
+        });
 
-        await queue.ExecuteAsync<InitializeParams, InitializeResult>(initializeParams, Methods.InitializeName, LanguageServerConstants.DefaultLanguageName, server.GetLspServices(), DisposalToken);
+        await queue.ExecuteAsync(initializeParams, Methods.InitializeName, server.GetLspServices(), DisposalToken);
 
         // We have to send one more request, because culture is set before any request starts, but the first initialize request has to
         // be started in order to set the culture.
-        await queue.ExecuteAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(new(), VSInternalMethods.WorkspacePullDiagnosticName, LanguageServerConstants.DefaultLanguageName, server.GetLspServices(), DisposalToken);
+        // The request isn't actually valid, so we wrap it in a try catch, but we don't care for this test
+        try
+        {
+            await queue.ExecuteAsync(JsonSerializer.SerializeToElement(new object()), VSInternalMethods.DocumentPullDiagnosticName, server.GetLspServices(), DisposalToken);
+        }
+        catch { }
 
         var cultureInfo = queue.GetTestAccessor().GetCultureInfo();
 
@@ -49,8 +61,8 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
     [Fact]
     public void AllHandlersRegisteredAsync()
     {
-        var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-        using var host = RazorLanguageServerHost.Create(serverStream, serverStream, LoggerFactory, NoOpTelemetryReporter.Instance);
+        var (_, serverStream) = FullDuplexStream.CreatePair();
+        using var host = CreateLanguageServerHost(serverStream, serverStream);
 
         var server = host.GetTestAccessor().Server;
         var handlerProvider = server.GetTestAccessor().HandlerProvider;
@@ -92,5 +104,32 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
 
             return attribute.Method;
         }
+    }
+
+    private RazorLanguageServerHost CreateLanguageServerHost(Stream input, Stream output)
+    {
+        return RazorLanguageServerHost.Create(
+            input,
+            output,
+            LoggerFactory,
+            NoOpTelemetryReporter.Instance,
+            configureServices: s =>
+            {
+                s.AddSingleton<IRazorProjectInfoDriver, TestProjectInfoDriver>();
+
+                // VS Code only handler is added by rzls, but add here for testing purposes
+                s.AddHandler<RazorNamedPipeConnectEndpoint>();
+            });
+    }
+
+    private class TestProjectInfoDriver : IRazorProjectInfoDriver
+    {
+        public void AddListener(IRazorProjectInfoListener listener)
+        {
+        }
+
+        public ImmutableArray<RazorProjectInfo> GetLatestProjectInfo() => [];
+
+        public Task WaitForInitializationAsync() => Task.CompletedTask;
     }
 }

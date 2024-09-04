@@ -37,12 +37,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 /// </remarks>
 [RazorLanguageServerEndpoint(VSInternalMethods.WorkspaceMapCodeName)]
 internal sealed class MapCodeEndpoint(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IDocumentContextFactory documentContextFactory,
     IClientConnection clientConnection,
     ITelemetryReporter telemetryReporter) : IRazorDocumentlessRequestHandler<VSInternalMapCodeParams, WorkspaceEdit?>, ICapabilitiesProvider
 {
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
     private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
@@ -77,7 +77,7 @@ internal sealed class MapCodeEndpoint(
 
     private async Task<WorkspaceEdit?> HandleMappingsAsync(VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilderPool<TextDocumentEdit>.GetPooledObject(out var changes);
+        using var _ = ListPool<TextDocumentEdit>.GetPooledObject(out var changes);
         foreach (var mapping in mappings)
         {
             if (mapping.TextDocument is null || mapping.FocusLocations is null)
@@ -129,7 +129,7 @@ internal sealed class MapCodeEndpoint(
     private async Task<bool> TryMapCodeAsync(
         RazorCodeDocument codeToMap,
         Location[][] locations,
-        ImmutableArray<TextDocumentEdit>.Builder changes,
+        List<TextDocumentEdit> changes,
         Guid mapCodeCorrelationId,
         VersionedDocumentContext documentContext,
         CancellationToken cancellationToken)
@@ -141,7 +141,7 @@ internal sealed class MapCodeEndpoint(
         }
 
         var nodesToMap = ExtractValidNodesToMap(syntaxTree.Root);
-        if (nodesToMap.Count == 0)
+        if (nodesToMap.Length == 0)
         {
             return false;
         }
@@ -159,9 +159,9 @@ internal sealed class MapCodeEndpoint(
 
     private async Task<bool> TryMapCodeAsync(
         Location[][] focusLocations,
-        List<SyntaxNode> nodesToMap,
+        ImmutableArray<SyntaxNode> nodesToMap,
         Guid mapCodeCorrelationId,
-        ImmutableArray<TextDocumentEdit>.Builder changes,
+        List<TextDocumentEdit> changes,
         VersionedDocumentContext documentContext,
         CancellationToken cancellationToken)
     {
@@ -189,7 +189,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                var razorNodesToMap = new List<SyntaxNode>();
+                using var razorNodesToMap = new PooledArrayBuilder<SyntaxNode>();
                 foreach (var nodeToMap in nodesToMap)
                 {
                     // If node is C#, we send it to their language server to handle and ignore it from our end.
@@ -202,7 +202,7 @@ internal sealed class MapCodeEndpoint(
                         }
 
                         var csharpMappingSuccessful = await TrySendCSharpDelegatedMappingRequestAsync(
-                            documentContext.Identifier,
+                            documentContext.GetTextDocumentIdentifierAndVersion(),
                             csharpBody,
                             csharpFocusLocations,
                             mapCodeCorrelationId,
@@ -236,7 +236,7 @@ internal sealed class MapCodeEndpoint(
                     if (insertionSpan is not null)
                     {
                         var textSpan = new TextSpan(insertionSpan.Value, 0);
-                        var edit = new TextEdit { NewText = nodeToMap.ToFullString(), Range = textSpan.ToRange(sourceText) };
+                        var edit = VsLspFactory.CreateTextEdit(sourceText.GetRange(textSpan), nodeToMap.ToFullString());
 
                         var textDocumentEdit = new TextDocumentEdit
                         {
@@ -263,10 +263,10 @@ internal sealed class MapCodeEndpoint(
         return false;
     }
 
-    private static List<SyntaxNode> ExtractValidNodesToMap(SyntaxNode rootNode)
+    private static ImmutableArray<SyntaxNode> ExtractValidNodesToMap(SyntaxNode rootNode)
     {
-        var validNodesToMap = new List<SyntaxNode>();
-        var stack = new Stack<SyntaxNode>();
+        using var validNodesToMap = new PooledArrayBuilder<SyntaxNode>();
+        using var _ = StackPool<SyntaxNode>.GetPooledObject(out var stack);
         stack.Push(rootNode);
 
         while (stack.Count > 0)
@@ -286,7 +286,7 @@ internal sealed class MapCodeEndpoint(
             }
         }
 
-        return validNodesToMap;
+        return validNodesToMap.ToImmutable();
     }
 
     // These are the nodes that we currently support for mapping. We should update
@@ -306,7 +306,7 @@ internal sealed class MapCodeEndpoint(
         SyntaxNode nodeToMap,
         Location[][] focusLocations,
         Guid mapCodeCorrelationId,
-        ImmutableArray<TextDocumentEdit>.Builder changes,
+        List<TextDocumentEdit> changes,
         CancellationToken cancellationToken)
     {
         var delegatedRequest = new DelegatedMapCodeParams(
@@ -344,10 +344,12 @@ internal sealed class MapCodeEndpoint(
     {
         // If the focus locations are in a C# context, map them to the C# document.
         var csharpFocusLocations = new Location[focusLocations.Length][];
+        using var csharpLocations = new PooledArrayBuilder<Location>();
         for (var i = 0; i < focusLocations.Length; i++)
         {
+            csharpLocations.Clear();
+
             var locations = focusLocations[i];
-            var csharpLocations = new List<Location>();
             foreach (var potentialLocation in locations)
             {
                 if (potentialLocation is null)
@@ -379,7 +381,7 @@ internal sealed class MapCodeEndpoint(
                 }
             }
 
-            csharpFocusLocations[i] = [.. csharpLocations];
+            csharpFocusLocations[i] = csharpLocations.ToArray();
         }
 
         return csharpFocusLocations;
@@ -388,10 +390,10 @@ internal sealed class MapCodeEndpoint(
     // Map C# code back to Razor file
     private async Task<bool> TryHandleDelegatedResponseAsync(
         WorkspaceEdit edits,
-        ImmutableArray<TextDocumentEdit>.Builder changes,
+        List<TextDocumentEdit> changes,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilderPool<TextDocumentEdit>.GetPooledObject(out var csharpChanges);
+        using var _ = ListPool<TextDocumentEdit>.GetPooledObject(out var csharpChanges);
         if (edits.DocumentChanges is not null && edits.DocumentChanges.Value.TryGetFirst(out var documentEdits))
         {
             // We only support document edits for now. In the future once the client supports it, we should look
@@ -425,7 +427,7 @@ internal sealed class MapCodeEndpoint(
         async Task<bool> TryProcessEditAsync(
             Uri generatedUri,
             TextEdit[] textEdits,
-            ImmutableArray<TextDocumentEdit>.Builder csharpChanges,
+            List<TextDocumentEdit> csharpChanges,
             CancellationToken cancellationToken)
         {
             foreach (var documentEdit in textEdits)
@@ -438,11 +440,7 @@ internal sealed class MapCodeEndpoint(
                     return false;
                 }
 
-                var textEdit = new TextEdit
-                {
-                    Range = hostDocumentRange,
-                    NewText = documentEdit.NewText
-                };
+                var textEdit = VsLspFactory.CreateTextEdit(hostDocumentRange, documentEdit.NewText);
 
                 var textDocumentEdit = new TextDocumentEdit
                 {
@@ -458,11 +456,10 @@ internal sealed class MapCodeEndpoint(
     }
 
     // Resolve edits that are at the same start location by merging them together.
-    private static void MergeEdits(ImmutableArray<TextDocumentEdit>.Builder changes)
+    private static void MergeEdits(List<TextDocumentEdit> changes)
     {
-        var groupedChanges = changes.GroupBy(c => c.TextDocument.Uri);
-        using var _ = ArrayBuilderPool<TextDocumentEdit>.GetPooledObject(out var mergedChanges);
-
+        var groupedChanges = changes.GroupBy(c => c.TextDocument.Uri).ToImmutableArray();
+        changes.Clear();
         foreach (var documentChanges in groupedChanges)
         {
             var edits = documentChanges.ToList();
@@ -490,10 +487,7 @@ internal sealed class MapCodeEndpoint(
                 Edits = edits.SelectMany(e => e.Edits).ToArray()
             };
 
-            mergedChanges.Add(finalEditsForDoc);
+            changes.Add(finalEditsForDoc);
         }
-
-        changes.Clear();
-        changes.AddRange(mergedChanges);
     }
 }

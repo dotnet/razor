@@ -9,16 +9,16 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal sealed class HtmlFormattingPass(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IDocumentVersionCache documentVersionCache,
     ILoggerFactory loggerFactory)
@@ -59,7 +59,7 @@ internal sealed class HtmlFormattingPass(
 
         if (htmlEdits.Length > 0)
         {
-            var changes = htmlEdits.Select(e => e.ToTextChange(originalText));
+            var changes = htmlEdits.Select(originalText.GetTextChange);
             changedText = originalText.WithChanges(changes);
             // Create a new formatting context for the changed razor document.
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
@@ -81,7 +81,7 @@ internal sealed class HtmlFormattingPass(
         }
 
         var finalChanges = changedText.GetTextChanges(originalText);
-        var finalEdits = finalChanges.Select(f => f.ToTextEdit(originalText)).ToArray();
+        var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
         return new FormattingResult(finalEdits);
     }

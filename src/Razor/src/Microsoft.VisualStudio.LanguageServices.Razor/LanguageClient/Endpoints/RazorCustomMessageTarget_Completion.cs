@@ -9,10 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Razor.LanguageClient.Extensions;
 using Microsoft.VisualStudio.Razor.Snippets;
 using StreamJsonRpc;
 
@@ -155,7 +153,7 @@ internal partial class RazorCustomMessageTarget
             AddSnippetCompletions(request, ref builder.AsRef());
             completionList.Items = builder.ToArray();
 
-            completionList.Data = JsonHelpers.TryConvertFromJsonElement(completionList.Data);
+            completionList.Data = JsonHelpers.TryConvertFromJObject(completionList.Data);
             ConvertJsonElementToJObject(completionList);
 
             return completionList;
@@ -175,36 +173,29 @@ internal partial class RazorCustomMessageTarget
     {
         foreach (var item in completionList.Items)
         {
-            item.Data = JsonHelpers.TryConvertFromJsonElement(item.Data);
+            item.Data = JsonHelpers.TryConvertFromJObject(item.Data);
         }
     }
 
     private static TextEdit BuildRevertedEdit(TextEdit provisionalTextEdit)
     {
         TextEdit? revertedProvisionalTextEdit;
-        if (provisionalTextEdit.Range.Start == provisionalTextEdit.Range.End)
+
+        var range = provisionalTextEdit.Range;
+
+        if (range.Start == range.End)
         {
             // Insertion
-            revertedProvisionalTextEdit = new TextEdit()
-            {
-                Range = new Range()
-                {
-                    Start = provisionalTextEdit.Range.Start,
-
-                    // We're making an assumption that provisional text edits do not span more than 1 line.
-                    End = new Position(provisionalTextEdit.Range.End.Line, provisionalTextEdit.Range.End.Character + provisionalTextEdit.NewText.Length),
-                },
-                NewText = string.Empty
-            };
+            revertedProvisionalTextEdit = VsLspFactory.CreateTextEdit(
+                range: VsLspFactory.CreateSingleLineRange(
+                    range.Start,
+                    length: provisionalTextEdit.NewText.Length),
+                newText: string.Empty);
         }
         else
         {
             // Replace
-            revertedProvisionalTextEdit = new TextEdit()
-            {
-                Range = provisionalTextEdit.Range,
-                NewText = string.Empty
-            };
+            revertedProvisionalTextEdit = VsLspFactory.CreateTextEdit(range, string.Empty);
         }
 
         return revertedProvisionalTextEdit;
@@ -298,7 +289,7 @@ internal partial class RazorCustomMessageTarget
 
         var completionResolveParams = request.CompletionItem;
 
-        completionResolveParams.Data = JsonHelpers.TryConvertBackToJsonElement(completionResolveParams.Data);
+        completionResolveParams.Data = JsonHelpers.TryConvertBackToJObject(completionResolveParams.Data);
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, CompletionItem?>(
@@ -311,7 +302,7 @@ internal partial class RazorCustomMessageTarget
         var item = response?.Response;
         if (item is not null)
         {
-            item.Data = JsonHelpers.TryConvertFromJsonElement(item.Data);
+            item.Data = JsonHelpers.TryConvertFromJObject(item.Data);
         }
 
         return item;
@@ -333,7 +324,7 @@ internal partial class RazorCustomMessageTarget
 
         // Temporary fix: snippets are broken in CSharp. We're investigating
         // but this is very disruptive. This quick fix unblocks things.
-        // TODO: Add an option to enable this. 
+        // TODO: Add an option to enable this.
         if (request.ProjectedKind != RazorLanguageKind.Html)
         {
             return;

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
@@ -107,7 +108,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
             DocumentHighlightProvider = true
         };
         await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-            csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null, DisposalToken);
+            csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null, capabilitiesUpdater: null, DisposalToken);
         await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 
         var razorFilePath = "C:/path/to/file.razor";
@@ -120,19 +121,18 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
             MockBehavior.Strict);
 
         var languageServer = new DocumentHighlightServer(csharpServer, csharpDocumentUri);
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
+        var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var endpoint = new DocumentHighlightEndpoint(
             languageServerFeatureOptions, documentMappingService, languageServer, LoggerFactory);
 
-        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
         var request = new DocumentHighlightParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset)
+            Position = codeDocument.Source.Text.GetPosition(cursorPosition)
         };
 
         var documentContext = CreateDocumentContext(request.TextDocument.Uri, codeDocument);
@@ -142,9 +142,9 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
-        var sourceText = codeDocument.GetSourceText();
+        var sourceText = codeDocument.Source.Text;
         var expected = spans
-            .Select(s => s.ToRange(sourceText))
+            .Select(sourceText.GetRange)
             .OrderBy(s => s.Start.Line)
             .ThenBy(s => s.Start.Character)
             .ToArray();
@@ -156,17 +156,8 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         Assert.Equal(actual, expected);
     }
 
-    private class DocumentHighlightServer : IClientConnection
+    private class DocumentHighlightServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri) : IClientConnection
     {
-        private readonly CSharpTestLspServer _csharpServer;
-        private readonly Uri _csharpDocumentUri;
-
-        public DocumentHighlightServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri)
-        {
-            _csharpServer = csharpServer;
-            _csharpDocumentUri = csharpDocumentUri;
-        }
-
         public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
@@ -186,12 +177,12 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri
+                    Uri = csharpDocumentUri
                 },
                 Position = highlightParams.ProjectedPosition,
             };
 
-            var result = await _csharpServer.ExecuteRequestAsync<DocumentHighlightParams, DocumentHighlight[]>(
+            var result = await csharpServer.ExecuteRequestAsync<DocumentHighlightParams, DocumentHighlight[]>(
                 Methods.TextDocumentDocumentHighlightName, highlightRequest, cancellationToken);
 
             return (TResponse)(object)result;

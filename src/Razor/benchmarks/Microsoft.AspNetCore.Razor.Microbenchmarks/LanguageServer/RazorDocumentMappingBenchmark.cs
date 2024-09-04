@@ -19,7 +19,7 @@ public class RazorDocumentMappingBenchmark : RazorLanguageServerBenchmarkBase
 {
     private string _filePath;
 
-    private IRazorDocumentMappingService DocumentMappingService { get; set; }
+    private IDocumentMappingService DocumentMappingService { get; set; }
 
     private IDocumentSnapshot DocumentSnapshot { get; set; }
 
@@ -147,7 +147,7 @@ public class RazorDocumentMappingBenchmark : RazorLanguageServerBenchmarkBase
                     // Found the generated span that contains the generated absolute index
 
                     hostDocumentIndex = mapping.OriginalSpan.AbsoluteIndex + distanceIntoGeneratedSpan;
-                    hostDocumentPosition = codeDocument.Source.Text.Lines.GetLinePosition(hostDocumentIndex);
+                    hostDocumentPosition = codeDocument.Source.Text.GetLinePosition(hostDocumentIndex);
                     return true;
                 }
             }
@@ -171,6 +171,6 @@ public class RazorDocumentMappingBenchmark : RazorLanguageServerBenchmarkBase
 
     private void EnsureServicesInitialized()
     {
-        DocumentMappingService = RazorLanguageServerHost.GetRequiredService<IRazorDocumentMappingService>();
+        DocumentMappingService = RazorLanguageServerHost.GetRequiredService<IDocumentMappingService>();
     }
 }

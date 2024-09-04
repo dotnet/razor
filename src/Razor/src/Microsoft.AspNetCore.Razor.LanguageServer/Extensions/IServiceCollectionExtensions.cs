@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
@@ -63,31 +64,21 @@ internal static class IServiceCollectionExtensions
         // Formatting Passes
         services.AddSingleton<IFormattingPass, HtmlFormattingPass>();
         services.AddSingleton<IFormattingPass, CSharpFormattingPass>();
-        services.AddSingleton<IFormattingPass, CSharpOnTypeFormattingPass>();
+        services.AddSingleton<IFormattingPass, LspCSharpOnTypeFormattingPass>();
         services.AddSingleton<IFormattingPass, FormattingDiagnosticValidationPass>();
         services.AddSingleton<IFormattingPass, FormattingContentValidationPass>();
-        services.AddSingleton<IFormattingPass, RazorFormattingPass>();
+        services.AddSingleton<IFormattingPass, LspRazorFormattingPass>();
 
         services.AddHandlerWithCapabilities<DocumentFormattingEndpoint>();
         services.AddHandlerWithCapabilities<DocumentOnTypeFormattingEndpoint>();
         services.AddHandlerWithCapabilities<DocumentRangeFormattingEndpoint>();
     }
 
-    public static void AddCompletionServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
+    public static void AddCompletionServices(this IServiceCollection services)
     {
         services.AddHandlerWithCapabilities<InlineCompletionEndpoint>();
-
-        if (featureOptions.SingleServerCompletionSupport)
-        {
-            services.AddHandlerWithCapabilities<RazorCompletionEndpoint>();
-            services.AddHandlerWithCapabilities<RazorCompletionResolveEndpoint>();
-        }
-        else
-        {
-            services.AddHandlerWithCapabilities<LegacyRazorCompletionEndpoint>();
-            services.AddHandlerWithCapabilities<LegacyRazorCompletionResolveEndpoint>();
-        }
-
+        services.AddHandlerWithCapabilities<RazorCompletionEndpoint>();
+        services.AddHandlerWithCapabilities<RazorCompletionResolveEndpoint>();
         services.AddSingleton<CompletionListCache>();
         services.AddSingleton<CompletionListProvider>();
         services.AddSingleton<DelegatedCompletionListProvider>();
@@ -113,7 +104,6 @@ internal static class IServiceCollectionExtensions
     public static void AddDiagnosticServices(this IServiceCollection services)
     {
         services.AddHandlerWithCapabilities<DocumentPullDiagnosticsEndpoint>();
-        services.AddHandler<WorkspacePullDiagnosticsEndpoint>();
         services.AddSingleton<RazorTranslateDiagnosticsService>();
         services.AddSingleton(sp => new Lazy<RazorTranslateDiagnosticsService>(sp.GetRequiredService<RazorTranslateDiagnosticsService>));
     }
@@ -170,9 +160,9 @@ internal static class IServiceCollectionExtensions
 
     public static void AddTextDocumentServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
-        services.AddHandlerWithCapabilities<TextDocumentTextPresentationEndpoint>();
         if (!featureOptions.UseRazorCohostServer)
         {
+            services.AddHandlerWithCapabilities<TextDocumentTextPresentationEndpoint>();
             services.AddHandlerWithCapabilities<TextDocumentUriPresentationEndpoint>();
         }
 
@@ -213,7 +203,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorProjectService, RazorProjectService>();
         services.AddSingleton<IRazorStartupService>((services) => (RazorProjectService)services.GetRequiredService<IRazorProjectService>());
         services.AddSingleton<IRazorStartupService, OpenDocumentGenerator>();
-        services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
+        services.AddSingleton<IDocumentMappingService, LspDocumentMappingService>();
+        services.AddSingleton<IEditMappingService, LspEditMappingService>();
         services.AddSingleton<RazorFileChangeDetectorManager>();
         services.AddSingleton<IOnInitialized>(sp => sp.GetRequiredService<RazorFileChangeDetectorManager>());
 
@@ -237,6 +228,7 @@ internal static class IServiceCollectionExtensions
         // Add project snapshot manager
         services.AddSingleton<IProjectEngineFactoryProvider, LspProjectEngineFactoryProvider>();
         services.AddSingleton<IProjectSnapshotManager, LspProjectSnapshotManager>();
+        services.AddSingleton<IProjectCollectionResolver>(sp => (LspProjectSnapshotManager)sp.GetRequiredService<IProjectSnapshotManager>());
     }
 
     public static void AddHandlerWithCapabilities<T>(this IServiceCollection services)

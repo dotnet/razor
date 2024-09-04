@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
-using SR = Microsoft.AspNetCore.Razor.Serialization.Json.Internal.SR;
+using SR = Microsoft.AspNetCore.Razor.Serialization.Json.Internal.Strings;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
@@ -215,6 +215,7 @@ internal static partial class ObjectReaders
                 var indexerNamePrefix = reader.ReadStringOrNull(nameof(BoundAttributeDescriptor.IndexerNamePrefix));
                 var indexerTypeName = reader.ReadStringOrNull(nameof(BoundAttributeDescriptor.IndexerTypeName));
                 var displayName = reader.ReadNonNullString(nameof(BoundAttributeDescriptor.DisplayName));
+                var containingType = reader.ReadStringOrNull(nameof(BoundAttributeDescriptor.ContainingType));
                 var documentationObject = ReadDocumentationObject(reader, nameof(BoundAttributeDescriptor.Documentation));
                 var caseSensitive = reader.ReadBooleanOrTrue(nameof(BoundAttributeDescriptor.CaseSensitive));
                 var isEditorRequired = reader.ReadBooleanOrFalse(nameof(BoundAttributeDescriptor.IsEditorRequired));
@@ -226,8 +227,8 @@ internal static partial class ObjectReaders
                 return new BoundAttributeDescriptor(
                     Cached(kind), Cached(name)!, Cached(typeName), isEnum,
                     hasIndexer, Cached(indexerNamePrefix), Cached(indexerTypeName),
-                    documentationObject, Cached(displayName), caseSensitive, isEditorRequired,
-                    parameters, metadata, diagnostics);
+                    documentationObject, Cached(displayName), Cached(containingType),
+                    caseSensitive, isEditorRequired, parameters, metadata, diagnostics);
             }
         }
 
