@@ -160,7 +160,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, FileKinds.Component,
-                (FileName("SurveyPrompt.razor"), surveyPrompt.Text),
+            (FileName("SurveyPrompt.razor"), surveyPrompt.Text),
             (FileName("SurveyPrompt.razor.g.cs"), surveyPromptGeneratedCode.Text));
 
         Assert.NotNull(result.Value.Second);
@@ -286,7 +286,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         #endregion
 
         var result = await GetGoToDefinitionResultAsync(input, FileKinds.Component,
-                (FileName("SurveyPrompt.razor"), surveyPrompt.Text),
+            (FileName("SurveyPrompt.razor"), surveyPrompt.Text),
             (FileName("SurveyPrompt.razor.g.cs"), surveyPromptGeneratedCode.Text));
 
         Assert.NotNull(result.Value.Second);
@@ -304,14 +304,14 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         // This really just validates Uri remapping, the actual response is largely arbitrary
 
         TestCode input = """
-                <div></div>
+            <div></div>
 
-                <script>
-                    function [|foo|]() {
-                        f$$oo();
-                    }
-                </script>
-                """;
+            <script>
+                function [|foo|]() {
+                    f$$oo();
+                }
+            </script>
+            """;
 
         var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
@@ -355,6 +355,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles);
         return GetGoToDefinitionResultAsync(document, input, htmlResponse: null);
     }
+
     private async Task<SumType<RoslynLocation, RoslynLocation[], RoslynDocumentLink[]>?> GetGoToDefinitionResultAsync(
         TextDocument document, TestCode input, SumType<Location, Location[], DocumentLink[]>? htmlResponse)
     {
