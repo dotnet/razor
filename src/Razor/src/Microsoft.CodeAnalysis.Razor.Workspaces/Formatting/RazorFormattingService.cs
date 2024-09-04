@@ -108,7 +108,8 @@ internal class RazorFormattingService : IRazorFormattingService
             ? result
             : result.Where(e => range.LineOverlapsWith(e.Range)).ToArray();
 
-        return originalText.MinimizeTextEdits(filteredEdits);
+        var normalizedEdits = NormalizeLineEndings(originalText, filteredEdits);
+        return originalText.MinimizeTextEdits(normalizedEdits);
     }
 
     public Task<TextEdit[]> GetCSharpOnTypeFormattingEditsAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
@@ -278,5 +279,23 @@ internal class RazorFormattingService : IRazorFormattingService
             // So, let's avoid the error by wrapping the cursor marker in a comment.
             edit.NewText = edit.NewText.Replace("/*$0*/", "$0");
         }
+    }
+
+    /// <summary>
+    /// This method counts the occurrences of CRLF and LF line endings in the original text. 
+    /// If LF line endings are more prevalent, it removes any CR characters from the text edits 
+    /// to ensure consistency with the LF style.
+    /// </summary>
+    private TextEdit[] NormalizeLineEndings(SourceText originalText, TextEdit[] edits)
+    {
+        if (originalText.HasLFLineEndings())
+        {
+            foreach (var edit in edits)
+            {
+                edit.NewText = edit.NewText.Replace("\r", "");
+            }
+        }
+
+        return edits;
     }
 }
