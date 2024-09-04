@@ -8743,6 +8743,31 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10827")]
+    public void GenericTypeCheck()
+    {
+        var generated = CompileToCSharp("""
+            <TestComponent Data="null" />
+
+            @code {
+                private class System
+                {
+                    private class String
+                    {
+                    }
+                }
+
+                [Parameter]
+                public List<global::System.String> Data { get; set; }
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Key
