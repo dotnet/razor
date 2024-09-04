@@ -2336,9 +2336,9 @@ namespace Test
             : [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                // ParentValue
                Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
-               // (38,158): error CS0029: Cannot implicitly convert type 'int' to 'string'
-               //             __builder.AddComponentParameter(2, "ValueChanged", (global::System.Action<System.Int32>)(__value => ParentValue = __value));
-               Diagnostic(ErrorCode.ERR_NoImplicitConv, "__value").WithArguments("int", "string").WithLocation(38, 158)]);
+               // (38,166): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               //             __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.ValueChanged), (global::System.Action<global::System.Int32>)(__value => ParentValue = __value));
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "__value").WithArguments("int", "string").WithLocation(38, 166)]);
     }
 
     [IntegrationTestFact]

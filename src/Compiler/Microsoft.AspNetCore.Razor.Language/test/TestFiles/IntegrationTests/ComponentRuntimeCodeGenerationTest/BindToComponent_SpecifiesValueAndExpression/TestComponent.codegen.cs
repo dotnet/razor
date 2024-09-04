@@ -35,7 +35,7 @@ ParentValue
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.ValueChanged), (global::System.Action<System.Int32>)(__value => ParentValue = __value));
+            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.ValueChanged), (global::System.Action<global::System.Int32>)(__value => ParentValue = __value));
             __builder.AddComponentParameter(3, nameof(global::Test.MyComponent.ValueExpression), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<global::System.Func<global::System.Int32>>>(() => ParentValue));
             __builder.CloseComponent();
         }
