@@ -731,6 +731,10 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                     {
                         context.CodeWriter.Write(node.TypeName);
                     }
+                    else if (node.BoundAttribute?.GetGloballyQualifiedTypeName() is string typeName)
+                    {
+                        context.CodeWriter.Write(typeName);
+                    }
                     else
                     {
                         TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, node.TypeName);
