@@ -176,12 +176,6 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
         return builder.DrainToImmutable();
     }
 
-    public bool IsImportDocument(IDocumentSnapshot document)
-    {
-        return document.TargetPath is { } targetPath &&
-               _importsToRelatedDocumentsLazy.Value.ContainsKey(targetPath);
-    }
-
     private RazorConfiguration CreateRazorConfiguration()
     {
         // See RazorSourceGenerator.RazorProviders.cs

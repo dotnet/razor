@@ -79,16 +79,6 @@ internal class ProjectSnapshot : IProjectSnapshot
         return document is not null;
     }
 
-    public bool IsImportDocument(IDocumentSnapshot document)
-    {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        return document.TargetPath is { } targetPath && State.ImportsToRelatedDocuments.ContainsKey(targetPath);
-    }
-
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
     {
         if (document is null)
