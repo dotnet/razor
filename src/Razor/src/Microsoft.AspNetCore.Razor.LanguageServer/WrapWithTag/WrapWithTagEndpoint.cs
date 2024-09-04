@@ -104,7 +104,7 @@ internal class WrapWithTagEndpoint(
         var versioned = new VersionedTextDocumentIdentifier
         {
             Uri = request.TextDocument.Uri,
-            Version = documentContext.Version,
+            Version = documentContext.Snapshot.Version,
         };
         var parameter = new DelegatedWrapWithTagParams(versioned, request);
 
@@ -116,7 +116,7 @@ internal class WrapWithTagEndpoint(
         if (htmlResponse.TextEdits is not null)
         {
             var htmlSourceText = await documentContext.GetHtmlSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            htmlResponse.TextEdits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, htmlResponse.TextEdits);
+            htmlResponse.TextEdits = HtmlFormatter.FixHtmlTextEdits(htmlSourceText, htmlResponse.TextEdits);
         }
 
         return htmlResponse;

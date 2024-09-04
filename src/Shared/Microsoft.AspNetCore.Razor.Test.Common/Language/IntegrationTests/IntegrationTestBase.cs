@@ -788,7 +788,7 @@ public abstract class IntegrationTestBase
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
             options.NewLine = lineEnding;
-            options.SuppressUniqueIds = "test";
+            options.SuppressUniqueIds = "__UniqueIdSuppressedForTesting__";
         }
     }
 

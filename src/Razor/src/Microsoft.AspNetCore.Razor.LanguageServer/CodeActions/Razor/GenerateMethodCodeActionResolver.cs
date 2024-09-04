@@ -59,7 +59,7 @@ internal sealed class GenerateMethodCodeActionResolver(
             return null;
         }
 
-        if (!_documentContextFactory.TryCreateForOpenDocument(actionParams.Uri, out var documentContext))
+        if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
         {
             return null;
         }
@@ -141,7 +141,7 @@ internal sealed class GenerateMethodCodeActionResolver(
     private async Task<WorkspaceEdit> GenerateMethodInCodeBlockAsync(
         RazorCodeDocument code,
         GenerateMethodCodeActionParams actionParams,
-        VersionedDocumentContext documentContext,
+        DocumentContext documentContext,
         string? razorNamespace,
         string? razorClassName,
         CancellationToken cancellationToken)
@@ -204,20 +204,20 @@ internal sealed class GenerateMethodCodeActionResolver(
 
             if (result is not null)
             {
-                var formattingOptions = new FormattingOptions()
+                var formattingOptions = new RazorFormattingOptions()
                 {
                     TabSize = _razorLSPOptionsMonitor.CurrentValue.TabSize,
                     InsertSpaces = _razorLSPOptionsMonitor.CurrentValue.InsertSpaces,
+                    CodeBlockBraceOnNextLine = _razorLSPOptionsMonitor.CurrentValue.CodeBlockBraceOnNextLine
                 };
 
-                var formattedEdits = await _razorFormattingService.FormatCodeActionAsync(
+                var formattedEdit = await _razorFormattingService.GetCSharpCodeActionEditAsync(
                     documentContext,
-                    RazorLanguageKind.CSharp,
                     result,
                     formattingOptions,
                     cancellationToken).ConfigureAwait(false);
 
-                edits = formattedEdits;
+                edits = formattedEdit is null ? [] : [formattedEdit];
             }
         }
 
@@ -230,7 +230,7 @@ internal sealed class GenerateMethodCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static async Task<string> PopulateMethodSignatureAsync(VersionedDocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
+    private static async Task<string> PopulateMethodSignatureAsync(DocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
     {
         var templateWithMethodSignature = s_generateMethodTemplate.Replace(MethodName, actionParams.MethodName);
 
