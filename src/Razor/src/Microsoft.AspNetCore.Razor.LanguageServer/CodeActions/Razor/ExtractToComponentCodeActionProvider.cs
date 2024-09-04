@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -21,12 +22,17 @@ using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
-internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
+internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory loggerFactory, ITelemetryReporter telemetryReporter) : IRazorCodeActionProvider
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToComponentCodeActionProvider>();
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
+        var correlationId = Guid.NewGuid();
+        using var _ = _telemetryReporter.TrackLspRequest(LanguageServerConstants.CodeActions.ExtractToComponentAction, LanguageServerConstants.RazorLanguageServerName, correlationId);
+        var telemetryBlock = _telemetryReporter.BeginBlock("ETCProvider", Severity.Normal);
+
         if (!IsValidContext(context))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -60,6 +66,8 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         };
 
         var codeAction = RazorCodeActionFactory.CreateExtractToComponent(resolutionParams);
+
+        _telemetryReporter.ReportEvent("extractToComponentProvider/actionProvided", Severity.Normal);
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
@@ -97,11 +105,11 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         // Basically a custom form of FirstAncestorOrSelf for this specific case
         for (var node = owner; node is not null; node = node.Parent)
         {
-            if (node is MarkupElementSyntax markupElement)
+            if (tryMakeMarkupElement is null && node is MarkupElementSyntax markupElement)
             {
                 tryMakeMarkupElement = markupElement;
             }
-            else if (node is MarkupTagHelperElementSyntax tagHelper)
+            else if (tryMakeMarkupTagHelperElement is null && node is MarkupTagHelperElementSyntax tagHelper)
             {
                 tryMakeMarkupTagHelperElement = tagHelper;
             }
