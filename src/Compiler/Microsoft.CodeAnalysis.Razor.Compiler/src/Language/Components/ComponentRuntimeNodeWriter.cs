@@ -829,7 +829,15 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         BeginWriteAttribute(context, node.AttributeName);
         context.CodeWriter.WriteParameterSeparator();
         context.CodeWriter.Write("(");
-        TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, node.TypeName);
+        if (node.BoundAttribute?.GetGloballyQualifiedTypeName() is string typeName &&
+            !node.BoundAttribute.IsGenericTypedProperty())
+        {
+            context.CodeWriter.Write(typeName);
+        }
+        else
+        {
+            TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, node.TypeName);
+        }
         context.CodeWriter.Write(")(");
 
         WriteComponentChildContentInnards(context, node);
