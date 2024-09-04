@@ -30,7 +30,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         var input = $"""
             This is a Razor document.
 
-            <{startTag}$$
+            <{startTag}>$$
 
             The end.
             """;
@@ -39,7 +39,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     }
 
     [Theory]
-    [InlineData("div style", "\"\"", "=")]
+    [InlineData("div style=", "\"\"", "=")]
     public async Task Component_AutoInsertAttributeQuotes(string startTag, string insertedText, string triggerCharacter)
     {
         var input = $"""
@@ -55,12 +55,17 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
 
     [Theory]
     [InlineData("""
-            @code {
-                //$$
-                void TestMethod() {}
-            }
-            """,
-        "/// <summary>", "/")]
+        @code {
+            ///$$
+            void TestMethod() {}
+        }
+        """,
+        """
+         <summary>
+            /// $0
+            /// </summary>
+        """,
+        "/")]
     public async Task Component_AutoInsertCSharp(string input, string insertedText, string triggerCharacter)
     {
         await VerifyOnAutoInsertAsync(input, insertedText, triggerCharacter);
