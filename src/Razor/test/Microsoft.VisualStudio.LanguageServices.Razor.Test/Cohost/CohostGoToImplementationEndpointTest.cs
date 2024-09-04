@@ -23,19 +23,19 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
     public async Task CSharp_Method()
     {
         var input = """
-                <div></div>
+            <div></div>
 
-                @{
-                    var x = Ge$$tX();
-                }
+            @{
+                var x = Ge$$tX();
+            }
 
-                @code
+            @code
+            {
+                void [|GetX|]()
                 {
-                    void [|GetX|]()
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
         await VerifyCSharpGoToImplementationAsync(input);
     }
@@ -44,22 +44,22 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
     public async Task CSharp_Field()
     {
         var input = """
-                <div></div>
+            <div></div>
 
-                @{
-                    var x = GetX();
-                }
+            @{
+                var x = GetX();
+            }
 
-                @code
+            @code
+            {
+                private string [|_name|];
+
+                string GetX()
                 {
-                    private string [|_name|];
-
-                    string GetX()
-                    {
-                        return _na$$me;
-                    }
+                    return _na$$me;
                 }
-                """;
+            }
+            """;
 
         await VerifyCSharpGoToImplementationAsync(input);
     }
@@ -68,19 +68,19 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
     public async Task CSharp_Multiple()
     {
         var input = """
-                <div></div>
+            <div></div>
 
-                @code
+            @code
+            {
+                class [|Base|] { }
+                class [|Derived1|] : Base { }
+                class [|Derived2|] : Base { }
+
+                void M(Ba$$se b)
                 {
-                    class [|Base|] { }
-                    class [|Derived1|] : Base { }
-                    class [|Derived2|] : Base { }
-
-                    void M(Ba$$se b)
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
         await VerifyCSharpGoToImplementationAsync(input);
     }
@@ -91,14 +91,14 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         // This really just validates Uri remapping, the actual response is largely arbitrary
 
         TestCode input = """
-                <div></div>
+            <div></div>
 
-                <script>
-                    function [|foo|]() {
-                        f$$oo();
-                    }
-                </script>
-                """;
+            <script>
+                function [|foo|]() {
+                    f$$oo();
+                }
+            </script>
+            """;
 
         var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
