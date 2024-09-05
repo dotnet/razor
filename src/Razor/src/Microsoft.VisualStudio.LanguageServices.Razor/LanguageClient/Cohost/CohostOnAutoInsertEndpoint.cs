@@ -95,8 +95,8 @@ internal class CohostOnAutoInsertEndpoint(
         var clientSettings = _clientSettingsManager.GetClientSettings();
         var enableAutoClosingTags = clientSettings.AdvancedSettings.AutoClosingTags;
         var formatOnType = clientSettings.AdvancedSettings.FormatOnType;
-        var indentWithTabs = clientSettings.ClientSpaceSettings.IndentWithTabs;
-        var indentSize = clientSettings.ClientSpaceSettings.IndentSize;
+        var indentWithTabs = !request.Options.InsertSpaces;
+        var indentSize = request.Options.TabSize;
 
         _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(

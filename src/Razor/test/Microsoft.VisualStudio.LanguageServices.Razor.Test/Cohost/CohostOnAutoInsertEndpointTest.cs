@@ -84,11 +84,77 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "/");
     }
 
+    [Fact]
+    public async Task Component_AutoInsertCSharp_OnEnter()
+    {
+        var input = """
+        @code {
+            void TestMethod() {
+        $$}
+        }
+        """;
+
+        var output = """
+        @code {
+            void TestMethod()
+            {
+                $0
+            }
+        }
+        """;
+        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "\n");
+    }
+
+    [Fact]
+    public async Task Component_AutoInsertCSharp_OnEnter_TwoSpaceIndent()
+    {
+        var input = """
+        @code {
+            void TestMethod() {
+        $$}
+        }
+        """;
+
+        var output = """
+        @code {
+          void TestMethod()
+          {
+            $0
+          }
+        }
+        """;
+        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "\n", tabSize: 2);
+    }
+
+    [Fact]
+    public async Task Component_AutoInsertCSharp_OnEnter_UseTabs()
+    {
+        var input = """
+        @code {
+            void TestMethod() {
+        $$}
+        }
+        """;
+
+        var tab = '\t';
+        var output = $$"""
+        @code {
+        {{tab}}void TestMethod()
+        {{tab}}{
+        {{tab}}{{tab}}$0
+        {{tab}}}
+        }
+        """;
+        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "\n", insertSpaces: false);
+    }
+
     private async Task VerifyOnAutoInsertAsync(
         string input,
         string output,
         string triggerCharacter,
-        string? delegatedResponseText = null)
+        string? delegatedResponseText = null,
+        bool insertSpaces = true,
+        int tabSize = 4)
     {
         TestFileMarkupParser.GetPosition(input, out input, out var cursorPosition);
         var document = CreateProjectAndRazorDocument(input);
@@ -125,8 +191,8 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
 
         var formattingOptions = new FormattingOptions()
         {
-            InsertSpaces = true,
-            TabSize = 4
+            InsertSpaces = insertSpaces,
+            TabSize = tabSize
         };
 
         var request = new VSInternalDocumentOnAutoInsertParams()
