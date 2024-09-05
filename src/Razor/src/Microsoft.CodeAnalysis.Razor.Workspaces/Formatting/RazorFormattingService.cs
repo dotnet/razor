@@ -310,7 +310,7 @@ internal class RazorFormattingService : IRazorFormattingService
     /// If LF line endings are more prevalent, it removes any CR characters from the text edits 
     /// to ensure consistency with the LF style.
     /// </summary>
-    private TextEdit[] NormalizeLineEndings(SourceText originalText, TextEdit[] edits)
+    private static TextEdit[] NormalizeLineEndings(SourceText originalText, TextEdit[] edits)
     {
         if (originalText.HasLFLineEndings())
         {

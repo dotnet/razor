@@ -26,13 +26,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 internal class DocumentOnTypeFormattingEndpoint(
     IRazorFormattingService razorFormattingService,
     IHtmlFormatter htmlFormatter,
-    IDocumentMappingService documentMappingService,
     RazorLSPOptionsMonitor optionsMonitor,
     ILoggerFactory loggerFactory)
     : IRazorRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>, ICapabilitiesProvider
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
-    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
     private readonly IHtmlFormatter _htmlFormatter = htmlFormatter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentOnTypeFormattingEndpoint>();
