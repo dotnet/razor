@@ -81,7 +81,7 @@ internal static class RazorProjectInfoHelpers
         return ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
     }
 
-    public static RazorProjectEngine? GetProjectEngine(Project project, string projectPath)
+    public static RazorProjectEngine GetProjectEngine(Project project, string projectPath)
     {
         var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
         var (configuration, rootNamespace) = ComputeRazorConfigurationOptions(options);

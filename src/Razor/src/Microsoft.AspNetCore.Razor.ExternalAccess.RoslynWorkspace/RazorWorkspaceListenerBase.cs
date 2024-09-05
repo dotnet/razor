@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -18,10 +17,10 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
 
     private readonly ILogger _logger;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
-    private readonly CachedTagHelperResolver _cachedTagHelperResolver = new(NoOpTelemetryReporter.Instance);
+    private readonly CompilationTagHelperResolver _tagHelperResolver = new(NoOpTelemetryReporter.Instance);
 
     // Only modified in the batching work queue so no need to lock for mutation
-    private readonly Dictionary<ProjectId, ProjectEntry> _projectEntryMap = new();
+    private readonly Dictionary<ProjectId, Checksum?> _projectChecksums = new();
 
     // Use an immutable dictionary for ImmutableInterlocked operations. The value isn't checked, just
     // the existance of the key so work is only done for projects with dynamic files.
@@ -288,23 +287,19 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
             return;
         }
 
-        var entry = _projectEntryMap.GetOrAdd(project.Id, static _ => new ProjectEntry());
-
-        var delta = await _cachedTagHelperResolver.GetDeltaAsync(project, entry.TagHelpersResultId, cancellationToken).ConfigureAwait(false);
-        entry.TagHelpersResultId = delta.ResultId;
-
-        var tagHelpers = _cachedTagHelperResolver.GetValues(project.Id, delta.ResultId);
+        var checksum = _projectChecksums.GetOrAdd(project.Id, static _ => null);
+        var projectEngine = RazorProjectInfoHelpers.GetProjectEngine(project, projectPath);
+        var tagHelpers = await _tagHelperResolver.GetTagHelpersAsync(project, projectEngine, cancellationToken).ConfigureAwait(false);
         var projectInfo = RazorProjectInfoHelpers.TryConvert(project, projectPath, tagHelpers);
         if (projectInfo is not null)
         {
-            var checksum = projectInfo.Checksum;
-            if (entry.ProjectChecksum == checksum)
+            if (checksum == projectInfo.Checksum)
             {
                 _logger.LogInformation("Checksum for {projectId} did not change. Skipped sending update", project.Id);
                 return;
             }
 
-            entry.ProjectChecksum = checksum;
+            _projectChecksums[project.Id] = projectInfo.Checksum;
 
             stream.WriteProjectInfoAction(ProjectInfoAction.Update);
             await stream.WriteProjectInfoAsync(projectInfo, cancellationToken).ConfigureAwait(false);
