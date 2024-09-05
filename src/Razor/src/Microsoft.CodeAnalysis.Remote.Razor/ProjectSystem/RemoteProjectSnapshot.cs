@@ -172,7 +172,7 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
             razorLanguageVersion,
             configurationName,
             Extensions: [],
-            SuppressAddComponentParameter: suppressAddComponentParameter,
-            UseConsolidatedMvcViews: true);
+            UseConsolidatedMvcViews: true,
+            suppressAddComponentParameter);
     }
 }

@@ -125,8 +125,8 @@ internal static class RazorProjectInfoFactory
             razorLanguageVersion,
             configurationName,
             Extensions: [],
-            SuppressAddComponentParameter: suppressAddComponentParameter,
-            UseConsolidatedMvcViews: true);
+            UseConsolidatedMvcViews: true,
+            suppressAddComponentParameter);
 
         defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
 
