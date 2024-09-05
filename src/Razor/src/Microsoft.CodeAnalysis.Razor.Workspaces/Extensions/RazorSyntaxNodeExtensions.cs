@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -311,7 +312,7 @@ internal static class RazorSyntaxNodeExtensions
 
     public static bool IsAnyAttributeSyntax(this SyntaxNode node)
     {
-        return node is 
+        return node is
             MarkupAttributeBlockSyntax or
             MarkupMinimizedAttributeBlockSyntax or
             MarkupTagHelperAttributeSyntax or
@@ -319,5 +320,65 @@ internal static class RazorSyntaxNodeExtensions
             MarkupTagHelperDirectiveAttributeSyntax or
             MarkupMinimizedTagHelperDirectiveAttributeSyntax or
             MarkupMiscAttributeContentSyntax;
+    }
+
+    public static LinePositionSpan? GetLinePositionSpanWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
+    {
+        var tokens = node.GetTokens();
+
+        SyntaxToken? firstToken = null;
+        for (var i = 0; i < tokens.Count; i++)
+        {
+            var token = tokens[i];
+            if (!token.IsWhitespace())
+            {
+                firstToken = token;
+                break;
+            }
+        }
+
+        SyntaxToken? lastToken = null;
+        for (var i = tokens.Count - 1; i >= 0; i--)
+        {
+            var token = tokens[i];
+            if (!token.IsWhitespace())
+            {
+                lastToken = token;
+                break;
+            }
+        }
+
+        if (firstToken is null && lastToken is null)
+        {
+            return null;
+        }
+
+        var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
+        var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
+
+        return new LinePositionSpan(startPositionSpan.Start, endPositionSpan.End);
+
+        // This is needed because SyntaxToken positions taken from GetTokens
+        // are relative to their parent node and not to the document.
+        static LinePositionSpan GetLinePositionSpan(SyntaxNode? node, RazorSourceDocument source, int parentStart)
+        {
+            ArgHelper.ThrowIfNull(node);
+            ArgHelper.ThrowIfNull(source);
+
+            var sourceText = source.Text;
+
+            var start = node.Position + parentStart;
+            var end = node.EndPosition + parentStart;
+
+            if (start == sourceText.Length && node.FullWidth == 0)
+            {
+                // Marker symbol at the end of the document.
+                var location = node.GetSourceLocation(source);
+                var position = location.ToLinePosition();
+                return new LinePositionSpan(position, position);
+            }
+
+            return sourceText.GetLinePositionSpan(start, end);
+        }
     }
 }

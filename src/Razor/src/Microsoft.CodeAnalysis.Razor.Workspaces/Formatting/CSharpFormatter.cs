@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
@@ -24,14 +24,14 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
 
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    public async Task<TextEdit[]> FormatAsync(FormattingContext context, Range rangeToFormat, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<TextChange>> FormatAsync(FormattingContext context, LinePositionSpan spanToFormat, CancellationToken cancellationToken)
     {
-        if (!_documentMappingService.TryMapToGeneratedDocumentRange(context.CodeDocument.GetCSharpDocument(), rangeToFormat, out var projectedRange))
+        if (!_documentMappingService.TryMapToGeneratedDocumentRange(context.CodeDocument.GetCSharpDocument(), spanToFormat, out var projectedSpan))
         {
             return [];
         }
 
-        var edits = await GetFormattingEditsAsync(context, projectedRange, cancellationToken).ConfigureAwait(false);
+        var edits = await GetFormattingEditsAsync(context, projectedSpan, cancellationToken).ConfigureAwait(false);
         var mappedEdits = MapEditsToHostDocument(context.CodeDocument, edits);
         return mappedEdits;
     }
@@ -49,24 +49,22 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
         return indentations;
     }
 
-    private TextEdit[] MapEditsToHostDocument(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
+    private ImmutableArray<TextChange> MapEditsToHostDocument(RazorCodeDocument codeDocument, ImmutableArray<TextChange> csharpEdits)
     {
         var actualEdits = _documentMappingService.GetHostDocumentEdits(codeDocument.GetCSharpDocument(), csharpEdits);
 
-        return actualEdits;
+        return actualEdits.ToImmutableArray();
     }
 
-    private static async Task<TextEdit[]> GetFormattingEditsAsync(FormattingContext context, Range projectedRange, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<TextChange>> GetFormattingEditsAsync(FormattingContext context, LinePositionSpan projectedSpan, CancellationToken cancellationToken)
     {
         var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
-        var spanToFormat = csharpSourceText.GetTextSpan(projectedRange);
+        var spanToFormat = csharpSourceText.GetTextSpan(projectedSpan);
         var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         Assumes.NotNull(root);
 
         var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(context.CSharpWorkspace.Services, root, spanToFormat, context.Options.ToIndentationOptions(), cancellationToken);
-
-        var edits = changes.Select(csharpSourceText.GetTextEdit).ToArray();
-        return edits;
+        return changes.ToImmutableArray();
     }
 
     private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(FormattingContext context, List<int> projectedDocumentLocations, CancellationToken cancellationToken)

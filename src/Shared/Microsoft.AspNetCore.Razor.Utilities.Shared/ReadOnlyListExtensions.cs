@@ -59,6 +59,11 @@ internal static class ReadOnlyListExtensions
 
     public static ImmutableArray<T> ToImmutableArray<T>(this IReadOnlyList<T> list)
     {
+        if (list is ImmutableArray<T> array)
+        {
+            return array;
+        }
+
         return list switch
         {
             [] => [],

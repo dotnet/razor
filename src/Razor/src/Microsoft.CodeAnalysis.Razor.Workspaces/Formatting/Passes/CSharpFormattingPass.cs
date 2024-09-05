@@ -27,15 +27,14 @@ internal sealed class CSharpFormattingPass(
     private readonly CSharpFormatter _csharpFormatter = new CSharpFormatter(documentMappingService);
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpFormattingPass>();
 
-    public async override Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
+    public async override Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
         // Apply previous edits if any.
         var originalText = context.SourceText;
         var changedText = originalText;
         var changedContext = context;
-        if (edits.Length > 0)
+        if (changes.Length > 0)
         {
-            var changes = edits.Select(originalText.GetTextChange);
             changedText = changedText.WithChanges(changes);
             changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
         }
@@ -43,10 +42,9 @@ internal sealed class CSharpFormattingPass(
         cancellationToken.ThrowIfCancellationRequested();
 
         // Apply original C# edits
-        var csharpEdits = await FormatCSharpAsync(changedContext, cancellationToken).ConfigureAwait(false);
-        if (csharpEdits.Length > 0)
+        var csharpChanges = await FormatCSharpAsync(changedContext, cancellationToken).ConfigureAwait(false);
+        if (csharpChanges.Length > 0)
         {
-            var csharpChanges = csharpEdits.Select(changedText.GetTextChange);
             changedText = changedText.WithChanges(csharpChanges);
             changedContext = await changedContext.WithTextAsync(changedText).ConfigureAwait(false);
 
@@ -67,16 +65,15 @@ internal sealed class CSharpFormattingPass(
         _logger.LogTestOnly($"Generated C#:\r\n{context.CSharpSourceText}");
 
         var finalChanges = changedText.GetTextChanges(originalText);
-        var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
 
-        return finalEdits;
+        return finalChanges.ToImmutableArray();
     }
 
-    private async Task<ImmutableArray<TextEdit>> FormatCSharpAsync(FormattingContext context, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<TextChange>> FormatCSharpAsync(FormattingContext context, CancellationToken cancellationToken)
     {
         var sourceText = context.SourceText;
 
-        using var csharpEdits = new PooledArrayBuilder<TextEdit>();
+        using var csharpChanges = new PooledArrayBuilder<TextChange>();
         foreach (var mapping in context.CodeDocument.GetCSharpDocument().SourceMappings)
         {
             var span = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
@@ -87,11 +84,11 @@ internal sealed class CSharpFormattingPass(
             }
 
             // These should already be remapped.
-            var range = sourceText.GetRange(span);
-            var edits = await _csharpFormatter.FormatAsync(context, range, cancellationToken).ConfigureAwait(false);
-            csharpEdits.AddRange(edits.Where(e => range.Contains(e.Range)));
+            var spanToFormat = sourceText.GetLinePositionSpan(span);
+            var changes = await _csharpFormatter.FormatAsync(context, spanToFormat, cancellationToken).ConfigureAwait(false);
+            csharpChanges.AddRange(changes.Where(e => spanToFormat.Contains(sourceText.GetLinePositionSpan(e.Span))));
         }
 
-        return csharpEdits.ToImmutable();
+        return csharpChanges.ToImmutable();
     }
 }

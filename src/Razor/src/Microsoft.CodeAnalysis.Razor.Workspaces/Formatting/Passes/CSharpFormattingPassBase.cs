@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -25,7 +26,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
 
     protected IDocumentMappingService DocumentMappingService { get; } = documentMappingService;
 
-    public abstract Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken);
+    public abstract Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> edits, CancellationToken cancellationToken);
 
     protected async Task<List<TextChange>> AdjustIndentationAsync(FormattingContext context, CancellationToken cancellationToken, Range? range = null)
     {

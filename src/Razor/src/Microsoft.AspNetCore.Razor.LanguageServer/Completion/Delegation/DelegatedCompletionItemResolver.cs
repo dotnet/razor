@@ -114,11 +114,15 @@ internal class DelegatedCompletionItemResolver(
 
         var options = RazorFormattingOptions.From(formattingOptions, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
 
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+
         if (resolvedCompletionItem.TextEdit is not null)
         {
             if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
             {
-                var formattedTextEdit = await _formattingService.GetCSharpSnippetFormattingEditAsync(
+                var textChange = csharpSourceText.GetTextChange(textEdit);
+                var formattedTextChange = await _formattingService.GetCSharpSnippetFormattingEditAsync(
                     documentContext,
                     [textEdit],
                     options,
@@ -136,7 +140,8 @@ internal class DelegatedCompletionItemResolver(
 
         if (resolvedCompletionItem.AdditionalTextEdits is not null)
         {
-            var formattedTextEdit = await _formattingService.GetCSharpSnippetFormattingEditAsync(
+            var additionalChanges = resolvedCompletionItem.AdditionalTextEdits.SelectAsArray(csharpSourceText.GetTextChange);
+            var formattedTextChange = await _formattingService.GetCSharpSnippetFormattingEditAsync(
                 documentContext,
                 resolvedCompletionItem.AdditionalTextEdits,
                 options,

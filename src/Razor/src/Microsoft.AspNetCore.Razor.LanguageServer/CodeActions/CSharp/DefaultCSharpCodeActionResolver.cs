@@ -61,7 +61,8 @@ internal sealed class DefaultCSharpCodeActionResolver(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var csharpTextEdits = textDocumentEdit.Edits;
+        var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var csharpTextChanges = textDocumentEdit.Edits.SelectAsArray(csharpSourceText.GetTextChange);
 
         // Remaps the text edits from the generated C# to the razor file,
         // as well as applying appropriate formatting.
@@ -73,6 +74,7 @@ internal sealed class DefaultCSharpCodeActionResolver(
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
         {
             Uri = csharpParams.RazorFileIdentifier.Uri

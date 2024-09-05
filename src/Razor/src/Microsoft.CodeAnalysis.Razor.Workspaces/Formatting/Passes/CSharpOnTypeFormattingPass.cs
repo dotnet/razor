@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -32,7 +33,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
-    public async override Task<TextEdit[]> ExecuteAsync(FormattingContext context, TextEdit[] edits, CancellationToken cancellationToken)
+    public async override Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> edits, CancellationToken cancellationToken)
     {
         // Normalize and re-map the C# edits.
         var codeDocument = context.CodeDocument;
@@ -65,7 +66,7 @@ internal sealed class CSharpOnTypeFormattingPass(
                 return edits;
             }
 
-            edits = formattingChanges.Select(csharpText.GetTextEdit).ToArray();
+            edits = formattingChanges;
             _logger.LogInformation($"Received {edits.Length} results from C#.");
         }
 
@@ -75,19 +76,19 @@ internal sealed class CSharpOnTypeFormattingPass(
         // The proper fix for this is https://github.com/dotnet/razor-tooling/issues/6650 at which point this can be removed
         foreach (var edit in edits)
         {
-            var startLine = edit.Range.Start.Line;
-            var endLine = edit.Range.End.Line;
-            var count = csharpText.Lines.Count;
-            if (startLine >= count || endLine >= count)
+            var startPos = edit.Span.Start;
+            var endPos = edit.Span.End;
+            var count = csharpText.Length;
+            if (startPos >= count || endPos >= count)
             {
-                _logger.LogWarning($"Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.");
+                _logger.LogWarning($"Got a bad edit that couldn't be applied. Edit is {startPos}-{endPos} but there are only {count} characters in C#.");
                 return edits;
             }
         }
 
-        var normalizedEdits = csharpText.MinimizeTextEdits(edits, out var originalTextWithChanges);
-        var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits);
-        var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
+        var normalizedEdits = csharpText.MinimizeTextChanges(edits, out var originalTextWithChanges);
+        var mappedEdits = RemapTextChanges(codeDocument, normalizedEdits);
+        var filteredEdits = FilterCSharpTextChanges(context, mappedEdits);
         if (filteredEdits.Length == 0)
         {
             // There are no C# edits for us to apply that could be mapped, but we might still need to check for using statements
@@ -103,7 +104,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var originalText = codeDocument.Source.Text;
         _logger.LogTestOnly($"Original text:\r\n{originalText}");
 
-        var changes = filteredEdits.Select(originalText.GetTextChange);
+        var changes = filteredEdits;
 
         // Apply the format on type edits sent over by the client.
         var formattedText = ApplyChangesAndTrackChange(originalText, changes, out _, out var spanAfterFormatting);
@@ -191,39 +192,39 @@ internal sealed class CSharpOnTypeFormattingPass(
         }
 
         // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
-        var finalChanges = cleanedText.GetTextChanges(originalText);
-        var finalEdits = finalChanges.Select(originalText.GetTextEdit).ToArray();
+        var finalChanges = cleanedText.GetTextChanges(originalText).ToImmutableArray();
 
-        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, edits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
+        finalChanges = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, edits, originalTextWithChanges, finalChanges, cancellationToken).ConfigureAwait(false);
 
-        return finalEdits;
+        return finalChanges;
     }
 
-    private TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits)
+    private ImmutableArray<TextChange> RemapTextChanges(RazorCodeDocument codeDocument, ImmutableArray<TextChange> projectedTextChanges)
     {
         if (codeDocument.IsUnsupported())
         {
             return [];
         }
 
-        var edits = DocumentMappingService.GetHostDocumentEdits(codeDocument.GetCSharpDocument(), projectedTextEdits);
+        var changes = DocumentMappingService.GetHostDocumentEdits(codeDocument.GetCSharpDocument(), projectedTextChanges);
 
-        return edits;
+        return changes.ToImmutableArray();
     }
 
-    private static async Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<TextChange>> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, ImmutableArray<TextChange> changes, SourceText originalTextWithChanges, ImmutableArray<TextChange> finalChanges, CancellationToken cancellationToken)
     {
         if (context.AutomaticallyAddUsings)
         {
             // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
-            if (textEdits.Any(static e => e.NewText.IndexOf("using") != -1))
+            if (changes.Any(static e => e.NewText is not null && e.NewText.IndexOf("using") != -1))
             {
                 var usingStatementEdits = await AddUsingsHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
-                finalEdits = [.. usingStatementEdits, .. finalEdits];
+                var usingStatementChanges = usingStatementEdits.Select(codeDocument.Source.Text.GetTextChange);
+                finalChanges = [.. usingStatementChanges, .. finalChanges];
             }
         }
 
-        return finalEdits;
+        return finalChanges;
     }
 
     // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
@@ -238,15 +239,9 @@ internal sealed class CSharpOnTypeFormattingPass(
         return newText;
     }
 
-    private static TextEdit[] FilterCSharpTextEdits(FormattingContext context, TextEdit[] edits)
+    private static ImmutableArray<TextChange> FilterCSharpTextChanges(FormattingContext context, ImmutableArray<TextChange> edits)
     {
-        var filteredEdits = edits.Where(e =>
-        {
-            var span = context.SourceText.GetTextSpan(e.Range);
-            return ShouldFormat(context, span, allowImplicitStatements: false);
-        }).ToArray();
-
-        return filteredEdits;
+        return edits.WhereAsArray(e => ShouldFormat(context, e.Span, allowImplicitStatements: false));
     }
 
     private static int LineDelta(SourceText text, IEnumerable<TextChange> changes, out Position? firstPosition, out Position? lastPosition)
