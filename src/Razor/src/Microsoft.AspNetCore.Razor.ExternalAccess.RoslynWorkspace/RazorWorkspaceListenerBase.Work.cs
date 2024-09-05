@@ -7,7 +7,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 
 public abstract partial class RazorWorkspaceListenerBase
 {
-    internal record Work(ProjectId ProjectId);
-    internal record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
-    internal record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
+    internal abstract record Work(ProjectId ProjectId);
+    internal sealed record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
+    internal sealed record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
 }

@@ -28,7 +28,6 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
 
     private Stream? _stream;
     private Workspace? _workspace;
-    private bool _disposed;
 
     private protected RazorWorkspaceListenerBase(ILogger logger)
     {
@@ -43,22 +42,21 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
         if (_workspace is not null)
         {
             _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
+            _workspace = null;
         }
 
-        if (_disposed)
+        if (_disposeTokenSource.IsCancellationRequested)
         {
             _logger.LogInformation("Disposal was called twice");
             return;
         }
 
-        _disposed = true;
         _logger.LogInformation("Tearing down named pipe for pid {pid}", Process.GetCurrentProcess().Id);
 
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
 
         _stream?.Dispose();
-        _stream = null;
     }
 
     public void NotifyDynamicFile(ProjectId projectId)
@@ -94,7 +92,7 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
         }
 
         // Early check for disposal just to reduce any work further
-        if (_disposed)
+        if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
@@ -174,7 +172,7 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
         //
         void EnqueueUpdate(Project? project)
         {
-            if (_disposed ||
+            if (_disposeTokenSource.IsCancellationRequested ||
                 project is not
                 {
                     Language: LanguageNames.CSharp
@@ -220,20 +218,14 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
     /// </remarks>
     private protected async virtual ValueTask ProcessWorkAsync(ImmutableArray<Work> work, CancellationToken cancellationToken)
     {
-        // Capture as locals here. Cancellation of the work queue still need to propogate. The cancellation
-        // token itself represents the work queue halting, but this will help avoid any assumptions about nullability of locals
-        // through the use in this function.
-        var stream = _stream;
-        var solution = _workspace?.CurrentSolution;
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // Early bail check for if we are disposed or somewhere in the middle of disposal
-        if (_disposed || stream is null || solution is null)
+        if (cancellationToken.IsCancellationRequested)
         {
             _logger.LogTrace("Skipping work due to disposal");
             return;
         }
+
+        var stream = _stream.AssumeNotNull();
+        var solution = _workspace.AssumeNotNull().CurrentSolution;
 
         await CheckConnectionAsync(stream, cancellationToken).ConfigureAwait(false);
         await ProcessWorkCoreAsync(work, stream, solution, cancellationToken).ConfigureAwait(false);
@@ -245,7 +237,10 @@ public abstract partial class RazorWorkspaceListenerBase : IDisposable
         {
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
 
                 if (unit is RemovalWork removalWork)
                 {
