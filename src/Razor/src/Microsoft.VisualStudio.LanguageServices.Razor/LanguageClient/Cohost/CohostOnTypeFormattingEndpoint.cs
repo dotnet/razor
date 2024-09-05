@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -55,9 +56,7 @@ internal sealed class CohostOnTypeFormattingEndpoint(
                 RegisterOptions = new DocumentOnTypeFormattingRegistrationOptions()
                 {
                     DocumentSelector = filter,
-                    FirstTriggerCharacter = RazorFormattingService.AllTriggerCharacters[0],
-                    MoreTriggerCharacter = RazorFormattingService.AllTriggerCharacters.AsSpan()[1..].ToArray(),
-                }
+                }.EnableOnTypeFormattingTriggerCharacters()
             };
         }
 

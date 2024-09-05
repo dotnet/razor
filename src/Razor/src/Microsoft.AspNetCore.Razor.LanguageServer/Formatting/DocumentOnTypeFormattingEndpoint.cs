@@ -41,11 +41,7 @@ internal class DocumentOnTypeFormattingEndpoint(
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        serverCapabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions
-        {
-            FirstTriggerCharacter = RazorFormattingService.AllTriggerCharacters[0],
-            MoreTriggerCharacter = RazorFormattingService.AllTriggerCharacters.AsSpan()[1..].ToArray(),
-        };
+        serverCapabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions().EnableOnTypeFormattingTriggerCharacters();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request)

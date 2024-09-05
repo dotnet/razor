@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal class RazorFormattingService : IRazorFormattingService
 {
-    public static readonly ImmutableArray<string> AllTriggerCharacters = ["}", ";", "\n", "{"];
-    public static readonly FrozenSet<string> AllTriggerCharacterSet = AllTriggerCharacters.ToFrozenSet(StringComparer.Ordinal);
+    public static readonly string FirstTriggerCharacter = "}";
+    public static readonly ImmutableArray<string> MoreTriggerCharacters = [";", "\n", "{"];
+    public static readonly FrozenSet<string> AllTriggerCharacterSet = FrozenSet.ToFrozenSet([FirstTriggerCharacter, .. MoreTriggerCharacters], StringComparer.Ordinal);
 
     private static readonly FrozenSet<string> s_csharpTriggerCharacterSet = FrozenSet.ToFrozenSet(["}", ";"], StringComparer.Ordinal);
     private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);

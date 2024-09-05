@@ -46,7 +46,7 @@ public class Foo{}
     {
         foreach (var character in RazorFormattingService.TestAccessor.GetCSharpTriggerCharacterSet())
         {
-            Assert.Contains(character, RazorFormattingService.AllTriggerCharacters);
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet);
         }
     }
 
@@ -55,16 +55,7 @@ public class Foo{}
     {
         foreach (var character in RazorFormattingService.TestAccessor.GetHtmlTriggerCharacterSet())
         {
-            Assert.Contains(character, RazorFormattingService.AllTriggerCharacters);
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet);
         }
-    }
-
-    [Fact]
-    public void AllTriggerCharacters_ContainsUniqueCharacters()
-    {
-        var allChars = RazorFormattingService.AllTriggerCharacters;
-        var distinctChars = allChars.Distinct().ToArray();
-
-        Assert.Equal(distinctChars, allChars);
     }
 }
