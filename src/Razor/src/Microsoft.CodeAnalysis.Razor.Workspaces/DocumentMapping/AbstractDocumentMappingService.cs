@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -338,16 +337,6 @@ internal abstract class AbstractDocumentMappingService(IFilePathService filePath
             var generatedSource = generatedDocument.GetGeneratedSourceText();
             return generatedSource.GetLinePosition(generatedIndex);
         }
-    }
-
-    public RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int hostDocumentIndex, bool rightAssociative)
-    {
-        var classifiedSpans = LanguageKindHelper.GetClassifiedSpans(codeDocument);
-        var tagHelperSpans = LanguageKindHelper.GetTagHelperSpans(codeDocument);
-        var documentLength = codeDocument.Source.Text.Length;
-        var languageKind = LanguageKindHelper.GetLanguageKindCore(classifiedSpans, tagHelperSpans, hostDocumentIndex, documentLength, rightAssociative);
-
-        return languageKind;
     }
 
     private bool TryMapToHostDocumentRangeStrict(IRazorGeneratedDocument generatedDocument, LinePositionSpan generatedDocumentRange, out LinePositionSpan hostDocumentRange)
