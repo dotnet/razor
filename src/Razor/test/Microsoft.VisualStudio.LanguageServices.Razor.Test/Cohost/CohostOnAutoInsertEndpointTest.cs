@@ -43,6 +43,30 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         await VerifyOnAutoInsertAsync(input, output, triggerCharacter: ">");
     }
 
+    [Theory]
+    [InlineData("PageTitle")]
+    [InlineData("div")]
+    [InlineData("text")]
+    public async Task Component_DoNotAutoInsertEndTag_DisabledAutoClosingTags(string startTag)
+    {
+        var input = $"""
+            This is a Razor document.
+
+            <{startTag}>$$
+
+            The end.
+            """;
+        var output = $"""
+            This is a Razor document.
+
+            <{startTag}>
+
+            The end.
+            """;
+
+        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: ">", autoClosingTags: false, expectResult: false);
+    }
+
     [Fact]
     public async Task Component_AutoInsertAttributeQuotes()
     {
@@ -82,6 +106,25 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         }
         """;
         await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "/");
+    }
+
+    [Fact]
+    public async Task Component_DoNotAutoInsertCSharp_OnForwardSlashWithFormatOnTypeDisabled()
+    {
+        var input = """
+        @code {
+            ///$$
+            void TestMethod() {}
+        }
+        """;
+
+        var output = """
+        @code {
+            ///
+            void TestMethod() {}
+        }
+        """;
+        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "/", formatOnType: false, expectResult: false);
     }
 
     [Fact]
@@ -154,14 +197,17 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         string triggerCharacter,
         string? delegatedResponseText = null,
         bool insertSpaces = true,
-        int tabSize = 4)
+        int tabSize = 4,
+        bool formatOnType = true,
+        bool autoClosingTags = true,
+        bool expectResult = true)
     {
         TestFileMarkupParser.GetPosition(input, out input, out var cursorPosition);
         var document = CreateProjectAndRazorDocument(input);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);
-        clientSettingsManager.Update(ClientAdvancedSettings.Default with { FormatOnType = true, AutoClosingTags = true });
+        clientSettingsManager.Update(ClientAdvancedSettings.Default with { FormatOnType = formatOnType, AutoClosingTags = autoClosingTags });
 
         IOnAutoInsertTriggerCharacterProvider[] onAutoInsertTriggerCharacterProviders = [
             new RemoteAutoClosingTagOnAutoInsertProvider(),
@@ -208,10 +254,20 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
-        Assert.NotNull(result);
+        if (expectResult)
+        {
+            Assert.NotNull(result);
+        }
+        else
+        {
+            Assert.Null(result);
+        }
 
-        var change = sourceText.GetTextChange(result.TextEdit);
-        sourceText = sourceText.WithChanges(change);
+        if (result is not null)
+        {
+            var change = sourceText.GetTextChange(result.TextEdit);
+            sourceText = sourceText.WithChanges(change);
+        }
 
         AssertEx.EqualOrDiff(output, sourceText.ToString());
     }
