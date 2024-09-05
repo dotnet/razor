@@ -2,11 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodBeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Settings;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
@@ -202,8 +202,9 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         bool autoClosingTags = true,
         bool expectResult = true)
     {
-        TestFileMarkupParser.GetPosition(input, out input, out var cursorPosition);
-        var document = CreateProjectAndRazorDocument(input);
+        var testCode = new TestCode(input);
+     
+        var document = CreateProjectAndRazorDocument(testCode.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);
@@ -216,7 +217,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         VSInternalDocumentOnAutoInsertResponseItem? response = null;
         if (delegatedResponseText is not null)
         {
-            var start = sourceText.GetPosition(cursorPosition);
+            var start = sourceText.GetPosition(testCode.Position);
             var end = start;
             response = new VSInternalDocumentOnAutoInsertResponseItem()
             {
@@ -247,7 +248,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             {
                 Uri = document.CreateUri()
             },
-            Position = sourceText.GetPosition(cursorPosition),
+            Position = sourceText.GetPosition(testCode.Position),
             Character = triggerCharacter,
             Options = formattingOptions
         };
