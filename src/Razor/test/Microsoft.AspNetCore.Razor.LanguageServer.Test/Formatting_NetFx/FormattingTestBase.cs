@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -48,14 +49,26 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         ImmutableArray<TagHelperDescriptor> tagHelpers = default,
         bool allowDiagnostics = false,
         RazorLSPOptions? razorLSPOptions = null,
-        bool inGlobalNamespace = false)
+        bool inGlobalNamespace = false,
+        bool skipFlipLineEndingTest = false)
     {
         // Run with and without forceRuntimeCodeGeneration
-        await RunFormattingTestAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: true);
-        await RunFormattingTestAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: false);
+        await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: true);
+        await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: false);
+
+        // some tests are failing, skip for now, tracked by https://github.com/dotnet/razor/issues/10836 
+        if (!skipFlipLineEndingTest)
+        {
+            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
+            input = FlipLineEndings(input);
+            expected = FlipLineEndings(expected);
+
+            await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: true);
+            await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: false);
+        }
     }
 
-    private async Task RunFormattingTestAsync(string input, string expected, int tabSize, bool insertSpaces, string? fileKind, ImmutableArray<TagHelperDescriptor> tagHelpers, bool allowDiagnostics, RazorLSPOptions? razorLSPOptions, bool inGlobalNamespace, bool forceRuntimeCodeGeneration)
+    private async Task RunFormattingTestInternalAsync(string input, string expected, int tabSize, bool insertSpaces, string? fileKind, ImmutableArray<TagHelperDescriptor> tagHelpers, bool allowDiagnostics, RazorLSPOptions? razorLSPOptions, bool inGlobalNamespace, bool forceRuntimeCodeGeneration)
     {
         // Arrange
         fileKind ??= FileKinds.Component;
@@ -76,12 +89,19 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
+        var razorOptions = RazorFormattingOptions.From(options, codeBlockBraceOnNextLine: razorLSPOptions?.CodeBlockBraceOnNextLine ?? false);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
+        var client = new FormattingLanguageServerClient(LoggerFactory);
+        client.AddCodeDocument(codeDocument);
+
+        var htmlFormatter = new HtmlFormatter(client);
+        var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
+
         // Act
-        var edits = await formattingService.FormatAsync(documentContext, range, options, DisposalToken);
+        var edits = await formattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, range, razorOptions, DisposalToken);
 
         // Assert
         var edited = ApplyEdits(source, edits);
@@ -127,10 +147,25 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
+        var razorOptions = RazorFormattingOptions.From(options, codeBlockBraceOnNextLine: razorLSPOptions?.CodeBlockBraceOnNextLine ?? false);
+
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
-        var edits = await formattingService.FormatOnTypeAsync(documentContext, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+        TextEdit[] edits;
+        if (languageKind == RazorLanguageKind.CSharp)
+        {
+            edits = await formattingService.GetCSharpOnTypeFormattingEditsAsync(documentContext, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+        }
+        else
+        {
+            var client = new FormattingLanguageServerClient(LoggerFactory);
+            client.AddCodeDocument(codeDocument);
+
+            var htmlFormatter = new HtmlFormatter(client);
+            var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
+            edits = await formattingService.GetHtmlOnTypeFormattingEditsAsync(documentContext, htmlEdits, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+        }
 
         // Assert
         var edited = ApplyEdits(razorSourceText, edits);
@@ -190,7 +225,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         }
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument);
-        var options = new FormattingOptions()
+        var options = new RazorFormattingOptions()
         {
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
@@ -198,10 +233,10 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
-        var edits = await formattingService.FormatCodeActionAsync(documentContext, languageKind, codeActionEdits, options, DisposalToken);
+        var edit = await formattingService.GetCSharpCodeActionEditAsync(documentContext, codeActionEdits, options, DisposalToken);
 
         // Assert
-        var edited = ApplyEdits(razorSourceText, edits);
+        var edited = ApplyEdits(razorSourceText, [edit]);
         var actual = edited.ToString();
 
         AssertEx.EqualOrDiff(expected, actual);
@@ -260,7 +295,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             ]);
 
         var projectEngine = RazorProjectEngine.Create(
-            new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", ImmutableArray<RazorExtension>.Empty, new LanguageServerFlags(forceRuntimeCodeGeneration)),
+            new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", Extensions: [], new LanguageServerFlags(forceRuntimeCodeGeneration)),
             projectFileSystem,
             builder =>
             {
@@ -269,7 +304,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
                 RazorExtensions.Register(builder);
             });
 
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, ImmutableArray.Create(importsDocument), tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, [importsDocument], tagHelpers);
 
         if (!allowDiagnostics)
         {
@@ -327,5 +362,27 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
                 return CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument, inGlobalNamespace: inGlobalNamespace);
             });
         return documentSnapshot.Object;
+    }
+
+    private static string FlipLineEndings(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
+        var hasCRLF = input.Contains("\r\n");
+        var hasLF = !hasCRLF && input.Contains("\n");
+
+        if (hasCRLF)
+        {
+            return input.Replace("\r\n", "\n");
+        }
+        else if (hasLF)
+        {
+            return input.Replace("\n", "\r\n");
+        }
+
+        return input;
     }
 }

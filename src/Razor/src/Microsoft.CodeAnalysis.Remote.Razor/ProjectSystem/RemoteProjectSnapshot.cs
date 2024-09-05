@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -35,7 +34,6 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly AsyncLazy<RazorConfiguration> _lazyConfiguration;
     private readonly AsyncLazy<RazorProjectEngine> _lazyProjectEngine;
-    private readonly Lazy<ImmutableDictionary<string, ImmutableArray<string>>> _importsToRelatedDocumentsLazy;
 
     private ImmutableArray<TagHelperDescriptor> _tagHelpers;
 
@@ -61,23 +59,6 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
                 });
         },
         joinableTaskFactory: null);
-
-        _importsToRelatedDocumentsLazy = new Lazy<ImmutableDictionary<string, ImmutableArray<string>>>(() =>
-        {
-            var importsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizingComparer.Instance);
-
-            // The project engine should already be created by the time _importsToRelatedDocumentsLazy is created.
-            Debug.Assert(_lazyProjectEngine.IsValueCreated);
-            var projectEngine = _lazyProjectEngine.GetValue();
-
-            foreach (var documentFilePath in DocumentFilePaths)
-            {
-                var importTargetPaths = ProjectState.GetImportDocumentTargetPaths(documentFilePath, FileKinds.GetFileKindFromFilePath(documentFilePath), projectEngine);
-                importsToRelatedDocuments = ProjectState.AddToImportsToRelatedDocuments(importsToRelatedDocuments, documentFilePath, importTargetPaths);
-            }
-
-            return importsToRelatedDocuments;
-        });
     }
 
     public RazorConfiguration Configuration => throw new InvalidOperationException("Should not be called for cohosted projects.");
@@ -164,34 +145,6 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
     /// </summary>
     /// <returns></returns>
     internal Task<RazorProjectEngine> GetProjectEngine_CohostOnlyAsync(CancellationToken cancellationToken) => _lazyProjectEngine.GetValueAsync(cancellationToken);
-
-    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
-    {
-        var targetPath = document.TargetPath.AssumeNotNull();
-
-        if (!_importsToRelatedDocumentsLazy.Value.TryGetValue(targetPath, out var relatedDocuments))
-        {
-            return [];
-        }
-
-        using var builder = new PooledArrayBuilder<IDocumentSnapshot>(relatedDocuments.Length);
-
-        foreach (var relatedDocumentFilePath in relatedDocuments)
-        {
-            if (TryGetDocument(relatedDocumentFilePath, out var relatedDocument))
-            {
-                builder.Add(relatedDocument);
-            }
-        }
-
-        return builder.DrainToImmutable();
-    }
-
-    public bool IsImportDocument(IDocumentSnapshot document)
-    {
-        return document.TargetPath is { } targetPath &&
-               _importsToRelatedDocumentsLazy.Value.ContainsKey(targetPath);
-    }
 
     private async Task<RazorConfiguration> CreateRazorConfigurationAsync()
     {

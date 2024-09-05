@@ -2,15 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,11 +20,11 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         // Arrange
         var uri = new Uri("file://path/test.razor");
         var formattingService = new DummyRazorFormattingService();
-        var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
+        var htmlFormatter = new TestHtmlFormatter();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+            formattingService, htmlFormatter, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams { TextDocument = new TextDocumentIdentifier { Uri = uri, } };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -52,11 +48,11 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 
         var documentContext = CreateDocumentContext(new Uri("file://path/testDifferentFile.razor"), codeDocument);
         var formattingService = new DummyRazorFormattingService();
-        var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var htmlFormatter = new TestHtmlFormatter();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+            formattingService, htmlFormatter, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -86,11 +82,11 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
-        var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var htmlFormatter = new TestHtmlFormatter();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+            formattingService, htmlFormatter, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -119,13 +115,12 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var uri = new Uri("file://path/test.razor");
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var formattingService = new DummyRazorFormattingService();
+        var formattingService = new DummyRazorFormattingService(RazorLanguageKind.Html);
 
-        var documentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
-        documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Html);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var htmlFormatter = new TestHtmlFormatter();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
+            formattingService, htmlFormatter, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -154,13 +149,12 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
         var uri = new Uri("file://path/test.razor");
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var formattingService = new DummyRazorFormattingService();
+        var formattingService = new DummyRazorFormattingService(RazorLanguageKind.Razor);
 
-        var documentMappingService = new Mock<IDocumentMappingService>(MockBehavior.Strict);
-        documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Razor);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var htmlFormatter = new TestHtmlFormatter();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
+            formattingService, htmlFormatter, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -190,11 +184,11 @@ public class DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput) 
 
         var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
-        var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var htmlFormatter = new TestHtmlFormatter();
         var endpoint = new DocumentOnTypeFormattingEndpoint(
-            formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+            formattingService, htmlFormatter, optionsMonitor, LoggerFactory);
         var @params = new DocumentOnTypeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
