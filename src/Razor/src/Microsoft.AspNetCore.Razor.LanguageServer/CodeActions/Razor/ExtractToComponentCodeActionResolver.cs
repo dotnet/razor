@@ -170,6 +170,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
     private static SelectionAnalysisResult TryAnalyzeSelection(RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
+        var root = syntaxTree.Root;
         var sourceText = codeDocument.Source.Text;
 
         var (startElementNode, endElementNode) = GetStartAndEndElements(sourceText, syntaxTree, actionParams);
@@ -194,7 +195,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var dependencyScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
-        var usingDirectives = GetUsingDirectivesInRange(syntaxTree, dependencyScanRoot, extractStart, extractEnd);
+        var usingDirectives = GetUsingDirectivesInRange(root, dependencyScanRoot, extractStart, extractEnd);
         var hasOtherIdentifiers = CheckHasOtherIdentifiers(dependencyScanRoot, extractStart, extractEnd);
 
         return new SelectionAnalysisResult
@@ -419,11 +420,11 @@ internal sealed class ExtractToComponentCodeActionResolver(
         return node is MarkupElementSyntax or MarkupTagHelperElementSyntax || (isCodeBlock && node is CSharpCodeBlockSyntax);
     }
 
-    private static HashSet<string> GetUsingDirectivesInRange(RazorSyntaxTree syntaxTree, SyntaxNode root, int extractStart, int extractEnd)
+    private static HashSet<string> GetUsingDirectivesInRange(SyntaxNode generalRoot, SyntaxNode scanRoot, int extractStart, int extractEnd)
     {
         // The new component usings are going to be a subset of the usings in the source razor file.
         using var pooledStringArray = new PooledArrayBuilder<string>();
-        foreach (var node in syntaxTree.Root.DescendantNodes())
+        foreach (var node in generalRoot.DescendantNodes())
         {
             if (node.IsUsingDirective(out var children))
             {
@@ -465,7 +466,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
 
         // Only analyze nodes within the extract span
-        foreach (var node in root.DescendantNodes())
+        foreach (var node in scanRoot.DescendantNodes())
         {
             if (!extractSpan.Contains(node.Span))
             {
