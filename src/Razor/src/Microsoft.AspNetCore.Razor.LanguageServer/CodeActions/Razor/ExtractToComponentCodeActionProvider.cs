@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -14,9 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
@@ -29,9 +25,8 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
-        var correlationId = Guid.NewGuid();
-        using var _ = _telemetryReporter.TrackLspRequest(LanguageServerConstants.CodeActions.ExtractToComponentAction, LanguageServerConstants.RazorLanguageServerName, correlationId);
-        var telemetryBlock = _telemetryReporter.BeginBlock("ETCProvider", Severity.Normal);
+        var telemetryDidSucceed = false;
+        using var _ = _telemetryReporter.BeginBlock("extractToComponentProvider", Severity.Normal, new Property("didSucceed", telemetryDidSucceed));
 
         if (!IsValidContext(context))
         {
@@ -67,7 +62,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
         var codeAction = RazorCodeActionFactory.CreateExtractToComponent(resolutionParams);
 
-        _telemetryReporter.ReportEvent("extractToComponentProvider/actionProvided", Severity.Normal);
+        telemetryDidSucceed = true;
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
