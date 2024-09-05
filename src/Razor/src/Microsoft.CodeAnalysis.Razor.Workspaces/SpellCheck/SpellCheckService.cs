@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,21 +22,24 @@ internal class SpellCheckService(
 
     public async Task<int[]> GetSpellCheckRangeTriplesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
     {
-        using var ranges = new PooledArrayBuilder<SpellCheckRange>();
+        using var builder = new PooledArrayBuilder<SpellCheckRange>();
 
         var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-        AddRazorSpellCheckRanges(ref ranges.AsRef(), syntaxTree);
+        AddRazorSpellCheckRanges(ref builder.AsRef(), syntaxTree);
 
         var csharpRanges = await _csharpSpellCheckService.GetCSharpSpellCheckRangesAsync(documentContext, cancellationToken).ConfigureAwait(false);
 
         if (csharpRanges.Length > 0)
         {
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            AddCSharpSpellCheckRanges(ref ranges.AsRef(), csharpRanges, codeDocument);
+            AddCSharpSpellCheckRanges(ref builder.AsRef(), csharpRanges, codeDocument);
         }
 
-        return ConvertSpellCheckRangesToIntTriples(ranges.ToImmutable());
+        // Important to sort first as we're calculating relative indexes
+        var ranges = builder.ToImmutableOrderedBy(static r => r.AbsoluteStartIndex);
+
+        return ConvertSpellCheckRangesToIntTriples(ranges);
     }
 
     private static void AddRazorSpellCheckRanges(ref PooledArrayBuilder<SpellCheckRange> ranges, RazorSyntaxTree syntaxTree)
@@ -59,13 +61,7 @@ internal class SpellCheckService(
                 // Attribute names are text literals, but we don't want to spell check them because either C# will,
                 // whether they're component attributes based on property names, or they come from tag helper attribute
                 // parameters as strings, or they're Html attributes which are not necessarily expected to be real words.
-                if (node.Parent is MarkupTagHelperAttributeSyntax or
-                    MarkupAttributeBlockSyntax or
-                    MarkupMinimizedAttributeBlockSyntax or
-                    MarkupTagHelperDirectiveAttributeSyntax or
-                    MarkupMinimizedTagHelperAttributeSyntax or
-                    MarkupMinimizedTagHelperDirectiveAttributeSyntax or
-                    MarkupMiscAttributeContentSyntax)
+                if (node.Parent.IsAnyAttributeSyntax())
                 {
                     continue;
                 }
@@ -90,26 +86,23 @@ internal class SpellCheckService(
     {
         var csharpDocument = codeDocument.GetCSharpDocument();
 
-        foreach (var report in csharpRanges)
+        foreach (var range in csharpRanges)
         {
-            var absoluteCSharpStartIndex = report.AbsoluteStartIndex;
-            var length = report.Length;
+            var absoluteCSharpStartIndex = range.AbsoluteStartIndex;
+            var length = range.Length;
 
             // We need to map the start index to produce results, and we validate that we can map the end index so we don't have
             // squiggles that go from C# into Razor/Html.
-            if (_documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex, out var _1, out var hostDocumentIndex) &&
-                _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex + length, out var _2, out var _3))
+            if (_documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex, out _, out var hostDocumentIndex) &&
+                _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex + length, out _, out _))
             {
-                ranges.Add(new(report.Kind, hostDocumentIndex, length));
+                ranges.Add(range with { AbsoluteStartIndex = hostDocumentIndex });
             }
         }
     }
 
     private static int[] ConvertSpellCheckRangesToIntTriples(ImmutableArray<SpellCheckRange> ranges)
     {
-        // Important to sort first as we're calculating relative indexes
-        ranges = ranges.OrderAsArray(CompareSpellCheckRanges);
-
         using var data = new PooledArrayBuilder<int>(ranges.Length * 3);
 
         var lastAbsoluteEndIndex = 0;
@@ -128,10 +121,5 @@ internal class SpellCheckService(
         }
 
         return data.ToArray();
-    }
-
-    private static int CompareSpellCheckRanges(SpellCheckRange x, SpellCheckRange y)
-    {
-        return x.AbsoluteStartIndex.CompareTo(y.AbsoluteStartIndex);
     }
 }

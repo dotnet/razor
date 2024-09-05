@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [ExportCohostStatelessLspService(typeof(CohostWorkspaceSpellCheckEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal class CohostWorkspaceSpellCheckEndpoint(
+internal sealed class CohostWorkspaceSpellCheckEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker)
     : AbstractRazorCohostRequestHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>
 {

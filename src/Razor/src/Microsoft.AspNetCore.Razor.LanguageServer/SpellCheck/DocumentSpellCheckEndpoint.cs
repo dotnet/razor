@@ -40,7 +40,7 @@ internal sealed class DocumentSpellCheckEndpoint(
             [
                 new VSInternalSpellCheckableRangeReport
                 {
-                    Ranges =data,
+                    Ranges = data,
                     ResultId = Guid.NewGuid().ToString()
                 }
             ];

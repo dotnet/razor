@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
 [Export(typeof(ICSharpSpellCheckRangeProvider)), Shared]
 [method: ImportingConstructor]
-internal class RemoteCSharpSpellCheckRangeProvider() : ICSharpSpellCheckRangeProvider
+internal sealed class RemoteCSharpSpellCheckRangeProvider() : ICSharpSpellCheckRangeProvider
 {
     public async Task<ImmutableArray<SpellCheckRange>> GetCSharpSpellCheckRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
     {
@@ -25,6 +25,6 @@ internal class RemoteCSharpSpellCheckRangeProvider() : ICSharpSpellCheckRangePro
 
         var csharpRanges = await ExternalAccess.Razor.Cohost.Handlers.SpellCheck.GetSpellCheckSpansAsync(generatedDocument, cancellationToken).ConfigureAwait(false);
 
-        return csharpRanges.SelectAsArray(r => new SpellCheckRange((int)r.Kind, r.StartIndex, r.Length));
+        return csharpRanges.SelectAsArray(static r => new SpellCheckRange((int)r.Kind, r.StartIndex, r.Length));
     }
 }
