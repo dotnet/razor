@@ -90,40 +90,26 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
     private static bool IsInsideMarkupTag(RazorCodeActionContext context, SyntaxNode owner)
     {
-        // The selection could start either in a MarkupElement or MarkupTagHelperElement.
-        // Both of these have the necessary properties to do this check, but the base class MarkupSyntaxNode does not.
-        // The workaround for this is to try to find the specific types as ancestors and then do the check.
+        var (startTag, endTag) = GetStartAndEndTag(owner);
 
-        MarkupElementSyntax? tryMakeMarkupElement = null;
-        MarkupTagHelperElementSyntax? tryMakeMarkupTagHelperElement = null;
-
-        // Basically a custom form of FirstAncestorOrSelf for this specific case
-        for (var node = owner; node is not null; node = node.Parent)
+        if (startTag is null ||  endTag is null)
         {
-            if (tryMakeMarkupElement is null && node is MarkupElementSyntax markupElement)
-            {
-                tryMakeMarkupElement = markupElement;
-            }
-            else if (tryMakeMarkupTagHelperElement is null && node is MarkupTagHelperElementSyntax tagHelper)
-            {
-                tryMakeMarkupTagHelperElement = tagHelper;
-            }
-
-            if (tryMakeMarkupElement is not null && tryMakeMarkupTagHelperElement is not null)
-            {
-                break;
-            }
+            return false;
         }
 
-        var isLocationInElementTag = tryMakeMarkupElement is not null &&
-                                        (tryMakeMarkupElement.StartTag.Span.Contains(context.Location.AbsoluteIndex) ||
-                                        tryMakeMarkupElement.EndTag.Span.Contains(context.Location.AbsoluteIndex));
+        return startTag.Span.Contains(context.Location.AbsoluteIndex) || endTag.Span.Contains(context.Location.AbsoluteIndex);
+    }
 
-        var isLocationInTagHelperTag = tryMakeMarkupTagHelperElement is not null &&
-                                                (tryMakeMarkupTagHelperElement.StartTag.Span.Contains(context.Location.AbsoluteIndex) ||
-                                                tryMakeMarkupTagHelperElement.EndTag.Span.Contains(context.Location.AbsoluteIndex));
+    private static (MarkupSyntaxNode? startTag, MarkupSyntaxNode? endTag) GetStartAndEndTag(SyntaxNode owner)
+    {
+        var potentialElement = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupElementSyntax or MarkupTagHelperElementSyntax);
 
-        return isLocationInElementTag || isLocationInTagHelperTag;
+        return potentialElement switch
+        {
+            MarkupElementSyntax markupElement => (markupElement.StartTag, markupElement.EndTag),
+            MarkupTagHelperElementSyntax tagHelper => (tagHelper.StartTag, tagHelper.EndTag),
+            _ => (null, null)
+        };
     }
 
     private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
