@@ -199,16 +199,13 @@ internal class RazorFormattingService : IRazorFormattingService
     public bool TryGetOnTypeFormattingTriggerKind(RazorCodeDocument codeDocument, int hostDocumentIndex, string triggerCharacter, out RazorLanguageKind triggerCharacterKind)
     {
         triggerCharacterKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
-        if (triggerCharacterKind is RazorLanguageKind.CSharp)
-        {
-            return s_csharpTriggerCharacterSet.Contains(triggerCharacter);
-        }
-        else if (triggerCharacterKind is RazorLanguageKind.Html)
-        {
-            return s_htmlTriggerCharacterSet.Contains(triggerCharacter);
-        }
 
-        return false;
+        return triggerCharacterKind switch
+        {
+            RazorLanguageKind.CSharp => s_csharpTriggerCharacterSet.Contains(triggerCharacter),
+            RazorLanguageKind.Html => s_htmlTriggerCharacterSet.Contains(triggerCharacter),
+            _ => false,
+        };
     }
 
     private async Task<TextEdit[]> ApplyFormattedEditsAsync(

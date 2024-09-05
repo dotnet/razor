@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [ExportCohostStatelessLspService(typeof(CohostDocumentFormattingEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal class CohostDocumentFormattingEndpoint(
+internal sealed class CohostDocumentFormattingEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
@@ -71,7 +71,7 @@ internal class CohostDocumentFormattingEndpoint(
     private async Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting Html formatting changes for {razorDocument.FilePath}");
-        var htmlResult = await GetHtmlFormattingEditsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
+        var htmlResult = await TryGetHtmlFormattingEditsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
 
         if (htmlResult is not { } htmlEdits)
         {
@@ -91,17 +91,17 @@ internal class CohostDocumentFormattingEndpoint(
             (service, solutionInfo, cancellationToken) => service.GetDocumentFormattingEditsAsync(solutionInfo, razorDocument.Id, htmlChanges, options, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (remoteResult is [_, ..] allChanges)
+        if (remoteResult.Length > 0)
         {
-            _logger.LogDebug($"Got a total of {allChanges.Length} ranges back from OOP");
+            _logger.LogDebug($"Got a total of {remoteResult.Length} ranges back from OOP");
 
-            return allChanges.Select(sourceText.GetTextEdit).ToArray();
+            return remoteResult.Select(sourceText.GetTextEdit).ToArray();
         }
 
         return null;
     }
 
-    private async Task<TextEdit[]?> GetHtmlFormattingEditsAsync(DocumentFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<TextEdit[]?> TryGetHtmlFormattingEditsAsync(DocumentFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
         if (htmlDocument is null)

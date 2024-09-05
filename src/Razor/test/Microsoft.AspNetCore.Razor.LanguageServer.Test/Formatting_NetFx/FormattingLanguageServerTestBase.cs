@@ -69,7 +69,7 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
 
         public bool TryGetOnTypeFormattingTriggerKind(RazorCodeDocument codeDocument, int hostDocumentIndex, string triggerCharacter, out RazorLanguageKind triggerCharacterKind)
         {
-            triggerCharacterKind = languageKind ?? RazorLanguageKind.CSharp;
+            triggerCharacterKind = languageKind.GetValueOrDefault();
             return languageKind is not null;
         }
     }

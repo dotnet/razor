@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 [DataContract]
 internal readonly record struct RazorFormattingOptions
 {
-    public static readonly RazorFormattingOptions Default = new();
-
     [DataMember(Order = 0)]
     public bool InsertSpaces { get; init; } = true;
     [DataMember(Order = 1)]

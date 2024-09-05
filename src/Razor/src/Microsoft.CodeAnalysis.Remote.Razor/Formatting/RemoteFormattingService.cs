@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,24 +54,24 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
 
         if (edits is null)
         {
-            return ImmutableArray<TextChange>.Empty;
+            return [];
         }
 
         return edits.SelectAsArray(sourceText.GetTextChange);
     }
 
     public ValueTask<ImmutableArray<TextChange>> GetRangeFormattingEditsAsync(
-     RazorPinnedSolutionInfoWrapper solutionInfo,
-     DocumentId documentId,
-     ImmutableArray<TextChange> htmlChanges,
-     LinePositionSpan linePositionSpan,
-     RazorFormattingOptions options,
-     CancellationToken cancellationToken)
-        => RunServiceAsync(
-            solutionInfo,
-            documentId,
-            context => GetRangeFormattingEditsAsync(context, htmlChanges, linePositionSpan, options, cancellationToken),
-            cancellationToken);
+         RazorPinnedSolutionInfoWrapper solutionInfo,
+         DocumentId documentId,
+         ImmutableArray<TextChange> htmlChanges,
+         LinePositionSpan linePositionSpan,
+         RazorFormattingOptions options,
+         CancellationToken cancellationToken)
+            => RunServiceAsync(
+                solutionInfo,
+                documentId,
+                context => GetRangeFormattingEditsAsync(context, htmlChanges, linePositionSpan, options, cancellationToken),
+                cancellationToken);
 
     private async ValueTask<ImmutableArray<TextChange>> GetRangeFormattingEditsAsync(
         RemoteDocumentContext context,
@@ -86,7 +87,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
 
         if (edits is null)
         {
-            return ImmutableArray<TextChange>.Empty;
+            return [];
         }
 
         return edits.SelectAsArray(sourceText.GetTextChange);
@@ -132,8 +133,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
         }
         else
         {
-            Assumed.Unreachable();
-            return [];
+            return Assumed.Unreachable<ImmutableArray<TextChange>>();
         }
 
         return result.SelectAsArray(sourceText.GetTextChange);
@@ -154,7 +154,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
     private async ValueTask<Response> IsValidOnTypeFormattingTriggerAsync(RemoteDocumentContext context, LinePosition linePosition, string triggerCharacter, CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetAbsoluteIndex(linePosition, out var hostDocumentIndex))
         {
             return Response.Invalid;
@@ -169,6 +169,9 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
         {
             return Response.ValidHtml;
         }
+
+        // TryGetOnTypeFormattingTriggerKind only returns true for C# or Html
+        Debug.Assert(triggerCharacterKind is RazorLanguageKind.CSharp);
 
         return Response.ValidCSharp;
     }

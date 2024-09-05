@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [ExportCohostStatelessLspService(typeof(CohostRangeFormattingEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal class CohostRangeFormattingEndpoint(
+internal sealed class CohostRangeFormattingEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
@@ -91,11 +91,11 @@ internal class CohostRangeFormattingEndpoint(
             (service, solutionInfo, cancellationToken) => service.GetRangeFormattingEditsAsync(solutionInfo, razorDocument.Id, htmlChanges, request.Range.ToLinePositionSpan(), options, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (remoteResult is [_, ..] allChanges)
+        if (remoteResult.Length > 0)
         {
-            _logger.LogDebug($"Got a total of {allChanges.Length} ranges back from OOP");
+            _logger.LogDebug($"Got a total of {remoteResult.Length} ranges back from OOP");
 
-            return allChanges.Select(sourceText.GetTextEdit).ToArray();
+            return remoteResult.Select(sourceText.GetTextEdit).ToArray();
         }
 
         return null;
