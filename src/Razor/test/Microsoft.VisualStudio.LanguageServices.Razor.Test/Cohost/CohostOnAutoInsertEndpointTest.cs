@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodBeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.Settings;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,11 +20,10 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Theory]
-    [InlineData("PageTitle", "$0</PageTitle>", ">")]
-    [InlineData("div", "$0</div>", ">")]
-    [InlineData("text", "$0</text>", ">")]
-
-    public async Task Component_AutoInsertEndTag(string startTag, string endTag, string triggerCharacter)
+    [InlineData("PageTitle")]
+    [InlineData("div")]
+    [InlineData("text")]
+    public async Task Component_AutoInsertEndTag(string startTag)
     {
         var input = $"""
             This is a Razor document.
@@ -34,48 +32,63 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
 
             The end.
             """;
-
-        await VerifyOnAutoInsertAsync(input, endTag, triggerCharacter);
-    }
-
-    [Theory]
-    [InlineData("div style=", "\"\"", "=")]
-    public async Task Component_AutoInsertAttributeQuotes(string startTag, string insertedText, string triggerCharacter)
-    {
-        var input = $"""
+        var output = $"""
             This is a Razor document.
 
-            <{startTag}$$
+            <{startTag}>$0</{startTag}>
 
             The end.
             """;
 
-        await VerifyOnAutoInsertAsync(input, insertedText, triggerCharacter, createDelegatedResponse: true);
+        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: ">");
     }
 
-    [Theory]
-    [InlineData("""
+    [Fact]
+    public async Task Component_AutoInsertAttributeQuotes()
+    {
+        var input = $"""
+            This is a Razor document.
+
+            <PageTitle style=$$></PageTitle>
+
+            The end.
+            """;
+        var output = $"""
+            This is a Razor document.
+
+            <PageTitle style="$0"></PageTitle>
+
+            The end.
+            """;
+        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "=", delegatedResponseText: "\"$0\"");
+    }
+
+    [Fact]
+    public async Task Component_AutoInsertCSharp_OnForwardSlash()
+    {
+        var input = """
         @code {
             ///$$
             void TestMethod() {}
         }
-        """,
-        """
-         <summary>
+        """;
+
+        var output = """
+        @code {
+            /// <summary>
             /// $0
             /// </summary>
-        """,
-        "/")]
-    public async Task Component_AutoInsertCSharp(string input, string insertedText, string triggerCharacter)
-    {
-        await VerifyOnAutoInsertAsync(input, insertedText, triggerCharacter);
+            void TestMethod() {}
+        }
+        """;
+        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "/");
     }
 
     private async Task VerifyOnAutoInsertAsync(
         string input,
-        string insertedText,
+        string output,
         string triggerCharacter,
-        bool createDelegatedResponse = false)
+        string? delegatedResponseText = null)
     {
         TestFileMarkupParser.GetPosition(input, out input, out var cursorPosition);
         var document = CreateProjectAndRazorDocument(input);
@@ -89,13 +102,13 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             new RemoteCloseTextTagOnAutoInsertProvider()];
 
         VSInternalDocumentOnAutoInsertResponseItem? response = null;
-        if (createDelegatedResponse)
+        if (delegatedResponseText is not null)
         {
-            var start = sourceText.GetPosition(cursorPosition + triggerCharacter.Length);
+            var start = sourceText.GetPosition(cursorPosition);
             var end = start;
             response = new VSInternalDocumentOnAutoInsertResponseItem()
             {
-                TextEdit = new TextEdit() { NewText = insertedText, Range = new() { Start = start, End = end } },
+                TextEdit = new TextEdit() { NewText = delegatedResponseText, Range = new() { Start = start, End = end } },
                 TextEditFormat = InsertTextFormat.Snippet
             };
         }
@@ -131,11 +144,9 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
 
         Assert.NotNull(result);
 
-        if (createDelegatedResponse)
-        {
-            Assert.Equal(response, result);
-        }
+        var change = sourceText.GetTextChange(result.TextEdit);
+        sourceText = sourceText.WithChanges(change);
 
-        Assert.Equal(insertedText, result.TextEdit.NewText);
+        AssertEx.EqualOrDiff(output, sourceText.ToString());
     }
 }
