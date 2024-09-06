@@ -33,6 +33,7 @@ internal static class RazorServices
             (typeof(IRemoteInlayHintService), null),
             (typeof(IRemoteDocumentSymbolService), null),
             (typeof(IRemoteRenameService), null),
+            (typeof(IRemoteGoToImplementationService), null),
         ];
 
     private const string ComponentName = "Razor";
