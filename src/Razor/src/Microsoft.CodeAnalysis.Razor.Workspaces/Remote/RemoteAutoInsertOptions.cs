@@ -21,11 +21,11 @@ internal readonly record struct RemoteAutoInsertOptions
     {
     }
 
-    public static RemoteAutoInsertOptions From(ClientSettings clientSettings, FormattingOptions formattingOptions)
+    public static RemoteAutoInsertOptions From(ClientSettings clientSettings, RazorFormattingOptions formattingOptions)
         => new()
         {
             EnableAutoClosingTags = clientSettings.AdvancedSettings.AutoClosingTags,
             FormatOnType = clientSettings.AdvancedSettings.FormatOnType,
-            FormattingOptions = RazorFormattingOptions.From(formattingOptions, codeBlockBraceOnNextLine: false)
+            FormattingOptions = formattingOptions
         };
 }
