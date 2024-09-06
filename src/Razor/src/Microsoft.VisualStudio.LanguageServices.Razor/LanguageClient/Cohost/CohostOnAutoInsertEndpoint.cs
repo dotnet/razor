@@ -177,6 +177,6 @@ internal class CohostOnAutoInsertEndpoint(
             VSInternalDocumentOnAutoInsertParams request,
             TextDocument razorDocument,
             CancellationToken cancellationToken)
-            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+                => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }

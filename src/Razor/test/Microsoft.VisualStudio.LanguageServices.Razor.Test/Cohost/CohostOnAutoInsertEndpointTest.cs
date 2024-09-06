@@ -23,188 +23,180 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     [InlineData("PageTitle")]
     [InlineData("div")]
     [InlineData("text")]
-    public async Task Component_AutoInsertEndTag(string startTag)
+    public async Task EndTag(string startTag)
     {
-        var input = $"""
-            This is a Razor document.
+        await VerifyOnAutoInsertAsync(
+            input: $"""
+                This is a Razor document.
 
-            <{startTag}>$$
+                <{startTag}>$$
 
-            The end.
-            """;
-        var output = $"""
-            This is a Razor document.
+                The end.
+                """,
+            output: $"""
+                This is a Razor document.
 
-            <{startTag}>$0</{startTag}>
+                <{startTag}>$0</{startTag}>
 
-            The end.
-            """;
-
-        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: ">");
+                The end.
+                """,
+            triggerCharacter: ">");
     }
 
     [Theory]
     [InlineData("PageTitle")]
     [InlineData("div")]
     [InlineData("text")]
-    public async Task Component_DoNotAutoInsertEndTag_DisabledAutoClosingTags(string startTag)
+    public async Task DoNotAutoInsertEndTag_DisabledAutoClosingTags(string startTag)
     {
-        var input = $"""
-            This is a Razor document.
+        await VerifyOnAutoInsertAsync(
+            input: $"""
+                This is a Razor document.
 
-            <{startTag}>$$
+                <{startTag}>$$
 
-            The end.
-            """;
-        var output = $"""
-            This is a Razor document.
-
-            <{startTag}>
-
-            The end.
-            """;
-
-        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: ">", autoClosingTags: false, expectResult: false);
+                The end.
+                """,
+            output: null,
+            triggerCharacter: ">",
+            autoClosingTags: false);
     }
 
     [Fact]
-    public async Task Component_AutoInsertAttributeQuotes()
+    public async Task AttributeQuotes()
     {
-        var input = $"""
-            This is a Razor document.
+        await VerifyOnAutoInsertAsync(
+            input: $"""
+                This is a Razor document.
 
-            <PageTitle style=$$></PageTitle>
+                <PageTitle style=$$></PageTitle>
 
-            The end.
-            """;
-        var output = $"""
-            This is a Razor document.
+                The end.
+                """,
+            output: $"""
+                This is a Razor document.
 
-            <PageTitle style="$0"></PageTitle>
+                <PageTitle style="$0"></PageTitle>
 
-            The end.
-            """;
-        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "=", delegatedResponseText: "\"$0\"");
+                The end.
+                """,
+            triggerCharacter: "=",
+            delegatedResponseText: "\"$0\"");
     }
 
     [Fact]
-    public async Task Component_AutoInsertCSharp_OnForwardSlash()
+    public async Task CSharp_OnForwardSlash()
     {
-        var input = """
-        @code {
-            ///$$
-            void TestMethod() {}
-        }
-        """;
-
-        var output = """
-        @code {
-            /// <summary>
-            /// $0
-            /// </summary>
-            void TestMethod() {}
-        }
-        """;
-        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "/");
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    ///$$
+                    void TestMethod() {}
+                }
+                """,
+            output: """
+                @code {
+                    /// <summary>
+                    /// $0
+                    /// </summary>
+                    void TestMethod() {}
+                }
+                """,
+            triggerCharacter: "/");
     }
 
     [Fact]
-    public async Task Component_DoNotAutoInsertCSharp_OnForwardSlashWithFormatOnTypeDisabled()
+    public async Task DoNotAutoInsertCSharp_OnForwardSlashWithFormatOnTypeDisabled()
     {
-        var input = """
-        @code {
-            ///$$
-            void TestMethod() {}
-        }
-        """;
-
-        var output = """
-        @code {
-            ///
-            void TestMethod() {}
-        }
-        """;
-        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "/", formatOnType: false, expectResult: false);
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    ///$$
+                    void TestMethod() {}
+                }
+                """,
+            output: null,
+            triggerCharacter: "/",
+            formatOnType: false);
     }
 
     [Fact]
-    public async Task Component_AutoInsertCSharp_OnEnter()
+    public async Task CSharp_OnEnter()
     {
-        var input = """
-        @code {
-            void TestMethod() {
-        $$}
-        }
-        """;
-
-        var output = """
-        @code {
-            void TestMethod()
-            {
-                $0
-            }
-        }
-        """;
-        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "\n");
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    void TestMethod() {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    void TestMethod()
+                    {
+                        $0
+                    }
+                }
+                """,
+            triggerCharacter: "\n");
     }
 
     [Fact]
-    public async Task Component_AutoInsertCSharp_OnEnter_TwoSpaceIndent()
+    public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
-        var input = """
-        @code {
-            void TestMethod() {
-        $$}
-        }
-        """;
-
-        var output = """
-        @code {
-          void TestMethod()
-          {
-            $0
-          }
-        }
-        """;
-        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "\n", tabSize: 2);
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    void TestMethod() {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                  void TestMethod()
+                  {
+                    $0
+                  }
+                }
+                """,
+            triggerCharacter: "\n",
+            tabSize: 2);
     }
 
     [Fact]
-    public async Task Component_AutoInsertCSharp_OnEnter_UseTabs()
+    public async Task CSharp_OnEnter_UseTabs()
     {
-        var input = """
-        @code {
-            void TestMethod() {
-        $$}
-        }
-        """;
-
-        var tab = '\t';
-        var output = $$"""
-        @code {
-        {{tab}}void TestMethod()
-        {{tab}}{
-        {{tab}}{{tab}}$0
-        {{tab}}}
-        }
-        """;
-        await VerifyOnAutoInsertAsync(input, output, triggerCharacter: "\n", insertSpaces: false);
+        const char tab = '\t';
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    void TestMethod() {
+                $$}
+                }
+                """,
+            output: $$"""
+                @code {
+                {{tab}}void TestMethod()
+                {{tab}}{
+                {{tab}}{{tab}}$0
+                {{tab}}}
+                }
+                """,
+            triggerCharacter: "\n",
+            insertSpaces: false);
     }
 
     private async Task VerifyOnAutoInsertAsync(
-        string input,
-        string output,
+        TestCode input,
+        string? output,
         string triggerCharacter,
         string? delegatedResponseText = null,
         bool insertSpaces = true,
         int tabSize = 4,
         bool formatOnType = true,
-        bool autoClosingTags = true,
-        bool expectResult = true)
-    {
-        var testCode = new TestCode(input);
-     
-        var document = CreateProjectAndRazorDocument(testCode.Text);
+        bool autoClosingTags = true)
+    {     
+        var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);
@@ -217,7 +209,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         VSInternalDocumentOnAutoInsertResponseItem? response = null;
         if (delegatedResponseText is not null)
         {
-            var start = sourceText.GetPosition(testCode.Position);
+            var start = sourceText.GetPosition(input.Position);
             var end = start;
             response = new VSInternalDocumentOnAutoInsertResponseItem()
             {
@@ -248,20 +240,21 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             {
                 Uri = document.CreateUri()
             },
-            Position = sourceText.GetPosition(testCode.Position),
+            Position = sourceText.GetPosition(input.Position),
             Character = triggerCharacter,
             Options = formattingOptions
         };
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
-        if (expectResult)
+        if (output is not null)
         {
             Assert.NotNull(result);
         }
         else
         {
             Assert.Null(result);
+            return;
         }
 
         if (result is not null)
