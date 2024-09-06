@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -55,7 +57,9 @@ internal class DocumentFormattingEndpoint(
         var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
 
         var htmlEdits = await _htmlFormatter.GetDocumentFormattingEditsAsync(documentContext.Snapshot, documentContext.Uri, request.Options, cancellationToken).ConfigureAwait(false);
-        var edits = await _razorFormattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, range: null, options, cancellationToken).ConfigureAwait(false);
-        return edits;
+        var htmlChanges = htmlEdits.SelectAsArray(codeDocument.Source.Text.GetTextChange);
+        var changes = await _razorFormattingService.GetDocumentFormattingChangesAsync(documentContext, htmlChanges, span: null, options, cancellationToken).ConfigureAwait(false);
+
+        return [.. changes.Select(codeDocument.Source.Text.GetTextEdit)];
     }
 }

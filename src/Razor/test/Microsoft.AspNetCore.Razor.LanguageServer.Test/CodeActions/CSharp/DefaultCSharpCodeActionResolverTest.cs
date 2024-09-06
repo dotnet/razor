@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -40,6 +42,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
     };
 
     private static readonly TextEdit s_defaultFormattedEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "Remapped & Formatted Edit");
+    private static readonly TextChange s_defaultFormattedChange = new TextChange(new TextSpan(0, 0), s_defaultFormattedEdit.NewText);
 
     private static readonly CodeAction s_defaultUnresolvedCodeAction = new CodeAction()
     {
@@ -190,9 +193,9 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         var razorFormattingService = Mock.Of<IRazorFormattingService>(
                         rfs => rfs.GetCSharpCodeActionEditAsync(
                             It.Is<DocumentContext>(c => c.Uri == documentUri),
-                            It.IsAny<TextEdit[]>(),
+                            It.IsAny<ImmutableArray<TextChange>>(),
                             It.IsAny<RazorFormattingOptions>(),
-                            It.IsAny<CancellationToken>()) == Task.FromResult(s_defaultFormattedEdit), MockBehavior.Strict);
+                            It.IsAny<CancellationToken>()) == Task.FromResult<TextChange?>(s_defaultFormattedChange), MockBehavior.Strict);
         return razorFormattingService;
     }
 

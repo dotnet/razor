@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -124,11 +125,14 @@ internal class DelegatedCompletionItemResolver(
                 var textChange = csharpSourceText.GetTextChange(textEdit);
                 var formattedTextChange = await _formattingService.GetCSharpSnippetFormattingEditAsync(
                     documentContext,
-                    [textEdit],
+                    [textChange],
                     options,
                     cancellationToken).ConfigureAwait(false);
 
-                resolvedCompletionItem.TextEdit = formattedTextEdit;
+                if (formattedTextChange is { } change)
+                {
+                    resolvedCompletionItem.TextEdit = sourceText.GetTextEdit(change);
+                }
             }
             else
             {
@@ -143,11 +147,11 @@ internal class DelegatedCompletionItemResolver(
             var additionalChanges = resolvedCompletionItem.AdditionalTextEdits.SelectAsArray(csharpSourceText.GetTextChange);
             var formattedTextChange = await _formattingService.GetCSharpSnippetFormattingEditAsync(
                 documentContext,
-                resolvedCompletionItem.AdditionalTextEdits,
+                additionalChanges,
                 options,
                 cancellationToken).ConfigureAwait(false);
 
-            resolvedCompletionItem.AdditionalTextEdits = formattedTextEdit is null ? null : [formattedTextEdit];
+            resolvedCompletionItem.AdditionalTextEdits = formattedTextChange is { } change ? [sourceText.GetTextEdit(change)] : null;
         }
 
         return resolvedCompletionItem;

@@ -154,32 +154,31 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
 
         var razorFormattingOptions = options.FormattingOptions;
 
-        var vsLspTextEdit = VsLspFactory.CreateTextEdit(
-            autoInsertResponseItem.TextEdit.Range.ToLinePositionSpan(),
-            autoInsertResponseItem.TextEdit.NewText);
-        var mappedEdit = autoInsertResponseItem.TextEditFormat == RoslynInsertTextFormat.Snippet
+        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var csharpTextChange = new TextChange(sourceText.GetTextSpan(autoInsertResponseItem.TextEdit.Range), autoInsertResponseItem.TextEdit.NewText);
+        var mappedChange = autoInsertResponseItem.TextEditFormat == RoslynInsertTextFormat.Snippet
             ? await _razorFormattingService.GetCSharpSnippetFormattingEditAsync(
                 remoteDocumentContext,
-                [vsLspTextEdit],
+                [csharpTextChange],
                 razorFormattingOptions,
                 cancellationToken)
             .ConfigureAwait(false)
             : await _razorFormattingService.GetSingleCSharpEditAsync(
                 remoteDocumentContext,
-                vsLspTextEdit,
+                csharpTextChange,
                 razorFormattingOptions,
                 cancellationToken)
             .ConfigureAwait(false);
 
-        if (mappedEdit is null)
+        if (mappedChange is not { NewText: not null } change)
         {
             return Response.NoFurtherHandling;
         }
 
         return Response.Results(
             new RemoteAutoInsertTextEdit(
-                mappedEdit.Range.ToLinePositionSpan(),
-                mappedEdit.NewText,
+                sourceText.GetLinePositionSpan(change.Span),
+                change.NewText,
                 autoInsertResponseItem.TextEditFormat));
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,6 +81,9 @@ internal sealed class HtmlFormatter(
         if (!edits.Any(static e => e.NewText.Contains("~")))
             return edits;
 
-        return htmlSourceText.MinimizeTextEdits(edits);
+        var changes = edits.SelectAsArray(htmlSourceText.GetTextChange);
+
+        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
+        return [.. fixedChanges.Select(htmlSourceText.GetTextEdit)];
     }
 }
