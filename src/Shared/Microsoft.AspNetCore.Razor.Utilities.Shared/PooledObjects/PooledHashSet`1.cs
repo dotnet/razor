@@ -16,7 +16,9 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 internal ref struct PooledHashSet<T>
 {
     private readonly ObjectPool<HashSet<T>> _pool;
+#pragma warning disable IDE0052
     private readonly int? _capacity;
+#pragma warning restore IDE0052
     private HashSet<T>? _set;
 
     public PooledHashSet()
