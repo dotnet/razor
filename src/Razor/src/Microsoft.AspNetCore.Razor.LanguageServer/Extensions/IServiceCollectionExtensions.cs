@@ -165,7 +165,6 @@ internal static class IServiceCollectionExtensions
             services.AddHandler<WorkspaceSpellCheckEndpoint>();
         }
 
-
         services.AddHandlerWithCapabilities<DocumentDidChangeEndpoint>();
         services.AddHandler<DocumentDidCloseEndpoint>();
         services.AddHandler<DocumentDidOpenEndpoint>();

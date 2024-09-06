@@ -39,12 +39,15 @@ internal sealed class LspCSharpSpellCheckRangeProvider(
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 
-        if (delegatedResponse is null)
+        if (delegatedResponse is not [_, ..] response)
         {
             return [];
         }
 
-        using var ranges = new PooledArrayBuilder<SpellCheckRange>();
+        // Most common case is we'll get one report back from Roslyn, so we'll use that as the initial capacity.
+        var initialCapacity = response[0].Ranges?.Length ?? 4;
+
+        using var ranges = new PooledArrayBuilder<SpellCheckRange>(initialCapacity);
         foreach (var report in delegatedResponse)
         {
             if (report.Ranges is not { } csharpRanges)
@@ -69,6 +72,6 @@ internal sealed class LspCSharpSpellCheckRangeProvider(
             }
         }
 
-        return ranges.ToImmutable();
+        return ranges.DrainToImmutable();
     }
 }
