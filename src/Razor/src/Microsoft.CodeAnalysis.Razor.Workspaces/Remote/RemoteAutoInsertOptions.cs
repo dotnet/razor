@@ -15,11 +15,7 @@ internal readonly record struct RemoteAutoInsertOptions
     public bool FormatOnType { get; init; } = true;
 
     [DataMember(Order = 2)]
-    public RazorFormattingOptions FormattingOptions { get; init; } = new RazorFormattingOptions()
-    {
-        InsertSpaces = true,
-        TabSize = 4
-    };
+    public RazorFormattingOptions FormattingOptions { get; init; } = new ();
 
     public RemoteAutoInsertOptions()
     {
