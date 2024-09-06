@@ -44,7 +44,6 @@ internal class CohostOnAutoInsertEndpoint(
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
-    private readonly IEnumerable<IOnAutoInsertTriggerCharacterProvider> _onAutoInsertTriggerCharacterProviders = onAutoInsertTriggerCharacterProviders;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostOnAutoInsertEndpoint>();
@@ -55,12 +54,12 @@ internal class CohostOnAutoInsertEndpoint(
     {
         var providerTriggerCharacters = onAutoInsertTriggerCharacterProviders.Select((provider) => provider.TriggerCharacter).Distinct();
 
-        ImmutableArray<string> _triggerCharacters = [
+        ImmutableArray<string> triggerCharacters = [
             .. providerTriggerCharacters,
             .. AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters,
             .. AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters ];
 
-        return _triggerCharacters;
+        return triggerCharacters;
     }
 
     protected override bool MutatesSolutionState => false;
