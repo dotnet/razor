@@ -19,7 +19,6 @@ using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageS
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using RoslynLocation = Roslyn.LanguageServer.Protocol.Location;
 using RoslynPosition = Roslyn.LanguageServer.Protocol.Position;
-using VsPosition = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
