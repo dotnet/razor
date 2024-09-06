@@ -77,7 +77,7 @@ internal class RazorExtensionsDiagnosticFactory
 
     internal static readonly RazorDiagnosticDescriptor PageDirective_CannotBeImported =
         new($"{DiagnosticPrefix}3905",
-            Resources.PageDirectiveCannotBeImported,
+            RazorExtensionsResources.PageDirectiveCannotBeImported,
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreatePageDirective_CannotBeImported(SourceSpan source)
@@ -89,7 +89,7 @@ internal class RazorExtensionsDiagnosticFactory
 
     internal static readonly RazorDiagnosticDescriptor PageDirective_MustExistAtTheTopOfFile =
         new($"{DiagnosticPrefix}3906",
-            Resources.PageDirectiveMustExistAtTheTopOfFile,
+            RazorExtensionsResources.PageDirectiveMustExistAtTheTopOfFile,
             RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreatePageDirective_MustExistAtTheTopOfFile(SourceSpan source)
