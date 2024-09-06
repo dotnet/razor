@@ -93,10 +93,7 @@ internal class CohostOnAutoInsertEndpoint(
         _logger.LogDebug($"Resolving auto-insertion for {razorDocument.FilePath}");
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
-        var enableAutoClosingTags = clientSettings.AdvancedSettings.AutoClosingTags;
-        var formatOnType = clientSettings.AdvancedSettings.FormatOnType;
-        var indentWithTabs = !request.Options.InsertSpaces;
-        var indentSize = request.Options.TabSize;
+        var autoInsertOptions = RemoteAutoInsertOptions.From(clientSettings, request.Options);
 
         _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(
@@ -107,10 +104,7 @@ internal class CohostOnAutoInsertEndpoint(
                         razorDocument.Id,
                         request.Position.ToLinePosition(),
                         request.Character,
-                        enableAutoClosingTags,
-                        formatOnType,
-                        indentWithTabs,
-                        indentSize,
+                        autoInsertOptions,
                         cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
