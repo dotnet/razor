@@ -3,11 +3,12 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteAutoInsertTextEdit?>;
+
+namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteAutoInsertService
 {
@@ -16,9 +17,6 @@ internal interface IRemoteAutoInsertService
         DocumentId documentId,
         LinePosition position,
         string character,
-        bool autoCloseTags,
-        bool formatOnType,
-        bool indentWithTabs,
-        int indentSize,
+        RemoteAutoInsertOptions options,
         CancellationToken cancellationToken);
 }
