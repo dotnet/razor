@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.LanguageServer.Protocol;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteAutoInsertTextEdit?>;
-using RoslynFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
 using RoslynInsertTextFormat = Roslyn.LanguageServer.Protocol.InsertTextFormat;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -139,17 +138,12 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
         }
 
         var generatedDocument = await remoteDocumentContext.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
-        var formattingOptions = new RoslynFormattingOptions()
-        {
-            InsertSpaces = options.InsertSpaces,
-            TabSize = options.TabSize
-        };
 
         var autoInsertResponseItem = await OnAutoInsert.GetOnAutoInsertResponseAsync(
             generatedDocument,
             mappedPosition,
             character,
-            formattingOptions,
+            options.FormattingOptions.ToRoslynFormattingOptions(),
             cancellationToken
         );
 
@@ -158,11 +152,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        var razorFormattingOptions = new RazorFormattingOptions()
-        {
-            InsertSpaces = options.InsertSpaces,
-            TabSize = options.TabSize
-        };
+        var razorFormattingOptions = options.FormattingOptions;
 
         var vsLspTextEdit = VsLspFactory.CreateTextEdit(
             autoInsertResponseItem.TextEdit.Range.ToLinePositionSpan(),

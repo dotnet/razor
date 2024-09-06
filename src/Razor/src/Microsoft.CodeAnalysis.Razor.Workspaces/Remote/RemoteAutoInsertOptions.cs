@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -14,10 +15,11 @@ internal readonly record struct RemoteAutoInsertOptions
     public bool FormatOnType { get; init; } = true;
 
     [DataMember(Order = 2)]
-    public bool InsertSpaces { get; init; } = true;
-
-    [DataMember(Order = 3)]
-    public int TabSize { get; init; } = 4;
+    public RazorFormattingOptions FormattingOptions { get; init; } = new RazorFormattingOptions()
+    {
+        InsertSpaces = true,
+        TabSize = 4
+    };
 
     public RemoteAutoInsertOptions()
     {
@@ -28,7 +30,6 @@ internal readonly record struct RemoteAutoInsertOptions
         {
             EnableAutoClosingTags = clientSettings.AdvancedSettings.AutoClosingTags,
             FormatOnType = clientSettings.AdvancedSettings.FormatOnType,
-            InsertSpaces = formattingOptions.InsertSpaces,
-            TabSize = formattingOptions.TabSize
+            FormattingOptions = RazorFormattingOptions.From(formattingOptions, codeBlockBraceOnNextLine: false)
         };
 }
