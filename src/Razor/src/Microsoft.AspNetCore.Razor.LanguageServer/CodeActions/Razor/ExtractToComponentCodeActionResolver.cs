@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -34,17 +36,22 @@ internal sealed class ExtractToComponentCodeActionResolver(
     IDocumentContextFactory documentContextFactory,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
-    IDocumentVersionCache documentVersionCache) : IRazorCodeActionResolver
+    IDocumentVersionCache documentVersionCache,
+    ITelemetryReporter telemetryReporter) : IRazorCodeActionResolver
 {
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IClientConnection _clientConnection = clientConnection;
     private readonly IDocumentVersionCache _documentVersionCache = documentVersionCache;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToComponentAction;
 
     public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
     {
+        var telemetryDidSucceed = false;
+        using var _ = _telemetryReporter.BeginBlock("extractToComponentResolver", Severity.Normal, new Property("didSucceed", telemetryDidSucceed));
+
         var actionParams = data.Deserialize<ExtractToComponentCodeActionParams>();
         if (actionParams is null)
         {
@@ -57,32 +64,10 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxTree = codeDocument.GetSyntaxTree();
+        var startLinePosition = codeDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractStart);
+        var endLinePosition = codeDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractEnd);
 
-        var selectionAnalysis = TryAnalyzeSelection(codeDocument, actionParams);
-        if (!selectionAnalysis.Success)
-        {
-            return null;
-        }
-
-        // For the purposes of determining the indentation of the extracted code, get the whitespace before the start of the selection.
-        var whitespaceReferenceOwner = codeDocument.GetSyntaxTree().Root.FindInnermostNode(selectionAnalysis.ExtractStart, includeWhitespace: true).AssumeNotNull();
-        var whitespaceReferenceNode = whitespaceReferenceOwner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupElementSyntax or MarkupTagHelperElementSyntax).AssumeNotNull();
-        var whitespace = string.Empty;
-        if (whitespaceReferenceNode.TryGetPreviousSibling(out var startPreviousSibling) && startPreviousSibling.ContainsOnlyWhitespace())
-        {
-            // Get the whitespace substring so we know how much to dedent the extracted code. Remove any carriage return and newline escape characters.
-            whitespace = startPreviousSibling.ToFullString();
-            whitespace = whitespace.Replace("\r", string.Empty).Replace("\n", string.Empty);
-        }
-
-        var start = codeDocument.Source.Text.Lines.GetLinePosition(selectionAnalysis.ExtractStart);
-        var end = codeDocument.Source.Text.Lines.GetLinePosition(selectionAnalysis.ExtractEnd);
-        var removeRange = new Range
-        {
-            Start = new Position(start.Line, start.Character),
-            End = new Position(end.Line, end.Character)
-        };
+        var removeRange = VsLspFactory.CreateRange(startLinePosition, endLinePosition);
 
         var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
@@ -103,12 +88,10 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
         var newComponentResult = await GenerateNewComponentAsync(
-            selectionAnalysis,
+            actionParams,
             codeDocument,
-            actionParams.Uri,
             documentContext,
             removeRange,
-            whitespace,
             cancellationToken).ConfigureAwait(false);
 
         if (newComponentResult is null)
@@ -151,426 +134,11 @@ internal sealed class ExtractToComponentCodeActionResolver(
             }
         };
 
+        telemetryDidSucceed = true;
         return new WorkspaceEdit
         {
             DocumentChanges = documentChanges,
         };
-    }
-
-    internal sealed record SelectionAnalysisResult
-    {
-        public required bool Success;
-        public int ExtractStart;
-        public int ExtractEnd;
-        public bool HasAtCodeBlock;
-        public bool HasEventHandlerOrExpression;
-        public HashSet<string>? UsingDirectives;
-    }
-
-    private static SelectionAnalysisResult TryAnalyzeSelection(RazorCodeDocument codeDocument, ExtractToComponentCodeActionParams actionParams)
-    {
-        var syntaxTree = codeDocument.GetSyntaxTree();
-        var root = syntaxTree.Root;
-        var sourceText = codeDocument.Source.Text;
-
-        var (startElementNode, endElementNode) = GetStartAndEndElements(sourceText, syntaxTree, actionParams);
-        if (startElementNode is null)
-        {
-            return new SelectionAnalysisResult { Success = false };
-        }
-
-        endElementNode ??= startElementNode;
-        
-        var success = TryProcessSelection(startElementNode,
-            endElementNode,
-            codeDocument,
-            actionParams,
-            out var extractStart,
-            out var extractEnd,
-            out var hasAtCodeBlock);
-
-        if (!success)
-        {
-            return new SelectionAnalysisResult { Success = false };
-        }
-
-        var dependencyScanRoot = FindNearestCommonAncestor(startElementNode, endElementNode) ?? startElementNode;
-        var usingDirectives = GetUsingDirectivesInRange(root, dependencyScanRoot, extractStart, extractEnd);
-        var hasOtherIdentifiers = CheckHasOtherIdentifiers(dependencyScanRoot, extractStart, extractEnd);
-
-        return new SelectionAnalysisResult
-        {
-            Success = success,
-            ExtractStart = extractStart,
-            ExtractEnd = extractEnd,
-            HasAtCodeBlock = hasAtCodeBlock,
-            HasEventHandlerOrExpression = hasOtherIdentifiers,
-            UsingDirectives = usingDirectives,
-        };
-    }
-
-    private static (MarkupSyntaxNode? Start, MarkupSyntaxNode? End) GetStartAndEndElements(SourceText sourceText, RazorSyntaxTree syntaxTree, ExtractToComponentCodeActionParams actionParams)
-    {
-        var owner = syntaxTree.Root.FindInnermostNode(actionParams.AbsoluteIndex, includeWhitespace: true);
-        if (owner is null)
-        {
-            return (null, null);
-        }
-
-        var startElementNode = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupTagHelperElementSyntax or MarkupElementSyntax);
-        if (startElementNode is null)
-        {
-            return (null, null);
-        }
-
-        var endElementNode = GetEndElementNode(sourceText, syntaxTree, actionParams);
-
-        return (startElementNode, endElementNode);
-    }
-
-    private static MarkupSyntaxNode? GetEndElementNode(SourceText sourceText, RazorSyntaxTree syntaxTree, ExtractToComponentCodeActionParams actionParams)
-    {
-        var selectionStart = actionParams.SelectStart;
-        var selectionEnd = actionParams.SelectEnd;
-
-        if (selectionStart == selectionEnd)
-        {
-            return null;
-        }
-
-        var endAbsoluteIndex = sourceText.GetRequiredAbsoluteIndex(selectionEnd);
-        var endOwner = syntaxTree.Root.FindInnermostNode(endAbsoluteIndex, true);
-        if (endOwner is null)
-        {
-            return null;
-        }
-
-        // Correct selection to include the current node if the selection ends at the "edge" (i.e. immediately after the ">") of a tag.
-        if (endOwner is MarkupTextLiteralSyntax && endOwner.ContainsOnlyWhitespace() && endOwner.TryGetPreviousSibling(out var previousSibling))
-        {
-            endOwner = previousSibling;
-        }
-
-        return endOwner.FirstAncestorOrSelf<MarkupSyntaxNode>(node => node is MarkupTagHelperElementSyntax or MarkupElementSyntax);
-    }
-
-    /// <summary>
-    /// Processes a selection, providing the start and end of the extraction range if successful.
-    /// </summary>
-    /// <param name="startElementNode">The starting element of the selection.</param>
-    /// <param name="endElementNode">The ending element of the selection</param>
-    /// <param name="codeDocument">The code document containing the selection.</param>
-    /// <param name="actionParams">The parameters for the extraction action</param>
-    /// <param name="extractStart">The start of the extraction range.</param>
-    /// <param name="extractEnd">The end of the extraction range</param>
-    /// <param name="hasCodeBlock">Whether the selection has a @code block</param>
-    /// <returns> <c>true</c> if the selection was successfully processed; otherwise, <c>false</c>.</returns>
-    private static bool TryProcessSelection(
-        MarkupSyntaxNode startElementNode,
-        MarkupSyntaxNode endElementNode,
-        RazorCodeDocument codeDocument,
-        ExtractToComponentCodeActionParams actionParams,
-        out int extractStart,
-        out int extractEnd,
-        out bool hasCodeBlock)
-    {
-        extractStart = startElementNode.Span.Start;
-        extractEnd = endElementNode.Span.End;
-        hasCodeBlock = false;
-
-        // Check if it's a multi-point selection
-        if (actionParams.SelectStart == actionParams.SelectEnd)
-        {
-            return true;
-        }
-
-        // If the start node contains the end node (or vice versa), we can extract the entire range
-        if (endElementNode.Ancestors().Contains(startElementNode))
-        {
-            extractEnd = startElementNode.Span.End;
-            return true;
-        }
-
-        if (startElementNode.Ancestors().Contains(endElementNode))
-        {
-            extractStart = endElementNode.Span.Start;
-            return true;
-        }
-
-        // If the start element is not an ancestor of the end element (or vice versa), we need to find a common parent
-        // This conditional handles cases where the user's selection spans across different levels of the DOM.
-        // For example:
-        //   <div>
-        //     {|result:<span>
-        //      {|selection:<p>Some text</p>
-        //     </span>
-        //     <span>
-        //       <p>More text</p>
-        //     </span>
-        //     <span>|}|}
-        //     </span>
-        //   </div>
-        // In this case, we need to find the smallest set of complete elements that covers the entire selection.
-        if (startElementNode != endElementNode)
-        {
-            // Find the closest containing sibling pair that encompasses both the start and end elements
-            var (selectStart, selectEnd) = FindContainingSiblingPair(startElementNode, endElementNode);
-            if (selectStart is not null && selectEnd is not null)
-            {
-                extractStart = selectStart.Span.Start;
-                extractEnd = selectEnd.Span.End;
-                return true;
-            }
-
-            // Note: If we don't find a valid pair, we keep the original extraction range
-            return true;
-        }
-
-        var endLocation = codeDocument.Source.Text.GetRequiredAbsoluteIndex(actionParams.SelectEnd);
-
-        var endOwner = codeDocument.GetSyntaxTree().Root.FindInnermostNode(endLocation, true);
-        var endCodeBlock = endOwner?.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
-        if (endOwner is not null && endOwner.TryGetPreviousSibling(out var previousSibling))
-        {
-            endCodeBlock = previousSibling.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
-        }
-
-        if (endCodeBlock is not null)
-        {
-            hasCodeBlock = true;
-            var (withCodeBlockStart, withCodeBlockEnd) = FindContainingSiblingPair(startElementNode, endCodeBlock);
-            extractStart = withCodeBlockStart?.Span.Start ?? extractStart;
-            extractEnd = withCodeBlockEnd?.Span.End ?? extractEnd;
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Finds the smallest set of sibling nodes that contain both the start and end nodes.
-    /// This is useful for determining the scope of a selection that spans across different levels of the syntax tree.
-    /// </summary>
-    /// <param name="startNode">The node where the selection starts.</param>
-    /// <param name="endNode">The node where the selection ends.</param>
-    /// <returns>A tuple containing the start and end nodes of the containing sibling pair.</returns>
-    private static (SyntaxNode? Start, SyntaxNode? End) FindContainingSiblingPair(SyntaxNode startNode, SyntaxNode endNode)
-    {
-        // Find the lowest common ancestor of both nodes
-        var nearestCommonAncestor = FindNearestCommonAncestor(startNode, endNode);
-        if (nearestCommonAncestor is null)
-        {
-            return (null, null);
-        }
-
-        SyntaxNode? startContainingNode = null;
-        SyntaxNode? endContainingNode = null;
-
-        // Pre-calculate the spans for comparison
-        var startSpan = startNode.Span;
-        var endSpan = endNode.Span;
-
-        var endIsCodeBlock = endNode is CSharpCodeBlockSyntax;
-
-        foreach (var child in nearestCommonAncestor.ChildNodes())
-        {
-            if (!IsValidNode(child, endIsCodeBlock))
-            {
-                continue;
-            }
-
-            var childSpan = child.Span;
-            if (startContainingNode is null && childSpan.Contains(startSpan))
-            {
-                startContainingNode = child;
-            }
-
-            // Check if this child contains the end node
-            if (childSpan.Contains(endSpan))
-            {
-                endContainingNode = child;
-            }
-
-            // If we've found both containing nodes, we can stop searching
-            if (startContainingNode is not null && endContainingNode is not null)
-            {
-                break;
-            }
-        }
-
-        return (startContainingNode, endContainingNode);
-    }
-
-    private static SyntaxNode? FindNearestCommonAncestor(SyntaxNode node1, SyntaxNode node2)
-    {
-        for (var current = node1; current is not null; current = current.Parent)
-        {
-            if (IsValidAncestorNode(current) && current.Span.Contains(node2.Span))
-            {
-                return current;
-            }
-        }
-
-        return null;
-    }
-
-    private static bool IsValidAncestorNode(SyntaxNode node) => node is MarkupElementSyntax or MarkupTagHelperElementSyntax or MarkupBlockSyntax;
-
-    private static bool IsValidNode(SyntaxNode node, bool isCodeBlock)
-    {
-        return node is MarkupElementSyntax or MarkupTagHelperElementSyntax || (isCodeBlock && node is CSharpCodeBlockSyntax);
-    }
-
-    private static HashSet<string> GetUsingDirectivesInRange(SyntaxNode generalRoot, SyntaxNode scanRoot, int extractStart, int extractEnd)
-    {
-        // The new component usings are going to be a subset of the usings in the source razor file.
-        using var pooledStringArray = new PooledArrayBuilder<string>();
-        foreach (var node in generalRoot.DescendantNodes())
-        {
-            if (node.IsUsingDirective(out var children))
-            {
-                var sb = new StringBuilder();
-                var identifierFound = false;
-                var lastIdentifierIndex = -1;
-
-                // First pass: find the last identifier
-                for (var i = 0; i < children.Count; i++)
-                {
-                    if (children[i] is Language.Syntax.SyntaxToken token && token.Kind == Language.SyntaxKind.Identifier)
-                    {
-                        lastIdentifierIndex = i;
-                    }
-                }
-
-                // Second pass: build the string
-                for (var i = 0; i <= lastIdentifierIndex; i++)
-                {
-                    var child = children[i];
-                    if (child is Language.Syntax.SyntaxToken tkn && tkn.Kind == Language.SyntaxKind.Identifier)
-                    {
-                        identifierFound = true;
-                    }
-                    if (identifierFound)
-                    {
-                        var token = child as Language.Syntax.SyntaxToken;
-                        sb.Append(token?.Content);
-                    }
-                }
-
-                pooledStringArray.Add(sb.ToString());
-            }
-        }
-
-        var usingsInSourceRazor = pooledStringArray.ToArray();
-
-        var usings = new HashSet<string>();
-        var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
-
-        // Only analyze nodes within the extract span
-        foreach (var node in scanRoot.DescendantNodes())
-        {
-            if (!extractSpan.Contains(node.Span))
-            {
-                continue;
-            }
-
-            if (node is MarkupTagHelperElementSyntax { TagHelperInfo: { } tagHelperInfo })
-            {
-                AddUsingFromTagHelperInfo(tagHelperInfo, usings, usingsInSourceRazor);
-            }
-        }
-
-        return usings;
-    }
-
-    private static bool CheckHasOtherIdentifiers(SyntaxNode root, int extractStart, int extractEnd)
-    {
-        var extractSpan = new TextSpan(extractStart, extractEnd - extractStart);
-
-        foreach (var node in root.DescendantNodes())
-        {
-            if (!extractSpan.Contains(node.Span))
-            {
-                continue;
-            }
-
-            // An assumption I'm making that might be wrong:
-            // CSharpImplicitExpressionBodySyntax, CSharpExplicitExpressionBodySyntax, and MarkupTagHelperDirectiveAttributeSyntax
-            // nodes contain only one child of type CSharpExpressionLiteralSyntax
-
-            // For MarkupTagHelperDirectiveAttributeSyntax, the syntax tree seems to show only one child of the contained CSharpExpressionLiteral as Text,
-            // so it might not be worth it to check for identifiers, but only if the above is true in all cases.
-
-            if (node is CSharpImplicitExpressionBodySyntax or CSharpExplicitExpressionBodySyntax)
-            {
-
-                var expressionLiteral = node.DescendantNodes().OfType<CSharpExpressionLiteralSyntax>().SingleOrDefault();
-                if (expressionLiteral is null)
-                {
-                    continue;
-                }
-
-                foreach (var token in expressionLiteral.LiteralTokens)
-                {
-                    if (token.Kind is Language.SyntaxKind.Identifier)
-                    {
-                        return true;
-                    }
-                }
-            }
-            else if (node is MarkupTagHelperDirectiveAttributeSyntax directiveAttribute) 
-            {
-                var attributeDelegate = directiveAttribute.DescendantNodes().OfType<CSharpExpressionLiteralSyntax>().SingleOrDefault();
-                if (attributeDelegate is null)
-                {
-                    continue;
-                }
-
-                if (attributeDelegate.LiteralTokens.FirstOrDefault() is Language.Syntax.SyntaxToken { Kind: Language.SyntaxKind.Text })
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private static void AddUsingFromTagHelperInfo(TagHelperInfo tagHelperInfo, HashSet<string> usings, string[] usingsInSourceRazor)
-    {
-        foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
-        {
-            if (descriptor is null)
-            {
-                continue;
-            }
-
-            var typeNamespace = descriptor.GetTypeNamespace();
-
-            // Since the using directive at the top of the file may be relative and not absolute,
-            // we need to generate all possible partial namespaces from `typeNamespace`.
-
-            // Potentially, the alternative could be to ask if the using namespace at the top is a substring of `typeNamespace`.
-            // The only potential edge case is if there are very similar namespaces where one
-            // is a substring of the other, but they're actually different (e.g., "My.App" and "My.Apple").
-
-            // Generate all possible partial namespaces from `typeNamespace`, from least to most specific
-            // (assuming that the user writes absolute `using` namespaces most of the time)
-
-            // This is a bit inefficient because at most 'k' string operations are performed (k = parts in the namespace),
-            // for each potential using directive.
-
-            var parts = typeNamespace.Split('.');
-            for (var i = 0; i < parts.Length; i++)
-            {
-                var partialNamespace = string.Join(".", parts.Skip(i));
-
-                if (usingsInSourceRazor.Contains(partialNamespace))
-                {
-                    usings.Add(partialNamespace);
-                    break;
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -578,12 +146,10 @@ internal sealed class ExtractToComponentCodeActionResolver(
     /// This method handles the extraction of code, processing of C# elements, and creation of necessary parameters.
     /// </summary>
     private async Task<NewRazorComponentInfo?> GenerateNewComponentAsync(
-        SelectionAnalysisResult selectionAnalysis,
+        ExtractToComponentCodeActionParams actionParams,
         RazorCodeDocument razorCodeDocument,
-        Uri componentUri,
         DocumentContext documentContext,
         Range selectionRange,
-        string whitespace,
         CancellationToken cancellationToken)
     {
         var contents = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
@@ -594,9 +160,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         var sbInstance = PooledStringBuilder.GetInstance();
         var newFileContentBuilder = sbInstance.Builder;
-        if (selectionAnalysis.UsingDirectives is not null)
+        if (actionParams.UsingDirectives is not null)
         {
-            foreach (var dependency in selectionAnalysis.UsingDirectives)
+            foreach (var dependency in actionParams.UsingDirectives)
             {
                 newFileContentBuilder.AppendLine($"@using {dependency}");
             }
@@ -608,24 +174,29 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var extractedContents = contents.GetSubTextString(
-                    new TextSpan(selectionAnalysis.ExtractStart,
-                    selectionAnalysis.ExtractEnd - selectionAnalysis.ExtractStart))
+                    new TextSpan(actionParams.ExtractStart,
+                    actionParams.ExtractEnd - actionParams.ExtractStart))
                 .Trim();
 
         // Remove leading whitespace from each line to maintain proper indentation in the new component
-        var extractedLines = extractedContents.Split('\n');
-        for (var i = 1; i < extractedLines.Length; i++)
+        var extractedLines = ArrayBuilder<string>.GetInstance();
+        var dedentWhitespace = actionParams.DedentWhitespaceString;
+        if (!dedentWhitespace.IsNullOrEmpty())
         {
-            var line = extractedLines[i];
-            if (line.StartsWith(whitespace, StringComparison.Ordinal))
+            extractedLines.AddRange(extractedContents.Split('\n'));
+            for (var i = 1; i < extractedLines.Count; i++)
             {
-                extractedLines[i] = line[whitespace.Length..];
+                var line = extractedLines[i];
+                if (line.StartsWith(dedentWhitespace, StringComparison.Ordinal))
+                {
+                    extractedLines[i] = line[dedentWhitespace.Length..];
+                }
             }
+
+            extractedContents = string.Join("\n", extractedLines);
         }
 
-        extractedContents = string.Join("\n", extractedLines);
         newFileContentBuilder.Append(extractedContents);
-
         var result = new NewRazorComponentInfo
         {
             NewContents = newFileContentBuilder.ToString()
@@ -633,15 +204,15 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         // Get CSharpStatements within component
         var syntaxTree = razorCodeDocument.GetSyntaxTree();
-        var cSharpCodeBlocks = GetCSharpCodeBlocks(syntaxTree, selectionAnalysis.ExtractStart, selectionAnalysis.ExtractEnd, out var atCodeBlock);
+        var cSharpCodeBlocks = GetCSharpCodeBlocks(syntaxTree, actionParams.ExtractStart, actionParams.ExtractEnd, out var atCodeBlock);
 
         // Only make the Roslyn call if there is CSharp in the selected code
         // (code blocks, expressions, event handlers, binders) in the selected code,
         // or if the selection doesn't already include the @code block.
         // Assuming that if a user selects a @code along with markup, the @code block contains all necessary information for the component.
-        if (selectionAnalysis.HasAtCodeBlock ||
+        if (actionParams.HasAtCodeBlock ||
             atCodeBlock is null ||
-                (!selectionAnalysis.HasEventHandlerOrExpression &&
+                (!actionParams.HasEventHandlerOrExpression &&
                 cSharpCodeBlocks.Count == 0))
         {
             sbInstance.Free();
@@ -654,8 +225,8 @@ internal sealed class ExtractToComponentCodeActionResolver(
             throw new InvalidOperationException("Failed to retrieve document version.");
         }
         
-        var sourceMappings = razorCodeDocument.GetCSharpDocument().SourceMappings;
         var cSharpDocument = razorCodeDocument.GetCSharpDocument();
+        var sourceMappings = cSharpDocument.SourceMappings;
         var sourceText = razorCodeDocument.Source.Text;
         var generatedSourceText = SourceText.From(cSharpDocument.GeneratedCode);
 
@@ -678,6 +249,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             .Select(range => range!)
             .ToArray();
 
+        var componentUri = actionParams.Uri;
         var parameters = new GetSymbolicInfoParams()
         {
             Project = new TextDocumentIdentifier
@@ -719,6 +291,9 @@ internal sealed class ExtractToComponentCodeActionResolver(
         var newFileCodeBlock = GenerateNewFileCodeBlock(promotedMethods, promotedAttributes);
 
         // Capitalize attribute references in the new component to match C# naming conventions
+        // NOTE: This approach is not comprehensive. It capitalizes substrings that match attribute names.
+        // A more correct approach would be to use the generated c# document in Roslyn and modify field symbol identifiers there,
+        // then somehow build the razor content from the modified c# document, then pass that string back here.
         foreach (var attribute in componentInfo.Attributes)
         {
             var capitalizedAttributeName = CapitalizeString(attribute.Name);
@@ -726,6 +301,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         newFileContentBuilder.Append(newFileCodeBlock);
+
 
         result.NewContents = newFileContentBuilder.ToString();
         result.Methods = componentInfo.Methods;
@@ -744,16 +320,50 @@ internal sealed class ExtractToComponentCodeActionResolver(
         var root = syntaxTree.Root;
         var span = new TextSpan(start, end - start);
 
-        // Get only CSharpSyntaxNodes without Razor Meta Code as ancestors. This avoids getting the @code block at the end of a razor file.
-        var cSharpCodeBlocks = root.DescendantNodes()
-        .Where(node => span.Contains(node.Span))
-        .OfType<CSharpStatementLiteralSyntax>()
-        .Where(cSharpNode =>
-            !cSharpNode.Ancestors().OfType<RazorMetaCodeSyntax>().Any())
-        .ToList();
+        // Get all CSharpStatementLiterals except those inside @code.
+        var cSharpCodeBlocks = new List<CSharpStatementLiteralSyntax>();
+        var insideAtCode = false;
+        CSharpStatementLiteralSyntax? tentativeAtCodeBlock = null;
 
-        atCodeBlock = root.DescendantNodes().OfType<CSharpStatementLiteralSyntax>().LastOrDefault();
-        atCodeBlock = atCodeBlock is not null && cSharpCodeBlocks.Contains(atCodeBlock) ? null : atCodeBlock;
+        void ProcessNode(SyntaxNode node)
+        {
+            if (node is RazorMetaCodeSyntax razorMetaCode)
+            {
+                foreach (var token in razorMetaCode.MetaCode)
+                {
+                    if (token.Content == "code")
+                    {
+                        insideAtCode = true;
+                        break;
+                    }
+                }
+            }
+            else if (node is CSharpStatementLiteralSyntax cSharpNode && !cSharpNode.ContainsOnlyWhitespace())
+            {
+                if (insideAtCode)
+                {
+                    tentativeAtCodeBlock = cSharpNode;
+                }
+                else if (span.Contains(node.Span))
+                {
+                    cSharpCodeBlocks.Add(cSharpNode);
+                }
+            }
+
+            foreach (var child in node.ChildNodes())
+            {
+                ProcessNode(child);
+            }
+
+            if (insideAtCode && node is CSharpCodeBlockSyntax)
+            {
+                insideAtCode = false;
+            }
+        }
+
+        ProcessNode(root);
+
+        atCodeBlock = tentativeAtCodeBlock;
 
         return cSharpCodeBlocks;
     }
@@ -774,15 +384,15 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
             // Start building delegate type
             builder.Append("\trequired public ");
-            builder.Append(method.ReturnType == "Void" ? "Action" : "Func");
+            builder.Append(method.ReturnType == "void" ? "Action" : "Func");
 
             // If delegate type is Action, only add generic parameters if needed. 
-            if (method.ParameterTypes.Length > 0 || method.ReturnType != "Void")
+            if (method.ParameterTypes.Length > 0 || method.ReturnType != "void")
             {
                 builder.Append('<');
                 builder.Append(string.Join(", ", method.ParameterTypes));
 
-                if (method.ReturnType != "Void")
+                if (method.ReturnType != "void")
                 {
                     if (method.ParameterTypes.Length > 0)
                     {
@@ -818,7 +428,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         {
             var capitalizedFieldName = CapitalizeString(field.Name);
 
-            if ((field.IsValueType || field.Type == "String") && field.IsWrittenTo)
+            if ((field.IsValueType || field.Type == "string") && field.IsWrittenTo)
             {
                 builder.AppendLine($"\t// Warning: Field '{capitalizedFieldName}' was passed by value and may not be referenced correctly. Please check its usage in the original document: '{sourceDocumentFileName}'.");
             }
@@ -866,15 +476,34 @@ internal sealed class ExtractToComponentCodeActionResolver(
         {
             builder.AppendLine(promotedMethods);
         }
+
         builder.Append("}");
         return builder.ToString();
+    }
+
+    private static void CapitalizeFieldReferences(StringBuilder content, AttributeSymbolicInfo[] attributes)
+    {
+        var newRazorSourceDocument = RazorSourceDocument.Create(content.ToString(), "ExtractedComponent");
+        var syntaxTree = RazorSyntaxTree.Parse(newRazorSourceDocument);
+        var root = syntaxTree.Root;
+
+        // Traverse through the descendant nodes, and if we find an identifiernamesyntax whose name matches one of the attributes, capitalize it.
+        foreach (var node in root.DescendantNodes())
+        {
+            if (node.Kind is not SyntaxKind.Identifier)
+            {
+                continue;
+            }
+
+            var identifierNameString = node.GetContent();
+        }
     }
 
     private static string GenerateComponentNameAndParameters(MethodSymbolicInfo[]? methods, AttributeSymbolicInfo[]? attributes, string componentName)
     {
         if (methods is null || attributes is null)
         {
-            return componentName;
+            return componentName + " ";
         }
 
         var builder = new StringBuilder();
@@ -882,13 +511,13 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
         foreach (var method in methods)
         {
-            builder.Append($"{method.Name}={method.Name} ");
+            builder.Append($"{method.Name}=@{method.Name} ");
         }
 
         foreach (var attribute in attributes)
         {
             var capitalizedAttributeName = CapitalizeString(attribute.Name);
-            builder.Append($"{capitalizedAttributeName}={attribute.Name} ");
+            builder.Append($"{capitalizedAttributeName}=@{attribute.Name} ");
         }
 
         return builder.ToString();

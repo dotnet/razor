@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -15,14 +16,23 @@ internal sealed class ExtractToComponentCodeActionParams
     [JsonPropertyName("uri")]
     public required Uri Uri { get; set; }
 
-    [JsonPropertyName("selectStart")]
-    public required Position SelectStart { get; set; }
+    [JsonPropertyName("extractStart")]
+    public required int ExtractStart { get; set; }
 
-    [JsonPropertyName("selectEnd")]
-    public required Position SelectEnd { get; set; }
+    [JsonPropertyName("extractEnd")]
+    public required int ExtractEnd { get; set; }
 
-    [JsonPropertyName("absoluteIndex")]
-    public required int AbsoluteIndex { get; set; }
+    [JsonPropertyName("hasEventHandlerOrExpression")]
+    public required bool HasEventHandlerOrExpression { get; set; }
+
+    [JsonPropertyName("hasAtCodeBlock")]
+    public required bool HasAtCodeBlock { get; set; }
+
+    [JsonPropertyName("usingDirectives")]
+    public required string[] UsingDirectives {  get; set; }
+
+    [JsonPropertyName("dedentWhitespaceString")]
+    public required string DedentWhitespaceString {  get; set; }
 
     [JsonPropertyName("namespace")]
     public required string Namespace { get; set; }
