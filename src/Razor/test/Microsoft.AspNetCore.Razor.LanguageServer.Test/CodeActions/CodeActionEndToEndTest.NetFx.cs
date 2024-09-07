@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Castle.Core.Logging;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -18,25 +17,31 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Copilot.Internal;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
+public partial class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
     private const string GenerateEventHandlerTitle = "Generate Event Handler 'DoesNotExist'";
     private const string ExtractToComponentTitle = "Extract element to new component";
@@ -60,15 +65,6 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                     new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
                     razorFormattingService)
             ];
-
-    private ExtractToComponentCodeActionResolver[] CreateExtractComponentCodeActionResolver(string filePath, RazorCodeDocument codeDocument)
-    {
-        return [
-                new ExtractToComponentCodeActionResolver(
-                    new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
-                    TestLanguageServerFeatureOptions.Instance)
-            ];
-    }
 
     #region CSharp CodeAction Tests
 
@@ -1016,104 +1012,6 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
-    [Fact]
-    public async Task Handle_ExtractComponent_SingleElement_ReturnsResult()
-    {
-        var input = """
-            <[||]div id="a">
-                <h1>Div a title</h1>
-                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
-                <p>Div a par</p>
-            </div>
-            <div id="shouldSkip">
-                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
-            </div>
-            """;
-
-        var expectedRazorComponent = """
-            <div id="a">
-                <h1>Div a title</h1>
-                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
-                <p>Div a par</p>
-            </div>
-            """;
-
-        await ValidateExtractComponentCodeActionAsync(
-            input,
-            expectedRazorComponent,
-            ExtractToComponentTitle,
-            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
-            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
-    }
-
-    [Fact]
-    public async Task Handle_ExtractComponent_SiblingElement_ReturnsResult()
-    {
-        var input = """
-            <[|div id="a">
-                <h1>Div a title</h1>
-                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
-                <p>Div a par</p>
-            </div>
-            <div id="b">
-                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
-            </div|]>
-            """;
-
-        var expectedRazorComponent = """
-            <div id="a">
-                <h1>Div a title</h1>
-                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
-                <p>Div a par</p>
-            </div>
-            <div id="b">
-                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
-            </div>
-            """;
-
-        await ValidateExtractComponentCodeActionAsync(
-            input,
-            expectedRazorComponent,
-            ExtractToComponentTitle,
-            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
-            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
-    }
-
-    [Fact]
-    public async Task Handle_ExtractComponent_StartNodeContainsEndNode_ReturnsResult()
-    {
-        var input = """
-            <[|div id="parent">
-                <div>
-                    <div>
-                        <div>
-                            <p>Deeply nested par</p|]>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            """;
-
-        var expectedRazorComponent = """
-            <div id="parent">
-                <div>
-                    <div>
-                        <div>
-                            <p>Deeply nested par</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            """;
-
-        await ValidateExtractComponentCodeActionAsync(
-            input,
-            expectedRazorComponent,
-            ExtractToComponentTitle,
-            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
-            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
-    }
-
     #endregion
 
     private async Task ValidateCodeBehindFileAsync(
@@ -1254,61 +1152,6 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         }
 
         var actual = sourceText.WithChanges(edits).ToString();
-        AssertEx.EqualOrDiff(expected, actual);
-    }
-
-    private async Task ValidateExtractComponentCodeActionAsync(
-        string input,
-        string? expected,
-        string codeAction,
-        int childActionIndex = 0,
-        IEnumerable<(string filePath, string contents)>? additionalRazorDocuments = null,
-        IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<string, RazorCodeDocument, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
-        RazorLSPOptionsMonitor? optionsMonitor = null,
-        Diagnostic[]? diagnostics = null)
-    {
-        TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
-
-        var razorFilePath = "C:/path/to/test.razor";
-        var componentFilePath = "C:/path/to/Component.razor";
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
-        var sourceText = codeDocument.Source.Text;
-        var uri = new Uri(razorFilePath);
-        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath, additionalRazorDocuments);
-        var documentContext = CreateDocumentContext(uri, codeDocument);
-        var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
-
-        var result = await GetCodeActionsAsync(
-            uri,
-            textSpan,
-            sourceText,
-            requestContext,
-            languageServer,
-            razorCodeActionProviders,
-            diagnostics);
-
-        Assert.NotEmpty(result);
-        var codeActionToRun = GetCodeActionToRun(codeAction, childActionIndex, result);
-
-        if (expected is null)
-        {
-            Assert.Null(codeActionToRun);
-            return;
-        }
-
-        Assert.NotNull(codeActionToRun);
-
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, documentContext.Snapshot, optionsMonitor?.CurrentValue);
-        var changes = await GetEditsAsync(
-            codeActionToRun,
-            requestContext,
-            languageServer,
-            codeActionResolversCreator?.Invoke(razorFilePath, codeDocument) ?? []);
-
-        var edits = changes.Where(change => change.TextDocument.Uri.AbsolutePath == componentFilePath).Single();
-        var actual = edits.Edits.Select(edit => edit.NewText).Single();
-
         AssertEx.EqualOrDiff(expected, actual);
     }
 

@@ -55,8 +55,8 @@ internal class DefaultLSPRequestInvoker : LSPRequestInvoker
         }
 
         var response = await _languageServiceBroker.RequestAsync(
-            new GeneralRequest<TIn, TOut> { LanguageServerName = languageServerName, Method = method, Request = parameters },
-            cancellationToken);
+        new GeneralRequest<TIn, TOut> { LanguageServerName = languageServerName, Method = method, Request = parameters },
+        cancellationToken);
 
         // No callers actually use the languageClient when handling the response.
         var result = response is not null ? new ReinvokeResponse<TOut>(languageClient: null!, response) : default;
