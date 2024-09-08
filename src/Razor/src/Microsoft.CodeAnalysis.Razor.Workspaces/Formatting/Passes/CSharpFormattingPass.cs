@@ -54,7 +54,7 @@ internal sealed class CSharpFormattingPass(
         cancellationToken.ThrowIfCancellationRequested();
 
         var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken).ConfigureAwait(false);
-        if (indentationChanges.Count > 0)
+        if (indentationChanges.Length > 0)
         {
             // Apply the edits that modify indentation.
             changedText = changedText.WithChanges(indentationChanges);

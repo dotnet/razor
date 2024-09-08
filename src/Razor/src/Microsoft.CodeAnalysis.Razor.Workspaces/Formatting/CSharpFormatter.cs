@@ -38,12 +38,12 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
 
     public static async Task<IReadOnlyDictionary<int, int>> GetCSharpIndentationAsync(
         FormattingContext context,
-        IReadOnlyCollection<int> projectedDocumentLocations,
+        HashSet<int> projectedDocumentLocations,
         CancellationToken cancellationToken)
     {
         // Sorting ensures we count the marker offsets correctly.
         // We also want to ensure there are no duplicates to avoid duplicate markers.
-        var filteredLocations = projectedDocumentLocations.Distinct().OrderBy(l => l).ToList();
+        var filteredLocations = projectedDocumentLocations.OrderAsArray();
 
         var indentations = await GetCSharpIndentationCoreAsync(context, filteredLocations, cancellationToken).ConfigureAwait(false);
         return indentations;
@@ -67,10 +67,10 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
         return changes.ToImmutableArray();
     }
 
-    private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(FormattingContext context, List<int> projectedDocumentLocations, CancellationToken cancellationToken)
+    private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(FormattingContext context, ImmutableArray<int> projectedDocumentLocations, CancellationToken cancellationToken)
     {
         // No point calling the C# formatting if we won't be interested in any of its work anyway
-        if (projectedDocumentLocations.Count == 0)
+        if (projectedDocumentLocations.Length == 0)
         {
             return [];
         }

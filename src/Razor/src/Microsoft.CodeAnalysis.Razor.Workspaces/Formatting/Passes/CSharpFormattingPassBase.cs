@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -28,7 +29,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
 
     public abstract Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
 
-    protected async Task<List<TextChange>> AdjustIndentationAsync(FormattingContext context, CancellationToken cancellationToken, Range? range = null)
+    protected async Task<ImmutableArray<TextChange>> AdjustIndentationAsync(FormattingContext context, CancellationToken cancellationToken, Range? range = null)
     {
         // In this method, the goal is to make final adjustments to the indentation of each line.
         // We will take into account the following,
@@ -46,7 +47,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
         // Due to perf concerns, we only want to invoke the real C# formatter once.
         // So, let's collect all the significant locations that we want to obtain the CSharpDesiredIndentations for.
 
-        var significantLocations = new HashSet<int>();
+        using var _1 = HashSetPool<int>.GetPooledObject(out var significantLocations);
 
         // First, collect all the locations at the beginning and end of each source mapping.
         var sourceMappingMap = new Dictionary<int, int>();
@@ -276,7 +277,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
         }
 
         // Now that we have collected all the indentations for each line, let's convert them to text edits.
-        var changes = new List<TextChange>();
+        using var changes = new PooledArrayBuilder<TextChange>(capacity: newIndentations.Count);
         foreach (var item in newIndentations)
         {
             var line = item.Key;
@@ -289,7 +290,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
             changes.Add(new TextChange(spanToReplace, effectiveDesiredIndentation));
         }
 
-        return changes;
+        return changes.DrainToImmutable();
     }
 
     protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)

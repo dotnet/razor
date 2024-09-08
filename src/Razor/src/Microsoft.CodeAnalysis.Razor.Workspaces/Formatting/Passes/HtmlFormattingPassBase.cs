@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -37,7 +38,7 @@ internal abstract class HtmlFormattingPassBase(ILogger logger) : IFormattingPass
         }
 
         var indentationChanges = AdjustRazorIndentation(changedContext);
-        if (indentationChanges.Count > 0)
+        if (indentationChanges.Length > 0)
         {
             // Apply the edits that adjust indentation.
             changedText = changedText.WithChanges(indentationChanges);
@@ -49,15 +50,15 @@ internal abstract class HtmlFormattingPassBase(ILogger logger) : IFormattingPass
         return finalChanges.ToImmutableArray();
     }
 
-    private static List<TextChange> AdjustRazorIndentation(FormattingContext context)
+    private static ImmutableArray<TextChange> AdjustRazorIndentation(FormattingContext context)
     {
         // Assume HTML formatter has already run at this point and HTML is relatively indented correctly.
         // But HTML doesn't know about Razor blocks.
         // Our goal here is to indent each line according to the surrounding Razor blocks.
         var sourceText = context.SourceText;
-        var editsToApply = new List<TextChange>();
         var indentations = context.GetIndentations();
 
+        using var editsToApply = new PooledArrayBuilder<TextChange>(capacity: sourceText.Lines.Count);
         for (var i = 0; i < sourceText.Lines.Count; i++)
         {
             var line = sourceText.Lines[i];
@@ -163,7 +164,7 @@ internal abstract class HtmlFormattingPassBase(ILogger logger) : IFormattingPass
             }
         }
 
-        return editsToApply;
+        return editsToApply.DrainToImmutable();
     }
 
     private static bool IsPartOfHtmlTag(FormattingContext context, int position)

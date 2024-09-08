@@ -181,7 +181,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         Debug.Assert(cleanedText.IsValidPosition(rangeToAdjust.End), "Invalid range. This is unexpected.");
 
         var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken, rangeToAdjust).ConfigureAwait(false);
-        if (indentationChanges.Count > 0)
+        if (indentationChanges.Length > 0)
         {
             // Apply the edits that modify indentation.
             cleanedText = cleanedText.WithChanges(indentationChanges);
@@ -277,13 +277,13 @@ internal sealed class CSharpOnTypeFormattingPass(
         return delta;
     }
 
-    private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
+    private static ImmutableArray<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
     {
         var text = context.SourceText;
         range ??= text.GetRange(TextSpan.FromBounds(0, text.Length));
         var csharpDocument = context.CodeDocument.GetCSharpDocument();
 
-        var changes = new List<TextChange>();
+        using var changes = new PooledArrayBuilder<TextChange>();
         foreach (var mapping in csharpDocument.SourceMappings)
         {
             var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
@@ -294,15 +294,15 @@ internal sealed class CSharpOnTypeFormattingPass(
                 continue;
             }
 
-            CleanupSourceMappingStart(context, mappingRange, changes, out var newLineAdded);
+            CleanupSourceMappingStart(context, mappingRange, ref changes.AsRef(), out var newLineAdded);
 
-            CleanupSourceMappingEnd(context, mappingRange, changes, newLineAdded);
+            CleanupSourceMappingEnd(context, mappingRange, ref changes.AsRef(), newLineAdded);
         }
 
-        return changes;
+        return changes.ToImmutable();
     }
 
-    private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, out bool newLineAdded)
+    private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, ref PooledArrayBuilder<TextChange> changes, out bool newLineAdded)
     {
         newLineAdded = false;
 
@@ -425,7 +425,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return builder.ToString();
     }
 
-    private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool newLineWasAddedAtStart)
+    private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, ref PooledArrayBuilder<TextChange> changes, bool newLineWasAddedAtStart)
     {
         //
         // We look through every source mapping that intersects with the affected range and
