@@ -66,7 +66,8 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         var returnedEdits = returnedCodeAction.Edit.DocumentChanges.Value;
         Assert.True(returnedEdits.TryGetFirst(out var textDocumentEdits));
         var returnedTextDocumentEdit = Assert.Single(textDocumentEdits[0].Edits);
-        Assert.Equal(s_defaultFormattedEdit, returnedTextDocumentEdit);
+        Assert.Equal(s_defaultFormattedEdit.NewText, returnedTextDocumentEdit.NewText);
+        Assert.Equal(s_defaultFormattedEdit.Range, returnedTextDocumentEdit.Range);
     }
 
     [Fact]
