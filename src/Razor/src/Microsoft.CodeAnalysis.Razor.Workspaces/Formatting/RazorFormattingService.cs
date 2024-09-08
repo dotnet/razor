@@ -284,42 +284,12 @@ internal class RazorFormattingService : IRazorFormattingService
     {
         // Currently this method only supports wrapping `$0`, any additional markers aren't formatted properly.
 
-        using var changes = new PooledArrayBuilder<TextChange>(csharpChanges.Length);
-        foreach (var change in csharpChanges)
-        {
-            if (change.NewText is not { } newText ||
-                newText.IndexOf("$0") == -1)
-            {
-                changes.Add(change);
-                continue;
-            }
-
-            // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
-            // So, let's avoid the error by wrapping the cursor marker in a comment.
-            changes.Add(new(change.Span, newText.Replace("$0", "/*$0*/")));
-        }
-
-        return changes.DrainToImmutable();
+        return ReplaceInChanges(csharpChanges, "$0", "/*$0*/");
     }
 
     private static ImmutableArray<TextChange> UnwrapCSharpSnippets(ImmutableArray<TextChange> razorChanges)
     {
-        using var changes = new PooledArrayBuilder<TextChange>(razorChanges.Length);
-        foreach (var change in razorChanges)
-        {
-            if (change.NewText is not { } newText ||
-                newText.IndexOf("$0") == -1)
-            {
-                changes.Add(change);
-                continue;
-            }
-
-            // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
-            // So, let's avoid the error by wrapping the cursor marker in a comment.
-            changes.Add(new(change.Span, newText.Replace("/*$0*/", "$0")));
-        }
-
-        return changes.DrainToImmutable();
+        return ReplaceInChanges(razorChanges, "/*$0*/", "$0");
     }
 
     /// <summary>
@@ -331,23 +301,30 @@ internal class RazorFormattingService : IRazorFormattingService
     {
         if (originalText.HasLFLineEndings())
         {
-            using var normalizedChanges = new PooledArrayBuilder<TextChange>(changes.Length);
-            foreach (var change in changes)
-            {
-                if (change.NewText is not { } newText ||
-                    newText.IndexOf("\r") == -1)
-                {
-                    normalizedChanges.Add(change);
-                    continue;
-                }
-
-                normalizedChanges.Add(new(change.Span, newText.Replace("\r", "")));
-            }
-
-            return normalizedChanges.DrainToImmutable();
+            return ReplaceInChanges(changes, "\r", "");
         }
 
         return changes;
+    }
+
+    private static ImmutableArray<TextChange> ReplaceInChanges(ImmutableArray<TextChange> csharpChanges, string toFind, string replacement)
+    {
+        using var changes = new PooledArrayBuilder<TextChange>(csharpChanges.Length);
+        foreach (var change in csharpChanges)
+        {
+            if (change.NewText is not { } newText ||
+                newText.IndexOf(toFind) == -1)
+            {
+                changes.Add(change);
+                continue;
+            }
+
+            // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
+            // So, let's avoid the error by wrapping the cursor marker in a comment.
+            changes.Add(new(change.Span, newText.Replace(toFind, replacement)));
+        }
+
+        return changes.DrainToImmutable();
     }
 
     internal static class TestAccessor
