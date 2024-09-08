@@ -102,17 +102,17 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var htmlChanges = htmlEdits.SelectAsArray(source.GetTextChange);
 
         // Act
-        var edits = await formattingService.GetDocumentFormattingChangesAsync(documentContext, htmlChanges, range, razorOptions, DisposalToken);
+        var changes = await formattingService.GetDocumentFormattingChangesAsync(documentContext, htmlChanges, range, razorOptions, DisposalToken);
 
         // Assert
-        var edited = source.WithChanges(edits);
+        var edited = source.WithChanges(changes);
         var actual = edited.ToString();
 
         AssertEx.EqualOrDiff(expected, actual);
 
         if (input.Equals(expected))
         {
-            Assert.Empty(edits);
+            Assert.Empty(changes);
         }
     }
 
@@ -153,10 +153,10 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
-        ImmutableArray<TextChange> edits;
+        ImmutableArray<TextChange> changes;
         if (languageKind == RazorLanguageKind.CSharp)
         {
-            edits = await formattingService.GetCSharpOnTypeFormattingChangesAsync(documentContext, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+            changes = await formattingService.GetCSharpOnTypeFormattingChangesAsync(documentContext, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
         }
         else
         {
@@ -166,25 +166,25 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             var htmlFormatter = new HtmlFormatter(client);
             var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
             var htmlChanges = htmlEdits.SelectAsArray(razorSourceText.GetTextChange);
-            edits = await formattingService.GetHtmlOnTypeFormattingChangesAsync(documentContext, htmlChanges, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+            changes = await formattingService.GetHtmlOnTypeFormattingChangesAsync(documentContext, htmlChanges, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
         }
 
         // Assert
-        var edited = razorSourceText.WithChanges( edits);
+        var edited = razorSourceText.WithChanges( changes);
         var actual = edited.ToString();
 
         AssertEx.EqualOrDiff(expected, actual);
 
         if (input.Equals(expected))
         {
-            Assert.Empty(edits);
+            Assert.Empty(changes);
         }
 
         if (expectedChangedLines is not null)
         {
-            var firstLine = edits.Min(e => razorSourceText.GetLinePositionSpan(e.Span).Start.Line);
-            var lastLine = edits.Max(e => razorSourceText.GetLinePositionSpan(e.Span).End.Line);
-            var delta = lastLine - firstLine + edits.Count(e => e.NewText.Contains(Environment.NewLine));
+            var firstLine = changes.Min(e => razorSourceText.GetLinePositionSpan(e.Span).Start.Line);
+            var lastLine = changes.Max(e => razorSourceText.GetLinePositionSpan(e.Span).End.Line);
+            var delta = lastLine - firstLine + changes.Count(e => e.NewText.Contains(Environment.NewLine));
             Assert.Equal(expectedChangedLines.Value, delta + 1);
         }
     }

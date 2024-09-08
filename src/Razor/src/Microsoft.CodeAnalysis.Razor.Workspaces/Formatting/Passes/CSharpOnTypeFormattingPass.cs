@@ -33,18 +33,18 @@ internal sealed class CSharpOnTypeFormattingPass(
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
-    public async override Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> edits, CancellationToken cancellationToken)
+    public async override Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
         // Normalize and re-map the C# edits.
         var codeDocument = context.CodeDocument;
         var csharpText = codeDocument.GetCSharpSourceText();
 
-        if (edits.Length == 0)
+        if (changes.Length == 0)
         {
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
                 _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
-                return edits;
+                return changes;
             }
 
             // Ask C# for formatting changes.
@@ -63,18 +63,18 @@ internal sealed class CSharpOnTypeFormattingPass(
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation($"Received no results.");
-                return edits;
+                return changes;
             }
 
-            edits = formattingChanges;
-            _logger.LogInformation($"Received {edits.Length} results from C#.");
+            changes = formattingChanges;
+            _logger.LogInformation($"Received {changes.Length} results from C#.");
         }
 
         // Sometimes the C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
         // to normalize them. Instead of having this flow up and log a NFW, we just capture it here. Since this only happens when typing
         // very quickly, it is a safe assumption that we'll get another chance to do on type formatting, since we know the user is typing.
         // The proper fix for this is https://github.com/dotnet/razor-tooling/issues/6650 at which point this can be removed
-        foreach (var edit in edits)
+        foreach (var edit in changes)
         {
             var startPos = edit.Span.Start;
             var endPos = edit.Span.End;
@@ -82,32 +82,30 @@ internal sealed class CSharpOnTypeFormattingPass(
             if (startPos >= count || endPos >= count)
             {
                 _logger.LogWarning($"Got a bad edit that couldn't be applied. Edit is {startPos}-{endPos} but there are only {count} characters in C#.");
-                return edits;
+                return changes;
             }
         }
 
-        var normalizedEdits = csharpText.MinimizeTextChanges(edits, out var originalTextWithChanges);
-        var mappedEdits = RemapTextChanges(codeDocument, normalizedEdits);
-        var filteredEdits = FilterCSharpTextChanges(context, mappedEdits);
-        if (filteredEdits.Length == 0)
+        var normalizedChanges = csharpText.MinimizeTextChanges(changes, out var originalTextWithChanges);
+        var mappedChanges = RemapTextChanges(codeDocument, normalizedChanges);
+        var filteredChanges = FilterCSharpTextChanges(context, mappedChanges);
+        if (filteredChanges.Length == 0)
         {
             // There are no C# edits for us to apply that could be mapped, but we might still need to check for using statements
             // because they are non mappable, but might be the only thing changed (eg from the Add Using code action)
             //
             // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
-            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, edits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
+            filteredChanges = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, changes, originalTextWithChanges, filteredChanges, cancellationToken).ConfigureAwait(false);
 
-            return filteredEdits;
+            return filteredChanges;
         }
 
         // Find the lines that were affected by these edits.
         var originalText = codeDocument.Source.Text;
         _logger.LogTestOnly($"Original text:\r\n{originalText}");
 
-        var changes = filteredEdits;
-
         // Apply the format on type edits sent over by the client.
-        var formattedText = ApplyChangesAndTrackChange(originalText, changes, out _, out var spanAfterFormatting);
+        var formattedText = ApplyChangesAndTrackChange(originalText, filteredChanges, out _, out var spanAfterFormatting);
         _logger.LogTestOnly($"After C# changes:\r\n{formattedText}");
 
         var changedContext = await context.WithTextAsync(formattedText).ConfigureAwait(false);
@@ -194,7 +192,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
         var finalChanges = cleanedText.GetTextChanges(originalText).ToImmutableArray();
 
-        finalChanges = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, edits, originalTextWithChanges, finalChanges, cancellationToken).ConfigureAwait(false);
+        finalChanges = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, changes, originalTextWithChanges, finalChanges, cancellationToken).ConfigureAwait(false);
 
         return finalChanges;
     }
@@ -239,9 +237,9 @@ internal sealed class CSharpOnTypeFormattingPass(
         return newText;
     }
 
-    private static ImmutableArray<TextChange> FilterCSharpTextChanges(FormattingContext context, ImmutableArray<TextChange> edits)
+    private static ImmutableArray<TextChange> FilterCSharpTextChanges(FormattingContext context, ImmutableArray<TextChange> changes)
     {
-        return edits.WhereAsArray(e => ShouldFormat(context, e.Span, allowImplicitStatements: false));
+        return changes.WhereAsArray(e => ShouldFormat(context, e.Span, allowImplicitStatements: false));
     }
 
     private static int LineDelta(SourceText text, IEnumerable<TextChange> changes, out Position? firstPosition, out Position? lastPosition)

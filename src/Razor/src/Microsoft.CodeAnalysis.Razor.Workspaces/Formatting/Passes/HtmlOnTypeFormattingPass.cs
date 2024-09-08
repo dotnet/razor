@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 /// </summary>
 internal sealed class HtmlOnTypeFormattingPass(ILoggerFactory loggerFactory) : HtmlFormattingPassBase(loggerFactory.GetOrCreateLogger<HtmlOnTypeFormattingPass>())
 {
-    public override Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> edits, CancellationToken cancellationToken)
+    public override Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
-        if (edits.Length == 0)
+        if (changes.Length == 0)
         {
             // There are no HTML edits for us to apply. No op.
             return SpecializedTasks.EmptyImmutableArray<TextChange>();
         }
 
-        return base.ExecuteAsync(context, edits, cancellationToken);
+        return base.ExecuteAsync(context, changes, cancellationToken);
     }
 }

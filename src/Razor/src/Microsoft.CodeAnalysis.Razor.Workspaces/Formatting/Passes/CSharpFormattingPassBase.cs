@@ -26,7 +26,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
 
     protected IDocumentMappingService DocumentMappingService { get; } = documentMappingService;
 
-    public abstract Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> edits, CancellationToken cancellationToken);
+    public abstract Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
 
     protected async Task<List<TextChange>> AdjustIndentationAsync(FormattingContext context, CancellationToken cancellationToken, Range? range = null)
     {
@@ -54,7 +54,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
         {
             var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
 #if DEBUG
-            var spanText = context.SourceText.GetSubText(mappingSpan).ToString();
+            var spanText = context.SourceText.GetSubTextString(mappingSpan);
 #endif
 
             var options = new ShouldFormatOptions(
