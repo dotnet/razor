@@ -232,7 +232,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         // Act
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var changes = codeActionEdits.SelectAsArray(csharpSourceText.GetTextChange);
-        var edit = await formattingService.GetCSharpCodeActionEditAsync(documentContext, changes, options, DisposalToken);
+        var edit = await formattingService.TryGetCSharpCodeActionEditAsync(documentContext, changes, options, DisposalToken);
 
         // Assert
         var edited = razorSourceText.WithChanges(edit.Value);

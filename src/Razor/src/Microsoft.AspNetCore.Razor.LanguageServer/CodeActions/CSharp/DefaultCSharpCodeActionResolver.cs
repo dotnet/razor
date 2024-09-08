@@ -66,7 +66,7 @@ internal sealed class DefaultCSharpCodeActionResolver(
 
         // Remaps the text edits from the generated C# to the razor file,
         // as well as applying appropriate formatting.
-        var formattedChange = await _razorFormattingService.GetCSharpCodeActionEditAsync(
+        var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(
             documentContext,
             csharpTextChanges,
             new RazorFormattingOptions(),

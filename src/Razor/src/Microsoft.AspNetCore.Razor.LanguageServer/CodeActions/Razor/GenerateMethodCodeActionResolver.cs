@@ -213,7 +213,7 @@ internal sealed class GenerateMethodCodeActionResolver(
                     CodeBlockBraceOnNextLine = _razorLSPOptionsMonitor.CurrentValue.CodeBlockBraceOnNextLine
                 };
 
-                var formattedChange = await _razorFormattingService.GetCSharpCodeActionEditAsync(
+                var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(
                     documentContext,
                     result.SelectAsArray(code.Source.Text.GetTextChange),
                     formattingOptions,

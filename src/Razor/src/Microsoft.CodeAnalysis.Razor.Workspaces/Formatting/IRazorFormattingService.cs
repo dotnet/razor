@@ -35,19 +35,19 @@ internal interface IRazorFormattingService
       char triggerCharacter,
       CancellationToken cancellationToken);
 
-    Task<TextChange?> GetSingleCSharpEditAsync(
+    Task<TextChange?> TryGetSingleCSharpEditAsync(
         DocumentContext documentContext,
         TextChange csharpEdit,
         RazorFormattingOptions options,
         CancellationToken cancellationToken);
 
-    Task<TextChange?> GetCSharpCodeActionEditAsync(
+    Task<TextChange?> TryGetCSharpCodeActionEditAsync(
        DocumentContext documentContext,
        ImmutableArray<TextChange> csharpEdits,
        RazorFormattingOptions options,
        CancellationToken cancellationToken);
 
-    Task<TextChange?> GetCSharpSnippetFormattingEditAsync(
+    Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(
        DocumentContext documentContext,
        ImmutableArray<TextChange> csharpEdits,
        RazorFormattingOptions options,

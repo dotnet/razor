@@ -322,14 +322,13 @@ internal static class RazorSyntaxNodeExtensions
             MarkupMiscAttributeContentSyntax;
     }
 
-    public static LinePositionSpan? GetLinePositionSpanWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
+    public static bool TryGetLinePositionSpanWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source, out LinePositionSpan linePositionSpan)
     {
         var tokens = node.GetTokens();
 
         SyntaxToken? firstToken = null;
-        for (var i = 0; i < tokens.Count; i++)
+        foreach (var token in tokens)
         {
-            var token = tokens[i];
             if (!token.IsWhitespace())
             {
                 firstToken = token;
@@ -348,23 +347,23 @@ internal static class RazorSyntaxNodeExtensions
             }
         }
 
-        if (firstToken is null && lastToken is null)
+        // These two are either both null or neither null, but the || means the compiler doesn't give us nullability warnings
+        if (firstToken is null || lastToken is null)
         {
-            return null;
+            linePositionSpan = default;
+            return false;
         }
 
         var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
         var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
 
-        return new LinePositionSpan(startPositionSpan.Start, endPositionSpan.End);
+        linePositionSpan = new LinePositionSpan(startPositionSpan.Start, endPositionSpan.End);
+        return true;
 
         // This is needed because SyntaxToken positions taken from GetTokens
         // are relative to their parent node and not to the document.
-        static LinePositionSpan GetLinePositionSpan(SyntaxNode? node, RazorSourceDocument source, int parentStart)
+        static LinePositionSpan GetLinePositionSpan(SyntaxNode node, RazorSourceDocument source, int parentStart)
         {
-            ArgHelper.ThrowIfNull(node);
-            ArgHelper.ThrowIfNull(source);
-
             var sourceText = source.Text;
 
             var start = node.Position + parentStart;

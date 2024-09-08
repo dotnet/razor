@@ -192,7 +192,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
     private static IRazorFormattingService CreateRazorFormattingService(Uri documentUri)
     {
         var razorFormattingService = Mock.Of<IRazorFormattingService>(
-                        rfs => rfs.GetCSharpCodeActionEditAsync(
+                        rfs => rfs.TryGetCSharpCodeActionEditAsync(
                             It.Is<DocumentContext>(c => c.Uri == documentUri),
                             It.IsAny<ImmutableArray<TextChange>>(),
                             It.IsAny<RazorFormattingOptions>(),

@@ -123,7 +123,7 @@ internal class DelegatedCompletionItemResolver(
             if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
             {
                 var textChange = csharpSourceText.GetTextChange(textEdit);
-                var formattedTextChange = await _formattingService.GetCSharpSnippetFormattingEditAsync(
+                var formattedTextChange = await _formattingService.TryGetCSharpSnippetFormattingEditAsync(
                     documentContext,
                     [textChange],
                     options,
@@ -145,7 +145,7 @@ internal class DelegatedCompletionItemResolver(
         if (resolvedCompletionItem.AdditionalTextEdits is not null)
         {
             var additionalChanges = resolvedCompletionItem.AdditionalTextEdits.SelectAsArray(csharpSourceText.GetTextChange);
-            var formattedTextChange = await _formattingService.GetCSharpSnippetFormattingEditAsync(
+            var formattedTextChange = await _formattingService.TryGetCSharpSnippetFormattingEditAsync(
                 documentContext,
                 additionalChanges,
                 options,

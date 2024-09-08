@@ -41,7 +41,7 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
             return SpecializedTasks.EmptyImmutableArray<TextChange>();
         }
 
-        public Task<TextChange?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> formattedChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextChange?> TryGetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> formattedChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -51,7 +51,7 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
             throw new NotImplementedException();
         }
 
-        public Task<TextChange?> GetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> edits, RazorFormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> edits, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -61,7 +61,7 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
             return Task.FromResult(htmlChanges);
         }
 
-        public Task<TextChange?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextChange initialEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextChange?> TryGetSingleCSharpEditAsync(DocumentContext documentContext, TextChange initialEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

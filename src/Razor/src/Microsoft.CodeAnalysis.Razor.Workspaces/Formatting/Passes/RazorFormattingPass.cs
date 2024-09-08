@@ -353,12 +353,12 @@ internal sealed class RazorFormattingPass : IFormattingPass
     {
         var didFormat = false;
 
-        if (codeNode.GetLinePositionSpanWithoutWhitespace(source) is not { } codeRange)
+        if (!codeNode.TryGetLinePositionSpanWithoutWhitespace(source, out var codeRange))
         {
             return didFormat;
         }
 
-        if (openBraceNode.GetLinePositionSpanWithoutWhitespace(source) is { } openBraceRange &&
+        if (openBraceNode.TryGetLinePositionSpanWithoutWhitespace(source, out var openBraceRange) &&
             openBraceRange.End.Line == codeRange.Start.Line &&
             !RangeHasBeenModified(ref changes, source.Text, codeRange))
         {
@@ -373,7 +373,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
             didFormat = true;
         }
 
-        if (closeBraceNode.GetLinePositionSpanWithoutWhitespace(source) is { } closeBraceRange &&
+        if (closeBraceNode.TryGetLinePositionSpanWithoutWhitespace(source, out var closeBraceRange) &&
             !RangeHasBeenModified(ref changes, source.Text, codeRange))
         {
             if (directiveNode is not null &&

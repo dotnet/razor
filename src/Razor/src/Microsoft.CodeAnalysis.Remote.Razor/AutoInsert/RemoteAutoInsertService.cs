@@ -157,13 +157,13 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
         var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         var csharpTextChange = new TextChange(sourceText.GetTextSpan(autoInsertResponseItem.TextEdit.Range), autoInsertResponseItem.TextEdit.NewText);
         var mappedChange = autoInsertResponseItem.TextEditFormat == RoslynInsertTextFormat.Snippet
-            ? await _razorFormattingService.GetCSharpSnippetFormattingEditAsync(
+            ? await _razorFormattingService.TryGetCSharpSnippetFormattingEditAsync(
                 remoteDocumentContext,
                 [csharpTextChange],
                 razorFormattingOptions,
                 cancellationToken)
             .ConfigureAwait(false)
-            : await _razorFormattingService.GetSingleCSharpEditAsync(
+            : await _razorFormattingService.TryGetSingleCSharpEditAsync(
                 remoteDocumentContext,
                 csharpTextChange,
                 razorFormattingOptions,

@@ -147,7 +147,7 @@ internal class RazorFormattingService : IRazorFormattingService
             automaticallyAddUsings: false,
             cancellationToken: cancellationToken);
 
-    public async Task<TextChange?> GetSingleCSharpEditAsync(DocumentContext documentContext, TextChange csharpEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetSingleCSharpEditAsync(DocumentContext documentContext, TextChange csharpEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var razorChanges = await ApplyFormattedChangesAsync(
             documentContext,
@@ -162,7 +162,7 @@ internal class RazorFormattingService : IRazorFormattingService
         return razorChanges.SingleOrDefault();
     }
 
-    public async Task<TextChange?> GetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var razorChanges = await ApplyFormattedChangesAsync(
             documentContext,
@@ -177,7 +177,7 @@ internal class RazorFormattingService : IRazorFormattingService
         return razorChanges.SingleOrDefault();
     }
 
-    public async Task<TextChange?> GetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         csharpChanges = WrapCSharpSnippets(csharpChanges);
 
