@@ -98,8 +98,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         client.AddCodeDocument(codeDocument);
 
         var htmlFormatter = new HtmlFormatter(client);
-        var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
-        var htmlChanges = htmlEdits.SelectAsArray(source.GetTextChange);
+        var htmlChanges = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
 
         // Act
         var changes = await formattingService.GetDocumentFormattingChangesAsync(documentContext, htmlChanges, range, razorOptions, DisposalToken);
@@ -164,8 +163,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             client.AddCodeDocument(codeDocument);
 
             var htmlFormatter = new HtmlFormatter(client);
-            var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
-            var htmlChanges = htmlEdits.SelectAsArray(razorSourceText.GetTextChange);
+            var htmlChanges = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
             changes = await formattingService.GetHtmlOnTypeFormattingChangesAsync(documentContext, htmlChanges, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
         }
 

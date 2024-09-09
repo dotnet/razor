@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ internal sealed class HtmlFormatter(
 {
     private readonly IClientConnection _clientConnection = clientConnection;
 
-    public async Task<TextEdit[]> GetDocumentFormattingEditsAsync(
+    public async Task<ImmutableArray<TextChange>> GetDocumentFormattingEditsAsync(
         IDocumentSnapshot documentSnapshot,
         Uri uri,
         FormattingOptions options,
@@ -41,10 +42,16 @@ internal sealed class HtmlFormatter(
             @params,
             cancellationToken).ConfigureAwait(false);
 
-        return result?.Edits ?? [];
+        if (result?.Edits is null)
+        {
+            return [];
+        }
+
+        var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+        return result.Edits.SelectAsArray(sourceText.GetTextChange);
     }
 
-    public async Task<TextEdit[]> GetOnTypeFormattingEditsAsync(
+    public async Task<ImmutableArray<TextChange>> GetOnTypeFormattingEditsAsync(
         IDocumentSnapshot documentSnapshot,
         Uri uri,
         Position position,
@@ -66,7 +73,13 @@ internal sealed class HtmlFormatter(
             @params,
             cancellationToken).ConfigureAwait(false);
 
-        return result?.Edits ?? [];
+        if (result?.Edits is null)
+        {
+            return [];
+        }
+
+        var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+        return result.Edits.SelectAsArray(sourceText.GetTextChange);
     }
 
     /// <summary>
