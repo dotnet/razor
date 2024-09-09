@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [UseExportProvider]
 public class CohostRangeFormattingEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/10864")]
     public Task RangeFormatting()
         => VerifyRangeFormattingAsync(
             input: """

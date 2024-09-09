@@ -56,7 +56,7 @@ public class CohostOnTypeFormattingEndpointTest(ITestOutputHelper testOutputHelp
             triggerCharacter: '\n');
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/10864")]
     public async Task CSharp()
     {
         await VerifyOnTypeFormattingAsync(

@@ -19,7 +19,7 @@ public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHe
     public async Task Handle()
     {
         var input = """
-            @page [|"this is csharp"|]
+            @page [|"/this is csharp"|]
 
             <div>[|
 
@@ -37,7 +37,7 @@ public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHe
                 @([|"unless they contain csharp"|])
             </style>
 
-            @{ var [|x|] = [|"csharp"|];
+            @{ var [|x|] = [|"csharp"|]; }
 
             @*[| Eat more chickin. |]*@
 
@@ -52,10 +52,10 @@ public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHe
             }
             """;
 
-        await VerifySemanticTokensAsync(input);
+        await VerifySpellCheckRangesAsync(input);
     }
 
-    private async Task VerifySemanticTokensAsync(TestCode input)
+    private async Task VerifySpellCheckRangesAsync(TestCode input)
     {
         var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);

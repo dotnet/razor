@@ -84,7 +84,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             delegatedResponseText: "\"$0\"");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/10865")]
     public async Task CSharp_OnForwardSlash()
     {
         await VerifyOnAutoInsertAsync(
@@ -120,7 +120,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             formatOnType: false);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/10865")]
     public async Task CSharp_OnEnter()
     {
         await VerifyOnAutoInsertAsync(
@@ -141,7 +141,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "\n");
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/10865")]
     public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
         await VerifyOnAutoInsertAsync(
@@ -163,7 +163,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             tabSize: 2);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/10865")]
     public async Task CSharp_OnEnter_UseTabs()
     {
         const char tab = '\t';

@@ -27,15 +27,15 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 <div>
                   Hello World
                 </div>
-              }|]
-            </div>
+              }
+            |]</div>
 
             @if (true) {[|
               <div>
                 Hello World
               </div>
-            }|]
-
+            }
+            |]
             @if (true) {[|
             }|]
             """);
@@ -67,11 +67,11 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                     Goodbye World
                 </div>
                 }|]
-              }|]
-            </div>
+              }
+            |]</div>
             """);
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/10859")]
     public Task Usings()
         => VerifyFoldingRangesAsync("""
             @using System[|

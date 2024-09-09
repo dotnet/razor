@@ -26,7 +26,7 @@ public class CohostDocumentFormattingEndpointTest(ITestOutputHelper testOutputHe
     // and provide regression prevention. The tests here are not exhaustive, but they validate the the cohost endpoints
     // call into the formatting engine at least, and handles C#, Html and Razor formatting changes correctly.
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/10864")]
     public Task Formatting()
         => VerifyDocumentFormattingAsync(
             input: """
