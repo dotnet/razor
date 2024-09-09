@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -15,14 +14,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
 [ExportCohostStatelessLspService(typeof(CohostWorkspaceSpellCheckEndpoint))]
-[method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal sealed class CohostWorkspaceSpellCheckEndpoint(
-    IRemoteServiceInvoker remoteServiceInvoker)
-    : AbstractRazorCohostRequestHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>
+internal sealed class CohostWorkspaceSpellCheckEndpoint : AbstractRazorCohostRequestHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>
 {
-    private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => false;
