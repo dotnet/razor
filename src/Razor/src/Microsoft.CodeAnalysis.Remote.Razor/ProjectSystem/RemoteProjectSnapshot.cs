@@ -11,9 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -29,15 +27,13 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
 
     private readonly Project _project;
     private readonly DocumentSnapshotFactory _documentSnapshotFactory;
-    private readonly ITelemetryReporter _telemetryReporter;
 
     private ImmutableArray<TagHelperDescriptor> _tagHelpers;
 
-    public RemoteProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter)
+    public RemoteProjectSnapshot(Project project, DocumentSnapshotFactory documentSnapshotFactory)
     {
         _project = project;
         _documentSnapshotFactory = documentSnapshotFactory;
-        _telemetryReporter = telemetryReporter;
         Key = _project.ToProjectKey();
     }
 

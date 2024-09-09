@@ -3,18 +3,16 @@
 
 using System.Composition;
 using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Razor.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 [Export(typeof(ProjectSnapshotFactory)), Shared]
 [method: ImportingConstructor]
-internal class ProjectSnapshotFactory(DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter)
+internal class ProjectSnapshotFactory(DocumentSnapshotFactory documentSnapshotFactory)
 {
     private static readonly ConditionalWeakTable<Project, RemoteProjectSnapshot> s_projectSnapshots = new();
 
     private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
-    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     public RemoteProjectSnapshot GetOrCreate(Project project)
     {
@@ -22,7 +20,7 @@ internal class ProjectSnapshotFactory(DocumentSnapshotFactory documentSnapshotFa
         {
             if (!s_projectSnapshots.TryGetValue(project, out var projectSnapshot))
             {
-                projectSnapshot = new RemoteProjectSnapshot(project, _documentSnapshotFactory, _telemetryReporter);
+                projectSnapshot = new RemoteProjectSnapshot(project, _documentSnapshotFactory);
                 s_projectSnapshots.Add(project, projectSnapshot);
             }
 
