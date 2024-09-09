@@ -129,9 +129,4 @@ internal class RemoteProjectSnapshot : IProjectSnapshot
         Debug.Assert(documentSnapshot.TargetPath!.StartsWith(projectRoot));
         return documentSnapshot.TargetPath[(projectRoot.Length + 1)..];
     }
-
-    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document) => throw new InvalidOperationException("Should not be called for cohosted projects.");
-
-    public bool IsImportDocument(IDocumentSnapshot document) => throw new InvalidOperationException("Should not be called for cohosted projects.");
-
 }
