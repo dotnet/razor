@@ -291,7 +291,7 @@ internal static class SourceTextExtensions
             return [];
         }
 
-        return SourceTextDiffer.GetMinimalTextChanges(text, originalTextWithChanges, DiffKind.Char).ToImmutableArray();
+        return SourceTextDiffer.GetMinimalTextChanges(text, originalTextWithChanges, DiffKind.Char);
     }
 
     /// <summary>
