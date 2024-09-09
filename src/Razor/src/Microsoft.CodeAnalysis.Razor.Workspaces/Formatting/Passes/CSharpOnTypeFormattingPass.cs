@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
@@ -109,12 +108,12 @@ internal sealed class CSharpOnTypeFormattingPass(
         _logger.LogTestOnly($"After C# changes:\r\n{formattedText}");
 
         var changedContext = await context.WithTextAsync(formattedText).ConfigureAwait(false);
-        var rangeAfterFormatting = formattedText.GetRange(spanAfterFormatting);
+        var linePositionSpanAfterFormatting = formattedText.GetLinePositionSpan(spanAfterFormatting);
 
         cancellationToken.ThrowIfCancellationRequested();
 
         // We make an optimistic attempt at fixing corner cases.
-        var cleanupChanges = CleanupDocument(changedContext, rangeAfterFormatting);
+        var cleanupChanges = CleanupDocument(changedContext, linePositionSpanAfterFormatting);
         var cleanedText = formattedText.WithChanges(cleanupChanges);
         _logger.LogTestOnly($"After CleanupDocument:\r\n{cleanedText}");
 
@@ -127,7 +126,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         // We only want to adjust the range that was affected.
         // We need to take into account the lines affected by formatting as well as cleanup.
-        var lineDelta = LineDelta(formattedText, cleanupChanges, out var firstPosition, out var lastPosition);
+        var lineDelta = LineDelta(formattedText, cleanupChanges, out var firstLine, out var lastLine);
 
         // Okay hear me out, I know this looks lazy, but it totally makes sense.
         // This method is called with edits that the C# formatter wants to make, and from those edits we work out which
@@ -145,7 +144,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         //
         // We'll happy format lines 1 and 2, and ignore the closing brace altogether. So, by looking one line further
         // we won't have that problem.
-        if (rangeAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count - 1)
+        if (linePositionSpanAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count - 1)
         {
             lineDelta++;
         }
@@ -163,24 +162,12 @@ internal sealed class CSharpOnTypeFormattingPass(
         // we'd format line 6 and call it a day, even though the formatter made an edit on line 3. To fix this we use the
         // first and last position of edits made above, and make sure our range encompasses them as well. For convenience
         // we calculate these positions in the LineDelta method called above.
-        // This is essentially: rangeToAdjust = new Range(Math.Min(firstFormattingEdit, userEdit), Math.Max(lastFormattingEdit, userEdit))
-        var start = rangeAfterFormatting.Start;
-        if (firstPosition is not null && firstPosition.CompareTo(start) < 0)
-        {
-            start = firstPosition;
-        }
+        var startLine = Math.Min(firstLine, linePositionSpanAfterFormatting.Start.Line);
+        var endLineInclusive = Math.Max(lastLine, linePositionSpanAfterFormatting.End.Line + lineDelta);
 
-        var end = VsLspFactory.CreatePosition(rangeAfterFormatting.End.Line + lineDelta, 0);
-        if (lastPosition is not null && lastPosition.CompareTo(start) < 0)
-        {
-            end = lastPosition;
-        }
+        Debug.Assert(cleanedText.Lines.Count > endLineInclusive, "Invalid range. This is unexpected.");
 
-        var rangeToAdjust = VsLspFactory.CreateRange(start, end);
-
-        Debug.Assert(cleanedText.IsValidPosition(rangeToAdjust.End), "Invalid range. This is unexpected.");
-
-        var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken, rangeToAdjust).ConfigureAwait(false);
+        var indentationChanges = await AdjustIndentationAsync(changedContext, startLine, endLineInclusive, cancellationToken).ConfigureAwait(false);
         if (indentationChanges.Length > 0)
         {
             // Apply the edits that modify indentation.
@@ -242,10 +229,10 @@ internal sealed class CSharpOnTypeFormattingPass(
         return changes.WhereAsArray(e => ShouldFormat(context, e.Span, allowImplicitStatements: false));
     }
 
-    private static int LineDelta(SourceText text, IEnumerable<TextChange> changes, out Position? firstPosition, out Position? lastPosition)
+    private static int LineDelta(SourceText text, IEnumerable<TextChange> changes, out int firstLine, out int lastLine)
     {
-        firstPosition = null;
-        lastPosition = null;
+        firstLine = 0;
+        lastLine = 0;
 
         // Let's compute the number of newlines added/removed by the incoming changes.
         var delta = 0;
@@ -254,20 +241,11 @@ internal sealed class CSharpOnTypeFormattingPass(
         {
             var newLineCount = change.NewText is null ? 0 : change.NewText.Split('\n').Length - 1;
 
-            var range = text.GetRange(change.Span);
-            Debug.Assert(range.Start.Line <= range.End.Line, "Invalid range.");
-
             // For convenience, since we're already iterating through things, we also find the extremes
             // of the range of edits that were made.
-            if (firstPosition is null || firstPosition.CompareTo(range.Start) > 0)
-            {
-                firstPosition = range.Start;
-            }
-
-            if (lastPosition is null || lastPosition.CompareTo(range.End) < 0)
-            {
-                lastPosition = range.End;
-            }
+            var range = text.GetLinePositionSpan(change.Span);
+            firstLine = Math.Min(firstLine, range.Start.Line);
+            lastLine = Math.Max(lastLine, range.End.Line);
 
             // The number of lines added/removed will be,
             // the number of lines added by the change  - the number of lines the change span represents
@@ -277,32 +255,31 @@ internal sealed class CSharpOnTypeFormattingPass(
         return delta;
     }
 
-    private static ImmutableArray<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
+    private static ImmutableArray<TextChange> CleanupDocument(FormattingContext context, LinePositionSpan spanAfterFormatting)
     {
         var text = context.SourceText;
-        range ??= text.GetRange(TextSpan.FromBounds(0, text.Length));
         var csharpDocument = context.CodeDocument.GetCSharpDocument();
 
         using var changes = new PooledArrayBuilder<TextChange>();
         foreach (var mapping in csharpDocument.SourceMappings)
         {
             var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
-            var mappingRange = text.GetRange(mappingSpan);
-            if (!range.LineOverlapsWith(mappingRange))
+            var mappingLinePositionSpan = text.GetLinePositionSpan(mappingSpan);
+            if (!spanAfterFormatting.LineOverlapsWith(mappingLinePositionSpan))
             {
                 // We don't care about this range. It didn't change.
                 continue;
             }
 
-            CleanupSourceMappingStart(context, mappingRange, ref changes.AsRef(), out var newLineAdded);
+            CleanupSourceMappingStart(context, mappingLinePositionSpan, ref changes.AsRef(), out var newLineAdded);
 
-            CleanupSourceMappingEnd(context, mappingRange, ref changes.AsRef(), newLineAdded);
+            CleanupSourceMappingEnd(context, mappingLinePositionSpan, ref changes.AsRef(), newLineAdded);
         }
 
         return changes.ToImmutable();
     }
 
-    private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, ref PooledArrayBuilder<TextChange> changes, out bool newLineAdded)
+    private static void CleanupSourceMappingStart(FormattingContext context, LinePositionSpan sourceMappingRange, ref PooledArrayBuilder<TextChange> changes, out bool newLineAdded)
     {
         newLineAdded = false;
 
@@ -425,7 +402,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return builder.ToString();
     }
 
-    private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, ref PooledArrayBuilder<TextChange> changes, bool newLineWasAddedAtStart)
+    private static void CleanupSourceMappingEnd(FormattingContext context, LinePositionSpan sourceMappingRange, ref PooledArrayBuilder<TextChange> changes, bool newLineWasAddedAtStart)
     {
         //
         // We look through every source mapping that intersects with the affected range and
