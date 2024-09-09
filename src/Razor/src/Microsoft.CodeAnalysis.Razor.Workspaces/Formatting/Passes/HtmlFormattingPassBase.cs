@@ -45,9 +45,7 @@ internal abstract class HtmlFormattingPassBase(ILogger logger) : IFormattingPass
             _logger.LogTestOnly($"After AdjustRazorIndentation:\r\n{changedText}");
         }
 
-        var finalChanges = changedText.GetTextChanges(originalText);
-
-        return finalChanges.ToImmutableArray();
+        return changedText.GetTextChangesArray(originalText);
     }
 
     private static ImmutableArray<TextChange> AdjustRazorIndentation(FormattingContext context)

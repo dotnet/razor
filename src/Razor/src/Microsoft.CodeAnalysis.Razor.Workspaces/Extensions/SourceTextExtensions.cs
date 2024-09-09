@@ -322,4 +322,17 @@ internal static class SourceTextExtensions
 
         return lfCount > crlfCount;
     }
+
+    public static ImmutableArray<TextChange> GetTextChangesArray(this SourceText newText, SourceText oldText)
+    {
+        var list = newText.GetTextChanges(oldText);
+
+        // Fast path for the common case. The base SourceText.GetTextChanges method returns an ImmutableArray
+        if (list is ImmutableArray<TextChange> array)
+        {
+            return array;
+        }
+
+        return list.ToImmutableArray();
+    }
 }

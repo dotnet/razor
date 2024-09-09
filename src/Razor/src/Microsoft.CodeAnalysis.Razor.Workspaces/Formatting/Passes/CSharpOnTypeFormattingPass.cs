@@ -177,7 +177,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         }
 
         // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
-        var finalChanges = cleanedText.GetTextChanges(originalText).ToImmutableArray();
+        var finalChanges = cleanedText.GetTextChangesArray(originalText);
 
         finalChanges = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, changes, originalTextWithChanges, finalChanges, cancellationToken).ConfigureAwait(false);
 

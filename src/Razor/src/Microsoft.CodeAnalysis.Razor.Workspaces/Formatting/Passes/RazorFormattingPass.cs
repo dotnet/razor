@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -43,9 +42,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
         // Compute the final combined set of edits
         changedText = changedText.WithChanges(razorChanges);
 
-        var finalChanges = changedText.GetTextChanges(originalText);
-
-        return finalChanges.ToImmutableArray();
+        return changedText.GetTextChangesArray(originalText);
     }
 
     private static ImmutableArray<TextChange> FormatRazor(FormattingContext context, RazorSyntaxTree syntaxTree)

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -63,9 +62,7 @@ internal sealed class CSharpFormattingPass(
 
         _logger.LogTestOnly($"Generated C#:\r\n{context.CSharpSourceText}");
 
-        var finalChanges = changedText.GetTextChanges(originalText);
-
-        return finalChanges.ToImmutableArray();
+        return changedText.GetTextChangesArray(originalText);
     }
 
     private async Task<ImmutableArray<TextChange>> FormatCSharpAsync(FormattingContext context, CancellationToken cancellationToken)
