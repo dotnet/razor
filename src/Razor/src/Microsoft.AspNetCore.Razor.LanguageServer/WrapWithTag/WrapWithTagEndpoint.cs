@@ -70,6 +70,19 @@ internal class WrapWithTagEndpoint(
         // Instead of C#, which certainly would be expected to go in an if statement, we'll see HTML, which obviously
         // is the better choice for this operation.
         var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: true);
+
+        // However, reverse scenario is possible as well, when we have
+        // <div>
+        // |@if (true) {}
+        // <p></p>
+        // </div>
+        // in which case right-associative GetLanguageKind will return Razor and left-associative will return HTML
+        // We should hand that case as well, see https://github.com/dotnet/razor/issues/10819
+        if (languageKind is RazorLanguageKind.Razor)
+        {
+            languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
+        }
+
         if (languageKind is not RazorLanguageKind.Html)
         {
             // In general, we don't support C# for obvious reasons, but we can support implicit expressions. ie
