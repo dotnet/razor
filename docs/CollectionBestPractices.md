@@ -351,7 +351,7 @@ int[] Squares(List<int> list, HashSet<int> set)
 
 - Always be aware of the memory layout, features, and performance characteristics of the data structure you are using.
 - If you have an implementation question for a .NET collection type, check out the source code using the
-  [.NET Source Browser](https://source.dot.net/)for modern .NET, or the
+  [.NET Source Browser](https://source.dot.net/) for modern .NET, or the
   [.NET Framework Reference Source](https://referencesource.microsoft.com/). And of course, the .NET runtime repo is
   available at [dotnet/runtime](https://github.com/dotnet/runtime).
 - Several reflection-based tools exist for exploring .NET assemblies, such as
