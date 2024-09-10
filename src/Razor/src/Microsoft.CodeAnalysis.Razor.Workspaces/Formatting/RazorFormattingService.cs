@@ -30,7 +30,6 @@ internal class RazorFormattingService : IRazorFormattingService
     private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
 
     private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
-    private readonly IDocumentMappingService _documentMappingService;
     private readonly IAdhocWorkspaceFactory _workspaceFactory;
 
     private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
@@ -45,7 +44,6 @@ internal class RazorFormattingService : IRazorFormattingService
         ILoggerFactory loggerFactory)
     {
         _codeDocumentProvider = codeDocumentProvider;
-        _documentMappingService = documentMappingService;
         _workspaceFactory = workspaceFactory;
 
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
@@ -199,7 +197,7 @@ internal class RazorFormattingService : IRazorFormattingService
 
     public bool TryGetOnTypeFormattingTriggerKind(RazorCodeDocument codeDocument, int hostDocumentIndex, string triggerCharacter, out RazorLanguageKind triggerCharacterKind)
     {
-        triggerCharacterKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
+        triggerCharacterKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
 
         return triggerCharacterKind switch
         {

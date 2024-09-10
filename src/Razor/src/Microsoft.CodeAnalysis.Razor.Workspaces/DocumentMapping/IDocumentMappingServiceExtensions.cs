@@ -49,7 +49,7 @@ internal static class IDocumentMappingServiceExtensions
         var sourceText = codeDocument.Source.Text;
         var position = sourceText.GetPosition(hostDocumentIndex);
 
-        var languageKind = service.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
+        var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
         if (languageKind is not RazorLanguageKind.Razor)
         {
             var generatedDocument = languageKind is RazorLanguageKind.CSharp

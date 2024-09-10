@@ -139,7 +139,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
         var mappingService = new LspDocumentMappingService(
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
-        var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
+        var languageKind = codeDocument.GetLanguageKind(positionAfterTrigger, rightAssociative: false);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
         var options = new FormattingOptions()
@@ -208,7 +208,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
         var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
         var mappingService = new LspDocumentMappingService(filePathService, new TestDocumentContextFactory(), LoggerFactory);
-        var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
+        var languageKind = codeDocument.GetLanguageKind(positionAfterTrigger, rightAssociative: false);
         if (languageKind == RazorLanguageKind.Html)
         {
             throw new NotImplementedException("Code action formatting is not yet supported for HTML in Razor.");
