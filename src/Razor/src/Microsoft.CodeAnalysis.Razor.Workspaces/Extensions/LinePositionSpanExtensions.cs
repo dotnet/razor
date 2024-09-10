@@ -31,23 +31,19 @@ internal static class LinePositionSpanExtensions
 
     public static bool LineOverlapsWith(this LinePositionSpan span, LinePositionSpan other)
     {
-        var overlapStart = span.Start.Line;
-        if (span.Start.Line.CompareTo(other.Start.Line) < 0)
-        {
-            overlapStart = other.Start.Line;
-        }
+        var overlapStart = span.Start.Line < other.Start.Line
+            ? other.Start.Line
+            : span.Start.Line;
 
-        var overlapEnd = span.End.Line;
-        if (span.End.Line.CompareTo(other.End.Line) > 0)
-        {
-            overlapEnd = other.End.Line;
-        }
+        var overlapEnd = span.End.Line > other.End.Line
+            ? other.End.Line
+            : span.End.Line;
 
-        return overlapStart.CompareTo(overlapEnd) <= 0;
+        return overlapStart <= overlapEnd;
     }
 
     public static bool Contains(this LinePositionSpan span, LinePositionSpan other)
     {
-        return span.Start.CompareTo(other.Start) <= 0 && span.End.CompareTo(other.End) >= 0;
+        return span.Start <= other.Start && span.End >= other.End;
     }
 }
