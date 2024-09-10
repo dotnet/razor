@@ -900,6 +900,50 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10844")]
+    public async Task ViewComponent_Unicode()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @addTagHelper *, TestProject
+                <vc:testäh text="1" />
+                <vc:test-äh text="2" />
+                <vc:testabc text="3" />
+                <vc:test-abc text="4" />
+                """,
+        }, new()
+        {
+            ["TestViewComponent.cs"] = """
+                public class TestAbcViewComponent
+                {
+                    public string Invoke(string text)
+                    {
+                        return GetType().Name + text;
+                    }
+                }
+
+                public class TestÄhViewComponent
+                {
+                    public string Invoke(string text)
+                    {
+                        return GetType().Name + text;
+                    }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        result.VerifyOutputsMatchBaseline();
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
     [Fact]
     public async Task ViewComponentTagHelpers()
     {
