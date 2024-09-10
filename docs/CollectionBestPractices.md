@@ -15,7 +15,7 @@
 
 # Imperative Collections
 - .NET provides many collection types with different characteristics for different purposes.
-- Collections from the System.Collections namespace should be avoided. Never use these unless in some legacy scenario.
+- The collections from the System.Collections namespace should be avoided. Never use these unless in some legacy scenario.
 - The collections in System.Collections.Generic are considered the “work horse” collection types for .NET and are
   suitable for most purposes. They have years of hardening that make them highly efficient choices for most work.
 - Popular imperative collection types include the ones we all use on a regular basis `List<T>`, `HashSet<T>`,
