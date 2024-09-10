@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal interface IDocumentMappingService
 {
-    IEnumerable<TextChange> GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, IEnumerable<TextChange> generatedDocumentEdits);
+    IEnumerable<TextChange> GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, ImmutableArray<TextChange> generatedDocumentEdits);
 
     bool TryMapToHostDocumentRange(IRazorGeneratedDocument generatedDocument, LinePositionSpan generatedDocumentRange, MappingBehavior mappingBehavior, out LinePositionSpan hostDocumentRange);
 

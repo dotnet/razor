@@ -22,7 +22,7 @@ internal abstract class AbstractDocumentMappingService(IFilePathService filePath
     protected readonly IFilePathService FilePathService = filePathService;
     protected readonly ILogger Logger = logger;
 
-    public IEnumerable<TextChange> GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, IEnumerable<TextChange> generatedDocumentChanges)
+    public IEnumerable<TextChange> GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, ImmutableArray<TextChange> generatedDocumentChanges)
     {
         var generatedDocumentSourceText = generatedDocument.GetGeneratedSourceText();
         var lastNewLineAddedToLine = 0;

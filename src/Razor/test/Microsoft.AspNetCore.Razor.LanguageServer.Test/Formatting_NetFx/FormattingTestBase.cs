@@ -77,9 +77,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableArray<TextSpan> spans);
 
         var source = SourceText.From(input);
-        var range = spans.IsEmpty
+        LinePositionSpan? range = spans.IsEmpty
             ? null
-            : source.GetRange(spans.Single());
+            : source.GetLinePositionSpan(spans.Single());
 
         var path = "file:///path/to/Document." + fileKind;
         var uri = new Uri(path);
@@ -98,20 +98,20 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         client.AddCodeDocument(codeDocument);
 
         var htmlFormatter = new HtmlFormatter(client);
-        var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
+        var htmlChanges = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
 
         // Act
-        var edits = await formattingService.GetDocumentFormattingEditsAsync(documentContext, htmlEdits, range, razorOptions, DisposalToken);
+        var changes = await formattingService.GetDocumentFormattingChangesAsync(documentContext, htmlChanges, range, razorOptions, DisposalToken);
 
         // Assert
-        var edited = ApplyEdits(source, edits);
+        var edited = source.WithChanges(changes);
         var actual = edited.ToString();
 
         AssertEx.EqualOrDiff(expected, actual);
 
         if (input.Equals(expected))
         {
-            Assert.Empty(edits);
+            Assert.Empty(changes);
         }
     }
 
@@ -152,10 +152,10 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
-        TextEdit[] edits;
+        ImmutableArray<TextChange> changes;
         if (languageKind == RazorLanguageKind.CSharp)
         {
-            edits = await formattingService.GetCSharpOnTypeFormattingEditsAsync(documentContext, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+            changes = await formattingService.GetCSharpOnTypeFormattingChangesAsync(documentContext, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
         }
         else
         {
@@ -163,26 +163,26 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             client.AddCodeDocument(codeDocument);
 
             var htmlFormatter = new HtmlFormatter(client);
-            var htmlEdits = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
-            edits = await formattingService.GetHtmlOnTypeFormattingEditsAsync(documentContext, htmlEdits, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+            var htmlChanges = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
+            changes = await formattingService.GetHtmlOnTypeFormattingChangesAsync(documentContext, htmlChanges, razorOptions, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
         }
 
         // Assert
-        var edited = ApplyEdits(razorSourceText, edits);
+        var edited = razorSourceText.WithChanges( changes);
         var actual = edited.ToString();
 
         AssertEx.EqualOrDiff(expected, actual);
 
         if (input.Equals(expected))
         {
-            Assert.Empty(edits);
+            Assert.Empty(changes);
         }
 
         if (expectedChangedLines is not null)
         {
-            var firstLine = edits.Min(e => e.Range.Start.Line);
-            var lastLine = edits.Max(e => e.Range.End.Line);
-            var delta = lastLine - firstLine + edits.Count(e => e.NewText.Contains(Environment.NewLine));
+            var firstLine = changes.Min(e => razorSourceText.GetLinePositionSpan(e.Span).Start.Line);
+            var lastLine = changes.Max(e => razorSourceText.GetLinePositionSpan(e.Span).End.Line);
+            var delta = lastLine - firstLine + changes.Count(e => e.NewText.Contains(Environment.NewLine));
             Assert.Equal(expectedChangedLines.Value, delta + 1);
         }
     }
@@ -196,11 +196,6 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         string? fileKind = null,
         bool inGlobalNamespace = false)
     {
-        if (codeActionEdits is null)
-        {
-            throw new NotImplementedException("Code action formatting must provide edits.");
-        }
-
         // Arrange
         fileKind ??= FileKinds.Component;
 
@@ -233,10 +228,12 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         // Act
-        var edit = await formattingService.GetCSharpCodeActionEditAsync(documentContext, codeActionEdits, options, DisposalToken);
+        var csharpSourceText = codeDocument.GetCSharpSourceText();
+        var changes = codeActionEdits.SelectAsArray(csharpSourceText.GetTextChange);
+        var edit = await formattingService.TryGetCSharpCodeActionEditAsync(documentContext, changes, options, DisposalToken);
 
         // Assert
-        var edited = ApplyEdits(razorSourceText, [edit]);
+        var edited = razorSourceText.WithChanges(edit.Value);
         var actual = edited.ToString();
 
         AssertEx.EqualOrDiff(expected, actual);
@@ -244,12 +241,6 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
     protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
         => VsLspFactory.CreateTextEdit(startLine, startChar, endLine, endChar, newText);
-
-    private static SourceText ApplyEdits(SourceText source, TextEdit[] edits)
-    {
-        var changes = edits.Select(source.GetTextChange);
-        return source.WithChanges(changes);
-    }
 
     private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = default, bool allowDiagnostics = false, bool inGlobalNamespace = false, bool forceRuntimeCodeGeneration = false)
     {
