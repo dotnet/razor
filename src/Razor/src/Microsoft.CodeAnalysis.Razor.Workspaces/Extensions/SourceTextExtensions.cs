@@ -3,8 +3,11 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Text;
@@ -268,5 +271,68 @@ internal static class SourceTextExtensions
 
         location = default;
         return false;
+    }
+
+    /// <summary>
+    /// Applies the set of edits specified, and returns the minimal set needed to make the same changes
+    /// </summary>
+    public static ImmutableArray<TextChange> MinimizeTextChanges(this SourceText text, ImmutableArray<TextChange> changes)
+        => MinimizeTextChanges(text, changes, out _);
+
+    /// <summary>
+    /// Applies the set of edits specified, and returns the minimal set needed to make the same changes
+    /// </summary>
+    public static ImmutableArray<TextChange> MinimizeTextChanges(this SourceText text, ImmutableArray<TextChange> changes, out SourceText originalTextWithChanges)
+    {
+        originalTextWithChanges = text.WithChanges(changes);
+
+        if (text.ContentEquals(originalTextWithChanges))
+        {
+            return [];
+        }
+
+        return SourceTextDiffer.GetMinimalTextChanges(text, originalTextWithChanges, DiffKind.Char);
+    }
+
+    /// <summary>
+    /// Determines if the given <see cref="SourceText"/> has more LF line endings ('\n') than CRLF line endings ('\r\n').
+    /// </summary>
+    /// <param name="text">The <see cref="SourceText"/> to examine.</param>
+    /// <returns>
+    /// <c>true</c> if the <see cref="SourceText"/> is deemed to use LF line endings; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool HasLFLineEndings(this SourceText text)
+    {
+        var crlfCount = 0;
+        var lfCount = 0;
+
+        foreach (var line in text.Lines)
+        {
+            var lineBreakSpan = TextSpan.FromBounds(line.End, line.EndIncludingLineBreak);
+            var lineBreak = line.Text?.ToString(lineBreakSpan) ?? string.Empty;
+            if (lineBreak == "\r\n")
+            {
+                crlfCount++;
+            }
+            else if (lineBreak == "\n")
+            {
+                lfCount++;
+            }
+        }
+
+        return lfCount > crlfCount;
+    }
+
+    public static ImmutableArray<TextChange> GetTextChangesArray(this SourceText newText, SourceText oldText)
+    {
+        var list = newText.GetTextChanges(oldText);
+
+        // Fast path for the common case. The base SourceText.GetTextChanges method returns an ImmutableArray
+        if (list is ImmutableArray<TextChange> array)
+        {
+            return array;
+        }
+
+        return list.ToImmutableArray();
     }
 }
