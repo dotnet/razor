@@ -22,7 +22,9 @@ public class HtmlConventionsTest
                     { "ALLCAPS", "allcaps" },
                     { "One1Two2Three3", "one1-two2-three3" },
                     { "ONE1TWO2THREE3", "one1two2three3" },
-                    { "First_Second_ThirdHi", "first_second_third-hi" }
+                    { "First_Second_ThirdHi", "first_second_third-hi" },
+                    { "TestÄa", "test-äa" },
+                    { "KůňŽluťoučký", "kůň-žluťoučký" },
                 };
         }
     }

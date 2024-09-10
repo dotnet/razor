@@ -20,7 +20,7 @@ public static class HtmlConventions
     // Each match is then prefixed by a "-" via the ToHtmlCase method.
     private static readonly Regex HtmlCaseRegex =
         new Regex(
-            "(?<!^)((?<=[a-zA-Z0-9])[A-Z][a-z])|((?<=[a-z])[A-Z])",
+            @"(?<!^)((?<=[\p{Ll}\p{Lu}0-9])\p{Lu}\p{Ll})|((?<=\p{Ll})\p{Lu})",
             RegexOptions.None,
             TimeSpan.FromMilliseconds(500));
 

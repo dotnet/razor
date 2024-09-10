@@ -45,13 +45,14 @@ namespace AspNetCoreGeneratedDocument
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("vc:testäh", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
+            WriteLiteral("<vc:testäh text=\"1\" />\r\n");
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("vc:test-äh", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
             }
             );
             __TestÄhViewComponentTagHelper = CreateTagHelper<global::AspNetCoreGeneratedDocument.Views_Home_Index.__Generated__TestÄhViewComponentTagHelper>();
             __tagHelperExecutionContext.Add(__TestÄhViewComponentTagHelper);
             BeginWriteTagHelperAttribute();
-            WriteLiteral("1");
+            WriteLiteral("2");
             __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
             __TestÄhViewComponentTagHelper.text = __tagHelperStringValueBuffer;
             __tagHelperExecutionContext.AddTagHelperAttribute("text", __TestÄhViewComponentTagHelper.text, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -62,7 +63,7 @@ namespace AspNetCoreGeneratedDocument
             }
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
-            WriteLiteral("\r\n<vc:test-äh text=\"2\" />\r\n<vc:testabc text=\"3\" />\r\n");
+            WriteLiteral("\r\n<vc:testabc text=\"3\" />\r\n");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("vc:test-abc", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
             }
             );
@@ -102,7 +103,7 @@ namespace AspNetCoreGeneratedDocument
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<dynamic> Html { get; private set; } = default!;
         #nullable disable
-        [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("vc:testäh")]
+        [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("vc:test-äh")]
         public class __Generated__TestÄhViewComponentTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
         {
             private readonly global::Microsoft.AspNetCore.Mvc.IViewComponentHelper __helper = null;
