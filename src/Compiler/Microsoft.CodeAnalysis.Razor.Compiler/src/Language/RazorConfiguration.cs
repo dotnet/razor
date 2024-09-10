@@ -11,16 +11,17 @@ public sealed record class RazorConfiguration(
     RazorLanguageVersion LanguageVersion,
     string ConfigurationName,
     ImmutableArray<RazorExtension> Extensions,
-    LanguageServerFlags? LanguageServerFlags = null,
     bool UseConsolidatedMvcViews = true,
-    bool SuppressAddComponentParameter = false)
+    bool SuppressAddComponentParameter = false,
+    LanguageServerFlags? LanguageServerFlags = null)
 {
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
         ConfigurationName: "unnamed",
         Extensions: [],
-        LanguageServerFlags: null,
-        UseConsolidatedMvcViews: true);
+        UseConsolidatedMvcViews: true,
+        SuppressAddComponentParameter: false,
+        LanguageServerFlags: null);
 
     public bool Equals(RazorConfiguration? other)
         => other is not null &&
