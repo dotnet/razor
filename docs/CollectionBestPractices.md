@@ -53,7 +53,7 @@
 > **Be mindful of ToArray()**
 >
 > Calling `ToArray()` on a collection will create a new array and copy content from the collection into it. So, when
-> the exact capacity is known up front, it is an anti-pattern to create a `List<T>` withwout that capacity, fill it
+> the exact capacity is known up front, it is an anti-pattern to create a `List<T>` without that capacity, fill it
 > with items and then call `ToArray()` at the end. This results in extra allocations that could be avoided by creating
 > an array and filling it.
 
