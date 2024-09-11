@@ -54,6 +54,43 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10844")]
+    public async Task CustomTagHelper_Unicode()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @addTagHelper *, TestProject
+
+                <test-äh>1</test-äh>
+                <testäh>2</testäh>
+                """,
+        }, new()
+        {
+            ["TestÄhTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                public class TestÄhTagHelper : TagHelper
+                {
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.TagName = "a";
+                    }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        result.VerifyOutputsMatchBaseline();
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
     [Theory]
     [InlineData("Index")]
     [InlineData("CustomEncoder")]
