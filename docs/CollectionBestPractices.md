@@ -60,10 +60,10 @@
 # Immutable Collections
 - The .NET immutable collections are provided by the System.Collections.Immutable NuGet package, which provides
   implementations for .NET, .NET Framework, and .NET Standard 2.0.
-- The collections in the System.Collections.Immutable namespace have a very specific purpose.
-- They are intended to be *persistent* data structures; that is, a data structure that always preserves the previous
-  version of itself when it is modified. Such data structures are effectively immutable, but it might have been better
-  for the namespace to have been called, System.Collections.Persistent.
+- The collections in the System.Collections.Immutable namespace have a very specific purpose. They are intended to be
+  *persistent* data structures; that is, a data structure that always preserves the previous version of itself when it
+  is modified. Such data structures are effectively immutable, but in hindsight, maybe it would have been better for
+  this namespace to have been called, System.Collections.Persistent?
   - The term “persistent data structure” was introduced by the 1986 paper,
     “Making Data Structures Persistent” ([PDF](https://www.cs.cmu.edu/~sleator/papers/making-data-structures-persistent.pdf)).
   - A highly influential book in the area of persistent data structures is “Purely Functional Data Structures” (1999)
@@ -75,11 +75,23 @@
 - Mutating methods on an immutable collection perform “non-destructive mutation”. Instead, of mutating the underlying
   object, a mutating method like `Add` produces a new instance of the immutable collection. This is similar to how the
   `String.Replace(...)` API is used.
-- The difference in implementation affects the asymptotic complexity of many standard operations. For example, indexing
-  into a `List<T>` is O(1) but indexing into an `ImmutableList<T>` is O(log n).
-- Significant effort has been made to ensure that immutable collections are as efficient as they can be, while
-  maintaining their persistence characteristics. However, they are generally assumed to be slower than imperative
-  collections.
+- Significant effort has been made to ensure that immutable collections are as efficient as they can be. However, the
+  cost of persistence means that immutable collections are generally assumed to be slower than imperative counterparts.
+
+> [!CAUTION]
+>
+> Because the immutable collections are often implemented using binary trees to achieve persistence, the asymptotic
+> complexity of standard operations can be very surprising. For example, `ImmutableDictionary<TKey, TValue>` access is
+> O(log n) rather than the usual O(1) that would be expected when accessing a hash table data structure, such as
+> `Dictionary<TKey, TValue>`. A similar difference in performance characteristics exists across the various collection
+> types. The following table shows the complexity of accessing a few popular collections types using their indexer.
+>
+> | Immutable collection type                 | Complexity | Imperative collection type       | Complexity |
+> | ----------------------------------------- | ---------- | -------------------------------- | ---------- |
+> | `ImmutableDictionary<TKey, TValue>`       | O(log n)   | `Dictionary<TKey, TValue>`       | O(1)       |
+> | `ImmutableHashSet<T>`                     | O(log n)   | `HashSet<T>`                     | O(1)       |
+> | `ImmutableList<T>`                        | O(log n)   | `List<T>`                        | O(1)       |
+> | `ImmutableSortedDictionary<TKey, TValue>` | O(log n)   | `SortedDictionary<TKey, TValue>` | O(log n)   |
 
 > [!CAUTION]
 > **ToImmutableX() extension methods are not “freeze” methods!**
@@ -258,6 +270,33 @@ using var _ = ListPool<int>.GetPooledObject(out var list);
      internal storage will only be trimmed if it is larger than 512. So, lists acquired from the pool are likely to
      already have a larger capacity than needed for most work.
 
+> [!WARNING]
+> **Don't allow pooled objects to escape their scope!**
+>
+> Consider the following code:
+>
+> ```C#
+> List<int> M()
+> {
+>     using var _ = ListPool<int>.GetPooledObject(out var list);
+>
+>     // use list...
+>
+>     return list;
+> }
+> ```
+>
+> The compiler won't complain if a pooled `List<int>` escapes its scope. In the code above, the `List<int>` will be
+> returned to the pool at the end of the using statement's scope but is returned from the method. This results
+> several problems:
+>
+> 1. The list will be cleared when returned to the pool. So, the caller will find it to be empty.
+> 2. If the caller adds items to the list, other code acquiring a pooled list might receive the mutated list!
+> 3. Likewise, if the caller holds onto the list, other code acquiring a pooled list might receive the same list and
+>    mutate it!
+>
+> In essence, a pooled object that escapes its scope can corrupt the pool in came from.
+
 # ✨It’s Magic! `PooledArrayBuilder<T>`
 
 - Razor’s [`PooledArrayBuilder<T>`](https://github.com/dotnet/razor/blob/5c0677ad275e64300b897de0f6e8856ebe13f07b/src/Shared/Microsoft.AspNetCore.Razor.Utilities.Shared/PooledObjects/PooledArrayBuilder%601.cs)
@@ -340,12 +379,19 @@ int[] Squares(List<int> list, HashSet<int> set)
 ```
 
 > [!WARNING]
+> **Considerations when using collection expressions**
 >
-> Below are a few issues to consider when using a collection expression:
 > - Sometimes, a collection expression might create a new temporary collection instance, such as a `List<T>`. However,
 >   it will not acquire a temporary collection from Razor’s object pools ([SharpLab](https://sharplab.io/#v2:EYLgxg9gTgpgtADwGwBYA0ATEBqAPgAQAYACfARhQG4BYAKHwGZSAmYgYWIG87jfSmAlgDsALgG0AusQCyACnIMAPMJEA+YgGcYARwCuMIWBgBKLjz4X8AdmJiAdHc079hmBJq0LAXzpegA=)).
 > - There are pathological collection expressions to be avoided. For example, never use a collection expression to
 >   replace a call to `ImmutableArray<T>.Builder.ToImmutable()` ([SharpLab](https://sharplab.io/#v2:EYLgxg9gTgpgtADwGwBYA0ATEBqAPgAQAYACfARgDoBhCAG1pjABcBLCAOwGcKBJAWz4BXJgENgDANwBYAFD4AzKQBMxKsQDes4ttKL+Q0eJgBBKFBEBPADwt2TAHzEAsgApbTANoBdYiLOWASg0tHVCANz9iYEEWWgwYKGIAXmJ9YTEGU3MLalgRJhgAIRi4hJs7excA6RlQ0OjY+KgKYwwMACURdgBzGBc/bOqQuuJhuvwAdmIPCgookqavGtCAX1kVoA=)).
+>   When using a collection expression in a new scenario or with an uncommon type, it's a good idea to try it out on
+>   https://sharplab.io first.
+
+- Empty collection expression generally produces very efficient code and can be used without concern ([SharpLab](https://sharplab.io/#v2:EYLgtghglgdgPgAQEwEYCwAoBAGABAlAOgGEB7AG3IFMBjAFylJgGcBuTHfFAFnazwIkK1eoxaEAkmDABXOhGDU+nQQBlYAR2UCiAJRkwGYKkLAAHKNQBOAZSpWAblBpU2mDgGZ8SXMVwBvTFxg/C8EblwAWQAKAEoAoJCkgDkUaIBRGBljKwVqQnTzOgBPAB5YOgA+ONi+JJS0gEErXOKCorKK6tjaxPrcVOiAbQBdXox+4OSkYbG6yeSPWfGkgF8+3A2EMIjBgg9yw0rcZioNGSoYF3jAiZD1u+CtnYGZqVl5RSpm1sOq3AgLQgxRuGweSWe+F2S2IMmYdFIYF0VAgABMAPIwcjFdTw3DkKDw0GPXAPB6YIZkSi0BhMABCMksqPs0RKZiopAAZtFYfDEci0Zjsbi6LEADS4ABExCsKLoVElsRGnhOKOoqO8vjhCKRKIxWJxhLo0TMgIgYGYuAF+uxNlNMD+xwcEHIF2Y8RAuAk1qFhvhjswtySZisUGd8twsrRTGxuAqo1wAH1na7XLgALy4FNuwgAFVIP2BcT4kIquDoAAtCUMy7BmQAPEYZ47Jl1umswBsjebBbZxwy+UgGOjNpPZ1yEVSXADmlZLJL7Eky2XsEARVkduAA4lQ6MucmvSFY4hsg5NOUeUTQK7hos6rFm21R+2On+6Nkkz5MQgQUPgAOyPqmPb1OC9zuCSS5ZAe65cB4hA7nu0GruuJ4kkk6bHIh+4oUexYQUkfYEAAbFqfK6oKBoir4UbytEPoGnaEAOl0Jz2rEH4hJhuAwFQADu0TMOxfCrEAA=)).
+- It is expected that collection expressions will improve over time. At the time of writing, there are
+  [several open issues](https://github.com/dotnet/roslyn/issues?q=is%3Aissue+is%3Aopen+%22collection+expression%22+label%3AArea-Compilers+label%3A%22Code+Gen+Quality%22)
+  tracking collection expression enhancements.
 
 # Meta Tips
 
