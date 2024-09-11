@@ -4,10 +4,14 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Diagnostics;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using LspDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
+using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -19,11 +23,13 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
             => new RemoteDiagnosticsService(in args);
     }
 
+    private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService = args.ExportProvider.GetExportedValue<RazorTranslateDiagnosticsService>();
+
     public ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        ImmutableArray<LspDiagnostic> csharpDiagnostics,
-        ImmutableArray<LspDiagnostic> htmlDiagnostics,
+        LspDiagnostic[] csharpDiagnostics,
+        LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
@@ -33,11 +39,21 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
 
     private async ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
         RemoteDocumentContext context,
-        ImmutableArray<LspDiagnostic> csharpDiagnostics,
-        ImmutableArray<LspDiagnostic> htmlDiagnostics,
+        LspDiagnostic[] csharpDiagnostics,
+        LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken)
     {
-        // TODO: More work!
-        return htmlDiagnostics;
+        // We've got C# and Html, lets get Razor diagnostics
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        // Yes, CSharpDocument.Documents are the Razor diagnostics. Don't ask.
+        var razorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics;
+
+        using var allDiagnostics = new PooledArrayBuilder<LspDiagnostic>(capacity: razorDiagnostics.Length + csharpDiagnostics.Length + htmlDiagnostics.Length);
+
+        allDiagnostics.AddRange(RazorDiagnosticConverter.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot));
+        allDiagnostics.AddRange(await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, csharpDiagnostics, context.Snapshot));
+        allDiagnostics.AddRange(await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, htmlDiagnostics, context.Snapshot));
+
+        return allDiagnostics.DrainToImmutable();
     }
 }

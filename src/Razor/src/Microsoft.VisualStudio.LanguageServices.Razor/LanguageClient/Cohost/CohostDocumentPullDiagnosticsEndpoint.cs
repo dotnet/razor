@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
@@ -22,8 +21,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using RoslynLspDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
-using RoslynVSInternalDiagnosticReport = Roslyn.LanguageServer.Protocol.VSInternalDiagnosticReport;
+using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -40,7 +38,7 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
     LSPRequestInvoker requestInvoker,
     IFilePathService filePathService,
     ILoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentDiagnosticsParams, RoslynVSInternalDiagnosticReport[]?>, IDynamicRegistrationProvider
+    : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
@@ -73,10 +71,10 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
         => request.TextDocument?.ToRazorTextDocumentIdentifier();
 
-    protected override Task<RoslynVSInternalDiagnosticReport[]?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken);
 
-    private async Task<RoslynVSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
         // Diagnostics is a little different, because Roslyn is not designed to run diagnostics in OOP. Their system will transition to OOP
         // as it needs, but we have to start here in devenv. This is not as big a problem as it sounds, specifically for diagnostics, because
@@ -105,7 +103,7 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
         var htmlDiagnostics = await htmlTask.ConfigureAwait(false);
 
         _logger.LogDebug($"Calling OOP with the {csharpDiagnostics.Length} C# and {htmlDiagnostics.Length} Html diagnostics");
-        var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<RoslynLspDiagnostic>>(
+        var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetDiagnosticsAsync(solutionInfo, razorDocument.Id, csharpDiagnostics, htmlDiagnostics, cancellationToken),
             cancellationToken).ConfigureAwait(false);
@@ -115,6 +113,7 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
             return null;
         }
 
+        _logger.LogDebug($"Reporting {diagnostics.Length} diagnostics back to the client");
         return
         [
             new()
@@ -125,7 +124,7 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
         ];
     }
 
-    private Task<ImmutableArray<RoslynLspDiagnostic>> GetCSharpDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<LspDiagnostic[]> GetCSharpDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
         // TODO: This code will not work when the source generator is hooked up.
         //       How do we get the source generated C# document without OOP? Can we reverse engineer a file path?
@@ -135,14 +134,28 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
         if (razorDocument.Project.Solution.GetDocumentIdsWithFilePath(csharpFilePath) is not [{ } generatedDocumentId] ||
             razorDocument.Project.GetDocument(generatedDocumentId) is not { } generatedDocument)
         {
-            return SpecializedTasks.EmptyImmutableArray<RoslynLspDiagnostic>();
+            return [];
         }
 
         _logger.LogDebug($"Getting C# diagnostics for {generatedDocument.FilePath}");
-        return ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions: true, cancellationToken);
+        var csharpDiagnostics = await ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
+
+        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
+        var options = new JsonSerializerOptions();
+        foreach (var converter in RazorServiceDescriptorsWrapper.GetLspConverters())
+        {
+            options.Converters.Add(converter);
+        }
+
+        if (JsonSerializer.Deserialize<LspDiagnostic[]>(JsonSerializer.SerializeToDocument(csharpDiagnostics), options) is not { } convertedDiagnostics)
+        {
+            return [];
+        }
+
+        return convertedDiagnostics;
     }
 
-    private async Task<ImmutableArray<RoslynLspDiagnostic>> GetHtmlDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
         if (htmlDocument is null)
@@ -169,21 +182,8 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
             return [];
         }
 
-        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        var options = new JsonSerializerOptions();
-        foreach (var converter in RazorServiceDescriptorsWrapper.GetLspConverters())
-        {
-            options.Converters.Add(converter);
-        }
-
-        var hmlDiagnostics = JsonSerializer.Deserialize<RoslynVSInternalDiagnosticReport[]>(JsonSerializer.SerializeToDocument(result.Response), options);
-        if (hmlDiagnostics is not { } convertedHtmlDiagnostics)
-        {
-            return [];
-        }
-
-        using var allDiagnostics = new PooledArrayBuilder<RoslynLspDiagnostic>();
-        foreach (var report in convertedHtmlDiagnostics)
+        using var allDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
+        foreach (var report in result.Response)
         {
             if (report.Diagnostics is not null)
             {
@@ -191,14 +191,14 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
             }
         }
 
-        return allDiagnostics.ToImmutable();
+        return allDiagnostics.ToArray();
     }
 
     internal TestAccessor GetTestAccessor() => new(this);
 
     internal readonly struct TestAccessor(CohostDocumentPullDiagnosticsEndpoint instance)
     {
-        public Task<RoslynVSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+        public Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(razorDocument, cancellationToken);
     }
 }
