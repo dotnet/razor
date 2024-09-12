@@ -103,7 +103,7 @@ public class CohostOnTypeFormattingEndpointTest(ITestOutputHelper testOutputHelp
 
     private async Task VerifyOnTypeFormattingAsync(TestCode input, string expected, char triggerCharacter, bool html = false)
     {
-        var document = CreateProjectAndRazorDocument(input.Text);
+        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(input.Position);
 

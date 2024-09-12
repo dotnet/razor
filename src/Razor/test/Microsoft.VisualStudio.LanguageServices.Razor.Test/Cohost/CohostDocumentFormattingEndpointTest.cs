@@ -108,7 +108,7 @@ public class CohostDocumentFormattingEndpointTest(ITestOutputHelper testOutputHe
 
     private async Task VerifyDocumentFormattingAsync(string input, string expected)
     {
-        var document = CreateProjectAndRazorDocument(input);
+        var document = await CreateProjectAndRazorDocumentAsync(input);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);

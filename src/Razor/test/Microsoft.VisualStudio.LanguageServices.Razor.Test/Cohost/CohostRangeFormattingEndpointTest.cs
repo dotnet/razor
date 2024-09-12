@@ -102,7 +102,7 @@ public class CohostRangeFormattingEndpointTest(ITestOutputHelper testOutputHelpe
 
     private async Task VerifyRangeFormattingAsync(TestCode input, string expected)
     {
-        var document = CreateProjectAndRazorDocument(input.Text);
+        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);
