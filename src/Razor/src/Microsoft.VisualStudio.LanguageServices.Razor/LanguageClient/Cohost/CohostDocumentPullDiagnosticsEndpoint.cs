@@ -94,9 +94,8 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
             if (e is not OperationCanceledException)
             {
                 _logger.LogError(e, $"Exception thrown in PullDiagnostic delegation");
+                throw;
             }
-            // Return null if any of the tasks getting diagnostics results in an error
-            return null;
         }
 
         var csharpDiagnostics = await csharpTask.ConfigureAwait(false);

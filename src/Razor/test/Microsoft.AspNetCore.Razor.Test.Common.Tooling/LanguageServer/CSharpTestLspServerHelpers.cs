@@ -172,7 +172,7 @@ internal static class CSharpTestLspServerHelpers
         return workspace;
     }
 
-    private static void AddAnalyzersToWorkspace(Workspace workspace, ExportProvider exportProvider)
+    public static void AddAnalyzersToWorkspace(Workspace workspace, ExportProvider exportProvider)
     {
         var analyzerLoader = RazorTestAnalyzerLoader.CreateAnalyzerAssemblyLoader();
 
