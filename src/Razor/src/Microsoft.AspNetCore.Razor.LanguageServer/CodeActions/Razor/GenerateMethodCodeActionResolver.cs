@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,6 +22,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -59,7 +61,7 @@ internal sealed class GenerateMethodCodeActionResolver(
             return null;
         }
 
-        if (!_documentContextFactory.TryCreateForOpenDocument(actionParams.Uri, out var documentContext))
+        if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
         {
             return null;
         }
@@ -141,7 +143,7 @@ internal sealed class GenerateMethodCodeActionResolver(
     private async Task<WorkspaceEdit> GenerateMethodInCodeBlockAsync(
         RazorCodeDocument code,
         GenerateMethodCodeActionParams actionParams,
-        VersionedDocumentContext documentContext,
+        DocumentContext documentContext,
         string? razorNamespace,
         string? razorClassName,
         CancellationToken cancellationToken)
@@ -204,20 +206,20 @@ internal sealed class GenerateMethodCodeActionResolver(
 
             if (result is not null)
             {
-                var formattingOptions = new FormattingOptions()
+                var formattingOptions = new RazorFormattingOptions()
                 {
                     TabSize = _razorLSPOptionsMonitor.CurrentValue.TabSize,
                     InsertSpaces = _razorLSPOptionsMonitor.CurrentValue.InsertSpaces,
+                    CodeBlockBraceOnNextLine = _razorLSPOptionsMonitor.CurrentValue.CodeBlockBraceOnNextLine
                 };
 
-                var formattedEdits = await _razorFormattingService.FormatCodeActionAsync(
+                var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(
                     documentContext,
-                    RazorLanguageKind.CSharp,
-                    result,
+                    result.SelectAsArray(code.Source.Text.GetTextChange),
                     formattingOptions,
                     cancellationToken).ConfigureAwait(false);
 
-                edits = formattedEdits;
+                edits = formattedChange is { } change ? [code.Source.Text.GetTextEdit(change)] : [];
             }
         }
 
@@ -230,7 +232,7 @@ internal sealed class GenerateMethodCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static async Task<string> PopulateMethodSignatureAsync(VersionedDocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
+    private static async Task<string> PopulateMethodSignatureAsync(DocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
     {
         var templateWithMethodSignature = s_generateMethodTemplate.Replace(MethodName, actionParams.MethodName);
 

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
@@ -24,7 +25,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.FoldingRanges;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
@@ -119,6 +122,8 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         services.AddSingleton<IAdhocWorkspaceFactory, AdhocWorkspaceFactory>();
         services.AddSingleton<IWorkspaceProvider, LspWorkspaceProvider>();
 
+        services.AddSingleton<IFormattingCodeDocumentProvider, LspFormattingCodeDocumentProvider>();
+
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);
 
@@ -130,18 +135,20 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
         services.AddCompletionServices();
-        services.AddFormattingServices();
+        services.AddFormattingServices(featureOptions);
         services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);
         services.AddHoverServices();
         services.AddTextDocumentServices(featureOptions);
 
-        // Auto insert
-        services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
-        services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
-
         if (!featureOptions.UseRazorCohostServer)
         {
+            // Auto insert
+            services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
+            services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
+
+            services.AddSingleton<IAutoInsertService, AutoInsertService>();
+
             // Folding Range Providers
             services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
             services.AddSingleton<IRazorFoldingRangeProvider, RazorCSharpStatementFoldingProvider>();
@@ -177,17 +184,17 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             // Transient because it should only be used once and I'm hoping it doesn't stick around.
             services.AddTransient<IOnInitialized>(sp => sp.GetRequiredService<RazorConfigurationEndpoint>());
 
-            services.AddHandlerWithCapabilities<ImplementationEndpoint>();
-            services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
-
             if (!featureOptions.UseRazorCohostServer)
             {
+                services.AddHandlerWithCapabilities<ImplementationEndpoint>();
+
                 services.AddSingleton<IRazorComponentDefinitionService, RazorComponentDefinitionService>();
                 services.AddHandlerWithCapabilities<DefinitionEndpoint>();
 
                 services.AddSingleton<IRenameService, RenameService>();
                 services.AddHandlerWithCapabilities<RenameEndpoint>();
 
+                services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
                 services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
                 services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
                 services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();

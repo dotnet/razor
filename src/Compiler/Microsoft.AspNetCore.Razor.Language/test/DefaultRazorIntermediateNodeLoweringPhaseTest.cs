@@ -308,7 +308,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@ "), parseOptions),
             RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("<p @("), parseOptions),
         }.ToImmutableArray());
-        var options = RazorCodeGenerationOptions.CreateDefault();
+        var options = RazorCodeGenerationOptions.Default;
 
         // Act
         phase.Execute(codeDocument);
