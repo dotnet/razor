@@ -4,10 +4,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,10 +17,10 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
-    public Task IfStatements()
+    public Task CSharp()
         => VerifyDiagnosticsAsync("""
             <div></div>
-            
+
             @code
             {
                 public void IJustMetYou()
@@ -29,30 +30,92 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
             }
             """);
 
-    private async Task VerifyDiagnosticsAsync(TestCode input)
+    [Fact]
+    public Task Razor()
+        => VerifyDiagnosticsAsync("""
+            <div>
+
+            {|RZ10012:<NonExistentComponent />|}
+
+            </div>
+            """);
+
+    [Fact]
+    public Task Html()
+    {
+        TestCode input = """
+            <div>
+
+            {|HTM1337:<not_a_tag />|}
+
+            </div>
+            """;
+
+        return VerifyDiagnosticsAsync(input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new Diagnostic
+                    {
+                        Code = "HTM1337",
+                        Range = SourceText.From(input.Text).GetRange(input.NamedSpans.First().Value.First())
+                    }
+                ]
+            }]);
+    }
+
+    [Fact]
+    public Task CombinedAndNestedDiagnostics()
+        => VerifyDiagnosticsAsync("""
+            @using System.Threading.Tasks;
+
+            <div>
+
+            {|RZ10012:<NonExistentComponent />|}
+
+            @code
+            {
+                public void IJustMetYou()
+                {
+                    {|CS0103:CallMeMaybe|}();
+                }
+            }
+
+            <div>
+                @{
+                    {|CS4033:await Task.{|CS1501:Delay|}()|};
+                }
+
+                {|RZ9980:<p>|}
+            </div>
+
+            </div>
+            """);
+
+    private async Task VerifyDiagnosticsAsync(TestCode input, VSInternalDiagnosticReport[]? htmlResponse = null)
     {
         var document = await CreateProjectAndRazorDocumentAsync(input.Text, createSeparateRemoteAndLocalWorkspaces: true);
         var inputText = await document.GetTextAsync(DisposalToken);
 
-        var requestInvoker = new TestLSPRequestInvoker();
+        var requestInvoker = new TestLSPRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, htmlResponse)]);
 
         var endpoint = new CohostDocumentPullDiagnosticsEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, FilePathService, LoggerFactory);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, DisposalToken);
-        var actual = result!.SelectMany(d => d.Diagnostics!).ToArray();
 
-        if (input.NamedSpans.Count == 0)
+        var markers = result!.SelectMany(d => d.Diagnostics.AssumeNotNull()).SelectMany(d =>
+            new[] {
+                (index: inputText.GetTextSpan(d.Range).Start, text: $"{{|{d.Code!.Value.Second}:"),
+                (index: inputText.GetTextSpan(d.Range).End, text:"|}")
+            });
+
+        var testOutput = input.Text;
+        foreach (var (index, text) in markers.OrderByDescending(i => i.index))
         {
-            Assert.Null(result);
-            return;
+            testOutput = testOutput.Insert(index, text);
         }
 
-        Assert.Equal(input.NamedSpans.Count, actual.Length);
-
-        foreach (var (code, spans) in input.NamedSpans)
-        {
-            var diagnostic = Assert.Single(actual, d => d.Code == code);
-            Assert.Equal(spans.First(), inputText.GetTextSpan(diagnostic.Range));
-        }
+        AssertEx.EqualOrDiff(input.OriginalInput, testOutput);
     }
 }
