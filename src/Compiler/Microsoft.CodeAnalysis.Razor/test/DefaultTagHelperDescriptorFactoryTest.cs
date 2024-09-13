@@ -367,7 +367,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
                             builder
                                 .Name("nested-enum-property")
                                 .Metadata(PropertyName("NestedEnumProperty"))
-                                .TypeName($"{"TestNamespace.NestedEnumTagHelper"}.{"NestedEnum"}")
+                                .TypeName("TestNamespace.NestedEnumTagHelper.NestedEnum")
                                 .AsEnum())
                         .BoundAttributeDescriptor(builder =>
                             builder

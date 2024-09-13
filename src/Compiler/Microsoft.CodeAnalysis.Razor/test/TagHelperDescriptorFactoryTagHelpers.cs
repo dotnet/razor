@@ -468,6 +468,5 @@ namespace TestNamespace
         public string InvalidNoSetAttribute { get { return string.Empty; } }
     }
 }
-
 """;
 }
