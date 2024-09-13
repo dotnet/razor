@@ -9,11 +9,9 @@ using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
@@ -110,11 +108,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     {
         var exportProvider = TestComposition.Roslyn.ExportProviderFactory.CreateExportProvider();
         AddDisposable(exportProvider);
-        var hostServices = MefHostServices.Create(exportProvider.AsCompositionContext());
-        var workspace = TestWorkspace.Create(hostServices);
+        var workspace = TestWorkspace.CreateWithDiagnosticAnalyzers(exportProvider);
         AddDisposable(workspace);
-        // Adding analyzers modifies the workspace, so important to do it before creating the first project
-        CSharpTestLspServerHelpers.AddAnalyzersToWorkspace(workspace, exportProvider);
 
         var razorDocument = CreateProjectAndRazorDocument(workspace, projectId, projectName, documentId, documentFilePath, contents, additionalFiles);
 
