@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -14,7 +13,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-[UseExportProvider]
 public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
