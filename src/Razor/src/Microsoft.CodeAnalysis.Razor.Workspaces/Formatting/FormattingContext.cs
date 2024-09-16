@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal sealed class FormattingContext
 {
-    private readonly AdhocWorkspaceFactory _workspaceFactory;
+    private readonly AdhocWorkspaceProvider _workspaceProvider;
     private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
 
     private Document? _csharpWorkspaceDocument;
@@ -30,8 +30,7 @@ internal sealed class FormattingContext
 
     private FormattingContext(
         IFormattingCodeDocumentProvider codeDocumentProvider,
-        AdhocWorkspaceFactory workspaceFactory,
-        Uri uri,
+        AdhocWorkspaceProvider workspaceProvider,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
@@ -40,8 +39,7 @@ internal sealed class FormattingContext
         char triggerCharacter)
     {
         _codeDocumentProvider = codeDocumentProvider;
-        _workspaceFactory = workspaceFactory;
-        Uri = uri;
+        _workspaceProvider = workspaceProvider;
         OriginalSnapshot = originalSnapshot;
         CodeDocument = codeDocument;
         Options = options;
@@ -52,7 +50,6 @@ internal sealed class FormattingContext
 
     public static bool SkipValidateComponents { get; set; }
 
-    public Uri Uri { get; }
     public IDocumentSnapshot OriginalSnapshot { get; }
     public RazorCodeDocument CodeDocument { get; }
     public RazorFormattingOptions Options { get; }
@@ -82,7 +79,7 @@ internal sealed class FormattingContext
         }
     }
 
-    public AdhocWorkspace CSharpWorkspace => _workspaceFactory.GetOrCreate();
+    public AdhocWorkspace CSharpWorkspace => _workspaceProvider.GetOrCreate();
 
     /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
     /// <remarks>
@@ -261,8 +258,7 @@ internal sealed class FormattingContext
 
         var newContext = new FormattingContext(
             _codeDocumentProvider,
-            _workspaceFactory,
-            Uri,
+            _workspaceProvider,
             OriginalSnapshot,
             codeDocument,
             Options,
@@ -292,20 +288,18 @@ internal sealed class FormattingContext
     }
 
     public static FormattingContext CreateForOnTypeFormatting(
-        Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
         IFormattingCodeDocumentProvider codeDocumentProvider,
-        AdhocWorkspaceFactory workspaceFactory,
+        AdhocWorkspaceProvider workspaceProvider,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
         char triggerCharacter)
     {
         return new FormattingContext(
             codeDocumentProvider,
-            workspaceFactory,
-            uri,
+            workspaceProvider,
             originalSnapshot,
             codeDocument,
             options,
@@ -315,17 +309,15 @@ internal sealed class FormattingContext
     }
 
     public static FormattingContext Create(
-        Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
         IFormattingCodeDocumentProvider codeDocumentProvider,
-        AdhocWorkspaceFactory workspaceFactory)
+        AdhocWorkspaceProvider workspaceProvider)
     {
         return new FormattingContext(
             codeDocumentProvider,
-            workspaceFactory,
-            uri,
+            workspaceProvider,
             originalSnapshot,
             codeDocument,
             options,

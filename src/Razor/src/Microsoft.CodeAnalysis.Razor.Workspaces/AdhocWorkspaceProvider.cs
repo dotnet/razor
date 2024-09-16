@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-internal sealed class AdhocWorkspaceFactory(IHostServicesProvider hostServicesProvider) : IDisposable
+internal sealed class AdhocWorkspaceProvider(IHostServicesProvider hostServicesProvider) : IDisposable
 {
     private readonly Lazy<AdhocWorkspace> _lazyWorkspace = new(() => CreateWorkspace(hostServicesProvider));
 

@@ -128,14 +128,13 @@ internal sealed class InlineCompletionEndpoint(
             }
 
             var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
-            using var adhocWorkspaceFactory = new AdhocWorkspaceFactory(_hostServicesProvider);
+            using var workspaceProvider = new AdhocWorkspaceProvider(_hostServicesProvider);
             var formattingContext = FormattingContext.Create(
-                request.TextDocument.Uri,
                 documentContext.Snapshot,
                 codeDocument,
                 options,
                 _formattingCodeDocumentProvider,
-                adhocWorkspaceFactory);
+                workspaceProvider);
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;

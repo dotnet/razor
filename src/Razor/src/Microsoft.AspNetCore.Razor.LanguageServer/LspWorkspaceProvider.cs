@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal sealed class LspWorkspaceProvider(IHostServicesProvider hostServicesProvider) : IWorkspaceProvider, IDisposable
 {
-    private readonly AdhocWorkspaceFactory _workspaceFactory = new AdhocWorkspaceFactory(hostServicesProvider);
+    private readonly AdhocWorkspaceProvider _workspaceFactory = new AdhocWorkspaceProvider(hostServicesProvider);
 
     private bool _disposed;
 

@@ -42,7 +42,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         {
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
-                _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
+                _logger.LogWarning($"Failed to map to projected position for document {context.OriginalSnapshot.FilePath}.");
                 return changes;
             }
 

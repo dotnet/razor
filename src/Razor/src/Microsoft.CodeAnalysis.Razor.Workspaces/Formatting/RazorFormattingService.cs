@@ -97,14 +97,13 @@ internal class RazorFormattingService : IRazorFormattingService
         var uri = documentContext.Uri;
         var documentSnapshot = documentContext.Snapshot;
         var hostDocumentVersion = documentContext.Snapshot.Version;
-        using var adhocWorkspaceFactory = new AdhocWorkspaceFactory(_hostServicesProvider);
+        using var workspaceProvider = new AdhocWorkspaceProvider(_hostServicesProvider);
         var context = FormattingContext.Create(
-            uri,
             documentSnapshot,
             codeDocument,
             options,
             _codeDocumentProvider,
-            adhocWorkspaceFactory);
+            workspaceProvider);
         var originalText = context.SourceText;
 
         var result = htmlChanges;
@@ -224,16 +223,14 @@ internal class RazorFormattingService : IRazorFormattingService
         collapseChanges |= generatedDocumentChanges.Length == 1;
 
         var documentSnapshot = documentContext.Snapshot;
-        var uri = documentContext.Uri;
         var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(documentSnapshot).ConfigureAwait(false);
-        using var adhocWorkspaceFactory = new AdhocWorkspaceFactory(_hostServicesProvider);
+        using var workspaceProvider = new AdhocWorkspaceProvider(_hostServicesProvider);
         var context = FormattingContext.CreateForOnTypeFormatting(
-            uri,
             documentSnapshot,
             codeDocument,
             options,
             _codeDocumentProvider,
-            adhocWorkspaceFactory,
+            workspaceProvider,
             automaticallyAddUsings,
             hostDocumentIndex,
             triggerCharacter);

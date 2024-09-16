@@ -84,14 +84,13 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             InsertSpaces = insertSpaces,
         };
 
-        using var adhocWorkspaceFactory = new AdhocWorkspaceFactory(new DefaultHostServicesProvider());
+        using var workspaceProvider = new AdhocWorkspaceProvider(new DefaultHostServicesProvider());
         var context = FormattingContext.Create(
-            uri,
             documentSnapshot,
             codeDocument,
             options,
             new LspFormattingCodeDocumentProvider(),
-            adhocWorkspaceFactory);
+            workspaceProvider);
         return context;
     }
 
