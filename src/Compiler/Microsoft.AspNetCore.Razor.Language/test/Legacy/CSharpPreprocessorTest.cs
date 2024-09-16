@@ -260,4 +260,106 @@ public class CSharpPreprocessorTest() : ParserTestBase(layer: TestProject.Layer.
             @{ #endif }
             """);
     }
+
+    [Fact]
+    public void UsingStatementResults()
+    {
+        ParseDocumentTest("""
+            @using (var test = blah)
+            #if true
+            {
+            #endif
+            }
+            """);
+    }
+
+    [Fact]
+    public void IfStatementAfterIf()
+    {
+        ParseDocumentTest("""
+            @if (true)
+            #if true
+            {
+            #endif
+            }
+            """);
+    }
+
+    [Fact]
+    public void IfStatementAfterIfBlock()
+    {
+        ParseDocumentTest("""
+            @if (true)
+            {
+            #if true
+            }
+            #endif
+            """);
+    }
+
+    [Fact]
+    public void IfStatementAfterIfBeforeElseIf()
+    {
+        ParseDocumentTest("""
+            @if (true)
+            {
+            }
+            #if true
+            else if (false)
+            #endif
+            {
+            }
+            """);
+    }
+
+    [Fact]
+    public void IfStatementAfterElseIf()
+    {
+        ParseDocumentTest("""
+            @if (true)
+            {
+            }
+            else if (false)
+            #if true
+            {
+            #endif
+            }
+            """);
+    }
+
+    [Fact]
+    public void IfStatementAfterElseIfBeforeElse()
+    {
+        ParseDocumentTest("""
+            @if (true)
+            {
+            }
+            else if (false)
+            {
+            }
+            #if true
+            else
+            #endif
+            {
+            }
+            """);
+    }
+
+    [Fact]
+    public void IfStatementAfterElse()
+    {
+        ParseDocumentTest("""
+            @if (true)
+            {
+            }
+            else if (false)
+            {
+            }
+            else
+            #if true
+            {
+            #endif
+            }
+            """);
+    }
 }
