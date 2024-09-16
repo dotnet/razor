@@ -70,9 +70,9 @@ internal sealed class FormattingContext
             if (_csharpWorkspaceDocument is null)
             {
                 var workspace = CSharpWorkspace;
-                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp);
                 var csharpSourceText = CodeDocument.GetCSharpSourceText();
-                _csharpWorkspaceDocument = workspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
+                _csharpWorkspaceDocument = project.AddDocument("TestDocument", csharpSourceText);
             }
 
             return _csharpWorkspaceDocument;
