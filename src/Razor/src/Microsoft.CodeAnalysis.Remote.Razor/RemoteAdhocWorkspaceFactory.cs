@@ -7,17 +7,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Export(typeof(IAdhocWorkspaceFactory)), Shared]
-internal sealed class RemoteAdhocWorkspaceFactory() : IAdhocWorkspaceFactory
+internal sealed class RemoteAdhocWorkspaceFactory(IHostServicesProvider hostServicesProvider) : AdhocWorkspaceFactory(hostServicesProvider)
 {
-    public AdhocWorkspace Create()
-    {
-        var hostServices = RemoteWorkspaceAccessor.GetWorkspace().Services.HostServices;
-
-        var services = AdhocServices.Create(
-            workspaceServices: [],
-            languageServices: [],
-            fallbackServices: hostServices);
-
-        return new AdhocWorkspace(services);
-    }
 }

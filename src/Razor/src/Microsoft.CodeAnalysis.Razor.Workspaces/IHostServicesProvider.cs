@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal interface IHostServicesProvider
 {
