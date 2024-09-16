@@ -5,11 +5,11 @@ using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -27,7 +27,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
             [||]public class Foo { }
             }
             """;
-        using var context = CreateFormattingContext(source);
+        var context = CreateFormattingContext(source);
         var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
         var input = edits;
         var pass = GetPass();
@@ -49,7 +49,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
             public class Foo { }
             }
             """;
-        using var context = CreateFormattingContext(source);
+        var context = CreateFormattingContext(source);
         var badEdit = new TextChange(source.Span, "@ "); // Creates a diagnostic
         var pass = GetPass();
 
@@ -82,13 +82,14 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
             InsertSpaces = insertSpaces,
         };
 
+        using var adhocWorkspaceFactory = new AdhocWorkspaceFactory(new DefaultHostServicesProvider());
         var context = FormattingContext.Create(
             uri,
             documentSnapshot,
             codeDocument,
             options,
             new LspFormattingCodeDocumentProvider(),
-            TestAdhocWorkspaceFactory.Instance);
+            adhocWorkspaceFactory);
         return context;
     }
 

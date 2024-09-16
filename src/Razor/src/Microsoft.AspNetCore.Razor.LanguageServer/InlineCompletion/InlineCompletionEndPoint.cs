@@ -29,7 +29,7 @@ internal sealed class InlineCompletionEndpoint(
     IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IFormattingCodeDocumentProvider formattingCodeDocumentProvider,
-    IAdhocWorkspaceFactory adhocWorkspaceFactory,
+    IHostServicesProvider hostServicesProvider,
     RazorLSPOptionsMonitor optionsMonitor,
     ILoggerFactory loggerFactory)
     : IRazorRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>, ICapabilitiesProvider
@@ -39,10 +39,10 @@ internal sealed class InlineCompletionEndpoint(
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-    private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IClientConnection _clientConnection = clientConnection;
     private readonly IFormattingCodeDocumentProvider _formattingCodeDocumentProvider = formattingCodeDocumentProvider;
-    private readonly IAdhocWorkspaceFactory _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
+    private readonly IHostServicesProvider _hostServicesProvider = hostServicesProvider;
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();
 
@@ -128,13 +128,14 @@ internal sealed class InlineCompletionEndpoint(
             }
 
             var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
-            using var formattingContext = FormattingContext.Create(
+            using var adhocWorkspaceFactory = new AdhocWorkspaceFactory(_hostServicesProvider);
+            var formattingContext = FormattingContext.Create(
                 request.TextDocument.Uri,
                 documentContext.Snapshot,
                 codeDocument,
                 options,
                 _formattingCodeDocumentProvider,
-                _adhocWorkspaceFactory);
+                adhocWorkspaceFactory);
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;

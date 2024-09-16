@@ -7,11 +7,10 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class LspWorkspaceProvider(IAdhocWorkspaceFactory workspaceFactory) : IWorkspaceProvider, IDisposable
+internal sealed class LspWorkspaceProvider(IHostServicesProvider hostServicesProvider) : IWorkspaceProvider, IDisposable
 {
-    private readonly IAdhocWorkspaceFactory _workspaceFactory = workspaceFactory;
+    private readonly AdhocWorkspaceFactory _workspaceFactory = new AdhocWorkspaceFactory(hostServicesProvider);
 
-    private Workspace? _workspace;
     private bool _disposed;
 
     void IDisposable.Dispose()
@@ -21,7 +20,7 @@ internal sealed class LspWorkspaceProvider(IAdhocWorkspaceFactory workspaceFacto
             return;
         }
 
-        _workspace?.Dispose();
+        _workspaceFactory.Dispose();
         _disposed = true;
     }
 
@@ -32,6 +31,6 @@ internal sealed class LspWorkspaceProvider(IAdhocWorkspaceFactory workspaceFacto
             throw new ObjectDisposedException(nameof(LspWorkspaceProvider));
         }
 
-        return _workspace ??= _workspaceFactory.Create();
+        return _workspaceFactory.GetOrCreate();
     }
 }

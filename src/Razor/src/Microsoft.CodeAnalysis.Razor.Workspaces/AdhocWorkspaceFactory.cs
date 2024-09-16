@@ -1,11 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-internal class AdhocWorkspaceFactory(IHostServicesProvider hostServicesProvider) : IAdhocWorkspaceFactory
+internal sealed class AdhocWorkspaceFactory(IHostServicesProvider hostServicesProvider) : IDisposable
 {
-    public AdhocWorkspace Create()
+    private readonly Lazy<AdhocWorkspace> _lazyWorkspace = new(() => CreateWorkspace(hostServicesProvider));
+
+    private static AdhocWorkspace CreateWorkspace(IHostServicesProvider hostServicesProvider)
     {
         var fallbackServices = hostServicesProvider.GetServices();
         var services = AdhocServices.Create(
@@ -14,5 +18,18 @@ internal class AdhocWorkspaceFactory(IHostServicesProvider hostServicesProvider)
             fallbackServices);
 
         return new AdhocWorkspace(services);
+    }
+
+    public AdhocWorkspace GetOrCreate()
+    {
+        return _lazyWorkspace.Value;
+    }
+
+    public void Dispose()
+    {
+        if (_lazyWorkspace.IsValueCreated)
+        {
+            _lazyWorkspace.Value.Dispose();
+        }
     }
 }

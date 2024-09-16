@@ -30,7 +30,7 @@ internal class RazorFormattingService : IRazorFormattingService
     private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
 
     private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
-    private readonly IAdhocWorkspaceFactory _workspaceFactory;
+    private readonly IHostServicesProvider _hostServicesProvider;
 
     private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
     private readonly ImmutableArray<IFormattingPass> _validationPasses;
@@ -40,11 +40,11 @@ internal class RazorFormattingService : IRazorFormattingService
     public RazorFormattingService(
         IFormattingCodeDocumentProvider codeDocumentProvider,
         IDocumentMappingService documentMappingService,
-        IAdhocWorkspaceFactory workspaceFactory,
+        IHostServicesProvider hostServicesProvider,
         ILoggerFactory loggerFactory)
     {
         _codeDocumentProvider = codeDocumentProvider;
-        _workspaceFactory = workspaceFactory;
+        _hostServicesProvider = hostServicesProvider;
 
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
         _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, loggerFactory);
@@ -97,13 +97,14 @@ internal class RazorFormattingService : IRazorFormattingService
         var uri = documentContext.Uri;
         var documentSnapshot = documentContext.Snapshot;
         var hostDocumentVersion = documentContext.Snapshot.Version;
-        using var context = FormattingContext.Create(
+        using var adhocWorkspaceFactory = new AdhocWorkspaceFactory(_hostServicesProvider);
+        var context = FormattingContext.Create(
             uri,
             documentSnapshot,
             codeDocument,
             options,
             _codeDocumentProvider,
-            _workspaceFactory);
+            adhocWorkspaceFactory);
         var originalText = context.SourceText;
 
         var result = htmlChanges;
@@ -225,14 +226,15 @@ internal class RazorFormattingService : IRazorFormattingService
         var documentSnapshot = documentContext.Snapshot;
         var uri = documentContext.Uri;
         var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(documentSnapshot).ConfigureAwait(false);
-        using var context = FormattingContext.CreateForOnTypeFormatting(
+        using var adhocWorkspaceFactory = new AdhocWorkspaceFactory(_hostServicesProvider);
+        var context = FormattingContext.CreateForOnTypeFormatting(
             uri,
             documentSnapshot,
             codeDocument,
             options,
             _codeDocumentProvider,
-            _workspaceFactory,
-            automaticallyAddUsings: automaticallyAddUsings,
+            adhocWorkspaceFactory,
+            automaticallyAddUsings,
             hostDocumentIndex,
             triggerCharacter);
         var result = generatedDocumentChanges;

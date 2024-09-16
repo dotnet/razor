@@ -18,20 +18,19 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class FormattingContext : IDisposable
+internal sealed class FormattingContext
 {
-    private readonly IAdhocWorkspaceFactory _workspaceFactory;
+    private readonly AdhocWorkspaceFactory _workspaceFactory;
     private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
 
     private Document? _csharpWorkspaceDocument;
-    private AdhocWorkspace? _csharpWorkspace;
 
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
     private FormattingContext(
         IFormattingCodeDocumentProvider codeDocumentProvider,
-        IAdhocWorkspaceFactory workspaceFactory,
+        AdhocWorkspaceFactory workspaceFactory,
         Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
@@ -83,7 +82,7 @@ internal sealed class FormattingContext : IDisposable
         }
     }
 
-    public AdhocWorkspace CSharpWorkspace => _csharpWorkspace ??= _workspaceFactory.Create();
+    public AdhocWorkspace CSharpWorkspace => _workspaceFactory.GetOrCreate();
 
     /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
     /// <remarks>
@@ -252,15 +251,6 @@ internal sealed class FormattingContext : IDisposable
         return false;
     }
 
-    public void Dispose()
-    {
-        _csharpWorkspace?.Dispose();
-        if (_csharpWorkspaceDocument != null)
-        {
-            _csharpWorkspaceDocument = null;
-        }
-    }
-
     public async Task<FormattingContext> WithTextAsync(SourceText changedText)
     {
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
@@ -307,7 +297,7 @@ internal sealed class FormattingContext : IDisposable
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
         IFormattingCodeDocumentProvider codeDocumentProvider,
-        IAdhocWorkspaceFactory workspaceFactory,
+        AdhocWorkspaceFactory workspaceFactory,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
         char triggerCharacter)
@@ -330,7 +320,7 @@ internal sealed class FormattingContext : IDisposable
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
         IFormattingCodeDocumentProvider codeDocumentProvider,
-        IAdhocWorkspaceFactory workspaceFactory)
+        AdhocWorkspaceFactory workspaceFactory)
     {
         return new FormattingContext(
             codeDocumentProvider,
