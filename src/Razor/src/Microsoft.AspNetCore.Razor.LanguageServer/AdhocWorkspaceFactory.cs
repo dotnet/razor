@@ -11,14 +11,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal sealed class AdhocWorkspaceFactory(IHostServicesProvider hostServicesProvider) : IAdhocWorkspaceFactory
 {
-    public AdhocWorkspace Create(params IWorkspaceService[] workspaceServices)
+    public AdhocWorkspace Create()
     {
-        workspaceServices ??= [];
-
         var fallbackServices = hostServicesProvider.GetServices();
         var services = AdhocServices.Create(
-            workspaceServices: workspaceServices.ToImmutableArray(),
-            languageServices: ImmutableArray<ILanguageService>.Empty,
+            workspaceServices: [],
+            languageServices: [],
             fallbackServices);
 
         return new AdhocWorkspace(services);
