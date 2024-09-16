@@ -4,18 +4,16 @@
 using System;
 using System.Composition;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 [Export(typeof(DocumentSnapshotFactory)), Shared]
 [method: ImportingConstructor]
-internal class DocumentSnapshotFactory(Lazy<ProjectSnapshotFactory> projectSnapshotFactory, IFilePathService filePathService)
+internal class DocumentSnapshotFactory(Lazy<ProjectSnapshotFactory> projectSnapshotFactory)
 {
     private static readonly ConditionalWeakTable<TextDocument, RemoteDocumentSnapshot> s_documentSnapshots = new();
 
     private readonly Lazy<ProjectSnapshotFactory> _projectSnapshotFactory = projectSnapshotFactory;
-    private readonly IFilePathService _filePathService = filePathService;
 
     public RemoteDocumentSnapshot GetOrCreate(TextDocument textDocument)
     {
@@ -23,8 +21,9 @@ internal class DocumentSnapshotFactory(Lazy<ProjectSnapshotFactory> projectSnaps
         {
             if (!s_documentSnapshots.TryGetValue(textDocument, out var documentSnapshot))
             {
-                var projectSnapshot = _projectSnapshotFactory.Value.GetOrCreate(textDocument.Project);
-                documentSnapshot = new RemoteDocumentSnapshot(textDocument, projectSnapshot, _filePathService);
+                var projectSnapshotFactory = _projectSnapshotFactory.Value;
+                var projectSnapshot = projectSnapshotFactory.GetOrCreate(textDocument.Project);
+                documentSnapshot = new RemoteDocumentSnapshot(textDocument, projectSnapshot, projectSnapshotFactory);
                 s_documentSnapshots.Add(textDocument, documentSnapshot);
             }
 

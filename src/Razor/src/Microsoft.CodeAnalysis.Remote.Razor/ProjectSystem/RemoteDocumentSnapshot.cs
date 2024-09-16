@@ -7,16 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot, IFilePathService filePathService) : IDocumentSnapshot
+internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot, ProjectSnapshotFactory projectSnapshotFactory) : IDocumentSnapshot
 {
     private readonly TextDocument _textDocument = textDocument;
     private readonly RemoteProjectSnapshot _projectSnapshot = projectSnapshot;
-    private readonly IFilePathService _filePathService = filePathService;
+    private readonly ProjectSnapshotFactory _projectSnapshotFactory = projectSnapshotFactory;
 
     // TODO: Delete this field when the source generator is hooked up
     private Document? _generatedDocument;
@@ -63,8 +62,10 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
     {
         var id = _textDocument.Id;
         var newDocument = _textDocument.Project.Solution.WithAdditionalDocumentText(id, text).GetAdditionalDocument(id).AssumeNotNull();
+        var project = newDocument.Project;
+        var projectSnapshot = _projectSnapshotFactory.GetOrCreate(project);
 
-        return new RemoteDocumentSnapshot(newDocument, _projectSnapshot, _filePathService);
+        return new RemoteDocumentSnapshot(newDocument, projectSnapshot, _projectSnapshotFactory);
     }
 
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
