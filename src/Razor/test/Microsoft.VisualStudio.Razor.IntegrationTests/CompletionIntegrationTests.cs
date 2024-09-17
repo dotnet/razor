@@ -17,55 +17,221 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     [IdeFact]
     public async Task SnippetCompletion_Html()
     {
+        await VerifyTypeAndCommitCompletionAsync(
+            input: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                <h1>Test</h1>
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            output: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                <h1>Test</h1>
+                <dl>
+                    <dt></dt>
+                    <dd></dd>
+                </dl>
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            search: "<h1>Test</h1>",
+            stringsToType: ["{ENTER}", "d", "d"]);
+    }
+
+    [IdeFact, WorkItem("https://github.com/dotnet/razor/issues/10787")]
+    public async Task CompletionCommit_HtmlAttributeWithoutValue()
+    {
+        await VerifyTypeAndCommitCompletionAsync(
+            input: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                <button></button>
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            output: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                <button disabled></button>
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            search: "<button",
+            stringsToType: [" ", "d", "i", "s"]);
+    }
+
+    [IdeFact]
+    public async Task CompletionCommit_HtmlAttributeWithValue()
+    {
+        await VerifyTypeAndCommitCompletionAsync(
+            input: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                <button></button>
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            output: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                <button style=""></button>
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            search: "<button",
+            stringsToType: [" ", "s", "t", "y"]);
+    }
+
+    [IdeFact]
+    public async Task CompletionCommit_HtmlTag()
+    {
+        await VerifyTypeAndCommitCompletionAsync(
+            input: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            output: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                <span
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            search: "</PageTitle>",
+            stringsToType: ["{ENTER}", "{ENTER}", "<", "s", "p", "a"]);
+    }
+
+    [IdeFact]
+    public async Task CompletionCommit_CSharp()
+    {
+        await VerifyTypeAndCommitCompletionAsync(
+            input: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                @code {
+                    private int myCurrentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        myCurrentCount++;
+                    }
+                }
+                """,
+            output: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                @code {
+                    private int myCurrentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        myCurrentCount++;
+
+                        myCurrentCount
+                    }
+                }
+                """,
+            search: "myCurrentCount++;",
+            stringsToType: ["{ENTER}", "{ENTER}", "m", "y", "C", "u", "r"]);
+    }
+
+    private async Task VerifyTypeAndCommitCompletionAsync(string input, string output, string search, string[] stringsToType)
+    {
         await TestServices.SolutionExplorer.AddFileAsync(
             RazorProjectConstants.BlazorProjectName,
             "Test.razor",
-            """
-@page "Test"
-
-<PageTitle>Test</PageTitle>
-
-<h1>Test</h1>
-
-@code {
-    private int currentCount = 0;
-
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-""",
+            input,
             open: true,
             ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
-        await TestServices.Editor.PlaceCaretAsync("<h1>Test</h1>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
-        TestServices.Input.Send("{ENTER}");
-        TestServices.Input.Send("d");
-        TestServices.Input.Send("d");
+        await TestServices.Editor.PlaceCaretAsync(search, charsOffset: 1, ControlledHangMitigatingCancellationToken);
+        foreach (var stringToType in stringsToType)
+        {
+            TestServices.Input.Send(stringToType);
+        }
 
-        await CommitCompletionAndVerifyAsync("""
-@page "Test"
-
-<PageTitle>Test</PageTitle>
-
-<h1>Test</h1>
-<dl>
-    <dt></dt>
-    <dd></dd>
-</dl>
-
-@code {
-    private int currentCount = 0;
-
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-""");
+        await CommitCompletionAndVerifyAsync(output);
     }
 
     [IdeFact]

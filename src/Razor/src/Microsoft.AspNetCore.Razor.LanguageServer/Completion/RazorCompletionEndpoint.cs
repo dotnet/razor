@@ -36,6 +36,10 @@ internal class RazorCompletionEndpoint(
         {
             ResolveProvider = true,
             TriggerCharacters = _completionListProvider.AggregateTriggerCharacters.ToArray(),
+            // This is the intersection of C# and HTML commit characters.
+            // We need to specify it so that platform can correctly calculate ApplicableToSpan
+            // See https://github.com/dotnet/razor/issues/10787
+            AllCommitCharacters = [" ", ">", ";", "="]
         };
     }
 
