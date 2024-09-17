@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Export(typeof(IHostServicesProvider)), Shared]
-internal sealed class RemoteHostServicesProvider() : IHostServicesProvider
+internal sealed class RemoteHostServicesProvider : IHostServicesProvider
 {
     public HostServices GetServices()
     {
