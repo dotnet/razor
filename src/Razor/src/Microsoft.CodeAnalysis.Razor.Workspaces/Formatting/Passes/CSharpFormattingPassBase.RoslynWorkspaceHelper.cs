@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal abstract partial class CSharpFormattingPassBase
 {
-    protected class RoslynWorkspaceHelper(IHostServicesProvider hostServicesProvider) : IDisposable
+    protected sealed class RoslynWorkspaceHelper(IHostServicesProvider hostServicesProvider) : IDisposable
     {
         private readonly Lazy<AdhocWorkspace> _lazyWorkspace = new(() => CreateWorkspace(hostServicesProvider));
 
