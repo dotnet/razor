@@ -13,4 +13,7 @@ internal class RazorProximityExpressionsParams
 
     [JsonPropertyName("position")]
     public required Position Position { get; init; }
+
+    [JsonPropertyName("hostDocumentSyncVersion")]
+    public required long HostDocumentSyncVersion { get; init; }
 }

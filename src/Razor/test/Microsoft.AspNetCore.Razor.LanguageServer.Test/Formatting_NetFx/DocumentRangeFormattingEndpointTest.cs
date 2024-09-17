@@ -21,12 +21,15 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
 
+        var htmlFormatter = new TestHtmlFormatter();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentRangeFormattingEndpoint(
-            formattingService, optionsMonitor);
+            formattingService, htmlFormatter, optionsMonitor);
         var @params = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri, }
+            TextDocument = new TextDocumentIdentifier { Uri = uri, },
+            Options = new FormattingOptions(),
+            Range = VsLspFactory.DefaultRange
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -44,7 +47,8 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         // Arrange
         var formattingService = new DummyRazorFormattingService();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var htmlFormatter = new TestHtmlFormatter();
+        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, htmlFormatter, optionsMonitor);
         var uri = new Uri("file://path/test.razor");
         var @params = new DocumentRangeFormattingParams()
         {
@@ -70,7 +74,8 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var htmlFormatter = new TestHtmlFormatter();
+        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, htmlFormatter, optionsMonitor);
         var @params = new DocumentRangeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, }
@@ -90,7 +95,8 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         // Arrange
         var formattingService = new DummyRazorFormattingService();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
-        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var htmlFormatter = new TestHtmlFormatter();
+        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, htmlFormatter, optionsMonitor);
         var @params = new DocumentRangeFormattingParams();
         var requestContext = CreateRazorRequestContext(documentContext: null);
 

@@ -83,9 +83,8 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
                     TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
                         Uri = new Uri(documentPath),
-                        Version = 1
                     },
-                    Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo ~~~~~~~~~~~~~~~ Bar")]
+                    Edits = [VsLspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")]
                 }
             }
         };
@@ -110,7 +109,6 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
                             TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
                                 Uri = new Uri("c:/Test.razor.html"),
-                                Version = 1
                             },
                             Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                         }
@@ -153,7 +151,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
+            document.GetGeneratedOutputAsync(It.IsAny<bool>()) == Task.FromResult(codeDocument) &&
             document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text) &&
             document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers), MockBehavior.Strict);
 

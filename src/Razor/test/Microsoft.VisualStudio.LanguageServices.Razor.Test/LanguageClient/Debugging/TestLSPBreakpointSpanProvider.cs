@@ -15,7 +15,7 @@ using LspRange = Roslyn.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
-internal class TestLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
+internal class TestLSPBreakpointSpanProvider : ILSPBreakpointSpanProvider
 {
     private readonly Uri _documentUri;
     private readonly IReadOnlyDictionary<Position, LspRange> _mappings;
@@ -36,7 +36,7 @@ internal class TestLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
         _mappings = mappings;
     }
 
-    public override Task<LspRange> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+    public Task<LspRange> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, long hostDocumentSyncVersion, Position position, CancellationToken cancellationToken)
     {
         if (documentSnapshot.Uri != _documentUri)
         {

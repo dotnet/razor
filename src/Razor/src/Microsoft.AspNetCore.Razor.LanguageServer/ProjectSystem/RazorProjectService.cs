@@ -36,7 +36,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
     private readonly IRazorProjectInfoDriver _projectInfoDriver;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
-    private readonly IDocumentVersionCache _documentVersionCache;
     private readonly ILogger _logger;
 
     private readonly CancellationTokenSource _disposeTokenSource;
@@ -45,14 +44,12 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
     public RazorProjectService(
         IProjectSnapshotManager projectManager,
         IRazorProjectInfoDriver projectInfoDriver,
-        IDocumentVersionCache documentVersionCache,
         RemoteTextLoaderFactory remoteTextLoaderFactory,
         ILoggerFactory loggerFactory)
     {
         _projectInfoDriver = projectInfoDriver;
         _projectManager = projectManager;
         _remoteTextLoaderFactory = remoteTextLoaderFactory;
-        _documentVersionCache = documentVersionCache;
         _logger = loggerFactory.GetOrCreateLogger<RazorProjectService>();
 
         // We kick off initialization immediately to ensure that the IRazorProjectService
@@ -159,16 +156,16 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
     private void AddDocumentToMiscProjectCore(ProjectSnapshotManager.Updater updater, string filePath)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
+        _logger.LogDebug($"Asked to add {textDocumentPath} to the miscellaneous files project, because we don't have project info (yet?)");
 
-        _logger.LogDebug($"Adding {filePath} to the miscellaneous files project, because we don't have project info (yet?)");
-        var miscFilesProject = _projectManager.GetMiscellaneousProject();
-
-        if (miscFilesProject.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not null)
+        if (_projectManager.TryResolveDocumentInAnyProject(textDocumentPath, _logger, out var document))
         {
-            // Document already added. This usually occurs when VSCode has already pre-initialized
-            // open documents and then we try to manually add all known razor documents.
+            // Already in a known project, so we don't want it in the misc files project
+            _logger.LogDebug($"File {textDocumentPath} is already in {document.Project.Key}, so we're not adding it to the miscellaneous files project");
             return;
         }
+
+        var miscFilesProject = _projectManager.GetMiscellaneousProject();
 
         // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
         var normalizedTargetFilePath = textDocumentPath.Replace('/', '\\').TrimStart('\\');
@@ -176,12 +173,12 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
         var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
 
-        _logger.LogInformation($"Adding document '{filePath}' to project '{miscFilesProject.Key}'.");
+        _logger.LogInformation($"Adding document '{textDocumentPath}' to project '{miscFilesProject.Key}'.");
 
         updater.DocumentAdded(miscFilesProject.Key, hostDocument, textLoader);
     }
 
-    public async Task OpenDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
+    public async Task OpenDocumentAsync(string filePath, SourceText sourceText, CancellationToken cancellationToken)
     {
         await WaitForInitializationAsync().ConfigureAwait(false);
 
@@ -207,14 +204,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     {
                         _logger.LogInformation($"Opening document '{textDocumentPath}' in project '{projectSnapshot.Key}'.");
                         updater.DocumentOpened(projectSnapshot.Key, textDocumentPath, sourceText);
-                    });
-
-                // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
-                ActOnDocumentInMultipleProjects(
-                    filePath,
-                    (projectSnapshot, textDocumentPath) =>
-                    {
-                        TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: true);
                     });
             },
             cancellationToken)
@@ -289,7 +278,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             .ConfigureAwait(false);
     }
 
-    public async Task UpdateDocumentAsync(string filePath, SourceText sourceText, int version, CancellationToken cancellationToken)
+    public async Task UpdateDocumentAsync(string filePath, SourceText sourceText, CancellationToken cancellationToken)
     {
         await WaitForInitializationAsync().ConfigureAwait(false);
 
@@ -303,14 +292,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                         _logger.LogTrace($"Updating document '{textDocumentPath}' in {project.Key}.");
 
                         updater.DocumentChanged(project.Key, textDocumentPath, sourceText);
-                    });
-
-                // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
-                ActOnDocumentInMultipleProjects(
-                    filePath,
-                    (projectSnapshot, textDocumentPath) =>
-                    {
-                        TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: false);
                     });
             },
             cancellationToken)
@@ -670,22 +651,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             _logger.LogInformation($"Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.");
 
             updater.DocumentAdded(projectSnapshot.Key, newHostDocument, textLoader);
-        }
-    }
-
-    private void TrackDocumentVersion(IProjectSnapshot projectSnapshot, string textDocumentPath, int version, bool startGenerating)
-    {
-        if (projectSnapshot.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not { } documentSnapshot)
-        {
-            return;
-        }
-
-        _documentVersionCache.TrackDocumentVersion(documentSnapshot, version);
-
-        if (startGenerating)
-        {
-            // Start generating the C# for the document so it can immediately be ready for incoming requests.
-            documentSnapshot.GetGeneratedOutputAsync().Forget();
         }
     }
 }

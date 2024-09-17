@@ -21,14 +21,20 @@ internal static class RazorServices
             (typeof(IRemoteUriPresentationService), null),
             (typeof(IRemoteFoldingRangeService), null),
             (typeof(IRemoteDocumentHighlightService), null),
+            (typeof(IRemoteAutoInsertService), null),
+            (typeof(IRemoteFormattingService), null),
+            (typeof(IRemoteSpellCheckService), null),
         ];
 
     // Internal for testing
     internal static readonly IEnumerable<(Type, Type?)> JsonServices =
         [
+            (typeof(IRemoteGoToDefinitionService), null),
             (typeof(IRemoteSignatureHelpService), null),
             (typeof(IRemoteInlayHintService), null),
+            (typeof(IRemoteDocumentSymbolService), null),
             (typeof(IRemoteRenameService), null),
+            (typeof(IRemoteGoToImplementationService), null),
         ];
 
     private const string ComponentName = "Razor";

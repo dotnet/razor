@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -26,7 +26,14 @@ public partial class OnAutoInsertEndpointTest
         var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider]),
+            optionsMonitor,
+            formattingService,
+            LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -68,7 +75,14 @@ public partial class OnAutoInsertEndpointTest
             ResolvedTextEdit = LspFactory.CreateTextEdit(position: (0, 0), string.Empty)
         };
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider1, insertProvider2], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider1, insertProvider2]),
+            optionsMonitor,
+            formattingService,
+            LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -113,7 +127,14 @@ public partial class OnAutoInsertEndpointTest
             ResolvedTextEdit = LspFactory.CreateTextEdit(position: (0, 0), string.Empty)
         };
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider1, insertProvider2], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider1, insertProvider2]),
+            optionsMonitor,
+            formattingService,
+            LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -150,7 +171,14 @@ public partial class OnAutoInsertEndpointTest
         var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider(">", canResolve: false);
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider]),
+            optionsMonitor,
+            formattingService,
+            LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -185,7 +213,14 @@ public partial class OnAutoInsertEndpointTest
         var optionsMonitor = GetOptionsMonitor(formatOnType: false);
         var insertProvider = new TestOnAutoInsertProvider("<", canResolve: false);
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider]),
+            optionsMonitor,
+            formattingService,
+            LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -218,7 +253,14 @@ public partial class OnAutoInsertEndpointTest
         var optionsMonitor = GetOptionsMonitor(autoInsertAttributeQuotes: false);
         var insertProvider = new TestOnAutoInsertProvider("<", canResolve: false);
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider]),
+            optionsMonitor,
+            formattingService,
+            LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -356,7 +398,14 @@ public partial class OnAutoInsertEndpointTest
         var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider("!!!", canResolve: false);
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, languageServer, [insertProvider], optionsMonitor, TestAdhocWorkspaceFactory.Instance, formattingService, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(
+            LanguageServerFeatureOptions,
+            DocumentMappingService,
+            languageServer,
+            new AutoInsertService([insertProvider]),
+            optionsMonitor,
+            formattingService,
+            LoggerFactory);
 
         var text = codeDocument.Source.Text;
         var @params = new VSInternalDocumentOnAutoInsertParams()
@@ -370,7 +419,7 @@ public partial class OnAutoInsertEndpointTest
                 InsertSpaces = true
             },
         };
-        Assert.True(DocumentContextFactory.TryCreateForOpenDocument(@params.TextDocument, out var documentContext));
+        Assert.True(DocumentContextFactory.TryCreate(@params.TextDocument, out var documentContext));
 
         var requestContext = CreateRazorRequestContext(documentContext);
 

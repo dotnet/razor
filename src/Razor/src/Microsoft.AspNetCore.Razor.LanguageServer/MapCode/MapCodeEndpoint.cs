@@ -86,7 +86,7 @@ internal sealed class MapCodeEndpoint(
                 continue;
             }
 
-            if (!_documentContextFactory.TryCreateForOpenDocument(mapping.TextDocument.Uri, out var documentContext))
+            if (!_documentContextFactory.TryCreate(mapping.TextDocument.Uri, out var documentContext))
             {
                 continue;
             }
@@ -132,7 +132,7 @@ internal sealed class MapCodeEndpoint(
         Location[][] locations,
         List<TextDocumentEdit> changes,
         Guid mapCodeCorrelationId,
-        VersionedDocumentContext documentContext,
+        DocumentContext documentContext,
         CancellationToken cancellationToken)
     {
         var syntaxTree = codeToMap.GetSyntaxTree();
@@ -163,7 +163,7 @@ internal sealed class MapCodeEndpoint(
         ImmutableArray<SyntaxNode> nodesToMap,
         Guid mapCodeCorrelationId,
         List<TextDocumentEdit> changes,
-        VersionedDocumentContext documentContext,
+        DocumentContext documentContext,
         CancellationToken cancellationToken)
     {
         var didCalculateCSharpFocusLocations = false;
@@ -358,7 +358,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                if (!_documentContextFactory.TryCreateForOpenDocument(potentialLocation.Uri, out var documentContext))
+                if (!_documentContextFactory.TryCreate(potentialLocation.Uri, out var documentContext))
                 {
                     continue;
                 }

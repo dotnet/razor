@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
+using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.WorkspaceEdit?>;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.WorkspaceEdit?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -25,8 +25,6 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
     }
 
     private readonly IRenameService _renameService = args.ExportProvider.GetExportedValue<IRenameService>();
-    private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
-    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
     private readonly IEditMappingService _editMappingService = args.ExportProvider.GetExportedValue<IEditMappingService>();
 
     public ValueTask<RemoteResponse<WorkspaceEdit?>> GetRenameEditAsync(
@@ -48,10 +46,13 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var generatedDocument = await context.GetGeneratedDocumentAsync(_filePathService, cancellationToken).ConfigureAwait(false);
 
-        var hostDocumentIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position);
-        var positionInfo = _documentMappingService.GetPositionInfo(codeDocument, hostDocumentIndex);
+        if (!TryGetDocumentPositionInfo(codeDocument, position, out var positionInfo))
+        {
+            return NoFurtherHandling;
+        }
+
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
 
         var razorEdit = await _renameService.TryGetRazorRenameEditsAsync(context, positionInfo, newName, cancellationToken).ConfigureAwait(false);
         if (razorEdit is not null)

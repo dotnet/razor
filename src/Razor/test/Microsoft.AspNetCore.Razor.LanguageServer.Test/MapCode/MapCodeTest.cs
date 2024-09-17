@@ -287,7 +287,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             csharpSourceText, csharpDocumentUri, new VSInternalServerCapabilities(), razorSpanMappingService: null, capabilitiesUpdater: null, DisposalToken);
         await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 
-        var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
+        var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument);
         var languageServer = new MapCodeServer(csharpServer, csharpDocumentUri);
         var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
@@ -327,7 +327,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             Mappings = mappings
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(request.Mappings[0].TextDocument!, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(request.Mappings[0].TextDocument!, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act

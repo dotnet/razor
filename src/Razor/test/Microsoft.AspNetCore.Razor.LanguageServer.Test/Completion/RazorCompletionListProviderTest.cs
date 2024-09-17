@@ -363,7 +363,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var documentPath = "C:/path/to/document.cshtml";
         TestFileMarkupParser.GetPosition(documentText, out documentText, out var cursorPosition);
         var codeDocument = CreateCodeDocument(documentText);
-        var documentContext = TestDocumentContext.From(documentPath, codeDocument, hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
 
         // Act
@@ -384,7 +384,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         // Arrange
         var documentPath = "C:/path/to/document.cshtml";
         var codeDocument = CreateCodeDocument("@");
-        var documentContext = TestDocumentContext.From(documentPath, codeDocument, hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
         var completionContext = new VSInternalCompletionContext()
         {
             TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
@@ -417,7 +417,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("@in");
         codeDocument.SetTagHelperContext(tagHelperContext);
-        var documentContext = TestDocumentContext.From(documentPath, codeDocument, hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
         var completionContext = new VSInternalCompletionContext()
         {
@@ -446,7 +446,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("@inje");
         codeDocument.SetTagHelperContext(tagHelperContext);
-        var documentContext = TestDocumentContext.From(documentPath, codeDocument, hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
         var completionContext = new VSInternalCompletionContext()
         {
@@ -474,7 +474,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("@inje");
         codeDocument.SetTagHelperContext(tagHelperContext);
-        var documentContext = TestDocumentContext.From(documentPath, codeDocument, hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
         var completionContext = new VSInternalCompletionContext()
         {
@@ -504,7 +504,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("<");
         codeDocument.SetTagHelperContext(tagHelperContext);
-        var documentContext = TestDocumentContext.From(documentPath, codeDocument, hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
 
         // Act
@@ -534,7 +534,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("<test  ");
         codeDocument.SetTagHelperContext(tagHelperContext);
-        var documentContext = TestDocumentContext.From(documentPath, codeDocument, hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
 
         // Act
@@ -563,7 +563,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("<test  ");
         codeDocument.SetTagHelperContext(tagHelperContext);
-        var documentContext = TestDocumentContext.From(documentPath, codeDocument, hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
 
         // Set up a custom options monitor with desired options
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();

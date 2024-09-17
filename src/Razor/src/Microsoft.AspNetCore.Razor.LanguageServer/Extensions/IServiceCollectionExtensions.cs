@@ -23,9 +23,11 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.SpellCheck;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,22 +56,19 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IOnInitialized>(clientConnection);
     }
 
-    public static void AddFormattingServices(this IServiceCollection services)
+    public static void AddFormattingServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
         // Formatting
         services.AddSingleton<IRazorFormattingService, RazorFormattingService>();
 
-        // Formatting Passes
-        services.AddSingleton<IFormattingPass, HtmlFormattingPass>();
-        services.AddSingleton<IFormattingPass, CSharpFormattingPass>();
-        services.AddSingleton<IFormattingPass, CSharpOnTypeFormattingPass>();
-        services.AddSingleton<IFormattingPass, FormattingDiagnosticValidationPass>();
-        services.AddSingleton<IFormattingPass, FormattingContentValidationPass>();
-        services.AddSingleton<IFormattingPass, RazorFormattingPass>();
+        if (!featureOptions.UseRazorCohostServer)
+        {
+            services.AddSingleton<IHtmlFormatter, HtmlFormatter>();
 
-        services.AddHandlerWithCapabilities<DocumentFormattingEndpoint>();
-        services.AddHandlerWithCapabilities<DocumentOnTypeFormattingEndpoint>();
-        services.AddHandlerWithCapabilities<DocumentRangeFormattingEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentFormattingEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentOnTypeFormattingEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentRangeFormattingEndpoint>();
+        }
     }
 
     public static void AddCompletionServices(this IServiceCollection services)
@@ -158,14 +157,16 @@ internal static class IServiceCollectionExtensions
 
     public static void AddTextDocumentServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
-        services.AddHandlerWithCapabilities<TextDocumentTextPresentationEndpoint>();
         if (!featureOptions.UseRazorCohostServer)
         {
+            services.AddHandlerWithCapabilities<TextDocumentTextPresentationEndpoint>();
             services.AddHandlerWithCapabilities<TextDocumentUriPresentationEndpoint>();
-        }
 
-        services.AddHandlerWithCapabilities<DocumentSpellCheckEndpoint>();
-        services.AddHandler<WorkspaceSpellCheckEndpoint>();
+            services.AddSingleton<ISpellCheckService, SpellCheckService>();
+            services.AddSingleton<ICSharpSpellCheckRangeProvider, LspCSharpSpellCheckRangeProvider>();
+            services.AddHandlerWithCapabilities<DocumentSpellCheckEndpoint>();
+            services.AddHandler<WorkspaceSpellCheckEndpoint>();
+        }
 
         services.AddHandlerWithCapabilities<DocumentDidChangeEndpoint>();
         services.AddHandler<DocumentDidCloseEndpoint>();
@@ -193,9 +194,6 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorStartupService>((services) => (GeneratedDocumentPublisher)services.GetRequiredService<IGeneratedDocumentPublisher>());
         services.AddSingleton<IDocumentContextFactory, DocumentContextFactory>();
         services.AddSingleton(sp => new Lazy<IDocumentContextFactory>(sp.GetRequiredService<IDocumentContextFactory>));
-
-        services.AddSingleton<IDocumentVersionCache, DocumentVersionCache>();
-        services.AddSingleton((services) => (IRazorStartupService)services.GetRequiredService<IDocumentVersionCache>());
 
         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
         services.AddSingleton<IRazorProjectService, RazorProjectService>();

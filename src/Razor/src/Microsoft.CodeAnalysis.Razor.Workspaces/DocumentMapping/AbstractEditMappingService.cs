@@ -25,7 +25,7 @@ internal abstract class AbstractEditMappingService(
         if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
         {
             // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
-            var remappedEdits = await RemapVersionedDocumentEditsAsync(contextDocumentSnapshot, documentEdits, cancellationToken).ConfigureAwait(false);
+            var remappedEdits = await RemapTextDocumentEditsAsync(contextDocumentSnapshot, documentEdits, cancellationToken).ConfigureAwait(false);
 
             return new WorkspaceEdit()
             {
@@ -61,7 +61,7 @@ internal abstract class AbstractEditMappingService(
                 continue;
             }
 
-            if (!TryGetDocumentContext(contextDocumentSnapshot, uri, out var documentContext))
+            if (!TryGetDocumentContext(contextDocumentSnapshot, uri, projectContext: null, out var documentContext))
             {
                 continue;
             }
@@ -106,7 +106,7 @@ internal abstract class AbstractEditMappingService(
         return remappedEdits.ToArray();
     }
 
-    private async Task<TextDocumentEdit[]> RemapVersionedDocumentEditsAsync(IDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit[] documentEdits, CancellationToken cancellationToken)
+    private async Task<TextDocumentEdit[]> RemapTextDocumentEditsAsync(IDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit[] documentEdits, CancellationToken cancellationToken)
     {
         using var remappedDocumentEdits = new PooledArrayBuilder<TextDocumentEdit>(documentEdits.Length);
 
@@ -124,7 +124,7 @@ internal abstract class AbstractEditMappingService(
 
             var razorDocumentUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
 
-            if (!TryGetVersionedDocumentContext(contextDocumentSnapshot, razorDocumentUri, entry.TextDocument.GetProjectContext(), out var documentContext))
+            if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, entry.TextDocument.GetProjectContext(), out var documentContext))
             {
                 continue;
             }
@@ -143,7 +143,6 @@ internal abstract class AbstractEditMappingService(
                 TextDocument = new OptionalVersionedTextDocumentIdentifier()
                 {
                     Uri = razorDocumentUri,
-                    Version = documentContext.Version
                 },
                 Edits = remappedEdits
             });
@@ -152,7 +151,5 @@ internal abstract class AbstractEditMappingService(
         return remappedDocumentEdits.ToArray();
     }
 
-    protected abstract bool TryGetVersionedDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out VersionedDocumentContext? documentContext);
-
-    protected abstract bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, [NotNullWhen(true)] out DocumentContext? documentContext);
+    protected abstract bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext);
 }

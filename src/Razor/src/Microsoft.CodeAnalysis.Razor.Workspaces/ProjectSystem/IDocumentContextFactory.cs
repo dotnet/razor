@@ -11,6 +11,5 @@ internal interface IDocumentContextFactory
     bool TryCreate(
         Uri documentUri,
         VSProjectContext? projectContext,
-        bool versioned,
         [NotNullWhen(true)] out DocumentContext? context);
 }

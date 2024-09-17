@@ -3,8 +3,9 @@
 
 #nullable disable
 
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -14,28 +15,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class RazorFormattingServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
-    public void MergeEdits_ReturnsSingleEditAsExpected()
+    public void MergeChanges_ReturnsSingleEditAsExpected()
     {
         // Arrange
-        var source = @"
-@code {
-public class Foo{}
-}
-";
-        var sourceText = SourceText.From(source);
-        var edits = new[]
-        {
-            LspFactory.CreateTextEdit(LspFactory.CreateSingleLineRange(line: 2, character: 13, length: 3), "Bar"),
-            LspFactory.CreateTextEdit(2, 0, "    ")
-        };
+        TestCode source = """
+            @code {
+            [||]public class [|Foo|]{}
+            }
+            """;
+        var sourceText = SourceText.From(source.Text);
+        var changes = ImmutableArray.CreateRange(
+        [
+            new TextChange(source.Spans[0], "    "),
+            new TextChange(source.Spans[1], "Bar")
+        ]);
 
         // Act
-        var collapsedEdit = RazorFormattingService.MergeEdits(edits, sourceText);
+        var collapsedEdit = RazorFormattingService.MergeChanges(changes, sourceText);
 
         // Assert
-        var multiEditChange = sourceText.WithChanges(edits.Select(sourceText.GetTextChange));
-        var singleEditChange = sourceText.WithChanges(sourceText.GetTextChange(collapsedEdit));
+        var multiEditChange = sourceText.WithChanges(changes);
+        var singleEditChange = sourceText.WithChanges(collapsedEdit);
 
         Assert.Equal(multiEditChange.ToString(), singleEditChange.ToString());
+    }
+
+    [Fact]
+    public void AllTriggerCharacters_IncludesCSharpTriggerCharacters()
+    {
+        foreach (var character in RazorFormattingService.TestAccessor.GetCSharpTriggerCharacterSet())
+        {
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet);
+        }
+    }
+
+    [Fact]
+    public void AllTriggerCharacters_IncludesHtmlTriggerCharacters()
+    {
+        foreach (var character in RazorFormattingService.TestAccessor.GetHtmlTriggerCharacterSet())
+        {
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet);
+        }
     }
 }

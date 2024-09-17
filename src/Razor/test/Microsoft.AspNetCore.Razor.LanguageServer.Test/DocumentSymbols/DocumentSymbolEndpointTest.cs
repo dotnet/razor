@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbols;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -23,7 +24,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
         => VerifyDocumentSymbolsAsync(
             """
             @functions {
-                class {|AspNetCore.test.C:C|}
+                class {|AspNetCoreGeneratedDocument.test.C:C|}
                 {
                     private void {|HandleString(string s):HandleString|}(string s)
                     {
@@ -82,7 +83,8 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
 
         // This test requires the SingleServerSupport to be disabled
         Assert.False(TestLanguageServerFeatureOptions.Instance.SingleServerSupport);
-        var endpoint = new DocumentSymbolEndpoint(languageServer, DocumentMappingService, TestLanguageServerFeatureOptions.Instance);
+        var documentSymbolService = new DocumentSymbolService(DocumentMappingService);
+        var endpoint = new DocumentSymbolEndpoint(languageServer, documentSymbolService, TestLanguageServerFeatureOptions.Instance);
 
         var serverCapabilities = new VSInternalServerCapabilities();
         var clientCapabilities = new VSInternalClientCapabilities();
@@ -101,7 +103,8 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath,
             capabilitiesUpdater: c => c.TextDocument!.DocumentSymbol = new DocumentSymbolSetting() { HierarchicalDocumentSymbolSupport = hierarchical });
 
-        var endpoint = new DocumentSymbolEndpoint(languageServer, DocumentMappingService, TestLanguageServerFeatureOptions.Instance);
+        var documentSymbolService = new DocumentSymbolService(DocumentMappingService);
+        var endpoint = new DocumentSymbolEndpoint(languageServer, documentSymbolService, TestLanguageServerFeatureOptions.Instance);
 
         var request = new DocumentSymbolParams()
         {
@@ -116,7 +119,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
                 }
             }
         };
-        Assert.True(DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument, out var documentContext));
+        Assert.True(DocumentContextFactory.TryCreate(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);

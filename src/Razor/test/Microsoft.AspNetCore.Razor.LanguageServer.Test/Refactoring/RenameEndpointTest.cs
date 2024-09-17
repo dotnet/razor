@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -109,7 +110,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
     public async Task Handle_Rename_FileManipulationNotSupported_ReturnsNull()
     {
         // Arrange
-        var options = StrictMock.Of<LanguageServerFeatureOptions>(o =>
+        var options = StrictMock.Of<LanguageServerFeatureOptions>(static o =>
             o.SupportsFileManipulation == false &&
             o.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false);
         var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync(options);
@@ -117,11 +118,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(2, 1),
+            Position = VsLspFactory.CreatePosition(2, 1),
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -140,11 +141,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(2, 1),
+            Position = VsLspFactory.CreatePosition(2, 1),
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -181,11 +182,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(1, 14),
+            Position = VsLspFactory.CreatePosition(1, 14),
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -204,11 +205,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(1, 0),
+            Position = VsLspFactory.CreatePosition(1, 0),
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -227,11 +228,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(1, 1),
+            Position = VsLspFactory.CreatePosition(1, 1),
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -250,11 +251,34 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(1, 3),
+            Position = VsLspFactory.CreatePosition(1, 3),
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        // Act
+        var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+
+        // Assert
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task Handle_Rename_OnComponentEndTag_ReturnsResult()
+    {
+        // Arrange
+        var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync();
+        var uri = PathUtilities.GetUri(s_componentWithParamFilePath);
+        var request = new RenameParams
+        {
+            TextDocument = new() { Uri = uri },
+            Position = VsLspFactory.CreatePosition(1, 36),
+            NewName = "Test2"
+        };
+
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -273,11 +297,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(1, 10),
+            Position = VsLspFactory.CreatePosition(1, 10),
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -296,11 +320,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(1, 1),
+            Position = VsLspFactory.CreatePosition(1, 1),
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -382,11 +406,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(2, 1),
+            Position = VsLspFactory.CreatePosition(2, 1),
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -428,11 +452,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(1, 1),
+            Position = VsLspFactory.CreatePosition(1, 1),
             NewName = "Component5"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -481,11 +505,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(1, 1),
+            Position = VsLspFactory.CreatePosition(1, 1),
             NewName = "TestComponent"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -514,49 +538,46 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
     public async Task Handle_Rename_SingleServer_CallsDelegatedLanguageServer()
     {
         // Arrange
-        var options = StrictMock.Of<LanguageServerFeatureOptions>(o =>
+        var options = StrictMock.Of<LanguageServerFeatureOptions>(static o =>
             o.SupportsFileManipulation == true &&
             o.SingleServerSupport == true &&
             o.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false);
 
         var delegatedEdit = new WorkspaceEdit();
 
-        var clientConnectionMock = new StrictMock<IClientConnection>();
-        clientConnectionMock
-            .Setup(c => c.SendRequestAsync<IDelegatedParams, WorkspaceEdit>(CustomMessageNames.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(delegatedEdit);
+        var clientConnection = TestMocks.CreateClientConnection(builder =>
+        {
+            builder.SetupSendRequest<IDelegatedParams, WorkspaceEdit>(CustomMessageNames.RazorRenameEndpointName, response: delegatedEdit);
+        });
 
         var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
-        documentMappingServiceMock
-            .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
-            .Returns(RazorLanguageKind.CSharp);
 
         var projectedPosition = new LinePosition(1, 1);
         var projectedIndex = 1;
         documentMappingServiceMock
-            .Setup(c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
+            .Setup(x => x.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
             .Returns(true);
 
         var editMappingServiceMock = new StrictMock<IEditMappingService>();
         editMappingServiceMock
-            .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedEdit);
 
         var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync(
             options,
             documentMappingServiceMock.Object,
             editMappingServiceMock.Object,
-            clientConnectionMock.Object);
+            clientConnection);
 
         var uri = PathUtilities.GetUri(s_componentWithParamFilePath);
         var request = new RenameParams
         {
             TextDocument = new() { Uri = uri },
-            Position = LspFactory.CreatePosition(1, 0),
+            Position = VsLspFactory.CreatePosition(1, 0),
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -570,33 +591,23 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
     public async Task Handle_Rename_SingleServer_DoesNotDelegateForRazor()
     {
         // Arrange
-        var options = StrictMock.Of<LanguageServerFeatureOptions>(o =>
+        var options = StrictMock.Of<LanguageServerFeatureOptions>(static o =>
             o.SupportsFileManipulation == true &&
             o.SingleServerSupport == true &&
             o.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false);
 
-        var clientConnection = StrictMock.Of<IClientConnection>();
-        var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
-        documentMappingServiceMock
-            .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
-            .Returns(RazorLanguageKind.Razor);
+        var documentMappingService = StrictMock.Of<IDocumentMappingService>();
 
-        var editMappingService = StrictMock.Of<IEditMappingService>();
-
-        var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync(
-            options,
-            documentMappingServiceMock.Object,
-            editMappingService,
-            clientConnection);
+        var (endpoint, documentContextFactory) = await CreateEndpointAndDocumentContextFactoryAsync(options, documentMappingService);
 
         var request = new RenameParams
         {
             TextDocument = new() { Uri = PathUtilities.GetUri(s_componentWithParamFilePath) },
-            Position = LspFactory.CreatePosition(1, 0),
+            Position = VsLspFactory.CreatePosition(0, 1), // This is right after the '@' in '@namespace'
             NewName = "Test2"
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(request.TextDocument.Uri, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(request.TextDocument.Uri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -624,8 +635,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
         var projectManager = CreateProjectSnapshotManager();
 
-        var documentVersionCache = new DocumentVersionCache(projectManager);
-        var documentContextFactory = new DocumentContextFactory(projectManager, documentVersionCache, LoggerFactory);
+        var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
         remoteTextLoaderFactoryMock
@@ -640,11 +650,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
                 return textLoaderMock.Object;
             });
 
-        var projectService = new TestRazorProjectService(
-            remoteTextLoaderFactoryMock.Object,
-            documentVersionCache,
-            projectManager,
-            LoggerFactory);
+        var projectService = AddDisposable(
+            new TestRazorProjectService(
+                remoteTextLoaderFactoryMock.Object,
+                projectManager,
+                LoggerFactory));
 
         var projectKey1 = await projectService.AddProjectAsync(
             s_projectFilePath1, s_intermediateOutputPath1, RazorConfiguration.Default, RootNamespace1, displayName: null, DisposalToken);
@@ -661,12 +671,12 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath1337, DisposalToken);
         await projectService.AddDocumentToPotentialProjectsAsync(s_indexFilePath1, DisposalToken);
 
-        await projectService.UpdateDocumentAsync(s_componentFilePath1, SourceText.From(ComponentText1), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_componentFilePath2, SourceText.From(ComponentText2), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_directoryFilePath1, SourceText.From(DirectoryText1), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_directoryFilePath2, SourceText.From(DirectoryText2), version: 4, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_componentFilePath1337, SourceText.From(ComponentText1337), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_indexFilePath1, SourceText.From(IndexText1), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath1, SourceText.From(ComponentText1), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath2, SourceText.From(ComponentText2), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_directoryFilePath1, SourceText.From(DirectoryText1), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_directoryFilePath2, SourceText.From(DirectoryText2), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath1337, SourceText.From(ComponentText1337), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_indexFilePath1, SourceText.From(IndexText1), DisposalToken);
 
         var projectKey2 = await projectService.AddProjectAsync(
             s_projectFilePath2, s_intermediateOutputPath2, RazorConfiguration.Default, RootNamespace2, displayName: null, DisposalToken);
@@ -680,12 +690,12 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath4, DisposalToken);
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentWithParamFilePath, DisposalToken);
 
-        await projectService.UpdateDocumentAsync(s_componentFilePath3, SourceText.From(ComponentText3), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_componentFilePath4, SourceText.From(ComponentText4), version: 42, DisposalToken);
-        await projectService.UpdateDocumentAsync(s_componentWithParamFilePath, SourceText.From(ComponentWithParamText), version: 42, DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath3, SourceText.From(ComponentText3), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentFilePath4, SourceText.From(ComponentText4), DisposalToken);
+        await projectService.UpdateDocumentAsync(s_componentWithParamFilePath, SourceText.From(ComponentWithParamText), DisposalToken);
 
         var searchEngine = new RazorComponentSearchEngine(projectManager, LoggerFactory);
-        options ??= StrictMock.Of<LanguageServerFeatureOptions>(o =>
+        options ??= StrictMock.Of<LanguageServerFeatureOptions>(static o =>
             o.SupportsFileManipulation == true &&
             o.SingleServerSupport == false &&
             o.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false);
@@ -693,9 +703,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         if (documentMappingService == null)
         {
             var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
-            documentMappingServiceMock
-                .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
-                .Returns(RazorLanguageKind.Html);
+
             var projectedPosition = new LinePosition(1, 1);
             var projectedIndex = 1;
             documentMappingServiceMock
