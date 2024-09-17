@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -20,17 +19,13 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal sealed class FormattingContext
 {
-    private readonly AdhocWorkspaceProvider _workspaceProvider;
     private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
-
-    private Document? _csharpWorkspaceDocument;
 
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
     private FormattingContext(
         IFormattingCodeDocumentProvider codeDocumentProvider,
-        AdhocWorkspaceProvider workspaceProvider,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
@@ -39,7 +34,6 @@ internal sealed class FormattingContext
         char triggerCharacter)
     {
         _codeDocumentProvider = codeDocumentProvider;
-        _workspaceProvider = workspaceProvider;
         OriginalSnapshot = originalSnapshot;
         CodeDocument = codeDocument;
         Options = options;
@@ -62,24 +56,6 @@ internal sealed class FormattingContext
     public SourceText CSharpSourceText => CodeDocument.GetCSharpSourceText();
 
     public string NewLineString => Environment.NewLine;
-
-    public Document CSharpWorkspaceDocument
-    {
-        get
-        {
-            if (_csharpWorkspaceDocument is null)
-            {
-                var workspace = CSharpWorkspace;
-                var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp);
-                var csharpSourceText = CodeDocument.GetCSharpSourceText();
-                _csharpWorkspaceDocument = project.AddDocument("TestDocument", csharpSourceText);
-            }
-
-            return _csharpWorkspaceDocument;
-        }
-    }
-
-    public AdhocWorkspace CSharpWorkspace => _workspaceProvider.GetOrCreate();
 
     /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
     /// <remarks>
@@ -258,7 +234,6 @@ internal sealed class FormattingContext
 
         var newContext = new FormattingContext(
             _codeDocumentProvider,
-            _workspaceProvider,
             OriginalSnapshot,
             codeDocument,
             Options,
@@ -292,14 +267,12 @@ internal sealed class FormattingContext
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
         IFormattingCodeDocumentProvider codeDocumentProvider,
-        AdhocWorkspaceProvider workspaceProvider,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
         char triggerCharacter)
     {
         return new FormattingContext(
             codeDocumentProvider,
-            workspaceProvider,
             originalSnapshot,
             codeDocument,
             options,
@@ -312,12 +285,10 @@ internal sealed class FormattingContext
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
-        IFormattingCodeDocumentProvider codeDocumentProvider,
-        AdhocWorkspaceProvider workspaceProvider)
+        IFormattingCodeDocumentProvider codeDocumentProvider)
     {
         return new FormattingContext(
             codeDocumentProvider,
-            workspaceProvider,
             originalSnapshot,
             codeDocument,
             options,

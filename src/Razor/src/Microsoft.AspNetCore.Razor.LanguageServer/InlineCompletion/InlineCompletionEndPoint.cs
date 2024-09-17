@@ -29,7 +29,6 @@ internal sealed class InlineCompletionEndpoint(
     IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IFormattingCodeDocumentProvider formattingCodeDocumentProvider,
-    IHostServicesProvider hostServicesProvider,
     RazorLSPOptionsMonitor optionsMonitor,
     ILoggerFactory loggerFactory)
     : IRazorRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>, ICapabilitiesProvider
@@ -42,7 +41,6 @@ internal sealed class InlineCompletionEndpoint(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientConnection _clientConnection = clientConnection;
     private readonly IFormattingCodeDocumentProvider _formattingCodeDocumentProvider = formattingCodeDocumentProvider;
-    private readonly IHostServicesProvider _hostServicesProvider = hostServicesProvider;
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();
 
@@ -63,10 +61,7 @@ internal sealed class InlineCompletionEndpoint(
 
     public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgHelper.ThrowIfNull(request);
 
         _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
 
@@ -118,7 +113,6 @@ internal sealed class InlineCompletionEndpoint(
         using var items = new PooledArrayBuilder<VSInternalInlineCompletionItem>(list.Items.Length);
         foreach (var item in list.Items)
         {
-            var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
             var range = item.Range ?? projectedPosition.ToZeroWidthRange();
 
             if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
@@ -128,13 +122,11 @@ internal sealed class InlineCompletionEndpoint(
             }
 
             var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
-            using var workspaceProvider = new AdhocWorkspaceProvider(_hostServicesProvider);
             var formattingContext = FormattingContext.Create(
                 documentContext.Snapshot,
                 codeDocument,
                 options,
-                _formattingCodeDocumentProvider,
-                workspaceProvider);
+                _formattingCodeDocumentProvider);
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;

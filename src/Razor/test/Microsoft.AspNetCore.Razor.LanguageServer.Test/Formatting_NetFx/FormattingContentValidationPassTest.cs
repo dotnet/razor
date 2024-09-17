@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
@@ -84,13 +83,11 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             InsertSpaces = insertSpaces,
         };
 
-        using var workspaceProvider = new AdhocWorkspaceProvider(new DefaultHostServicesProvider());
         var context = FormattingContext.Create(
             documentSnapshot,
             codeDocument,
             options,
-            new LspFormattingCodeDocumentProvider(),
-            workspaceProvider);
+            new LspFormattingCodeDocumentProvider());
         return context;
     }
 
