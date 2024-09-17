@@ -224,7 +224,7 @@ internal class RenameService(
         }
     }
 
-    private static TextEdit[] CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
+    private static SumType<TextEdit, AnnotatedTextEdit>[] CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
     {
         var startTagEdit = LspFactory.CreateTextEdit(element.StartTag.Name.GetRange(codeDocument.Source), newName);
 

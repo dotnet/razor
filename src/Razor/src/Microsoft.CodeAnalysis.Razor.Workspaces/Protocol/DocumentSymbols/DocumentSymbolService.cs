@@ -25,12 +25,14 @@ internal class DocumentSymbolService(IDocumentMappingService documentMappingServ
 
             foreach (var symbolInformation in symbolInformations)
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, symbolInformation.Location.Range, out var newRange))
                 {
                     symbolInformation.Location.Range = newRange;
                     symbolInformation.Location.Uri = razorDocumentUri;
                     mappedSymbols.Add(symbolInformation);
                 }
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             return mappedSymbols.ToArray();

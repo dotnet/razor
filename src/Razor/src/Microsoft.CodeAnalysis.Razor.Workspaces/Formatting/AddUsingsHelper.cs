@@ -53,7 +53,7 @@ internal static class AddUsingsHelper
             Debug.Assert(codeDocument.Source.FilePath != null);
             var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath, UriKind.Relative) };
             var workspaceEdit = CreateAddUsingWorkspaceEdit(usingStatement, additionalEdit: null, codeDocument, codeDocumentIdentifier: identifier);
-            edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
+            edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits.Select(e => (TextEdit)e));
         }
 
         return edits.ToArray();
@@ -163,7 +163,7 @@ internal static class AddUsingsHelper
     {
         Debug.Assert(existingUsingDirectives.Count > 0);
 
-        using var edits = new PooledArrayBuilder<TextEdit>();
+        using var edits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
         var newText = $"@using {newUsingNamespace}{Environment.NewLine}";
 
         foreach (var usingDirective in existingUsingDirectives)
