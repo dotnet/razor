@@ -136,15 +136,15 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private static TextDocument CreateProjectAndRazorDocument(CodeAnalysis.Workspace workspace, ProjectId projectId, string projectName, DocumentId documentId, string documentFilePath, string contents, (string fileName, string contents)[]? additionalFiles)
     {
         var projectInfo = ProjectInfo
-                    .Create(
-                        projectId,
-                        VersionStamp.Create(),
-                        name: projectName,
-                        assemblyName: projectName,
-                        LanguageNames.CSharp,
-                        documentFilePath)
-                    .WithDefaultNamespace(TestProjectData.SomeProject.RootNamespace)
-                    .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference));
+            .Create(
+                projectId,
+                VersionStamp.Create(),
+                name: projectName,
+                assemblyName: projectName,
+                LanguageNames.CSharp,
+                documentFilePath)
+            .WithDefaultNamespace(TestProjectData.SomeProject.RootNamespace)
+            .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference));
 
         var solution = workspace.CurrentSolution.AddProject(projectInfo);
 

@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -48,12 +47,10 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         // Yes, CSharpDocument.Documents are the Razor diagnostics. Don't ask.
         var razorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics;
 
-        using var allDiagnostics = new PooledArrayBuilder<LspDiagnostic>(capacity: razorDiagnostics.Length + csharpDiagnostics.Length + htmlDiagnostics.Length);
-
-        allDiagnostics.AddRange(RazorDiagnosticConverter.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot));
-        allDiagnostics.AddRange(await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, csharpDiagnostics, context.Snapshot));
-        allDiagnostics.AddRange(await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, htmlDiagnostics, context.Snapshot));
-
-        return allDiagnostics.DrainToImmutable();
+        return [
+            .. RazorDiagnosticConverter.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot),
+            .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, csharpDiagnostics, context.Snapshot),
+            .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, htmlDiagnostics, context.Snapshot)
+        ];
     }
 }
