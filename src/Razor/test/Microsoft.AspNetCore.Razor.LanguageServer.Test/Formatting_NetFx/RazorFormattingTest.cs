@@ -711,18 +711,18 @@ public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestB
         await RunFormattingTestAsync(
             input: """
                     <div>
-                        @*
-                            <div>
-                                This comment's indentation will be preserved
+                    @* <div>
+                    This comment's opening at-star will be aligned, and the
+                    indentation of the rest of its lines will be preserved.
                             </div>
                         *@
                     </div>
                     """,
             expected: """
                     <div>
-                        @*
-                            <div>
-                                This comment's indentation will be preserved
+                        @* <div>
+                    This comment's opening at-star will be aligned, and the
+                    indentation of the rest of its lines will be preserved.
                             </div>
                         *@
                     </div>

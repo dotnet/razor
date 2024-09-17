@@ -56,16 +56,16 @@ internal abstract class HtmlFormattingPassBase(ILogger logger) : IFormattingPass
 
         using var changesToKeep = new PooledArrayBuilder<TextChange>(capacity: changes.Length);
 
-        for (var i = 0; i < changes.Length; i++)
+        foreach (var change in changes)
         {
             // Don't keep changes that start inside of a razor comment block.
-            var comment = syntaxTree.Root.FindInnermostNode(changes[i].Span.Start)?.FirstAncestorOrSelf<RazorCommentBlockSyntax>();
+            var comment = syntaxTree.Root.FindInnermostNode(change.Span.Start)?.FirstAncestorOrSelf<RazorCommentBlockSyntax>();
             if (comment is not null)
             {
                 continue;
             }
 
-            changesToKeep.Add(changes[i]);
+            changesToKeep.Add(change);
         }
 
         return changesToKeep.DrainToImmutable();
