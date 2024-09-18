@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
@@ -44,7 +45,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 razorLanguageVersion = RazorLanguageVersion.Latest;
             }
 
-            var isComponentParameterSupported = CSharpCompilation.Create("components", references: references).HasAddComponentParameter();
+            var minimalReferences = references
+                .Where(r => r.Display is { } display && display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal))
+                .ToImmutableArray();
+
+            var isComponentParameterSupported = minimalReferences.Length == 0 
+                ? false 
+                : CSharpCompilation.Create("components", references: minimalReferences).HasAddComponentParameter();
 
             var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported);
 

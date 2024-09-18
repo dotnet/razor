@@ -54,7 +54,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     options.SuppressPrimaryMethodBody = true;
                     options.SuppressChecksum = true;
                     options.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
-                    options.SuppressAddComponentParameter = razorSourceGeneratorOptions.Configuration.SuppressAddComponentParameter;
                 }));
 
                 b.SetRootNamespace(razorSourceGeneratorOptions.RootNamespace);
@@ -107,6 +106,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     options.SuppressMetadataSourceChecksumAttributes = !razorSourceGeneratorOptions.GenerateMetadataSourceChecksumAttributes;
                     options.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                     options.SuppressUniqueIds = razorSourceGeneratorOptions.TestSuppressUniqueIds;
+                    options.SuppressAddComponentParameter = razorSourceGeneratorOptions.Configuration.SuppressAddComponentParameter;
                 }));
 
                 CompilerFeatures.Register(b);
