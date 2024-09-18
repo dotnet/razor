@@ -137,6 +137,15 @@ public sealed class RazorCodeGenerationOptionsBuilder
     public string? SuppressUniqueIds { get; set; }
 
     /// <summary>
+    /// Determines whether RenderTreeBuilder.AddComponentParameter should not be used.
+    /// </summary>
+    public bool SuppressAddComponentParameter
+    {
+        get => _flags.IsFlagSet(RazorCodeGenerationOptionsFlags.SuppressAddComponentParameter);
+        set => _flags.UpdateFlag(RazorCodeGenerationOptionsFlags.SuppressAddComponentParameter, value);
+    }
+
+    /// <summary>
     /// Determines if the file paths emitted as part of line pragmas should be mapped back to a valid path on windows.
     /// </summary>
     public bool RemapLinePragmaPathsOnWindows
@@ -150,6 +159,10 @@ public sealed class RazorCodeGenerationOptionsBuilder
         ArgHelper.ThrowIfNull(configuration);
 
         Configuration = configuration;
+        if (configuration.SuppressAddComponentParameter)
+        {
+            _flags.SetFlag(RazorCodeGenerationOptionsFlags.SuppressAddComponentParameter);
+        }
     }
 
     public RazorCodeGenerationOptionsBuilder(RazorCodeGenerationOptionsFlags flags)
