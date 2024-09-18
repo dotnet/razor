@@ -66,9 +66,5 @@ public static class TestWorkspace
         }
 
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(references));
-
-        // Make sure Roslyn is producing diagnostics for our workspace
-        var razorTestAnalyzerLoader = exportProvider.GetExportedValue<RazorTestAnalyzerLoader>();
-        razorTestAnalyzerLoader.InitializeDiagnosticsServices(workspace);
     }
 }
