@@ -177,6 +177,45 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [IdeFact]
+    public async Task CompletionCommit_WithAngleBracket_HtmlTag()
+    {
+        await VerifyTypeAndCommitCompletionAsync(
+            input: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            output: """
+                @page "Test"
+
+                <PageTitle>Test</PageTitle>
+
+                <span></span>
+
+                @code {
+                    private int currentCount = 0;
+
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
+            search: "</PageTitle>",
+            stringsToType: ["{ENTER}", "{ENTER}", "<", "s", "p", "a"],
+            commitChar: '>');
+    }
+
+    [IdeFact]
     public async Task CompletionCommit_CSharp()
     {
         await VerifyTypeAndCommitCompletionAsync(
@@ -214,7 +253,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
             stringsToType: ["{ENTER}", "{ENTER}", "m", "y", "C", "u", "r"]);
     }
 
-    private async Task VerifyTypeAndCommitCompletionAsync(string input, string output, string search, string[] stringsToType)
+    private async Task VerifyTypeAndCommitCompletionAsync(string input, string output, string search, string[] stringsToType, char? commitChar = null)
     {
         await TestServices.SolutionExplorer.AddFileAsync(
             RazorProjectConstants.BlazorProjectName,
@@ -231,7 +270,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
             TestServices.Input.Send(stringToType);
         }
 
-        await CommitCompletionAndVerifyAsync(output);
+        await CommitCompletionAndVerifyAsync(output, commitChar);
     }
 
     [IdeFact]
@@ -391,12 +430,19 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
             """);
     }
 
-    private async Task CommitCompletionAndVerifyAsync(string expected)
+    private async Task CommitCompletionAndVerifyAsync(string expected, char? commitChar = null)
     {
         var session = await TestServices.Editor.WaitForCompletionSessionAsync(HangMitigatingCancellationToken);
 
         Assert.NotNull(session);
-        Assert.True(session.CommitIfUnique(HangMitigatingCancellationToken));
+        if (commitChar.HasValue)
+        {
+            TestServices.Input.Send(commitChar.Value.ToString());
+        }
+        else
+        {
+            Assert.True(session.CommitIfUnique(HangMitigatingCancellationToken));
+        }
 
         var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
         var text = textView.TextBuffer.CurrentSnapshot.GetText();
