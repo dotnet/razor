@@ -131,12 +131,10 @@ internal static class CSharpTestLspServerHelpers
             ? [projectInfoNet60, projectInfoNet80]
             : [projectInfoNet80];
 
-        var solutionInfo = SolutionInfo.Create(
-            id: SolutionId.CreateNewId("TestSolution"),
-            version: VersionStamp.Default,
-            projects: projectInfos);
-
-        workspace.AddSolution(solutionInfo);
+        foreach (var projectInfo in projectInfos)
+        {
+            workspace.AddProject(projectInfo);
+        }
 
         // Add document to workspace. We use an IVT method to create the DocumentInfo variable because there's
         // a special constructor in Roslyn that will help identify the document as belonging to Razor.
