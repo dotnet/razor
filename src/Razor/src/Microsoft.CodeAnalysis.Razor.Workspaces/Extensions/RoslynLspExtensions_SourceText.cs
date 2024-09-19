@@ -30,6 +30,6 @@ internal static partial class RoslynLspExtensions
         => new(text.GetTextSpan(edit.Range), edit.NewText);
 
     public static TextEdit GetTextEdit(this SourceText text, TextChange change)
-        => RoslynLspFactory.CreateTextEdit(text.GetRange(change.Span), change.NewText.AssumeNotNull());
+        => RoslynLspFactory.CreateTextEdit(text.GetRange(change.Span), change.NewText ?? "");
 
 }

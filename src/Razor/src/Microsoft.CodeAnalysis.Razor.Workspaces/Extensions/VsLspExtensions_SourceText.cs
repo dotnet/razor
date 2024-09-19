@@ -46,5 +46,5 @@ internal static partial class VsLspExtensions
         => new(text.GetTextSpan(edit.Range), edit.NewText);
 
     public static TextEdit GetTextEdit(this SourceText text, TextChange change)
-        => VsLspFactory.CreateTextEdit(text.GetRange(change.Span), change.NewText.AssumeNotNull());
+        => VsLspFactory.CreateTextEdit(text.GetRange(change.Span), change.NewText ?? "");
 }
