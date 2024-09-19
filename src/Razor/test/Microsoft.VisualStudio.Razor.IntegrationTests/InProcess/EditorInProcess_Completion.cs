@@ -55,4 +55,43 @@ internal partial class EditorInProcess
 
         return session;
     }
+
+    /// <summary>
+    /// Open completion pop-up window UI and wait for the specified item to be present selected
+    /// </summary>
+    /// <param name="timeOut"></param>
+    /// <param name="selectedItemLabel"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>Completion session that has matching selected item, or null otherwise</returns>
+    public async Task<IAsyncCompletionSession?> OpenCompletionSessionAndWaitForItemAsync(TimeSpan timeOut, string selectedItemLabel, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        // Returns completion session that might or might not be visible in the IDE
+        var session = await WaitForCompletionSessionAsync(timeOut, cancellationToken);
+
+        if (session is null)
+        {
+            return null;
+        }
+
+        var textView = await GetActiveTextViewAsync(cancellationToken);
+        var stopWatch = Stopwatch.StartNew();
+
+        // Actually open the completion pop-up window and force visible items to be computed or re-computed
+        session.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+        while (session.GetComputedItems(cancellationToken).SelectedItem?.DisplayText != selectedItemLabel)
+        {
+            if (stopWatch.ElapsedMilliseconds >= timeOut.TotalMilliseconds)
+            {
+                return null;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+
+            session.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+        }
+
+        return session;
+    }
 }
