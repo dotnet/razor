@@ -117,4 +117,25 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
                 Diagnostic(ErrorCode.ERR_PPDefFollowsToken, "undef").WithLocation(3, 2)
         );
     }
+
+    [IntegrationTestFact]
+    public void StartOfLine_01()
+    {
+        var generated = CompileToCSharp("""
+            @{ #if true }
+            @{ #endif }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+                        // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS1025: Single-line comment or end-of-line expected
+                //    #if true }
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "}").WithLocation(1, 13),
+                // x:\dir\subdir\Test\TestComponent.cshtml(2,11): error CS1025: Single-line comment or end-of-line expected
+                //    #endif }
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "}").WithLocation(2, 11));
+    }
+
+    // PROTOTYPE: More line tests
 }

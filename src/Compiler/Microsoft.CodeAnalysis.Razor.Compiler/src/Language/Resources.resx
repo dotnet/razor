@@ -601,4 +601,7 @@
   <data name="Define_and_undef_cannot_be_used_in_razor_markup" xml:space="preserve">
     <value>'#define' and '#undef' cannot be used in razor markup.</value>
   </data>
+  <data name="Directives_must_be_at_the_start_of_the_line" xml:space="preserve">
+    <value>C# preprocessor directives must be at the start of the line, except for whitespace.</value>
+  </data>
 </root>

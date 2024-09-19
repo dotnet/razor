@@ -372,6 +372,14 @@ internal static class RazorDiagnosticFactory
     public static RazorDiagnostic CreateParsing_DefineAndUndefNotAllowed(SourceSpan location)
         => RazorDiagnostic.Create(Parsing_DefineAndUndefNotAllowed, location);
 
+    internal static readonly RazorDiagnosticDescriptor Parsing_PreprocessorDirectivesMustBeAtTheStartOfLine =
+        new($"{DiagnosticPrefix}1042",
+            Resources.Directives_must_be_at_the_start_of_the_line,
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateParsing_PreprocessorDirectivesMustBeAtTheStartOfLine(SourceSpan location)
+        => RazorDiagnostic.Create(Parsing_PreprocessorDirectivesMustBeAtTheStartOfLine, location);
+
     #endregion
 
     #region Semantic Errors

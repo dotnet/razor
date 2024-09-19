@@ -21,6 +21,7 @@ public enum ErrorCode
     WRN_UnreferencedFieldAssg = 414,
     ERR_SemicolonExpected = 1002,
     ERR_SyntaxError = 1003,
+    ERR_EndOfPPLineExpected = 1025,
     ERR_CloseParenExpected = 1026,
     ERR_TypeExpected = 1031,
     ERR_PPDefFollowsToken = 1032,

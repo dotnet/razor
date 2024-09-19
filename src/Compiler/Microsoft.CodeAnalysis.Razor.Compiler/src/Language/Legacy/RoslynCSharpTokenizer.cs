@@ -520,7 +520,9 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
 
                 if (!_isOnlyWhitespaceOnLine)
                 {
-                    // PROTOTYPE: report error
+                    CurrentErrors.Add(
+                        RazorDiagnosticFactory.CreateParsing_PreprocessorDirectivesMustBeAtTheStartOfLine(
+                            new SourceSpan(CurrentStart, contentLength: trivia.FullSpan.Length)));
                 }
 
                 var directiveTrivia = (DirectiveTriviaSyntax)trivia.GetStructure()!;
