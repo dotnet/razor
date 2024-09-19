@@ -437,6 +437,12 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.NotNull(session);
         if (commitChar.HasValue)
         {
+            // Commit using the specified commit character
+            session.Commit(commitChar.Value, HangMitigatingCancellationToken);
+
+            // session.Commit call above commits as if the commit character was typed,
+            // but doesn't actually insert the character into the buffer.
+            // So we still need to insert the character into the buffer ourselves.
             TestServices.Input.Send(commitChar.Value.ToString());
         }
         else
