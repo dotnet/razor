@@ -1,0 +1,11 @@
+﻿Source Location: (2:0,2 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+#define SomeSymbol
+#undef SomeSymbol
+|
+Generated Location: (987:28,2 [41] )
+|
+#define SomeSymbol
+#undef SomeSymbol
+|
+

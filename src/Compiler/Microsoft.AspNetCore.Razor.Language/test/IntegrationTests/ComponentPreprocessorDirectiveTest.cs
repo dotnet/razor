@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
@@ -93,5 +94,27 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void DefineAndUndef()
+    {
+        var generated = CompileToCSharp("""
+            @{
+            #define SomeSymbol
+            #undef SomeSymbol
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+                // x:\dir\subdir\Test\TestComponent.cshtml(2,2): error CS1032: Cannot define/undefine preprocessor symbols after first token in file
+                // #define SomeSymbol
+                Diagnostic(ErrorCode.ERR_PPDefFollowsToken, "define").WithLocation(2, 2),
+                // x:\dir\subdir\Test\TestComponent.cshtml(3,2): error CS1032: Cannot define/undefine preprocessor symbols after first token in file
+                // #undef SomeSymbol
+                Diagnostic(ErrorCode.ERR_PPDefFollowsToken, "undef").WithLocation(3, 2)
+        );
     }
 }

@@ -498,7 +498,6 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                     new SourceSpan(CurrentStart, contentLength: 1 /* end of file */)));
         }
 
-        // PROTOTYPE: Handle preprocessor directives
         SyntaxKind tokenType;
         switch (trivia.Kind())
         {
@@ -509,7 +508,10 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                 tokenType = SyntaxKind.NewLine;
                 _isOnlyWhitespaceOnLine = true;
                 break;
-            case CSharpSyntaxKind.SingleLineCommentTrivia or CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia or CSharpSyntaxKind.SingleLineDocumentationCommentTrivia:
+            case CSharpSyntaxKind.SingleLineCommentTrivia or
+                 CSharpSyntaxKind.MultiLineCommentTrivia or
+                 CSharpSyntaxKind.MultiLineDocumentationCommentTrivia or
+                 CSharpSyntaxKind.SingleLineDocumentationCommentTrivia:
                 tokenType = SyntaxKind.CSharpComment;
                 _isOnlyWhitespaceOnLine = false;
                 break;
@@ -521,10 +523,15 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                     // PROTOTYPE: report error
                 }
 
-                // PROTOTYPE: report error for `#define`, `#undef`, as they can't be used in a razor file (will never be at the start of the C# file)
-
                 var directiveTrivia = (DirectiveTriviaSyntax)trivia.GetStructure()!;
                 Debug.Assert(directiveTrivia != null);
+
+                if (directiveTrivia is DefineDirectiveTriviaSyntax or UndefDirectiveTriviaSyntax)
+                {
+                    CurrentErrors.Add(
+                        RazorDiagnosticFactory.CreateParsing_DefineAndUndefNotAllowed(
+                            new SourceSpan(CurrentStart, contentLength: directiveTrivia.FullSpan.Length)));
+                }
 
                 _isOnlyWhitespaceOnLine = directiveTrivia.EndOfDirectiveToken.TrailingTrivia is [.., { RawKind: (int)CSharpSyntaxKind.EndOfLineTrivia }];
                 break;

@@ -23,6 +23,7 @@ public enum ErrorCode
     ERR_SyntaxError = 1003,
     ERR_CloseParenExpected = 1026,
     ERR_TypeExpected = 1031,
+    ERR_PPDefFollowsToken = 1032,
     ERR_DottedTypeNameNotFoundInNSFwd = 1069,
     ERR_BadArgCount = 1501,
     ERR_BadArgType = 1503,
