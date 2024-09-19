@@ -243,7 +243,7 @@ public class RazorIntegrationTestBase
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
                 Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -256,6 +256,7 @@ public class RazorIntegrationTestBase
                 CodeDocument = codeDocument,
                 Code = codeDocument.GetCSharpDocument().GeneratedCode,
                 RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                ParseOptions = csharpParseOptions,
             };
 
             // Result of doing 'temp' compilation
@@ -273,7 +274,7 @@ public class RazorIntegrationTestBase
                 Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
 
                 // Replace the 'declaration' syntax tree
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
@@ -286,6 +287,7 @@ public class RazorIntegrationTestBase
                 CodeDocument = codeDocument,
                 Code = codeDocument.GetCSharpDocument().GeneratedCode,
                 RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                ParseOptions = csharpParseOptions,
             };
         }
         else
@@ -316,6 +318,7 @@ public class RazorIntegrationTestBase
                 CodeDocument = codeDocument,
                 Code = codeDocument.GetCSharpDocument().GeneratedCode,
                 RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                ParseOptions = csharpParseOptions,
             };
         }
     }
@@ -330,7 +333,7 @@ public class RazorIntegrationTestBase
     {
         var syntaxTrees = new[]
         {
-            Parse(cSharpResult.Code),
+            Parse(cSharpResult.Code, cSharpResult.ParseOptions),
         };
 
         var compilation = cSharpResult.BaseCompilation.AddSyntaxTrees(syntaxTrees);
@@ -390,9 +393,9 @@ public class RazorIntegrationTestBase
         return componentType;
     }
 
-    protected static CSharpSyntaxTree Parse(string text, string path = null)
+    protected static CSharpSyntaxTree Parse(string text, CSharpParseOptions? parseOptions = null, string path = null)
     {
-        return (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(text, CSharpParseOptions, path: path);
+        return (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(text, parseOptions ?? CSharpParseOptions, path: path);
     }
 
     protected static void AssertSourceEquals(string expected, CompileToCSharpResult generated)
@@ -415,6 +418,7 @@ public class RazorIntegrationTestBase
         public RazorCodeDocument CodeDocument { get; set; }
         public string Code { get; set; }
         public IEnumerable<RazorDiagnostic> RazorDiagnostics { get; set; }
+        public CSharpParseOptions ParseOptions { get; set; }
     }
 
     protected class CompileToAssemblyResult

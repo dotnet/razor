@@ -2,20 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
 {
-    private RazorConfiguration? _configuration;
-
     internal override string FileKind => FileKinds.Component;
 
     internal override bool UseTwoPhaseCompilation => true;
-
-    internal override RazorConfiguration Configuration => _configuration ?? base.Configuration;
 
     internal string ComponentName = "TestComponent";
 
@@ -70,6 +65,25 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
         var generated = CompileToCSharp("""
             @{
             #if SomeSymbol
+                <p>Some text</p>
+            #endif
+            }
+            """,
+            csharpParseOptions: parseOptions);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void PassParseOptionsThrough_02()
+    {
+        var parseOptions = CSharpParseOptions.WithPreprocessorSymbols("SomeSymbol");
+
+        var generated = CompileToCSharp("""
+            @{
+            #if !SomeSymbol
                 <p>Some text</p>
             #endif
             }
