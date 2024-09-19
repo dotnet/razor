@@ -5550,6 +5550,37 @@ namespace AnotherTest
             ]);
     }
 
+    [IntegrationTestFact]
+    public void PageDirective_NoForwardSlash()
+    {
+        // Act
+        var generated = CompileToCSharp(@"
+@page ""MyPage""
+");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void PageDirective_MissingRoute()
+    {
+        // Act
+        var generated = CompileToCSharp(@"
+@page
+");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+
+        // Design time writer doesn't correctly emit pragmas for missing tokens, so don't validate them in design time
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: !DesignTime);
+        CompileToAssembly(generated);
+    }
+
+
     #endregion
 
     #region EventCallback
