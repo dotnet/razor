@@ -5550,13 +5550,13 @@ namespace AnotherTest
             ]);
     }
 
-    [IntegrationTestFact]
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10863")]
     public void PageDirective_NoForwardSlash()
     {
         // Act
-        var generated = CompileToCSharp(@"
-@page ""MyPage""
-");
+        var generated = CompileToCSharp("""
+            @page "MyPage"
+            """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -5564,13 +5564,13 @@ namespace AnotherTest
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10863")]
     public void PageDirective_MissingRoute()
     {
         // Act
-        var generated = CompileToCSharp(@"
-@page
-");
+        var generated = CompileToCSharp("""
+            @page
+            """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
