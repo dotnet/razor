@@ -5556,6 +5556,22 @@ namespace AnotherTest
         // Act
         var generated = CompileToCSharp("""
             @page "MyPage"
+
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10863")]
+    public void PageDirective_NoForwardSlash_WithComment()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @page /* comment */ "MyPage"
+
             """);
 
         // Assert
@@ -5570,6 +5586,24 @@ namespace AnotherTest
         // Act
         var generated = CompileToCSharp("""
             @page
+
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+
+        // Design time writer doesn't correctly emit pragmas for missing tokens, so don't validate them in design time
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: !DesignTime);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10863")]
+    public void PageDirective_MissingRoute_WithComment()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @page /* comment */
+
             """);
 
         // Assert
