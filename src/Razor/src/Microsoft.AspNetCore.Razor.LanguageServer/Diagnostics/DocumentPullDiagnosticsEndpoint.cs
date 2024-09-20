@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -25,6 +27,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
     private readonly IClientConnection _clientConnection;
     private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService;
     private readonly ITelemetryReporter? _telemetryReporter;
+    private int _lastReportedTagHelperCount = -1;
 
     public DocumentPullDiagnosticsEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -73,6 +76,8 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         }
 
         var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
+
+        await ReportRZ10012TelemetryAsync(documentContext, razorDiagnostics, cancellationToken).ConfigureAwait(false);
 
         var (csharpDiagnostics, htmlDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, correlationId, cancellationToken).ConfigureAwait(false);
 
@@ -159,5 +164,40 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         }
 
         return (delegatedResponse.CSharpDiagnostics, delegatedResponse.HtmlDiagnostics);
+    }
+
+    /// <summary>
+    /// Reports telemetry for RZ10012 "Found markup element with unexpected name" to help track down potential issues
+    /// with taghelpers being discovered (or lack thereof)
+    /// </summary>
+    private async ValueTask ReportRZ10012TelemetryAsync(DocumentContext documentContext, VSInternalDiagnosticReport[]? razorDiagnostics, CancellationToken cancellationToken)
+    {
+        if (razorDiagnostics is null)
+        {
+            return;
+        }
+
+        if (_telemetryReporter is null)
+        {
+            return;
+        }
+
+        var relaventDiagnostics = razorDiagnostics.SelectMany(r => r.Diagnostics?.Where(d => d.Code == "RZ10012") ?? []).ToImmutableArray();
+        if (relaventDiagnostics.Length == 0)
+        {
+            return;
+        }
+
+        var document = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelpers = document.GetTagHelpers();
+
+        if (Interlocked.Exchange(ref _lastReportedTagHelperCount, tagHelpers.Count) != tagHelpers.Count)
+        {
+            _telemetryReporter.ReportEvent(
+                "rz10012",
+                Severity.Low,
+                new Property("tagHelpers", tagHelpers.Count),
+                new Property("rz10012errors", relaventDiagnostics.Length));
+        }
     }
 }
