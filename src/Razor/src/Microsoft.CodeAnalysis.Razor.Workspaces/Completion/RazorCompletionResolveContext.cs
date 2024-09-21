@@ -2,8 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Razor.Completion;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal record RazorCompletionResolveContext(string FilePath, ImmutableArray<RazorCompletionItem> CompletionItems);

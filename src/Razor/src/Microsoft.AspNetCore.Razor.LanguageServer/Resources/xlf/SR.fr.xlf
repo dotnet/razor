@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../SR.resx">
     <body>
-      <trans-unit id="Blazor_directive_attributes">
-        <source>Blazor directive attributes</source>
-        <target state="translated">Attributs de directive Blazor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Changes">
         <source>Changes:</source>
         <target state="translated">Modifications :</target>
@@ -45,11 +40,6 @@
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
         <target state="translated">Non disponible dans</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ReTrigger_Completions_Title">
-        <source>"Re-trigger completions..."</source>
-        <target state="translated">« Déclencher à nouveau les complétions... »</target>
         <note />
       </trans-unit>
       <trans-unit id="Statement">

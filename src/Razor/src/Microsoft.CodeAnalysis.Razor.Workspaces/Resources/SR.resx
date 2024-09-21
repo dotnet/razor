@@ -163,4 +163,10 @@
   <data name="Language_Services_Missing_Service" xml:space="preserve">
     <value>Razor language services not configured properly, missing language service '{0}'.</value>
   </data>
+  <data name="ReTrigger_Completions_Title" xml:space="preserve">
+    <value>"Re-trigger completions..."</value>
+  </data>
+  <data name="Blazor_directive_attributes" xml:space="preserve">
+    <value>Blazor directive attributes</value>
+  </data>
 </root>
