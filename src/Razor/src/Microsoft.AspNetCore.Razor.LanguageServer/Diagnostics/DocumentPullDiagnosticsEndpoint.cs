@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -28,7 +29,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
     private readonly IClientConnection _clientConnection;
     private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService;
     private readonly ITelemetryReporter? _telemetryReporter;
-    private int _lastReportedTagHelperCount = -1;
+    private ImmutableDictionary<ProjectKey, int> _lastReporedProjectTagHelperCount = ImmutableDictionary<ProjectKey, int>.Empty;
 
     public DocumentPullDiagnosticsEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -189,20 +190,36 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             return;
         }
 
-        var document = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var tagHelpers = document.GetTagHelpers();
+        var tagHelpers = await documentContext.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelperCount = tagHelpers.Count();
+        var shouldReport = false;
 
-        if (Interlocked.Exchange(ref _lastReportedTagHelperCount, tagHelpers.Count) != tagHelpers.Count)
+        ImmutableInterlocked.AddOrUpdate(
+            ref _lastReporedProjectTagHelperCount,
+            documentContext.Project.Key,
+            (k) =>
+            {
+                shouldReport = true;
+                return tagHelperCount;
+            },
+            (k, currentValue) =>
+            {
+                shouldReport = currentValue != tagHelperCount;
+                return tagHelperCount;
+            });
+
+        if (shouldReport)
         {
             _telemetryReporter.ReportEvent(
                 "RZ10012",
                 Severity.Low,
-                new Property("tagHelpers", tagHelpers.Count),
-                new Property("RZ10012errors", relevantDiagnosticsCount));
+                new("tagHelpers", tagHelperCount),
+                new("RZ10012errors", relevantDiagnosticsCount),
+                new("project", documentContext.Project.Key.Id));
         }
 
         static int CountDiagnostics(VSInternalDiagnosticReport report)
             => report.Diagnostics?.Count(d => d.Code == ComponentDiagnosticFactory.UnexpectedMarkupElement.Id)
             ?? 0;
-    } 
+    }
 }
