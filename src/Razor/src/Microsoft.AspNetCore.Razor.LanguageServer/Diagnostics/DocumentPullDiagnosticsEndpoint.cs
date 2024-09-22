@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -182,8 +183,8 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             return;
         }
 
-        var relaventDiagnostics = razorDiagnostics.SelectMany(r => r.Diagnostics?.Where(d => d.Code == "RZ10012") ?? []).ToImmutableArray();
-        if (relaventDiagnostics.Length == 0)
+        var relevantDiagnosticsCount = razorDiagnostics.Sum(CountDiagnostics);
+        if (relevantDiagnosticsCount == 0)
         {
             return;
         }
@@ -194,10 +195,14 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         if (Interlocked.Exchange(ref _lastReportedTagHelperCount, tagHelpers.Count) != tagHelpers.Count)
         {
             _telemetryReporter.ReportEvent(
-                "rz10012",
+                "RZ10012",
                 Severity.Low,
                 new Property("tagHelpers", tagHelpers.Count),
-                new Property("rz10012errors", relaventDiagnostics.Length));
+                new Property("RZ10012errors", relevantDiagnosticsCount));
         }
-    }
+
+        static int CountDiagnostics(VSInternalDiagnosticReport report)
+            => report.Diagnostics?.Count(d => d.Code == ComponentDiagnosticFactory.UnexpectedMarkupElement.Id)
+            ?? 0;
+    } 
 }
