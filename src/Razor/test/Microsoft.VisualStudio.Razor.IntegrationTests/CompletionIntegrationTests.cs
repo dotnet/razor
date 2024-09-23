@@ -174,7 +174,9 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             search: "</PageTitle>",
-            stringsToType: ["{ENTER}", "{ENTER}", "<", "s", "p", "a"]);
+            stringsToType: ["{ENTER}", "{ENTER}", "<", "s", "p", "a"],
+            commitChar: null,
+            expectedSelectedItemLabel: "span");
     }
 
     [IdeFact]
