@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Telemetry;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using System.Collections.Frozen;
 
-#if !DEBUG
+#if DEBUG
 using System.Linq;
 #endif
 
@@ -302,7 +302,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
     {
         try
         {
-#if DEBUG
+#if !DEBUG
             foreach (var session in TelemetrySessions)
             {
                 session.PostEvent(telemetryEvent);
