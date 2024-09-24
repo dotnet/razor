@@ -173,7 +173,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
                     return 0;
                 });
 
-            var (moduleName, methodName) = GetModifiedMethodNameFaultNames(exception);
+            var (moduleName, methodName) = GetModifiedFaultParameters(exception);
             faultEvent.SetFailureParameters(
                 failureParameter1: moduleName,
                 failureParameter2: methodName);
@@ -185,7 +185,11 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         }
     }
 
-    private static (string?, string?) GetModifiedMethodNameFaultNames(Exception exception)
+    /// <summary>
+    /// Returns values that should be set to (failureParameter1, failureParameter2) when reporting a fault.
+    /// Those values represent the blamed stackframe module and method name.
+    /// </summary>
+    private static (string?, string?) GetModifiedFaultParameters(Exception exception)
     {
         var frame = WalkStack(exception, frame =>
         {
