@@ -222,7 +222,7 @@ extends:
 
             - script: eng\cibuild.cmd
                 -configuration $(_BuildConfig)
-                -msbuildEngine vs
+                -ci
                 -prepareMachine
                 -build
                 -pack
@@ -231,7 +231,7 @@ extends:
                 $(_BuildArgs)
                 $(_PublishArgs)
               name: Build
-              displayName: Build and Deploy
+              displayName: Build
               condition: succeeded()
 
             - script: eng\CIBuild.cmd
