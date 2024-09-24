@@ -105,6 +105,11 @@ extends:
                   name: $(DncEngInternalBuildPool)
                   demands: ImageOverride -equals windows.vs2022preview.amd64
               steps:
+              - task: NodeTool@0
+                displayName: Install Node 10.x
+                inputs:
+                versionSpec: 10.x
+
               - task: NuGetCommand@2
                 displayName: 'Clear NuGet caches'
                 condition: succeeded()
