@@ -180,9 +180,9 @@ extends:
 
             steps:
             - task: NodeTool@0
-               displayName: Install Node 22.x
-               inputs:
-               versionSpec: 22.x
+              displayName: Install Node 22.x
+              inputs:
+                versionSpec: 22.x
 
             - task: NuGetCommand@2
               displayName: 'Clear NuGet caches'
