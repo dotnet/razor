@@ -8,13 +8,12 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal class LspTagHelperCompletionService : ITagHelperCompletionService
+internal class TagHelperCompletionService : ITagHelperCompletionService
 {
     private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 

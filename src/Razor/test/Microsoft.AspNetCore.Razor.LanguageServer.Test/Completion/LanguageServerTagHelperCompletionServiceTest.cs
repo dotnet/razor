@@ -1459,7 +1459,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
         AssertCompletionsAreEquivalent(expectedCompletions, completions);
     }
 
-    private static LspTagHelperCompletionService CreateTagHelperCompletionFactsService() => new();
+    private static TagHelperCompletionService CreateTagHelperCompletionFactsService() => new();
 
     private static void AssertCompletionsAreEquivalent(ElementCompletionResult expected, ElementCompletionResult actual)
     {

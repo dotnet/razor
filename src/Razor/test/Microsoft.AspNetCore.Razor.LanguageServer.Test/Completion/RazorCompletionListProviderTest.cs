@@ -59,7 +59,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     private static IEnumerable<IRazorCompletionItemProvider> GetCompletionProviders(RazorLSPOptionsMonitor optionsMonitor = null)
     {
         // Working around strong naming restriction.
-        var tagHelperCompletionService = new LspTagHelperCompletionService();
+        var tagHelperCompletionService = new TagHelperCompletionService();
 
         optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
 

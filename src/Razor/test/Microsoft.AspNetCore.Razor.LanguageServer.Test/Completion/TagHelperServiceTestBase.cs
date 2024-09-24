@@ -245,7 +245,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             directiveAttribute3.Build(),
             htmlTagMutator.Build());
 
-        RazorTagHelperCompletionService = new LspTagHelperCompletionService();
+        RazorTagHelperCompletionService = new TagHelperCompletionService();
     }
 
     protected static string GetFileName(bool isRazorFile)
