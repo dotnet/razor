@@ -11,6 +11,7 @@ internal static class RazorCompletionItemExtensions
 {
     private readonly static string s_attributeCompletionDescriptionKey = "Razor.AttributeDescription";
     private readonly static string s_directiveCompletionDescriptionKey = "Razor.DirectiveDescription";
+    private readonly static string s_markupTransitionDescriptionKey = "Razor.MarkupTransitionDescription";
 
     public static void SetAttributeCompletionDescription(this RazorCompletionItem completionItem, AggregateBoundAttributeDescription attributeCompletionDescription)
     {
@@ -67,5 +68,26 @@ internal static class RazorCompletionItemExtensions
         {
             yield return descriptionInfo.ReturnTypeName;
         }
+    }
+
+    public static void SetMarkupTransitionCompletionDescription(this RazorCompletionItem completionItem, MarkupTransitionCompletionDescription markupTransitionCompletionDescription)
+    {
+        if (completionItem is null)
+        {
+            throw new ArgumentNullException(nameof(completionItem));
+        }
+
+        completionItem.Items[s_markupTransitionDescriptionKey] = markupTransitionCompletionDescription;
+    }
+
+    public static MarkupTransitionCompletionDescription? GetMarkupTransitionCompletionDescription(this RazorCompletionItem completionItem)
+    {
+        if (completionItem is null)
+        {
+            throw new ArgumentNullException(nameof(completionItem));
+        }
+
+        var markupTransitionCompletionDescription = completionItem.Items[s_markupTransitionDescriptionKey] as MarkupTransitionCompletionDescription;
+        return markupTransitionCompletionDescription;
     }
 }
