@@ -32,7 +32,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         var projectManager = CreateProjectSnapshotManager();
 
-        _markupTagHelperTooltipFactory = new DefaultMarkupTagHelperTooltipFactory(projectManager);
+        _markupTagHelperTooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
         _vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory(projectManager);
         _completionCapability = new VSInternalCompletionSetting()
         {

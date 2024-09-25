@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-public class DefaultMarkupTagHelperTooltipFactoryTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class MarkupTagHelperTooltipFactoryTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
     public void CleanSummaryContent_Markup_ReplacesSeeCrefs()
@@ -23,7 +23,7 @@ public class DefaultMarkupTagHelperTooltipFactoryTest(ITestOutputHelper testOutp
         var summary = "Accepts <see cref=\"T:System.Collections.List{System.String}\" />s";
 
         // Act
-        var cleanedSummary = DefaultMarkupTagHelperTooltipFactory.CleanSummaryContent(summary);
+        var cleanedSummary = MarkupTagHelperTooltipFactory.CleanSummaryContent(summary);
 
         // Assert
         Assert.Equal("Accepts `List<System.String>`s", cleanedSummary);
@@ -36,7 +36,7 @@ public class DefaultMarkupTagHelperTooltipFactoryTest(ITestOutputHelper testOutp
         var summary = "Accepts <seealso cref=\"T:System.Collections.List{System.String}\" />s";
 
         // Act
-        var cleanedSummary = DefaultMarkupTagHelperTooltipFactory.CleanSummaryContent(summary);
+        var cleanedSummary = MarkupTagHelperTooltipFactory.CleanSummaryContent(summary);
 
         // Assert
         Assert.Equal("Accepts `List<System.String>`s", cleanedSummary);
@@ -54,7 +54,7 @@ public class DefaultMarkupTagHelperTooltipFactoryTest(ITestOutputHelper testOutp
 ";
 
         // Act
-        var cleanedSummary = DefaultMarkupTagHelperTooltipFactory.CleanSummaryContent(summary);
+        var cleanedSummary = MarkupTagHelperTooltipFactory.CleanSummaryContent(summary);
 
         // Assert
         Assert.Equal(@"Hello
@@ -67,7 +67,7 @@ World", cleanedSummary);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new DefaultMarkupTagHelperTooltipFactory(projectManager);
+        var tooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
         var elementDescription = AggregateBoundElementDescription.Empty;
 
         // Act
@@ -82,7 +82,7 @@ World", cleanedSummary);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new DefaultMarkupTagHelperTooltipFactory(projectManager);
+        var tooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
@@ -104,7 +104,7 @@ Uses `List<System.String>`s", markdown.Value);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new DefaultMarkupTagHelperTooltipFactory(projectManager);
+        var tooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
@@ -127,7 +127,7 @@ Uses `List<System.String>`s", markdown.Value);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new DefaultMarkupTagHelperTooltipFactory(projectManager);
+        var tooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
         var associatedAttributeDescriptions = new[]
         {
             new BoundAttributeDescriptionInfo(
@@ -154,7 +154,7 @@ Uses `List<System.String>`s", markdown.Value);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new DefaultMarkupTagHelperTooltipFactory(projectManager);
+        var tooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
@@ -182,7 +182,7 @@ Also uses `List<System.String>`s", markdown.Value);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new DefaultMarkupTagHelperTooltipFactory(projectManager);
+        var tooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
         var associatedAttributeDescriptions = new[]
         {
             new BoundAttributeDescriptionInfo(
@@ -209,7 +209,7 @@ Uses `List<System.String>`s", markdown.Value);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new DefaultMarkupTagHelperTooltipFactory(projectManager);
+        var tooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
         var associatedAttributeDescriptions = new[]
         {
             new BoundAttributeDescriptionInfo(

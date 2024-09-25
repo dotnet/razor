@@ -983,7 +983,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     private HoverService GetHoverService(IDocumentMappingService? mappingService = null)
     {
         var projectManager = CreateProjectSnapshotManager();
-        var markupTagHelperTooltipFactory = new DefaultMarkupTagHelperTooltipFactory(projectManager);
+        var markupTagHelperTooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
         var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory(projectManager);
 
         var clientCapabilities = CreateMarkDownCapabilities();

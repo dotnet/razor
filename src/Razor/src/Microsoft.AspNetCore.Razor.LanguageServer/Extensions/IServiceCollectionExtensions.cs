@@ -221,7 +221,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
         services.AddSingleton<IDocumentProcessedListener, CodeDocumentReferenceHolder>();
 
-        services.AddSingleton<MarkupTagHelperTooltipFactory, DefaultMarkupTagHelperTooltipFactory>();
+        services.AddSingleton<MarkupTagHelperTooltipFactory>();
         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
 
         // Add project snapshot manager
