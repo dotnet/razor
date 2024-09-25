@@ -222,7 +222,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IDocumentProcessedListener, CodeDocumentReferenceHolder>();
 
         services.AddSingleton<MarkupTagHelperTooltipFactory>();
-        services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
+        services.AddSingleton<ClassifiedTagHelperTooltipFactory, DefaultClassifiedTagHelperTooltipFactory>();
 
         // Add project snapshot manager
         services.AddSingleton<IProjectEngineFactoryProvider, LspProjectEngineFactoryProvider>();

@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
+using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultClassifiedTagHelperTooltipFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover;
 
@@ -670,7 +670,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         Assert.Equal(2, innerContainer.Count);
         Assert.Equal(ClassGlyph, innerContainer[0]);
         Assert.Collection(classifiedTextElement.Runs,
-            run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "Test1TagHelper", VSPredefinedClassificationTypeNames.Type));
+            run => DefaultClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "Test1TagHelper", VSPredefinedClassificationTypeNames.Type));
     }
 
     [Fact]
@@ -713,11 +713,11 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         Assert.Equal(2, innerContainer.Count);
         Assert.Equal(PropertyGlyph, innerContainer[0]);
         Assert.Collection(classifiedTextElement.Runs,
-            run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "bool", VSPredefinedClassificationTypeNames.Keyword),
-            run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, " ", VSPredefinedClassificationTypeNames.WhiteSpace),
-            run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "Test1TagHelper", VSPredefinedClassificationTypeNames.Type),
-            run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-            run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "BoolVal", VSPredefinedClassificationTypeNames.Identifier));
+            run => DefaultClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "bool", VSPredefinedClassificationTypeNames.Keyword),
+            run => DefaultClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, " ", VSPredefinedClassificationTypeNames.WhiteSpace),
+            run => DefaultClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "Test1TagHelper", VSPredefinedClassificationTypeNames.Type),
+            run => DefaultClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
+            run => DefaultClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "BoolVal", VSPredefinedClassificationTypeNames.Identifier));
     }
 
     [Fact]
@@ -984,7 +984,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     {
         var projectManager = CreateProjectSnapshotManager();
         var markupTagHelperTooltipFactory = new MarkupTagHelperTooltipFactory(projectManager);
-        var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory(projectManager);
+        var classifiedTagHelperTooltipFactory = new DefaultClassifiedTagHelperTooltipFactory(projectManager);
 
         var clientCapabilities = CreateMarkDownCapabilities();
         clientCapabilities.SupportsVisualStudioExtensions = true;
@@ -992,7 +992,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         mappingService ??= StrictMock.Of<IDocumentMappingService>();
 
-        return new HoverService(markupTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, mappingService, clientCapabilitiesService);
+        return new HoverService(markupTagHelperTooltipFactory, classifiedTagHelperTooltipFactory, mappingService, clientCapabilitiesService);
     }
 
     private class HoverLanguageServer : IClientConnection

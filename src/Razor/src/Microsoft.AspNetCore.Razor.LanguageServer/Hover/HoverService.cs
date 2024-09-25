@@ -27,12 +27,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 internal sealed partial class HoverService(
     MarkupTagHelperTooltipFactory markupTagHelperTooltipFactory,
-    VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
+    ClassifiedTagHelperTooltipFactory classifiedTagHelperTooltipFactory,
     IDocumentMappingService documentMappingService,
     IClientCapabilitiesService clientCapabilitiesService) : IHoverService
 {
     private readonly MarkupTagHelperTooltipFactory _markupTagHelperTooltipFactory = markupTagHelperTooltipFactory;
-    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
+    private readonly ClassifiedTagHelperTooltipFactory _classifiedTagHelperTooltipFactory = classifiedTagHelperTooltipFactory;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
 
@@ -261,7 +261,7 @@ internal sealed partial class HoverService(
         var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
-        if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement? classifiedTextElement))
+        if (isVSClient && _classifiedTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement? classifiedTextElement))
         {
             var vsHover = new VSInternalHover
             {
@@ -305,7 +305,7 @@ internal sealed partial class HoverService(
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
         if (isVSClient)
         {
-            var classifiedTextElement = await _vsLspTagHelperTooltipFactory.TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
+            var classifiedTextElement = await _classifiedTagHelperTooltipFactory.TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
             if (classifiedTextElement is not null)
             {
                 var vsHover = new VSInternalHover

@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal abstract class VSLSPTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : TagHelperTooltipFactoryBase(projectManager)
+internal abstract class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : TagHelperTooltipFactoryBase(projectManager)
 {
     public abstract Task<ContainerElement?> TryCreateTooltipContainerAsync(
         string documentFilePath,

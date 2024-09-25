@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : VSLSPTagHelperTooltipFactory(projectManager)
+internal class DefaultClassifiedTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : ClassifiedTagHelperTooltipFactory(projectManager)
 {
     private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
 

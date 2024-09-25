@@ -15,10 +15,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
 internal class RazorCompletionItemResolver(
     MarkupTagHelperTooltipFactory markupTagHelperTooltipFactory,
-    VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory) : CompletionItemResolver
+    ClassifiedTagHelperTooltipFactory classifiedTagHelperTooltipFactory) : CompletionItemResolver
 {
     private readonly MarkupTagHelperTooltipFactory _markupTagHelperTooltipFactory = markupTagHelperTooltipFactory;
-    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
+    private readonly ClassifiedTagHelperTooltipFactory _classifiedTagHelperTooltipFactory = classifiedTagHelperTooltipFactory;
 
     public override async Task<VSInternalCompletionItem?> ResolveAsync(
         VSInternalCompletionItem completionItem,
@@ -103,7 +103,7 @@ internal class RazorCompletionItemResolver(
 
                     if (useDescriptionProperty)
                     {
-                        _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
+                        _classifiedTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
                     }
                     else
                     {
@@ -122,7 +122,7 @@ internal class RazorCompletionItemResolver(
 
                     if (useDescriptionProperty)
                     {
-                        tagHelperClassifiedTextTooltip = await _vsLspTagHelperTooltipFactory.TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, cancellationToken).ConfigureAwait(false);
+                        tagHelperClassifiedTextTooltip = await _classifiedTagHelperTooltipFactory.TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
