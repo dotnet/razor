@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : LSPTagHelperTooltipFactory(projectManager)
+internal class DefaultMarkupTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : MarkupTagHelperTooltipFactory(projectManager)
 {
     public override async Task<MarkupContent?> TryCreateTooltipAsync(
         string documentFilePath,
