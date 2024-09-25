@@ -12,6 +12,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing;
 
 internal partial class EditorInProcess
 {
+    public const int DefaultCompletionWaitTimeMilliseconds = 10000;
+
     public async Task DismissCompletionSessionsAsync(CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -87,7 +89,7 @@ internal partial class EditorInProcess
                 return null;
             }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+            await Task.Delay(100, cancellationToken);
 
             session.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
         }

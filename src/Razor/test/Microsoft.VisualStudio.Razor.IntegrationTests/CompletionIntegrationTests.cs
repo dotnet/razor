@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -475,15 +476,15 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         var session = await TestServices.Editor.OpenCompletionSessionAndWaitForItemAsync(TimeSpan.FromSeconds(10), expectedSelectedItemLabel, HangMitigatingCancellationToken);
 
         Assert.NotNull(session);
-        if (commitChar.HasValue)
+        if (commitChar is char commitCharValue)
         {
             // Commit using the specified commit character
-            session.Commit(commitChar.Value, HangMitigatingCancellationToken);
+            session.Commit(commitCharValue, HangMitigatingCancellationToken);
 
             // session.Commit call above commits as if the commit character was typed,
             // but doesn't actually insert the character into the buffer.
             // So we still need to insert the character into the buffer ourselves.
-            TestServices.Input.Send(commitChar.Value.ToString());
+            TestServices.Input.Send(commitCharValue.ToString());
         }
         else
         {
@@ -494,10 +495,10 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
 
         var stopwatch = new Stopwatch();
         string text;
-        while ((text = textView.TextBuffer.CurrentSnapshot.GetText()) != expected && stopwatch.ElapsedMilliseconds < 10000)
+        while ((text = textView.TextBuffer.CurrentSnapshot.GetText()) != expected && stopwatch.ElapsedMilliseconds < EditorInProcess.DefaultCompletionWaitTimeMilliseconds)
         {
             // Text might get updated *after* completion by something like auto-insert, so wait for the desired text
-            await Task.Delay(100);
+            await Task.Delay(100, HangMitigatingCancellationToken);
         }
 
         // Snippets may have slight whitespace differences due to line endings. These
