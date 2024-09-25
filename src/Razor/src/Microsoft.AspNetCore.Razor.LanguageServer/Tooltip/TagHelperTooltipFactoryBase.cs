@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +20,7 @@ internal abstract class TagHelperTooltipFactoryBase(IProjectSnapshotManager proj
     private static readonly Regex s_codeRegex = new Regex($"""<(?:c|code)>(?<{TagContentGroupName}>.*?)<\/(?:c|code)>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
     private static readonly Regex s_crefRegex = new Regex($"""<(?:see|seealso)[\s]+cref="(?<{TagContentGroupName}>[^">]+)"[^>]*>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
-    private static readonly IReadOnlyList<char> s_newLineChars = new char[] { '\n', '\r' };
+    private static readonly char[] s_newLineChars = ['\n', '\r'];
 
     private readonly IProjectSnapshotManager _projectManager = projectManager;
 
@@ -123,7 +122,7 @@ internal abstract class TagHelperTooltipFactoryBase(IProjectSnapshotManager proj
             return false;
         }
 
-        documentation = documentation.Trim(s_newLineChars.ToArray());
+        documentation = documentation.Trim(s_newLineChars);
 
         var summaryTagStart = documentation.IndexOf(SummaryStartTag, StringComparison.OrdinalIgnoreCase);
         var summaryTagEndStart = documentation.IndexOf(SummaryEndTag, StringComparison.OrdinalIgnoreCase);
