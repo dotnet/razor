@@ -406,20 +406,17 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
         {
             var (param1, param2) = TestTelemetryReporter.GetModifiedFaultParameters(ex);
 
-            Assert.Equal("Microsoft.VisualStudio.LanguageServices.Razor.Test.dll", param1);
+            Assert.Equal("Microsoft.VisualStudio.LanguageServices.Razor.Test", param1);
             Assert.NotNull(param2);
 
-            // Depending on compilation the stack can contain a constructor or
+            // Depending on debug/release the stack can contain a constructor or
             // a call to this method. We expect one or the other and both
             // are valid
-            if (param2.StartsWith("GetModifiedFaultParameters"))
-            {
-                Assert.Equal("GetModifiedFaultParameters_FiltersCorrect", param2);
-            }
-            else
-            {
-                Assert.StartsWith("<.cctor>", param2);
-            }
+#if DEBUG
+            Assert.StartsWith("<.cctor>", param2);
+#else 
+            Assert.Equal("GetModifiedFaultParameters_FiltersCorrectly", param2);
+#endif
         }
     }
 

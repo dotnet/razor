@@ -9,6 +9,8 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor;
+using System.IO;
+
 
 
 #if DEBUG
@@ -290,7 +292,8 @@ internal abstract class TelemetryReporter : ITelemetryReporter
             return (null, null);
         }
 
-        return (method.Module.Name, method.Name);
+        var moduleName = Path.GetFileNameWithoutExtension(method.Module.Name);
+        return (moduleName, method.Name);
     }
 
     private static string GetExceptionDetails(Exception exception)
