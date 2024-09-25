@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Core.Imaging;
@@ -19,6 +20,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
 internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : TagHelperTooltipFactoryBase(projectManager)
 {
+    public const string TypeClassificationName = "Type";
+
     private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
 
     // Internal for testing
@@ -48,10 +51,10 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
         { "Char", "char" }
     };
 
-    private static readonly ClassifiedTextRun s_space = new(VSPredefinedClassificationTypeNames.WhiteSpace, " ");
-    private static readonly ClassifiedTextRun s_dot = new(VSPredefinedClassificationTypeNames.Punctuation, ".");
-    private static readonly ClassifiedTextRun s_newLine = new(VSPredefinedClassificationTypeNames.WhiteSpace, Environment.NewLine);
-    private static readonly ClassifiedTextRun s_nullableType = new(VSPredefinedClassificationTypeNames.Punctuation, "?");
+    private static readonly ClassifiedTextRun s_space = new(ClassificationTypeNames.WhiteSpace, " ");
+    private static readonly ClassifiedTextRun s_dot = new(ClassificationTypeNames.Punctuation, ".");
+    private static readonly ClassifiedTextRun s_newLine = new(ClassificationTypeNames.WhiteSpace, Environment.NewLine);
+    private static readonly ClassifiedTextRun s_nullableType = new(ClassificationTypeNames.Punctuation, "?");
 
     public async Task<ContainerElement?> TryCreateTooltipContainerAsync(string documentFilePath, AggregateBoundElementDescription elementDescriptionInfo, CancellationToken cancellationToken)
     {
@@ -164,7 +167,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
 
         if (availability is not null)
         {
-            documentationRuns.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, availability));
+            documentationRuns.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, availability));
         }
     }
 
@@ -199,7 +202,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
             typeRuns.Add(s_space);
             ClassifyTypeName(typeRuns, descriptionInfo.TypeName);
             typeRuns.Add(s_dot);
-            typeRuns.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
+            typeRuns.Add(new ClassifiedTextRun(ClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
 
             // 2. Classify summary
             var documentationRuns = new List<ClassifiedTextRun>();
@@ -245,7 +248,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
             }
             else
             {
-                runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, typeNamePart));
+                runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, typeNamePart));
             }
         }
     }
@@ -282,7 +285,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
                     currentTextRun.Clear();
                 }
 
-                runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Punctuation, ch.ToString()));
+                runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ch.ToString()));
             }
             else
             {
@@ -308,17 +311,17 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
         // Case 1: Type can be aliased as a C# built-in type (e.g. Boolean -> bool, Int32 -> int, etc.).
         if (s_typeNameToAlias.TryGetValue(typeName, out var aliasedTypeName))
         {
-            runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Keyword, aliasedTypeName));
+            runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Keyword, aliasedTypeName));
         }
         // Case 2: Type is a C# built-in type (e.g. bool, int, etc.).
         else if (s_cSharpPrimitiveTypes.Contains(typeName))
         {
-            runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Keyword, typeName));
+            runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Keyword, typeName));
         }
         // Case 3: All other types.
         else
         {
-            runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Type, typeName));
+            runs.Add(new ClassifiedTextRun(TypeClassificationName, typeName));
         }
 
         if (nullableType)
@@ -358,7 +361,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
 
         if (codeMatches.Count == 0 && crefMatches.Count == 0)
         {
-            runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, summaryContent));
+            runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, summaryContent));
             return;
         }
 
@@ -386,7 +389,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
                 var value = currentCodeMatch.Groups[TagContentGroupName].Value;
                 if (value.Length != 0)
                 {
-                    runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, value.ToString(), ClassifiedTextRunStyle.UseClassificationFont));
+                    runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, value.ToString(), ClassifiedTextRunStyle.UseClassificationFont));
                 }
 
                 i += currentCodeMatch.Length - 1;
@@ -417,7 +420,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
         {
             if (currentTextRun.Length != 0)
             {
-                runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, currentTextRun.ToString()));
+                runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, currentTextRun.ToString()));
                 currentTextRun.Clear();
             }
         }
@@ -471,23 +474,6 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
         }
 
         return new ClassifiedTextElement(runs);
-    }
-
-    // Internal for testing
-    // Adapted from VS' PredefinedClassificationTypeNames
-    internal static class VSPredefinedClassificationTypeNames
-    {
-        public const string Identifier = "identifier";
-
-        public const string Keyword = "keyword";
-
-        public const string Punctuation = "punctuation";
-
-        public const string Text = "text";
-
-        public const string Type = "type";
-
-        public const string WhiteSpace = "whitespace";
     }
 
     private record DescriptionClassification(IReadOnlyList<ClassifiedTextRun> Type, IReadOnlyList<ClassifiedTextRun> Documentation);

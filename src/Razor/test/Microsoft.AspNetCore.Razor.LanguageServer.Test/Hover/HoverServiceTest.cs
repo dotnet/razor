@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -669,7 +670,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         Assert.Equal(2, innerContainer.Count);
         Assert.Equal(ClassifiedTagHelperTooltipFactory.ClassGlyph, innerContainer[0]);
         Assert.Collection(classifiedTextElement.Runs,
-            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "Test1TagHelper", ClassifiedTagHelperTooltipFactory.VSPredefinedClassificationTypeNames.Type));
+            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "Test1TagHelper", ClassifiedTagHelperTooltipFactory.TypeClassificationName));
     }
 
     [Fact]
@@ -712,11 +713,11 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         Assert.Equal(2, innerContainer.Count);
         Assert.Equal(ClassifiedTagHelperTooltipFactory.PropertyGlyph, innerContainer[0]);
         Assert.Collection(classifiedTextElement.Runs,
-            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "bool", ClassifiedTagHelperTooltipFactory.VSPredefinedClassificationTypeNames.Keyword),
-            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, " ", ClassifiedTagHelperTooltipFactory.VSPredefinedClassificationTypeNames.WhiteSpace),
-            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "Test1TagHelper", ClassifiedTagHelperTooltipFactory.VSPredefinedClassificationTypeNames.Type),
-            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, ".", ClassifiedTagHelperTooltipFactory.VSPredefinedClassificationTypeNames.Punctuation),
-            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "BoolVal", ClassifiedTagHelperTooltipFactory.VSPredefinedClassificationTypeNames.Identifier));
+            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "bool", ClassificationTypeNames.Keyword),
+            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, " ", ClassificationTypeNames.WhiteSpace),
+            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "Test1TagHelper", ClassifiedTagHelperTooltipFactory.TypeClassificationName),
+            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, ".", ClassificationTypeNames.Punctuation),
+            run => ClassifiedTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "BoolVal", ClassificationTypeNames.Identifier));
     }
 
     [Fact]
