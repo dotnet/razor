@@ -10,6 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 internal readonly struct TestCode
 {
+    public string OriginalInput { get; }
     public string Text { get; }
     public ImmutableArray<int> Positions { get; }
 
@@ -17,6 +18,8 @@ internal readonly struct TestCode
 
     public TestCode(string input, bool treatPositionIndicatorsAsCode = false)
     {
+        OriginalInput = input;
+
         if (treatPositionIndicatorsAsCode)
         {
             TestFileMarkupParser.GetSpans(input, treatPositionIndicatorsAsCode, out var text, out var nameToSpanMap);
@@ -43,6 +46,9 @@ internal readonly struct TestCode
 
     public ImmutableArray<TextSpan> Spans
         => GetNamedSpans(string.Empty);
+
+    public ImmutableDictionary<string, ImmutableArray<TextSpan>> NamedSpans
+        => _nameToSpanMap;
 
     public ImmutableArray<TextSpan> GetNamedSpans(string name)
         => _nameToSpanMap[name];

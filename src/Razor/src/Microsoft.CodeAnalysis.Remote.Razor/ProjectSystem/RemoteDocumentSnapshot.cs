@@ -36,6 +36,8 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
 
     public bool SupportsOutput => true;
 
+    public int Version => -999; // We don't expect to use this in cohosting, but plenty of existing code logs it's value
+
     public Task<SourceText> GetTextAsync() => _textDocument.GetTextAsync();
 
     public Task<VersionStamp> GetTextVersionAsync() => _textDocument.GetTextVersionAsync();
@@ -44,7 +46,7 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
 
     public bool TryGetTextVersion(out VersionStamp result) => _textDocument.TryGetTextVersion(out result);
 
-    public async Task<RazorCodeDocument> GetGeneratedOutputAsync()
+    public async Task<RazorCodeDocument> GetGeneratedOutputAsync(bool _)
     {
         // TODO: We don't need to worry about locking if we get called from the didOpen/didChange LSP requests, as CLaSP
         //       takes care of that for us, and blocks requests until those are complete. If that doesn't end up happening,
@@ -62,7 +64,7 @@ internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSn
         // and simply compiles when asked, and if a new document snapshot comes in, we compile again. This is presumably worse for perf
         // but since we don't expect users to ever use cohosting without source generators, it's fine for now.
 
-        var projectEngine = _projectSnapshot.GetProjectEngine_CohostOnly();
+        var projectEngine = await _projectSnapshot.GetProjectEngine_CohostOnlyAsync(CancellationToken.None).ConfigureAwait(false);
         var tagHelpers = await _projectSnapshot.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
         var imports = await DocumentState.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
 

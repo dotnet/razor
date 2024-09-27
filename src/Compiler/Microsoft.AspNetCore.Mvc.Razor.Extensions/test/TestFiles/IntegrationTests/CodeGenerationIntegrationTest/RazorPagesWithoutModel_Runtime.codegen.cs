@@ -13,7 +13,7 @@ namespace AspNetCoreGeneratedDocument
     using global::Microsoft.AspNetCore.Mvc.Rendering;
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
 #nullable restore
-#line (4,2)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
+#line (4,2)-(4,43) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
 using Microsoft.AspNetCore.Mvc.RazorPages
 
 #line default
@@ -58,7 +58,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages
             WriteLiteral("\r\n");
             WriteLiteral("\r\n");
             WriteLiteral("\r\n<h1>New Customer</h1>\r\n<form method=\"post\" class=\"form-horizontal\">\r\n    ");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "__UniqueIdSuppressedForTesting__", async() => {
             }
             );
             __DivTagHelper = CreateTagHelper<global::DivTagHelper>();
@@ -72,7 +72,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n    ");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "__UniqueIdSuppressedForTesting__", async() => {
                 WriteLiteral("\r\n        <label class=\"col-md-2 control-label\">");
                 Write(
 #nullable restore
@@ -84,7 +84,7 @@ Name
 #nullable disable
                 );
                 WriteLiteral("</label>\r\n        ");
-                __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+                __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "__UniqueIdSuppressedForTesting__", async() => {
                     WriteLiteral("\r\n            <input class=\"form-control\" />\r\n            <span class=\"text-danger\"></span>\r\n        ");
                 }
                 );
@@ -112,9 +112,9 @@ Name
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n    ");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "__UniqueIdSuppressedForTesting__", async() => {
                 WriteLiteral("\r\n        ");
-                __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+                __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "__UniqueIdSuppressedForTesting__", async() => {
                     WriteLiteral("\r\n            <button type=\"submit\" class=\"btn btn-primary\">Save</button>\r\n        ");
                 }
                 );

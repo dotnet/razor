@@ -2,47 +2,72 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.TextDifferencing;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal class RazorFormattingService : IRazorFormattingService
 {
-    private readonly List<IFormattingPass> _formattingPasses;
-    private readonly IAdhocWorkspaceFactory _workspaceFactory;
+    public static readonly string FirstTriggerCharacter = "}";
+    public static readonly ImmutableArray<string> MoreTriggerCharacters = [";", "\n", "{"];
+    public static readonly FrozenSet<string> AllTriggerCharacterSet = FrozenSet.ToFrozenSet([FirstTriggerCharacter, .. MoreTriggerCharacters], StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> s_csharpTriggerCharacterSet = FrozenSet.ToFrozenSet(["}", ";"], StringComparer.Ordinal);
+    private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
+
+    private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
+
+    private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
+    private readonly ImmutableArray<IFormattingPass> _validationPasses;
+    private readonly CSharpOnTypeFormattingPass _csharpOnTypeFormattingPass;
+    private readonly HtmlOnTypeFormattingPass _htmlOnTypeFormattingPass;
 
     public RazorFormattingService(
-        IEnumerable<IFormattingPass> formattingPasses,
-        IAdhocWorkspaceFactory workspaceFactory)
+        IFormattingCodeDocumentProvider codeDocumentProvider,
+        IDocumentMappingService documentMappingService,
+        IHostServicesProvider hostServicesProvider,
+        ILoggerFactory loggerFactory)
     {
-        if (formattingPasses is null)
-        {
-            throw new ArgumentNullException(nameof(formattingPasses));
-        }
+        _codeDocumentProvider = codeDocumentProvider;
 
-        _formattingPasses = formattingPasses.OrderBy(f => f.Order).ToList();
-        _workspaceFactory = workspaceFactory ?? throw new ArgumentNullException(nameof(workspaceFactory));
+        _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
+        _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, hostServicesProvider, loggerFactory);
+        _validationPasses =
+        [
+            new FormattingDiagnosticValidationPass(loggerFactory),
+            new FormattingContentValidationPass(loggerFactory)
+        ];
+        _documentFormattingPasses =
+        [
+            new HtmlFormattingPass(loggerFactory),
+            new RazorFormattingPass(),
+            new CSharpFormattingPass(documentMappingService, hostServicesProvider, loggerFactory),
+            .. _validationPasses
+        ];
     }
 
-    public async Task<TextEdit[]> FormatAsync(
-        VersionedDocumentContext documentContext,
-        Range? range,
-        FormattingOptions options,
+    public async Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(
+        DocumentContext documentContext,
+        ImmutableArray<TextChange> htmlChanges,
+        LinePositionSpan? range,
+        RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetFormatterCodeDocumentAsync().ConfigureAwait(false);
+        var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(documentContext.Snapshot).ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -58,10 +83,10 @@ internal class RazorFormattingService : IRazorFormattingService
 
         // Despite what it looks like, codeDocument.GetCSharpDocument().Diagnostics is actually the
         // Razor diagnostics, not the C# diagnostics 🤦‍
-        if (range is not null)
+        var sourceText = codeDocument.Source.Text;
+        if (range is { } span)
         {
-            var sourceText = codeDocument.Source.Text;
-            if (codeDocument.GetCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && range.OverlapsWith(sourceText.GetRange(d.Span))))
+            if (codeDocument.GetCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && span.OverlapsWith(sourceText.GetLinePositionSpan(d.Span))))
             {
                 return [];
             }
@@ -69,175 +94,233 @@ internal class RazorFormattingService : IRazorFormattingService
 
         var uri = documentContext.Uri;
         var documentSnapshot = documentContext.Snapshot;
-        var hostDocumentVersion = documentContext.Version;
-        using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
+        var hostDocumentVersion = documentContext.Snapshot.Version;
+        var context = FormattingContext.Create(
+            documentSnapshot,
+            codeDocument,
+            options,
+            _codeDocumentProvider);
         var originalText = context.SourceText;
 
-        var result = new FormattingResult([]);
-        foreach (var pass in _formattingPasses)
+        var result = htmlChanges;
+        foreach (var pass in _documentFormattingPasses)
         {
             cancellationToken.ThrowIfCancellationRequested();
             result = await pass.ExecuteAsync(context, result, cancellationToken).ConfigureAwait(false);
         }
 
-        var filteredEdits = range is null
-            ? result.Edits
-            : result.Edits.Where(e => range.LineOverlapsWith(e.Range));
+        var filteredChanges = range is not { } linePositionSpan
+            ? result
+            : result.Where(e => linePositionSpan.LineOverlapsWith(sourceText.GetLinePositionSpan(e.Span))).ToImmutableArray();
 
-        return GetMinimalEdits(originalText, filteredEdits);
+        var normalizedChanges = NormalizeLineEndings(originalText, filteredChanges);
+        return originalText.MinimizeTextChanges(normalizedChanges);
     }
 
-    private static TextEdit[] GetMinimalEdits(SourceText originalText, IEnumerable<TextEdit> filteredEdits)
-    {
-        // Make sure the edits actually change something, or its not worth responding
-        var textChanges = filteredEdits.Select(originalText.GetTextChange);
-        var changedText = originalText.WithChanges(textChanges);
-        if (changedText.ContentEquals(originalText))
-        {
-            return Array.Empty<TextEdit>();
-        }
-
-        // Only send back the minimum edits
-        var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, DiffKind.Char);
-        var finalEdits = minimalChanges.Select(originalText.GetTextEdit).ToArray();
-
-        return finalEdits;
-    }
-
-    public Task<TextEdit[]> FormatOnTypeAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
-        => ApplyFormattedEditsAsync(documentContext, kind, formattedEdits, options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
-
-    public Task<TextEdit[]> FormatCodeActionAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
-        => ApplyFormattedEditsAsync(documentContext, kind, formattedEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: false, automaticallyAddUsings: true, cancellationToken: cancellationToken);
-
-    public async Task<TextEdit[]> FormatSnippetAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] edits, FormattingOptions options, CancellationToken cancellationToken)
-    {
-        if (kind == RazorLanguageKind.CSharp)
-        {
-            WrapCSharpSnippets(edits);
-        }
-
-        var formattedEdits = await ApplyFormattedEditsAsync(
+    public Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        => ApplyFormattedChangesAsync(
             documentContext,
-            kind,
-            edits,
+            generatedDocumentChanges: [],
+            options,
+            hostDocumentIndex,
+            triggerCharacter,
+            [_csharpOnTypeFormattingPass, .. _validationPasses],
+            collapseChanges: false,
+            automaticallyAddUsings: false,
+            cancellationToken: cancellationToken);
+
+    public Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(DocumentContext documentContext, ImmutableArray<TextChange> htmlChanges, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        => ApplyFormattedChangesAsync(
+            documentContext,
+            htmlChanges,
+            options,
+            hostDocumentIndex,
+            triggerCharacter,
+            [_htmlOnTypeFormattingPass, .. _validationPasses],
+            collapseChanges: false,
+            automaticallyAddUsings: false,
+            cancellationToken: cancellationToken);
+
+    public async Task<TextChange?> TryGetSingleCSharpEditAsync(DocumentContext documentContext, TextChange csharpEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
+    {
+        var razorChanges = await ApplyFormattedChangesAsync(
+            documentContext,
+            [csharpEdit],
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
-            bypassValidationPasses: true,
-            collapseEdits: true,
+            [_csharpOnTypeFormattingPass, .. _validationPasses],
+            collapseChanges: false,
+            automaticallyAddUsings: false,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
+        return razorChanges.SingleOrDefault();
+    }
+
+    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
+    {
+        var razorChanges = await ApplyFormattedChangesAsync(
+            documentContext,
+            csharpChanges,
+            options,
+            hostDocumentIndex: 0,
+            triggerCharacter: '\0',
+            [_csharpOnTypeFormattingPass],
+            collapseChanges: true,
+            automaticallyAddUsings: true,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
+        return razorChanges.SingleOrDefault();
+    }
+
+    public async Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
+    {
+        csharpChanges = WrapCSharpSnippets(csharpChanges);
+
+        var razorChanges = await ApplyFormattedChangesAsync(
+            documentContext,
+            csharpChanges,
+            options,
+            hostDocumentIndex: 0,
+            triggerCharacter: '\0',
+            [_csharpOnTypeFormattingPass],
+            collapseChanges: true,
             automaticallyAddUsings: false,
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        if (kind == RazorLanguageKind.CSharp)
-        {
-            UnwrapCSharpSnippets(formattedEdits);
-        }
+        razorChanges = UnwrapCSharpSnippets(razorChanges);
 
-        return formattedEdits;
+        return razorChanges.SingleOrDefault();
     }
 
-    private async Task<TextEdit[]> ApplyFormattedEditsAsync(
+    public bool TryGetOnTypeFormattingTriggerKind(RazorCodeDocument codeDocument, int hostDocumentIndex, string triggerCharacter, out RazorLanguageKind triggerCharacterKind)
+    {
+        triggerCharacterKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
+
+        return triggerCharacterKind switch
+        {
+            RazorLanguageKind.CSharp => s_csharpTriggerCharacterSet.Contains(triggerCharacter),
+            RazorLanguageKind.Html => s_htmlTriggerCharacterSet.Contains(triggerCharacter),
+            _ => false,
+        };
+    }
+
+    private async Task<ImmutableArray<TextChange>> ApplyFormattedChangesAsync(
         DocumentContext documentContext,
-        RazorLanguageKind kind,
-        TextEdit[] formattedEdits,
-        FormattingOptions options,
+        ImmutableArray<TextChange> generatedDocumentChanges,
+        RazorFormattingOptions options,
         int hostDocumentIndex,
         char triggerCharacter,
-        bool bypassValidationPasses,
-        bool collapseEdits,
+        ImmutableArray<IFormattingPass> formattingPasses,
+        bool collapseChanges,
         bool automaticallyAddUsings,
         CancellationToken cancellationToken)
     {
         // If we only received a single edit, let's always return a single edit back.
         // Otherwise, merge only if explicitly asked.
-        collapseEdits |= formattedEdits.Length == 1;
+        collapseChanges |= generatedDocumentChanges.Length == 1;
 
         var documentSnapshot = documentContext.Snapshot;
-        var uri = documentContext.Uri;
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-        using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
-        var result = new FormattingResult(formattedEdits, kind);
+        var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(documentSnapshot).ConfigureAwait(false);
+        var context = FormattingContext.CreateForOnTypeFormatting(
+            documentSnapshot,
+            codeDocument,
+            options,
+            _codeDocumentProvider,
+            automaticallyAddUsings,
+            hostDocumentIndex,
+            triggerCharacter);
+        var result = generatedDocumentChanges;
 
-        foreach (var pass in _formattingPasses)
+        foreach (var pass in formattingPasses)
         {
-            if (pass.IsValidationPass && bypassValidationPasses)
-            {
-                continue;
-            }
-
             cancellationToken.ThrowIfCancellationRequested();
             result = await pass.ExecuteAsync(context, result, cancellationToken).ConfigureAwait(false);
         }
 
         var originalText = context.SourceText;
-        var edits = GetMinimalEdits(originalText, result.Edits);
+        var razorChanges = originalText.MinimizeTextChanges(result);
 
-        if (collapseEdits)
+        if (collapseChanges)
         {
-            var collapsedEdit = MergeEdits(edits, originalText);
-            if (collapsedEdit.NewText.Length == 0 &&
-                collapsedEdit.Range.IsZeroWidth())
+            var collapsedEdit = MergeChanges(razorChanges, originalText);
+            if (collapsedEdit.NewText is null or { Length: 0 } &&
+                collapsedEdit.Span.IsEmpty)
             {
-                return Array.Empty<TextEdit>();
+                return [];
             }
 
-            return new[] { collapsedEdit };
+            return [collapsedEdit];
         }
 
-        return edits;
+        return razorChanges;
     }
 
     // Internal for testing
-    internal static TextEdit MergeEdits(TextEdit[] edits, SourceText sourceText)
+    internal static TextChange MergeChanges(ImmutableArray<TextChange> changes, SourceText sourceText)
     {
-        if (edits.Length == 1)
+        if (changes.Length == 1)
         {
-            return edits[0];
+            return changes[0];
         }
 
-        var textChanges = new List<TextChange>();
-        foreach (var edit in edits)
-        {
-            var change = new TextChange(sourceText.GetTextSpan(edit.Range), edit.NewText);
-            textChanges.Add(change);
-        }
-
-        var changedText = sourceText.WithChanges(textChanges);
+        var changedText = sourceText.WithChanges(changes);
         var affectedRange = changedText.GetEncompassingTextChangeRange(sourceText);
         var spanBeforeChange = affectedRange.Span;
         var spanAfterChange = new TextSpan(spanBeforeChange.Start, affectedRange.NewLength);
         var newText = changedText.GetSubTextString(spanAfterChange);
 
-        var encompassingChange = new TextChange(spanBeforeChange, newText);
-
-        return sourceText.GetTextEdit(encompassingChange);
+        return new TextChange(spanBeforeChange, newText);
     }
 
-    private static void WrapCSharpSnippets(TextEdit[] snippetEdits)
+    private static ImmutableArray<TextChange> WrapCSharpSnippets(ImmutableArray<TextChange> csharpChanges)
     {
         // Currently this method only supports wrapping `$0`, any additional markers aren't formatted properly.
 
-        for (var i = 0; i < snippetEdits.Length; i++)
+        return ReplaceInChanges(csharpChanges, "$0", "/*$0*/");
+    }
+
+    private static ImmutableArray<TextChange> UnwrapCSharpSnippets(ImmutableArray<TextChange> razorChanges)
+    {
+        return ReplaceInChanges(razorChanges, "/*$0*/", "$0");
+    }
+
+    /// <summary>
+    /// This method counts the occurrences of CRLF and LF line endings in the original text. 
+    /// If LF line endings are more prevalent, it removes any CR characters from the text changes 
+    /// to ensure consistency with the LF style.
+    /// </summary>
+    private static ImmutableArray<TextChange> NormalizeLineEndings(SourceText originalText, ImmutableArray<TextChange> changes)
+    {
+        if (originalText.HasLFLineEndings())
         {
-            var snippetEdit = snippetEdits[i];
+            return ReplaceInChanges(changes, "\r", "");
+        }
+
+        return changes;
+    }
+
+    private static ImmutableArray<TextChange> ReplaceInChanges(ImmutableArray<TextChange> csharpChanges, string toFind, string replacement)
+    {
+        using var changes = new PooledArrayBuilder<TextChange>(csharpChanges.Length);
+        foreach (var change in csharpChanges)
+        {
+            if (change.NewText is not { } newText ||
+                newText.IndexOf(toFind) == -1)
+            {
+                changes.Add(change);
+                continue;
+            }
 
             // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
             // So, let's avoid the error by wrapping the cursor marker in a comment.
-            var wrappedText = snippetEdit.NewText.Replace("$0", "/*$0*/");
-            snippetEdit.NewText = wrappedText;
+            changes.Add(new(change.Span, newText.Replace(toFind, replacement)));
         }
+
+        return changes.DrainToImmutable();
     }
 
-    private static void UnwrapCSharpSnippets(TextEdit[] snippetEdits)
+    internal static class TestAccessor
     {
-        for (var i = 0; i < snippetEdits.Length; i++)
-        {
-            var snippetEdit = snippetEdits[i];
-
-            // Unwrap the cursor marker.
-            var unwrappedText = snippetEdit.NewText.Replace("/*$0*/", "$0");
-            snippetEdit.NewText = unwrappedText;
-        }
+        public static FrozenSet<string> GetCSharpTriggerCharacterSet() => s_csharpTriggerCharacterSet;
+        public static FrozenSet<string> GetHtmlTriggerCharacterSet() => s_htmlTriggerCharacterSet;
     }
 }

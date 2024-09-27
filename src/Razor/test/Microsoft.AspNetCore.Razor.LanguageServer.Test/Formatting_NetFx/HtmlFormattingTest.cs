@@ -14,7 +14,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
+[Collection(HtmlFormattingCollection.Name)]
+public class HtmlFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
+    : FormattingTestBase(fixture.Service, testOutput)
 {
     internal override bool UseTwoPhaseCompilation => true;
 
@@ -208,6 +210,38 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBa
                             }
                         </div>
                     }
+                    """);
+    }
+
+    [Fact]
+    public async Task FormatAttributeStyles()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <div class=@className>Some Text</div>
+                    <div class=@className style=@style>Some Text</div>
+                    <div class=@className style="@style">Some Text</div>
+                    <div class='@className'>Some Text</div>
+                    <div class="@className">Some Text</div>
+                    
+                    <br class=@className/>
+                    <br class=@className style=@style/>
+                    <br class=@className style="@style"/>
+                    <br class='@className'/>
+                    <br class="@className"/>
+                    """,
+            expected: """
+                    <div class=@className>Some Text</div>
+                    <div class=@className style=@style>Some Text</div>
+                    <div class=@className style="@style">Some Text</div>
+                    <div class='@className'>Some Text</div>
+                    <div class="@className">Some Text</div>
+
+                    <br class=@className/>
+                    <br class=@className style=@style/>
+                    <br class=@className style="@style"/>
+                    <br class='@className'/>
+                    <br class="@className"/>
                     """);
     }
 
@@ -455,7 +489,8 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBa
                         }
                     </GridTable>
                     """,
-            tagHelpers: tagHelpers);
+            tagHelpers: tagHelpers,
+            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
     [Fact]
@@ -563,7 +598,8 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBa
                     @{
                         <p></p>
                     }
-                    """);
+                    """,
+            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
     [Fact]
@@ -1284,7 +1320,8 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBa
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: FileKinds.Component,
+            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
     [Fact]
@@ -1396,7 +1433,8 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBa
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: FileKinds.Component,
+            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
     [Fact]
@@ -1454,7 +1492,8 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBa
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: FileKinds.Component,
+            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
     [Fact]
@@ -1762,7 +1801,8 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : FormattingTestBa
                         }
                     </Select>
                     """,
-            tagHelpers: CreateTagHelpers());
+            tagHelpers: CreateTagHelpers(),
+            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
 
         ImmutableArray<TagHelperDescriptor> CreateTagHelpers()
         {

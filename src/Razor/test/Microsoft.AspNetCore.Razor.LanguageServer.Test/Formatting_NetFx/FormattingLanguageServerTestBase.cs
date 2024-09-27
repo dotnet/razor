@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,9 +11,8 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Text;
 using Xunit.Abstractions;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
@@ -31,29 +31,45 @@ public abstract class FormattingLanguageServerTestBase(ITestOutputHelper testOut
         return codeDocument;
     }
 
-    internal class DummyRazorFormattingService : IRazorFormattingService
+    internal class DummyRazorFormattingService(RazorLanguageKind? languageKind = null) : IRazorFormattingService
     {
         public bool Called { get; private set; }
 
-        public Task<TextEdit[]> FormatAsync(VersionedDocumentContext documentContext, Range? range, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(DocumentContext documentContext, ImmutableArray<TextChange> htmlChanges, LinePositionSpan? span, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
             Called = true;
-            return SpecializedTasks.EmptyArray<TextEdit>();
+            return SpecializedTasks.EmptyImmutableArray<TextChange>();
         }
 
-        public Task<TextEdit[]> FormatCodeActionAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextChange?> TryGetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> formattedChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
-            return Task.FromResult(formattedEdits);
+            throw new NotImplementedException();
         }
 
-        public Task<TextEdit[]> FormatOnTypeAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         {
-            return Task.FromResult(formattedEdits);
+            throw new NotImplementedException();
         }
 
-        public Task<TextEdit[]> FormatSnippetAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+        public Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> edits, RazorFormattingOptions options, CancellationToken cancellationToken)
         {
-            return Task.FromResult(formattedEdits);
+            throw new NotImplementedException();
+        }
+
+        public Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(DocumentContext documentContext, ImmutableArray<TextChange> htmlChanges, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(htmlChanges);
+        }
+
+        public Task<TextChange?> TryGetSingleCSharpEditAsync(DocumentContext documentContext, TextChange initialEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool TryGetOnTypeFormattingTriggerKind(RazorCodeDocument codeDocument, int hostDocumentIndex, string triggerCharacter, out RazorLanguageKind triggerCharacterKind)
+        {
+            triggerCharacterKind = languageKind.GetValueOrDefault();
+            return languageKind is not null;
         }
     }
 }

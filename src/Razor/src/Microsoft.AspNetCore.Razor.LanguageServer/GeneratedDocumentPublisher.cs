@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -62,7 +63,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
             : new DocumentKey(ProjectKey.Unknown, filePath);
 
         PublishData? previouslyPublishedData;
-        IReadOnlyList<TextChange> textChanges;
+        ImmutableArray<TextChange> textChanges;
 
         lock (_publishedCSharpData)
         {
@@ -72,23 +73,24 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
                 previouslyPublishedData = PublishData.Default;
             }
 
+            if (previouslyPublishedData.HostDocumentVersion > hostDocumentVersion)
+            {
+                // We've already published a newer version of this document. No-op.
+                _logger.LogWarning($"Skipping publish of C# for {filePath} because we've already published version {previouslyPublishedData.HostDocumentVersion}, and this request is for {hostDocumentVersion}.");
+                return;
+            }
+
             textChanges = SourceTextDiffer.GetMinimalTextChanges(previouslyPublishedData.SourceText, sourceText);
-            if (textChanges.Count == 0 && hostDocumentVersion == previouslyPublishedData.HostDocumentVersion)
+            if (textChanges.Length == 0 && hostDocumentVersion == previouslyPublishedData.HostDocumentVersion)
             {
                 // Source texts match along with host document versions. We've already published something that looks like this. No-op.
                 return;
             }
 
-            if (_logger.IsEnabled(LogLevel.Trace))
-            {
-                var previousDocumentLength = previouslyPublishedData.SourceText.Length;
-                var currentDocumentLength = sourceText.Length;
-                var documentLengthDelta = sourceText.Length - previousDocumentLength;
-                _logger.LogTrace(
-                    $"Updating C# buffer of {filePath} for project {documentKey.ProjectKey} to correspond with host document " +
-                    $"version {hostDocumentVersion}. {previousDocumentLength} -> {currentDocumentLength} = Change delta of " +
-                    $"{documentLengthDelta} via {textChanges.Count} text changes.");
-            }
+            _logger.LogDebug(
+                $"Updating C# buffer of {filePath} for project {documentKey.ProjectKey} to correspond with host document " +
+                $"version {hostDocumentVersion}. {previouslyPublishedData.SourceText.Length} -> {sourceText.Length} = Change delta of " +
+                $"{sourceText.Length - previouslyPublishedData.SourceText.Length} via {textChanges.Length} text changes.");
 
             _publishedCSharpData[documentKey] = new PublishData(sourceText, hostDocumentVersion);
         }
@@ -108,7 +110,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
     public void PublishHtml(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
     {
         PublishData? previouslyPublishedData;
-        IReadOnlyList<TextChange> textChanges;
+        ImmutableArray<TextChange> textChanges;
 
         lock (_publishedHtmlData)
         {
@@ -117,21 +119,22 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
                 previouslyPublishedData = PublishData.Default;
             }
 
+            if (previouslyPublishedData.HostDocumentVersion > hostDocumentVersion)
+            {
+                // We've already published a newer version of this document. No-op.
+                _logger.LogWarning($"Skipping publish of Html for {filePath} because we've already published version {previouslyPublishedData.HostDocumentVersion}, and this request is for {hostDocumentVersion}.");
+                return;
+            }
+
             textChanges = SourceTextDiffer.GetMinimalTextChanges(previouslyPublishedData.SourceText, sourceText);
-            if (textChanges.Count == 0 && hostDocumentVersion == previouslyPublishedData.HostDocumentVersion)
+            if (textChanges.Length == 0 && hostDocumentVersion == previouslyPublishedData.HostDocumentVersion)
             {
                 // Source texts match along with host document versions. We've already published something that looks like this. No-op.
                 return;
             }
 
-            if (_logger.IsEnabled(LogLevel.Trace))
-            {
-                var previousDocumentLength = previouslyPublishedData.SourceText.Length;
-                var currentDocumentLength = sourceText.Length;
-                var documentLengthDelta = sourceText.Length - previousDocumentLength;
-                _logger.LogTrace(
-                    $"Updating HTML buffer of {filePath} to correspond with host document version {hostDocumentVersion}. {previousDocumentLength} -> {currentDocumentLength} = Change delta of {documentLengthDelta} via {textChanges.Count} text changes.");
-            }
+            _logger.LogDebug(
+                $"Updating HTML buffer of {filePath} to correspond with host document version {hostDocumentVersion}. {previouslyPublishedData.SourceText.Length} -> {sourceText.Length} = Change delta of {sourceText.Length - previouslyPublishedData.SourceText.Length} via {textChanges.Length} text changes.");
 
             _publishedHtmlData[filePath] = new PublishData(sourceText, hostDocumentVersion);
         }

@@ -56,7 +56,6 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(response);
         Assert.Equal(expectedRange, response!.Ranges[0]);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     [Fact]
@@ -85,7 +84,6 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(response);
         Assert.Equal(VsLspFactory.UndefinedRange, response!.Ranges[0]);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     [Fact]
@@ -114,7 +112,6 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(response);
         Assert.Equal(VsLspFactory.UndefinedRange, response!.Ranges[0]);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     [Fact]
@@ -143,7 +140,6 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(response);
         Assert.Equal(VsLspFactory.UndefinedRange, response!.Ranges[0]);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     [Fact]
@@ -169,7 +165,6 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(response);
         Assert.Equal(request.ProjectedRanges[0], response!.Ranges[0]);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     [Fact]
@@ -195,7 +190,6 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(response);
         Assert.Equal(request.ProjectedRanges[0], response!.Ranges[0]);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     [Fact]
@@ -225,7 +219,6 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(response);
         Assert.Equal(VsLspFactory.UndefinedRange, response!.Ranges[0]);
-        Assert.Equal(1337, response.HostDocumentVersion);
     }
 
     private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, ImmutableArray<SourceMapping> sourceMappings)
