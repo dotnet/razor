@@ -30,6 +30,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
     private readonly VSInternalCompletionContext _completionContext;
     private readonly DocumentContext _documentContext;
     private readonly VSInternalClientCapabilities _clientCapabilities;
+    private readonly RazorCompletionOptions _razorCompletionOptions;
 
     public CompletionListProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -41,6 +42,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
         _completionContext = new VSInternalCompletionContext();
         _documentContext = TestDocumentContext.From("C:/path/to/file.cshtml");
         _clientCapabilities = new VSInternalClientCapabilities();
+        _razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true);
     }
 
     [Fact]
@@ -51,7 +53,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 0, _completionContext, _documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 0, _completionContext, _documentContext, _clientCapabilities, _razorCompletionOptions, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         Assert.NotSame(_completionList1, completionList);
@@ -68,7 +70,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 0, _completionContext, _documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 0, _completionContext, _documentContext, _clientCapabilities, _razorCompletionOptions, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         Assert.Same(_completionList2, completionList);
@@ -121,6 +123,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
             DocumentContext documentContext,
             VSInternalClientCapabilities clientCapabilities,
             HashSet<string> existingCompletions,
+            RazorCompletionOptions razorCompletionOptions,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(_completionList);

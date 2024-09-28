@@ -36,6 +36,7 @@ internal class CompletionListProvider
         VSInternalCompletionContext completionContext,
         DocumentContext documentContext,
         VSInternalClientCapabilities clientCapabilities,
+        RazorCompletionOptions razorCompletionOptions,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
@@ -51,7 +52,14 @@ internal class CompletionListProvider
 
         // Now we get the Razor completion list, using information from the actual language server if necessary
         var razorCompletionList = IsValidTrigger(_razorCompletionListProvider.TriggerCharacters, completionContext)
-            ? await _razorCompletionListProvider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, existingItems, cancellationToken).ConfigureAwait(false)
+            ? await _razorCompletionListProvider.GetCompletionListAsync(
+                absoluteIndex,
+                completionContext,
+                documentContext,
+                clientCapabilities,
+                existingItems,
+                razorCompletionOptions,
+                cancellationToken).ConfigureAwait(false)
             : null;
 
         var finalCompletionList = CompletionListMerger.Merge(razorCompletionList, delegatedCompletionList);

@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal sealed class CompletionListCache
+internal class CompletionListCache
 {
     private record struct Slot(
         int Id,

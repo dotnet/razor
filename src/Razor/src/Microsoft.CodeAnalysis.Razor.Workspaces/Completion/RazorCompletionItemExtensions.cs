@@ -12,6 +12,7 @@ internal static class RazorCompletionItemExtensions
     private readonly static string s_attributeCompletionDescriptionKey = "Razor.AttributeDescription";
     private readonly static string s_directiveCompletionDescriptionKey = "Razor.DirectiveDescription";
     private readonly static string s_markupTransitionDescriptionKey = "Razor.MarkupTransitionDescription";
+    private readonly static string s_tagHelperElementCompletionDescriptionKey = "Razor.TagHelperElementDescription";
 
     public static void SetAttributeCompletionDescription(this RazorCompletionItem completionItem, AggregateBoundAttributeDescription attributeCompletionDescription)
     {
@@ -89,5 +90,21 @@ internal static class RazorCompletionItemExtensions
 
         var markupTransitionCompletionDescription = completionItem.Items[s_markupTransitionDescriptionKey] as MarkupTransitionCompletionDescription;
         return markupTransitionCompletionDescription;
+    }
+
+    public static void SetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem, AggregateBoundElementDescription elementDescriptionInfo)
+    {
+        completionItem.Items[s_tagHelperElementCompletionDescriptionKey] = elementDescriptionInfo;
+    }
+
+    public static AggregateBoundElementDescription? GetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem)
+    {
+        if (completionItem is null)
+        {
+            throw new ArgumentNullException(nameof(completionItem));
+        }
+
+        var description = completionItem.Items[s_tagHelperElementCompletionDescriptionKey] as AggregateBoundElementDescription;
+        return description;
     }
 }

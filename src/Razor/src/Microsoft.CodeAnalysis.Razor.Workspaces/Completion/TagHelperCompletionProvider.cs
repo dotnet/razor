@@ -10,11 +10,12 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
+
+using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
 {
@@ -27,14 +28,11 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = RazorCommitCharacter.CreateArray([">"]);
 
     private readonly ITagHelperCompletionService _tagHelperCompletionService;
-    private readonly RazorLSPOptionsMonitor _optionsMonitor;
 
     public TagHelperCompletionProvider(
-        ITagHelperCompletionService tagHelperCompletionService,
-        RazorLSPOptionsMonitor optionsMonitor)
+        ITagHelperCompletionService tagHelperCompletionService)
     {
         _tagHelperCompletionService = tagHelperCompletionService;
-        _optionsMonitor = optionsMonitor;
     }
 
     public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
@@ -172,7 +170,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
 
             // Do not turn attributes into snippets if we are in an already written full attribute (https://github.com/dotnet/razor-tooling/issues/6724)
             if (containingAttribute is not (MarkupTagHelperAttributeSyntax or MarkupAttributeBlockSyntax) &&
-                TryResolveInsertText(insertText, attributeContext, out var snippetText))
+                TryResolveInsertText(insertText, attributeContext, options.AutoInsertAttributeQuotes, out var snippetText))
             {
                 isSnippet = true;
                 insertText = snippetText;
@@ -209,11 +207,11 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         return completionItems.DrainToImmutable();
     }
 
-    private bool TryResolveInsertText(string baseInsertText, AttributeContext context, [NotNullWhen(true)] out string? snippetText)
+    private bool TryResolveInsertText(string baseInsertText, AttributeContext context, bool autoInsertAttributeQuotes, [NotNullWhen(true)] out string? snippetText)
     {
         if (context == AttributeContext.FullSnippet)
         {
-            snippetText = _optionsMonitor.CurrentValue.AutoInsertAttributeQuotes
+            snippetText = autoInsertAttributeQuotes
                 ? $"{baseInsertText}=\"$0\""
                 : $"{baseInsertText}=$0";
 
@@ -244,7 +242,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         var completionResult = _tagHelperCompletionService.GetElementCompletions(elementCompletionContext);
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
 
-        var commitChars = _optionsMonitor.CurrentValue.CommitElementsWithSpace
+        var commitChars = context.Options.CommitElementsWithSpace
             ? s_elementCommitCharacters
             : s_elementCommitCharacters_WithoutSpace;
 

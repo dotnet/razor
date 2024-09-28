@@ -41,6 +41,7 @@ internal class RazorCompletionListProvider(
         DocumentContext documentContext,
         VSInternalClientCapabilities clientCapabilities,
         HashSet<string>? existingCompletions,
+        RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
         if (!IsApplicableTriggerContext(completionContext))
@@ -56,7 +57,6 @@ internal class RazorCompletionListProvider(
             _ => CompletionReason.Typing,
         };
 
-        var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
         var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var tagHelperContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);

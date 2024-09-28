@@ -28,6 +28,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     private readonly CompletionListCache _completionListCache;
     private readonly VSInternalClientCapabilities _clientCapabilities;
     private readonly VSInternalCompletionContext _defaultCompletionContext;
+    private readonly RazorCompletionOptions _razorCompletionOptions;
 
     public RazorCompletionListProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -54,21 +55,20 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         };
 
         _defaultCompletionContext = new VSInternalCompletionContext();
+        _razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true);
     }
 
-    private static IEnumerable<IRazorCompletionItemProvider> GetCompletionProviders(RazorLSPOptionsMonitor optionsMonitor = null)
+    private static IEnumerable<IRazorCompletionItemProvider> GetCompletionProviders()
     {
         // Working around strong naming restriction.
         var tagHelperCompletionService = new TagHelperCompletionService();
-
-        optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
 
         var completionProviders = new IRazorCompletionItemProvider[]
         {
             new DirectiveCompletionItemProvider(),
             new DirectiveAttributeCompletionItemProvider(),
             new DirectiveAttributeParameterCompletionItemProvider(),
-            new TagHelperCompletionProvider(tagHelperCompletionService, optionsMonitor)
+            new TagHelperCompletionProvider(tagHelperCompletionService)
         };
 
         return completionProviders;
@@ -369,7 +369,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: cursorPosition, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+            absoluteIndex: cursorPosition, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
 
@@ -395,7 +395,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
 
@@ -427,7 +427,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
         Assert.Collection(completionList.Items,
@@ -456,7 +456,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
         Assert.Empty(completionList.Items);
@@ -484,7 +484,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
         Assert.Collection(completionList.Items,
@@ -510,7 +510,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 1, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+            absoluteIndex: 1, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
         Assert.Contains(completionList.Items, item => item.InsertText == "Test");
@@ -540,7 +540,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 6, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+            absoluteIndex: 6, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
         Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=\"$0\"");
@@ -569,13 +569,14 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         // Set up a custom options monitor with desired options
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         await optionsMonitor.UpdateAsync(optionsMonitor.CurrentValue with { AutoInsertAttributeQuotes = false }, DisposalToken);
+        var razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: false, CommitElementsWithSpace: true);
 
-        var completionFactsService = new LspRazorCompletionFactsService(GetCompletionProviders(optionsMonitor));
+        var completionFactsService = new LspRazorCompletionFactsService(GetCompletionProviders());
         var provider = new RazorCompletionListProvider(completionFactsService, _completionListCache, LoggerFactory);
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 6, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+            absoluteIndex: 6, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, razorCompletionOptions, DisposalToken);
 
         // Assert
         Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=$0");
