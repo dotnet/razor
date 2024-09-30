@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -19,7 +18,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-[UseExportProvider]
 public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     private protected IDocumentContextFactory? DocumentContextFactory { get; private set; }
@@ -56,7 +54,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutput
             }
         }
 
-        DocumentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
+        DocumentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument);
 
         LanguageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
             options.SupportsFileManipulation == true &&

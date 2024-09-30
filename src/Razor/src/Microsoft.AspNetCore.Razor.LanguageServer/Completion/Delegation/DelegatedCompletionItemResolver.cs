@@ -2,33 +2,29 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
-internal class DelegatedCompletionItemResolver : CompletionItemResolver
+internal class DelegatedCompletionItemResolver(
+    IDocumentContextFactory documentContextFactory,
+    IRazorFormattingService formattingService,
+    RazorLSPOptionsMonitor optionsMonitor,
+    IClientConnection clientConnection) : CompletionItemResolver
 {
-    private readonly IDocumentContextFactory _documentContextFactory;
-    private readonly IRazorFormattingService _formattingService;
-    private readonly IClientConnection _clientConnection;
-
-    public DelegatedCompletionItemResolver(
-        IDocumentContextFactory documentContextFactory,
-        IRazorFormattingService formattingService,
-        IClientConnection clientConnection)
-    {
-        _documentContextFactory = documentContextFactory;
-        _formattingService = formattingService;
-        _clientConnection = clientConnection;
-    }
+    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
+    private readonly IRazorFormattingService _formattingService = formattingService;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
+    private readonly IClientConnection _clientConnection = clientConnection;
 
     public override async Task<VSInternalCompletionItem?> ResolveAsync(
         VSInternalCompletionItem item,
@@ -100,7 +96,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
         }
 
         var identifier = context.OriginalRequestParams.Identifier.TextDocumentIdentifier;
-        if (!_documentContextFactory.TryCreateForOpenDocument(identifier, out var documentContext))
+        if (!_documentContextFactory.TryCreate(identifier, out var documentContext))
         {
             return resolvedCompletionItem;
         }
@@ -117,18 +113,26 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             return resolvedCompletionItem;
         }
 
+        var options = RazorFormattingOptions.From(formattingOptions, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
+
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+
         if (resolvedCompletionItem.TextEdit is not null)
         {
             if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
             {
-                var formattedTextEdit = await _formattingService.FormatSnippetAsync(
+                var textChange = csharpSourceText.GetTextChange(textEdit);
+                var formattedTextChange = await _formattingService.TryGetCSharpSnippetFormattingEditAsync(
                     documentContext,
-                    RazorLanguageKind.CSharp,
-                    new[] { textEdit },
-                    formattingOptions,
+                    [textChange],
+                    options,
                     cancellationToken).ConfigureAwait(false);
 
-                resolvedCompletionItem.TextEdit = formattedTextEdit.FirstOrDefault();
+                if (formattedTextChange is { } change)
+                {
+                    resolvedCompletionItem.TextEdit = sourceText.GetTextEdit(change);
+                }
             }
             else
             {
@@ -140,14 +144,14 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
 
         if (resolvedCompletionItem.AdditionalTextEdits is not null)
         {
-            var formattedTextEdits = await _formattingService.FormatSnippetAsync(
+            var additionalChanges = resolvedCompletionItem.AdditionalTextEdits.SelectAsArray(csharpSourceText.GetTextChange);
+            var formattedTextChange = await _formattingService.TryGetCSharpSnippetFormattingEditAsync(
                 documentContext,
-                RazorLanguageKind.CSharp,
-                resolvedCompletionItem.AdditionalTextEdits,
-                formattingOptions,
+                additionalChanges,
+                options,
                 cancellationToken).ConfigureAwait(false);
 
-            resolvedCompletionItem.AdditionalTextEdits = formattedTextEdits;
+            resolvedCompletionItem.AdditionalTextEdits = formattedTextChange is { } change ? [sourceText.GetTextEdit(change)] : null;
         }
 
         return resolvedCompletionItem;

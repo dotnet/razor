@@ -5,12 +5,11 @@ using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,62 +18,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
-    public async Task ExecuteAsync_LanguageKindCSharp_Noops()
-    {
-        // Arrange
-        var source = SourceText.From(@"
-@code {
-    public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ ");
-        var input = new FormattingResult([badEdit], RazorLanguageKind.CSharp);
-        var pass = GetPass();
-
-        // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
-
-        // Assert
-        Assert.Equal(input, result);
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_LanguageKindHtml_Noops()
-    {
-        // Arrange
-        var source = SourceText.From(@"
-@code {
-    public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ ");
-        var input = new FormattingResult([badEdit], RazorLanguageKind.Html);
-        var pass = GetPass();
-
-        // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
-
-        // Assert
-        Assert.Equal(input, result);
-    }
-
-    [Fact]
     public async Task ExecuteAsync_NonDestructiveEdit_Allowed()
     {
         // Arrange
-        var source = SourceText.From(@"
-@code {
-public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var edits = new[]
-        {
-            VsLspFactory.CreateTextEdit(2, 0, "    ")
-        };
-        var input = new FormattingResult(edits, RazorLanguageKind.Razor);
+        TestCode source = """
+            @code {
+            [||]public class Foo { }
+            }
+            """;
+        var context = CreateFormattingContext(source);
+        var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
+        var input = edits;
         var pass = GetPass();
 
         // Act
@@ -88,28 +42,26 @@ public class Foo { }
     public async Task ExecuteAsync_DestructiveEdit_Rejected()
     {
         // Arrange
-        var source = SourceText.From(@"
-@code {
-public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var badEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "@ "); // Creates a diagnostic
-        var input = new FormattingResult([badEdit], RazorLanguageKind.Razor);
+        // Arrange
+        TestCode source = """
+            [||]@code {
+            public class Foo { }
+            }
+            """;
+        var context = CreateFormattingContext(source);
+        var badEdit = new TextChange(source.Span, "@ "); // Creates a diagnostic
         var pass = GetPass();
 
         // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
+        var result = await pass.ExecuteAsync(context, [badEdit], DisposalToken);
 
         // Assert
-        Assert.Empty(result.Edits);
+        Assert.Empty(result);
     }
 
     private FormattingDiagnosticValidationPass GetPass()
     {
-        var mappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
-
-        var pass = new FormattingDiagnosticValidationPass(mappingService, LoggerFactory)
+        var pass = new FormattingDiagnosticValidationPass(LoggerFactory)
         {
             DebugAssertsEnabled = false
         };
@@ -117,18 +69,23 @@ public class Foo { }
         return pass;
     }
 
-    private static FormattingContext CreateFormattingContext(SourceText source, int tabSize = 4, bool insertSpaces = true, string? fileKind = null)
+    private static FormattingContext CreateFormattingContext(TestCode input, int tabSize = 4, bool insertSpaces = true, string? fileKind = null)
     {
+        var source = SourceText.From(input.Text);
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, fileKind: fileKind);
-        var options = new FormattingOptions()
+        var options = new RazorFormattingOptions()
         {
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
 
-        var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, TestAdhocWorkspaceFactory.Instance);
+        var context = FormattingContext.Create(
+            documentSnapshot,
+            codeDocument,
+            options,
+            new LspFormattingCodeDocumentProvider());
         return context;
     }
 
@@ -140,7 +97,7 @@ public class Foo { }
         var projectEngine = RazorProjectEngine.Create(builder => builder.SetRootNamespace("Test"));
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
 
-        var documentSnapshot = FormattingTestBase.CreateDocumentSnapshot(path, tagHelpers, fileKind, [], [], projectEngine, codeDocument);
+        var documentSnapshot = FormattingTestBase.CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments: [], imports: [], projectEngine, codeDocument);
 
         return (codeDocument, documentSnapshot);
     }

@@ -5,12 +5,15 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
+[Collection(HtmlFormattingCollection.Name)]
+public class CodeDirectiveFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
+    : FormattingTestBase(fixture.Service, testOutput)
 {
     internal override bool UseTwoPhaseCompilation => true;
 
@@ -1699,7 +1702,8 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Formatt
                         private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
                     }
                     """,
-            tagHelpers: GetComponentWithCascadingTypeParameter());
+            tagHelpers: GetComponentWithCascadingTypeParameter(),
+            skipFlipLineEndingTest: true);
     }
 
     [Fact]
@@ -1789,7 +1793,8 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Formatt
                         private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
                     }
                     """,
-            tagHelpers: GetComponentWithTwoCascadingTypeParameter());
+            tagHelpers: GetComponentWithTwoCascadingTypeParameter(),
+            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
     [Fact]
