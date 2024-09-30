@@ -26,14 +26,17 @@ namespace Microsoft.CodeAnalysis.Razor.Rename;
 
 internal class RenameService(
     IRazorComponentSearchEngine componentSearchEngine,
-    IProjectCollectionResolver projectCollectionResolver,
     LanguageServerFeatureOptions languageServerFeatureOptions) : IRenameService
 {
     private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
-    private readonly IProjectCollectionResolver _projectCollectionResolver = projectCollectionResolver;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
-    public async Task<WorkspaceEdit?> TryGetRazorRenameEditsAsync(DocumentContext documentContext, DocumentPositionInfo positionInfo, string newName, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> TryGetRazorRenameEditsAsync(
+        DocumentContext documentContext,
+        DocumentPositionInfo positionInfo,
+        string newName,
+        IProjectQueryService projectQueryService,
+        CancellationToken cancellationToken)
     {
         // We only support renaming of .razor components, not .cshtml tag helpers
         if (!FileKinds.IsComponent(documentContext.FileKind))
@@ -55,7 +58,7 @@ internal class RenameService(
             return null;
         }
 
-        var originComponentDocumentSnapshot = await _componentSearchEngine.TryLocateComponentAsync(documentContext.Snapshot, originTagHelpers.First()).ConfigureAwait(false);
+        var originComponentDocumentSnapshot = await _componentSearchEngine.TryLocateComponentAsync(originTagHelpers.First(), projectQueryService).ConfigureAwait(false);
         if (originComponentDocumentSnapshot is null)
         {
             return null;
@@ -73,7 +76,7 @@ internal class RenameService(
         documentChanges.Add(fileRename);
         AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, documentContext.Uri, codeDocument);
 
-        var documentSnapshots = GetAllDocumentSnapshots(documentContext);
+        var documentSnapshots = GetAllDocumentSnapshots(documentContext.FilePath, projectQueryService);
 
         foreach (var documentSnapshot in documentSnapshots)
         {
@@ -95,17 +98,17 @@ internal class RenameService(
         };
     }
 
-    private ImmutableArray<IDocumentSnapshot> GetAllDocumentSnapshots(DocumentContext skipDocumentContext)
+    private static ImmutableArray<IDocumentSnapshot> GetAllDocumentSnapshots(string filePath, IProjectQueryService projectQueryService)
     {
         using var documentSnapshots = new PooledArrayBuilder<IDocumentSnapshot>();
         using var _ = StringHashSetPool.GetPooledObject(out var documentPaths);
 
-        foreach (var project in _projectCollectionResolver.EnumerateProjects(skipDocumentContext.Snapshot))
+        foreach (var project in projectQueryService.GetProjects())
         {
             foreach (var documentPath in project.DocumentFilePaths)
             {
                 // We've already added refactoring edits for our document snapshot
-                if (string.Equals(documentPath, skipDocumentContext.FilePath, FilePathComparison.Instance))
+                if (FilePathComparer.Instance.Equals(documentPath, filePath))
                 {
                     continue;
                 }

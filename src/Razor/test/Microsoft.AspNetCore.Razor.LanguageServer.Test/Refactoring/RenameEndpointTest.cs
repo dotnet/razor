@@ -692,7 +692,9 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         await projectService.UpdateDocumentAsync(s_componentFilePath4, SourceText.From(ComponentText4), DisposalToken);
         await projectService.UpdateDocumentAsync(s_componentWithParamFilePath, SourceText.From(ComponentWithParamText), DisposalToken);
 
-        var searchEngine = new RazorComponentSearchEngine(projectManager, LoggerFactory);
+        var projectQueryService = new LspProjectQueryService(projectManager);
+
+        var searchEngine = new RazorComponentSearchEngine(LoggerFactory);
         options ??= StrictMock.Of<LanguageServerFeatureOptions>(static o =>
             o.SupportsFileManipulation == true &&
             o.SingleServerSupport == false &&
@@ -714,12 +716,13 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
 
         clientConnection ??= StrictMock.Of<IClientConnection>();
 
-        var renameService = new RenameService(searchEngine, projectManager, options);
+        var renameService = new RenameService(searchEngine, options);
         var endpoint = new RenameEndpoint(
             renameService,
             options,
             documentMappingService,
             editMappingService,
+            projectQueryService,
             clientConnection,
             LoggerFactory);
 

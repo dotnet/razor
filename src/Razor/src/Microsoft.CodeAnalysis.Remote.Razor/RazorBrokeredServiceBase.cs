@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -16,6 +18,7 @@ internal abstract partial class RazorBrokeredServiceBase : IDisposable
     private readonly ServiceBrokerClient _serviceBrokerClient;
     private readonly ServiceRpcDescriptor.RpcConnection? _serverConnection;
     private readonly IRazorBrokeredServiceInterceptor? _interceptor;
+    private readonly ProjectQueryServiceFactory _projectQueryServiceFactory;
 
     protected readonly ILogger Logger;
 
@@ -24,9 +27,16 @@ internal abstract partial class RazorBrokeredServiceBase : IDisposable
         _serviceBrokerClient = new ServiceBrokerClient(args.ServiceBroker, joinableTaskFactory: null);
         _serverConnection = args.ServerConnection;
         _interceptor = args.Interceptor;
+        _projectQueryServiceFactory = args.ExportProvider.GetExportedValue<ProjectQueryServiceFactory>();
 
         Logger = args.ServiceLoggerFactory.GetOrCreateLogger(GetType());
     }
+
+    protected IProjectQueryService CreateProjectQueryService(RemoteDocumentContext context)
+        => _projectQueryServiceFactory.Create(context.TextDocument.Project.Solution);
+
+    protected IProjectQueryService CreateProjectQueryService(Solution solution)
+        => _projectQueryServiceFactory.Create(solution);
 
     protected ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         => _interceptor is not null

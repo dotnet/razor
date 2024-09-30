@@ -27,8 +27,6 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
             => new RemoteDocumentHighlightService(in args);
     }
 
-    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
-
     public ValueTask<Response> GetHighlightsAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
@@ -64,7 +62,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         }
 
         var csharpDocument = codeDocument.GetCSharpDocument();
-        if (_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
+        if (DocumentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
         {
             var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
 
@@ -76,7 +74,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
 
                 foreach (var highlight in highlights)
                 {
-                    if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, highlight.Range.ToLinePositionSpan(), out var mappedRange))
+                    if (DocumentMappingService.TryMapToHostDocumentRange(csharpDocument, highlight.Range.ToLinePositionSpan(), out var mappedRange))
                     {
                         highlight.Range = Roslyn.LanguageServer.Protocol.RoslynLspExtensions.ToRange(mappedRange);
                         results.Add(RemoteDocumentHighlight.FromRoslynDocumentHighlight(highlight));

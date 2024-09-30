@@ -25,7 +25,12 @@ internal abstract class AbstractRazorComponentDefinitionService(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = logger;
 
-    public async Task<LspLocation?> GetDefinitionAsync(IDocumentSnapshot documentSnapshot, DocumentPositionInfo positionInfo, bool ignoreAttributes, CancellationToken cancellationToken)
+    public async Task<LspLocation?> GetDefinitionAsync(
+        IDocumentSnapshot documentSnapshot,
+        DocumentPositionInfo positionInfo,
+        IProjectQueryService projectQueryService,
+        bool ignoreAttributes,
+        CancellationToken cancellationToken)
     {
         // If we're in C# then there is no point checking for a component tag, because there won't be one
         if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
@@ -47,7 +52,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
             return null;
         }
 
-        var componentDocument = await _componentSearchEngine.TryLocateComponentAsync(documentSnapshot, boundTagHelper).ConfigureAwait(false);
+        var componentDocument = await _componentSearchEngine.TryLocateComponentAsync(boundTagHelper, projectQueryService).ConfigureAwait(false);
         if (componentDocument is null)
         {
             _logger.LogInformation($"Could not locate component document.");

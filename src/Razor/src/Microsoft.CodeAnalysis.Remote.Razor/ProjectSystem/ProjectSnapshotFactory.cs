@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 [Export(typeof(ProjectSnapshotFactory)), Shared]
 [method: ImportingConstructor]
-internal class ProjectSnapshotFactory(DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter)
+internal sealed class ProjectSnapshotFactory(DocumentSnapshotFactory documentSnapshotFactory, ITelemetryReporter telemetryReporter)
 {
     private static readonly ConditionalWeakTable<Project, RemoteProjectSnapshot> s_projectSnapshots = new();
 

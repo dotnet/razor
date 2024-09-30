@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
@@ -237,14 +238,15 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
                 rootNamespace: "project"));
         });
 
-        var componentSearchEngine = new RazorComponentSearchEngine(projectManager, LoggerFactory);
+        var projectQueryService = new LspProjectQueryService(projectManager);
+        var componentSearchEngine = new RazorComponentSearchEngine(LoggerFactory);
         var componentDefinitionService = new RazorComponentDefinitionService(componentSearchEngine, DocumentMappingService, LoggerFactory);
 
         var razorUri = new Uri(razorFilePath);
         Assert.True(DocumentContextFactory.TryCreate(razorUri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
-        var endpoint = new DefinitionEndpoint(componentDefinitionService, DocumentMappingService, LanguageServerFeatureOptions, languageServer, LoggerFactory);
+        var endpoint = new DefinitionEndpoint(componentDefinitionService, DocumentMappingService, projectQueryService, LanguageServerFeatureOptions, languageServer, LoggerFactory);
 
         var request = new TextDocumentPositionParams
         {
