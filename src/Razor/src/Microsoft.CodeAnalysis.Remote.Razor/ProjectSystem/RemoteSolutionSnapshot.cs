@@ -26,7 +26,12 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
     {
         if (project.Solution != _solution)
         {
-            throw new InvalidOperationException();
+            throw new ArgumentException(SR.Project_does_not_belong_to_this_solution, nameof(project));
+        }
+
+        if (!project.ContainsRazorDocuments())
+        {
+            throw new ArgumentException(SR.Project_does_not_contain_any_Razor_documents, nameof(project));
         }
 
         lock (_projectMap)
@@ -65,8 +70,11 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
 
             foreach (var projectId in projectIds)
             {
-                var project = GetProject(projectId);
-                results.Add(project);
+                if (_solution.GetProject(projectId) is Project project &&
+                    project.ContainsRazorDocuments())
+                {
+                    results.Add(GetProject(project));
+                }
             }
 
             return results.DrainToImmutable();
@@ -76,6 +84,11 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
 
     public ImmutableArray<IProjectSnapshot> FindProjects(string documentFilePath)
     {
+        if (!documentFilePath.IsRazorFilePath())
+        {
+            throw new ArgumentException(SR.Format0_is_not_a_Razor_file_path(documentFilePath), nameof(documentFilePath));
+        }
+
         var documentIds = _solution.GetDocumentIdsWithFilePath(documentFilePath);
 
         if (documentIds.IsEmpty)
@@ -93,6 +106,8 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
             // We use a set to ensure that we only ever return the same project once.
             if (projectIdSet.Add(projectId))
             {
+                // Since documentFilePath was proven to be a Razor file path, we assume that
+                // the projects will contain Razor documents.
                 var project = GetProject(projectId);
                 results.Add(project);
             }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -12,19 +13,30 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal sealed class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot) : IDocumentSnapshot
+internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 {
-    public TextDocument TextDocument { get; } = textDocument;
-    public RemoteProjectSnapshot ProjectSnapshot { get; } = projectSnapshot;
+    public TextDocument TextDocument { get; }
+    public RemoteProjectSnapshot ProjectSnapshot { get; }
 
     // TODO: Delete this field when the source generator is hooked up
     private Document? _generatedDocument;
 
     private RazorCodeDocument? _codeDocument;
 
+    public RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot)
+    {
+        if (!textDocument.IsRazorDocument())
+        {
+            throw new ArgumentException(SR.Document_is_not_a_Razor_document);
+        }
+
+        TextDocument = textDocument;
+        ProjectSnapshot = projectSnapshot;
+    }
+
     public string FileKind => FileKinds.GetFileKindFromFilePath(FilePath);
-    public string? FilePath => TextDocument.FilePath;
-    public string? TargetPath => TextDocument.FilePath;
+    public string FilePath => TextDocument.FilePath.AssumeNotNull();
+    public string TargetPath => TextDocument.FilePath.AssumeNotNull();
 
     public IProjectSnapshot Project => ProjectSnapshot;
 
@@ -79,9 +91,13 @@ internal sealed class RemoteDocumentSnapshot(TextDocument textDocument, RemotePr
     public IDocumentSnapshot WithText(SourceText text)
     {
         var id = TextDocument.Id;
-        var newDocument = TextDocument.Project.Solution.WithAdditionalDocumentText(id, text).GetAdditionalDocument(id).AssumeNotNull();
+        var newDocument = TextDocument.Project.Solution
+            .WithAdditionalDocumentText(id, text)
+            .GetAdditionalDocument(id)
+            .AssumeNotNull();
 
-        return ProjectSnapshot.GetDocument(newDocument);
+        var snapshotManager = ProjectSnapshot.SolutionSnapshot.SnapshotManager;
+        return snapshotManager.GetSnapshot(newDocument);
     }
 
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
@@ -106,7 +122,8 @@ internal sealed class RemoteDocumentSnapshot(TextDocument textDocument, RemotePr
         // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
 
         var solution = TextDocument.Project.Solution;
-        var generatedFilePath = ProjectSnapshot.SolutionSnapshot.SnapshotManager.FilePathService.GetRazorCSharpFilePath(Project.Key, FilePath.AssumeNotNull());
+        var filePathService = ProjectSnapshot.SolutionSnapshot.SnapshotManager.FilePathService;
+        var generatedFilePath = filePathService.GetRazorCSharpFilePath(Project.Key, FilePath.AssumeNotNull());
         var projectId = TextDocument.Project.Id;
         var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == projectId);
         var generatedDocument = solution.GetRequiredDocument(generatedDocumentId);

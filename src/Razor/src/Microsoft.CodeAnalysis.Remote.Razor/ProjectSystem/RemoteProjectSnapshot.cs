@@ -38,6 +38,11 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public RemoteProjectSnapshot(Project project, RemoteSolutionSnapshot solutionSnapshot)
     {
+        if (!project.ContainsRazorDocuments())
+        {
+            throw new ArgumentException(SR.Project_does_not_contain_any_Razor_documents, nameof(project));
+        }
+
         _project = project;
         SolutionSnapshot = solutionSnapshot;
         Key = _project.ToProjectKey();
@@ -83,7 +88,8 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         if (_tagHelpers.IsDefault)
         {
             var projectEngine = await _lazyProjectEngine.GetValueAsync(cancellationToken);
-            var computedTagHelpers = await _project.GetTagHelpersAsync(projectEngine, SolutionSnapshot.SnapshotManager.TelemetryReporter, cancellationToken);
+            var telemetryReporter = SolutionSnapshot.SnapshotManager.TelemetryReporter;
+            var computedTagHelpers = await _project.GetTagHelpersAsync(projectEngine, telemetryReporter, cancellationToken);
             ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
         }
 
@@ -92,16 +98,22 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public ProjectWorkspaceState ProjectWorkspaceState => throw new InvalidOperationException("Should not be called for cohosted projects.");
 
+    public RemoteDocumentSnapshot GetDocument(DocumentId documentId)
+    {
+        var document = _project.GetRequiredDocument(documentId);
+        return GetDocument(document);
+    }
+
     public RemoteDocumentSnapshot GetDocument(TextDocument document)
     {
         if (document.Project != _project)
         {
-            throw new InvalidOperationException();
+            throw new ArgumentException(SR.Document_does_not_belong_to_this_project, nameof(document));
         }
 
         if (!document.IsRazorDocument())
         {
-            throw new InvalidOperationException();
+            throw new ArgumentException(SR.Document_is_not_a_Razor_document);
         }
 
         lock (_documentMap)

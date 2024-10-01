@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal interface IProjectQueryService
 {
     /// <summary>
-    /// Returns all project snapshots.
+    /// Returns all Razor project snapshots.
     /// </summary>
     ImmutableArray<IProjectSnapshot> GetProjects();
 
     /// <summary>
-    /// Returns all project snapshots that contain the given document file path.
+    /// Returns all Razor project snapshots that contain the given document file path.
     /// </summary>
     ImmutableArray<IProjectSnapshot> FindProjects(string documentFilePath);
 }
