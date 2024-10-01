@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal class RemoteProjectSnapshot : IProjectSnapshot
+internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 {
     public ProjectKey Key { get; }
 

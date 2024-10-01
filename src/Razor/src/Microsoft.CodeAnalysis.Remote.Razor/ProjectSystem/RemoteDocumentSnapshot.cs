@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot, IFilePathService filePathService) : IDocumentSnapshot
+internal sealed class RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot, IFilePathService filePathService) : IDocumentSnapshot
 {
     private readonly TextDocument _textDocument = textDocument;
     private readonly RemoteProjectSnapshot _projectSnapshot = projectSnapshot;

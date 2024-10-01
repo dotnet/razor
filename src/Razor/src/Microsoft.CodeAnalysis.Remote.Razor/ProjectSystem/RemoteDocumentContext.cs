@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal class RemoteDocumentContext : DocumentContext
+internal sealed class RemoteDocumentContext : DocumentContext
 {
     public TextDocument TextDocument => Snapshot.TextDocument;
 
