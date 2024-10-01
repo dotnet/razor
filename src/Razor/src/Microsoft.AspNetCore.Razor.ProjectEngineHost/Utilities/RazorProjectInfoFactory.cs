@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -86,8 +85,7 @@ internal static class RazorProjectInfoFactory
             fileSystem,
             configure: defaultConfigure);
 
-        var resolver = new CompilationTagHelperResolver(NoOpTelemetryReporter.Instance);
-        var tagHelpers = await resolver.GetTagHelpersAsync(project, engine, cancellationToken).ConfigureAwait(false);
+        var tagHelpers = await project.GetTagHelpersAsync(engine, cancellationToken).ConfigureAwait(false);
 
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
 

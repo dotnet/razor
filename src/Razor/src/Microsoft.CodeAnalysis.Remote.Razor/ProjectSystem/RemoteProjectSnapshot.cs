@@ -101,21 +101,11 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         if (_tagHelpers.IsDefault)
         {
             var projectEngine = await _lazyProjectEngine.GetValueAsync(cancellationToken);
-            var computedTagHelpers = await ComputeTagHelpersAsync(_project, projectEngine, _telemetryReporter, cancellationToken);
+            var computedTagHelpers = await _project.GetTagHelpersAsync(projectEngine, _telemetryReporter, cancellationToken);
             ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
         }
 
         return _tagHelpers;
-
-        static ValueTask<ImmutableArray<TagHelperDescriptor>> ComputeTagHelpersAsync(
-            Project project,
-            RazorProjectEngine projectEngine,
-            ITelemetryReporter telemetryReporter,
-            CancellationToken cancellationToken)
-        {
-            var resolver = new CompilationTagHelperResolver(telemetryReporter);
-            return resolver.GetTagHelpersAsync(project, projectEngine, cancellationToken);
-        }
     }
 
     public ProjectWorkspaceState ProjectWorkspaceState => throw new InvalidOperationException("Should not be called for cohosted projects.");

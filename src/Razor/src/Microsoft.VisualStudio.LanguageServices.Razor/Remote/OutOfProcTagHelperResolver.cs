@@ -29,7 +29,7 @@ internal class OutOfProcTagHelperResolver(
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<OutOfProcTagHelperResolver>();
-    private readonly CompilationTagHelperResolver _innerResolver = new(telemetryReporter);
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly TagHelperResultCache _resultCache = new();
 
     public async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
@@ -176,5 +176,5 @@ internal class OutOfProcTagHelperResolver(
         Project workspaceProject,
         IProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
-        => _innerResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot.GetProjectEngine(), cancellationToken);
+        => workspaceProject.GetTagHelpersAsync(projectSnapshot.GetProjectEngine(), _telemetryReporter, cancellationToken);
 }
