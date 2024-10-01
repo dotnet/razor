@@ -79,16 +79,19 @@ public class RazorComponentDefinitionServiceTest(ITestOutputHelper testOutputHel
         var document = await CreateProjectAndRazorDocumentAsync(input.Text, FileKinds.Component, additionalFiles);
 
         var service = OOPExportProvider.GetExportedValue<IRazorComponentDefinitionService>();
-        var documentSnapshotFactory = OOPExportProvider.GetExportedValue<DocumentSnapshotFactory>();
+        var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
         var documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
-        var projectQueryServiceFactory = OOPExportProvider.GetExportedValue<ProjectQueryServiceFactory>();
 
-        var documentSnapshot = documentSnapshotFactory.GetOrCreate(document);
+        var documentSnapshot = snapshotManager.GetSnapshot(document);
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
         var positionInfo = documentMappingService.GetPositionInfo(codeDocument, input.Position);
-        var projectQueryService = projectQueryServiceFactory.Create(document.Project.Solution);
 
-        var location = await service.GetDefinitionAsync(documentSnapshot, positionInfo, projectQueryService, ignoreAttributes: false, DisposalToken);
+        var location = await service.GetDefinitionAsync(
+            documentSnapshot,
+            positionInfo,
+            projectQueryService: documentSnapshot.ProjectSnapshot.SolutionSnapshot,
+            ignoreAttributes: false,
+            DisposalToken);
 
         Assert.NotNull(location);
 

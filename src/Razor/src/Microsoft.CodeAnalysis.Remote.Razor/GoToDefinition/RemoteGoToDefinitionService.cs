@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
@@ -43,13 +42,12 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetDefinitionAsync(context, position, CreateProjectQueryService(context), cancellationToken),
+            context => GetDefinitionAsync(context, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<RoslynLocation[]?>> GetDefinitionAsync(
         RemoteDocumentContext context,
         RoslynPosition position,
-        IProjectQueryService projectQueryService,
         CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -65,7 +63,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         {
             // First, see if this is a Razor component. We ignore attributes here, because they're better served by the C# handler.
             var componentLocation = await _componentDefinitionService
-                .GetDefinitionAsync(context.Snapshot, positionInfo, projectQueryService, ignoreAttributes: true, cancellationToken)
+                .GetDefinitionAsync(context.Snapshot, positionInfo, context.ProjectQueryService, ignoreAttributes: true, cancellationToken)
                 .ConfigureAwait(false);
 
             if (componentLocation is not null)
