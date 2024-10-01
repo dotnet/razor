@@ -1,7 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -11,7 +14,7 @@ internal sealed class LspProjectQueryService(IProjectSnapshotManager projectSnap
 {
     private readonly IProjectSnapshotManager _projectSnapshotManager = projectSnapshotManager;
 
-    public ImmutableArray<IProjectSnapshot> GetProjects()
+    public IEnumerable<IProjectSnapshot> GetProjects()
     {
         return _projectSnapshotManager.GetProjects();
     }

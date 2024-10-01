@@ -68,8 +68,8 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public IEnumerable<string> DocumentFilePaths
         => _project.AdditionalDocuments
-               .Where(static d => d.IsRazorDocument())
-               .Select(static d => d.FilePath.AssumeNotNull());
+            .Where(static d => d.IsRazorDocument())
+            .Select(static d => d.FilePath.AssumeNotNull());
 
     public string FilePath => _project.FilePath.AssumeNotNull();
 
@@ -116,6 +116,11 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
             throw new ArgumentException(SR.Document_is_not_a_Razor_document);
         }
 
+        return GetDocumentCore(document);
+    }
+
+    private RemoteDocumentSnapshot GetDocumentCore(TextDocument document)
+    {
         lock (_documentMap)
         {
             if (!_documentMap.TryGetValue(document, out var snapshot))

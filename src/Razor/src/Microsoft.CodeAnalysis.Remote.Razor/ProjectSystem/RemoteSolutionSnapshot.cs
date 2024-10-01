@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -34,6 +35,11 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
             throw new ArgumentException(SR.Project_does_not_contain_any_Razor_documents, nameof(project));
         }
 
+        return GetProjectCore(project);
+    }
+
+    private RemoteProjectSnapshot GetProjectCore(Project project)
+    {
         lock (_projectMap)
         {
             if (!_projectMap.TryGetValue(project, out var snapshot))
@@ -46,41 +52,10 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
         }
     }
 
-    private ImmutableArray<IProjectSnapshot> _projects;
-
-    public ImmutableArray<IProjectSnapshot> GetProjects()
-    {
-        if (_projects.IsDefault)
-        {
-            ImmutableInterlocked.InterlockedInitialize(ref _projects, ComputeProjects());
-        }
-
-        return _projects;
-
-        ImmutableArray<IProjectSnapshot> ComputeProjects()
-        {
-            var projectIds = _solution.ProjectIds;
-
-            if (projectIds.Count == 0)
-            {
-                return [];
-            }
-
-            using var results = new PooledArrayBuilder<IProjectSnapshot>(capacity: projectIds.Count);
-
-            foreach (var projectId in projectIds)
-            {
-                if (_solution.GetProject(projectId) is Project project &&
-                    project.ContainsRazorDocuments())
-                {
-                    results.Add(GetProject(project));
-                }
-            }
-
-            return results.DrainToImmutable();
-
-        }
-    }
+    public IEnumerable<IProjectSnapshot> GetProjects()
+        => _solution.Projects
+            .Where(static p => p.ContainsRazorDocuments())
+            .Select(GetProjectCore);
 
     public ImmutableArray<IProjectSnapshot> FindProjects(string documentFilePath)
     {
