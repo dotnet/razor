@@ -5,18 +5,22 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
 internal class RazorCompletionItemResolver(
+    IProjectSnapshotManager projectManager,
     MarkupTagHelperTooltipFactory markupTagHelperTooltipFactory,
     ClassifiedTagHelperTooltipFactory classifiedTagHelperTooltipFactory) : CompletionItemResolver
 {
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly MarkupTagHelperTooltipFactory _markupTagHelperTooltipFactory = markupTagHelperTooltipFactory;
     private readonly ClassifiedTagHelperTooltipFactory _classifiedTagHelperTooltipFactory = classifiedTagHelperTooltipFactory;
 
@@ -122,11 +126,15 @@ internal class RazorCompletionItemResolver(
 
                     if (useDescriptionProperty)
                     {
-                        tagHelperClassifiedTextTooltip = await _classifiedTagHelperTooltipFactory.TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, cancellationToken).ConfigureAwait(false);
+                        tagHelperClassifiedTextTooltip = await _classifiedTagHelperTooltipFactory
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, _projectManager.GetQueryOperations(), cancellationToken)
+                            .ConfigureAwait(false);
                     }
                     else
                     {
-                        tagHelperMarkupTooltip = await _markupTagHelperTooltipFactory.TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, documentationKind, cancellationToken).ConfigureAwait(false);
+                        tagHelperMarkupTooltip = await _markupTagHelperTooltipFactory
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, _projectManager.GetQueryOperations(), documentationKind, cancellationToken)
+                            .ConfigureAwait(false);
                     }
 
                     break;

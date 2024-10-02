@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -26,11 +27,13 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 internal sealed partial class HoverService(
+    IProjectSnapshotManager projectManager,
     MarkupTagHelperTooltipFactory markupTagHelperTooltipFactory,
     ClassifiedTagHelperTooltipFactory classifiedTagHelperTooltipFactory,
     IDocumentMappingService documentMappingService,
     IClientCapabilitiesService clientCapabilitiesService) : IHoverService
 {
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly MarkupTagHelperTooltipFactory _markupTagHelperTooltipFactory = markupTagHelperTooltipFactory;
     private readonly ClassifiedTagHelperTooltipFactory _classifiedTagHelperTooltipFactory = classifiedTagHelperTooltipFactory;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
@@ -305,7 +308,10 @@ internal sealed partial class HoverService(
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
         if (isVSClient)
         {
-            var classifiedTextElement = await _classifiedTagHelperTooltipFactory.TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
+            var classifiedTextElement = await _classifiedTagHelperTooltipFactory
+                .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), cancellationToken)
+                .ConfigureAwait(false);
+
             if (classifiedTextElement is not null)
             {
                 var vsHover = new VSInternalHover
@@ -321,7 +327,10 @@ internal sealed partial class HoverService(
 
         var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
 
-        var vsMarkupContent = await _markupTagHelperTooltipFactory.TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, hoverContentFormat, cancellationToken).ConfigureAwait(false);
+        var vsMarkupContent = await _markupTagHelperTooltipFactory
+            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), hoverContentFormat, cancellationToken)
+            .ConfigureAwait(false);
+
         if (vsMarkupContent is null)
         {
             return null;

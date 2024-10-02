@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -340,9 +341,9 @@ There is no xml, but I got you this < and the >.
     public async Task GetAvailableProjects_NoProjects_ReturnsNull()
     {
         var projectManager = CreateProjectSnapshotManager();
-        var service = new TestTagHelperToolTipFactory(projectManager);
+        var service = new TestTagHelperToolTipFactory();
 
-        var availability = await service.GetProjectAvailabilityAsync("file.razor", "MyTagHelper", CancellationToken.None);
+        var availability = await service.GetProjectAvailabilityAsync("file.razor", "MyTagHelper", projectManager.GetQueryOperations(), CancellationToken.None);
 
         Assert.Null(availability);
     }
@@ -378,9 +379,9 @@ There is no xml, but I got you this < and the >.
             updater.DocumentAdded(hostProject.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var service = new TestTagHelperToolTipFactory(projectManager);
+        var service = new TestTagHelperToolTipFactory();
 
-        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, tagHelperTypeName, CancellationToken.None);
+        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, tagHelperTypeName, projectManager.GetQueryOperations(), CancellationToken.None);
 
         Assert.Null(availability);
     }
@@ -427,9 +428,9 @@ There is no xml, but I got you this < and the >.
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var service = new TestTagHelperToolTipFactory(projectManager);
+        var service = new TestTagHelperToolTipFactory();
 
-        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, tagHelperTypeName, CancellationToken.None);
+        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, tagHelperTypeName, projectManager.GetQueryOperations(), CancellationToken.None);
 
         Assert.Null(availability);
     }
@@ -475,9 +476,9 @@ There is no xml, but I got you this < and the >.
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var service = new TestTagHelperToolTipFactory(projectManager);
+        var service = new TestTagHelperToolTipFactory();
 
-        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, tagHelperTypeName, CancellationToken.None);
+        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, tagHelperTypeName, projectManager.GetQueryOperations(), CancellationToken.None);
 
         AssertEx.EqualOrDiff("""
 
@@ -519,9 +520,9 @@ There is no xml, but I got you this < and the >.
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var service = new TestTagHelperToolTipFactory(projectManager);
+        var service = new TestTagHelperToolTipFactory();
 
-        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, "MyTagHelper", CancellationToken.None);
+        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, "MyTagHelper", projectManager.GetQueryOperations(), CancellationToken.None);
 
         AssertEx.EqualOrDiff("""
 
@@ -532,6 +533,6 @@ There is no xml, but I got you this < and the >.
     }
 }
 
-file class TestTagHelperToolTipFactory(IProjectSnapshotManager projectManager) : TagHelperTooltipFactoryBase(projectManager)
+file class TestTagHelperToolTipFactory : TagHelperTooltipFactoryBase
 {
 }

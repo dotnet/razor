@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : TagHelperTooltipFactoryBase(projectManager)
+internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactoryBase
 {
     public const string TypeClassificationName = "Type";
 
@@ -56,14 +56,20 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
     private static readonly ClassifiedTextRun s_newLine = new(ClassificationTypeNames.WhiteSpace, Environment.NewLine);
     private static readonly ClassifiedTextRun s_nullableType = new(ClassificationTypeNames.Punctuation, "?");
 
-    public async Task<ContainerElement?> TryCreateTooltipContainerAsync(string documentFilePath, AggregateBoundElementDescription elementDescriptionInfo, CancellationToken cancellationToken)
+    public async Task<ContainerElement?> TryCreateTooltipContainerAsync(
+        string documentFilePath,
+        AggregateBoundElementDescription elementDescriptionInfo,
+        ISolutionQueryOperations solutionQueryOperations,
+        CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
         {
             throw new ArgumentNullException(nameof(elementDescriptionInfo));
         }
 
-        var descriptionClassifications = await TryClassifyElementAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
+        var descriptionClassifications = await TryClassifyElementAsync(
+            documentFilePath, elementDescriptionInfo, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+
         if (descriptionClassifications.IsDefaultOrEmpty)
         {
             return null;
@@ -91,14 +97,20 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
 
     // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
     // its Description property, tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319274.
-    public async Task<ClassifiedTextElement?> TryCreateTooltipAsync(string documentFilePath, AggregateBoundElementDescription elementDescriptionInfo, CancellationToken cancellationToken)
+    public async Task<ClassifiedTextElement?> TryCreateTooltipAsync(
+        string documentFilePath,
+        AggregateBoundElementDescription elementDescriptionInfo,
+        ISolutionQueryOperations solutionQueryOperations,
+        CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
         {
             throw new ArgumentNullException(nameof(elementDescriptionInfo));
         }
 
-        var descriptionClassifications = await TryClassifyElementAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
+        var descriptionClassifications = await TryClassifyElementAsync(
+            documentFilePath, elementDescriptionInfo, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+
         if (descriptionClassifications.IsDefaultOrEmpty)
         {
             return null;
@@ -126,7 +138,11 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
         return true;
     }
 
-    private async Task<ImmutableArray<DescriptionClassification>> TryClassifyElementAsync(string documentFilePath, AggregateBoundElementDescription elementInfo, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DescriptionClassification>> TryClassifyElementAsync(
+        string documentFilePath,
+        AggregateBoundElementDescription elementInfo,
+        ISolutionQueryOperations solutionQueryOperations,
+        CancellationToken cancellationToken)
     {
         var associatedTagHelperInfos = elementInfo.DescriptionInfos;
         if (associatedTagHelperInfos.Length == 0)
@@ -152,7 +168,8 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
             TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
 
             // 3. Project availability
-            await AddProjectAvailabilityInfoAsync(documentFilePath, descriptionInfo.TagHelperTypeName, documentationRuns, cancellationToken).ConfigureAwait(false);
+            await AddProjectAvailabilityInfoAsync(
+                documentFilePath, descriptionInfo.TagHelperTypeName, solutionQueryOperations, documentationRuns, cancellationToken).ConfigureAwait(false);
 
             // 4. Combine type + summary information
             descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));
@@ -161,9 +178,15 @@ internal sealed class ClassifiedTagHelperTooltipFactory(IProjectSnapshotManager 
         return descriptions.DrainToImmutable();
     }
 
-    private async Task AddProjectAvailabilityInfoAsync(string documentFilePath, string tagHelperTypeName, List<ClassifiedTextRun> documentationRuns, CancellationToken cancellationToken)
+    private async Task AddProjectAvailabilityInfoAsync(
+        string documentFilePath,
+        string tagHelperTypeName,
+        ISolutionQueryOperations solutionQueryOperations,
+        List<ClassifiedTextRun> documentationRuns,
+        CancellationToken cancellationToken)
     {
-        var availability = await GetProjectAvailabilityAsync(documentFilePath, tagHelperTypeName, cancellationToken).ConfigureAwait(false);
+        var availability = await GetProjectAvailabilityAsync(
+            documentFilePath, tagHelperTypeName, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
 
         if (availability is not null)
         {

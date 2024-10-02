@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal abstract class TagHelperTooltipFactoryBase(IProjectSnapshotManager projectManager)
+internal abstract class TagHelperTooltipFactoryBase
 {
     protected static readonly string TagContentGroupName = "content";
     private static readonly Regex s_codeRegex = new Regex($"""<(?:c|code)>(?<{TagContentGroupName}>.*?)<\/(?:c|code)>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
@@ -22,11 +22,14 @@ internal abstract class TagHelperTooltipFactoryBase(IProjectSnapshotManager proj
 
     private static readonly char[] s_newLineChars = ['\n', '\r'];
 
-    private readonly IProjectSnapshotManager _projectManager = projectManager;
-
-    internal async Task<string?> GetProjectAvailabilityAsync(string documentFilePath, string tagHelperTypeName, CancellationToken cancellationToken)
+    internal async Task<string?> GetProjectAvailabilityAsync(
+        string documentFilePath,
+        string tagHelperTypeName,
+        ISolutionQueryOperations solutionQueryOperations,
+        CancellationToken cancellationToken)
     {
-        if (!_projectManager.TryResolveAllProjects(documentFilePath, out var projectSnapshots))
+        var projectSnapshots = solutionQueryOperations.GetProjectsContainingDocument(documentFilePath);
+        if (projectSnapshots.IsEmpty)
         {
             return null;
         }
@@ -35,11 +38,6 @@ internal abstract class TagHelperTooltipFactoryBase(IProjectSnapshotManager proj
 
         foreach (var project in projectSnapshots)
         {
-            if (MiscFilesHostProject.IsMiscellaneousProject(project))
-            {
-                continue;
-            }
-
             var found = false;
             var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
             foreach (var tagHelper in tagHelpers)

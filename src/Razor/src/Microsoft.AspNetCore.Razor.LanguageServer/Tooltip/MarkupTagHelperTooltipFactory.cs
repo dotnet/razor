@@ -14,11 +14,12 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal sealed class MarkupTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : TagHelperTooltipFactoryBase(projectManager)
+internal sealed class MarkupTagHelperTooltipFactory : TagHelperTooltipFactoryBase
 {
     public async Task<MarkupContent?> TryCreateTooltipAsync(
         string documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
+        ISolutionQueryOperations solutionQueryOperations,
         MarkupKind markupKind,
         CancellationToken cancellationToken)
     {
@@ -73,7 +74,8 @@ internal sealed class MarkupTagHelperTooltipFactory(IProjectSnapshotManager proj
                 descriptionBuilder.Append(finalSummaryContent);
             }
 
-            var availability = await GetProjectAvailabilityAsync(documentFilePath, tagHelperType, cancellationToken).ConfigureAwait(false);
+            var availability = await GetProjectAvailabilityAsync(
+                documentFilePath, tagHelperType, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
             if (availability is not null)
             {
                 descriptionBuilder.AppendLine();
