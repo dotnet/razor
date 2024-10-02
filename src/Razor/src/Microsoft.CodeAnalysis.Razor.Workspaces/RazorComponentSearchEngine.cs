@@ -9,32 +9,23 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-internal class RazorComponentSearchEngine(
-    IProjectCollectionResolver projectCollectionResolver,
-    ILoggerFactory loggerFactory)
-    : IRazorComponentSearchEngine
+internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazorComponentSearchEngine
 {
-    private readonly IProjectCollectionResolver _projectResolver = projectCollectionResolver;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorComponentSearchEngine>();
 
     /// <summary>Search for a component in a project based on its tag name and fully qualified name.</summary>
     /// <remarks>
     /// This method makes several assumptions about the nature of components. First, it assumes that a component
-    /// a given name `Name` will be located in a file `Name.razor`. Second, it assumes that the namespace the
+    /// a given name "Name" will be located in a file "Name.razor". Second, it assumes that the namespace the
     /// component is present in has the same name as the assembly its corresponding tag helper is loaded from.
     /// Implicitly, this method inherits any assumptions made by TrySplitNamespaceAndType.
     /// </remarks>
-    /// <param name="contextSnapshot">A document snapshot that provides context to enumerate project snapshots</param>
     /// <param name="tagHelper">A TagHelperDescriptor to find the corresponding Razor component for.</param>
+    /// <param name="solutionQueryOperations">An <see cref="ISolutionQueryOperations"/> to enumerate project snapshots.</param>
     /// <returns>The corresponding DocumentSnapshot if found, null otherwise.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="tagHelper"/> is null.</exception>
-    public async Task<IDocumentSnapshot?> TryLocateComponentAsync(IDocumentSnapshot contextSnapshot, TagHelperDescriptor tagHelper)
+    public async Task<IDocumentSnapshot?> TryLocateComponentAsync(TagHelperDescriptor tagHelper, ISolutionQueryOperations solutionQueryOperations)
     {
-        if (tagHelper is null)
-        {
-            throw new ArgumentNullException(nameof(tagHelper));
-        }
-
         var typeName = tagHelper.GetTypeNameIdentifier();
         var namespaceName = tagHelper.GetTypeNamespace();
         if (typeName == null || namespaceName == null)
@@ -45,9 +36,7 @@ internal class RazorComponentSearchEngine(
 
         var lookupSymbolName = RemoveGenericContent(typeName.AsMemory());
 
-        var projects = _projectResolver.EnumerateProjects(contextSnapshot);
-
-        foreach (var project in projects)
+        foreach (var project in solutionQueryOperations.GetProjects())
         {
             foreach (var path in project.DocumentFilePaths)
             {

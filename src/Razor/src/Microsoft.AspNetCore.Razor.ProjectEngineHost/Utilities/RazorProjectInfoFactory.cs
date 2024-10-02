@@ -86,8 +86,7 @@ internal static class RazorProjectInfoFactory
             fileSystem,
             configure: defaultConfigure);
 
-        var resolver = new CompilationTagHelperResolver(NoOpTelemetryReporter.Instance);
-        var tagHelpers = await resolver.GetTagHelpersAsync(project, engine, cancellationToken).ConfigureAwait(false);
+        var tagHelpers = await project.GetTagHelpersAsync(engine, NoOpTelemetryReporter.Instance, cancellationToken).ConfigureAwait(false);
 
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
 

@@ -2,14 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
@@ -18,7 +16,7 @@ internal partial class TestProjectSnapshotManager(
     ILoggerFactory loggerFactory,
     CancellationToken disposalToken,
     Action<ProjectSnapshotManager.Updater>? initializer = null)
-    : ProjectSnapshotManager(projectEngineFactoryProvider, loggerFactory, initializer), IProjectCollectionResolver
+    : ProjectSnapshotManager(projectEngineFactoryProvider, loggerFactory, initializer)
 {
     private readonly CancellationToken _disposalToken = disposalToken;
 
@@ -33,11 +31,6 @@ internal partial class TestProjectSnapshotManager(
                 return documentSnapshot;
             },
             _disposalToken);
-    }
-
-    public IEnumerable<IProjectSnapshot> EnumerateProjects(IDocumentSnapshot snapshot)
-    {
-        return GetProjects();
     }
 
     public Listener ListenToNotifications() => new(this);

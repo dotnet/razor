@@ -117,8 +117,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         // to actually compile the Razor to C#, so we just do it now at creation
         var solution = razorDocument.Project.Solution;
         // We're cheating a bit here and using the remote export provider to get something to do the compilation
-        var factory = _exportProvider.AssumeNotNull().GetExportedValue<DocumentSnapshotFactory>();
-        var snapshot = factory.GetOrCreate(razorDocument);
+        var snapshotManager = _exportProvider.AssumeNotNull().GetExportedValue<RemoteSnapshotManager>();
+        var snapshot = snapshotManager.GetSnapshot(razorDocument);
         // Compile the Razor file
         var codeDocument = await snapshot.GetGeneratedOutputAsync(false);
         // Update the generated doc contents

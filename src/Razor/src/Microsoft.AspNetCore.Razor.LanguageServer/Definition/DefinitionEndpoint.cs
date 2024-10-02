@@ -5,10 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,6 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 internal sealed class DefinitionEndpoint(
     IRazorComponentDefinitionService componentDefinitionService,
     IDocumentMappingService documentMappingService,
+    IProjectSnapshotManager projectManager,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)
@@ -34,6 +37,7 @@ internal sealed class DefinitionEndpoint(
 {
     private readonly IRazorComponentDefinitionService _componentDefinitionService = componentDefinitionService;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
@@ -62,7 +66,7 @@ internal sealed class DefinitionEndpoint(
 
         // If single server support is on, then we ignore attributes, as they are better handled by delegating to Roslyn
         return await _componentDefinitionService
-            .GetDefinitionAsync(documentContext.Snapshot, positionInfo, ignoreAttributes: SingleServerSupport, cancellationToken)
+            .GetDefinitionAsync(documentContext.Snapshot, positionInfo, _projectManager.GetQueryOperations(), ignoreAttributes: SingleServerSupport, cancellationToken)
             .ConfigureAwait(false);
     }
 
