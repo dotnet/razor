@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
@@ -24,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 internal sealed class DefinitionEndpoint(
     IRazorComponentDefinitionService componentDefinitionService,
     IDocumentMappingService documentMappingService,
-    IProjectQueryService projectQueryService,
+    IProjectSnapshotManager projectManager,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)
@@ -36,7 +37,7 @@ internal sealed class DefinitionEndpoint(
 {
     private readonly IRazorComponentDefinitionService _componentDefinitionService = componentDefinitionService;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
-    private readonly IProjectQueryService _projectQueryService = projectQueryService;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
@@ -65,7 +66,7 @@ internal sealed class DefinitionEndpoint(
 
         // If single server support is on, then we ignore attributes, as they are better handled by delegating to Roslyn
         return await _componentDefinitionService
-            .GetDefinitionAsync(documentContext.Snapshot, positionInfo, _projectQueryService, ignoreAttributes: SingleServerSupport, cancellationToken)
+            .GetDefinitionAsync(documentContext.Snapshot, positionInfo, _projectManager.GetQueryService(), ignoreAttributes: SingleServerSupport, cancellationToken)
             .ConfigureAwait(false);
     }
 

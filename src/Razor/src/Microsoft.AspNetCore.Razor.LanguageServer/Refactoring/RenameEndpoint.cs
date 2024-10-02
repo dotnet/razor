@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -22,7 +23,7 @@ internal sealed class RenameEndpoint(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IDocumentMappingService documentMappingService,
     IEditMappingService editMappingService,
-    IProjectQueryService projectQueryService,
+    IProjectSnapshotManager projectManager,
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)
     : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>(
@@ -34,7 +35,7 @@ internal sealed class RenameEndpoint(
     private readonly IRenameService _renameService = renameService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IEditMappingService _editMappingService = editMappingService;
-    private readonly IProjectQueryService _projectQueryService = projectQueryService;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
@@ -56,7 +57,7 @@ internal sealed class RenameEndpoint(
             return SpecializedTasks.Null<WorkspaceEdit>();
         }
 
-        return _renameService.TryGetRazorRenameEditsAsync(documentContext, positionInfo, request.NewName, _projectQueryService, cancellationToken);
+        return _renameService.TryGetRazorRenameEditsAsync(documentContext, positionInfo, request.NewName, _projectManager.GetQueryService(), cancellationToken);
     }
 
     protected override bool IsSupported()

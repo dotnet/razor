@@ -7,7 +7,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -64,8 +63,6 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
                 rootNamespace: "project"));
         });
 
-        var projectQueryService = new LspProjectQueryService(projectManager);
-
         var searchEngine = new RazorComponentSearchEngine(LoggerFactory);
 
         var renameService = new RenameService(searchEngine, LanguageServerFeatureOptions);
@@ -75,7 +72,7 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
             LanguageServerFeatureOptions,
             DocumentMappingService,
             EditMappingService,
-            projectQueryService,
+            projectManager,
             languageServer,
             LoggerFactory);
 

@@ -40,13 +40,12 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
     private static readonly string s_componentFilePath3 = Path.Combine(s_project2BasePath, "Component3.razor");
 
 #nullable disable
-    private IProjectQueryService _projectQueryService;
+    private IProjectSnapshotManager _projectManager;
 #nullable enable
 
     protected override async Task InitializeAsync()
     {
-        var projectManager = CreateProjectSnapshotManager();
-        _projectQueryService = new LspProjectQueryService(projectManager);
+        _projectManager = CreateProjectSnapshotManager();
 
         var remoteTextLoaderFactoryMock = new StrictMock<RemoteTextLoaderFactory>();
         remoteTextLoaderFactoryMock
@@ -63,7 +62,7 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
 
         var projectService = new TestRazorProjectService(
             remoteTextLoaderFactoryMock.Object,
-            projectManager,
+            _projectManager,
             LoggerFactory);
         AddDisposable(projectService);
 
@@ -102,8 +101,8 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         var searchEngine = new RazorComponentSearchEngine(LoggerFactory);
 
         // Act
-        var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1, _projectQueryService);
-        var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2, _projectQueryService);
+        var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1, _projectManager.GetQueryService());
+        var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2, _projectManager.GetQueryService());
 
         // Assert
         Assert.NotNull(documentSnapshot1);
@@ -121,8 +120,8 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         var searchEngine = new RazorComponentSearchEngine(LoggerFactory);
 
         // Act
-        var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1, _projectQueryService);
-        var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2, _projectQueryService);
+        var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1, _projectManager.GetQueryService());
+        var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2, _projectManager.GetQueryService());
 
         // Assert
         Assert.NotNull(documentSnapshot1);
@@ -139,7 +138,7 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         var searchEngine = new RazorComponentSearchEngine(LoggerFactory);
 
         // Act
-        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectQueryService);
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectManager.GetQueryService());
 
         // Assert
         Assert.NotNull(documentSnapshot);
@@ -154,7 +153,7 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         var searchEngine = new RazorComponentSearchEngine(LoggerFactory);
 
         // Act
-        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectQueryService);
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectManager.GetQueryService());
 
         // Assert
         Assert.Null(documentSnapshot);
@@ -168,7 +167,7 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         var searchEngine = new RazorComponentSearchEngine(LoggerFactory);
 
         // Act
-        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectQueryService);
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectManager.GetQueryService());
 
         // Assert
         Assert.Null(documentSnapshot);
@@ -182,7 +181,7 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         var searchEngine = new RazorComponentSearchEngine(LoggerFactory);
 
         // Act
-        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectQueryService);
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectManager.GetQueryService());
 
         // Assert
         Assert.Null(documentSnapshot);
@@ -196,7 +195,7 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         var searchEngine = new RazorComponentSearchEngine(LoggerFactory);
 
         // Act
-        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectQueryService);
+        var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor, _projectManager.GetQueryService());
 
         // Assert
         Assert.NotNull(documentSnapshot);
