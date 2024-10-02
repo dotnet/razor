@@ -21,16 +21,6 @@ internal static class ProjectExtensions
     ///  Gets the available <see cref="TagHelperDescriptor">tag helpers</see> from the specified
     ///  <see cref="Project"/> using the given <see cref="RazorProjectEngine"/>.
     /// </summary>
-    public static ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
-        this Project project,
-        RazorProjectEngine projectEngine,
-        CancellationToken cancellationToken)
-        => project.GetTagHelpersAsync(projectEngine, NoOpTelemetryReporter.Instance, cancellationToken);
-
-    /// <summary>
-    ///  Gets the available <see cref="TagHelperDescriptor">tag helpers</see> from the specified
-    ///  <see cref="Project"/> using the given <see cref="RazorProjectEngine"/>.
-    /// </summary>
     /// <remarks>
     ///  A telemetry event will be reported to <paramref name="telemetryReporter"/>.
     /// </remarks>
