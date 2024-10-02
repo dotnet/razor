@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Text.Json;
 using System.Threading;
@@ -29,7 +30,7 @@ internal class RazorCohostDynamicRegistrationService(
     }];
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly IEnumerable<Lazy<IDynamicRegistrationProvider>> _lazyRegistrationProviders = lazyRegistrationProviders;
+    private readonly ImmutableArray<Lazy<IDynamicRegistrationProvider>> _lazyRegistrationProviders = lazyRegistrationProviders.ToImmutableArray();
     private readonly Lazy<RazorCohostClientCapabilitiesService> _lazyRazorCohostClientCapabilitiesService = lazyRazorCohostClientCapabilitiesService;
 
     public async Task RegisterAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
@@ -45,8 +46,7 @@ internal class RazorCohostDynamicRegistrationService(
 
         // We assume most registration providers will just return one, so whilst this isn't completely accurate, it's a
         // reasonable starting point
-        _lazyRegistrationProviders.TryGetCount(out var providerCount);
-        using var registrations = new PooledArrayBuilder<Registration>(providerCount);
+        using var registrations = new PooledArrayBuilder<Registration>(_lazyRegistrationProviders.Length);
 
         foreach (var provider in _lazyRegistrationProviders)
         {
