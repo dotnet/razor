@@ -111,6 +111,6 @@ internal static partial class IProjectSnapshotManagerExtensions
         return false;
     }
 
-    public static IProjectQueryService GetQueryService(this IProjectSnapshotManager projectSnapshotManager)
-        => new QueryService(projectSnapshotManager);
+    public static ISolutionQueryOperations GetQueryOperations(this IProjectSnapshotManager projectManager)
+        => new SolutionQueryOperations(projectManager);
 }

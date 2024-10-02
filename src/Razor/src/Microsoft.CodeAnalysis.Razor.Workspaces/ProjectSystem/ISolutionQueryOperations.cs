@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal interface IProjectQueryService
+internal interface ISolutionQueryOperations
 {
     /// <summary>
     /// Returns all Razor project snapshots.

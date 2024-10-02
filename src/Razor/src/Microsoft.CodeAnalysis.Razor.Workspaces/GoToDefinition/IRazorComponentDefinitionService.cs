@@ -17,7 +17,7 @@ internal interface IRazorComponentDefinitionService
     Task<LspLocation?> GetDefinitionAsync(
         IDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
-        IProjectQueryService projectQueryService,
+        ISolutionQueryOperations solutionQueryOperations,
         bool ignoreAttributes,
         CancellationToken cancellationToken);
 }

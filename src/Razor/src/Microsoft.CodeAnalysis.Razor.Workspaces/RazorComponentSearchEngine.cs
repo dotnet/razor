@@ -21,10 +21,10 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
     /// Implicitly, this method inherits any assumptions made by TrySplitNamespaceAndType.
     /// </remarks>
     /// <param name="tagHelper">A TagHelperDescriptor to find the corresponding Razor component for.</param>
-    /// <param name="projectQueryService">An <see cref="IProjectQueryService"/> to enumerate project snapshots.</param>
+    /// <param name="solutionQueryOperations">An <see cref="ISolutionQueryOperations"/> to enumerate project snapshots.</param>
     /// <returns>The corresponding DocumentSnapshot if found, null otherwise.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="tagHelper"/> is null.</exception>
-    public async Task<IDocumentSnapshot?> TryLocateComponentAsync(TagHelperDescriptor tagHelper, IProjectQueryService projectQueryService)
+    public async Task<IDocumentSnapshot?> TryLocateComponentAsync(TagHelperDescriptor tagHelper, ISolutionQueryOperations solutionQueryOperations)
     {
         var typeName = tagHelper.GetTypeNameIdentifier();
         var namespaceName = tagHelper.GetTypeNamespace();
@@ -36,7 +36,7 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
 
         var lookupSymbolName = RemoveGenericContent(typeName.AsMemory());
 
-        foreach (var project in projectQueryService.GetProjects())
+        foreach (var project in solutionQueryOperations.GetProjects())
         {
             foreach (var path in project.DocumentFilePaths)
             {

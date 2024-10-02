@@ -10,20 +10,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal static partial class IProjectSnapshotManagerExtensions
 {
-    private sealed class QueryService(IProjectSnapshotManager projectSnapshotManager) : IProjectQueryService
+    private sealed class SolutionQueryOperations(IProjectSnapshotManager projectManager) : ISolutionQueryOperations
     {
-        private readonly IProjectSnapshotManager _projectSnapshotManager = projectSnapshotManager;
+        private readonly IProjectSnapshotManager _projectManager = projectManager;
 
         public IEnumerable<IProjectSnapshot> GetProjects()
         {
-            return _projectSnapshotManager.GetProjects();
+            return _projectManager.GetProjects();
         }
 
         public ImmutableArray<IProjectSnapshot> FindProjects(string documentFilePath)
         {
             using var results = new PooledArrayBuilder<IProjectSnapshot>();
 
-            foreach (var project in _projectSnapshotManager.GetProjects())
+            foreach (var project in _projectManager.GetProjects())
             {
                 if (!project.TryGetDocument(documentFilePath, out _))
                 {

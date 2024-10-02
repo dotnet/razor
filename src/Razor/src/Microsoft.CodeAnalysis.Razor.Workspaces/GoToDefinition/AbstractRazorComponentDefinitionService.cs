@@ -28,7 +28,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
     public async Task<LspLocation?> GetDefinitionAsync(
         IDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
-        IProjectQueryService projectQueryService,
+        ISolutionQueryOperations solutionQueryOperations,
         bool ignoreAttributes,
         CancellationToken cancellationToken)
     {
@@ -52,7 +52,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
             return null;
         }
 
-        var componentDocument = await _componentSearchEngine.TryLocateComponentAsync(boundTagHelper, projectQueryService).ConfigureAwait(false);
+        var componentDocument = await _componentSearchEngine.TryLocateComponentAsync(boundTagHelper, solutionQueryOperations).ConfigureAwait(false);
         if (componentDocument is null)
         {
             _logger.LogInformation($"Could not locate component document.");

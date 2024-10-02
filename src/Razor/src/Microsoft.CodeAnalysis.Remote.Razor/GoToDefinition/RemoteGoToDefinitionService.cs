@@ -63,7 +63,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         {
             // First, see if this is a Razor component. We ignore attributes here, because they're better served by the C# handler.
             var componentLocation = await _componentDefinitionService
-                .GetDefinitionAsync(context.Snapshot, positionInfo, context.ProjectQueryService, ignoreAttributes: true, cancellationToken)
+                .GetDefinitionAsync(context.Snapshot, positionInfo, context.GetSolutionQueryOperations(), ignoreAttributes: true, cancellationToken)
                 .ConfigureAwait(false);
 
             if (componentLocation is not null)

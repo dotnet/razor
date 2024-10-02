@@ -57,7 +57,7 @@ internal sealed class RenameEndpoint(
             return SpecializedTasks.Null<WorkspaceEdit>();
         }
 
-        return _renameService.TryGetRazorRenameEditsAsync(documentContext, positionInfo, request.NewName, _projectManager.GetQueryService(), cancellationToken);
+        return _renameService.TryGetRazorRenameEditsAsync(documentContext, positionInfo, request.NewName, _projectManager.GetQueryOperations(), cancellationToken);
     }
 
     protected override bool IsSupported()
