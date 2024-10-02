@@ -6,8 +6,14 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-[Shared]
-[Export(typeof(IRazorCompletionItemProvider))]
-internal class OOPMarkupTransitionCompletionItemProvider : MarkupTransitionCompletionItemProvider
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class OOPMarkupTransitionCompletionItemProvider : MarkupTransitionCompletionItemProvider
+{
+}
+
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPTagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService)
+    : TagHelperCompletionProvider(tagHelperCompletionService)
 {
 }

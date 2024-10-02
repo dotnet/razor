@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 [Export(typeof(IRazorCompletionFactsService)), Shared]
 [method: ImportingConstructor]
-internal class OOPRazorCompletionFactsService(IEnumerable<IRazorCompletionItemProvider> providers)
+internal sealed class OOPRazorCompletionFactsService([ImportMany] IEnumerable<IRazorCompletionItemProvider> providers)
     : AbstractRazorCompletionFactsService(providers.ToImmutableArray())
 {
 }
