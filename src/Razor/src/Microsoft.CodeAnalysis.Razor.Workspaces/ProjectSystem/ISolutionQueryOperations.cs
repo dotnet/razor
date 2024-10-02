@@ -14,7 +14,14 @@ internal interface ISolutionQueryOperations
     IEnumerable<IProjectSnapshot> GetProjects();
 
     /// <summary>
-    /// Returns all Razor project snapshots that contain the given document file path.
+    ///  Returns all Razor valid project snapshots that contain the given document file path.
     /// </summary>
-    ImmutableArray<IProjectSnapshot> FindProjects(string documentFilePath);
+    /// <param name="documentFilePath">A file path to a Razor document.</param>
+    /// <returns>
+    ///  Returns <see langword="true"/> if any projects were found; otherwise, <see langword="false"/>
+    /// </returns>
+    /// <remarks>
+    ///  In multi-targeting scenarios, a document can belong to multi-projects for each target.
+    /// </remarks>
+    ImmutableArray<IProjectSnapshot> GetProjectsContainingDocument(string documentFilePath);
 }
