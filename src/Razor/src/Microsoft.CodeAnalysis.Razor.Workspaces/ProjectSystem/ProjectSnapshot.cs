@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -16,23 +15,14 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class ProjectSnapshot : IProjectSnapshot
+internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
 {
-    private readonly object _lock;
-
-    private readonly Dictionary<string, DocumentSnapshot> _documents;
-
-    public ProjectSnapshot(ProjectState state)
-    {
-        State = state ?? throw new ArgumentNullException(nameof(state));
-
-        _lock = new object();
-        _documents = new Dictionary<string, DocumentSnapshot>(FilePathNormalizingComparer.Instance);
-    }
+    private readonly object _gate = new();
+    private readonly Dictionary<string, DocumentSnapshot> _filePathToDocumentMap = new(FilePathNormalizingComparer.Instance);
 
     public ProjectKey Key => State.HostProject.Key;
 
-    public ProjectState State { get; }
+    public ProjectState State { get; } = state;
 
     public RazorConfiguration Configuration => HostProject.Configuration;
 
@@ -58,25 +48,36 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public ProjectWorkspaceState ProjectWorkspaceState => State.ProjectWorkspaceState;
 
-    public virtual IDocumentSnapshot? GetDocument(string filePath)
+    public bool ContainsDocument(string filePath)
     {
-        lock (_lock)
+        lock (_gate)
         {
-            if (!_documents.TryGetValue(filePath, out var result) &&
-                State.Documents.TryGetValue(filePath, out var state))
-            {
-                result = new DocumentSnapshot(this, state);
-                _documents.Add(filePath, result);
-            }
-
-            return result;
+            return _filePathToDocumentMap.ContainsKey(filePath) ||
+                   State.Documents.ContainsKey(filePath);
         }
     }
 
+    public IDocumentSnapshot? GetDocument(string filePath)
+        => TryGetDocument(filePath, out var document)
+            ? document
+            : null;
+
     public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
-        document = GetDocument(filePath);
-        return document is not null;
+        lock (_gate)
+        {
+            // We only create a new DocumentSnapshot if we haven't created one yet
+            // but have DocumentState for it.
+            if (!_filePathToDocumentMap.TryGetValue(filePath, out var snapshot) &&
+                State.Documents.TryGetValue(filePath, out var state))
+            {
+                snapshot = new DocumentSnapshot(this, state);
+                _filePathToDocumentMap.Add(filePath, snapshot);
+            }
+
+            document = snapshot;
+            return document is not null;
+        }
     }
 
     /// <summary>
@@ -86,31 +87,26 @@ internal class ProjectSnapshot : IProjectSnapshot
     /// </summary>
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
         var targetPath = document.TargetPath.AssumeNotNull();
 
         if (!State.ImportsToRelatedDocuments.TryGetValue(targetPath, out var relatedDocuments))
         {
-            return ImmutableArray<IDocumentSnapshot>.Empty;
+            return [];
         }
 
-        lock (_lock)
+        lock (_gate)
         {
-            using var _ = ArrayBuilderPool<IDocumentSnapshot>.GetPooledObject(out var builder);
+            using var builder = new PooledArrayBuilder<IDocumentSnapshot>(capacity: relatedDocuments.Length);
 
             foreach (var relatedDocumentFilePath in relatedDocuments)
             {
-                if (GetDocument(relatedDocumentFilePath) is { } relatedDocument)
+                if (TryGetDocument(relatedDocumentFilePath, out var relatedDocument))
                 {
                     builder.Add(relatedDocument);
                 }
             }
 
-            return builder.ToImmutableArray();
+            return builder.DrainToImmutable();
         }
     }
 

@@ -41,18 +41,18 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
             foreach (var path in project.DocumentFilePaths)
             {
                 // Get document and code document
-                if (project.GetDocument(path) is not { } documentSnapshot)
+                if (!project.TryGetDocument(path, out var document))
                 {
                     continue;
                 }
 
                 // Rule out if not Razor component with correct name
-                if (!documentSnapshot.IsPathCandidateForComponent(lookupSymbolName))
+                if (!document.IsPathCandidateForComponent(lookupSymbolName))
                 {
                     continue;
                 }
 
-                var razorCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+                var razorCodeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
                 if (razorCodeDocument is null)
                 {
                     continue;
@@ -64,7 +64,7 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
                     continue;
                 }
 
-                return documentSnapshot;
+                return document;
             }
         }
 

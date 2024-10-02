@@ -120,7 +120,7 @@ internal class RenameService(
                 }
 
                 // Add to the list and add the path to the set
-                if (project.GetDocument(documentPath) is not { } snapshot)
+                if (!project.TryGetDocument(documentPath, out var snapshot))
                 {
                     throw new InvalidOperationException($"{documentPath} in project {project.FilePath} but not retrievable");
                 }

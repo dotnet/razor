@@ -50,11 +50,6 @@ internal class TestProjectSnapshot : ProjectSnapshot
 
     public override VersionStamp Version => throw new NotImplementedException();
 
-    public override IDocumentSnapshot? GetDocument(string filePath)
-    {
-        return base.GetDocument(filePath);
-    }
-
     public override RazorProjectEngine GetProjectEngine()
     {
         return RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("C:/"));

@@ -37,6 +37,8 @@ internal interface IProjectSnapshot
     ProjectWorkspaceState ProjectWorkspaceState { get; }
 
     RazorProjectEngine GetProjectEngine();
+
+    bool ContainsDocument(string filePath);
     IDocumentSnapshot? GetDocument(string filePath);
     bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document);
 }

@@ -41,8 +41,7 @@ internal class RazorDocumentExcerptService(
         }
 
         var project = _document.Project;
-        var razorDocument = project.GetDocument(mappedSpans[0].FilePath);
-        if (razorDocument is null)
+        if (!project.TryGetDocument(mappedSpans[0].FilePath, out var razorDocument))
         {
             return null;
         }
