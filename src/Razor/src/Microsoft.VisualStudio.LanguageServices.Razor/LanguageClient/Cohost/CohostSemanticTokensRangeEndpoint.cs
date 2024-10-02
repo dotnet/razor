@@ -42,7 +42,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration>GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
         {
