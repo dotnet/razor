@@ -45,21 +45,21 @@ internal sealed class CohostRangeFormattingEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public Registration? GetRegistration(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration>GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Formatting?.DynamicRegistration is true)
         {
-            return new Registration()
+            return [new Registration()
             {
                 Method = Methods.TextDocumentRangeFormattingName,
                 RegisterOptions = new DocumentRangeFormattingRegistrationOptions()
                 {
                     DocumentSelector = filter
                 }
-            };
+            }];
         }
 
-        return null;
+        return [];
     }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentRangeFormattingParams request)

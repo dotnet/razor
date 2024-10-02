@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,11 +35,11 @@ internal class CohostRenameEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public Registration? GetRegistration(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration>GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Rename?.DynamicRegistration == true)
         {
-            return new Registration
+            return [new Registration
             {
                 Method = Methods.TextDocumentRenameName,
                 RegisterOptions = new RenameRegistrationOptions()
@@ -46,10 +47,10 @@ internal class CohostRenameEndpoint(
                     DocumentSelector = filter,
                     PrepareProvider = false
                 }
-            };
+            }];
         }
 
-        return null;
+        return [];
     }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(RenameParams request)

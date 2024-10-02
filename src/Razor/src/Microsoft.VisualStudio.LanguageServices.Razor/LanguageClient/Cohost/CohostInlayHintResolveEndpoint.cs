@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Text.Json;
@@ -34,21 +35,21 @@ internal class CohostInlayHintResolveEndpoint(IRemoteServiceInvoker remoteServic
 
     protected override bool RequiresLSPSolution => true;
 
-    public VSLSP.Registration? GetRegistration(VSLSP.VSInternalClientCapabilities clientCapabilities, VSLSP.DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<VSLSP.Registration> GetRegistrations(VSLSP.VSInternalClientCapabilities clientCapabilities, VSLSP.DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.InlayHint?.DynamicRegistration == true)
         {
-            return new VSLSP.Registration
+            return [new VSLSP.Registration
             {
                 Method = Methods.TextDocumentInlayHintName,
                 RegisterOptions = new VSLSP.InlayHintRegistrationOptions()
                 {
                     DocumentSelector = filter
                 }
-            };
+            }];
         }
 
-        return null;
+        return [];
     }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(InlayHint request)

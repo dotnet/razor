@@ -39,20 +39,18 @@ internal class RazorCohostDynamicRegistrationService(
             return;
         }
 
-        // TODO: Should we delay everything below this line until a Razor file is opened?
-
         var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
 
         _lazyRazorCohostClientCapabilitiesService.Value.SetCapabilities(clientCapabilities);
 
+        // We assume most registration providers will just return one, so whilst this isn't completely accurate, it's a
+        // reasonable starting point
         _lazyRegistrationProviders.TryGetCount(out var providerCount);
         using var registrations = new PooledArrayBuilder<Registration>(providerCount);
 
         foreach (var provider in _lazyRegistrationProviders)
         {
-            var registration = provider.Value.GetRegistration(clientCapabilities, _filter, requestContext);
-
-            if (registration is not null)
+            foreach (var registration in provider.Value.GetRegistrations(clientCapabilities, _filter, requestContext))
             {
                 // We don't unregister anything, so we don't need to do anything interesting with Ids
                 registration.Id = Guid.NewGuid().ToString();
