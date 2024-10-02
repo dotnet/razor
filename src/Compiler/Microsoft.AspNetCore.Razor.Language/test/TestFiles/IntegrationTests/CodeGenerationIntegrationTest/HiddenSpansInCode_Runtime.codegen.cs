@@ -5,19 +5,20 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"f28b1d44c575d208cd85ccdfcbacce93cf352fed0b4626a5450b19c7aee40d04", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/HiddenSpansInCode.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"f28b1d44c575d208cd85ccdfcbacce93cf352fed0b4626a5450b19c7aee40d04", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/HiddenSpansInCode.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_HiddenSpansInCode_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/HiddenSpansInCode.cshtml"
-     @Da
+#line (2,6)-(3,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/HiddenSpansInCode.cshtml"
+@Da
 
 #line default
 #line hidden
 #nullable disable
+
         }
         #pragma warning restore 1998
     }

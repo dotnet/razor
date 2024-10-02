@@ -9,29 +9,20 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
+internal class DefaultRazorComponentSearchEngine(
+    IProjectSnapshotManager projectManager,
+    IRazorLoggerFactory loggerFactory)
+    : RazorComponentSearchEngine
 {
-    private readonly ProjectSnapshotManager _projectSnapshotManager;
-    private readonly ILogger<DefaultRazorComponentSearchEngine> _logger;
-
-    public DefaultRazorComponentSearchEngine(
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        ILoggerFactory loggerFactory)
-    {
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
-    }
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
+    private readonly ILogger _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
 
     public async override Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
@@ -47,7 +38,7 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
             return null;
         }
 
-        var projects = _projectSnapshotManager.GetProjects();
+        var projects = _projectManager.GetProjects();
 
         foreach (var project in projects)
         {
@@ -65,7 +56,8 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
             }
 
             // If we got this far, we can check for tag helpers
-            foreach (var tagHelper in project.TagHelpers)
+            var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var tagHelper in tagHelpers)
             {
                 // Check the typename and namespace match
                 if (IsPathCandidateForComponent(documentSnapshot, tagHelper.GetTypeNameIdentifier().AsMemory()) &&
@@ -106,7 +98,7 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
 
         var lookupSymbolName = RemoveGenericContent(typeName.AsMemory());
 
-        var projects = _projectSnapshotManager.GetProjects();
+        var projects = _projectManager.GetProjects();
 
         foreach (var project in projects)
         {

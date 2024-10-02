@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -15,13 +15,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class CodeActionResolutionEndpointTest : LanguageServerTestBase
+public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public CodeActionResolutionEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_Valid_RazorCodeAction_WithResolver()
     {
@@ -74,7 +69,10 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JObject.FromObject(new CodeActionResolveParams()
             {
-                RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                RazorFileIdentifier = new VSTextDocumentIdentifier
+                {
+                    Uri = new Uri("C:/path/to/Page.razor")
+                },
             })
         };
         var request = new CodeAction()
@@ -110,7 +108,10 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JObject.FromObject(new CodeActionResolveParams()
             {
-                RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                RazorFileIdentifier = new VSTextDocumentIdentifier
+                {
+                    Uri = new Uri("C:/path/to/Page.razor")
+                },
             })
         };
         var request = new CodeAction()
@@ -180,7 +181,10 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JObject.FromObject(new CodeActionResolveParams()
             {
-                RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                RazorFileIdentifier = new VSTextDocumentIdentifier
+                {
+                    Uri = new Uri("C:/path/to/Page.razor")
+                },
             })
         };
         var request = new CodeAction()
@@ -259,7 +263,10 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JObject.FromObject(new CodeActionResolveParams()
             {
-                RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                RazorFileIdentifier = new VSTextDocumentIdentifier
+                {
+                    Uri = new Uri("C:/path/to/Page.razor")
+                },
             })
         };
         var request = new CodeAction()
@@ -362,7 +369,10 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JObject.FromObject(new CodeActionResolveParams()
             {
-                RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                RazorFileIdentifier = new VSTextDocumentIdentifier
+                {
+                    Uri = new Uri("C:/path/to/Page.razor")
+                },
             })
         };
 
@@ -392,7 +402,10 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = JObject.FromObject(new CodeActionResolveParams()
             {
-                RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                RazorFileIdentifier = new VSTextDocumentIdentifier
+                {
+                    Uri = new Uri("C:/path/to/Page.razor")
+                },
             })
         };
 
@@ -425,7 +438,10 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JObject.FromObject(new CodeActionResolveParams()
             {
-                RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                RazorFileIdentifier = new VSTextDocumentIdentifier
+                {
+                    Uri = new Uri("C:/path/to/Page.razor")
+                },
             })
         };
 
@@ -503,7 +519,7 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
         public override string Action { get; }
 
         internal MockCSharpCodeActionResolver(string action)
-            : base(Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict))
+            : base(Mock.Of<IClientConnection>(MockBehavior.Strict))
         {
             Action = action;
         }
@@ -520,7 +536,7 @@ public class CodeActionResolutionEndpointTest : LanguageServerTestBase
         public override string Action { get; }
 
         internal MockCSharpNullCodeActionResolver(string action)
-            : base(Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict))
+            : base(Mock.Of<IClientConnection>(MockBehavior.Strict))
         {
             Action = action;
         }

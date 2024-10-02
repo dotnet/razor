@@ -22,6 +22,7 @@
   },
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.24475.3",
+    "Microsoft.Build.NoTargets": "2.0.1"
     "Yarn.MSBuild": "1.22.10"
   }
 }

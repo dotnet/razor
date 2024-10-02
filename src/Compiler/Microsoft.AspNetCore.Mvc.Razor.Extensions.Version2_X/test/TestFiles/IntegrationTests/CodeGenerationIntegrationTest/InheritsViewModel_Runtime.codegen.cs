@@ -5,7 +5,7 @@
 [assembly:global::Microsoft.AspNetCore.Mvc.Razor.Compilation.RazorViewAttribute(@"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml", typeof(AspNetCore.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsViewModel))]
 namespace AspNetCore
 {
-    #line hidden
+    #line default
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,7 +13,9 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"1ca5ae8e569aefa6575a68e8d8b2d375ed79deec6565fb893b72b89423f55abd", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml")]
+    #line default
+    #line hidden
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"1ca5ae8e569aefa6575a68e8d8b2d375ed79deec6565fb893b72b89423f55abd", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsViewModel : MyBasePageForViews<MyModel>
     {
         #pragma warning disable 1998

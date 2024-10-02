@@ -6,8 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -17,13 +19,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
+public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task ResolveAsync_RemapsAndFixesEdits()
     {
@@ -86,7 +83,10 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
         var codeActionParams = new CodeActionResolveParams()
         {
             Data = new JObject(),
-            RazorFileUri = new Uri(documentPath)
+            RazorFileIdentifier = new VSTextDocumentIdentifier
+            {
+                Uri = new Uri(documentPath)
+            }
         };
 
         // Act
@@ -108,15 +108,15 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
             });
     }
 
-    private static ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction)
+    private static IClientConnection CreateLanguageServer(CodeAction resolvedCodeAction)
     {
         var response = resolvedCodeAction;
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(CustomMessageNames.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
-        return languageServer.Object;
+        return clientConnection.Object;
     }
 }

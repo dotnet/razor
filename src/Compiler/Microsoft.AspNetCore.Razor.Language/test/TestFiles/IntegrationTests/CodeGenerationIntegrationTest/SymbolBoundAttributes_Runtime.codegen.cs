@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"6670062036b3e25775cee4af27e2b53b638aff4fd93c3087d0cfb1947fd5e738", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"6670062036b3e25775cee4af27e2b53b638aff4fd93c3087d0cfb1947fd5e738", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_SymbolBoundAttributes_Runtime
     {
         private static readonly global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute __tagHelperAttribute_0 = new global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute("[item]", new global::Microsoft.AspNetCore.Html.HtmlString("items"), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -49,13 +49,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             BeginWriteTagHelperAttribute();
             __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
             __tagHelperExecutionContext.AddHtmlAttribute("bound", Html.Raw(__tagHelperStringValueBuffer), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.Minimized);
+            __TestNamespace_CatchAllTagHelper.ListItems = 
 #nullable restore
-#line 12 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml"
-__TestNamespace_CatchAllTagHelper.ListItems = items;
+#line (12,19)-(12,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml"
+items
 
 #line default
 #line hidden
 #nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("[item]", __TestNamespace_CatchAllTagHelper.ListItems, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_0);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
@@ -74,13 +76,15 @@ __TestNamespace_CatchAllTagHelper.ListItems = items;
             BeginWriteTagHelperAttribute();
             __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
             __tagHelperExecutionContext.AddHtmlAttribute("bound", Html.Raw(__tagHelperStringValueBuffer), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.Minimized);
+            __TestNamespace_CatchAllTagHelper.ArrayItems = 
 #nullable restore
-#line 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml"
-__TestNamespace_CatchAllTagHelper.ArrayItems = items;
+#line (13,21)-(13,26) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml"
+items
 
 #line default
 #line hidden
 #nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("[(item)]", __TestNamespace_CatchAllTagHelper.ArrayItems, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_1);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
@@ -100,13 +104,15 @@ __TestNamespace_CatchAllTagHelper.ArrayItems = items;
             BeginWriteTagHelperAttribute();
             __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
             __tagHelperExecutionContext.AddHtmlAttribute("bound", Html.Raw(__tagHelperStringValueBuffer), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.Minimized);
+            __TestNamespace_CatchAllTagHelper.Event1 = 
 #nullable restore
-#line 14 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml"
-__TestNamespace_CatchAllTagHelper.Event1 = doSomething();
+#line (14,24)-(14,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml"
+doSomething()
 
 #line default
 #line hidden
 #nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("(click)", __TestNamespace_CatchAllTagHelper.Event1, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_2);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
@@ -126,13 +132,15 @@ __TestNamespace_CatchAllTagHelper.Event1 = doSomething();
             BeginWriteTagHelperAttribute();
             __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
             __tagHelperExecutionContext.AddHtmlAttribute("bound", Html.Raw(__tagHelperStringValueBuffer), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.Minimized);
+            __TestNamespace_CatchAllTagHelper.Event2 = 
 #nullable restore
-#line 15 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml"
-__TestNamespace_CatchAllTagHelper.Event2 = doSomething();
+#line (15,25)-(15,38) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml"
+doSomething()
 
 #line default
 #line hidden
 #nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("(^click)", __TestNamespace_CatchAllTagHelper.Event2, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_3);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);

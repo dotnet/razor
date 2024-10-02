@@ -5,22 +5,23 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class DefaultHtmlCodeActionResolver : HtmlCodeActionResolver
 {
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly IRazorDocumentMappingService _documentMappingService;
 
     public DefaultHtmlCodeActionResolver(
-        DocumentContextFactory documentContextFactory,
-        ClientNotifierServiceBase languageServer,
+        IDocumentContextFactory documentContextFactory,
+        IClientConnection clientConnection,
         IRazorDocumentMappingService documentMappingService)
-        : base(languageServer)
+        : base(clientConnection)
     {
         if (documentContextFactory is null)
         {
@@ -53,13 +54,13 @@ internal sealed class DefaultHtmlCodeActionResolver : HtmlCodeActionResolver
             throw new ArgumentNullException(nameof(codeAction));
         }
 
-        var documentContext = _documentContextFactory.TryCreateForOpenDocument(resolveParams.RazorFileUri);
+        var documentContext = _documentContextFactory.TryCreateForOpenDocument(resolveParams.RazorFileIdentifier);
         if (documentContext is null)
         {
             return codeAction;
         }
 
-        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(resolveParams.RazorFileUri, documentContext.Version, RazorLanguageKind.Html, codeAction, cancellationToken).ConfigureAwait(false);
+        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(resolveParams.RazorFileIdentifier, documentContext.Version, RazorLanguageKind.Html, codeAction, cancellationToken).ConfigureAwait(false);
         if (resolvedCodeAction?.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action

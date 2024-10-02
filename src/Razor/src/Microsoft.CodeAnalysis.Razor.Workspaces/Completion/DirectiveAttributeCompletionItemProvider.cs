@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -15,23 +12,8 @@ using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-[Shared]
-[Export(typeof(IRazorCompletionItemProvider))]
 internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
-    private readonly ITagHelperFactsService _tagHelperFactsService;
-
-    [ImportingConstructor]
-    public DirectiveAttributeCompletionItemProvider(ITagHelperFactsService tagHelperFactsService)
-    {
-        if (tagHelperFactsService is null)
-        {
-            throw new ArgumentNullException(nameof(tagHelperFactsService));
-        }
-
-        _tagHelperFactsService = tagHelperFactsService;
-    }
-
     public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
@@ -93,10 +75,10 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
     internal ImmutableArray<RazorCompletionItem> GetAttributeCompletions(
         string selectedAttributeName,
         string containingTagName,
-        IEnumerable<string> attributes,
+        ImmutableArray<string> attributes,
         TagHelperDocumentContext tagHelperDocumentContext)
     {
-        var descriptorsForTag = _tagHelperFactsService.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
+        var descriptorsForTag = TagHelperFacts.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
         if (descriptorsForTag.Length == 0)
         {
             // If the current tag has no possible descriptors then we can't have any directive attributes.
@@ -110,21 +92,20 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         {
             foreach (var attributeDescriptor in descriptor.BoundAttributes)
             {
-                if (!attributeDescriptor.IsDirectiveAttribute())
+                if (!attributeDescriptor.IsDirectiveAttribute)
                 {
                     // We don't care about non-directive attributes
                     continue;
                 }
 
-                if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor) && attributeDescriptor.BoundAttributeParameters.Count > 0)
+                if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor) && attributeDescriptor.Parameters.Length > 0)
                 {
                     // This attribute has parameters and the base attribute name (@bind) is already satisfied. We need to check if there are any valid
                     // parameters left to be provided, if so, we need to still represent the base attribute name in the completion list.
 
-                    for (var j = 0; j < attributeDescriptor.BoundAttributeParameters.Count; j++)
+                    foreach (var parameterDescriptor in attributeDescriptor.Parameters)
                     {
-                        var parameterDescriptor = attributeDescriptor.BoundAttributeParameters[j];
-                        if (!attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(name, attributeDescriptor, parameterDescriptor)))
+                        if (!attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
                         {
                             // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
                             AddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor);
@@ -140,7 +121,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             }
         }
 
-        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
+        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
 
         foreach (var completion in attributeCompletions)
         {
@@ -160,13 +141,19 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             }
 
             var (attributeDescriptionInfos, commitCharacters) = completion.Value;
-            var razorCommitCharacters = commitCharacters.Select(static c => new RazorCommitCharacter(c)).ToList();
+
+            using var razorCommitCharacters = new PooledArrayBuilder<RazorCommitCharacter>(capacity: commitCharacters.Count);
+
+            foreach (var c in commitCharacters)
+            {
+                razorCommitCharacters.Add(new(c));
+            }
 
             var razorCompletionItem = new RazorCompletionItem(
                 completion.Key,
                 insertText,
                 RazorCompletionItemKind.DirectiveAttribute,
-                commitCharacters: razorCommitCharacters);
+                commitCharacters: razorCommitCharacters.DrainToImmutable());
             var completionDescription = new AggregateBoundAttributeDescription(attributeDescriptionInfos.ToImmutableArray());
             razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 
@@ -217,7 +204,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 commitCharacters.Add(" ");
             }
 
-            if (tagHelperDescriptor.BoundAttributes.Any(b => b.BoundAttributeParameters.Count > 0))
+            if (tagHelperDescriptor.BoundAttributes.Any(b => b.Parameters.Length > 0))
             {
                 commitCharacters.Add(":");
             }

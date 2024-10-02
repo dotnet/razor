@@ -5,36 +5,39 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"13a85602fed2597baf956e658c5cf96a52e1734ae6cd4674854366bf90b84fb7", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"13a85602fed2597baf956e658c5cf96a52e1734ae6cd4674854366bf90b84fb7", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_NestedCodeBlocks_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml"
- if(foo) {
+#line (1,2)-(2,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml"
+if(foo) {
     
 
 #line default
 #line hidden
 #nullable disable
+
 #nullable restore
-#line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml"
-     if(bar) {
+#line (2,6)-(3,6) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml"
+if(bar) {
     }
 
 #line default
 #line hidden
 #nullable disable
+
 #nullable restore
-#line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml"
-     
+#line (3,6)-(4,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml"
+
 }
 
 #line default
 #line hidden
 #nullable disable
+
         }
         #pragma warning restore 1998
     }

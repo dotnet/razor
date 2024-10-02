@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,10 +14,11 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 
@@ -29,10 +31,9 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     private RazorRequestContext RazorRequestContext { get; set; }
     private RazorCodeDocument? RazorCodeDocument { get; set; }
     private SourceText? SourceText { get; set; }
-    private SourceMapping[]? SourceMappings { get; set; }
+    private ImmutableArray<SourceMapping> SourceMappings { get; set; }
     private string? GeneratedCode { get; set; }
     private object? Diagnostics { get; set; }
-    private SourceText? CSharpSourceText { get; set; }
     private VersionedDocumentContext? VersionedDocumentContext { get; set; }
     private VSInternalDocumentDiagnosticsParams? Request { get; set; }
     private IEnumerable<VSInternalDiagnosticReport?>? Response { get; set; }
@@ -52,7 +53,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri }
         };
-        var stringSourceDocument = new StringSourceDocument(GetFileContents(), UTF8Encoding.UTF8, new RazorSourceDocumentProperties());
+        var stringSourceDocument = RazorSourceDocument.Create(GetFileContents(), UTF8Encoding.UTF8, RazorSourceDocumentProperties.Default);
         var mockRazorCodeDocument = new Mock<RazorCodeDocument>(MockBehavior.Strict);
 
         var mockRazorCSharpDocument = RazorCSharpDocument.Create(
@@ -70,8 +71,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         mockRazorCodeDocument.Setup(r => r.Items).Returns(itemCollection);
         RazorCodeDocument = mockRazorCodeDocument.Object;
 
-        SourceText = RazorCodeDocument.GetSourceText();
-        CSharpSourceText = RazorCodeDocument.GetCSharpSourceText();
+        SourceText = RazorCodeDocument.Source.Text;
         var documentContext = new Mock<VersionedDocumentContext>(
             MockBehavior.Strict,
             new object[] { It.IsAny<Uri>(), It.IsAny<IDocumentSnapshot>(), It.IsAny<VSProjectContext>(), It.IsAny<int>() });
@@ -81,7 +81,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         documentContext.Setup(r => r.Uri).Returns(It.IsAny<Uri>());
         documentContext.Setup(r => r.Version).Returns(It.IsAny<int>());
         documentContext.Setup(r => r.GetSourceTextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(It.IsAny<SourceText>());
-        RazorRequestContext = new RazorRequestContext(documentContext.Object, Logger, null!);
+        RazorRequestContext = new RazorRequestContext(documentContext.Object, null!, "lsp/method", uri: null);
         VersionedDocumentContext = documentContext.Object;
 
         var loggerFactory = BuildLoggerFactory();
@@ -147,7 +147,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         return razorDocumentMappingService.Object;
     }
 
-    private ILoggerFactory BuildLoggerFactory() => Mock.Of<ILoggerFactory>(
+    private IRazorLoggerFactory BuildLoggerFactory() => Mock.Of<IRazorLoggerFactory>(
         r => r.CreateLogger(
             It.IsAny<string>()) == new NoopLogger(),
         MockBehavior.Strict);
@@ -186,7 +186,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         }
     }
 
-    private class ClientNotifierService : ClientNotifierServiceBase
+    private class ClientNotifierService : IClientConnection
     {
         private readonly object _diagnostics;
 
@@ -195,22 +195,17 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
             _diagnostics = diagnostics;
         }
 
-        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+        public Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             return Task.FromResult((TResponse)_diagnostics);
         }
@@ -326,10 +321,10 @@ using Microsoft.AspNetCore.Components.Web;
 
 """;
 
-    private SourceMapping[] GetSourceMappings()
-        => new SourceMapping[] {
+    private ImmutableArray<SourceMapping> GetSourceMappings()
+        => ImmutableArray<SourceMapping>.Empty.Add(
             new SourceMapping(
                 originalSpan: new SourceSpan(filePath: "test.cshtml", absoluteIndex: 28, lineIndex: 3, characterIndex: 1, length: 58, lineCount: 5, endCharacterIndex: 0),
                 generatedSpan: new SourceSpan(filePath: null, absoluteIndex: 2026, lineIndex: 82, characterIndex: 1, length: 58, lineCount: 1, endCharacterIndex: 0)
-    )};
+        ));
 }

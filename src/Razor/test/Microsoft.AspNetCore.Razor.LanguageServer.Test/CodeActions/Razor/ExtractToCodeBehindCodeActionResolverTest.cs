@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
 {
-    private readonly DocumentContextFactory _emptyDocumentContextFactory;
+    private readonly IDocumentContextFactory _emptyDocumentContextFactory;
     private readonly TestLanguageServer _languageServer;
 
     public ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOutput)
@@ -63,7 +63,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:\\Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private int x = 1; }}";
+        var contents = $$"""
+            @page "/test"
+            @code { private int x = 1; }
+            """;
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetUnsupported();
 
@@ -82,7 +85,10 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("c:\\Test.razor");
-        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private int x = 1; }}";
+        var contents = $$"""
+            @page "/test"
+            @code { private int x = 1; }
+            """;
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetFileKind(FileKinds.Legacy);
 
@@ -145,7 +151,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             using System.Linq;
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Components;
-            
+
             namespace test.Pages
             {
                 public partial class Test
@@ -207,7 +213,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             using System.Linq;
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Components;
-            
+
             namespace test.Pages
             {
                 public partial class Test
@@ -277,7 +283,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             using System.Linq;
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Components;
-            
+
             namespace test.Pages
             {
                 public partial class Test
@@ -357,7 +363,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             using System.Linq;
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Components;
-            
+
             namespace test.Pages
             {
                 public partial class Test
@@ -439,7 +445,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             using System.Linq;
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Components;
-            
+
             namespace test.Pages
             {
                 public partial class Test
@@ -509,7 +515,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             using System.Linq;
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Components;
-            
+
             namespace test.Pages
             {
                 public partial class Test
@@ -572,7 +578,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Components;
             using System.Diagnostics;
-            
+
             namespace test.Pages
             {
                 public partial class Test
@@ -593,7 +599,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             @page "/test"
 
             @code {
-            #region TestRegion 
+            #region TestRegion
                     private int x = 1;
             #endregion
             }
@@ -635,12 +641,12 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             using System.Linq;
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Components;
-     
+
             namespace test.Pages
             {
                 public partial class Test
                 {
-                    #region TestRegion 
+                    #region TestRegion
                     private int x = 1;
                     #endregion
                 }

@@ -4,10 +4,11 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Xunit;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.VisualStudio.Razor.DynamicFiles;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;

@@ -9,10 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
@@ -20,7 +23,6 @@ using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-using TextSpan = Microsoft.AspNetCore.Razor.Language.Syntax.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
@@ -41,9 +43,9 @@ internal class RazorTranslateDiagnosticsService
     /// translating code diagnostics from one representation into another, such as from C# to Razor.
     /// </summary>
     /// <param name="documentMappingService">The <see cref="IRazorDocumentMappingService"/>.</param>
-    /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+    /// <param name="loggerFactory">The <see cref="IRazorLoggerFactory"/>.</param>
     /// <exception cref="ArgumentNullException"/>
-    public RazorTranslateDiagnosticsService(IRazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
+    public RazorTranslateDiagnosticsService(IRazorDocumentMappingService documentMappingService, IRazorLoggerFactory loggerFactory)
     {
         if (documentMappingService is null)
         {
@@ -87,12 +89,12 @@ internal class RazorTranslateDiagnosticsService
             : FilterHTMLDiagnostics(diagnostics, codeDocument, sourceText, _logger);
         if (!filteredDiagnostics.Any())
         {
-            _logger.LogInformation("No diagnostics remaining after filtering.");
+            _logger.LogDebug("No diagnostics remaining after filtering.");
 
             return Array.Empty<Diagnostic>();
         }
 
-        _logger.LogInformation("{filteredDiagnosticsLength}/{unmappedDiagnosticsLength} diagnostics remain after filtering.", filteredDiagnostics.Length, diagnostics.Length);
+        _logger.LogDebug("{filteredDiagnosticsLength}/{unmappedDiagnosticsLength} diagnostics remain after filtering.", filteredDiagnostics.Length, diagnostics.Length);
 
         var mappedDiagnostics = MapDiagnostics(
             diagnosticKind,
@@ -170,8 +172,7 @@ internal class RazorTranslateDiagnosticsService
             return false;
         }
 
-        
-        var owner = syntaxTree.Root.FindNode(d.Range.ToRazorTextSpan(sourceText), getInnermostNodeForTie: true);
+        var owner = syntaxTree.Root.FindNode(d.Range.ToTextSpan(sourceText), getInnermostNodeForTie: true);
         if (IsCsharpKind(owner))
         {
             return true;
@@ -509,7 +510,7 @@ internal class RazorTranslateDiagnosticsService
         // semi-intelligent way.
 
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var span = diagnosticRange.ToRazorTextSpan(codeDocument.GetSourceText());
+        var span = diagnosticRange.ToTextSpan(codeDocument.GetSourceText());
         var owner = syntaxTree.Root.FindNode(span, getInnermostNodeForTie: true);
 
         switch (owner?.Kind)

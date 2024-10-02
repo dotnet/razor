@@ -178,7 +178,7 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
 
                 if (classificationStr is null)
                 {
-                    Assert.True(false, "Tried to write layered classifications without Semantic layer");
+                    Assert.Fail("Tried to write layered classifications without Semantic layer");
                     throw new Exception();
                 }
             }
@@ -197,7 +197,7 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
 
     private static string GetBaselineFileName(string testName)
     {
-        s_projectPath ??= TestProject.GetProjectDirectory(typeof(RazorSemanticTokensTests), useCurrentDirectory: true);
+        s_projectPath ??= TestProject.GetProjectDirectory(typeof(RazorSemanticTokensTests), layer: TestProject.Layer.Tooling, useCurrentDirectory: true);
         var semanticBaselinePath = Path.Combine(s_projectPath, "Semantic", "TestFiles", nameof(RazorSemanticTokensTests), testName + ".txt");
         return semanticBaselinePath;
     }

@@ -4,23 +4,21 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
-using Shared = System.Composition.SharedAttribute;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 /// <summary>
 /// Publishes project.razor.bin files.
 /// </summary>
-[Shared]
-[Export(typeof(IProjectSnapshotChangeTrigger))]
-internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
+[Export(typeof(IRazorStartupService))]
+internal class RazorProjectInfoPublisher : IRazorStartupService
 {
     internal readonly Dictionary<string, Task> DeferredPublishTasks;
 
@@ -30,47 +28,21 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
     private const string TempFileExt = ".temp";
     private readonly RazorLogger _logger;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+    private readonly IProjectSnapshotManager _projectManager;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
     private readonly Dictionary<ProjectKey, IProjectSnapshot> _pendingProjectPublishes;
     private readonly object _pendingProjectPublishesLock;
     private readonly object _publishLock;
 
-    private ProjectSnapshotManagerBase? _projectSnapshotManager;
     private bool _documentsProcessed = false;
-
-    private ProjectSnapshotManagerBase ProjectSnapshotManager
-    {
-        get
-        {
-            return _projectSnapshotManager ?? throw new InvalidOperationException($"{nameof(ProjectSnapshotManager)} called before {nameof(Initialize)}.");
-        }
-        set
-        {
-            _projectSnapshotManager = value;
-        }
-    }
 
     [ImportingConstructor]
     public RazorProjectInfoPublisher(
         LSPEditorFeatureDetector lSPEditorFeatureDetector,
+        IProjectSnapshotManager projectManager,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         RazorLogger logger)
     {
-        if (lSPEditorFeatureDetector is null)
-        {
-            throw new ArgumentNullException(nameof(lSPEditorFeatureDetector));
-        }
-
-        if (projectConfigurationFilePathStore is null)
-        {
-            throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-        }
-
-        if (logger is null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
         DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
         _pendingProjectPublishes = new Dictionary<ProjectKey, IProjectSnapshot>();
         _pendingProjectPublishesLock = new();
@@ -79,17 +51,14 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
         _lspEditorFeatureDetector = lSPEditorFeatureDetector;
         _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
         _logger = logger;
+
+        _projectManager = projectManager;
+        _projectManager.Changed += ProjectManager_Changed;
     }
 
     // Internal settable for testing
     // 3000ms between publishes to prevent bursts of changes yet still be responsive to changes.
     internal int EnqueueDelay { get; set; } = 3000;
-
-    public void Initialize(ProjectSnapshotManagerBase projectManager)
-    {
-        ProjectSnapshotManager = projectManager;
-        ProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
-    }
 
     // Internal for testing
     internal void EnqueuePublish(IProjectSnapshot projectSnapshot)
@@ -105,7 +74,7 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
         }
     }
 
-    internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+    internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
         if (args.SolutionIsClosing)
@@ -126,7 +95,7 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
         {
             // Not currently active, we need to decide if we should become active or if we should no-op.
 
-            if (!ProjectSnapshotManager.GetOpenDocuments().IsEmpty)
+            if (!_projectManager.GetOpenDocuments().IsEmpty)
             {
                 // A Razor document was just opened, we should become "active" which means we'll constantly be monitoring project state.
                 _active = true;
@@ -171,6 +140,19 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
                 }
 
                 break;
+            case ProjectChangeKind.DocumentChanged:
+                // DocumentChanged normally isn't a great trigger for publishing, given that it happens while a user types
+                // but for a brand new project, its possible this DocumentChanged actually represents a DocumentOpen, and
+                // it could be the first one, so its important to publish if there is no project configuration file present
+                if (ProjectWorkspacePublishable(args) &&
+                    _projectConfigurationFilePathStore.TryGet(args.ProjectKey, out var configurationFilePath) &&
+                    !FileExists(configurationFilePath))
+                {
+                    ImmediatePublish(args.Newer!);
+                }
+
+                break;
+
             case ProjectChangeKind.DocumentRemoved:
             case ProjectChangeKind.DocumentAdded:
 
@@ -194,6 +176,10 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
 
             case ProjectChangeKind.ProjectRemoved:
                 RemovePublishingData(args.Older!);
+                break;
+
+            default:
+                Debug.Fail("A new ProjectChangeKind has been added that the RazorProjectInfoPublisher doesn't know how to deal with");
                 break;
         }
 
@@ -316,7 +302,7 @@ internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
 
                     if (projectSnapshot.GetDocument(documentFilePath) is { } documentSnapshot &&
                         string.Equals(documentSnapshot.FileKind, AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase) &&
-                        projectSnapshot.TagHelpers.Any(t => t.Name.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)))
+                        projectSnapshot.GetTagHelpersSynchronously().Any(t => t.Name.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)))
                     {
                         // Documents have been processed, lets publish
                         _documentsProcessed = true;

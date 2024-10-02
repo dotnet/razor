@@ -1,0 +1,140 @@
+﻿Source Location: (14:0,14 [17] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|"*, TestAssembly"|
+Generated Location: (1009:18,37 [17] )
+|"*, TestAssembly"|
+
+Source Location: (37:2,2 [163] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|
+    var count = "1";
+    var alive = true;
+    var obj = new { age = (object)1 };
+    var item = new { Items = new System.List<string>() { "one", "two" } };
+|
+Generated Location: (1500:35,2 [163] )
+|
+    var count = "1";
+    var alive = true;
+    var obj = new { age = (object)1 };
+    var item = new { Items = new System.List<string>() { "one", "two" } };
+|
+
+Source Location: (215:8,12 [16] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|Convert.ToInt32(|
+Generated Location: (1927:47,27 [16] )
+|Convert.ToInt32(|
+
+Source Location: (231:8,28 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|@count|
+Generated Location: (1943:47,43 [6] )
+|@count|
+
+Source Location: (237:8,34 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|)|
+Generated Location: (1949:47,49 [1] )
+|)|
+
+Source Location: (247:8,44 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|!|
+Generated Location: (2159:54,44 [1] )
+|!|
+
+Source Location: (248:8,45 [6] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|@alive|
+Generated Location: (2160:54,45 [6] )
+|@alive|
+
+Source Location: (272:9,12 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|(int)|
+Generated Location: (2510:63,27 [5] )
+|(int)|
+
+Source Location: (277:9,17 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|@obj.age|
+Generated Location: (2515:63,32 [8] )
+|@obj.age|
+
+Source Location: (292:9,32 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|new|
+Generated Location: (2721:70,32 [3] )
+|new|
+
+Source Location: (295:9,35 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| {|
+Generated Location: (2724:70,35 [2] )
+| {|
+
+Source Location: (297:9,37 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| |
+Generated Location: (2726:70,37 [1] )
+| |
+
+Source Location: (298:9,38 [7] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|@params|
+Generated Location: (2727:70,38 [7] )
+|@params|
+
+Source Location: (305:9,45 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| =|
+Generated Location: (2734:70,45 [2] )
+| =|
+
+Source Location: (307:9,47 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| 1|
+Generated Location: (2736:70,47 [2] )
+| 1|
+
+Source Location: (309:9,49 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| }|
+Generated Location: (2738:70,49 [2] )
+| }|
+
+Source Location: (343:10,26 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|(|
+Generated Location: (3123:79,66 [1] )
+|(|
+
+Source Location: (344:10,27 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|@item|
+Generated Location: (3124:79,67 [5] )
+|@item|
+
+Source Location: (349:10,32 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|.|
+Generated Location: (3129:79,72 [1] )
+|.|
+
+Source Location: (350:10,33 [35] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| Items.Where(i=>i.Contains("one")).|
+Generated Location: (3130:79,73 [35] )
+| Items.Where(i=>i.Contains("one")).|
+
+Source Location: (385:10,68 [11] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| Count()>0,|
+Generated Location: (3165:79,108 [11] )
+| Count()>0,|
+
+Source Location: (396:10,79 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| |
+Generated Location: (3176:79,119 [1] )
+| |
+
+Source Location: (397:10,80 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|@item|
+Generated Location: (3177:79,120 [5] )
+|@item|
+
+Source Location: (402:10,85 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+|.|
+Generated Location: (3182:79,125 [1] )
+|.|
+
+Source Location: (403:10,86 [45] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| Items.FirstOrDefault(i=>i.Contains("one"))?.|
+Generated Location: (3183:79,126 [45] )
+| Items.FirstOrDefault(i=>i.Contains("one"))?.|
+
+Source Location: (448:10,131 [19] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EscapedIdentifier.cshtml)
+| Replace("one",""))|
+Generated Location: (3228:79,171 [19] )
+| Replace("one",""))|
+

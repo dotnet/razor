@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -15,23 +12,8 @@ using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-[Shared]
-[Export(typeof(IRazorCompletionItemProvider))]
 internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
-    private readonly ITagHelperFactsService _tagHelperFactsService;
-
-    [ImportingConstructor]
-    public DirectiveAttributeParameterCompletionItemProvider(ITagHelperFactsService tagHelperFactsService)
-    {
-        if (tagHelperFactsService is null)
-        {
-            throw new ArgumentNullException(nameof(tagHelperFactsService));
-        }
-
-        _tagHelperFactsService = tagHelperFactsService;
-    }
-
     public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
@@ -80,12 +62,12 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
     // Internal for testing
     internal ImmutableArray<RazorCompletionItem> GetAttributeParameterCompletions(
         string attributeName,
-        string parameterName,
+        string? parameterName,
         string containingTagName,
-        IEnumerable<string> attributes,
+        ImmutableArray<string> attributes,
         TagHelperDocumentContext tagHelperDocumentContext)
     {
-        var descriptorsForTag = _tagHelperFactsService.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
+        var descriptorsForTag = TagHelperFacts.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
         if (descriptorsForTag.Length == 0)
         {
             // If the current tag has no possible descriptors then we can't have any additional attributes.
@@ -97,22 +79,20 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
 
         foreach (var descriptor in descriptorsForTag)
         {
-            for (var i = 0; i < descriptor.BoundAttributes.Count; i++)
+            for (var i = 0; i < descriptor.BoundAttributes.Length; i++)
             {
                 var attributeDescriptor = descriptor.BoundAttributes[i];
-                var boundAttributeParameters = attributeDescriptor.BoundAttributeParameters;
-                if (boundAttributeParameters.Count == 0)
+                var boundAttributeParameters = attributeDescriptor.Parameters;
+                if (boundAttributeParameters.Length == 0)
                 {
                     continue;
                 }
 
                 if (TagHelperMatchingConventions.CanSatisfyBoundAttribute(attributeName, attributeDescriptor))
                 {
-                    for (var j = 0; j < boundAttributeParameters.Count; j++)
+                    foreach (var parameterDescriptor in boundAttributeParameters)
                     {
-                        var parameterDescriptor = boundAttributeParameters[j];
-
-                        if (attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(name, attributeDescriptor, parameterDescriptor)))
+                        if (attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
                         {
                             // There's already an existing attribute that satisfies this parameter, don't show it in the completion list.
                             continue;

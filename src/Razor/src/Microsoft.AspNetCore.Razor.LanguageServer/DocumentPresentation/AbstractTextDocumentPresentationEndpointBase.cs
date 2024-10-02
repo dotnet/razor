@@ -9,10 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
@@ -21,20 +22,25 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
     where TParams : IPresentationParams
 {
     private readonly IRazorDocumentMappingService _razorDocumentMappingService;
-    private readonly ClientNotifierServiceBase _languageServer;
-    private readonly FilePathService _filePathService;
+    private readonly IClientConnection _clientConnection;
+    private readonly IFilePathService _filePathService;
+    private readonly ILogger _logger;
 
     protected AbstractTextDocumentPresentationEndpointBase(
         IRazorDocumentMappingService razorDocumentMappingService,
-        ClientNotifierServiceBase languageServer,
-        FilePathService filePathService)
+        IClientConnection clientConnection,
+        IFilePathService filePathService,
+        ILogger logger)
     {
         _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
-        _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
         _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public abstract string EndpointName { get; }
+
+    protected ILogger Logger => _logger;
 
     public bool MutatesSolutionState => false;
 
@@ -59,12 +65,12 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
-            requestContext.Logger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
+            _logger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
             return null;
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (request.Range.Start.TryGetAbsoluteIndex(sourceText, requestContext.Logger, out var hostDocumentIndex) != true)
+        if (request.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
         {
             return null;
         }
@@ -79,7 +85,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
 
         if (languageKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
         {
-            requestContext.Logger.LogInformation("Unsupported language {languageKind}.", languageKind);
+            _logger.LogInformation("Unsupported language {languageKind}.", languageKind);
             return null;
         }
 
@@ -99,7 +105,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
             requestParams.Range = projectedRange;
         }
 
-        var response = await _languageServer.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(EndpointName, requestParams, cancellationToken).ConfigureAwait(false);
+        var response = await _clientConnection.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(EndpointName, requestParams, cancellationToken).ConfigureAwait(false);
         if (response is null)
         {
             return null;

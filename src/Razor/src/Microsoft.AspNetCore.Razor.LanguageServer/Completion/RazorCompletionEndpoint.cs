@@ -6,25 +6,29 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-internal class RazorCompletionEndpoint : IVSCompletionEndpoint
+internal class RazorCompletionEndpoint(
+    CompletionListProvider completionListProvider,
+    ITelemetryReporter? telemetryReporter,
+    IOptionsMonitor<RazorLSPOptions> optionsMonitor,
+    IRazorLoggerFactory loggerFactory)
+    : IVSCompletionEndpoint
 {
-    private readonly CompletionListProvider _completionListProvider;
-    private readonly ITelemetryReporter? _telemetryReporter;
-    private VSInternalClientCapabilities? _clientCapabilities;
+    private readonly CompletionListProvider _completionListProvider = completionListProvider;
+    private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
+    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor;
+    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
 
-    public RazorCompletionEndpoint(CompletionListProvider completionListProvider, ITelemetryReporter? telemetryReporter)
-    {
-        _completionListProvider = completionListProvider;
-        _telemetryReporter = telemetryReporter;
-    }
+    private VSInternalClientCapabilities? _clientCapabilities;
 
     public bool MutatesSolutionState => false;
 
@@ -55,7 +59,7 @@ internal class RazorCompletionEndpoint : IVSCompletionEndpoint
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!request.Position.TryGetAbsoluteIndex(sourceText, requestContext.Logger, out var hostDocumentIndex))
+        if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
         {
             return null;
         }
@@ -63,6 +67,12 @@ internal class RazorCompletionEndpoint : IVSCompletionEndpoint
         if (request.Context is not VSInternalCompletionContext completionContext)
         {
             Debug.Fail("Completion context should never be null in practice");
+            return null;
+        }
+
+        var autoShownCompletion = completionContext.InvokeKind != VSInternalCompletionInvokeKind.Explicit;
+        if (autoShownCompletion && !_optionsMonitor.CurrentValue.AutoShowCompletion)
+        {
             return null;
         }
 

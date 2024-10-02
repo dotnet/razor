@@ -8,13 +8,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class AddUsingsCodeActionProviderFactoryTest : TestBase
+public class AddUsingsCodeActionProviderFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    public AddUsingsCodeActionProviderFactoryTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void GetNamespaceFromFQN_Invalid_ReturnsEmpty()
     {
@@ -49,7 +44,7 @@ public class AddUsingsCodeActionProviderFactoryTest : TestBase
         var docUri = new Uri("c:/path");
 
         // Act
-        var result = AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, docUri, out var @namespace, out var resolutionParams);
+        var result = AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, docUri, additionalEdit: null, out var @namespace, out var resolutionParams);
 
         // Assert
         Assert.True(result);

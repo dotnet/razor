@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Xunit;
@@ -31,18 +31,17 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         : base(testOutput)
     {
         // Working around strong naming restriction.
-        var tagHelperFactsService = new TagHelperFactsService();
-        var tagHelperCompletionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
+        var tagHelperCompletionService = new LspTagHelperCompletionService();
 
         var completionProviders = new IRazorCompletionItemProvider[]
         {
             new DirectiveCompletionItemProvider(),
-            new DirectiveAttributeCompletionItemProvider(tagHelperFactsService),
-            new DirectiveAttributeParameterCompletionItemProvider(tagHelperFactsService),
-            new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService, TestRazorLSPOptionsMonitor.Create())
+            new DirectiveAttributeCompletionItemProvider(),
+            new DirectiveAttributeParameterCompletionItemProvider(),
+            new TagHelperCompletionProvider(tagHelperCompletionService, TestRazorLSPOptionsMonitor.Create())
         };
 
-        _completionFactsService = new RazorCompletionFactsService(completionProviders);
+        _completionFactsService = new LspRazorCompletionFactsService(completionProviders);
         _completionListCache = new CompletionListCache();
         _clientCapabilities = new VSInternalClientCapabilities()
         {
@@ -52,7 +51,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
                 {
                     CompletionItemKind = new CompletionItemKindSetting()
                     {
-                        ValueSet = new[] { CompletionItemKind.TagHelper }
+                        ValueSet = [CompletionItemKind.TagHelper]
                     },
                     CompletionList = new VSInternalCompletionListSetting()
                     {
@@ -213,7 +212,11 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
     public void TryConvert_DirectiveAttribute_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.FromArray(new[] { "=", ":" }));
+        var completionItem = new RazorCompletionItem(
+            "@testDisplay",
+            "testInsert",
+            RazorCompletionItemKind.DirectiveAttribute,
+            commitCharacters: RazorCommitCharacter.CreateArray(["=", ":"]));
 
         // Act
         var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -348,7 +351,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument("@");
         codeDocument.SetUnsupported();
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache, LoggerFactory);
         completionEndpoint.ApplyCapabilities(new(), _clientCapabilities);
         var request = new CompletionParams()
         {
@@ -377,7 +380,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("@");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache, LoggerFactory);
         completionEndpoint.ApplyCapabilities(new(), _clientCapabilities);
         var request = new CompletionParams()
         {
@@ -397,12 +400,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
 
         // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
         Assert.Collection(completionList.Items,
-            item => Assert.Equal("addTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "addTagHelper"),
-            item => Assert.Equal("removeTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "removeTagHelper"),
-            item => Assert.Equal("tagHelperPrefix", item.InsertText),
-            item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+            DirectiveVerifier.DefaultDirectiveCollectionVerifiers
         );
     }
 
@@ -416,11 +414,11 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
-        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("@in");
         codeDocument.SetTagHelperContext(tagHelperContext);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache, LoggerFactory);
         completionEndpoint.ApplyCapabilities(new(), _clientCapabilities);
         var request = new CompletionParams()
         {
@@ -441,12 +439,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.Collection(completionList.Items,
-            item => Assert.Equal("addTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "addTagHelper"),
-            item => Assert.Equal("removeTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "removeTagHelper"),
-            item => Assert.Equal("tagHelperPrefix", item.InsertText),
-            item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+            DirectiveVerifier.DefaultDirectiveCollectionVerifiers
         );
     }
 
@@ -459,11 +452,11 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
-        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("@inje");
         codeDocument.SetTagHelperContext(tagHelperContext);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache, LoggerFactory);
         completionEndpoint.ApplyCapabilities(new(), _clientCapabilities);
         var request = new CompletionParams()
         {
@@ -496,11 +489,11 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
-        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("@inje");
         codeDocument.SetTagHelperContext(tagHelperContext);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache, LoggerFactory);
         completionEndpoint.ApplyCapabilities(new(), _clientCapabilities);
         var request = new CompletionParams()
         {
@@ -521,12 +514,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.Collection(completionList.Items,
-            item => Assert.Equal("addTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "addTagHelper"),
-            item => Assert.Equal("removeTagHelper", item.InsertText),
-            item => AssertDirectiveSnippet(item, "removeTagHelper"),
-            item => Assert.Equal("tagHelperPrefix", item.InsertText),
-            item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+            DirectiveVerifier.DefaultDirectiveCollectionVerifiers
         );
     }
 
@@ -540,11 +528,11 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
-        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("<");
         codeDocument.SetTagHelperContext(tagHelperContext);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache, LoggerFactory);
         completionEndpoint.ApplyCapabilities(new(), _clientCapabilities);
         var request = new CompletionParams()
         {
@@ -580,11 +568,11 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         });
         builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
-        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, [tagHelper]);
         var codeDocument = CreateCodeDocument("<test  ");
         codeDocument.SetTagHelperContext(tagHelperContext);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+        var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache, LoggerFactory);
         completionEndpoint.ApplyCapabilities(new(), _clientCapabilities);
         var request = new CompletionParams()
         {
@@ -606,19 +594,12 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
 
     private static RazorCodeDocument CreateCodeDocument(string text)
     {
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        var codeDocument = TestRazorCodeDocument.Create(text);
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
         codeDocument.SetSyntaxTree(syntaxTree);
-        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Enumerable.Empty<TagHelperDescriptor>());
+        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, tagHelpers: []);
         codeDocument.SetTagHelperContext(tagHelperDocumentContext);
         return codeDocument;
-    }
-
-    private static void AssertDirectiveSnippet(CompletionItem completionItem, string directive)
-    {
-        Assert.StartsWith(directive, completionItem.InsertText);
-        Assert.Equal(DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive].InsertText, completionItem.InsertText);
-        Assert.Equal(CompletionItemKind.Snippet, completionItem.Kind);
     }
 }

@@ -5,20 +5,21 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"9af7ee6893210f3b4ab21bd93a76eaed1540b45b34c6ccbef4c980fd5f3c9f8c", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpression.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"9af7ee6893210f3b4ab21bd93a76eaed1540b45b34c6ccbef4c980fd5f3c9f8c", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpression.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EmptyImplicitExpression_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("This is markup\r\n\r\n");
+            Write(
 #nullable restore
-#line (3,2)-(3,2) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpression.cshtml"
-Write();
+#line (3,2)-(3,2) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpression.cshtml"
 
 #line default
 #line hidden
 #nullable disable
+            );
             WriteLiteral("!");
         }
         #pragma warning restore 1998

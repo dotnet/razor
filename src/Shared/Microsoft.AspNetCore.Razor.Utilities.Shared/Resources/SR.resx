@@ -132,4 +132,7 @@
   <data name="This_program_location_is_thought_to_be_unreachable_File_0_Line_1" xml:space="preserve">
     <value>This program location is thought to be unreachable. File='{0}', Line={1}</value>
   </data>
+  <data name="Unsupported_type_0" xml:space="preserve">
+    <value>Unsupported type: '{0}'.</value>
+  </data>
 </root>

@@ -61,7 +61,7 @@ public class DefaultTagHelperTargetExtensionTest : RazorProjectEngineTestBase
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperBodyIntermediateNode()
@@ -91,7 +91,7 @@ public class DefaultTagHelperTargetExtensionTest : RazorProjectEngineTestBase
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperBodyIntermediateNode()
@@ -126,7 +126,7 @@ public class DefaultTagHelperTargetExtensionTest : RazorProjectEngineTestBase
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperCreateIntermediateNode()
@@ -154,7 +154,7 @@ public class DefaultTagHelperTargetExtensionTest : RazorProjectEngineTestBase
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperCreateIntermediateNode()
@@ -183,7 +183,7 @@ __tagHelperExecutionContext.Add(__TestNamespace_MyTagHelper);
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperExecuteIntermediateNode();
@@ -207,7 +207,7 @@ __tagHelperExecutionContext.Add(__TestNamespace_MyTagHelper);
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperExecuteIntermediateNode();
@@ -237,7 +237,7 @@ __tagHelperExecutionContext = __tagHelperScopeManager.End();
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperHtmlAttributeIntermediateNode()
@@ -277,7 +277,7 @@ Render Children
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperHtmlAttributeIntermediateNode()
@@ -315,7 +315,7 @@ __tagHelperExecutionContext.AddHtmlAttribute(""name"", Html.Raw(__tagHelperStrin
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperHtmlAttributeIntermediateNode()
@@ -357,7 +357,7 @@ EndAddHtmlAttributeValues(__tagHelperExecutionContext);
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
         var node = new DefaultTagHelperPropertyIntermediateNode()
         {
             BoundAttribute = IntPropertyTagHelper.BoundAttributes.Single(),
@@ -379,7 +379,7 @@ EndAddHtmlAttributeValues(__tagHelperExecutionContext);
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
         var node = new DefaultTagHelperPropertyIntermediateNode()
         {
             BoundAttribute = IntIndexerTagHelper.BoundAttributes.Single(),
@@ -401,7 +401,7 @@ EndAddHtmlAttributeValues(__tagHelperExecutionContext);
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
         var node = new DefaultTagHelperPropertyIntermediateNode()
         {
             BoundAttribute = IntIndexerTagHelper.BoundAttributes.Single(),
@@ -425,7 +425,7 @@ EndAddHtmlAttributeValues(__tagHelperExecutionContext);
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -466,7 +466,7 @@ __InputTagHelper.StringProp = ""value"";
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -507,7 +507,7 @@ __InputTagHelper.StringProp = string.Empty;
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -557,7 +557,7 @@ __InputTagHelper.IntProp = 32;
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node1 = new DefaultTagHelperPropertyIntermediateNode()
@@ -599,7 +599,7 @@ __InputTagHelper.IntProp = 32;
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -639,7 +639,7 @@ __InputTagHelper.IntProp = 32;
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -687,7 +687,7 @@ __InputTagHelper.IntIndexer[""bound""] = 32;
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -727,7 +727,7 @@ __InputTagHelper.IntIndexer[""bound""] = 32;
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -773,7 +773,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.St
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -785,12 +785,11 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.St
             IsIndexerNameMatch = false,
             PropertyName = "IntProp",
             TagHelper = IntPropertyTagHelper,
-            Source = Span,
             Children =
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", Source = Span } },
                     }
                 },
         };
@@ -803,14 +802,15 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.St
         // Assert
         var csharp = context.CodeWriter.GenerateCode();
         Assert.Equal(
-@"
+@"__InputTagHelper.IntProp = 
 #nullable restore
-#line 3 ""test.cshtml""
-__InputTagHelper.IntProp = 32;
+#line (3,6)-(3,1) ""test.cshtml""
+32
 
 #line default
 #line hidden
 #nullable disable
+;
 __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.IntProp, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
 ",
             csharp,
@@ -824,7 +824,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node1 = new DefaultTagHelperPropertyIntermediateNode()
@@ -866,7 +866,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -907,7 +907,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -919,12 +919,11 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
             TagHelper = IntIndexerTagHelper,
-            Source = Span,
             Children =
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", Source = Span } },
                     }
                 }
         };
@@ -941,13 +940,15 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
 {
     throw new InvalidOperationException(InvalidTagHelperIndexerAssignment(""foo-bound"", ""InputTagHelper"", ""IntIndexer""));
 }
+__InputTagHelper.IntIndexer[""bound""] = 
 #nullable restore
-#line 3 ""test.cshtml""
-__InputTagHelper.IntIndexer[""bound""] = 32;
+#line (3,6)-(3,1) ""test.cshtml""
+32
 
 #line default
 #line hidden
 #nullable disable
+;
 __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelper.IntIndexer[""bound""], global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
 ",
             csharp,
@@ -959,7 +960,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node1 = new DefaultTagHelperPropertyIntermediateNode()
@@ -971,12 +972,11 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
             TagHelper = IntIndexerTagHelper,
-            Source = Span,
             Children =
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "17", } },
+                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "17", Source = Span } },
                     }
                 }
         };
@@ -989,12 +989,11 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
             TagHelper = IntIndexerTagHelper,
-            Source = Span,
             Children =
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", Source = Span } },
                     }
                 }
         };
@@ -1008,14 +1007,15 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
         // Assert
         var csharp = context.CodeWriter.GenerateCode();
         Assert.Equal(
-@"
+@"__InputTagHelper.IntIndexer[""bound""] = 
 #nullable restore
-#line 3 ""test.cshtml""
-__InputTagHelper.IntIndexer[""bound""] = 32;
+#line (3,6)-(3,1) ""test.cshtml""
+32
 
 #line default
 #line hidden
 #nullable disable
+;
 __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelper.IntIndexer[""bound""], global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
 ",
             csharp,
@@ -1027,7 +1027,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperNode = new TagHelperIntermediateNode();
         var node = new DefaultTagHelperPropertyIntermediateNode()
@@ -1072,7 +1072,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateDesignTime();
+        using var context = TestCodeRenderingContext.CreateDesignTime();
 
         var node = new DefaultTagHelperRuntimeIntermediateNode();
 
@@ -1097,7 +1097,7 @@ private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner __
     {
         // Arrange
         var extension = new DefaultTagHelperTargetExtension();
-        var context = TestCodeRenderingContext.CreateRuntime();
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new DefaultTagHelperRuntimeIntermediateNode();
 
@@ -1136,7 +1136,7 @@ private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeMana
     public void GetDeterministicId_IsDeterministic()
     {
         // Arrange
-        var context = TestCodeRenderingContext.CreateRuntime(suppressUniqueIds: null);
+        using var context = TestCodeRenderingContext.CreateRuntime(suppressUniqueIds: null);
 
         // Act
         var firstId = DefaultTagHelperTargetExtension.GetDeterministicId(context);
@@ -1151,27 +1151,10 @@ private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeMana
         ((DefaultCodeRenderingContext)context).AncestorsInternal.Push(node);
     }
 
-    private DocumentIntermediateNode Lower(RazorCodeDocument codeDocument)
-    {
-        var projectEngine = CreateProjectEngine();
-        return Lower(codeDocument, projectEngine);
-    }
-
-    private DocumentIntermediateNode LowerDesignTime(RazorCodeDocument codeDocument)
-    {
-        var projectEngine = RazorProjectEngine.Create(b =>
-        {
-            b.Features.Add(new DesignTimeOptionsFeature(designTime: true));
-        });
-
-        return Lower(codeDocument, projectEngine);
-    }
-
     private static DocumentIntermediateNode Lower(RazorCodeDocument codeDocument, RazorProjectEngine engine)
     {
-        for (var i = 0; i < engine.Phases.Count; i++)
+        foreach (var phase in engine.Phases)
         {
-            var phase = engine.Phases[i];
             phase.Execute(codeDocument);
 
             if (phase is IRazorIntermediateNodeLoweringPhase)

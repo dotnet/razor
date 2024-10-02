@@ -3,13 +3,14 @@
 
 #nullable disable
 
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class RemoteRazorProjectFileSystemTest : TestBase
+public class RemoteRazorProjectFileSystemTest : ToolingTestBase
 {
     public RemoteRazorProjectFileSystemTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -50,8 +51,19 @@ public class RemoteRazorProjectFileSystemTest : TestBase
     public void GetItem_RootedFilePath_DoesNotBelongToProject()
     {
         // Arrange
-        var fileSystem = new RemoteRazorProjectFileSystem("C:/path/to");
-        var documentFilePath = "C:/otherpath/to/file.cshtml";
+        RemoteRazorProjectFileSystem fileSystem;
+        string documentFilePath;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            fileSystem = new RemoteRazorProjectFileSystem(@"C:\path\to");
+            documentFilePath = @"C:\otherpath\to\file.cshtml";
+        }
+        else
+        {
+            fileSystem = new RemoteRazorProjectFileSystem("/path/to");
+            documentFilePath = "/otherpath/to/file.cshtml";
+        }
 
         // Act
         var item = fileSystem.GetItem(documentFilePath, fileKind: null);

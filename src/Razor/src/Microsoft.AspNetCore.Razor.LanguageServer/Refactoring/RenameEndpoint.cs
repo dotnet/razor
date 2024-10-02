@@ -3,55 +3,48 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
-[LanguageServerEndpoint(Methods.TextDocumentRenameName)]
-internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>, ICapabilitiesProvider
+[RazorLanguageServerEndpoint(Methods.TextDocumentRenameName)]
+internal sealed class RenameEndpoint(
+    ProjectSnapshotManagerDispatcher dispatcher,
+    RazorComponentSearchEngine componentSearchEngine,
+    IProjectSnapshotManager projectManager,
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IRazorDocumentMappingService documentMappingService,
+    IClientConnection clientConnection,
+    IRazorLoggerFactory loggerFactory)
+    : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>(
+        languageServerFeatureOptions,
+        documentMappingService,
+        clientConnection,
+        loggerFactory.CreateLogger<RenameEndpoint>()), ICapabilitiesProvider
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly DocumentContextFactory _documentContextFactory;
-    private readonly ProjectSnapshotManager _projectSnapshotManager;
-    private readonly RazorComponentSearchEngine _componentSearchEngine;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IRazorDocumentMappingService _documentMappingService;
-
-    public RenameEndpoint(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        DocumentContextFactory documentContextFactory,
-        RazorComponentSearchEngine componentSearchEngine,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
-        ILoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RenameEndpoint>())
-    {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-        _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
-        _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-    }
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher = dispatcher;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
+    private readonly RazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
@@ -111,7 +104,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var originTagHelpers = await GetOriginTagHelpersAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
-        if (originTagHelpers is null || originTagHelpers.Count == 0)
+        if (originTagHelpers.IsDefaultOrEmpty)
         {
             return null;
         }
@@ -156,12 +149,14 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         };
     }
 
-    private async Task<List<IDocumentSnapshot?>> GetAllDocumentSnapshotsAsync(DocumentContext skipDocumentContext, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<IDocumentSnapshot?>> GetAllDocumentSnapshotsAsync(DocumentContext skipDocumentContext, CancellationToken cancellationToken)
     {
-        var documentSnapshots = new List<IDocumentSnapshot?>();
-        var documentPaths = new HashSet<string>();
+        using var documentSnapshots = new PooledArrayBuilder<IDocumentSnapshot?>();
+        using var _ = StringHashSetPool.GetPooledObject(out var documentPaths);
 
-        var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => _projectSnapshotManager.GetProjects(), cancellationToken).ConfigureAwait(false);
+        var projects = await _dispatcher
+            .RunAsync(() => _projectManager.GetProjects(), cancellationToken)
+            .ConfigureAwait(false);
 
         foreach (var project in projects)
         {
@@ -174,27 +169,25 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
                 }
 
                 // Don't add duplicates between projects
-                if (documentPaths.Contains(documentPath))
+                if (!documentPaths.Add(documentPath))
                 {
                     continue;
                 }
 
                 // Add to the list and add the path to the set
-                var snapshot = project.GetDocument(documentPath);
-                if (snapshot is null)
+                if (project.GetDocument(documentPath) is not { } snapshot)
                 {
-                    throw new NotImplementedException($"{documentPath} in project {project.FilePath} but not retrievable");
+                    throw new InvalidOperationException($"{documentPath} in project {project.FilePath} but not retrievable");
                 }
 
                 documentSnapshots.Add(snapshot);
-                documentPaths.Add(documentPath);
             }
         }
 
-        return documentSnapshots;
+        return documentSnapshots.DrainToImmutable();
     }
 
-    public RenameFile GetFileRenameForComponent(IDocumentSnapshot documentSnapshot, string newPath)
+    private RenameFile GetFileRenameForComponent(IDocumentSnapshot documentSnapshot, string newPath)
     {
         // VS Code in Windows expects path to start with '/'
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
@@ -238,7 +231,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
 
     private async Task AddEditsForCodeDocumentAsync(
         List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
-        IReadOnlyList<TagHelperDescriptor> originTagHelpers,
+        ImmutableArray<TagHelperDescriptor> originTagHelpers,
         string newName,
         IDocumentSnapshot? documentSnapshot)
     {
@@ -273,9 +266,9 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, uri, codeDocument);
     }
 
-    public static void AddEditsForCodeDocument(
+    private static void AddEditsForCodeDocument(
         List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
-        IReadOnlyList<TagHelperDescriptor> originTagHelpers,
+        ImmutableArray<TagHelperDescriptor> originTagHelpers,
         string newName,
         Uri uri,
         RazorCodeDocument codeDocument)
@@ -286,11 +279,10 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
             .Where(n => n.Kind == SyntaxKind.MarkupTagHelperElement)
             .OfType<MarkupTagHelperElementSyntax>();
 
-        for (var i = 0; i < originTagHelpers.Count; i++)
+        foreach (var originTagHelper in originTagHelpers)
         {
             var editedName = newName;
-            var originTagHelper = originTagHelpers[i];
-            if (originTagHelper.IsComponentFullyQualifiedNameMatch() == true)
+            if (originTagHelper.IsComponentFullyQualifiedNameMatch)
             {
                 // Fully qualified binding, our "new name" needs to be fully qualified.
                 var @namespace = originTagHelper.GetTypeNamespace();
@@ -305,56 +297,57 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
 
             foreach (var node in tagHelperElements)
             {
-                if (node is MarkupTagHelperElementSyntax tagHelperElement && BindingContainsTagHelper(originTagHelper, tagHelperElement.TagHelperInfo.BindingResult))
+                if (node is MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding } tagHelperElement &&
+                    BindingContainsTagHelper(originTagHelper, binding))
                 {
                     documentChanges.Add(new TextDocumentEdit
                     {
                         TextDocument = documentIdentifier,
-                        Edits = CreateEditsForMarkupTagHelperElement(tagHelperElement, codeDocument, editedName).ToArray(),
+                        Edits = CreateEditsForMarkupTagHelperElement(tagHelperElement, codeDocument, editedName),
                     });
                 }
             }
         }
     }
 
-    public static IReadOnlyCollection<TextEdit> CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
+    private static TextEdit[] CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
     {
-        var edits = new List<TextEdit>
+        using var _ = ListPool<TextEdit>.GetPooledObject(out var edits);
+
+        edits.Add(new()
         {
-            new TextEdit()
-            {
-                Range = element.StartTag.Name.GetRange(codeDocument.Source),
-                NewText = newName,
-            },
-        };
-        if (element.EndTag != null)
+            Range = element.StartTag.Name.GetRange(codeDocument.Source),
+            NewText = newName
+        });
+
+        if (element.EndTag is MarkupTagHelperEndTagSyntax endTag)
         {
             edits.Add(new TextEdit()
             {
-                Range = element.EndTag.Name.GetRange(codeDocument.Source),
+                Range = endTag.Name.GetRange(codeDocument.Source),
                 NewText = newName,
             });
         }
 
-        return edits;
+        return [.. edits];
     }
 
     private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding) =>
         potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
 
-    private static async Task<IReadOnlyList<TagHelperDescriptor>?> GetOriginTagHelpersAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<TagHelperDescriptor>> GetOriginTagHelpersAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
     {
         var owner = await documentContext.GetSyntaxNodeAsync(absoluteIndex, cancellationToken).ConfigureAwait(false);
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
-            return null;
+            return default;
         }
 
         var node = owner.FirstAncestorOrSelf<SyntaxNode>(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
         if (node is not MarkupTagHelperStartTagSyntax tagHelperStartTag)
         {
-            return null;
+            return default;
         }
 
         // Ensure the rename action was invoked on the component name
@@ -364,55 +357,55 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         // contexts. (https://github.com/dotnet/aspnetcore/issues/26407)
         if (!tagHelperStartTag.Name.FullSpan.IntersectsWith(absoluteIndex))
         {
-            return null;
+            return default;
         }
 
-        if (tagHelperStartTag?.Parent is not MarkupTagHelperElementSyntax tagHelperElement)
+        if (tagHelperStartTag?.Parent is not MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
         {
-            return null;
+            return default;
         }
 
         // Can only have 1 component TagHelper belonging to an element at a time
-        var primaryTagHelper = tagHelperElement.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(descriptor => descriptor.IsComponentTagHelper());
+        var primaryTagHelper = binding.Descriptors.FirstOrDefault(static d => d.IsComponentTagHelper);
         if (primaryTagHelper is null)
         {
-            return null;
+            return default;
         }
 
-        var originTagHelpers = new List<TagHelperDescriptor>() { primaryTagHelper };
-        var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, documentContext.Snapshot.Project.TagHelpers);
+        using var originTagHelpers = new PooledArrayBuilder<TagHelperDescriptor>();
+        originTagHelpers.Add(primaryTagHelper);
+
+        var tagHelpers = await documentContext.Snapshot.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+        var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, tagHelpers);
         if (associatedTagHelper is null)
         {
             Debug.Fail("Components should always have an associated TagHelper.");
-            return null;
+            return default;
         }
 
         originTagHelpers.Add(associatedTagHelper);
 
-        return originTagHelpers;
+        return originTagHelpers.DrainToImmutable();
     }
 
-    private static TagHelperDescriptor? FindAssociatedTagHelper(TagHelperDescriptor tagHelper, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+    private static TagHelperDescriptor? FindAssociatedTagHelper(TagHelperDescriptor tagHelper, ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
         var typeName = tagHelper.GetTypeName();
         var assemblyName = tagHelper.AssemblyName;
-        for (var i = 0; i < tagHelpers.Count; i++)
+        foreach (var currentTagHelper in tagHelpers)
         {
-            var currentTagHelper = tagHelpers[i];
-
             if (tagHelper == currentTagHelper)
             {
                 // Same as the primary, we're looking for our other pair.
                 continue;
             }
 
-            var currentTypeName = currentTagHelper.GetTypeName();
-            if (!string.Equals(typeName, currentTypeName, StringComparison.Ordinal))
+            if (typeName != currentTagHelper.GetTypeName())
             {
                 continue;
             }
 
-            if (!string.Equals(assemblyName, currentTagHelper.AssemblyName, StringComparison.Ordinal))
+            if (assemblyName != currentTagHelper.AssemblyName)
             {
                 continue;
             }

@@ -3,15 +3,18 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.VisualStudio.Editor.Razor.Snippets;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -58,9 +61,8 @@ internal partial class RazorCustomMessageTarget
         return request?.Response;
     }
 
-    // JToken returning because there's no value in converting the type into its final type because this method serves entirely as a delegation point (immediately re-serializes).
     [JsonRpcMethod(LanguageServerConstants.RazorCompletionEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<JToken?> ProvideCompletionsAsync(
+    public async Task<VSInternalCompletionList?> ProvideCompletionsAsync(
         DelegatedCompletionParams request,
         CancellationToken cancellationToken)
     {
@@ -124,14 +126,40 @@ internal partial class RazorCustomMessageTarget
         {
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var lspMethodName = Methods.TextDocumentCompletion.Name;
-            using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, request.CorrelationId);
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, JToken?>(
-                textBuffer,
-                lspMethodName,
-                languageServerName,
-                completionParams,
-                cancellationToken).ConfigureAwait(continueOnCapturedContext);
-            return response?.Response;
+            ReinvocationResponse<VSInternalCompletionList?>? response;
+            using (_telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, request.CorrelationId))
+            {
+                response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, VSInternalCompletionList?>(
+                    textBuffer,
+                    lspMethodName,
+                    languageServerName,
+                    completionParams,
+                    cancellationToken).ConfigureAwait(continueOnCapturedContext);
+            }
+
+            var completionList = response?.Response;
+            using var builder = new PooledArrayBuilder<CompletionItem>();
+
+            if (completionList is not null)
+            {
+                builder.AddRange(completionList.Items);
+            }
+            else
+            {
+                completionList = new VSInternalCompletionList()
+                {
+                    // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
+                    // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
+                    // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
+                    // so we'd only ever return Razor completion items.
+                    IsIncomplete = true,
+                };
+            }
+
+            AddSnippetCompletions(request, ref builder.AsRef());
+            completionList.Items = builder.ToArray();
+
+            return completionList;
         }
         finally
         {
@@ -208,8 +236,16 @@ internal partial class RazorCustomMessageTarget
     }
 
     [JsonRpcMethod(LanguageServerConstants.RazorCompletionResolveEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<JToken?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
+    public async Task<CompletionItem?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
     {
+        // Check if we're completing a snippet item that we provided
+        if (SnippetCompletionData.TryParse(request.CompletionItem.Data, out var snippetCompletionData) &&
+            _snippetCache.TryResolveSnippetString(snippetCompletionData) is { } snippetInsertText)
+        {
+            request.CompletionItem.InsertText = snippetInsertText;
+            return request.CompletionItem;
+        }
+
         string languageServerName;
         bool synchronized;
         VirtualDocumentSnapshot virtualDocumentSnapshot;
@@ -256,7 +292,7 @@ internal partial class RazorCustomMessageTarget
         var completionResolveParams = request.CompletionItem;
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, JToken?>(
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, CompletionItem?>(
             textBuffer,
             Methods.TextDocumentCompletionResolve.Name,
             languageServerName,
@@ -271,4 +307,60 @@ internal partial class RazorCustomMessageTarget
         var formattingOptions = _formattingOptionsProvider.GetOptions(document.TextDocumentIdentifier.Uri);
         return Task.FromResult(formattingOptions);
     }
+
+    private void AddSnippetCompletions(DelegatedCompletionParams request, ref PooledArrayBuilder<CompletionItem> builder)
+    {
+        if (!request.ShouldIncludeSnippets)
+        {
+            return;
+        }
+
+        // Temporary fix: snippets are broken in CSharp. We're investigating
+        // but this is very disruptive. This quick fix unblocks things.
+        // TODO: Add an option to enable this. 
+        if (request.ProjectedKind != RazorLanguageKind.Html)
+        {
+            return;
+        }
+
+        // Don't add snippets for deletion of a character
+        if (request.Context.InvokeKind == VSInternalCompletionInvokeKind.Deletion)
+        {
+            return;
+        }
+
+        // Don't add snippets if the trigger characters contain whitespace
+        if (request.Context.TriggerCharacter is not null
+            && request.Context.TriggerCharacter.Contains(' '))
+        {
+            return;
+        }
+
+        var snippets = _snippetCache.GetSnippets(ConvertLanguageKind(request.ProjectedKind));
+        if (snippets.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        builder.AddRange(snippets
+            .Select(s => new CompletionItem()
+            {
+                Label = s.Shortcut,
+                Detail = s.Description,
+                InsertTextFormat = InsertTextFormat.Snippet,
+                InsertText = s.Shortcut,
+                Data = s.CompletionData,
+                Kind = CompletionItemKind.Snippet,
+                CommitCharacters = []
+            }));
+    }
+
+    private static SnippetLanguage ConvertLanguageKind(RazorLanguageKind languageKind)
+        => languageKind switch
+        {
+            RazorLanguageKind.CSharp => SnippetLanguage.CSharp,
+            RazorLanguageKind.Html => SnippetLanguage.Html,
+            RazorLanguageKind.Razor => SnippetLanguage.Razor,
+            _ => throw new InvalidOperationException($"Unexpected value {languageKind}")
+        };
 }

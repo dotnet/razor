@@ -3,14 +3,15 @@
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Serialization;
-using Microsoft.CodeAnalysis.Remote.Razor.Test;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
+using static Microsoft.AspNetCore.Razor.Test.Common.TagHelperTestData;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : TagHelperDescriptorTestBase(testOutput)
+public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
     public void Apply_Noop()

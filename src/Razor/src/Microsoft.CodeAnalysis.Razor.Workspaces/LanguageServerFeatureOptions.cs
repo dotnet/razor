@@ -30,7 +30,7 @@ internal abstract class LanguageServerFeatureOptions
     public abstract bool ReturnCodeActionAndRenamePathsWithPrefixedSlash { get; }
 
     /// <summary>
-    /// Whether the file path for the generated C# and Html documents should utilize the project key to
+    /// Whether the file path for the generated C# documents should utilize the project key to
     /// ensure a unique file path per project.
     /// </summary>
     public abstract bool IncludeProjectKeyInGeneratedFilePath { get; }
@@ -43,4 +43,13 @@ internal abstract class LanguageServerFeatureOptions
     /// razor/monitorProjectConfigurationFilePath notification is sent.
     /// </remarks>
     public abstract bool MonitorWorkspaceFolderForConfigurationFiles { get; }
+
+    public abstract bool UseRazorCohostServer { get; }
+
+    public abstract bool DisableRazorLanguageServer { get; }
+
+    /// <summary>
+    /// When enabled, design time code will not be generated. All tooling will be using runtime code generation.
+    /// </summary>
+    public abstract bool ForceRuntimeCodeGeneration { get; }
 }

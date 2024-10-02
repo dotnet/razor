@@ -7,14 +7,39 @@
         <target state="translated">Blazor yönergesi öznitelikleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changes">
+        <source>Changes:</source>
+        <target state="translated">Değişiklikler:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
         <target state="translated">Etiketten bileşen oluştur</target>
         <note />
       </trans-unit>
+      <trans-unit id="Diagnostics_after">
+        <source>Diagnostics after:</source>
+        <target state="translated">Şundan sonraki tanılama:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Diagnostics_before">
+        <source>Diagnostics before:</source>
+        <target state="translated">Şundan önceki tanılama:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_Not_Found">
         <source>Document {0} was not found.</source>
         <target state="translated">Belge {0} bulunamadı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_at_adds">
+        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
+        <target state="translated">{0} konumunda düzenleme, '{1}' boşluk dışı içeriğini ekler.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_at_deletes">
+        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
+        <target state="translated">{0} konumunda düzenleme, '{1}' boşluk dışı içeriğini siler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
@@ -27,6 +52,16 @@
         <target state="translated">Dosya dışarıdan değiştirildi: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_operation_changed_diagnostics">
+        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
+        <target state="translated">Bir veya daha fazla tanılamayı ortaya çıkarabileceği veya kaldırabileceği için biçimlendirme işlemi bırakılıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_operation_changed_nonwhitespace">
+        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
+        <target state="translated">Boşluk dışı içeriği ekleyebileceği veya silebileceği için biçimlendirme işlemi bırakıl.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
         <source>Generate Async Event Handler '{0}'</source>
         <target state="translated">'{0}' Asenkron Olay İşleyicisini Oluştur</target>
@@ -37,24 +72,24 @@
         <target state="translated">'{0}' Olay İşleyicisi Oluştur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">Geçersiz uzaklık.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Language_Services_Missing_Service">
         <source>Razor language services not configured properly, missing language service '{0}'.</source>
         <target state="translated">Razor dil hizmetleri düzgün yapılandırılmadı, '{0}' dil hizmeti eksik.</target>
         <note />
       </trans-unit>
-      <trans-unit id="PositionIndex_Outside_Range">
-        <source>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
-        <target state="translated">{1} / '{2}' aralığının dışındaki '{0}' satırı sorgulandı. Belge güncel olmayabilir.</target>
+      <trans-unit id="Not_Available_In">
+        <source>Not available in</source>
+        <target state="translated">Şurada kullanılamaz:</target>
         <note />
       </trans-unit>
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">"Tamamlamaları yeniden tetikleyin..."</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="translated">deyim</target>
         <note />
       </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
@@ -70,16 +105,6 @@
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">Bilinmeyen ProjectChangeKind {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">'{' veya '} dışında bir RazorMetaCode ziyaret edilmeye çalışıldı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Bilinmeyen eşleme davranışı</target>
         <note />
       </trans-unit>
       <trans-unit id="Version_Should_Not_Be_Null">

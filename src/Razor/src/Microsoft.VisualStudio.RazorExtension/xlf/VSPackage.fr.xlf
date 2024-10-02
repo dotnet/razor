@@ -32,6 +32,11 @@
         <target state="translated">Mise en forme</target>
         <note />
       </trans-unit>
+      <trans-unit id="Other">
+        <source>Other</source>
+        <target state="translated">Autre</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RazorSyntaxVisualizer">
         <source>Razor Syntax Visualizer</source>
         <target state="translated">Razor Syntax Visualizer</target>
@@ -57,6 +62,16 @@
         <target state="translated">Insérer automatiquement des guillemets d’attribut</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDescription">
+        <source>Forces the open brace after an @code or @functions directive to be on the following line</source>
+        <target state="translated">Force l’accolade ouvrante après une directive @code ou @functions à se trouver sur la ligne suivante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDisplayName">
+        <source>Code/Functions block open brace on next line</source>
+        <target state="translated">Le code/les fonctions bloquent l’accolade ouvrante à la ligne suivante</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_ColorBackgroundDescription">
         <source>If true, gives C# code in Razor files a background color</source>
         <target state="translated">Si la valeur est true, donne une couleur d’arrière-plan au code C# dans les fichiers Razor</target>
@@ -67,6 +82,16 @@
         <target state="translated">Arrière-plan pour code C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDescription">
+        <source>If true, pressing space will commit suggestions for Html elements and components</source>
+        <target state="translated">Si vrai, appuyez sur Espace pour valider les suggestions d’éléments et de composants HTML</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDisplayName">
+        <source>Commit Elements with Space</source>
+        <target state="translated">Valider les éléments en appuyant sur Espace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">Si la valeur est true, la mise en forme est activée lors de la saisie</target>
@@ -75,6 +100,76 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">Mettre en forme durant la frappe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelCritical">
+        <source>Critical</source>
+        <target state="translated">Critique</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDebug">
+        <source>Debug</source>
+        <target state="translated">Déboguer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDescription">
+        <source>Sets the level of logging to show in the Razor Logger Output catregory of the Output Window.</source>
+        <target state="translated">Définit le niveau de journalisation à afficher dans la catégorie Sortie Razor Logger de la fenêtre de sortie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDisplayName">
+        <source>Output Window Log Level</source>
+        <target state="translated">Fenêtre Sortie niveau du journal</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelError">
+        <source>Error</source>
+        <target state="translated">Erreur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelInformation">
+        <source>Information</source>
+        <target state="translated">Informations</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelNone">
+        <source>None</source>
+        <target state="translated">Aucun</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelTrace">
+        <source>Trace</source>
+        <target state="translated">Tracer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelWarning">
+        <source>Warning</source>
+        <target state="translated">Avertissement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsAll">
+        <source>All</source>
+        <target state="translated">Tout</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsCustom">
+        <source>Custom</source>
+        <target state="translated">Personnalisé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDescription">
+        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="translated">Extraits de code à inclure dans un fichier Razor. Si la valeur est personnalisée, seuls les extraits de code qui ne sont pas inclus dans Visual Studio sont affichés. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDisplayName">
+        <source>Included Snippets</source>
+        <target state="translated">Extraits de code inclus</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsNone">
+        <source>None</source>
+        <target state="translated">Aucune</target>
         <note />
       </trans-unit>
       <trans-unit id="Typing">

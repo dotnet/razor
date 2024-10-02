@@ -14,8 +14,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 using ContentItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ContentItem;
 using ItemReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ItemReference;
 using NoneItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.NoneItem;
@@ -37,31 +37,18 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             NoneItem.SchemaName,
             ConfigurationGeneralSchemaName,
         });
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly LanguageServerFeatureOptions? _languageServerFeatureOptions;
 
     [ImportingConstructor]
     public FallbackWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
-        [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        IProjectSnapshotManager projectManager,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
+        LanguageServerFeatureOptions? languageServerFeatureOptions)
+        : base(commonServices, serviceProvider, projectManager, projectConfigurationFilePathStore)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
-    }
-
-    // Internal for testing
-#pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
-    internal FallbackWindowsRazorProjectHost(
-#pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
-        IUnconfiguredProjectCommonServices commonServices,
-        Workspace workspace,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-        ProjectSnapshotManagerBase projectManager)
-        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
-    {
     }
 
     protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
@@ -85,15 +72,17 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         if (mvcReferenceFullPath is null)
         {
             // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-            await UpdateAsync(() =>
-            {
-                var projectManager = GetProjectManager();
-                var projectKeys = projectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
-                foreach (var projectKey in projectKeys)
+            await UpdateAsync(
+                updater =>
                 {
-                    UninitializeProjectUnsafe(projectKey);
-                }
-            }, CancellationToken.None).ConfigureAwait(false);
+                    var projectKeys = GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                    foreach (var projectKey in projectKeys)
+                    {
+                        RemoveProject(updater, projectKey);
+                    }
+                },
+                CancellationToken.None)
+                .ConfigureAwait(false);
             return;
         }
 
@@ -101,15 +90,17 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         if (version is null)
         {
             // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-            await UpdateAsync(() =>
-            {
-                var projectManager = GetProjectManager();
-                var projectKeys = projectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
-                foreach (var projectKey in projectKeys)
+            await UpdateAsync(
+                updater =>
                 {
-                    UninitializeProjectUnsafe(projectKey);
-                }
-            }, CancellationToken.None).ConfigureAwait(false);
+                    var projectKeys = GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                    foreach (var projectKey in projectKeys)
+                    {
+                        RemoveProject(updater, projectKey);
+                    }
+                },
+                CancellationToken.None)
+                .ConfigureAwait(false);
             return;
         }
 
@@ -117,6 +108,21 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         {
             // Can't find an IntermediateOutputPath, so don't know what to do with this project
             return;
+        }
+
+        if (TryGetBeforeIntermediateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath) &&
+            beforeIntermediateOutputPath != intermediatePath)
+        {
+            // If the intermediate output path is in the ProjectChanges, then we know that it has changed, so we want to ensure we remove the old one,
+            // otherwise this would be seen as an Add, and we'd end up with two active projects
+            await UpdateAsync(
+                updater =>
+                {
+                    var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                    RemoveProject(updater, beforeProjectKey);
+                },
+                CancellationToken.None)
+                .ConfigureAwait(false);
         }
 
         // We need to deal with the case where the project was uninitialized, but now
@@ -129,10 +135,15 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         var documents = GetCurrentDocuments(update.Value);
         var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
 
-        await UpdateAsync(() =>
+        await UpdateAsync(updater =>
         {
             var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
-            var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace: null, displayName: sliceDimensions);
+            var projectFileName = Path.GetFileNameWithoutExtension(CommonServices.UnconfiguredProject.FullPath);
+            var displayName = sliceDimensions is { Length: > 0 }
+                ? $"{projectFileName} ({sliceDimensions})"
+                : projectFileName;
+
+            var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace: null, displayName);
 
             if (_languageServerFeatureOptions is not null)
             {
@@ -140,16 +151,17 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
                 ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
             }
 
-            UpdateProjectUnsafe(hostProject);
+            UpdateProject(updater, hostProject);
 
             for (var i = 0; i < changedDocuments.Length; i++)
             {
-                RemoveDocumentUnsafe(hostProject.Key, changedDocuments[i]);
+                updater.DocumentRemoved(hostProject.Key, changedDocuments[i]);
             }
 
             for (var i = 0; i < documents.Length; i++)
             {
-                AddDocumentUnsafe(hostProject.Key, documents[i]);
+                var document = documents[i];
+                updater.DocumentAdded(hostProject.Key, document, new FileTextLoader(document.FilePath, null));
             }
         }, CancellationToken.None).ConfigureAwait(false);
     }

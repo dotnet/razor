@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -15,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public class DefaultLSPDocumentFactoryTest : TestBase
+public class DefaultLSPDocumentFactoryTest : ToolingTestBase
 {
     public DefaultLSPDocumentFactoryTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -101,7 +102,7 @@ public class DefaultLSPDocumentFactoryTest : TestBase
         var lspDocument = factory.Create(textBuffer);
 
         // Assert
-        Assert.Equal(0, lspDocument.VirtualDocuments.Count);
+        Assert.Empty(lspDocument.VirtualDocuments);
     }
 
     [Fact]

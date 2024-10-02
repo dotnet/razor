@@ -5,15 +5,15 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"71c9e37483da0d198df8bd194ad927f8340b7cfe40ab63cf3ce1dcd9d2a2904d", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CodeBlock.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"71c9e37483da0d198df8bd194ad927f8340b7cfe40ab63cf3ce1dcd9d2a2904d", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CodeBlock.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_CodeBlock_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CodeBlock.cshtml"
-  
+#line (1,3)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CodeBlock.cshtml"
+
     for(int i = 1; i <= 10; i++) {
         Output.Write("<p>Hello from C#, #" + i.ToString() + "</p>");
     }
@@ -21,6 +21,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 #line default
 #line hidden
 #nullable disable
+
         }
         #pragma warning restore 1998
     }

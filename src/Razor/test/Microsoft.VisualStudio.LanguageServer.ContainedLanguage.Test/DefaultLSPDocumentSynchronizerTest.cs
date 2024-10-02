@@ -7,8 +7,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
-using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public class DefaultLSPDocumentSynchronizerTest : TestBase
+public class DefaultLSPDocumentSynchronizerTest : ToolingTestBase
 {
     private readonly ITextSnapshot _virtualDocumentSnapshot;
     private readonly ITextBuffer _virtualDocumentTextBuffer;

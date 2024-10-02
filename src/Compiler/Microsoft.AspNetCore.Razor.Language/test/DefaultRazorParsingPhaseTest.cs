@@ -1,8 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
+using System.Collections.Immutable;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -64,11 +63,9 @@ public class DefaultRazorParsingPhaseTest
             builder.Features.Add(new MyParserOptionsFeature());
         });
 
-        var imports = new[]
-        {
-                TestRazorSourceDocument.Create(),
-                TestRazorSourceDocument.Create(),
-            };
+        var imports = ImmutableArray.Create(
+            TestRazorSourceDocument.Create(),
+            TestRazorSourceDocument.Create());
 
         var codeDocument = TestRazorCodeDocument.Create(TestRazorSourceDocument.Create(), imports);
 
@@ -76,8 +73,10 @@ public class DefaultRazorParsingPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
+        var importSyntaxTrees = codeDocument.GetImportSyntaxTrees();
+        Assert.False(importSyntaxTrees.IsDefault);
         Assert.Collection(
-            codeDocument.GetImportSyntaxTrees(),
+            importSyntaxTrees,
             t => { Assert.Same(t.Source, imports[0]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); },
             t => { Assert.Same(t.Source, imports[1]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); });
     }

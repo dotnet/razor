@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"c8793c171f4a151a33e212951ef178accfcfb85800b349fdef9ce896e61f314e", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"c8793c171f4a151a33e212951ef178accfcfb85800b349fdef9ce896e61f314e", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_BasicTagHelpers_Runtime
     {
         private static readonly global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute __tagHelperAttribute_0 = new global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute("data", new global::Microsoft.AspNetCore.Html.HtmlString("-delay1000"), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -65,13 +65,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
                 __tagHelperExecutionContext.Add(__TestNamespace_InputTagHelper2);
                 BeginWriteTagHelperAttribute();
                 WriteLiteral("2000 + ");
+                Write(
 #nullable restore
-#line (6,39)-(6,62) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers.cshtml"
-Write(ViewBag.DefaultInterval);
+#line (6,39)-(6,62) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers.cshtml"
+ViewBag.DefaultInterval
 
 #line default
 #line hidden
 #nullable disable
+                );
                 WriteLiteral(" + 1");
                 __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
                 __tagHelperExecutionContext.AddHtmlAttribute("data-interval", Html.Raw(__tagHelperStringValueBuffer), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -98,13 +100,15 @@ Write(ViewBag.DefaultInterval);
                 __tagHelperExecutionContext.AddTagHelperAttribute(__tagHelperAttribute_2);
                 __TestNamespace_InputTagHelper2.Type = (string)__tagHelperAttribute_2.Value;
                 __tagHelperExecutionContext.AddTagHelperAttribute(__tagHelperAttribute_2);
+                __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line 7 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers.cshtml"
-__TestNamespace_InputTagHelper2.Checked = true;
+#line (7,41)-(7,45) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers.cshtml"
+true
 
 #line default
 #line hidden
 #nullable disable
+                ;
                 __tagHelperExecutionContext.AddTagHelperAttribute("checked", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                 if (!__tagHelperExecutionContext.Output.IsContentModified)

@@ -6,14 +6,14 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-public class DefaultProjectConfigurationFilePathStoreTest : TestBase
+public class DefaultProjectConfigurationFilePathStoreTest : ToolingTestBase
 {
     public DefaultProjectConfigurationFilePathStoreTest(ITestOutputHelper testOutput)
         : base(testOutput)

@@ -7,11 +7,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -22,24 +22,24 @@ internal class CSharpFormatter
     private const string MarkerId = "RazorMarker";
 
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly ClientNotifierServiceBase _server;
+    private readonly IClientConnection _clientConnection;
 
     public CSharpFormatter(
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer)
+        IClientConnection clientConnection)
     {
         if (documentMappingService is null)
         {
             throw new ArgumentNullException(nameof(documentMappingService));
         }
 
-        if (languageServer is null)
+        if (clientConnection is null)
         {
-            throw new ArgumentNullException(nameof(languageServer));
+            throw new ArgumentNullException(nameof(clientConnection));
         }
 
         _documentMappingService = documentMappingService;
-        _server = languageServer;
+        _clientConnection = clientConnection;
     }
 
     public async Task<TextEdit[]> FormatAsync(FormattingContext context, Range rangeToFormat, CancellationToken cancellationToken)

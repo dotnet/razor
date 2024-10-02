@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
@@ -33,7 +34,7 @@ internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
         ProjectSnapshotManagerDispatcher dispatcher,
         IEnumerable<IProjectConfigurationFileChangeListener> listeners,
         LanguageServerFeatureOptions options,
-        ILoggerFactory loggerFactory)
+        IRazorLoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {
@@ -59,7 +60,7 @@ internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
         var existingConfigurationFiles = GetExistingConfigurationFiles(workspaceDirectory);
 
         _logger.LogDebug("Triggering events for existing project configuration files");
-        await _dispatcher.RunOnDispatcherThreadAsync(() =>
+        await _dispatcher.RunAsync(() =>
         {
             foreach (var configurationFilePath in existingConfigurationFiles)
             {
@@ -76,6 +77,35 @@ internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
             return;
         }
 
+        try
+        {
+            // FileSystemWatcher will throw if the folder we want to watch doesn't exist yet.
+            if (!Directory.Exists(workspaceDirectory))
+            {
+                _logger.LogInformation("Workspace directory '{path}' does not exist yet, so Razor is going to create it.", workspaceDirectory);
+                Directory.CreateDirectory(workspaceDirectory);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (Exception ex)
+        {
+            // Directory.Exists will throw on things like long paths
+            _logger.LogError(ex, "Failed validating that file watcher would be successful for '{path}'", workspaceDirectory);
+
+            // No point continuing because the FileSystemWatcher constructor would just throw too.
+            return;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            // Client cancelled connection, no need to setup any file watchers. Server is about to tear down.
+            return;
+        }
+
+        _logger.LogInformation("Starting configuration file change detector for '{workspaceDirectory}'", workspaceDirectory);
         _watcher = new RazorFileSystemWatcher(workspaceDirectory, _options.ProjectConfigurationFileName)
         {
             NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
@@ -131,7 +161,7 @@ internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
 
     private void FileSystemWatcher_ProjectConfigurationFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
     {
-        _ = _dispatcher.RunOnDispatcherThreadAsync(
+        _ = _dispatcher.RunAsync(
             () => FileSystemWatcher_ProjectConfigurationFileEvent(physicalFilePath, kind),
             CancellationToken.None);
     }

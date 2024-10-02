@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Test.Legacy;
@@ -45,11 +44,17 @@ public class CSharpCodeParserTest
                         }
                     },
                     {
-                        "th" + Environment.NewLine,
+                        """
+                        th
+
+                        """,
                         directiveLocation,
                         new[]
                         {
-                            InvalidPrefixError(2 + Environment.NewLine.Length, Environment.NewLine[0], "th" + Environment.NewLine),
+                            InvalidPrefixError(2 + Environment.NewLine.Length, Environment.NewLine[0], """
+                            th
+
+                            """),
                         }
                     },
                     {
@@ -105,15 +110,10 @@ public class CSharpCodeParserTest
     {
         // Arrange
         var expectedDiagnostics = (IEnumerable<RazorDiagnostic>)expectedErrors;
-        var source = TestRazorSourceDocument.Create();
-        var options = RazorParserOptions.CreateDefault();
-        var context = new ParserContext(source, options);
-
-        var parser = new CSharpCodeParser(context);
         var diagnostics = new List<RazorDiagnostic>();
 
         // Act
-        parser.ValidateTagHelperPrefix(directiveText, directiveLocation, diagnostics);
+        CSharpCodeParser.ValidateTagHelperPrefix(directiveText, directiveLocation, diagnostics);
 
         // Assert
         Assert.Equal(expectedDiagnostics, diagnostics);
@@ -129,12 +129,6 @@ public class CSharpCodeParserTest
     public void ParseAddOrRemoveDirective_CalculatesAssemblyLocationInLookupText(string text)
     {
         // Arrange
-        var source = TestRazorSourceDocument.Create();
-        var options = RazorParserOptions.CreateDefault();
-        var context = new ParserContext(source, options);
-
-        var parser = new CSharpCodeParser(context);
-
         var directive = new CSharpCodeParser.ParsedDirective()
         {
             DirectiveText = text,
@@ -143,7 +137,7 @@ public class CSharpCodeParserTest
         var diagnostics = new List<RazorDiagnostic>();
 
         // Act
-        var result = parser.ParseAddOrRemoveDirective(directive, SourceLocation.Zero, diagnostics);
+        var result = CSharpCodeParser.ParseAddOrRemoveDirective(directive, SourceLocation.Zero, diagnostics);
 
         // Assert
         Assert.Empty(diagnostics);
@@ -167,12 +161,6 @@ public class CSharpCodeParserTest
     public void ParseAddOrRemoveDirective_CreatesErrorIfInvalidLookupText_DoesNotThrow(string directiveText, int errorLength)
     {
         // Arrange
-        var source = TestRazorSourceDocument.Create();
-        var options = RazorParserOptions.CreateDefault();
-        var context = new ParserContext(source, options);
-
-        var parser = new CSharpCodeParser(context);
-
         var directive = new CSharpCodeParser.ParsedDirective()
         {
             DirectiveText = directiveText
@@ -183,7 +171,7 @@ public class CSharpCodeParserTest
             new SourceSpan(new SourceLocation(1, 2, 3), errorLength), directiveText);
 
         // Act
-        var result = parser.ParseAddOrRemoveDirective(directive, new SourceLocation(1, 2, 3), diagnostics);
+        var result = CSharpCodeParser.ParseAddOrRemoveDirective(directive, new SourceLocation(1, 2, 3), diagnostics);
 
         // Assert
         Assert.Same(directive, result);
@@ -197,7 +185,15 @@ public class CSharpCodeParserTest
     {
         // Arrange
         var expectedDiagnostic = RazorDiagnosticFactory.CreateParsing_DuplicateDirective(
-            new SourceSpan(null, 22 + Environment.NewLine.Length, 1, 0, 16), "tagHelperPrefix");
+            new SourceSpan(
+                filePath: null,
+                absoluteIndex: 22 + Environment.NewLine.Length,
+                lineIndex: 1,
+                characterIndex: 0,
+                length: 16,
+                lineCount: 1,
+                endCharacterIndex: 0),
+            "tagHelperPrefix");
         var source = TestRazorSourceDocument.Create(
             @"@tagHelperPrefix ""th:""
 @tagHelperPrefix ""th""",

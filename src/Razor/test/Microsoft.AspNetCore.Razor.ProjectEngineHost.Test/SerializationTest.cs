@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
-public class SerializationTest : TestBase
+public class SerializationTest : ToolingTestBase
 {
     private readonly RazorConfiguration _configuration;
     private readonly ProjectWorkspaceState _projectWorkspaceState;
@@ -24,13 +24,9 @@ public class SerializationTest : TestBase
         : base(testOutput)
     {
         var languageVersion = RazorLanguageVersion.Experimental;
-        var extensions = new RazorExtension[]
-        {
-            new SerializedRazorExtension("TestExtension"),
-        };
 
-        _configuration = RazorConfiguration.Create(languageVersion, "Custom", extensions);
-        _projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray.Create(
+        _configuration = new(languageVersion, "Custom", [new("TestExtension")]);
+        _projectWorkspaceState = ProjectWorkspaceState.Create(ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("Test", "TestAssembly").Build()),
             csharpLanguageVersion: LanguageVersion.LatestMajor);
     }
@@ -44,6 +40,7 @@ public class SerializationTest : TestBase
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -76,6 +73,7 @@ public class SerializationTest : TestBase
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray<DocumentSnapshotHandle>.Empty);
 
@@ -110,6 +108,7 @@ public class SerializationTest : TestBase
             "/path/to/project.csproj",
             _configuration,
             rootNamespace: "TestProject",
+            displayName: "project",
             _projectWorkspaceState,
             ImmutableArray.Create(legacyDocument, componentDocument));
 

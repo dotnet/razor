@@ -9,11 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -22,10 +22,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 // The intention of this class is to temporarily exist as a snapshot in time for our pre-existing completion experience.
 // It will eventually be removed in favor of the non-Legacy variant at which point we'll also remove the feature flag
 // for this legacy version.
-internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
+internal class LegacyRazorCompletionEndpoint(
+    IRazorCompletionFactsService completionFactsService,
+    CompletionListCache completionListCache,
+    IRazorLoggerFactory loggerFactory)
+    : IVSCompletionEndpoint
 {
-    private readonly IRazorCompletionFactsService _completionFactsService;
-    private readonly CompletionListCache _completionListCache;
+    private readonly IRazorCompletionFactsService _completionFactsService = completionFactsService;
+    private readonly CompletionListCache _completionListCache = completionListCache;
+    private readonly ILogger _logger = loggerFactory.CreateLogger<LegacyRazorCompletionEndpoint>();
+
     private static readonly Command s_retriggerCompletionCommand = new()
     {
         CommandIdentifier = "editor.action.triggerSuggest",
@@ -35,12 +41,6 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
 
     public bool MutatesSolutionState => false;
 
-    public LegacyRazorCompletionEndpoint(IRazorCompletionFactsService completionFactsService, CompletionListCache completionListCache)
-    {
-        _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
-        _completionListCache = completionListCache ?? throw new ArgumentNullException(nameof(completionListCache));
-    }
-
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
         _clientCapabilities = clientCapabilities;
@@ -48,8 +48,8 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
         serverCapabilities.CompletionProvider = new CompletionOptions()
         {
             ResolveProvider = true,
-            TriggerCharacters = new[] { "@", "<", ":" },
-            AllCommitCharacters = new[] { ":", ">", " ", "=" },
+            TriggerCharacters = ["@", "<", ":"],
+            AllCommitCharacters = [":", ">", " ", "="],
         };
     }
 
@@ -77,7 +77,7 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
         var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!request.Position.TryGetAbsoluteIndex(sourceText, requestContext.Logger, out var hostDocumentIndex))
+        if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
         {
             return null;
         }
@@ -90,19 +90,20 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
             _ => CompletionReason.Typing,
         };
         var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
-        var queryableChange = new SourceChange(hostDocumentIndex, length: 0, newText: string.Empty);
-        var owner = syntaxTree.Root.LocateOwner(queryableChange);
+        var owner = syntaxTree.Root.FindInnermostNode(hostDocumentIndex, includeWhitespace: true, walkMarkersBack: true);
+        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, hostDocumentIndex);
         var completionContext = new RazorCompletionContext(hostDocumentIndex, owner, syntaxTree, tagHelperDocumentContext, reason, completionOptions);
 
         var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext);
 
-        requestContext.Logger.LogTrace("Resolved {razorCompletionItemsCount} completion items.", razorCompletionItems.Length);
+        _logger.LogTrace("Resolved {razorCompletionItemsCount} completion items.", razorCompletionItems.Length);
 
         var completionList = CreateLSPCompletionList(razorCompletionItems);
         var completionCapability = _clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
 
         // The completion items are cached and can be retrieved via this result id to enable the "resolve" completion functionality.
-        var resultId = _completionListCache.Add(completionList, razorCompletionItems);
+        var razorResolveContext = new RazorCompletionResolveContext(documentContext.FilePath, razorCompletionItems);
+        var resultId = _completionListCache.Add(completionList, razorResolveContext);
         completionList.SetResultId(resultId, completionCapability);
 
         return completionList;

@@ -5,24 +5,25 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"9168a1bd59651e5e083cf79f3271ea80436a9539f637069ba388b14b675f3b39", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"9168a1bd59651e5e083cf79f3271ea80436a9539f637069ba388b14b675f3b39", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_SwitchExpression_RecursivePattern_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml"
- switch (DateTimeOffset.UtcNow)
+#line (1,2)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml"
+switch (DateTimeOffset.UtcNow)
 {
     case { Year: 2022 }:
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("        <strong>Property expressions are supported by the razor syntax in the year 2022.</strong>\r\n");
 #nullable restore
-#line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml"
+#line (5,1)-(13,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml"
         break;
     case [{ Test: true }]:
         break;
@@ -35,6 +36,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 #line default
 #line hidden
 #nullable disable
+
         }
         #pragma warning restore 1998
     }

@@ -7,13 +7,15 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
+using Microsoft.VisualStudio.Editor.Razor.Snippets;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -22,20 +24,23 @@ using static Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPD
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
+[Shared]
+[Export(typeof(IRazorCustomMessageTarget))]
 [Export(typeof(RazorCustomMessageTarget))]
-internal partial class RazorCustomMessageTarget
+internal partial class RazorCustomMessageTarget : IRazorCustomMessageTarget
 {
     private readonly TrackingLSPDocumentManager _documentManager;
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly IProjectSnapshotManager _projectManager;
+    private readonly SnippetCache _snippetCache;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
     private readonly CSharpVirtualDocumentAddListener _csharpVirtualDocumentAddListener;
-    private ILogger? _logger;
+    private readonly ILogger _logger;
 
     [ImportingConstructor]
     public RazorCustomMessageTarget(
@@ -48,11 +53,18 @@ internal partial class RazorCustomMessageTarget
         CSharpVirtualDocumentAddListener csharpVirtualDocumentAddListener,
         ITelemetryReporter telemetryReporter,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+        IProjectSnapshotManager projectManager,
+        SnippetCache snippetCache,
+        IRazorLoggerFactory loggerFactory)
     {
         if (documentManager is null)
         {
             throw new ArgumentNullException(nameof(documentManager));
+        }
+
+        if (documentManager is not TrackingLSPDocumentManager trackingDocumentManager)
+        {
+            throw new ArgumentException($"The LSP document manager should be of type {typeof(TrackingLSPDocumentManager).FullName}", nameof(documentManager));
         }
 
         if (joinableTaskContext is null)
@@ -60,68 +72,19 @@ internal partial class RazorCustomMessageTarget
             throw new ArgumentNullException(nameof(joinableTaskContext));
         }
 
-        if (requestInvoker is null)
-        {
-            throw new ArgumentNullException(nameof(requestInvoker));
-        }
-
-        if (formattingOptionsProvider is null)
-        {
-            throw new ArgumentNullException(nameof(formattingOptionsProvider));
-        }
-
-        if (editorSettingsManager is null)
-        {
-            throw new ArgumentNullException(nameof(editorSettingsManager));
-        }
-
-        if (documentSynchronizer is null)
-        {
-            throw new ArgumentNullException(nameof(documentSynchronizer));
-        }
-
-        if (csharpVirtualDocumentAddListener is null)
-        {
-            throw new ArgumentNullException(nameof(csharpVirtualDocumentAddListener));
-        }
-
-        _documentManager = (TrackingLSPDocumentManager)documentManager;
-
-        if (_documentManager is null)
-        {
-            throw new ArgumentException("The LSP document manager should be of type " + typeof(TrackingLSPDocumentManager).FullName, nameof(_documentManager));
-        }
-
-        if (telemetryReporter is null)
-        {
-            throw new ArgumentNullException(nameof(telemetryReporter));
-        }
-
-        if (languageServerFeatureOptions is null)
-        {
-            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        }
-
-        if (projectSnapshotManagerAccessor is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        }
-
+        _documentManager = trackingDocumentManager;
         _joinableTaskFactory = joinableTaskContext.Factory;
 
-        _requestInvoker = requestInvoker;
-        _formattingOptionsProvider = formattingOptionsProvider;
-        _editorSettingsManager = editorSettingsManager;
-        _documentSynchronizer = documentSynchronizer;
-        _csharpVirtualDocumentAddListener = csharpVirtualDocumentAddListener;
-        _telemetryReporter = telemetryReporter;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
-    }
-
-    internal void SetLogger(ILogger? logger)
-    {
-        _logger = logger;
+        _requestInvoker = requestInvoker ?? throw new ArgumentNullException(nameof(requestInvoker));
+        _formattingOptionsProvider = formattingOptionsProvider ?? throw new ArgumentNullException(nameof(formattingOptionsProvider));
+        _editorSettingsManager = editorSettingsManager ?? throw new ArgumentNullException(nameof(editorSettingsManager));
+        _documentSynchronizer = documentSynchronizer ?? throw new ArgumentNullException(nameof(documentSynchronizer));
+        _csharpVirtualDocumentAddListener = csharpVirtualDocumentAddListener ?? throw new ArgumentNullException(nameof(csharpVirtualDocumentAddListener));
+        _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
+        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+        _projectManager = projectManager ?? throw new ArgumentNullException(nameof(projectManager));
+        _snippetCache = snippetCache ?? throw new ArgumentNullException(nameof(snippetCache));
+        _logger = loggerFactory.CreateLogger<RazorCustomMessageTarget>();
     }
 
     private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)
@@ -230,8 +193,8 @@ internal partial class RazorCustomMessageTarget
     }
 
     private SynchronizedResult<TVirtualDocumentSnapshot>? TryReturnPossiblyFutureSnapshot<TVirtualDocumentSnapshot>(
-        int requiredHostDocumentVersion,
-        TextDocumentIdentifier hostDocument) where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
+        int requiredHostDocumentVersion, TextDocumentIdentifier hostDocument)
+        where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         if (_documentSynchronizer is not DefaultLSPDocumentSynchronizer documentSynchronizer)
         {
@@ -252,11 +215,11 @@ internal partial class RazorCustomMessageTarget
     }
 
     private CSharpVirtualDocumentSnapshot? FindVirtualDocument<TVirtualDocumentSnapshot>(
-        Uri hostDocumentUri,
-        VSProjectContext? projectContext) where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
+        Uri hostDocumentUri, VSProjectContext? projectContext)
+        where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot) ||
-            !documentSnapshot.TryGetAllVirtualDocuments<TVirtualDocumentSnapshot>(out var virtualDocuments))
+            !documentSnapshot.TryGetAllVirtualDocumentsAsArray<TVirtualDocumentSnapshot>(out var virtualDocuments))
         {
             return null;
         }

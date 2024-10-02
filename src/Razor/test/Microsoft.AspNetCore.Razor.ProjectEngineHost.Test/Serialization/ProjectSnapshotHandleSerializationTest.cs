@@ -9,13 +9,12 @@ using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test.Serialization;
 
-public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput) : TestBase(testOutput)
+public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     private static readonly MessagePackSerializerOptions s_options = MessagePackSerializerOptions.Standard
         .WithResolver(CompositeResolver.Create(
@@ -29,14 +28,10 @@ public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput
         var projectId = ProjectId.CreateNewId();
         var expectedSnapshot = new ProjectSnapshotHandle(
             projectId,
-            new ProjectSystemRazorConfiguration(
-                RazorLanguageVersion.Version_1_1,
+            new(RazorLanguageVersion.Version_1_1,
                 "Test",
-                new[]
-                {
-                    new ProjectSystemRazorExtension("Test-Extension1"),
-                    new ProjectSystemRazorExtension("Test-Extension2"),
-                }),
+                [new("Test-Extension1"), new("Test-Extension2")],
+                ForceRuntimeCodeGeneration: false),
             "Test");
 
         // Act
@@ -62,7 +57,7 @@ public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput
     {
         // Arrange
         var projectId = ProjectId.CreateNewId();
-        var expectedSnapshot = new ProjectSnapshotHandle(projectId, null, null);
+        var expectedSnapshot = new ProjectSnapshotHandle(projectId, RazorConfiguration.Default, null);
 
         // Act
         var bytes = MessagePackConvert.Serialize(expectedSnapshot, s_options);
@@ -71,7 +66,7 @@ public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput
         // Assert
         Assert.NotNull(actualSnapshot);
         Assert.Equal(expectedSnapshot.ProjectId, actualSnapshot.ProjectId);
-        Assert.Null(actualSnapshot.Configuration);
+        Assert.NotNull(actualSnapshot.Configuration);
         Assert.Null(actualSnapshot.RootNamespace);
     }
 }

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -40,4 +39,10 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
     public override bool UsePreciseSemanticTokenRanges => false;
 
     public override bool MonitorWorkspaceFolderForConfigurationFiles => true;
+
+    public override bool UseRazorCohostServer => false;
+
+    public override bool DisableRazorLanguageServer => false;
+
+    public override bool ForceRuntimeCodeGeneration => false;
 }

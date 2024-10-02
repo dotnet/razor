@@ -5,12 +5,10 @@ using System.IO;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.Extensions.Options;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
@@ -25,11 +23,9 @@ public class CompletionListSerializationBenchmark
 
     public CompletionListSerializationBenchmark()
     {
-        var tagHelperFactsService = new TagHelperFactsService();
-        var completionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
-        var htmlFactsService = new DefaultHtmlFactsService();
+        var completionService = new LspTagHelperCompletionService();
         var optionsMonitor = new BenchmarkOptionsMonitor<RazorLSPOptions>(RazorLSPOptions.Default);
-        var tagHelperCompletionProvider = new TagHelperCompletionProvider(completionService, htmlFactsService, tagHelperFactsService, optionsMonitor);
+        var tagHelperCompletionProvider = new TagHelperCompletionProvider(completionService, optionsMonitor);
 
         _serializer = JsonSerializer.Create();
 
@@ -83,8 +79,7 @@ public class CompletionListSerializationBenchmark
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
         var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, CommonResources.LegacyTagHelpers);
 
-        var queryableChange = new SourceChange(queryIndex, length: 0, newText: string.Empty);
-        var owner = syntaxTree.Root.LocateOwner(queryableChange);
+        var owner = syntaxTree.Root.FindInnermostNode(queryIndex, includeWhitespace: true, walkMarkersBack: true);
         var context = new RazorCompletionContext(queryIndex, owner, syntaxTree, tagHelperDocumentContext);
 
         var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context);

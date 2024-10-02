@@ -3,7 +3,8 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -117,11 +118,18 @@ internal static class RazorSyntaxFacts
         if (node is CSharpCodeBlockSyntax block &&
             block.Children.FirstOrDefault() is RazorDirectiveSyntax directive &&
             directive.Body is RazorDirectiveBodySyntax directiveBody &&
-            directiveBody.Keyword.GetContent().Equals("code"))
+            directiveBody.Keyword.GetContent() == "code")
         {
             return directiveBody.CSharpCode;
         }
 
         return null;
     }
+
+    public static bool IsAnyStartTag(SyntaxNode n)
+        => n.Kind is SyntaxKind.MarkupStartTag or SyntaxKind.MarkupTagHelperStartTag;
+            
+
+    public static bool IsAnyEndTag(SyntaxNode n)
+        => n.Kind is SyntaxKind.MarkupEndTag or SyntaxKind.MarkupTagHelperEndTag;
 }

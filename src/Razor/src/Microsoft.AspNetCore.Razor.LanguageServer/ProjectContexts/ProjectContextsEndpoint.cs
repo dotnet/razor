@@ -6,13 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
 
-[LanguageServerEndpoint(VSMethods.GetProjectContextsName)]
+[RazorLanguageServerEndpoint(VSMethods.GetProjectContextsName)]
 // Using a documentless handler here because:
 //   a. We don't need any extra info than just the Uri
 //   b. If we say we have a document, then our RequestContextFactory will try to get a DocumentContext for us
@@ -21,19 +20,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
 //   c. This gets called a lot, so may as well save some work
 internal class ProjectContextsEndpoint : IRazorDocumentlessRequestHandler<VSGetProjectContextsParams, VSProjectContextList>, ICapabilitiesProvider
 {
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
 
-    public ProjectContextsEndpoint(ClientNotifierServiceBase languageServer)
+    public ProjectContextsEndpoint(IClientConnection clientConnection)
     {
-        _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     }
 
     public bool MutatesSolutionState => false;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        // Disabled for 17.8
-        //serverCapabilities.ProjectContextProvider = true;
+        serverCapabilities.ProjectContextProvider = true;
     }
 
     public async Task<VSProjectContextList> HandleRequestAsync(VSGetProjectContextsParams request, RazorRequestContext context, CancellationToken cancellationToken)
@@ -45,7 +43,7 @@ internal class ProjectContextsEndpoint : IRazorDocumentlessRequestHandler<VSGetP
 
         var delegatedParams = new DelegatedProjectContextsParams(request.TextDocument.Uri);
 
-        var response = await _languageServer.SendRequestAsync<DelegatedProjectContextsParams, VSProjectContextList>(
+        var response = await _clientConnection.SendRequestAsync<DelegatedProjectContextsParams, VSProjectContextList>(
             CustomMessageNames.RazorProjectContextsEndpoint,
             delegatedParams,
             cancellationToken).ConfigureAwait(false);

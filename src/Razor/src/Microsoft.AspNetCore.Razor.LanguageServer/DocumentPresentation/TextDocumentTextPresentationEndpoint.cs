@@ -4,22 +4,21 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
-internal class TextDocumentTextPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>, ITextDocumentTextPresentationHandler
+internal class TextDocumentTextPresentationEndpoint(
+    IRazorDocumentMappingService razorDocumentMappingService,
+    IClientConnection clientConnection,
+    IFilePathService filePathService,
+    IRazorLoggerFactory loggerFactory)
+    : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.CreateLogger<TextDocumentTextPresentationEndpoint>()), ITextDocumentTextPresentationHandler
 {
-    public TextDocumentTextPresentationEndpoint(
-        IRazorDocumentMappingService razorDocumentMappingService,
-        ClientNotifierServiceBase languageServer,
-        FilePathService filePathService)
-        : base(razorDocumentMappingService, languageServer, filePathService)
-    {
-    }
-
     public override string EndpointName => CustomMessageNames.RazorTextPresentationEndpoint;
 
     public override void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)

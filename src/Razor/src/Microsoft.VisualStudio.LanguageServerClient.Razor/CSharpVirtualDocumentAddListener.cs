@@ -5,9 +5,9 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Utilities;
 
@@ -17,9 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 [Export(typeof(LSPDocumentChangeListener))]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
 [method: ImportingConstructor]
-internal class CSharpVirtualDocumentAddListener(IOutputWindowLogger logger) : LSPDocumentChangeListener
+internal class CSharpVirtualDocumentAddListener(IRazorLoggerFactory loggerFactory) : LSPDocumentChangeListener
 {
     private static readonly TimeSpan s_waitTimeout = TimeSpan.FromMilliseconds(500);
+
+    private readonly ILogger logger = loggerFactory.CreateLogger<CSharpVirtualDocumentAddListener>();
 
     private TaskCompletionSource<bool>? _tcs;
     private CancellationTokenSource? _cts;
@@ -37,21 +39,28 @@ internal class CSharpVirtualDocumentAddListener(IOutputWindowLogger logger) : LS
             {
                 lock (_gate)
                 {
-                    if (_tcs is not null)
+                    if (_tcs is null)
                     {
-                        logger.LogDebug("CSharpVirtualDocumentAddListener: Timed out waiting for a document to be added");
-                        _tcs.SetResult(false);
-                        _cts.Dispose();
-                        _cts = null;
-                        _tcs = null;
+                        return;
                     }
+
+                    logger.LogDebug("CSharpVirtualDocumentAddListener: Timed out waiting for a document to be added");
+
+                    _tcs.SetResult(false);
+                    _tcs = null;
                 }
+
+                _cts.Dispose();
+                _cts = null;
             });
+
             _cts.CancelAfter(s_waitTimeout);
             _tcs = new TaskCompletionSource<bool>();
         }
 
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
         return _tcs.Task;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
     }
 
     public override void Changed(LSPDocumentSnapshot? old, LSPDocumentSnapshot? @new, VirtualDocumentSnapshot? virtualOld, VirtualDocumentSnapshot? virtualNew, LSPDocumentChangeKind kind)
@@ -60,16 +69,19 @@ internal class CSharpVirtualDocumentAddListener(IOutputWindowLogger logger) : LS
         {
             lock (_gate)
             {
-                if (_tcs is not null)
+                if (_tcs is null)
                 {
-                    logger.LogDebug("CSharpVirtualDocumentAddListener: Document added ({doc}) (not that we care)", @new!.Uri);
-
-                    _tcs.SetResult(true);
-                    _cts!.Dispose();
-                    _cts = null;
-                    _tcs = null;
+                    return;
                 }
+
+                logger.LogDebug("CSharpVirtualDocumentAddListener: Document added ({doc}) (not that we care)", @new!.Uri);
+
+                _tcs.SetResult(true);
+                _tcs = null;
             }
+
+            _cts!.Dispose();
+            _cts = null;
         }
     }
 }

@@ -107,6 +107,28 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
+    [Fact]
+    public async Task Inject()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = """
+                @inject IServiceProvider ServiceProvider
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        result.VerifyOutputsMatchBaseline();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8718")]
     public async Task ComponentInheritsFromComponent()
     {
@@ -587,6 +609,57 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/aspnetcore/issues/52547")]
+    public async Task ScriptTag_WithVariable([CombinatorialValues("7.0", "8.0", "Latest")] string razorLangVersion)
+    {
+        // Arrange
+        var code = """
+            @{ var msg = "What's up"; }
+            <script>console.log('@msg');</script>
+            <div>console.log('@msg');</div>
+            <script>console.log('No variable');</script>
+            <div>console.log('No variable');</div>
+            <script>
+                console.log('@msg');
+            </script>
+            <div>
+                console.log('@msg');
+            </div>
+            <script>
+                console.log('No variable');
+            </script>
+            <div>
+                console.log('No variable');
+            </div>
+            """;
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = $"""
+                {code}
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = $"""
+                Component:
+                {code}
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = razorLangVersion;
+        });
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        result.Diagnostics.Verify();
+        Assert.Equal(2, result.GeneratedSources.Length);
+        var suffix = razorLangVersion == "7.0" ? "7" : "8";
+        result.VerifyOutputsMatchBaseline(suffix: suffix);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index", suffix: suffix);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/9051")]
     public async Task LineMapping()
     {
@@ -650,9 +723,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             Assert.Equal(expectedLine, mapped.StartLinePosition.Line);
             Assert.Equal(expectedLine, mapped.EndLinePosition.Line);
             var mappedSpan = originalText.Lines.GetTextSpan(mapped.Span);
-            // https://github.com/dotnet/razor/issues/9051
-            // Assert.Equal(snippet, originalText.ToString(mappedSpan));
-            // Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
+            Assert.Equal(snippet, originalText.ToString(mappedSpan));
+            Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
         }
     }
 
@@ -708,9 +780,48 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             Assert.Equal(expectedLine, mapped.StartLinePosition.Line);
             Assert.Equal(expectedLine, mapped.EndLinePosition.Line);
             var mappedSpan = originalText.Lines.GetTextSpan(mapped.Span);
-            // https://github.com/dotnet/razor/issues/9051
-            // Assert.Equal(snippet, originalText.ToString(mappedSpan));
-            // Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
+            Assert.Equal(snippet, originalText.ToString(mappedSpan));
+            Assert.Equal(new TextSpan(originalIndex, snippet.Length), mappedSpan);
         }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9381")]
+    public async Task UnrecognizedComponentName()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = """
+                <X1 />
+                <X2 @key="null" />
+                <X3 @ref="x" />
+                <X4 @bind="x" />
+                <X5 @bind-Value="x" @bind-Value:event="oninput" />
+                <X6 @formname="n" />
+                <X7 @rendermode="null" />
+
+                @code {
+                    object? x;
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert
+        result.Diagnostics.Verify(
+            Diagnostic("RZ10012").WithLocation(1, 1),
+            Diagnostic("RZ10012").WithLocation(2, 1),
+            Diagnostic("RZ10012").WithLocation(3, 1),
+            Diagnostic("RZ10012").WithLocation(4, 1),
+            Diagnostic("RZ10012").WithLocation(5, 1),
+            Diagnostic("RZ10012").WithLocation(6, 1),
+            Diagnostic("RZ10022").WithLocation(6, 16), // Attribute '@formname' can only be applied to 'form' elements.
+            Diagnostic("RZ10012").WithLocation(7, 1),
+            Diagnostic("RZ10023").WithLocation(7, 18)); // Attribute '@rendermode' is only valid when used on a component.
+        Assert.Single(result.GeneratedSources);
     }
 }

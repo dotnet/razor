@@ -2,59 +2,47 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
-internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
+[Export(typeof(IFileChangeTrackerFactory))]
+internal class VisualStudioFileChangeTrackerFactory : IFileChangeTrackerFactory
 {
-    private readonly IErrorReporter _errorReporter;
-    private readonly IVsAsyncFileChangeEx _fileChangeService;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly JoinableTaskContext _joinableTaskContext;
+    private readonly IErrorReporter _errorReporter;
+    private readonly JoinableTask<IVsAsyncFileChangeEx> _getFileChangeServiceTask;
 
+    [ImportingConstructor]
     public VisualStudioFileChangeTrackerFactory(
-        IErrorReporter errorReporter,
-        IVsAsyncFileChangeEx fileChangeService,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        JoinableTaskContext joinableTaskContext)
+        [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
+        JoinableTaskContext joinableTaskContext,
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IErrorReporter errorReporter)
     {
-        if (errorReporter is null)
-        {
-            throw new ArgumentNullException(nameof(errorReporter));
-        }
-
-        if (fileChangeService is null)
-        {
-            throw new ArgumentNullException(nameof(fileChangeService));
-        }
-
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (joinableTaskContext is null)
-        {
-            throw new ArgumentNullException(nameof(joinableTaskContext));
-        }
-
-        _errorReporter = errorReporter;
-        _fileChangeService = fileChangeService;
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _joinableTaskContext = joinableTaskContext;
+        _errorReporter = errorReporter;
+
+        var jtf = _joinableTaskContext.Factory;
+        _getFileChangeServiceTask = jtf.RunAsync(serviceProvider.GetServiceAsync<SVsFileChangeEx, IVsAsyncFileChangeEx>);
     }
 
-    public override FileChangeTracker Create(string filePath)
+    public IFileChangeTracker Create(string filePath)
     {
         if (string.IsNullOrEmpty(filePath))
         {
             throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
-        var fileChangeTracker = new VisualStudioFileChangeTracker(filePath, _errorReporter, _fileChangeService, _projectSnapshotManagerDispatcher, _joinableTaskContext);
-        return fileChangeTracker;
+        // TODO: Make IFileChangeTrackerFactory.Create(...) asynchronous to avoid blocking here.
+        var fileChangeService = _getFileChangeServiceTask.Join();
+
+        return new VisualStudioFileChangeTracker(filePath, _errorReporter, fileChangeService, _dispatcher, _joinableTaskContext);
     }
 }

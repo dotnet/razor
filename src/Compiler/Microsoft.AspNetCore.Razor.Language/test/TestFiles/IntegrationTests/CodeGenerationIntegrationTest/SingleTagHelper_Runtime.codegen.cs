@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"07221c920388e192f27500b1efb178559390c71d91890dc7624909ff0a7e62a0", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelper.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"07221c920388e192f27500b1efb178559390c71d91890dc7624909ff0a7e62a0", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelper.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_SingleTagHelper_Runtime
     {
         private static readonly global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute __tagHelperAttribute_0 = new global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute("class", new global::Microsoft.AspNetCore.Html.HtmlString("Hello World"), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -41,13 +41,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_0);
+            __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelper.cshtml"
-__TestNamespace_PTagHelper.Age = 1337;
+#line (3,29)-(3,33) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelper.cshtml"
+1337
 
 #line default
 #line hidden
 #nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
             if (!__tagHelperExecutionContext.Output.IsContentModified)

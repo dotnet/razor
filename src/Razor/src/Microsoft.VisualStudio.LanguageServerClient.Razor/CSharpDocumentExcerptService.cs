@@ -2,19 +2,19 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.Razor.DynamicFiles;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-internal sealed class CSharpDocumentExcerptService : DocumentExcerptServiceBase
+internal sealed class CSharpDocumentExcerptService : DocumentExcerptService
 {
     private readonly IRazorSpanMappingService _mappingService;
 

@@ -5,36 +5,40 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"c1273eb7fee44c32ab00da03db6ac9a1bf83c1c3b09f32fb242db42978fc4d17", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"c1273eb7fee44c32ab00da03db6ac9a1bf83c1c3b09f32fb242db42978fc4d17", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_NestedCSharp_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
-     foreach (var result in (dynamic)Url)
+#line (2,6)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
+foreach (var result in (dynamic)Url)
     {
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("        <div>\r\n            ");
+            Write(
 #nullable restore
-#line (5,14)-(5,30) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
-Write(result.SomeValue);
+#line (5,14)-(5,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
+result.SomeValue
 
 #line default
 #line hidden
 #nullable disable
+            );
             WriteLiteral(".\r\n        </div>\r\n");
 #nullable restore
-#line 7 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
+#line (7,1)-(7,6) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
     }
 
 #line default
 #line hidden
 #nullable disable
+
         }
         #pragma warning restore 1998
     }

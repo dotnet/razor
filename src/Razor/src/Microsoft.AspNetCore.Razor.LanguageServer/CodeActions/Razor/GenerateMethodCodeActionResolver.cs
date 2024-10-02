@@ -12,11 +12,13 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -25,9 +27,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
 {
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly IRazorFormattingService _razorFormattingService;
 
@@ -44,15 +46,15 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
     public GenerateMethodCodeActionResolver(
-        DocumentContextFactory documentContextFactory,
+        IDocumentContextFactory documentContextFactory,
         RazorLSPOptionsMonitor razorLSPOptionsMonitor,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         IRazorDocumentMappingService razorDocumentMappingService,
         IRazorFormattingService razorFormattingService)
     {
         _documentContextFactory = documentContextFactory;
         _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
-        _languageServer = languageServer;
+        _clientConnection = clientConnection;
         _documentMappingService = razorDocumentMappingService;
         _razorFormattingService = razorFormattingService;
     }
@@ -116,7 +118,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
 
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = codeBehindUri };
 
-        var templateWithMethodSignature = PopulateMethodSignature(documentContext, actionParams);
+        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodSignature,
@@ -133,11 +135,11 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
         };
 
         var delegatedParams = new DelegatedSimplifyMethodParams(
-            new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { Uri = codeBehindUri}, 1),
+            new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { Uri = codeBehindUri }, 1),
             RequiresVirtualDocument: false,
             edit);
 
-        var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
+        var result = await _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
             CustomMessageNames.RazorSimplifyMethodEndpointName,
             delegatedParams,
             cancellationToken).ConfigureAwait(false)
@@ -160,7 +162,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
         string? razorClassName,
         CancellationToken cancellationToken)
     {
-        var templateWithMethodSignature = PopulateMethodSignature(documentContext, actionParams);
+        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
         var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, _razorLSPOptionsMonitor.CurrentValue);
 
         // If there are 3 edits, this means that there is no existing @code block, so we have an edit for '@code {', the method stub, and '}'.
@@ -185,7 +187,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             };
 
             var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.Identifier, RequiresVirtualDocument: true, tempTextEdit);
-            var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
+            var result = await _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
                 CustomMessageNames.RazorSimplifyMethodEndpointName,
                 delegatedParams,
                 cancellationToken).ConfigureAwait(false);
@@ -217,7 +219,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             };
 
             var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.Identifier, RequiresVirtualDocument: true, remappedEdit);
-            var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
+            var result = await _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
                 CustomMessageNames.RazorSimplifyMethodEndpointName,
                 delegatedParams,
                 cancellationToken).ConfigureAwait(false);
@@ -250,14 +252,15 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static string PopulateMethodSignature(VersionedDocumentContext documentContext, GenerateMethodCodeActionParams actionParams)
+    private static async Task<string> PopulateMethodSignatureAsync(VersionedDocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
     {
         var templateWithMethodSignature = s_generateMethodTemplate.Replace(s_methodName, actionParams.MethodName);
 
         var returnType = actionParams.IsAsync ? "global::System.Threading.Tasks.Task" : "void";
         templateWithMethodSignature = templateWithMethodSignature.Replace(s_returnType, returnType);
 
-        var eventTagHelper = documentContext.Project.TagHelpers
+        var tagHelpers = await documentContext.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+        var eventTagHelper = tagHelpers
             .FirstOrDefault(th => th.Name == actionParams.EventName && th.IsEventHandlerTagHelper() && th.GetEventArgsType() is not null);
         var eventArgsType = eventTagHelper is null
             ? string.Empty // Couldn't find the params, generate no params instead.

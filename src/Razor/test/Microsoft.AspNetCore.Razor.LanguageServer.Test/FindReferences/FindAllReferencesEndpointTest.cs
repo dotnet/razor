@@ -6,8 +6,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -17,32 +17,28 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 
-public class FindAllReferencesEndpointTest : SingleServerDelegatingEndpointTestBase
+public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : base(testOutput)
-    {
-    }
-
     [Fact]
     public Task FindCSharpReferences()
         => VerifyCSharpFindAllReferencesAsyncAsync("""
 
-                @{
-                    const string [|$$S|] = "";
+            @{
+                const string [|$$S|] = "";
 
-                    string M()
-                    {
-                        return [|S|];
-                    }
-
-                    string N()
-                    {
-                        return [|S|];
-                    }
+                string M()
+                {
+                    return [|S|];
                 }
 
-                <p>@[|S|]</p>
-                """);
+                string N()
+                {
+                    return [|S|];
+                }
+            }
+
+            <p>@[|S|]</p>
+            """);
 
     private async Task VerifyCSharpFindAllReferencesAsyncAsync(string input)
     {
@@ -52,10 +48,10 @@ public class FindAllReferencesEndpointTest : SingleServerDelegatingEndpointTestB
         var codeDocument = CreateCodeDocument(output);
         var razorFilePath = "C:/path/to/file.razor";
 
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
         var endpoint = new FindAllReferencesEndpoint(
-            LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, LoggerFactory, FilePathService);
+            LanguageServerFeatureOptions, DocumentMappingService, languageServer, LoggerFactory, FilePathService);
 
         var sourceText = codeDocument.GetSourceText();
         sourceText.GetLineAndOffset(cursorPosition, out var line, out var offset);

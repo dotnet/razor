@@ -4,8 +4,8 @@
 #nullable disable
 
 using System;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-public class HtmlVirtualDocumentFactoryTest : TestBase
+public class HtmlVirtualDocumentFactoryTest : ToolingTestBase
 {
     private readonly ITextBuffer _nonRazorLSPBuffer;
     private readonly ITextBuffer _razorLSPBuffer;

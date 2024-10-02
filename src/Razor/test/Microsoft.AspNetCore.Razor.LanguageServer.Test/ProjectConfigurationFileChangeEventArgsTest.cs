@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -13,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testOutput) : TestBase(testOutput)
+public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
     public void TryDeserialize_RemovedKind_ReturnsFalse()
@@ -25,9 +26,10 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
             .Returns(new RazorProjectInfo(
                 "/path/to/obj/project.razor.bin",
                 "c:/path/to/project.csproj",
-                configuration: null,
+                configuration: RazorConfiguration.Default,
                 rootNamespace: null,
-                projectWorkspaceState: null,
+                displayName: "project",
+                projectWorkspaceState: ProjectWorkspaceState.Default,
                 documents: ImmutableArray<DocumentSnapshotHandle>.Empty));
 
         var args = new ProjectConfigurationFileChangeEventArgs(
@@ -52,9 +54,10 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
         var projectInfo = new RazorProjectInfo(
             "/path/to/ORIGINAL/obj/project.razor.bin",
             "c:/path/to/project.csproj",
-            configuration: null,
+            configuration: RazorConfiguration.Default,
             rootNamespace: null,
-            projectWorkspaceState: null,
+            displayName: "project",
+            projectWorkspaceState: ProjectWorkspaceState.Default,
             documents: ImmutableArray<DocumentSnapshotHandle>.Empty);
 
         deserializerMock
@@ -82,9 +85,10 @@ public class ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testO
         var projectInfo = new RazorProjectInfo(
             "/path/to/obj/project.razor.bin",
             "c:/path/to/project.csproj",
-            configuration: null,
+            configuration: RazorConfiguration.Default,
             rootNamespace: null,
-            projectWorkspaceState: null,
+            displayName: "project",
+            projectWorkspaceState: ProjectWorkspaceState.Default,
             documents: ImmutableArray<DocumentSnapshotHandle>.Empty);
 
         deserializerMock

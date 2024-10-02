@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -28,18 +28,18 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
 {
     private static readonly Workspace s_workspace = new AdhocWorkspace();
 
-    private readonly DocumentContextFactory _documentContextFactory;
+    private readonly IDocumentContextFactory _documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
 
     public ExtractToCodeBehindCodeActionResolver(
-        DocumentContextFactory documentContextFactory,
+        IDocumentContextFactory documentContextFactory,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        ClientNotifierServiceBase languageServer)
+        IClientConnection clientConnection)
     {
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
     }
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
@@ -100,12 +100,12 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
         var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var codeBehindContent = await GenerateCodeBehindClassAsync(documentContext.Project, codeBehindUri, className, actionParams.Namespace, codeBlockContent, codeDocument, cancellationToken).ConfigureAwait(false);
 
-        var start = codeDocument.Source.Lines.GetLocation(actionParams.RemoveStart);
-        var end = codeDocument.Source.Lines.GetLocation(actionParams.RemoveEnd);
+        var start = codeDocument.Source.Text.Lines.GetLinePosition(actionParams.RemoveStart);
+        var end = codeDocument.Source.Text.Lines.GetLinePosition(actionParams.RemoveEnd);
         var removeRange = new Range
         {
-            Start = new Position(start.LineIndex, start.CharacterIndex),
-            End = new Position(end.LineIndex, end.CharacterIndex)
+            Start = new Position(start.Line, start.Character),
+            End = new Position(end.Line, end.Character)
         };
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
@@ -218,7 +218,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
             },
             Contents = newFileContent
         };
-        var fixedContent = await _languageServer.SendRequestAsync<FormatNewFileParams, string?>(CustomMessageNames.RazorFormatNewFileEndpointName, parameters, cancellationToken).ConfigureAwait(false);
+        var fixedContent = await _clientConnection.SendRequestAsync<FormatNewFileParams, string?>(CustomMessageNames.RazorFormatNewFileEndpointName, parameters, cancellationToken).ConfigureAwait(false);
 
         if (fixedContent is null)
         {

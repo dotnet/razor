@@ -13,13 +13,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 
-public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
+public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
-    public LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_DocumentNotFound_ReturnsNull()
     {
@@ -44,7 +39,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     public async Task Handle_TagHelperStartTag_ReturnsCorrectRange()
     {
         // Arrange
-        var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+        var txt = """
+            @addTagHelper *, TestAssembly
+            <test1></test1>
+            """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -82,7 +80,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     public async Task Handle_TagHelperStartTag_ReturnsCorrectRange_EndSpan()
     {
         // Arrange
-        var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+        var txt = """
+            @addTagHelper *, TestAssembly
+            <test1></test1>
+            """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -120,7 +121,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     public async Task Handle_TagHelperEndTag_ReturnsCorrectRange()
     {
         // Arrange
-        var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+        var txt = """
+            @addTagHelper *, TestAssembly
+            <test1></test1>
+            """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -158,7 +162,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     public async Task Handle_NoTag_ReturnsNull()
     {
         // Arrange
-        var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+        var txt = """
+            @addTagHelper *, TestAssembly
+            <test1></test1>
+            """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -181,7 +188,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     public async Task Handle_SelfClosingTagHelper_ReturnsNull()
     {
         // Arrange
-        var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 />";
+        var txt = """
+            @addTagHelper *, TestAssembly
+            <test1 />
+            """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -204,7 +214,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     public async Task Handle_NestedTagHelperStartTags_ReturnsCorrectRange()
     {
         // Arrange
-        var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1><test1></test1></test1>";
+        var txt = """
+            @addTagHelper *, TestAssembly
+            <test1><test1></test1></test1>
+            """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -242,7 +255,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     public async Task Handle_HTMLStartTag_ReturnsCorrectRange()
     {
         // Arrange
-        var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<body></body>";
+        var txt = """
+            @addTagHelper *, TestAssembly
+            <body></body>
+            """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -280,7 +296,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     public async Task Handle_HTMLEndTag_ReturnsCorrectRange()
     {
         // Arrange
-        var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<body></body>";
+        var txt = """
+            @addTagHelper *, TestAssembly
+            <body></body>
+            """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -318,7 +337,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     public async Task Handle_SelfClosingHTMLTag_ReturnsNull()
     {
         // Arrange
-        var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<body />";
+        var txt = """
+            @addTagHelper *, TestAssembly
+            <body />
+            """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
@@ -349,7 +371,10 @@ public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
         Assert.True(Regex.Match("Te/st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
         Assert.True(Regex.Match("Te\\st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
         Assert.True(Regex.Match("Te!st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
-        Assert.True(Regex.Match("Te" + Environment.NewLine + "st",
+        Assert.True(Regex.Match("""
+            Te
+            st
+            """,
             LinkedEditingRangeEndpoint.WordPattern).Length != 4 + Environment.NewLine.Length);
     }
 }

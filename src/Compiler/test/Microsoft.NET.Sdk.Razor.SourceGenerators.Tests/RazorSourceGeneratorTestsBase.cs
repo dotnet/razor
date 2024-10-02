@@ -30,7 +30,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyModel;
@@ -211,7 +210,7 @@ public abstract class RazorSourceGeneratorTestsBase
     }
 
     protected static async Task VerifyRazorPageMatchesBaselineAsync(Compilation compilation, string name,
-        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "", string suffix = "")
     {
         var html = await RenderRazorPageAsync(compilation, name);
         Extensions.VerifyTextMatchesBaseline(
@@ -219,7 +218,8 @@ public abstract class RazorSourceGeneratorTestsBase
             fileName: name,
             extension: "html",
             testPath: testPath,
-            testName: testName);
+            testName: testName,
+            suffix: suffix);
     }
 
     protected static Project CreateTestProject(
@@ -397,7 +397,7 @@ public abstract class RazorSourceGeneratorTestsBase
 
 internal static class Extensions
 {
-    private static readonly string _testProjectRoot = TestProject.GetProjectDirectory("Microsoft.NET.Sdk.Razor.SourceGenerators.Tests", testDirectoryFirst: true);
+    private static readonly string _testProjectRoot = TestProject.GetProjectDirectory("Microsoft.NET.Sdk.Razor.SourceGenerators.Tests", layer: TestProject.Layer.Compiler, testDirectoryFirst: true);
 
     // UTF-8 with BOM
     private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
@@ -406,7 +406,7 @@ internal static class Extensions
     {
         if (expectedOutput.Length == 1 && string.IsNullOrWhiteSpace(expectedOutput[0]))
         {
-            Assert.True(false, GenerateExpectedPageOutput(result));
+            Assert.Fail(GenerateExpectedPageOutput(result));
         }
         else
         {
@@ -421,44 +421,22 @@ internal static class Extensions
         return result;
     }
 
-    public static GeneratorRunResult VerifyHostOutput(this GeneratorRunResult result, params (string hintName, string text)[] expectedOutputs)
-    {
-        if (expectedOutputs.Length == 1 && string.IsNullOrWhiteSpace(expectedOutputs[0].text))
-        {
-            Assert.True(false, GenerateExpectedHostOutput(result));
-        }
-        else
-        {
-            var hostOutputs = result.GetHostOutputs();
-            Assert.Equal(expectedOutputs.Length, hostOutputs.Length);
-            for (int i = 0; i < hostOutputs.Length; i++)
-            {
-                var expectedOutput = expectedOutputs[i];
-                var actualOutput = hostOutputs[i];
-
-                Assert.Equal(expectedOutput.hintName, actualOutput.Key);
-                Assert.Equal(expectedOutput.text, actualOutput.Value, ignoreWhiteSpaceDifferences: true);
-            }
-        }
-
-        return result;
-    }
-
-    private static string CreateBaselineDirectory(string testPath, string testName)
+    private static string CreateBaselineDirectory(string testPath, string testName, string suffix)
     {
         var baselineDirectory = Path.Join(
             _testProjectRoot,
             "TestFiles",
             Path.GetFileNameWithoutExtension(testPath)!,
-            testName);
+            testName,
+            suffix);
         Directory.CreateDirectory(baselineDirectory);
         return baselineDirectory;
     }
 
     public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
-        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "", string suffix = "")
     {
-        var baselineDirectory = CreateBaselineDirectory(testPath, testName);
+        var baselineDirectory = CreateBaselineDirectory(testPath, testName, suffix);
         var touchedFiles = new HashSet<string>();
 
         foreach (var source in result.GeneratedSources)
@@ -477,10 +455,10 @@ internal static class Extensions
     }
 
     public static void VerifyTextMatchesBaseline(string actualText, string fileName, string extension,
-        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "", string suffix = "")
     {
         // Create output directory.
-        var baselineDirectory = CreateBaselineDirectory(testPath, testName);
+        var baselineDirectory = CreateBaselineDirectory(testPath, testName, suffix);
 
         // Generate baseline if enabled.
         var baselinePath = Path.Join(baselineDirectory, $"{fileName}.{extension}");
@@ -520,22 +498,6 @@ internal static class Extensions
                 sb.AppendLine(",");
             }
             sb.Append("@\"").Append(result.GeneratedSources[i].SourceText.ToString().Replace("\"", "\"\"")).Append('"');
-        }
-        return sb.ToString();
-    }
-
-    private static string GenerateExpectedHostOutput(GeneratorRunResult result)
-    {
-        StringBuilder sb = new StringBuilder("Generated Host Output:").AppendLine().AppendLine();
-        var hostOutputs = result.GetHostOutputs();
-        for (int i = 0; i < hostOutputs.Length; i++)
-        {
-            if (i > 0)
-            {
-                sb.AppendLine(",");
-            }
-            sb.Append("(@\"").Append(hostOutputs[i].Key.Replace("\"", "\"\"")).Append("\", ");
-            sb.Append("@\"").Append(hostOutputs[i].Value.Replace("\"", "\"\"")).Append("\")");
         }
         return sb.ToString();
     }

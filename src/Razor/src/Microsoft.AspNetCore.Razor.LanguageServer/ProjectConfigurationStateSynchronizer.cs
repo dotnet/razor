@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 
@@ -19,15 +21,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly RazorProjectService _projectService;
+    private readonly IRazorProjectService _projectService;
     private readonly ILogger _logger;
     private readonly Dictionary<string, ProjectKey> _configurationToProjectMap;
     internal readonly Dictionary<ProjectKey, DelayedProjectInfo> ProjectInfoMap;
 
     public ProjectConfigurationStateSynchronizer(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        RazorProjectService projectService,
-        ILoggerFactory loggerFactory)
+        IRazorProjectService projectService,
+        IRazorLoggerFactory loggerFactory)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = projectService;
@@ -45,7 +47,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             throw new ArgumentNullException(nameof(args));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         switch (args.Kind)
         {
@@ -124,7 +126,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             var intermediateOutputPath = Path.GetDirectoryName(configurationFilePath).AssumeNotNull();
             var rootNamespace = projectInfo.RootNamespace;
 
-            var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace);
+            var projectKey = _projectService.AddProject(projectFilePath, intermediateOutputPath, projectInfo.Configuration, rootNamespace, projectInfo.DisplayName);
             _configurationToProjectMap[configurationFilePath] = projectKey;
 
             _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
@@ -147,6 +149,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                 projectKey,
                 projectInfo.Configuration,
                 projectInfo.RootNamespace,
+                projectInfo.DisplayName,
                 projectWorkspaceState,
                 documents);
         }
@@ -181,8 +184,9 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                 projectKey,
                 configuration: null,
                 rootNamespace: null,
+                displayName: "",
                 ProjectWorkspaceState.Default,
-                Array.Empty<DocumentSnapshotHandle>());
+                ImmutableArray<DocumentSnapshotHandle>.Empty);
         }
     }
 

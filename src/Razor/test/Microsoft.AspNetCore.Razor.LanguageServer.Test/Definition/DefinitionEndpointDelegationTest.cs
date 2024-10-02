@@ -3,17 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
@@ -23,13 +19,8 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTestBase
+public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public DefinitionEndpointDelegationTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_SingleServer_CSharp_Method()
     {
@@ -95,7 +86,14 @@ public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTe
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
         Assert.EndsWith("String.cs", location.Uri.ToString());
+
+        // Note: The location is in a generated C# "metadata-as-source" file, which has a different
+        // number of using directives in .NET Framework vs. .NET Core. So, the line numbers are different.
+#if NETFRAMEWORK
+        Assert.Equal(24, location.Range.Start.Line);
+#else
         Assert.Equal(21, location.Range.Start.Line);
+#endif
     }
 
     [Theory]
@@ -225,18 +223,26 @@ public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTe
 
     private async Task<DefinitionResult?> GetDefinitionResultAsync(RazorCodeDocument codeDocument, string razorFilePath, int cursorPosition, IEnumerable<(string filePath, string contents)>? additionalRazorDocuments = null)
     {
-        await CreateLanguageServerAsync(codeDocument, razorFilePath, additionalRazorDocuments);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath, additionalRazorDocuments);
 
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }.ToImmutableArray(), MockBehavior.Strict);
-        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
-        var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
-        var searchEngine = new DefaultRazorComponentSearchEngine(projectSnapshotManagerAccessor, LoggerFactory);
+        var projectManager = CreateProjectSnapshotManager();
+
+        await projectManager.UpdateAsync(updater =>
+        {
+            updater.ProjectAdded(new(
+                projectFilePath: "C:/path/to/project.csproj",
+                intermediateOutputPath: "C:/path/to/obj",
+                razorConfiguration: RazorConfiguration.Default,
+                rootNamespace: "project"));
+        });
+
+        var searchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
 
         var razorUri = new Uri(razorFilePath);
         var documentContext = DocumentContextFactory.TryCreateForOpenDocument(razorUri);
         var requestContext = CreateRazorRequestContext(documentContext);
 
-        var endpoint = new DefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
+        var endpoint = new DefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, languageServer, LoggerFactory);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
         var request = new TextDocumentPositionParams

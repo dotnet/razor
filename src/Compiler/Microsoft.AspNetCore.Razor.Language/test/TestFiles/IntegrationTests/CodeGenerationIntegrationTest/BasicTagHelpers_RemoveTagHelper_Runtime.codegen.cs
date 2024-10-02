@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"3c3f70086ebb07abc64ab51a5ec8d70be530fb87bb11790ef3989464e5532b55", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers_RemoveTagHelper.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"3c3f70086ebb07abc64ab51a5ec8d70be530fb87bb11790ef3989464e5532b55", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers_RemoveTagHelper.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_BasicTagHelpers_RemoveTagHelper_Runtime
     {
         private static readonly global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute __tagHelperAttribute_0 = new global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute("type", "text", global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -83,13 +83,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
                 __tagHelperExecutionContext.AddTagHelperAttribute(__tagHelperAttribute_1);
                 __TestNamespace_InputTagHelper2.Type = (string)__tagHelperAttribute_1.Value;
                 __tagHelperExecutionContext.AddTagHelperAttribute(__tagHelperAttribute_1);
+                __TestNamespace_InputTagHelper2.Checked = 
 #nullable restore
-#line 8 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers_RemoveTagHelper.cshtml"
-__TestNamespace_InputTagHelper2.Checked = true;
+#line (8,41)-(8,45) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers_RemoveTagHelper.cshtml"
+true
 
 #line default
 #line hidden
 #nullable disable
+                ;
                 __tagHelperExecutionContext.AddTagHelperAttribute("checked", __TestNamespace_InputTagHelper2.Checked, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
                 await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
                 if (!__tagHelperExecutionContext.Output.IsContentModified)

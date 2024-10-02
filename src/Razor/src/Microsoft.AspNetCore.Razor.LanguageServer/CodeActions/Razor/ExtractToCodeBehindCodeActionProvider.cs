@@ -13,9 +13,9 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -23,9 +23,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionProvider
 {
     private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
-    private readonly ILogger<ExtractToCodeBehindCodeActionProvider> _logger;
+    private readonly ILogger _logger;
 
-    public ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactory)
+    public ExtractToCodeBehindCodeActionProvider(IRazorLoggerFactory loggerFactory)
     {
         if (loggerFactory is null)
         {

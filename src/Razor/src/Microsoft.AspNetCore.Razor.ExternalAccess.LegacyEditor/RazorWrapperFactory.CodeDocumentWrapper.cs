@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.LegacyEditor.Razor.Indentation;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
@@ -27,7 +27,9 @@ internal static partial class RazorWrapperFactory
                     ConvertSourceSpan(item.BlockSpan),
                     (SpanKind)item.SpanKind,
                     (BlockKind)item.BlockKind,
+#pragma warning disable CS0618 // Type or member is obsolete
                     (AcceptedCharacters)item.AcceptedCharacters));
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             return builder.DrainToImmutable();

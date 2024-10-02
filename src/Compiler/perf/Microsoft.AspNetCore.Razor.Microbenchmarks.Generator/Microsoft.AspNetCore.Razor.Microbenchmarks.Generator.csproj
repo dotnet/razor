@@ -24,11 +24,13 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
+    <PackageReference Include="System.Formats.Asn1" />
   </ItemGroup>
 
   <!-- Reference the local source generator when building in regular configurations -->
   <ItemGroup Condition="'$(Configuration)' != 'Release_Nuget'">
-    <ProjectReference Include="..\..\Microsoft.NET.Sdk.Razor.SourceGenerators\Microsoft.NET.Sdk.Razor.SourceGenerators.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
   </ItemGroup>
 
   <!-- Grab the nuget package and reference its generator when building in Release_Nuget  -->

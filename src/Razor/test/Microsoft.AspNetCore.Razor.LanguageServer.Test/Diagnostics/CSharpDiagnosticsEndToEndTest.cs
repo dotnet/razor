@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+#if !NET
+using System.Collections.Generic;
+#endif
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,13 +18,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-public class CSharpDiagnosticsEndToEndTest : SingleServerDelegatingEndpointTestBase
+public class CSharpDiagnosticsEndToEndTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public CSharpDiagnosticsEndToEndTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle()
     {
@@ -63,12 +60,12 @@ public class CSharpDiagnosticsEndToEndTest : SingleServerDelegatingEndpointTestB
         var sourceText = codeDocument.GetSourceText();
         var razorFilePath = "file://C:/path/test.razor";
         var uri = new Uri(razorFilePath);
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var requestContext = new RazorRequestContext(documentContext, Logger, null!);
+        var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
 
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(DocumentMappingService, LoggerFactory);
-        var diagnosticsEndPoint = new DocumentPullDiagnosticsEndpoint(LanguageServerFeatureOptions, translateDiagnosticsService, LanguageServer, telemetryReporter: null);
+        var diagnosticsEndPoint = new DocumentPullDiagnosticsEndpoint(LanguageServerFeatureOptions, translateDiagnosticsService, languageServer, telemetryReporter: null);
 
         var diagnosticsRequest = new VSInternalDocumentDiagnosticsParams
         {

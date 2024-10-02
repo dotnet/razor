@@ -5,7 +5,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"911da9fbec044f6d3567d334c5ef47d9311c69940873e9ceb6ba007b65164b71", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelperWithNewlineBeforeAttributes.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"911da9fbec044f6d3567d334c5ef47d9311c69940873e9ceb6ba007b65164b71", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelperWithNewlineBeforeAttributes.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_SingleTagHelperWithNewlineBeforeAttributes_Runtime
     {
         private static readonly global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute __tagHelperAttribute_0 = new global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute("class", new global::Microsoft.AspNetCore.Html.HtmlString("Hello World"), global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -41,13 +41,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
             __TestNamespace_PTagHelper = CreateTagHelper<global::TestNamespace.PTagHelper>();
             __tagHelperExecutionContext.Add(__TestNamespace_PTagHelper);
             __tagHelperExecutionContext.AddHtmlAttribute(__tagHelperAttribute_0);
+            __TestNamespace_PTagHelper.Age = 
 #nullable restore
-#line 4 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelperWithNewlineBeforeAttributes.cshtml"
-__TestNamespace_PTagHelper.Age = 1337;
+#line (4,29)-(4,33) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleTagHelperWithNewlineBeforeAttributes.cshtml"
+1337
 
 #line default
 #line hidden
 #nullable disable
+            ;
             __tagHelperExecutionContext.AddTagHelperAttribute("age", __TestNamespace_PTagHelper.Age, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
             await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
             if (!__tagHelperExecutionContext.Output.IsContentModified)

@@ -6,6 +6,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
@@ -16,6 +21,57 @@ internal abstract class TagHelperTooltipFactoryBase
     private static readonly Regex s_crefRegex = new Regex($"""<(?:see|seealso)[\s]+cref="(?<{TagContentGroupName}>[^">]+)"[^>]*>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     private static readonly IReadOnlyList<char> s_newLineChars = new char[] { '\n', '\r' };
+
+    private readonly ISnapshotResolver _snapshotResolver;
+
+    protected TagHelperTooltipFactoryBase(ISnapshotResolver snapshotResolver)
+    {
+        _snapshotResolver = snapshotResolver;
+    }
+
+    internal async Task<string?> GetProjectAvailabilityAsync(string documentFilePath, string tagHelperTypeName, CancellationToken cancellationToken)
+    {
+        if (!_snapshotResolver.TryResolveAllProjects(documentFilePath, out var projectSnapshots))
+        {
+            return null;
+        }
+
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+        foreach (var project in projectSnapshots)
+        {
+            var found = false;
+            var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var tagHelper in tagHelpers)
+            {
+                if (tagHelper.GetTypeName() == tagHelperTypeName)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                if (builder.Length == 0)
+                {
+                    builder.AppendLine();
+                    builder.Append($"⚠️ {SR.Not_Available_In}:");
+                }
+
+                builder.AppendLine();
+                builder.Append("    ");
+                builder.Append(project.DisplayName);
+            }
+        }
+
+        if (builder.Length == 0)
+        {
+            return null;
+        }
+
+        return builder.ToString();
+    }
 
     // Internal for testing
     internal static string ReduceCrefValue(string value)

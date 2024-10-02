@@ -3,9 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -16,45 +20,22 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 // Similar to the DocumentProvider in dotnet/Roslyn - but simplified quite a bit to remove
 // concepts that we don't need. Responsible for providing data about text changes for documents
 // and editor open/closed state.
-internal class VisualStudioEditorDocumentManager : EditorDocumentManagerBase
+[Export(typeof(IEditorDocumentManager))]
+[method: ImportingConstructor]
+internal sealed class VisualStudioEditorDocumentManager(
+    SVsServiceProvider serviceProvider,
+    IVsEditorAdaptersFactoryService editorAdaptersFactory,
+    IFileChangeTrackerFactory fileChangeTrackerFactory,
+    ProjectSnapshotManagerDispatcher dispatcher,
+    JoinableTaskContext joinableTaskContext) : EditorDocumentManager(fileChangeTrackerFactory, dispatcher, joinableTaskContext)
 {
-    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory = editorAdaptersFactory;
 
-    private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-
-    private readonly Dictionary<uint, List<DocumentKey>> _documentsByCookie;
-    private readonly Dictionary<DocumentKey, uint> _cookiesByDocument;
+    private readonly Dictionary<uint, List<DocumentKey>> _documentsByCookie = [];
+    private readonly Dictionary<DocumentKey, uint> _cookiesByDocument = [];
+    private IVsRunningDocumentTable4? _runningDocumentTable;
     private bool _advised;
-
-    public VisualStudioEditorDocumentManager(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        JoinableTaskContext joinableTaskContext,
-        FileChangeTrackerFactory fileChangeTrackerFactory,
-        IVsRunningDocumentTable runningDocumentTable,
-        IVsEditorAdaptersFactoryService editorAdaptersFactory)
-        : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)
-    {
-        if (runningDocumentTable is null)
-        {
-            throw new ArgumentNullException(nameof(runningDocumentTable));
-        }
-
-        if (editorAdaptersFactory is null)
-        {
-            throw new ArgumentNullException(nameof(editorAdaptersFactory));
-        }
-
-        if (fileChangeTrackerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
-        }
-
-        _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
-        _editorAdaptersFactory = editorAdaptersFactory;
-
-        _documentsByCookie = new Dictionary<uint, List<DocumentKey>>();
-        _cookiesByDocument = new Dictionary<DocumentKey, uint>();
-    }
 
     protected override ITextBuffer? GetTextBufferForOpenDocument(string filePath)
     {
@@ -203,7 +184,7 @@ internal class VisualStudioEditorDocumentManager : EditorDocumentManagerBase
             // `Remove` can correctly handle the case when the incoming value is null without any exceptions.
             // The method is just not properly annotated for it,
             // so we can suppress the warning here
-            filePaths.Remove(exceptFilePath!); 
+            filePaths.Remove(exceptFilePath!);
 
             foreach (var filePath in filePaths)
             {
@@ -240,9 +221,14 @@ internal class VisualStudioEditorDocumentManager : EditorDocumentManagerBase
         }
     }
 
+    [MemberNotNull(nameof(_runningDocumentTable))]
     private void EnsureDocumentTableAdvised()
     {
         JoinableTaskContext.AssertUIThread();
+
+        // Note: Because it is a COM interface, we defer retrieving IVsRunningDocumentTable until
+        // now to avoid implicitly marshalling to the UI thread, which can deadlock.
+        _runningDocumentTable ??= _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(throwOnFailure: true).AssumeNotNull();
 
         if (!_advised)
         {

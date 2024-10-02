@@ -8,11 +8,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -774,7 +775,10 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
-        var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
+        var addTagHelper = $"""
+            @addTagHelper *, TestAssembly
+            
+            """;
         var codeDocument = CreateCodeDocument(
             $"{addTagHelper}<button></button>",
             ImmutableArray.Create(GetButtonTagHelperDescriptor().Build()));
@@ -803,7 +807,10 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("C:/path/to/document.cshtml");
-        var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
+        var addTagHelper = $"""
+            @addTagHelper *, TestAssembly
+            
+            """;
         var codeDocument = CreateCodeDocument(
             $"{addTagHelper}<button></button>",
             ImmutableArray.Create(GetButtonTagHelperDescriptor().Build()));
@@ -910,7 +917,10 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
 
         var descriptor = GetButtonTagHelperDescriptor();
 
-        var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
+        var addTagHelper = $"""
+            @addTagHelper *, TestAssembly
+            
+            """;
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             $"{addTagHelper}<button onactivate=\"Send\" disabled=\"@(Something)\">Hi</button>",
             $"var __o = Send;var __o = Something;",
@@ -932,8 +942,8 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
             Kind = RazorLanguageKind.Html,
             Diagnostics = new[]
             {
-                new VSDiagnostic() { Range = new Range { Start = new Position(0, addTagHelper.Length + 20),End =  new Position(0, addTagHelper.Length + 25)} },
-                new VSDiagnostic() { Range = new Range { Start = new Position(0, addTagHelper.Length + 38),End =  new Position(0, addTagHelper.Length + 47)} }
+                new VSDiagnostic() { Range = new Range { Start = new Position(1, 20),End =  new Position(1, 25)} },
+                new VSDiagnostic() { Range = new Range { Start = new Position(1, 38),End =  new Position(1, 47)} }
             },
             RazorDocumentUri = documentPath,
         };
@@ -1206,7 +1216,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
             projectedCSharpSource,
             RazorCodeGenerationOptions.CreateDefault(),
             Enumerable.Empty<RazorDiagnostic>(),
-            sourceMappings,
+            sourceMappings.ToImmutableArray(),
             Enumerable.Empty<LinePragma>());
         codeDocument.SetCSharpDocument(csharpDocument);
         return codeDocument;
@@ -1216,7 +1226,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         public TestRazorDiagnosticsServiceWithRazorDiagnostic(
             IRazorDocumentMappingService documentMappingService,
-            ILoggerFactory loggerFactory)
+            IRazorLoggerFactory loggerFactory)
             : base(documentMappingService, loggerFactory)
         {
         }
@@ -1231,7 +1241,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         public TestRazorDiagnosticsServiceWithoutRazorDiagnostic(
             IRazorDocumentMappingService documentMappingService,
-            ILoggerFactory loggerFactory)
+            IRazorLoggerFactory loggerFactory)
             : base(documentMappingService, loggerFactory)
         {
         }

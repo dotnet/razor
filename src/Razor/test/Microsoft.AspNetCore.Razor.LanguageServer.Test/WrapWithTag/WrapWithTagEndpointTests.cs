@@ -7,10 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -18,13 +20,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 
-public class WrapWithTagEndpointTest : LanguageServerTestBase
+public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    public WrapWithTagEndpointTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_Html_ReturnsResult()
     {
@@ -34,16 +31,17 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var response = new WrapWithTagResponse();
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
         var endpoint = new WrapWithTagEndpoint(
-            languageServer.Object,
-            documentMappingService);
+            clientConnection.Object,
+            documentMappingService,
+            LoggerFactory);
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
@@ -56,7 +54,7 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.NotNull(result);
-        languageServer.Verify();
+        clientConnection.Verify();
     }
 
     [Fact]
@@ -68,16 +66,17 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var response = new WrapWithTagResponse();
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp, MockBehavior.Strict);
         var endpoint = new WrapWithTagEndpoint(
-            languageServer.Object,
-            documentMappingService);
+            clientConnection.Object,
+            documentMappingService,
+            LoggerFactory);
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
@@ -90,7 +89,7 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.Null(result);
-        languageServer.Verify();
+        clientConnection.Verify();
     }
 
     [Fact]
@@ -102,16 +101,17 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var response = new WrapWithTagResponse();
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp, MockBehavior.Strict);
         var endpoint = new WrapWithTagEndpoint(
-            languageServer.Object,
-            documentMappingService);
+            clientConnection.Object,
+            documentMappingService,
+            LoggerFactory);
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
@@ -124,7 +124,7 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.NotNull(result);
-        languageServer.Verify();
+        clientConnection.Verify();
     }
 
     [Fact]
@@ -136,16 +136,17 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var response = new WrapWithTagResponse();
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp, MockBehavior.Strict);
         var endpoint = new WrapWithTagEndpoint(
-            languageServer.Object,
-            documentMappingService);
+            clientConnection.Object,
+            documentMappingService,
+            LoggerFactory);
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
@@ -158,7 +159,7 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.Null(result);
-        languageServer.Verify();
+        clientConnection.Verify();
     }
 
     [Fact]
@@ -170,16 +171,17 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var response = new WrapWithTagResponse();
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        clientConnection
             .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp, MockBehavior.Strict);
         var endpoint = new WrapWithTagEndpoint(
-            languageServer.Object,
-            documentMappingService);
+            clientConnection.Object,
+            documentMappingService,
+            LoggerFactory);
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
@@ -192,7 +194,7 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.NotNull(result);
-        languageServer.Verify();
+        clientConnection.Verify();
     }
 
     [Fact]
@@ -203,11 +205,11 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
         var realUri = new Uri("file://path/test.razor");
         var missingUri = new Uri("file://path/nottest.razor");
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
-        var endpoint = new WrapWithTagEndpoint(languageServer.Object, documentMappingService);
+        var endpoint = new WrapWithTagEndpoint(clientConnection.Object, documentMappingService, LoggerFactory);
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = missingUri })
         {
@@ -231,11 +233,11 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
-        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
 
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
-        var endpoint = new WrapWithTagEndpoint(languageServer.Object, documentMappingService);
+        var endpoint = new WrapWithTagEndpoint(clientConnection.Object, documentMappingService, LoggerFactory);
 
         var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
         {
@@ -274,21 +276,21 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         var computedEdits = new TextEdit[]
         {
-                new TextEdit
-                {
-                    NewText="<div>\r\n    ",
-                    Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
-                },
-                new TextEdit
-                {
-                    NewText="    ",
-                    Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
-                },
-                new TextEdit
-                {
-                    NewText="    }\r\n</div>",
-                    Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
-                }
+            new()
+            {
+                NewText="<div>" + Environment.NewLine + "    ",
+                Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
+            },
+            new()
+            {
+                NewText="    ",
+                Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
+            },
+            new()
+            {
+                NewText="    }" + Environment.NewLine + "</div>",
+                Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
+            }
         };
 
         var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
@@ -324,22 +326,22 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         var computedEdits = new TextEdit[]
         {
-                new TextEdit
-                {
-                    NewText="<div>\r\n    ",
-                    Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
-                },
-                new TextEdit
-                {
-                    NewText="    ",
-                    Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
-                },
-                new TextEdit
-                {
-                    // This is the problematic edit.. the close brace has been replaced with a tilde
-                    NewText="    ~\r\n</div>",
-                    Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
-                }
+            new()
+            {
+                NewText="<div>" + Environment.NewLine + "    ",
+                Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
+            },
+            new()
+            {
+                NewText="    ",
+                Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
+            },
+            new()
+            {
+                // This is the problematic edit.. the close brace has been replaced with a tilde
+                NewText="    ~" + Environment.NewLine + "</div>",
+                Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
+            }
         };
 
         var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
@@ -375,22 +377,22 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         var computedEdits = new TextEdit[]
         {
-                new TextEdit
-                {
-                    NewText="<div>\r\n    ",
-                    Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
-                },
-                new TextEdit
-                {
-                    NewText="    ",
-                    Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
-                },
-                new TextEdit
-                {
-                    // This looks like a bad edit, but the original source document had a tilde
-                    NewText="    ~\r\n</div>",
-                    Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
-                }
+            new()
+            {
+                NewText="<div>" + Environment.NewLine + "    ",
+                Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
+            },
+            new()
+            {
+                NewText="    ",
+                Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
+            },
+            new()
+            {
+                // This looks like a bad edit, but the original source document had a tilde
+                NewText="    ~" + Environment.NewLine + "</div>",
+                Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
+            }
         };
 
         var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);

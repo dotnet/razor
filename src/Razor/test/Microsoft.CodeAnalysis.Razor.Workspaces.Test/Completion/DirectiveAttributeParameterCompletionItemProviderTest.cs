@@ -4,21 +4,19 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-public class DirectiveAttributeParameterCompletionItemProviderTest : RazorIntegrationTestBase
+public class DirectiveAttributeParameterCompletionItemProviderTest : RazorToolingIntegrationTestBase
 {
     private readonly DirectiveAttributeParameterCompletionItemProvider _provider;
     private readonly TagHelperDocumentContext _defaultTagHelperDocumentContext;
-    private readonly IEnumerable<string> _emptyAttributes;
 
     internal override string FileKind => FileKinds.Component;
     internal override bool UseTwoPhaseCompilation => true;
@@ -26,8 +24,7 @@ public class DirectiveAttributeParameterCompletionItemProviderTest : RazorIntegr
     public DirectiveAttributeParameterCompletionItemProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _provider = new DirectiveAttributeParameterCompletionItemProvider(new TagHelperFactsService());
-        _emptyAttributes = Enumerable.Empty<string>();
+        _provider = new DirectiveAttributeParameterCompletionItemProvider();
 
         // Most of these completions rely on stuff in the web namespace.
         ImportItems.Add(CreateProjectItem(
@@ -42,19 +39,6 @@ public class DirectiveAttributeParameterCompletionItemProviderTest : RazorIntegr
     {
         var result = CompileToCSharp(content, throwOnFailure: false);
         return result.CodeDocument;
-    }
-
-    [Fact]
-    public void GetCompletionItems_LocationHasNoOwner_ReturnsEmptyCollection()
-    {
-        // Arrange
-        var context = CreateRazorCompletionContext(absoluteIndex: 30, "<input @  />");
-
-        // Act
-        var completions = _provider.GetCompletionItems(context);
-
-        // Assert
-        Assert.Empty(completions);
     }
 
     [Fact]
@@ -106,10 +90,10 @@ public class DirectiveAttributeParameterCompletionItemProviderTest : RazorIntegr
     public void GetAttributeParameterCompletions_NoDescriptorsForTag_ReturnsEmptyCollection()
     {
         // Arrange
-        var documentContext = TagHelperDocumentContext.Create(string.Empty, Enumerable.Empty<TagHelperDescriptor>());
+        var documentContext = TagHelperDocumentContext.Create(string.Empty, tagHelpers: []);
 
         // Act
-        var completions = _provider.GetAttributeParameterCompletions("@bin", string.Empty, "foobarbaz", _emptyAttributes, documentContext);
+        var completions = _provider.GetAttributeParameterCompletions("@bin", string.Empty, "foobarbaz", [], documentContext);
 
         // Assert
         Assert.Empty(completions);
@@ -122,10 +106,10 @@ public class DirectiveAttributeParameterCompletionItemProviderTest : RazorIntegr
         var descriptor = TagHelperDescriptorBuilder.Create("CatchAll", "TestAssembly");
         descriptor.BoundAttributeDescriptor(boundAttribute => boundAttribute.Name = "Test");
         descriptor.TagMatchingRule(rule => rule.RequireTagName("*"));
-        var documentContext = TagHelperDocumentContext.Create(string.Empty, new[] { descriptor.Build() });
+        var documentContext = TagHelperDocumentContext.Create(string.Empty, [descriptor.Build()]);
 
         // Act
-        var completions = _provider.GetAttributeParameterCompletions("@bin", string.Empty, "input", _emptyAttributes, documentContext);
+        var completions = _provider.GetAttributeParameterCompletions("@bin", string.Empty, "input", [], documentContext);
 
         // Assert
         Assert.Empty(completions);
@@ -135,7 +119,7 @@ public class DirectiveAttributeParameterCompletionItemProviderTest : RazorIntegr
     public void GetAttributeParameterCompletions_SelectedDirectiveAttributeParameter_IsExcludedInCompletions()
     {
         // Arrange
-        var attributeNames = new string[] { "@bind" };
+        var attributeNames = ImmutableArray.Create("@bind");
 
         // Act
         var completions = _provider.GetAttributeParameterCompletions("@bind", "format", "input", attributeNames, _defaultTagHelperDocumentContext);
@@ -150,7 +134,7 @@ public class DirectiveAttributeParameterCompletionItemProviderTest : RazorIntegr
         // Arrange
 
         // Act
-        var completions = _provider.GetAttributeParameterCompletions("@bind", string.Empty, "input", _emptyAttributes, _defaultTagHelperDocumentContext);
+        var completions = _provider.GetAttributeParameterCompletions("@bind", string.Empty, "input", [], _defaultTagHelperDocumentContext);
 
         // Assert
         AssertContains(completions, "format");
@@ -160,13 +144,11 @@ public class DirectiveAttributeParameterCompletionItemProviderTest : RazorIntegr
     public void GetAttributeParameterCompletions_BaseDirectiveAttributeAndParameterVariationsExist_ExcludesCompletion()
     {
         // Arrange
-        var attributeNames = new[]
-        {
+        var attributeNames = ImmutableArray.Create(
             "@bind",
             "@bind:format",
             "@bind:event",
-            "@",
-        };
+            "@");
 
         // Act
         var completions = _provider.GetAttributeParameterCompletions("@bind", string.Empty, "input", attributeNames, _defaultTagHelperDocumentContext);
@@ -196,8 +178,8 @@ public class DirectiveAttributeParameterCompletionItemProviderTest : RazorIntegr
         var syntaxTree = codeDocument.GetSyntaxTree();
         var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
-        var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
-        var owner = syntaxTree.Root.LocateOwner(queryableChange);
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);
+        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
         return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
     }
 }

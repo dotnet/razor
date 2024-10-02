@@ -7,8 +7,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -40,9 +41,9 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
     private static readonly ImmutableHashSet<string> s_voidElementsCaseSensitive = s_voidElements.WithComparer(StringComparer.Ordinal);
 
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
-    private readonly ILogger<IOnAutoInsertProvider> _logger;
+    private readonly ILogger _logger;
 
-    public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, ILoggerFactory loggerFactory)
+    public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, IRazorLoggerFactory loggerFactory)
     {
         if (optionsMonitor is null)
         {
@@ -145,12 +146,12 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         if (closeAngle.Parent is MarkupTagHelperStartTagSyntax
             {
                 ForwardSlash: null,
-                Parent: MarkupTagHelperElementSyntax tagHelperElement
+                Parent: MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding } tagHelperElement
             } startTagHelper)
         {
             name = startTagHelper.Name.Content;
 
-            if (!TryGetTagHelperAutoClosingBehavior(tagHelperElement.TagHelperInfo.BindingResult, out autoClosingBehavior))
+            if (!TryGetTagHelperAutoClosingBehavior(binding, out autoClosingBehavior))
             {
                 autoClosingBehavior = InferAutoClosingBehavior(name, caseSensitive: true);
             }
@@ -189,11 +190,9 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
         foreach (var descriptor in bindingResult.Descriptors)
         {
-            var tagMatchingRules = bindingResult.GetBoundRules(descriptor);
-            for (var i = 0; i < tagMatchingRules.Count; i++)
+            var tagMatchingRules = bindingResult.Mappings[descriptor];
+            foreach (var tagMatchingRule in tagMatchingRules)
             {
-                var tagMatchingRule = tagMatchingRules[i];
-
                 if (tagMatchingRule.TagStructure == TagStructure.Unspecified)
                 {
                     // The current tag matching rule isn't specified so it should never be used as the resolved tag structure since it

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Exports;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -16,7 +17,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var trace = Trace.Messages;
+        var logLevel = LogLevel.Information;
         var telemetryLevel = string.Empty;
         var sessionId = string.Empty;
         var telemetryExtensionPath = string.Empty;
@@ -45,13 +46,13 @@ public class Program
                 continue;
             }
 
-            if (args[i] == "--trace" && i + 1 < args.Length)
+            if (args[i] == "--logLevel" && i + 1 < args.Length)
             {
-                var traceArg = args[++i];
-                if (!Enum.TryParse(traceArg, out trace))
+                var logLevelArg = args[++i];
+                if (!Enum.TryParse(logLevelArg, out logLevel))
                 {
-                    trace = Trace.Messages;
-                    await Console.Error.WriteLineAsync($"Invalid Razor trace '{traceArg}'. Defaulting to {trace}.").ConfigureAwait(true);
+                    logLevel = LogLevel.Information;
+                    await Console.Error.WriteLineAsync($"Invalid Razor log level '{logLevelArg}'. Defaulting to {logLevel}.").ConfigureAwait(true);
                 }
             }
 
@@ -73,27 +74,55 @@ public class Program
 
         var languageServerFeatureOptions = new ConfigurableLanguageServerFeatureOptions(args);
 
-        ITelemetryReporter? devKitTelemetryReporter = null;
-        if (!telemetryExtensionPath.IsNullOrEmpty())
-        {
-            using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(
-              telemetryExtensionPath).ConfigureAwait(true);
+        var devKitTelemetryReporter = await TryGetTelemetryReporterAsync(telemetryLevel, sessionId, telemetryExtensionPath).ConfigureAwait(true);
 
-            // Initialize the telemetry reporter if available
-            devKitTelemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
-            devKitTelemetryReporter?.InitializeSession(telemetryLevel, sessionId, isDefaultSession: true);
-        }
+        // Have to create a logger factory to give to the server, but can't create any logger providers until we have
+        // a server.
+        var loggerFactory = new LoggerFactory([]);
 
-        var logger = new LspLogger(trace);
         var server = RazorLanguageServerWrapper.Create(
             Console.OpenStandardInput(),
             Console.OpenStandardOutput(),
-            logger,
+            loggerFactory,
             devKitTelemetryReporter ?? NoOpTelemetryReporter.Instance,
             featureOptions: languageServerFeatureOptions);
 
-        logger.LogInformation("Razor Language Server started successfully.");
+        // Now we have a server, and hence a connection, we have somewhere to log
+        var clientConnection = server.GetRequiredService<IClientConnection>();
+        var loggerProvider = new LoggerProvider(logLevel, clientConnection);
+        loggerFactory.AddLoggerProvider(loggerProvider);
+
+        loggerFactory.CreateLogger("RZLS").LogInformation("Razor Language Server started successfully.");
 
         await server.WaitForExitAsync().ConfigureAwait(true);
+    }
+
+    private static async Task<ITelemetryReporter?> TryGetTelemetryReporterAsync(string telemetryLevel, string sessionId, string telemetryExtensionPath)
+    {
+        ITelemetryReporter? devKitTelemetryReporter = null;
+        if (!telemetryExtensionPath.IsNullOrEmpty())
+        {
+            try
+            {
+                using var exportProvider = await ExportProviderBuilder
+                    .CreateExportProviderAsync(telemetryExtensionPath)
+                    .ConfigureAwait(true);
+
+                // Initialize the telemetry reporter if available
+                devKitTelemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
+
+                if (devKitTelemetryReporter is ITelemetryReporterInitializer initializer)
+                {
+                    initializer.InitializeSession(telemetryLevel, sessionId, isDefaultSession: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Console.Error.WriteLineAsync($"Failed to load telemetry extension in {telemetryExtensionPath}.").ConfigureAwait(true);
+                await Console.Error.WriteLineAsync(ex.ToString()).ConfigureAwait(true);
+            }
+        }
+
+        return devKitTelemetryReporter;
     }
 }

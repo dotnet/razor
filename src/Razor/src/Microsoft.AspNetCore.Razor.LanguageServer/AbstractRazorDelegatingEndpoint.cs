@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -20,18 +22,18 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IClientConnection _clientConnection;
     protected readonly ILogger Logger;
 
     protected AbstractRazorDelegatingEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
+        IClientConnection clientConnection,
         ILogger logger)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-        _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
 
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -53,7 +55,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
 
     /// <summary>
     /// The name of the endpoint to delegate to, from <see cref="CustomMessageNames"/>. This is the
-    /// custom endpoint that is sent via <see cref="ClientNotifierServiceBase"/> which returns
+    /// custom endpoint that is sent via <see cref="IClientConnection"/> which returns
     /// a response by delegating to C#/HTML.
     /// </summary>
     /// <remarks>
@@ -110,7 +112,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             return default;
         }
 
-        var positionInfo = await DocumentPositionInfoStrategy.TryGetPositionInfoAsync(_documentMappingService, documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
+        var positionInfo = await DocumentPositionInfoStrategy.TryGetPositionInfoAsync(_documentMappingService, documentContext, request.Position, Logger, cancellationToken).ConfigureAwait(false);
         if (positionInfo is null)
         {
             return default;
@@ -158,7 +160,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         TResponse? delegatedRequest;
         try
         {
-            delegatedRequest = await _languageServer.SendRequestAsync<IDelegatedParams, TResponse>(CustomMessageTarget, delegatedParams, cancellationToken).ConfigureAwait(false);
+            delegatedRequest = await _clientConnection.SendRequestAsync<IDelegatedParams, TResponse>(CustomMessageTarget, delegatedParams, cancellationToken).ConfigureAwait(false);
             if (delegatedRequest is null)
             {
                 return default;
@@ -166,7 +168,8 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         }
         catch (RemoteInvocationException e)
         {
-            requestContext.Logger.LogException(e);
+            Logger.LogError(e, "Error calling delegate server for {method}", CustomMessageTarget);
+            requestContext.GetRequiredService<ITelemetryReporter>().ReportFault(e, "Error calling delegate server for {method}", CustomMessageTarget);
             throw;
         }
 

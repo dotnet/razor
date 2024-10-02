@@ -5,19 +5,20 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"af161186fc847e3b1cff0dd7b9c1f0535ff384409c6559dbf0799a8c3407d342", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpressionInCode.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"af161186fc847e3b1cff0dd7b9c1f0535ff384409c6559dbf0799a8c3407d342", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpressionInCode.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EmptyImplicitExpressionInCode_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
+            Write(
 #nullable restore
-#line (2,6)-(2,6) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpressionInCode.cshtml"
-Write();
+#line (2,6)-(2,6) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyImplicitExpressionInCode.cshtml"
 
 #line default
 #line hidden
 #nullable disable
+            );
         }
         #pragma warning restore 1998
     }

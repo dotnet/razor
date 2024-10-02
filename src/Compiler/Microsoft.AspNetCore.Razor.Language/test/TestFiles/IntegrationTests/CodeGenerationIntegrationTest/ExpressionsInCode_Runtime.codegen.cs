@@ -5,77 +5,87 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"c9cc7d097735e4074bc4f71cd46101fc821fdb0592f90d491f09fdecddf3caf3", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"c9cc7d097735e4074bc4f71cd46101fc821fdb0592f90d491f09fdecddf3caf3", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ExpressionsInCode_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
-  
+#line (1,3)-(4,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+
     object foo = null;
     string bar = "Foo";
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("\r\n");
 #nullable restore
-#line 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
- if(foo != null) {
+#line (6,2)-(7,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+if(foo != null) {
     
 
 #line default
 #line hidden
 #nullable disable
+
+            Write(
 #nullable restore
-#line (7,6)-(7,9) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
-Write(foo);
+#line (7,6)-(7,9) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+foo
 
 #line default
 #line hidden
 #nullable disable
+            );
 #nullable restore
-#line 7 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
-        
+#line (7,9)-(9,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+
 } else {
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("    <p>Foo is Null!</p>\r\n");
 #nullable restore
-#line 10 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+#line (10,1)-(11,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
 }
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("\r\n<p>\r\n");
 #nullable restore
-#line 13 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
- if(!String.IsNullOrEmpty(bar)) {
+#line (13,2)-(14,5) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+if(!String.IsNullOrEmpty(bar)) {
     
 
 #line default
 #line hidden
 #nullable disable
+
+            Write(
 #nullable restore
-#line (14,7)-(14,28) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
-Write(bar.Replace("F", "B"));
+#line (14,7)-(14,28) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+bar.Replace("F", "B")
 
 #line default
 #line hidden
 #nullable disable
+            );
 #nullable restore
-#line 14 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
-                            
+#line (14,29)-(16,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExpressionsInCode.cshtml"
+
 }
 
 #line default
 #line hidden
 #nullable disable
+
             WriteLiteral("</p>");
         }
         #pragma warning restore 1998

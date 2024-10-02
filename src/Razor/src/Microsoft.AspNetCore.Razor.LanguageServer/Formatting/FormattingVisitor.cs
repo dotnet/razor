@@ -9,7 +9,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
@@ -81,7 +82,7 @@ internal class FormattingVisitor : SyntaxWalker
                 _isInClassBody = false;
             }
 
-            if (!(node.Parent is RazorDirectiveBodySyntax))
+            if (node.Parent is not RazorDirectiveBodySyntax)
             {
                 _currentRazorIndentationLevel--;
             }
@@ -154,7 +155,7 @@ internal class FormattingVisitor : SyntaxWalker
     {
         WriteBlock(node, FormattingBlockKind.Tag, n =>
         {
-            var children = GetRewrittenMarkupStartTagChildren(node);
+            var children = SyntaxUtilities.GetRewrittenMarkupStartTagChildren(node);
             foreach (var child in children)
             {
                 Visit(child);
@@ -166,7 +167,8 @@ internal class FormattingVisitor : SyntaxWalker
     {
         WriteBlock(node, FormattingBlockKind.Tag, n =>
         {
-            var children = GetRewrittenMarkupEndTagChildren(node);
+            var children = SyntaxUtilities.GetRewrittenMarkupEndTagChildren(node);
+
             foreach (var child in children)
             {
                 Visit(child);
@@ -213,20 +215,8 @@ internal class FormattingVisitor : SyntaxWalker
 
         static bool IsComponentTagHelperNode(MarkupTagHelperElementSyntax node)
         {
-            var tagHelperInfo = node.TagHelperInfo;
-
-            if (tagHelperInfo is null)
-            {
-                return false;
-            }
-
-            var descriptors = tagHelperInfo.BindingResult?.Descriptors;
-            if (descriptors is null)
-            {
-                return false;
-            }
-
-            return descriptors.Any(d => d.IsComponentOrChildContentTagHelper());
+            return node.TagHelperInfo?.BindingResult?.Descriptors is { Length: > 0 } descriptors &&
+                   descriptors.Any(static d => d.IsComponentOrChildContentTagHelper);
         }
 
         static bool ParentHasProperty(MarkupTagHelperElementSyntax parentComponent, string? propertyName)
@@ -264,22 +254,14 @@ internal class FormattingVisitor : SyntaxWalker
 
         static bool HasUnspecifiedCascadingTypeParameter(MarkupTagHelperElementSyntax node)
         {
-            var tagHelperInfo = node.TagHelperInfo;
-
-            if (tagHelperInfo is null)
-            {
-                return false;
-            }
-
-            var descriptors = tagHelperInfo.BindingResult?.Descriptors;
-            if (descriptors is null)
+            if (node.TagHelperInfo?.BindingResult?.Descriptors is not { Length: > 0 } descriptors)
             {
                 return false;
             }
 
             // A cascading type parameter will mean the generated code will get a TypeInference class generated
             // for it, which we need to account for with an extra level of indentation in our expected C# indentation
-            var hasCascadingGenericParameters = descriptors.Any(d => d.SuppliesCascadingGenericParameters());
+            var hasCascadingGenericParameters = descriptors.Any(static d => d.SuppliesCascadingGenericParameters());
             if (!hasCascadingGenericParameters)
             {
                 return false;
@@ -312,7 +294,7 @@ internal class FormattingVisitor : SyntaxWalker
     {
         WriteBlock(node, FormattingBlockKind.Tag, n =>
         {
-            foreach (var child in n.Children)
+            foreach (var child in n.LegacyChildren)
             {
                 Visit(child);
             }
@@ -323,7 +305,7 @@ internal class FormattingVisitor : SyntaxWalker
     {
         WriteBlock(node, FormattingBlockKind.Tag, n =>
         {
-            foreach (var child in n.Children)
+            foreach (var child in n.LegacyChildren)
             {
                 Visit(child);
             }
@@ -393,7 +375,7 @@ internal class FormattingVisitor : SyntaxWalker
 
     public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
-        if (node.Parent is MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo: { Bound: true } })
+        if (node.Parent is MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo.Bound: true })
         {
             // For @bind attributes we want to pretend that we're in a Html context, so write this span as markup
             WriteSpan(node, FormattingSpanKind.Markup);
@@ -503,85 +485,5 @@ internal class FormattingVisitor : SyntaxWalker
             _currentComponentIndentationLevel);
 
         _spans.Add(span);
-    }
-
-    private static SyntaxList<RazorSyntaxNode> GetRewrittenMarkupStartTagChildren(MarkupStartTagSyntax node)
-    {
-        // Rewrites the children of the start tag to look like the legacy syntax tree.
-        if (node.IsMarkupTransition)
-        {
-            var tokens = node.DescendantNodes().Where(n => n is SyntaxToken token && !token.IsMissing).Cast<SyntaxToken>().ToArray();
-            var tokenBuilder = SyntaxListBuilder<SyntaxToken>.Create();
-            tokenBuilder.AddRange(tokens, 0, tokens.Length);
-            var markupTransition = SyntaxFactory.MarkupTransition(tokenBuilder.ToList(), node.ChunkGenerator).Green.CreateRed(node, node.Position);
-
-            var builder = new SyntaxListBuilder(1);
-            builder.Add(markupTransition);
-            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().CreateRed(node, node.Position));
-        }
-
-        var children = node.Children;
-        var newChildren = new SyntaxListBuilder(children.Count);
-        var literals = new List<MarkupTextLiteralSyntax>();
-        foreach (var child in children)
-        {
-            if (child is MarkupTextLiteralSyntax literal)
-            {
-                literals.Add(literal);
-            }
-            else if (child is MarkupMiscAttributeContentSyntax miscContent)
-            {
-                foreach (var contentChild in miscContent.Children)
-                {
-                    if (contentChild is MarkupTextLiteralSyntax contentLiteral)
-                    {
-                        literals.Add(contentLiteral);
-                    }
-                    else
-                    {
-                        // Pop stack
-                        AddLiteralIfExists();
-                        newChildren.Add(contentChild);
-                    }
-                }
-            }
-            else
-            {
-                AddLiteralIfExists();
-                newChildren.Add(child);
-            }
-        }
-
-        AddLiteralIfExists();
-
-        return new SyntaxList<RazorSyntaxNode>(newChildren.ToListNode().CreateRed(node, node.Position));
-
-        void AddLiteralIfExists()
-        {
-            if (literals.Count > 0)
-            {
-                var mergedLiteral = SyntaxUtilities.MergeTextLiterals(literals.ToArray());
-                literals.Clear();
-                newChildren.Add(mergedLiteral);
-            }
-        }
-    }
-
-    private static SyntaxList<RazorSyntaxNode> GetRewrittenMarkupEndTagChildren(MarkupEndTagSyntax node)
-    {
-        // Rewrites the children of the end tag to look like the legacy syntax tree.
-        if (node.IsMarkupTransition)
-        {
-            var tokens = node.DescendantNodes().Where(n => n is SyntaxToken token && !token.IsMissing).Cast<SyntaxToken>().ToArray();
-            var tokenBuilder = SyntaxListBuilder<SyntaxToken>.Create();
-            tokenBuilder.AddRange(tokens, 0, tokens.Length);
-            var markupTransition = SyntaxFactory.MarkupTransition(tokenBuilder.ToList(), node.ChunkGenerator).Green.CreateRed(node, node.Position);
-
-            var builder = new SyntaxListBuilder(1);
-            builder.Add(markupTransition);
-            return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().CreateRed(node, node.Position));
-        }
-
-        return node.Children;
     }
 }

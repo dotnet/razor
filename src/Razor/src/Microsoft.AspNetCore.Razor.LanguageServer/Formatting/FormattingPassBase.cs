@@ -5,7 +5,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -16,16 +17,16 @@ internal abstract class FormattingPassBase : IFormattingPass
 
     public FormattingPassBase(
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase server)
+        IClientConnection clientConnection)
     {
         if (documentMappingService is null)
         {
             throw new ArgumentNullException(nameof(documentMappingService));
         }
 
-        if (server is null)
+        if (clientConnection is null)
         {
-            throw new ArgumentNullException(nameof(server));
+            throw new ArgumentNullException(nameof(clientConnection));
         }
 
         DocumentMappingService = documentMappingService;

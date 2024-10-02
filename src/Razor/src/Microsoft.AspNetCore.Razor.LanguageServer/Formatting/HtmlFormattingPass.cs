@@ -8,8 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -25,11 +27,11 @@ internal class HtmlFormattingPass : FormattingPassBase
 
     public HtmlFormattingPass(
         IRazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase server,
-        DocumentVersionCache documentVersionCache,
+        IClientConnection clientConnection,
+        IDocumentVersionCache documentVersionCache,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-        ILoggerFactory loggerFactory)
-        : base(documentMappingService, server)
+        IRazorLoggerFactory loggerFactory)
+        : base(documentMappingService, clientConnection)
     {
         if (loggerFactory is null)
         {
@@ -38,7 +40,7 @@ internal class HtmlFormattingPass : FormattingPassBase
 
         _logger = loggerFactory.CreateLogger<HtmlFormattingPass>();
 
-        HtmlFormatter = new HtmlFormatter(server, documentVersionCache);
+        HtmlFormatter = new HtmlFormatter(clientConnection, documentVersionCache);
         _optionsMonitor = optionsMonitor;
     }
 

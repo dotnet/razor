@@ -6,9 +6,10 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
@@ -23,12 +24,10 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         // Arrange
         var codeDocument = CreateComponentDocument($"<TestElement @test='abc' />", DefaultTagHelpers);
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var sourceSpan = new SourceSpan(3, 0);
-        var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
-        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
+        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.FindInnermostNode(3);
 
         // Act
-        var attributes = TagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Assert
         Assert.Collection(
@@ -46,12 +45,10 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         // Arrange
         var codeDocument = CreateComponentDocument($"<TestElement @test:something='abc' />", DefaultTagHelpers);
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var sourceSpan = new SourceSpan(3, 0);
-        var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
-        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
+        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.FindInnermostNode(3);
 
         // Act
-        var attributes = TagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Assert
         Assert.Collection(
@@ -69,12 +66,10 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         // Arrange
         var codeDocument = CreateComponentDocument($"<TestElement @minimized />", DefaultTagHelpers);
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var sourceSpan = new SourceSpan(3, 0);
-        var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
-        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
+        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.FindInnermostNode(3);
 
         // Act
-        var attributes = TagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Assert
         Assert.Collection(
@@ -92,12 +87,10 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         // Arrange
         var codeDocument = CreateComponentDocument($"<TestElement @minimized:something />", DefaultTagHelpers);
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var sourceSpan = new SourceSpan(3, 0);
-        var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
-        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
+        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.FindInnermostNode(3);
 
         // Act
-        var attributes = TagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Assert
         Assert.Collection(
@@ -122,14 +115,15 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
             attribute.TypeName = typeof(bool).FullName;
         });
         tagHelper.SetMetadata(TypeName("WithBoundAttribute"));
-        var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound='true' />", isRazorFile: false, tagHelper.Build());
+        var codeDocument = CreateCodeDocument("""
+            @addTagHelper *, TestAssembly
+            <test bound='true' />
+            """, isRazorFile: false, tagHelper.Build());
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
-        var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
-        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
+        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.FindInnermostNode(30 + Environment.NewLine.Length);
 
         // Act
-        var attributes = TagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Assert
         Assert.Collection(
@@ -154,14 +148,15 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
             attribute.TypeName = typeof(bool).FullName;
         });
         tagHelper.SetMetadata(TypeName("WithBoundAttribute"));
-        var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound />", isRazorFile: false, tagHelper.Build());
+        var codeDocument = CreateCodeDocument("""
+            @addTagHelper *, TestAssembly
+            <test bound />
+            """, isRazorFile: false, tagHelper.Build());
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
-        var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
-        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
+        var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.FindInnermostNode(30 + Environment.NewLine.Length);
 
         // Act
-        var attributes = TagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Assert
         Assert.Collection(
@@ -177,14 +172,15 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     public void StringifyAttributes_UnboundAttribute()
     {
         // Arrange
-        var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound='hello world' />", isRazorFile: false, DefaultTagHelpers);
+        var codeDocument = CreateCodeDocument("""
+            @addTagHelper *, TestAssembly
+            <input unbound='hello world' />
+            """, isRazorFile: false, DefaultTagHelpers);
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
-        var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
-        var startTag = (MarkupStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
+        var startTag = (MarkupStartTagSyntax)syntaxTree.Root.FindInnermostNode(30 + Environment.NewLine.Length);
 
         // Act
-        var attributes = TagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Assert
         Assert.Collection(
@@ -200,14 +196,15 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     public void StringifyAttributes_UnboundMinimizedAttribute()
     {
         // Arrange
-        var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound />", isRazorFile: false, DefaultTagHelpers);
+        var codeDocument = CreateCodeDocument("""
+            @addTagHelper *, TestAssembly
+            <input unbound />
+            """, isRazorFile: false, DefaultTagHelpers);
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
-        var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
-        var startTag = (MarkupStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
+        var startTag = (MarkupStartTagSyntax)syntaxTree.Root.FindInnermostNode(30 + Environment.NewLine.Length);
 
         // Act
-        var attributes = TagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Assert
         Assert.Collection(
@@ -223,14 +220,15 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     public void StringifyAttributes_IgnoresMiscContent()
     {
         // Arrange
-        var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound @DateTime.Now />", isRazorFile: false, DefaultTagHelpers);
+        var codeDocument = CreateCodeDocument("""
+            @addTagHelper *, TestAssembly
+            <input unbound @DateTime.Now />
+            """, isRazorFile: false, DefaultTagHelpers);
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
-        var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
-        var startTag = (MarkupStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
+        var startTag = (MarkupStartTagSyntax)syntaxTree.Root.FindInnermostNode(30 + Environment.NewLine.Length);
 
         // Act
-        var attributes = TagHelperFactsService.StringifyAttributes(startTag.Attributes);
+        var attributes = TagHelperFacts.StringifyAttributes(startTag.Attributes);
 
         // Assert
         Assert.Collection(
@@ -247,7 +245,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         tagHelpers = tagHelpers.NullToEmpty();
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var projectEngine = RazorProjectEngine.Create(builder => { });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
         return codeDocument;
     }
 }

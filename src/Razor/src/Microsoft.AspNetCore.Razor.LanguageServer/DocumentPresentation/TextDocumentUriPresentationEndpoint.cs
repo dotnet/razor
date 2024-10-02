@@ -8,38 +8,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
-internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>, ITextDocumentUriPresentationHandler
+internal class TextDocumentUriPresentationEndpoint(
+    IRazorDocumentMappingService razorDocumentMappingService,
+    RazorComponentSearchEngine razorComponentSearchEngine,
+    IClientConnection clientConnection,
+    IFilePathService filePathService,
+    IDocumentContextFactory documentContextFactory,
+    IRazorLoggerFactory loggerFactory)
+    : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>()), ITextDocumentUriPresentationHandler
 {
-    private readonly RazorComponentSearchEngine _razorComponentSearchEngine;
-    private readonly DocumentContextFactory _documentContextFactory;
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly ILogger _logger;
-
-    public TextDocumentUriPresentationEndpoint(
-        IRazorDocumentMappingService razorDocumentMappingService,
-        RazorComponentSearchEngine razorComponentSearchEngine,
-        ClientNotifierServiceBase languageServer,
-        FilePathService filePathService,
-        DocumentContextFactory documentContextFactory,
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ILoggerFactory loggerFactory)
-        : base(razorDocumentMappingService, languageServer, filePathService)
-    {
-        _razorComponentSearchEngine = razorComponentSearchEngine ?? throw new ArgumentNullException(nameof(razorComponentSearchEngine));
-        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-
-        _logger = loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>();
-    }
+    private readonly RazorComponentSearchEngine _razorComponentSearchEngine = razorComponentSearchEngine ?? throw new ArgumentNullException(nameof(razorComponentSearchEngine));
+    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
 
     public override string EndpointName => CustomMessageNames.RazorUriPresentationEndpoint;
 
@@ -71,7 +62,7 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
 
         if (request.Uris is null || request.Uris.Length == 0)
         {
-            _logger.LogInformation("No URIs were included in the request?");
+            Logger.LogInformation("No URIs were included in the request?");
             return null;
         }
 
@@ -83,14 +74,14 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
         // thinks they're just dragging the parent one, so we have to be a little bit clever with the filter here
         if (razorFileUri == null)
         {
-            _logger.LogInformation("No file in the drop was a razor file URI.");
+            Logger.LogInformation("No file in the drop was a razor file URI.");
             return null;
         }
 
         var fileName = Path.GetFileName(razorFileUri.GetAbsoluteOrUNCPath());
         if (request.Uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
         {
-            _logger.LogInformation("One or more URIs were not a child file of the main .razor file.");
+            Logger.LogInformation("One or more URIs were not a child file of the main .razor file.");
             return null;
         }
 
@@ -125,12 +116,12 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
 
     private async Task<string?> TryGetComponentTagAsync(Uri uri, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Trying to find document info for dropped uri {uri}.", uri);
+        Logger.LogInformation("Trying to find document info for dropped uri {uri}.", uri);
 
         var documentContext = _documentContextFactory.TryCreate(uri);
         if (documentContext is null)
         {
-            _logger.LogInformation("Failed to find document for component {uri}.", uri);
+            Logger.LogInformation("Failed to find document for component {uri}.", uri);
             return null;
         }
 
@@ -139,14 +130,14 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
         var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
         if (descriptor is null)
         {
-            _logger.LogInformation("Failed to find tag helper descriptor.");
+            Logger.LogInformation("Failed to find tag helper descriptor.");
             return null;
         }
 
         var typeName = descriptor.GetTypeNameIdentifier();
         if (string.IsNullOrWhiteSpace(typeName))
         {
-            _logger.LogWarning("Found a tag helper, {descriptorName}, but it has an empty TypeNameIdentifier.", descriptor.Name);
+            Logger.LogWarning("Found a tag helper, {descriptorName}, but it has an empty TypeNameIdentifier.", descriptor.Name);
             return null;
         }
 
@@ -164,7 +155,7 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
             sb.Append("=\"\"");
         }
 
-        if (descriptor.AllowedChildTags.Count > 0)
+        if (descriptor.AllowedChildTags.Length > 0)
         {
             sb.Append("></");
             sb.Append(typeName);

@@ -2,7 +2,7 @@
 #pragma warning disable 1591
 namespace Test
 {
-    #line hidden
+    #line default
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Linq;
@@ -15,7 +15,9 @@ using Microsoft.AspNetCore.Components.Web;
 #line default
 #line hidden
 #nullable disable
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -31,6 +33,24 @@ using Microsoft.AspNetCore.Components.Web;
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                () => { }
+
+#line default
+#line hidden
+#nullable disable
+            );
+            global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>(
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                                             "literal"
+
+#line default
+#line hidden
+#nullable disable
+            );
+            global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>(
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                                                         x
 
 #line default
 #line hidden

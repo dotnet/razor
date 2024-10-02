@@ -4,31 +4,22 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
 [UseExportProvider]
-public class RenameEndpointDelegationTest: SingleServerDelegatingEndpointTestBase
+public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
-    public RenameEndpointDelegationTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public async Task Handle_Rename_SingleServer_CSharpEditsAreMapped()
     {
@@ -59,21 +50,28 @@ public class RenameEndpointDelegationTest: SingleServerDelegatingEndpointTestBas
         var codeDocument = CreateCodeDocument(output);
         var razorFilePath = "C:/path/to/file.razor";
 
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }.ToImmutableArray(), MockBehavior.Strict);
-        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
-        using var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
-        var searchEngine = new DefaultRazorComponentSearchEngine(projectSnapshotManagerAccessor, LoggerFactory);
+        var projectManager = CreateProjectSnapshotManager();
+
+        await projectManager.UpdateAsync(updater =>
+        {
+            updater.ProjectAdded(new(
+                projectFilePath: "C:/path/to/project.csproj",
+                intermediateOutputPath: "C:/path/to/obj",
+                razorConfiguration: RazorConfiguration.Default,
+                rootNamespace: "project"));
+        });
+
+        var searchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
 
         var endpoint = new RenameEndpoint(
-            projectSnapshotManagerDispatcher,
-            DocumentContextFactory,
+            Dispatcher,
             searchEngine,
-            projectSnapshotManagerAccessor,
+            projectManager,
             LanguageServerFeatureOptions,
             DocumentMappingService,
-            LanguageServer,
+            languageServer,
             LoggerFactory);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);

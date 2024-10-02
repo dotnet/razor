@@ -4,16 +4,19 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Settings;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using IServiceProvider = System.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
@@ -35,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor;
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
 internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
     private readonly LSPEditorFeatureDetector _editorFeatureDetector;
     private readonly IEditorOptionsFactoryService _editorOptionsFactory;
@@ -55,37 +59,13 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 
     [ImportingConstructor]
     public RazorLSPTextViewConnectionListener(
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactory,
         LSPEditorFeatureDetector editorFeatureDetector,
         IEditorOptionsFactoryService editorOptionsFactory,
-        IClientSettingsManager editorSettingsManager,
-        SVsServiceProvider serviceProvider)
+        IClientSettingsManager editorSettingsManager)
     {
-        if (editorAdaptersFactory is null)
-        {
-            throw new ArgumentNullException(nameof(editorAdaptersFactory));
-        }
-
-        if (editorFeatureDetector is null)
-        {
-            throw new ArgumentNullException(nameof(editorFeatureDetector));
-        }
-
-        if (editorOptionsFactory is null)
-        {
-            throw new ArgumentNullException(nameof(editorOptionsFactory));
-        }
-
-        if (editorSettingsManager is null)
-        {
-            throw new ArgumentNullException(nameof(editorSettingsManager));
-        }
-
-        if (serviceProvider is null)
-        {
-            throw new ArgumentNullException(nameof(serviceProvider));
-        }
-
+        _serviceProvider = serviceProvider;
         _editorAdaptersFactory = editorAdaptersFactory;
         _editorFeatureDetector = editorFeatureDetector;
         _editorOptionsFactory = editorOptionsFactory;
@@ -102,12 +82,16 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
             throw new ArgumentNullException(nameof(textView));
         }
 
+        // This is a potential entry point for Razor start up, if a project is loaded with an editor already opened.
+        // So, we need to ensure that any Razor start up services are initialized.
+        RazorStartupInitializer.Initialize(_serviceProvider);
+
         var vsTextView = _editorAdaptersFactory.GetViewAdapter(textView);
 
         Assumes.NotNull(vsTextView);
 
         // In remote client scenarios there's a custom language service applied to buffers in order to enable delegation of interactions.
-        // Because of this we don't want to break that experience so we ensure not to "set" a langauge service for remote clients.
+        // Because of this we don't want to break that experience so we ensure not to "set" a language service for remote clients.
         if (!_editorFeatureDetector.IsRemoteClient())
         {
             vsTextView.GetBuffer(out var vsBuffer);
@@ -218,11 +202,12 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 
         // Retrieve current space/tabs settings from from Tools->Options and update options in
         // the actual editor.
-        var settings = UpdateRazorEditorOptions(_textManager, optionsTracker);
+        (ClientSpaceSettings ClientSpaceSettings, ClientCompletionSettings ClientCompletionSettings) settings = UpdateRazorEditorOptions(_textManager, optionsTracker);
 
         // Keep track of accurate settings on the client side so we can easily retrieve the
         // options later when the server sends us a workspace/configuration request.
-        _editorSettingsManager.Update(settings);
+        _editorSettingsManager.Update(settings.ClientSpaceSettings);
+        _editorSettingsManager.Update(settings.ClientCompletionSettings);
     }
 
     private static void InitializeRazorTextViewOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
@@ -252,6 +237,9 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
         optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.BraceCompletionEnabledOptionName, Convert.ToBoolean(langPrefs3[0].fBraceCompletion));
         optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.CutOrCopyBlankLineIfNoSelectionName, Convert.ToBoolean(langPrefs3[0].fCutCopyBlanks));
 
+        // Completion options
+        optionsTracker.ViewOptions.SetOptionValue(DefaultLanguageOptions.ShowCompletionOnTypeCharName, Convert.ToBoolean(langPrefs3[0].fAutoListMembers));
+
         // Scroll bar options
         optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarName, Convert.ToBoolean(langPrefs3[0].fShowHorizontalScrollBar));
         optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.VerticalScrollBarName, Convert.ToBoolean(langPrefs3[0].fShowVerticalScrollBar));
@@ -265,7 +253,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
         optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.PreviewSizeOptionName, (int)langPrefs3[0].uOverviewWidth);
     }
 
-    private static ClientSpaceSettings UpdateRazorEditorOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
+    private static (ClientSpaceSettings, ClientCompletionSettings) UpdateRazorEditorOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
     {
         var insertSpaces = true;
         var tabSize = 4;
@@ -273,12 +261,16 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
         var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorVisualStudioWindowsConstants.RazorLanguageServiceGuid } };
         if (VSConstants.S_OK != textManager.GetUserPreferences4(null, langPrefs3, null))
         {
-            return new ClientSpaceSettings(IndentWithTabs: !insertSpaces, tabSize);
+            return (new ClientSpaceSettings(IndentWithTabs: !insertSpaces, tabSize), ClientCompletionSettings.Default);
         }
 
         // Tabs options
         insertSpaces = !Convert.ToBoolean(langPrefs3[0].fInsertTabs);
         tabSize = (int)langPrefs3[0].uTabSize;
+
+        // Completion options
+        var autoShowCompletion = Convert.ToBoolean(langPrefs3[0].fAutoListMembers);
+        var autoListParams = Convert.ToBoolean(langPrefs3[0].fAutoListParams);
 
         optionsTracker.ViewOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
         optionsTracker.ViewOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
@@ -289,7 +281,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
         optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
         optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
 
-        return new ClientSpaceSettings(IndentWithTabs: !insertSpaces, tabSize);
+        return (new ClientSpaceSettings(IndentWithTabs: !insertSpaces, tabSize), new ClientCompletionSettings(autoShowCompletion, autoListParams));
     }
 
     private class RazorLSPTextViewFilter : IOleCommandTarget, IVsTextViewFilter

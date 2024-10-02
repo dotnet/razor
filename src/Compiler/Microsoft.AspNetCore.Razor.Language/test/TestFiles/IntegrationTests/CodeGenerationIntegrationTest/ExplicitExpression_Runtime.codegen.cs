@@ -5,20 +5,22 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"127c2e4532452a01cb38d7d47d12b143d778f204179f089dd1851ea16c19af0a", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpression.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"127c2e4532452a01cb38d7d47d12b143d778f204179f089dd1851ea16c19af0a", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpression.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ExplicitExpression_Runtime
     {
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("1 + 1 = ");
+            Write(
 #nullable restore
-#line (1,11)-(1,14) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpression.cshtml"
-Write(1+1);
+#line (1,11)-(1,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpression.cshtml"
+1+1
 
 #line default
 #line hidden
 #nullable disable
+            );
         }
         #pragma warning restore 1998
     }

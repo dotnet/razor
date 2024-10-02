@@ -32,6 +32,11 @@
         <target state="translated">格式化</target>
         <note />
       </trans-unit>
+      <trans-unit id="Other">
+        <source>Other</source>
+        <target state="translated">其他</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RazorSyntaxVisualizer">
         <source>Razor Syntax Visualizer</source>
         <target state="translated">Razor Syntax Visualizer</target>
@@ -57,6 +62,16 @@
         <target state="translated">自動插入屬性引號</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDescription">
+        <source>Forces the open brace after an @code or @functions directive to be on the following line</source>
+        <target state="translated">強制 @code 或 @functions 指示詞後方的左大括號位於下列行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDisplayName">
+        <source>Code/Functions block open brace on next line</source>
+        <target state="translated">程式碼/函數區塊左大括弧在下一行</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_ColorBackgroundDescription">
         <source>If true, gives C# code in Razor files a background color</source>
         <target state="translated">若為 true，則給予 Razor 檔案中的 C# 程式碼背景色彩</target>
@@ -67,6 +82,16 @@
         <target state="translated">C# 程式碼的背景</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDescription">
+        <source>If true, pressing space will commit suggestions for Html elements and components</source>
+        <target state="translated">若為 true，按下空格鍵將會提交 Html 元素和元件的建議</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDisplayName">
+        <source>Commit Elements with Space</source>
+        <target state="translated">透過空格鍵提交元素</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">如果為 True，則會在輸入時啟用格式化</target>
@@ -75,6 +100,76 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">輸入時格式化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelCritical">
+        <source>Critical</source>
+        <target state="translated">危急</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDebug">
+        <source>Debug</source>
+        <target state="translated">偵錯</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDescription">
+        <source>Sets the level of logging to show in the Razor Logger Output catregory of the Output Window.</source>
+        <target state="translated">設定要在輸出視窗的「Razor 記錄器輸出」類別中顯示的日誌記錄級別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDisplayName">
+        <source>Output Window Log Level</source>
+        <target state="translated">輸出視窗記錄層級</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelError">
+        <source>Error</source>
+        <target state="translated">錯誤</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelInformation">
+        <source>Information</source>
+        <target state="translated">資訊</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelNone">
+        <source>None</source>
+        <target state="translated">無</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelTrace">
+        <source>Trace</source>
+        <target state="translated">追蹤</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelWarning">
+        <source>Warning</source>
+        <target state="translated">警告</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsAll">
+        <source>All</source>
+        <target state="translated">全部</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsCustom">
+        <source>Custom</source>
+        <target state="translated">自訂</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDescription">
+        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="translated">要包含在 Razor 檔案中的程式碼片段。如果設為自訂，只會顯示未包含在 Visual Studio 中的程式碼片段。 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDisplayName">
+        <source>Included Snippets</source>
+        <target state="translated">包含的程式碼片段</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsNone">
+        <source>None</source>
+        <target state="translated">無</target>
         <note />
       </trans-unit>
       <trans-unit id="Typing">

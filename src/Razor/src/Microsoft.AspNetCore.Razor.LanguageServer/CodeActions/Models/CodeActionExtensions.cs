@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
@@ -63,7 +62,7 @@ internal static class CodeActionExtensions
         var resolveParams = new CodeActionResolveParams()
         {
             Data = razorCodeAction.Data,
-            RazorFileUri = context.Request.TextDocument.Uri
+            RazorFileIdentifier = context.Request.TextDocument
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()
@@ -100,7 +99,7 @@ internal static class CodeActionExtensions
         var resolveParams = new CodeActionResolveParams()
         {
             Data = razorCodeAction.Data,
-            RazorFileUri = context.Request.TextDocument.Uri
+            RazorFileIdentifier = context.Request.TextDocument
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()

@@ -21,23 +21,26 @@ internal sealed class RazorProjectInfo
 
     public string SerializedFilePath { get; }
     public string FilePath { get; }
-    public RazorConfiguration? Configuration { get; }
+    public RazorConfiguration Configuration { get; }
     public string? RootNamespace { get; }
-    public ProjectWorkspaceState? ProjectWorkspaceState { get; }
+    public string DisplayName { get; }
+    public ProjectWorkspaceState ProjectWorkspaceState { get; }
     public ImmutableArray<DocumentSnapshotHandle> Documents { get; }
 
     public RazorProjectInfo(
         string serializedFilePath,
         string filePath,
-        RazorConfiguration? configuration,
+        RazorConfiguration configuration,
         string? rootNamespace,
-        ProjectWorkspaceState? projectWorkspaceState,
+        string displayName,
+        ProjectWorkspaceState projectWorkspaceState,
         ImmutableArray<DocumentSnapshotHandle> documents)
     {
         SerializedFilePath = serializedFilePath;
         FilePath = filePath;
         Configuration = configuration;
         RootNamespace = rootNamespace;
+        DisplayName = displayName;
         ProjectWorkspaceState = projectWorkspaceState;
         Documents = documents.NullToEmpty();
     }

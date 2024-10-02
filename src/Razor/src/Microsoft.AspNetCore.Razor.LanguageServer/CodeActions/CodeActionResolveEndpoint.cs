@@ -8,17 +8,16 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-[LanguageServerEndpoint(Methods.CodeActionResolveName)]
+[RazorLanguageServerEndpoint(Methods.CodeActionResolveName)]
 internal sealed class CodeActionResolveEndpoint : IRazorDocumentlessRequestHandler<CodeAction, CodeAction>
 {
     private readonly ImmutableDictionary<string, IRazorCodeActionResolver> _razorCodeActionResolvers;
@@ -32,7 +31,7 @@ internal sealed class CodeActionResolveEndpoint : IRazorDocumentlessRequestHandl
         IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
         IEnumerable<CSharpCodeActionResolver> csharpCodeActionResolvers,
         IEnumerable<HtmlCodeActionResolver> htmlCodeActionResolvers,
-        ILoggerFactory loggerFactory)
+        IRazorLoggerFactory loggerFactory)
     {
         if (razorCodeActionResolvers is null)
         {
