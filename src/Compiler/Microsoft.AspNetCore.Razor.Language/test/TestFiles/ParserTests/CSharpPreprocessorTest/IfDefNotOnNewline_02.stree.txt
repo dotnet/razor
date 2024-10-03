@@ -11,7 +11,7 @@
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..62)::60
                         CSharpStatementLiteral - [2..62)::60 - [#if false }LF<div>LF    <p>Content</p>LF</div>LF@{LF#endifLF] - Gen<Stmt>
-                            CSharpDirective;[#if false }LF];
+                            CSharpDirective;[#if false }LF];RZ1042(2:0,2 [13] )
                             CSharpDisabledText;[<div>LF    <p>Content</p>LF</div>LF@{LF];
                             CSharpDirective;[#endifLF];
                     RazorMetaCode - [62..63)::1 - Gen<None>

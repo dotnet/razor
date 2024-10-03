@@ -56,7 +56,7 @@
                     CSharpCodeBlock - [54..112)::58
                         CSharpStatementLiteral - [54..112)::58 - [ #else }LF<div>LF    <p>Content2</p>LF</div>LF@{LF#endifLF] - Gen<Stmt>
                             Whitespace;[ ];
-                            CSharpDirective;[#else }LF];
+                            CSharpDirective;[#else }LF];RZ1042(55:6,3 [9] )
                             CSharpDisabledText;[<div>LF    <p>Content2</p>LF</div>LF@{LF];
                             CSharpDirective;[#endifLF];
                     RazorMetaCode - [112..113)::1 - Gen<None>

@@ -138,4 +138,103 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
     }
 
     // PROTOTYPE: More line tests
+
+    [IntegrationTestFact]
+    public void MisplacedEndingDirective_01()
+    {
+        var generated = CompileToCSharp("""
+            @{
+            #if false
+            }
+            @{ #endif }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+
+        var expectedDiagnostic = DesignTime ?
+            new[]
+            {
+                // x:\dir\subdir\Test\TestComponent.cshtml(14,1): error CS1027: #endif directive expected
+                //
+                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(14, 1),
+                // (26,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
+                // (26,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
+                // (26,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10)
+            }
+            :
+            new[]
+            {
+
+               // x:\dir\subdir\Test\TestComponent.cshtml(15,1): error CS1027: #endif directive expected
+                //
+                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(15, 1),
+                // (19,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
+                // (19,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
+                // (19,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10)
+            };
+
+        CompileToAssembly(generated, expectedDiagnostic);
+    }
+
+    [IntegrationTestFact]
+    public void MisplacedEndingDirective_02()
+    {
+        var generated = CompileToCSharp("""
+            @{
+            #if false
+            }
+            @{ Test #endif }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+
+        var expectedDiagnostics = DesignTime ?
+            new[]
+            {
+                // x:\dir\subdir\Test\TestComponent.cshtml(14,1): error CS1027: #endif directive expected
+                //
+                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(14, 1),
+                // (26,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
+                // (26,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
+                // (26,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10)
+            }
+            :
+            new[]
+            {
+                // x:\dir\subdir\Test\TestComponent.cshtml(15,1): error CS1027: #endif directive expected
+                //
+                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(15, 1),
+                // (19,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
+                // (19,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
+                // (19,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10)
+            };
+
+        CompileToAssembly(generated, expectedDiagnostics);
+    }
 }

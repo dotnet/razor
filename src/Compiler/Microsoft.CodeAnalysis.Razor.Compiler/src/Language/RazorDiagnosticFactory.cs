@@ -380,6 +380,14 @@ internal static class RazorDiagnosticFactory
     public static RazorDiagnostic CreateParsing_PreprocessorDirectivesMustBeAtTheStartOfLine(SourceSpan location)
         => RazorDiagnostic.Create(Parsing_PreprocessorDirectivesMustBeAtTheStartOfLine, location);
 
+    internal static readonly RazorDiagnosticDescriptor Parsing_PossibleMisplacedPreprocessorDirective =
+        new($"{DiagnosticPrefix}1042",
+            Resources.Possible_preprocessor_directive_is_misplaced,
+            RazorDiagnosticSeverity.Warning);
+
+    public static RazorDiagnostic CreateParsing_PossibleMisplacedPreprocessorDirective(SourceSpan location)
+        => RazorDiagnostic.Create(Parsing_PossibleMisplacedPreprocessorDirective, location);
+
     #endregion
 
     #region Semantic Errors

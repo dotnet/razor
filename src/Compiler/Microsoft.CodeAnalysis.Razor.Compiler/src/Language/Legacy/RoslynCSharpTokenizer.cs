@@ -539,8 +539,64 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                 break;
             case CSharpSyntaxKind.DisabledTextTrivia:
                 tokenType = SyntaxKind.CSharpDisabledText;
-                _isOnlyWhitespaceOnLine = false;
-                // PROTOTYPE: check for conditional directive end that could be accidentally unterminated (not at the start of the line)
+                _isOnlyWhitespaceOnLine = true;
+
+                // We want to scan through the disabled text and see if someone misplaced an #else or #endif by not putting it at the start of a line. We can't truly
+                // be certain; for example, it could be in html, intentionally. But this is just a warning, and the user can disable it; since we made a breaking change
+                // and there could be directives not at the start of a line, we want to be helpful.
+
+                {
+                    for (var i = 0; i < triviaString.Length; i++)
+                    {
+                        var currentChar = triviaString[i];
+                        switch (currentChar)
+                        {
+                            case '\r':
+                            case '\n':
+                                _isOnlyWhitespaceOnLine = true;
+                                break;
+
+                            case '#' when !_isOnlyWhitespaceOnLine:
+                                // If there is only whitespace on the current line, and we're about to see a directive, then it clearly wasn't
+                                // #endif or #else
+                                if (startsWith("else"))
+                                {
+                                    // PROTOTYPE: This location is wrong. Needs an actual line/column to print correctly
+                                    CurrentErrors.Add(
+                                        RazorDiagnosticFactory.CreateParsing_PossibleMisplacedPreprocessorDirective(
+                                            new SourceSpan(CurrentStart.AbsoluteIndex + i, length: 5)));
+                                    i += 4;
+                                }
+                                else if (startsWith("endif"))
+                                {
+                                    CurrentErrors.Add(
+                                        RazorDiagnosticFactory.CreateParsing_PossibleMisplacedPreprocessorDirective(
+                                            new SourceSpan(CurrentStart.AbsoluteIndex + i, length: 6)));
+                                    i += 5;
+                                }
+
+                                break;
+
+                                bool startsWith(string substring)
+                                {
+                                    Debug.Assert(currentChar == '#');
+                                    if (i + 1 + substring.Length > triviaString.Length)
+                                    {
+                                        return false;
+                                    }
+
+                                    return triviaString.AsSpan()[(i + 1)..].StartsWith(substring.AsSpan());
+                                }
+
+                            default:
+                                if (!SyntaxFacts.IsWhitespace(currentChar))
+                                {
+                                    _isOnlyWhitespaceOnLine = false;
+                                }
+                                break;
+                        }
+                    }
+                }
                 break;
             case var kind:
                 throw new InvalidOperationException($"Unexpected trivia kind: {kind}.");
