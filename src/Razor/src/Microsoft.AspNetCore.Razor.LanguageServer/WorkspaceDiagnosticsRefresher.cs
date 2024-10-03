@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class WorkspaceDiagnosticsRefresh : IRazorStartupService
+internal class WorkspaceDiagnosticsRefresher : IRazorStartupService
 {
     private readonly object _gate = new();
     private readonly IClientCapabilitiesService _clientCapabilitiesService;
@@ -25,7 +25,7 @@ internal class WorkspaceDiagnosticsRefresh : IRazorStartupService
 
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(200);
 
-    public WorkspaceDiagnosticsRefresh(
+    public WorkspaceDiagnosticsRefresher(
         IProjectSnapshotManager projectSnapshotManager,
         IClientCapabilitiesService clientCapabilitiesService,
         IClientConnection clientConnection)
@@ -89,9 +89,9 @@ internal class WorkspaceDiagnosticsRefresh : IRazorStartupService
 
     public class TestAccessor
     {
-        private readonly WorkspaceDiagnosticsRefresh _instance;
+        private readonly WorkspaceDiagnosticsRefresher _instance;
 
-        public TestAccessor(WorkspaceDiagnosticsRefresh instance)
+        public TestAccessor(WorkspaceDiagnosticsRefresher instance)
         {
             _instance = instance;
         }

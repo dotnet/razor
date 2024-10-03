@@ -105,7 +105,7 @@ internal static class IServiceCollectionExtensions
         services.AddHandlerWithCapabilities<DocumentPullDiagnosticsEndpoint>();
         services.AddSingleton<RazorTranslateDiagnosticsService>();
         services.AddSingleton(sp => new Lazy<RazorTranslateDiagnosticsService>(sp.GetRequiredService<RazorTranslateDiagnosticsService>));
-        services.AddSingleton<IRazorStartupService, WorkspaceDiagnosticsRefresh>();
+        services.AddSingleton<IRazorStartupService, WorkspaceDiagnosticsRefresher>();
     }
 
     public static void AddHoverServices(this IServiceCollection services)
