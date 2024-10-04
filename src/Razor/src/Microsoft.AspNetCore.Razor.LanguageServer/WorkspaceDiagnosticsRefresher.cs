@@ -17,12 +17,14 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService
+internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService, IDisposable
 {
     private readonly AsyncBatchingWorkQueue _queue;
+    private readonly IProjectSnapshotManager _projectSnapshotManager;
     private readonly IClientCapabilitiesService _clientCapabilitiesService;
     private readonly IClientConnection _clientConnection;
     private bool? _supported;
+    private CancellationTokenSource _disposeTokenSource = new();
 
     public WorkspaceDiagnosticsRefresher(
         IProjectSnapshotManager projectSnapshotManager,
@@ -30,29 +32,19 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService
         IClientConnection clientConnection)
     {
         _clientConnection = clientConnection;
+        _projectSnapshotManager = projectSnapshotManager;
         _clientCapabilitiesService = clientCapabilitiesService;
         _queue = new(
             TimeSpan.FromMilliseconds(200),
             ProcessBatchAsync,
-            default);
-        projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+            _disposeTokenSource.Token);
+        _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
     }
 
     private ValueTask ProcessBatchAsync(CancellationToken token)
     {
-        if (!_clientCapabilitiesService.CanGetClientCapabilities)
-        {
-            return new ValueTask(Task.CompletedTask);
-        }
-
-        var supported = _clientCapabilitiesService.ClientCapabilities.Workspace?.Diagnostics?.RefreshSupport;
-        if (supported != true)
-        {
-            return new ValueTask(Task.CompletedTask);
-        }
-
         _clientConnection
-            .SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, default)
+            .SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, _disposeTokenSource.Token)
             .Forget();
 
         return new ValueTask(Task.CompletedTask);
@@ -61,6 +53,11 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs e)
     {
         if (e.SolutionIsClosing)
+        {
+            return;
+        }
+
+        if ( _disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
@@ -91,6 +88,17 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService
 
     internal TestAccessor GetTestAccessor()
         => new(this);
+
+    public void Dispose()
+    {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
+        _disposeTokenSource.Cancel();
+        _projectSnapshotManager.Changed -= ProjectSnapshotManager_Changed;
+    }
 
     internal sealed class TestAccessor
     {

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -27,7 +28,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        var publisher = new WorkspaceDiagnosticsRefresher(
+        using var publisher = new WorkspaceDiagnosticsRefresher(
             projectSnapshotManager,
             new TestClientCapabilitiesService(new()
             {
@@ -60,10 +61,10 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
         var projectSnapshotManager = CreateProjectSnapshotManager();
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
         clientConnection
-            .Verify(c => c.SendNotificationAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
-                    Times.Exactly(2));
+            .Setup(c => c.SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
-        var publisher = new WorkspaceDiagnosticsRefresher(
+        using var publisher = new WorkspaceDiagnosticsRefresher(
             projectSnapshotManager,
             new TestClientCapabilitiesService(new()
             {
@@ -90,13 +91,19 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
         await projectSnapshotManager.UpdateAsync(
             static updater =>
             {
-                var project = (ProjectSnapshot)updater.GetProjects().Single();
-                updater.CreateAndAddDocument(project, "C:/path/to/document.razor");
+                var project = (ProjectSnapshot)updater.GetProjects().First();
+                var directory = Path.GetDirectoryName(project.FilePath);
+                Assert.NotNull(directory);
+
+                var filePath = Path.Combine(directory, "document.razor");
+                updater.CreateAndAddDocument(project, filePath);
             });
 
         await testAccessor.WaitForRefreshAsync();
 
-        clientConnection.Verify();
+        clientConnection.Verify(
+            c => c.SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
     }
 
     [Fact]
@@ -104,11 +111,8 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
     {
         var projectSnapshotManager = CreateProjectSnapshotManager();
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
-        clientConnection
-            .Verify(c => c.SendNotificationAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
-                    Times.Never);
 
-        var publisher = new WorkspaceDiagnosticsRefresher(
+        using var publisher = new WorkspaceDiagnosticsRefresher(
             projectSnapshotManager,
             new TestClientCapabilitiesService(new()
             {
@@ -132,6 +136,45 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
 
         await testAccessor.WaitForRefreshAsync();
 
-        clientConnection.Verify();
+        clientConnection
+            .Verify(c => c.SendNotificationAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                    Times.Never);
+    }
+
+    [Fact]
+    public async Task WorkspaceRefreshNotSent_RefresherDisposed()
+    {
+        var projectSnapshotManager = CreateProjectSnapshotManager();
+        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+
+        var publisher = new WorkspaceDiagnosticsRefresher(
+            projectSnapshotManager,
+            new TestClientCapabilitiesService(new()
+            {
+                Workspace = new()
+                {
+                    Diagnostics = new()
+                    {
+                        RefreshSupport = false
+                    }
+                }
+            }),
+            clientConnection.Object);
+
+        var testAccessor = publisher.GetTestAccessor();
+
+        publisher.Dispose();
+
+        await projectSnapshotManager.UpdateAsync(
+            static updater =>
+            {
+                updater.CreateAndAddProject("C:/path/to/project.csproj");
+            });
+
+        await testAccessor.WaitForRefreshAsync();
+
+        clientConnection
+            .Verify(c => c.SendNotificationAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                    Times.Never);
     }
 }
