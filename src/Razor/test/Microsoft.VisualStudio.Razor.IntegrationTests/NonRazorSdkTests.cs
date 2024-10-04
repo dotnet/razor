@@ -35,7 +35,7 @@ public class NonRazorSdkTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         base.PrepareProjectForFirstOpen(projectFileName);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/10965")] // Completion is broken in FUSE for sole `@` characters
     public async Task Completion_DateTime()
     {
         // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
