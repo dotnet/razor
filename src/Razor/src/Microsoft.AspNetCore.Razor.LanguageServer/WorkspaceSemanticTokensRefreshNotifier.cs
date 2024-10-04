@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
@@ -20,12 +21,11 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly IDisposable _optionsChangeListener;
 
-    private readonly object _gate = new();
-    private bool? _supportsRefresh;
-    private bool _waitingToRefresh;
+    private readonly AsyncBatchingWorkQueue _queue;
     private Task _refreshTask = Task.CompletedTask;
 
     private bool _isColoringBackground;
+    private bool? _supportsRefresh;
 
     public WorkspaceSemanticTokensRefreshNotifier(
         IClientCapabilitiesService clientCapabilitiesService,
@@ -37,8 +37,22 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
 
         _disposeTokenSource = new();
 
+        _queue = new(
+            TimeSpan.FromMilliseconds(250),
+            ProcessBatchAsync,
+            _disposeTokenSource.Token);
+
         _isColoringBackground = optionsMonitor.CurrentValue.ColorBackground;
         _optionsChangeListener = optionsMonitor.OnChange(HandleOptionsChange);
+    }
+
+    private ValueTask ProcessBatchAsync(CancellationToken token)
+    {
+        _clientConnection
+            .SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, _disposeTokenSource.Token)
+            .Forget();
+
+        return new(Task.CompletedTask);
     }
 
     public void Dispose()
@@ -70,41 +84,20 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
             return;
         }
 
-        lock (_gate)
+        // We could have been called before the LSP server has even been initialized
+        if (!_clientCapabilitiesService.CanGetClientCapabilities)
         {
-            if (_waitingToRefresh)
-            {
-                // We're going to refresh shortly.
-                return;
-            }
-
-            // We could have been called before the LSP server has even been initialized
-            if (!_clientCapabilitiesService.CanGetClientCapabilities)
-            {
-                return;
-            }
-
-            _supportsRefresh ??= _clientCapabilitiesService.ClientCapabilities.Workspace?.SemanticTokens?.RefreshSupport ?? false;
-
-            if (_supportsRefresh is false)
-            {
-                return;
-            }
-
-            _refreshTask = RefreshAfterDelayAsync();
-            _waitingToRefresh = true;
+            return;
         }
 
-        async Task RefreshAfterDelayAsync()
+        _supportsRefresh ??= _clientCapabilitiesService.ClientCapabilities.Workspace?.SemanticTokens?.RefreshSupport ?? false;
+
+        if (_supportsRefresh is false)
         {
-            await Task.Delay(s_delay, _disposeTokenSource.Token).ConfigureAwait(false);
-
-            _clientConnection
-                .SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, _disposeTokenSource.Token)
-                .Forget();
-
-            _waitingToRefresh = false;
+            return;
         }
+
+        _queue.AddWork();
     }
 
     internal TestAccessor GetTestAccessor()
@@ -112,16 +105,9 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
 
     internal class TestAccessor(WorkspaceSemanticTokensRefreshNotifier instance)
     {
-        public async Task WaitForNotificationAsync()
+        public Task WaitForNotificationAsync()
         {
-            Task refreshTask;
-
-            lock (instance._gate)
-            {
-                refreshTask = instance._refreshTask;
-            }
-
-            await refreshTask.ConfigureAwait(false);
+            return instance._queue.WaitUntilCurrentBatchCompletesAsync();
         }
     }
 }

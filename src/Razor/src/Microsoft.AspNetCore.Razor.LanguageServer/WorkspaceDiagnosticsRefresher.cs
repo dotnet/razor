@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -17,22 +19,43 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class WorkspaceDiagnosticsRefresher : IRazorStartupService
 {
-    private readonly object _gate = new();
+    private readonly AsyncBatchingWorkQueue _queue;
     private readonly IClientCapabilitiesService _clientCapabilitiesService;
     private readonly IClientConnection _clientConnection;
-    private bool _refreshQueued;
-    private Task? _refreshTask;
-
-    private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(200);
+    private bool? _supported;
 
     public WorkspaceDiagnosticsRefresher(
         IProjectSnapshotManager projectSnapshotManager,
         IClientCapabilitiesService clientCapabilitiesService,
         IClientConnection clientConnection)
     {
-        projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
-        _clientCapabilitiesService = clientCapabilitiesService;
         _clientConnection = clientConnection;
+        _clientCapabilitiesService = clientCapabilitiesService;
+        _queue = new(
+            TimeSpan.FromMilliseconds(200),
+            ProcessBatchAsync,
+            default);
+        projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+    }
+
+    private ValueTask ProcessBatchAsync(CancellationToken token)
+    {
+        if (!_clientCapabilitiesService.CanGetClientCapabilities)
+        {
+            return new ValueTask(Task.CompletedTask);
+        }
+
+        var supported = _clientCapabilitiesService.ClientCapabilities.Workspace?.Diagnostics?.RefreshSupport;
+        if (supported != true)
+        {
+            return new ValueTask(Task.CompletedTask);
+        }
+
+        _clientConnection
+            .SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, default)
+            .Forget();
+
+        return new ValueTask(Task.CompletedTask);
     }
 
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs e)
@@ -42,46 +65,28 @@ internal class WorkspaceDiagnosticsRefresher : IRazorStartupService
             return;
         }
 
+        _supported ??= GetSupported();
+
+        if (_supported != true)
+        {
+            return;
+        }
+        
+
         if (e.Kind is not ProjectChangeKind.DocumentChanged)
         {
-            QueueRefresh();
+            _queue.AddWork();
         }
     }
 
-    private void QueueRefresh()
+    private bool? GetSupported()
     {
-        lock(_gate)
+        if (!_clientCapabilitiesService.CanGetClientCapabilities)
         {
-            if (_refreshQueued)
-            {
-                return;
-            }
-
-            if (!_clientCapabilitiesService.CanGetClientCapabilities)
-            {
-                return;
-            }
-
-            var supported = _clientCapabilitiesService.ClientCapabilities.Workspace?.Diagnostics?.RefreshSupport;
-            if (supported != true)
-            {
-                return;
-            }
-
-            _refreshQueued = true;
-            _refreshTask = RefreshAfterDelayAsync();
+            return null;
         }
-    }
 
-    private async Task RefreshAfterDelayAsync()
-    {
-        await Task.Delay(s_delay).ConfigureAwait(false);
-
-        _clientConnection
-            .SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, default)
-            .Forget();
-
-        _refreshQueued = false;
+        return _clientCapabilitiesService.ClientCapabilities.Workspace?.Diagnostics?.RefreshSupport;
     }
 
     public TestAccessor GetTestAccessor()
@@ -98,7 +103,7 @@ internal class WorkspaceDiagnosticsRefresher : IRazorStartupService
 
         public Task WaitForRefreshAsync()
         {
-            return _instance._refreshTask ?? Task.CompletedTask;
+            return _instance._queue.WaitUntilCurrentBatchCompletesAsync();
         }
     }
 }
