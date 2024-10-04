@@ -14,8 +14,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal sealed class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokensRefreshNotifier, IDisposable
 {
-    private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(250);
-
     private readonly IClientCapabilitiesService _clientCapabilitiesService;
     private readonly IClientConnection _clientConnection;
     private readonly CancellationTokenSource _disposeTokenSource;
@@ -106,6 +104,11 @@ internal sealed class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanti
     {
         public Task WaitForNotificationAsync()
         {
+            if (instance._disposeTokenSource.IsCancellationRequested)
+            {
+                return Task.CompletedTask;
+            }
+
             return instance._queue.WaitUntilCurrentBatchCompletesAsync();
         }
     }

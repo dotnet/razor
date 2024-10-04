@@ -49,9 +49,9 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService, IDis
             return;
         }
 
+        _projectSnapshotManager.Changed -= ProjectSnapshotManager_Changed;
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
-        _projectSnapshotManager.Changed -= ProjectSnapshotManager_Changed;
     }
 
     private ValueTask ProcessBatchAsync(CancellationToken token)
@@ -66,11 +66,6 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService, IDis
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs e)
     {
         if (e.SolutionIsClosing)
-        {
-            return;
-        }
-
-        if ( _disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
@@ -101,18 +96,17 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService, IDis
     internal TestAccessor GetTestAccessor()
         => new(this);
 
-    internal sealed class TestAccessor
+    internal sealed class TestAccessor(WorkspaceDiagnosticsRefresher instance)
     {
-        private readonly WorkspaceDiagnosticsRefresher _instance;
-
-        public TestAccessor(WorkspaceDiagnosticsRefresher instance)
-        {
-            _instance = instance;
-        }
 
         public Task WaitForRefreshAsync()
         {
-            return _instance._queue.WaitUntilCurrentBatchCompletesAsync();
+            if (instance._disposeTokenSource.IsCancellationRequested)
+            {
+                return Task.CompletedTask;
+            }
+
+            return instance._queue.WaitUntilCurrentBatchCompletesAsync();
         }
     }
 }
