@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class WorkspaceDiagnosticsRefresher : IRazorStartupService
+internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService
 {
     private readonly AsyncBatchingWorkQueue _queue;
     private readonly IClientCapabilitiesService _clientCapabilitiesService;
@@ -89,10 +89,10 @@ internal class WorkspaceDiagnosticsRefresher : IRazorStartupService
         return _clientCapabilitiesService.ClientCapabilities.Workspace?.Diagnostics?.RefreshSupport;
     }
 
-    public TestAccessor GetTestAccessor()
+    internal TestAccessor GetTestAccessor()
         => new(this);
 
-    public class TestAccessor
+    internal sealed class TestAccessor
     {
         private readonly WorkspaceDiagnosticsRefresher _instance;
 

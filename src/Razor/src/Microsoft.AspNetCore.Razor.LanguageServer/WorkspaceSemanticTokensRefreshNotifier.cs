@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokensRefreshNotifier, IDisposable
+internal sealed class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokensRefreshNotifier, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(250);
 
@@ -22,7 +22,6 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
     private readonly IDisposable _optionsChangeListener;
 
     private readonly AsyncBatchingWorkQueue _queue;
-    private Task _refreshTask = Task.CompletedTask;
 
     private bool _isColoringBackground;
     private bool? _supportsRefresh;
@@ -103,7 +102,7 @@ internal class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanticTokens
     internal TestAccessor GetTestAccessor()
         => new(this);
 
-    internal class TestAccessor(WorkspaceSemanticTokensRefreshNotifier instance)
+    internal sealed class TestAccessor(WorkspaceSemanticTokensRefreshNotifier instance)
     {
         public Task WaitForNotificationAsync()
         {
