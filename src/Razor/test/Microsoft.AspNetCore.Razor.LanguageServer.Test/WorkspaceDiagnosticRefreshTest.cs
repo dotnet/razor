@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -19,6 +20,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
 public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) : LanguageServerTestBase(testOutputHelper)
 {
+    private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(10);
+
     [Fact]
     public async Task WorkspaceRefreshSent()
     {
@@ -41,7 +44,8 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
             }),
-            clientConnection.Object);
+            clientConnection.Object,
+            s_delay);
 
         var testAccessor = publisher.GetTestAccessor();
 
@@ -77,7 +81,8 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
             }),
-            clientConnection.Object);
+            clientConnection.Object,
+            s_delay);
 
         var testAccessor = publisher.GetTestAccessor();
 
@@ -125,7 +130,8 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
             }),
-            clientConnection.Object);
+            clientConnection.Object,
+            s_delay);
 
         var testAccessor = publisher.GetTestAccessor();
 
@@ -160,7 +166,8 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
             }),
-            clientConnection.Object);
+            clientConnection.Object,
+            s_delay);
 
         var testAccessor = publisher.GetTestAccessor();
 

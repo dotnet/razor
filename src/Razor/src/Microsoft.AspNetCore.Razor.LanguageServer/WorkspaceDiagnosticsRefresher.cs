@@ -29,13 +29,14 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService, IDis
     public WorkspaceDiagnosticsRefresher(
         IProjectSnapshotManager projectSnapshotManager,
         IClientCapabilitiesService clientCapabilitiesService,
-        IClientConnection clientConnection)
+        IClientConnection clientConnection,
+        TimeSpan? delay = null)
     {
         _clientConnection = clientConnection;
         _projectSnapshotManager = projectSnapshotManager;
         _clientCapabilitiesService = clientCapabilitiesService;
         _queue = new(
-            TimeSpan.FromMilliseconds(200),
+            delay ?? TimeSpan.FromMilliseconds(200),
             ProcessBatchAsync,
             _disposeTokenSource.Token);
         _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
