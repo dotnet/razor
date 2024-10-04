@@ -1,0 +1,2 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,1): Warning RZ10012: Found markup element with unexpected name 'MyComponent'. If this is intended to be a component, add a @using directive for its namespace.
+x:\dir\subdir\Test\TestComponent.cshtml(3,2): Error RZ1003: A space or line break was encountered after the "@" character.  Only valid identifiers, keywords, comments, "(" and "{" are valid at the start of a code block and they must occur immediately following "@" with no space in between.

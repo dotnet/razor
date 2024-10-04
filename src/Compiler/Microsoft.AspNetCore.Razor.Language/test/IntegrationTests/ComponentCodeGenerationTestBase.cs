@@ -2103,6 +2103,34 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10965")]
+    public void InvalidCode_EmptyTransition()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+        <MyComponent Value="Hello" />
+
+        @
+
+        @code {
+            [Parameter] public int Param { get; set; }
+        }
+        """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, DesignTime?[
+            // x:\dir\subdir\Test\TestComponent.cshtml(3,7): error CS1525: Invalid expression term ';'
+            // __o = ;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 7)
+            ] : [
+            // (24,36): error CS1525: Invalid expression term ')'
+            //             __builder.AddContent(3, 
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(24, 36)
+            ]);
+    }
+
     #endregion
 
     #region Bind
