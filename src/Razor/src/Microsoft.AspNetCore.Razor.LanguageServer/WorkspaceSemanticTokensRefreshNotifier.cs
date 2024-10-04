@@ -48,10 +48,10 @@ internal sealed class WorkspaceSemanticTokensRefreshNotifier : IWorkspaceSemanti
     private ValueTask ProcessBatchAsync(CancellationToken token)
     {
         _clientConnection
-            .SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, _disposeTokenSource.Token)
+            .SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, token)
             .Forget();
 
-        return new(Task.CompletedTask);
+        return default;
     }
 
     public void Dispose()

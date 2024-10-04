@@ -44,10 +44,10 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService, IDis
     private ValueTask ProcessBatchAsync(CancellationToken token)
     {
         _clientConnection
-            .SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, _disposeTokenSource.Token)
+            .SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, token)
             .Forget();
 
-        return new ValueTask(Task.CompletedTask);
+        return default;
     }
 
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs e)
@@ -97,6 +97,7 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService, IDis
         }
 
         _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
         _projectSnapshotManager.Changed -= ProjectSnapshotManager_Changed;
     }
 

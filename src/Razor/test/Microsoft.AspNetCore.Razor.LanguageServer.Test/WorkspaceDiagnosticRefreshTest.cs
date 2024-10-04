@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -22,7 +23,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
     public async Task WorkspaceRefreshSent()
     {
         var projectSnapshotManager = CreateProjectSnapshotManager();
-        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        var clientConnection = new StrictMock<IClientConnection>();
         clientConnection
             .Setup(c => c.SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
@@ -59,7 +60,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
     public async Task WorkspaceRefreshSent_MultipleTimes()
     {
         var projectSnapshotManager = CreateProjectSnapshotManager();
-        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        var clientConnection = new StrictMock<IClientConnection>();
         clientConnection
             .Setup(c => c.SendNotificationAsync(Methods.WorkspaceDiagnosticRefreshName, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
@@ -110,7 +111,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
     public async Task WorkspaceRefreshNotSent_ClientDoesNotSupport()
     {
         var projectSnapshotManager = CreateProjectSnapshotManager();
-        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        var clientConnection = new StrictMock<IClientConnection>();
 
         using var publisher = new WorkspaceDiagnosticsRefresher(
             projectSnapshotManager,
@@ -145,7 +146,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
     public async Task WorkspaceRefreshNotSent_RefresherDisposed()
     {
         var projectSnapshotManager = CreateProjectSnapshotManager();
-        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
+        var clientConnection = new StrictMock<IClientConnection>();
 
         var publisher = new WorkspaceDiagnosticsRefresher(
             projectSnapshotManager,
