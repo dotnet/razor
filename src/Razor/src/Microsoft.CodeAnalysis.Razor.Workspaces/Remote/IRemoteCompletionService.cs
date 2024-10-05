@@ -4,8 +4,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Text;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.VSInternalCompletionList?>;
+using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
@@ -14,7 +15,9 @@ internal interface IRemoteCompletionService : IRemoteJsonService
     ValueTask<Response> GetCompletionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        LinePosition position,
-        string? triggerCharacter,
+        Position position,
+        CompletionContext completionContext,
+        VSInternalClientCapabilities clientCapabilities,
+        RazorCompletionOptions razorCompletionOptions,
         CancellationToken cancellationToken);
 }

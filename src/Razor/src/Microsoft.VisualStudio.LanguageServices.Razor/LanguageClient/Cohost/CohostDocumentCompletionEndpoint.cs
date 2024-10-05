@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.VSInternalCompletionList?>;
-using RoslynCompletionList = Roslyn.LanguageServer.Protocol.VSInternalCompletionList;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -36,8 +36,9 @@ internal class CohostDocumentCompletionEndpoint(
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
-    private readonly IFilePathService _filePathService = filePathService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
+
+    private VSInternalClientCapabilities? _clientCapabilities;
 
     protected override bool MutatesSolutionState => false;
 
@@ -45,6 +46,8 @@ internal class CohostDocumentCompletionEndpoint(
 
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
+        _clientCapabilities = clientCapabilities;
+
         if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
         {
             return [new Registration()
@@ -73,6 +76,11 @@ internal class CohostDocumentCompletionEndpoint(
     {
         _logger.LogDebug($"Invoking completion for {razorDocument.FilePath}");
 
+        var razorCompletionOptions = new RazorCompletionOptions(
+            SnippetsSupported: false,
+            AutoInsertAttributeQuotes: true, // TODO: Get real values
+            CommitElementsWithSpace: true);
+
         _logger.LogDebug($"Calling OOP to get completion items at {request.Position} invoked by typing '{request.Context?.TriggerCharacter}'");
 
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, Response>(
@@ -81,14 +89,16 @@ internal class CohostDocumentCompletionEndpoint(
                 => service.GetCompletionAsync(
                         solutionInfo,
                         razorDocument.Id,
-                        request.Position.ToLinePosition(),
-                        request.Context?.TriggerCharacter,
+                        request.Position,
+                        request.Context.AssumeNotNull(),
+                        _clientCapabilities.AssumeNotNull(),
+                        razorCompletionOptions,
                         cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         if (data.Result is { } completionList)
         {
-            return ToLspCompletionList(completionList);
+            return completionList;
         }
 
         if (data.StopHandling)
@@ -130,21 +140,5 @@ internal class CohostDocumentCompletionEndpoint(
         }
 
         return result.Response;
-    }
-
-    private static VSInternalCompletionList? ToLspCompletionList(RoslynCompletionList? roslynCompletionList)
-    {
-        if (roslynCompletionList is null)
-        {
-            return null;
-        }
-
-        // TODO: proper conversion
-        var result = new VSInternalCompletionList()
-        {
-            IsIncomplete = roslynCompletionList.IsIncomplete
-        };
-
-        return result;
     }
 }
