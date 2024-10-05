@@ -25,6 +25,13 @@
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.SignatureHelp" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteSignatureHelpService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.DocumentHighlight" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDocumentHighlightService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.InlayHint" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteInlayHintService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.DocumentSymbol" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDocumentSymbolService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.GoToDefinition" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteGoToDefinitionService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.Razor.Rename" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteRenameService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.AutoInsert" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteAutoInsertService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.Formatting" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteFormattingService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.GoToImplementation" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteGoToImplementationService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.SpellCheck" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteSpellCheckService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.Diagnostics" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDiagnosticsService+Factory" />
   </ItemGroup>
 </Project>

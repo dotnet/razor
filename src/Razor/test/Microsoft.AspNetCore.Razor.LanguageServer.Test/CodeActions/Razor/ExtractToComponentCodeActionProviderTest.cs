@@ -299,7 +299,6 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         codeDocument.SetSyntaxTree(syntaxTree);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
             document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text), MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
@@ -22,7 +21,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.MapCode;
 
-[UseExportProvider]
 public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     private const string RazorFilePath = "C:/path/to/file.razor";
@@ -288,7 +286,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             csharpSourceText, csharpDocumentUri, new VSInternalServerCapabilities(), razorSpanMappingService: null, capabilitiesUpdater: null, DisposalToken);
         await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 
-        var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
+        var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument);
         var languageServer = new MapCodeServer(csharpServer, csharpDocumentUri);
         var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
@@ -328,7 +326,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             Mappings = mappings
         };
 
-        Assert.True(documentContextFactory.TryCreateForOpenDocument(request.Mappings[0].TextDocument!, out var documentContext));
+        Assert.True(documentContextFactory.TryCreate(request.Mappings[0].TextDocument!, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act

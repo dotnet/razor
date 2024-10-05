@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -35,7 +34,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-[UseExportProvider]
 public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
     private readonly Mock<IClientConnection> _clientConnection = new(MockBehavior.Strict);
@@ -919,7 +917,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         AssertSemanticTokensMatchesBaseline(sourceText, tokens, testName.AssumeNotNull());
     }
 
-    private static VersionedDocumentContext CreateDocumentContext(
+    private static DocumentContext CreateDocumentContext(
         string documentText,
         bool isRazorFile,
         ImmutableArray<TagHelperDescriptor> tagHelpers,
@@ -937,21 +935,23 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             .SetupGet(x => x.Project)
             .Returns(projectSnapshot.Object);
         documentSnapshotMock
-            .Setup(x => x.GetGeneratedOutputAsync())
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>()))
             .ReturnsAsync(document);
         documentSnapshotMock
             .Setup(x => x.GetTextAsync())
             .ReturnsAsync(document.Source.Text);
+        documentSnapshotMock
+            .SetupGet(x => x.Version)
+            .Returns(version);
 
-        return new VersionedDocumentContext(
+        return new DocumentContext(
             uri: new Uri($@"c:\${GetFileName(isRazorFile)}"),
             snapshot: documentSnapshotMock.Object,
-            projectContext: null,
-            version);
+            projectContext: null);
     }
 
     private async Task<IRazorSemanticTokensInfoService> CreateServiceAsync(
-        VersionedDocumentContext documentSnapshot,
+        DocumentContext documentSnapshot,
         ProvideSemanticTokensResponse? csharpTokens,
         bool withCSharpBackground,
         bool serverSupportsPreciseRanges,
@@ -1198,12 +1198,11 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         return builder.ToString();
     }
 
-    private class TestDocumentContextFactory(VersionedDocumentContext? documentContext = null) : IDocumentContextFactory
+    private class TestDocumentContextFactory(DocumentContext? documentContext = null) : IDocumentContextFactory
     {
         public bool TryCreate(
             Uri documentUri,
             VSProjectContext? projectContext,
-            bool versioned,
             [NotNullWhen(true)] out DocumentContext? context)
         {
             context = documentContext;

@@ -58,7 +58,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         //
         // We provide an error for this case just to be friendly.
         var content = string.Join("", node.Children.OfType<IntermediateToken>().Select(t => t.Content));
-        context.Diagnostics.Add(ComponentDiagnosticFactory.Create_CodeBlockInAttribute(node.Source, content));
+        context.AddDiagnostic(ComponentDiagnosticFactory.Create_CodeBlockInAttribute(node.Source, content));
         return;
     }
 
@@ -481,6 +481,36 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         context.CodeWriter.Write(variableName);
         context.CodeWriter.Write(");");
         context.CodeWriter.WriteLine();
+    }
+
+    protected static void WriteGloballyQualifiedTypeName(CodeRenderingContext context, ComponentAttributeIntermediateNode node)
+    {
+        var explicitType = (bool?)node.Annotations[ComponentMetadata.Component.ExplicitTypeNameKey];
+        if (explicitType == true)
+        {
+            context.CodeWriter.Write(node.TypeName);
+        }
+        else if (node.BoundAttribute?.GetGloballyQualifiedTypeName() is string typeName)
+        {
+            context.CodeWriter.Write(typeName);
+        }
+        else
+        {
+            TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, node.TypeName);
+        }
+    }
+
+    protected static void WriteGloballyQualifiedTypeName(CodeRenderingContext context, ComponentChildContentIntermediateNode node)
+    {
+        if (node.BoundAttribute?.GetGloballyQualifiedTypeName() is string typeName &&
+            !node.BoundAttribute.IsGenericTypedProperty())
+        {
+            context.CodeWriter.Write(typeName);
+        }
+        else
+        {
+            TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, node.TypeName);
+        }
     }
 
     protected class TypeInferenceMethodParameter

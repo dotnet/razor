@@ -35,6 +35,19 @@
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'">
+    <PackageReference Include="Microsoft.WebTools.Languages.Html" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Html.Editor" />
+    <PackageReference Include="Microsoft.WebTools.Languages.LanguageServer.Server" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Shared" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Shared.Editor" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Shared.VS" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" />
+    <PackageReference Include="Microsoft.VisualStudio.Web" />
+    <PackageReference Include="Microsoft.WebTools.Shared" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzer.Testing" />
@@ -74,10 +87,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LegacyEditor.Razor.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Razor.IntegrationTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="rzls" Key="$(RazorKey)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\Benchmarking\" />
   </ItemGroup>
 
   <Import Condition="'$(TargetFramework)' != '$(DefaultNetFxTargetFramework)'" Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.Serialization.Json\Microsoft.AspNetCore.Razor.Serialization.Json.projitems" Label="Shared" />
