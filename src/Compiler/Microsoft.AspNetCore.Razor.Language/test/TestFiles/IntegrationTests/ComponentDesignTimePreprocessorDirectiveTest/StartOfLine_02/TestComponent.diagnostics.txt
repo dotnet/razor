@@ -1,0 +1,2 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(2,12): Error RZ1042: C# preprocessor directives must be at the start of the line, except for whitespace.
+x:\dir\subdir\Test\TestComponent.cshtml(5,12): Error RZ1042: C# preprocessor directives must be at the start of the line, except for whitespace.

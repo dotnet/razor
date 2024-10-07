@@ -1,0 +1,20 @@
+﻿Source Location: (2:0,2 [52] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+#pragma warning disable 219
+var x = 1; #if true
+|
+Generated Location: (987:28,2 [52] )
+|
+#pragma warning disable 219
+var x = 1; #if true
+|
+
+Source Location: (59:4,2 [21] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+var y = 2; #endif
+|
+Generated Location: (1161:37,2 [21] )
+|
+var y = 2; #endif
+|
+

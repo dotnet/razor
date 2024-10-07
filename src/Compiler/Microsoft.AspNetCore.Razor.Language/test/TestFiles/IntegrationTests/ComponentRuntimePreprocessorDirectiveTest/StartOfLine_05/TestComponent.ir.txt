@@ -1,0 +1,19 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [22] ) - global::System
+        UsingDirective - (26:2,1 [42] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [27] ) - global::System.Linq
+        UsingDirective - (97:4,1 [38] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (2:0,2 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n
+                MarkupBlock -  - <div>#if true</div>
+                CSharpCode - (25:2,0 [0] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (25:2,0 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 
+                CSharpCode - (30:3,2 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (30:3,2 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n
+                MarkupBlock -  - <div>#endif</div>
+                CSharpCode - (51:5,0 [0] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (51:5,0 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 

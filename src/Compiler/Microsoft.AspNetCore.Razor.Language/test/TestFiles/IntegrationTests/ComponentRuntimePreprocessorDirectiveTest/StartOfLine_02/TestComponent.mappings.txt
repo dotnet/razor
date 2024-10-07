@@ -1,0 +1,18 @@
+﻿Source Location: (2:0,2 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+/* test */ #if true
+|
+Generated Location: (734:21,0 [23] )
+|
+/* test */ #if true
+|
+
+Source Location: (30:3,2 [21] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+/* test */ #endif
+|
+Generated Location: (889:30,0 [21] )
+|
+/* test */ #endif
+|
+

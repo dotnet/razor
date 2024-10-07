@@ -559,19 +559,31 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                             case '#' when !_isOnlyWhitespaceOnLine:
                                 // If there is only whitespace on the current line, and we're about to see a directive, then it clearly wasn't
                                 // #endif or #else
+                                var start = CurrentStart.AbsoluteIndex + i;
                                 if (startsWith("else"))
                                 {
-                                    // PROTOTYPE: This location is wrong. Needs an actual line/column to print correctly
+                                    var length = "#else".Length;
+                                    var linePosition = Source.SourceText.Lines.GetLinePosition(start);
                                     CurrentErrors.Add(
                                         RazorDiagnosticFactory.CreateParsing_PossibleMisplacedPreprocessorDirective(
-                                            new SourceSpan(CurrentStart.AbsoluteIndex + i, length: 5)));
+                                            new SourceSpan(
+                                                absoluteIndex: start,
+                                                lineIndex: linePosition.Line,
+                                                characterIndex: linePosition.Character,
+                                                length)));
                                     i += 4;
                                 }
                                 else if (startsWith("endif"))
                                 {
+                                    var length = "#endif".Length;
+                                    var linePosition = Source.SourceText.Lines.GetLinePosition(start);
                                     CurrentErrors.Add(
                                         RazorDiagnosticFactory.CreateParsing_PossibleMisplacedPreprocessorDirective(
-                                            new SourceSpan(CurrentStart.AbsoluteIndex + i, length: 6)));
+                                            new SourceSpan(
+                                                absoluteIndex: start,
+                                                lineIndex: linePosition.Line,
+                                                characterIndex: linePosition.Character,
+                                                length)));
                                     i += 5;
                                 }
 

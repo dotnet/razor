@@ -1,0 +1,15 @@
+﻿Source Location: (2:0,2 [40] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+#if false
+}
+@{
+<div>#endif</div>
+}|
+Generated Location: (734:21,0 [40] )
+|
+#if false
+}
+@{
+<div>#endif</div>
+}|
+
