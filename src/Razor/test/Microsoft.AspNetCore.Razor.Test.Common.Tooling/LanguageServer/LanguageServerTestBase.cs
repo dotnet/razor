@@ -46,10 +46,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
     }
 
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
-        => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
-
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(
+    private protected override TestProjectSnapshotManager CreateProjectSnapshotManager(
         IProjectEngineFactoryProvider projectEngineFactoryProvider)
         => new(
             projectEngineFactoryProvider,
