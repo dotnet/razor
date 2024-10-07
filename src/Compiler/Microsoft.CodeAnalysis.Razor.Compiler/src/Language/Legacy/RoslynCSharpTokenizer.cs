@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxToken;
@@ -13,8 +15,6 @@ using SyntaxFactory = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 using CSharpSyntaxToken = Microsoft.CodeAnalysis.SyntaxToken;
 using CSharpSyntaxTriviaList = Microsoft.CodeAnalysis.SyntaxTriviaList;
-using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
