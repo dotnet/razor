@@ -83,17 +83,22 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public LanguageVersion CSharpLanguageVersion => ((CSharpParseOptions)_project.ParseOptions.AssumeNotNull()).LanguageVersion;
 
-    public async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
     {
-        if (_tagHelpers.IsDefault)
+        return !_tagHelpers.IsDefault
+            ? new(_tagHelpers)
+            : GetTagHelpersCoreAsync(cancellationToken);
+
+        async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersCoreAsync(CancellationToken cancellationToken)
         {
             var projectEngine = await _lazyProjectEngine.GetValueAsync(cancellationToken);
             var telemetryReporter = SolutionSnapshot.SnapshotManager.TelemetryReporter;
             var computedTagHelpers = await _project.GetTagHelpersAsync(projectEngine, telemetryReporter, cancellationToken);
-            ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
-        }
 
-        return _tagHelpers;
+            ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
+
+            return _tagHelpers;
+        }
     }
 
     public ProjectWorkspaceState ProjectWorkspaceState => throw new InvalidOperationException("Should not be called for cohosted projects.");
