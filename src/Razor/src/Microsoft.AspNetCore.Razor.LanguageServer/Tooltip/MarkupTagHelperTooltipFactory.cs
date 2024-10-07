@@ -14,9 +14,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal sealed class MarkupTagHelperTooltipFactory
+internal static class MarkupTagHelperTooltipFactory
 {
-    public async Task<MarkupContent?> TryCreateTooltipAsync(
+    public static async Task<MarkupContent?> TryCreateTooltipAsync(
         string documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
         ISolutionQueryOperations solutionQueryOperations,
@@ -92,7 +92,7 @@ internal sealed class MarkupTagHelperTooltipFactory
         };
     }
 
-    public bool TryCreateTooltip(
+    public static bool TryCreateTooltip(
         AggregateBoundAttributeDescription attributeDescriptionInfo,
         MarkupKind markupKind,
         [NotNullWhen(true)] out MarkupContent? tooltipContent)

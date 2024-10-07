@@ -28,13 +28,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 internal sealed partial class HoverService(
     IProjectSnapshotManager projectManager,
-    MarkupTagHelperTooltipFactory markupTagHelperTooltipFactory,
     ClassifiedTagHelperTooltipFactory classifiedTagHelperTooltipFactory,
     IDocumentMappingService documentMappingService,
     IClientCapabilitiesService clientCapabilitiesService) : IHoverService
 {
     private readonly IProjectSnapshotManager _projectManager = projectManager;
-    private readonly MarkupTagHelperTooltipFactory _markupTagHelperTooltipFactory = markupTagHelperTooltipFactory;
     private readonly ClassifiedTagHelperTooltipFactory _classifiedTagHelperTooltipFactory = classifiedTagHelperTooltipFactory;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
@@ -279,7 +277,7 @@ internal sealed partial class HoverService(
         {
             var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
 
-            if (!_markupTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
+            if (!MarkupTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
             {
                 return null;
             }
@@ -327,8 +325,7 @@ internal sealed partial class HoverService(
 
         var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
 
-        var vsMarkupContent = await _markupTagHelperTooltipFactory
-            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), hoverContentFormat, cancellationToken)
+        var vsMarkupContent = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), hoverContentFormat, cancellationToken)
             .ConfigureAwait(false);
 
         if (vsMarkupContent is null)

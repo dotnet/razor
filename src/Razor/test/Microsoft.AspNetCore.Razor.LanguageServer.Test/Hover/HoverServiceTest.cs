@@ -983,7 +983,6 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
     private HoverService GetHoverService(IDocumentMappingService? mappingService = null)
     {
         var projectManager = CreateProjectSnapshotManager();
-        var markupTagHelperTooltipFactory = new MarkupTagHelperTooltipFactory();
         var classifiedTagHelperTooltipFactory = new ClassifiedTagHelperTooltipFactory();
 
         var clientCapabilities = CreateMarkDownCapabilities();
@@ -992,7 +991,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         mappingService ??= StrictMock.Of<IDocumentMappingService>();
 
-        return new HoverService(projectManager, markupTagHelperTooltipFactory, classifiedTagHelperTooltipFactory, mappingService, clientCapabilitiesService);
+        return new HoverService(projectManager, classifiedTagHelperTooltipFactory, mappingService, clientCapabilitiesService);
     }
 
     private class HoverLanguageServer : IClientConnection

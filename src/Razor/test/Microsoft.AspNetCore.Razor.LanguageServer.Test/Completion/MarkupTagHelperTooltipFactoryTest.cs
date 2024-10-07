@@ -68,11 +68,10 @@ World", cleanedSummary);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new MarkupTagHelperTooltipFactory();
         var elementDescription = AggregateBoundElementDescription.Empty;
 
         // Act
-        var markdown = await tooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, CancellationToken.None);
+        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, CancellationToken.None);
 
         // Assert
         Assert.Null(markdown);
@@ -83,14 +82,13 @@ World", cleanedSummary);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new MarkupTagHelperTooltipFactory();
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
         };
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
         // Act
-        var markdown = await tooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, CancellationToken.None);
+        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, CancellationToken.None);
 
         // Assert
         Assert.NotNull(markdown);
@@ -105,7 +103,6 @@ Uses `List<System.String>`s", markdown.Value);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new MarkupTagHelperTooltipFactory();
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
@@ -113,7 +110,7 @@ Uses `List<System.String>`s", markdown.Value);
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var markdown = await tooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.PlainText, CancellationToken.None);
+        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.PlainText, CancellationToken.None);
 
         // Assert
         Assert.NotNull(markdown);
@@ -127,7 +124,6 @@ Uses `List<System.String>`s", markdown.Value);
     public void TryCreateTooltip_Markup_Attribute_PlainText_NoBold()
     {
         // Arrange
-        var tooltipFactory = new MarkupTagHelperTooltipFactory();
         var associatedAttributeDescriptions = new[]
         {
             new BoundAttributeDescriptionInfo(
@@ -139,7 +135,7 @@ Uses `List<System.String>`s", markdown.Value);
         var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
         // Act
-        var result = tooltipFactory.TryCreateTooltip(attributeDescription, MarkupKind.PlainText, out var markdown);
+        var result = MarkupTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, MarkupKind.PlainText, out var markdown);
 
         // Assert
         Assert.True(result);
@@ -154,7 +150,6 @@ Uses `List<System.String>`s", markdown.Value);
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new MarkupTagHelperTooltipFactory();
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
@@ -163,7 +158,7 @@ Uses `List<System.String>`s", markdown.Value);
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var markdown = await tooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, CancellationToken.None);
+        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, CancellationToken.None);
 
         // Assert
         Assert.NotNull(markdown);
@@ -181,7 +176,6 @@ Also uses `List<System.String>`s", markdown.Value);
     public void TryCreateTooltip_Markup_Attribute_SingleAssociatedAttribute_ReturnsTrue()
     {
         // Arrange
-        var tooltipFactory = new MarkupTagHelperTooltipFactory();
         var associatedAttributeDescriptions = new[]
         {
             new BoundAttributeDescriptionInfo(
@@ -193,7 +187,7 @@ Also uses `List<System.String>`s", markdown.Value);
         var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
         // Act
-        var result = tooltipFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
+        var result = MarkupTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
 
         // Assert
         Assert.True(result);
@@ -207,7 +201,6 @@ Uses `List<System.String>`s", markdown.Value);
     public void TryCreateTooltip_Markup_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
     {
         // Arrange
-        var tooltipFactory = new MarkupTagHelperTooltipFactory();
         var associatedAttributeDescriptions = new[]
         {
             new BoundAttributeDescriptionInfo(
@@ -224,7 +217,7 @@ Uses `List<System.String>`s", markdown.Value);
         var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
         // Act
-        var result = tooltipFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
+        var result = MarkupTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
 
         // Assert
         Assert.True(result);
