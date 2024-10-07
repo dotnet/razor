@@ -39,7 +39,7 @@ internal class DelegatedCompletionListProvider
         IClientConnection clientConnection,
         CompletionListCache completionListCache)
     {
-        _responseRewriters = responseRewriters.OrderBy(rewriter => rewriter.Order).ToImmutableArray();
+        _responseRewriters = responseRewriters.OrderByAsArray(static x => x.Order);
         _documentMappingService = documentMappingService;
         _clientConnection = clientConnection;
         _completionListCache = completionListCache;
@@ -57,7 +57,9 @@ internal class DelegatedCompletionListProvider
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var positionInfo = await _documentMappingService.GetPositionInfoAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
+        var positionInfo = await _documentMappingService
+            .GetPositionInfoAsync(documentContext, absoluteIndex, cancellationToken)
+            .ConfigureAwait(false);
 
         if (positionInfo.LanguageKind == RazorLanguageKind.Razor)
         {
