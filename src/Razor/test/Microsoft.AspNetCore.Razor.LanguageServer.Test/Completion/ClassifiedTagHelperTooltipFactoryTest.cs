@@ -172,11 +172,10 @@ End summary description.";
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new ClassifiedTagHelperTooltipFactory();
         var elementDescription = AggregateBoundElementDescription.Empty;
 
         // Act
-        var classifiedTextElement = await tooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
 
         // Assert
         Assert.Null(classifiedTextElement);
@@ -187,7 +186,6 @@ End summary description.";
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new ClassifiedTagHelperTooltipFactory();
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo(
@@ -197,7 +195,7 @@ End summary description.";
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var classifiedTextElement = await tooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
 
         // Assert
         Assert.NotNull(classifiedTextElement);
@@ -228,7 +226,6 @@ End summary description.";
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new ClassifiedTagHelperTooltipFactory();
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo(
@@ -238,7 +235,7 @@ End summary description.";
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var classifiedTextElement = await tooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
 
         // Assert
         Assert.NotNull(classifiedTextElement);
@@ -268,7 +265,6 @@ End summary description.";
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new ClassifiedTagHelperTooltipFactory();
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
@@ -277,7 +273,7 @@ End summary description.";
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var classifiedTextElement = await tooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
 
         // Assert
         Assert.NotNull(classifiedTextElement);
@@ -321,15 +317,10 @@ End summary description.";
     public void TryCreateTooltip_ClassifiedTextElement_NoAssociatedAttributeDescriptions_ReturnsFalse()
     {
         // Arrange
-        var tooltipFactory = new ClassifiedTagHelperTooltipFactory();
         var elementDescription = AggregateBoundAttributeDescription.Empty;
 
         // Act
-        var result = tooltipFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement classifiedTextElement);
-
-        // Assert
-        Assert.False(result);
-        Assert.Null(classifiedTextElement);
+        Assert.False(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement _));
     }
 
     [Fact]
@@ -348,11 +339,9 @@ End summary description.";
         var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
         // Act
-        var result = tooltipFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement classifiedTextElement);
+        Assert.True(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement classifiedTextElement));
 
         // Assert
-        Assert.True(result);
-
         // Expected output:
         //     string Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeProperty
         //     Uses List<List<string>>s
@@ -401,10 +390,9 @@ End summary description.";
         var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
         // Act
-        var result = tooltipFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement classifiedTextElement);
+        Assert.True(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement classifiedTextElement));
 
         // Assert
-        Assert.True(result);
 
         // Expected output:
         //     string Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeProperty
@@ -459,11 +447,10 @@ End summary description.";
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new ClassifiedTagHelperTooltipFactory();
         var elementDescription = AggregateBoundElementDescription.Empty;
 
         // Act
-        var containerElement = await tooltipFactory.TryCreateTooltipContainerAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var containerElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipContainerAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
 
         // Assert
         Assert.Null(containerElement);
@@ -474,7 +461,6 @@ End summary description.";
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
-        var tooltipFactory = new ClassifiedTagHelperTooltipFactory();
         var associatedTagHelperInfos = new[]
         {
             new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
@@ -483,7 +469,7 @@ End summary description.";
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var container = await tooltipFactory.TryCreateTooltipContainerAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var container = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipContainerAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
 
         // Assert
         Assert.NotNull(container);
@@ -557,22 +543,16 @@ End summary description.";
     public void TryCreateTooltip_ContainerElement_NoAssociatedAttributeDescriptions_ReturnsFalse()
     {
         // Arrange
-        var tooltipFactory = new ClassifiedTagHelperTooltipFactory();
         var elementDescription = AggregateBoundAttributeDescription.Empty;
 
         // Act
-        var result = tooltipFactory.TryCreateTooltip(elementDescription, out ContainerElement containerElement);
-
-        // Assert
-        Assert.False(result);
-        Assert.Null(containerElement);
+        Assert.False(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(elementDescription, out ContainerElement _));
     }
 
     [Fact]
     public void TryCreateTooltip_ContainerElement_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
     {
         // Arrange
-        var tooltipFactory = new ClassifiedTagHelperTooltipFactory();
         var associatedAttributeDescriptions = new[]
         {
             new BoundAttributeDescriptionInfo(
@@ -589,10 +569,9 @@ End summary description.";
         var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
         // Act
-        var result = tooltipFactory.TryCreateTooltip(attributeDescription, out ContainerElement container);
+        Assert.True(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, out ContainerElement container));
 
         // Assert
-        Assert.True(result);
         var containerElements = container.Elements.ToList();
 
         // Expected output:

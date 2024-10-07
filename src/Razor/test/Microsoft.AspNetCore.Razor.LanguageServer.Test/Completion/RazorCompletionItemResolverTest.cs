@@ -7,7 +7,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -21,7 +20,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 public class RazorCompletionItemResolverTest : LanguageServerTestBase
 {
     private readonly IProjectSnapshotManager _projectManager;
-    private readonly ClassifiedTagHelperTooltipFactory _classifiedTagHelperTooltipFactory;
     private readonly VSInternalCompletionSetting _completionCapability;
     private readonly VSInternalClientCapabilities _defaultClientCapability;
     private readonly VSInternalClientCapabilities _vsClientCapability;
@@ -33,7 +31,6 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         _projectManager = CreateProjectSnapshotManager();
 
-        _classifiedTagHelperTooltipFactory = new ClassifiedTagHelperTooltipFactory();
         _completionCapability = new VSInternalCompletionSetting()
         {
             CompletionItem = new CompletionItemSetting()
@@ -69,7 +66,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_DirectiveCompletion_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.Directive);
         razorCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription("Test directive"));
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -87,7 +84,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_MarkupTransitionCompletion_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("@...", "@", RazorCompletionItemKind.MarkupTransition);
         razorCompletionItem.SetMarkupTransitionCompletionDescription(new MarkupTransitionCompletionDescription("Test description"));
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -105,7 +102,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_DirectiveAttributeCompletion_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttribute);
         razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -123,7 +120,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_DirectiveAttributeParameterCompletion_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttributeParameter);
         razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -141,7 +138,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_TagHelperElementCompletion_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperElement);
         razorCompletionItem.SetTagHelperElementDescriptionInfo(_elementDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -159,7 +156,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_TagHelperAttribute_ReturnsCompletionItemWithDocumentation()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperAttribute);
         razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -177,7 +174,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_VS_DirectiveAttributeCompletion_ReturnsCompletionItemWithDescription()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttribute);
         razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -195,7 +192,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_VS_DirectiveAttributeParameterCompletion_ReturnsCompletionItemWithDescription()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttributeParameter);
         razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -213,7 +210,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_VS_TagHelperElementCompletion_ReturnsCompletionItemWithDescription()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperElement);
         razorCompletionItem.SetTagHelperElementDescriptionInfo(_elementDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -231,7 +228,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_VS_TagHelperAttribute_ReturnsCompletionItemWithDescription()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperAttribute);
         razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
@@ -249,7 +246,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     public async Task ResolveAsync_NonTagHelperCompletion_Noops()
     {
         // Arrange
-        var resolver = new RazorCompletionItemResolver(_projectManager, _classifiedTagHelperTooltipFactory);
+        var resolver = new RazorCompletionItemResolver(_projectManager);
         var completionItem = new VSInternalCompletionItem();
         var completionList = new VSInternalCompletionList() { Items = [completionItem] };
 

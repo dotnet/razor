@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -34,11 +35,12 @@ internal sealed class ClassifiedTagHelperTooltipFactory
         new ImageId(s_imageCatalogGuid, 2429), // KnownImageIds.Type = 2429
         SR.TagHelper_Attribute_Glyph);
 
-    private static readonly IReadOnlyList<string> s_cSharpPrimitiveTypes =
-        new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
-            "nint", "nuint", "long", "ulong", "short", "ushort", "object", "string", "dynamic" };
+    private static readonly FrozenSet<string> s_csharpPrimitiveTypes =
+        FrozenSet.ToFrozenSet([
+            "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
+            "nint", "nuint", "long", "ulong", "short", "ushort", "object", "string", "dynamic"]);
 
-    private static readonly IReadOnlyDictionary<string, string> s_typeNameToAlias = new Dictionary<string, string>(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> s_typeNameToAlias = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         { "Int32", "int" },
         { "Int64", "long" },
@@ -49,14 +51,14 @@ internal sealed class ClassifiedTagHelperTooltipFactory
         { "Boolean", "bool" },
         { "String", "string" },
         { "Char", "char" }
-    };
+    }.ToFrozenDictionary();
 
     private static readonly ClassifiedTextRun s_space = new(ClassificationTypeNames.WhiteSpace, " ");
     private static readonly ClassifiedTextRun s_dot = new(ClassificationTypeNames.Punctuation, ".");
     private static readonly ClassifiedTextRun s_newLine = new(ClassificationTypeNames.WhiteSpace, Environment.NewLine);
     private static readonly ClassifiedTextRun s_nullableType = new(ClassificationTypeNames.Punctuation, "?");
 
-    public async Task<ContainerElement?> TryCreateTooltipContainerAsync(
+    public static async Task<ContainerElement?> TryCreateTooltipContainerAsync(
         string documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
         ISolutionQueryOperations solutionQueryOperations,
@@ -78,7 +80,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory
         return CombineClassifiedTextRuns(descriptionClassifications, ClassGlyph);
     }
 
-    public bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ContainerElement? tooltipContent)
+    public static bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ContainerElement? tooltipContent)
     {
         if (attributeDescriptionInfo is null)
         {
@@ -97,7 +99,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory
 
     // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
     // its Description property, tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319274.
-    public async Task<ClassifiedTextElement?> TryCreateTooltipAsync(
+    public static async Task<ClassifiedTextElement?> TryCreateTooltipAsync(
         string documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
         ISolutionQueryOperations solutionQueryOperations,
@@ -121,7 +123,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory
 
     // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
     // its Description property, tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319274.
-    public bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ClassifiedTextElement? tooltipContent)
+    public static bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ClassifiedTextElement? tooltipContent)
     {
         if (attributeDescriptionInfo is null)
         {
@@ -138,7 +140,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory
         return true;
     }
 
-    private async Task<ImmutableArray<DescriptionClassification>> TryClassifyElementAsync(
+    private static async Task<ImmutableArray<DescriptionClassification>> TryClassifyElementAsync(
         string documentFilePath,
         AggregateBoundElementDescription elementInfo,
         ISolutionQueryOperations solutionQueryOperations,
@@ -178,7 +180,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory
         return descriptions.DrainToImmutable();
     }
 
-    private async Task AddProjectAvailabilityInfoAsync(
+    private static async Task AddProjectAvailabilityInfoAsync(
         string documentFilePath,
         string tagHelperTypeName,
         ISolutionQueryOperations solutionQueryOperations,
@@ -338,7 +340,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory
             runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Keyword, aliasedTypeName));
         }
         // Case 2: Type is a C# built-in type (e.g. bool, int, etc.).
-        else if (s_cSharpPrimitiveTypes.Contains(typeName))
+        else if (s_csharpPrimitiveTypes.Contains(typeName))
         {
             runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Keyword, typeName));
         }
