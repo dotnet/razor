@@ -8,16 +8,16 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal abstract class TagHelperTooltipFactoryBase
+internal static class DocCommentHelpers
 {
-    protected static readonly string TagContentGroupName = "content";
+    public const string TagContentGroupName = "content";
+
     private static readonly Regex s_codeRegex = new Regex($"""<(?:c|code)>(?<{TagContentGroupName}>.*?)<\/(?:c|code)>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
     private static readonly Regex s_crefRegex = new Regex($"""<(?:see|seealso)[\s]+cref="(?<{TagContentGroupName}>[^">]+)"[^>]*>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     private static readonly char[] s_newLineChars = ['\n', '\r'];
 
-    // Internal for testing
-    internal static string ReduceCrefValue(string value)
+    public static string ReduceCrefValue(string value)
     {
         // cref values come in the following formats:
         // Type = "T:Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName"
@@ -47,14 +47,119 @@ internal abstract class TagHelperTooltipFactoryBase
         return value;
     }
 
-    // Internal for testing
-    internal static string ReduceTypeName(string content) => ReduceFullName(content, reduceWhenDotCount: 1);
+    public static string ReduceTypeName(string content)
+        => ReduceFullName(content, reduceWhenDotCount: 1);
 
-    // Internal for testing
-    internal static string ReduceMemberName(string content) => ReduceFullName(content, reduceWhenDotCount: 2);
+    public static string ReduceMemberName(string content)
+        => ReduceFullName(content, reduceWhenDotCount: 2);
 
-    // Internal for testing
-    internal static bool TryExtractSummary(string? documentation, [NotNullWhen(returnValue: true)] out string? summary)
+    private static string ReduceFullName(string content, int reduceWhenDotCount)
+    {
+        // Starts searching backwards and then substrings everything when it finds enough dots. i.e.
+        // ReduceFullName("Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName", 1) == "SomeTypeName"
+        //
+        // ReduceFullName("Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.AspAction", 2) == "SomeTypeName.AspAction"
+        //
+        // This is also smart enough to ignore nested dots in type generics[<>], methods[()], cref generics[{}].
+
+        if (reduceWhenDotCount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(reduceWhenDotCount));
+        }
+
+        var dotsSeen = 0;
+        var scope = 0;
+        for (var i = content.Length - 1; i >= 0; i--)
+        {
+            do
+            {
+                if (content[i] == '}')
+                {
+                    scope++;
+                }
+                else if (content[i] == '{')
+                {
+                    scope--;
+                }
+
+                if (scope > 0)
+                {
+                    i--;
+                }
+            }
+            while (scope != 0 && i >= 0);
+
+            if (i < 0)
+            {
+                // Could not balance scope
+                return content;
+            }
+
+            do
+            {
+                if (content[i] == ')')
+                {
+                    scope++;
+                }
+                else if (content[i] == '(')
+                {
+                    scope--;
+                }
+
+                if (scope > 0)
+                {
+                    i--;
+                }
+            }
+            while (scope != 0 && i >= 0);
+
+            if (i < 0)
+            {
+                // Could not balance scope
+                return content;
+            }
+
+            do
+            {
+                if (content[i] == '>')
+                {
+                    scope++;
+                }
+                else if (content[i] == '<')
+                {
+                    scope--;
+                }
+
+                if (scope > 0)
+                {
+                    i--;
+                }
+            }
+            while (scope != 0 && i >= 0);
+
+            if (i < 0)
+            {
+                // Could not balance scope
+                return content;
+            }
+
+            if (content[i] == '.')
+            {
+                dotsSeen++;
+            }
+
+            if (dotsSeen == reduceWhenDotCount)
+            {
+                var piece = content[(i + 1)..];
+                return piece;
+            }
+        }
+
+        // Could not reduce name
+        return content;
+    }
+
+    public static bool TryExtractSummary(string? documentation, [NotNullWhen(true)] out string? summary)
     {
         const string SummaryStartTag = "<summary>";
         const string SummaryEndTag = "</summary>";
@@ -90,13 +195,13 @@ internal abstract class TagHelperTooltipFactoryBase
         return true;
     }
 
-    internal static List<Match> ExtractCodeMatches(string summaryContent)
+    public static List<Match> ExtractCodeMatches(string summaryContent)
     {
         var successfulMatches = ExtractSuccessfulMatches(s_codeRegex, summaryContent);
         return successfulMatches;
     }
 
-    internal static List<Match> ExtractCrefMatches(string summaryContent)
+    public static List<Match> ExtractCrefMatches(string summaryContent)
     {
         var successfulMatches = ExtractSuccessfulMatches(s_crefRegex, summaryContent);
         return successfulMatches;
@@ -115,108 +220,5 @@ internal abstract class TagHelperTooltipFactoryBase
         }
 
         return successfulMatches;
-    }
-
-    private static string ReduceFullName(string content, int reduceWhenDotCount)
-    {
-        // Starts searching backwards and then substrings everything when it finds enough dots. i.e.
-        // ReduceFullName("Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName", 1) == "SomeTypeName"
-        //
-        // ReduceFullName("Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.AspAction", 2) == "SomeTypeName.AspAction"
-        //
-        // This is also smart enough to ignore nested dots in type generics[<>], methods[()], cref generics[{}].
-
-        if (reduceWhenDotCount <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(reduceWhenDotCount));
-        }
-
-        var dotsSeen = 0;
-        var scope = 0;
-        for (var i = content.Length - 1; i >= 0; i--)
-        {
-            do
-            {
-                if (content[i] == '}')
-                {
-                    scope++;
-                }
-                else if (content[i] == '{')
-                {
-                    scope--;
-                }
-
-                if (scope > 0)
-                {
-                    i--;
-                }
-            } while (scope != 0 && i >= 0);
-
-            if (i < 0)
-            {
-                // Could not balance scope
-                return content;
-            }
-
-            do
-            {
-                if (content[i] == ')')
-                {
-                    scope++;
-                }
-                else if (content[i] == '(')
-                {
-                    scope--;
-                }
-
-                if (scope > 0)
-                {
-                    i--;
-                }
-            } while (scope != 0 && i >= 0);
-
-            if (i < 0)
-            {
-                // Could not balance scope
-                return content;
-            }
-
-            do
-            {
-                if (content[i] == '>')
-                {
-                    scope++;
-                }
-                else if (content[i] == '<')
-                {
-                    scope--;
-                }
-
-                if (scope > 0)
-                {
-                    i--;
-                }
-            } while (scope != 0 && i >= 0);
-
-            if (i < 0)
-            {
-                // Could not balance scope
-                return content;
-            }
-
-            if (content[i] == '.')
-            {
-                dotsSeen++;
-            }
-
-            if (dotsSeen == reduceWhenDotCount)
-            {
-                var piece = content[(i + 1)..];
-                return piece;
-            }
-        }
-
-        // Could not reduce name
-        return content;
     }
 }

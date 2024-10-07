@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal sealed class MarkupTagHelperTooltipFactory : TagHelperTooltipFactoryBase
+internal sealed class MarkupTagHelperTooltipFactory
 {
     public async Task<MarkupContent?> TryCreateTooltipAsync(
         string documentFilePath,
@@ -52,7 +52,7 @@ internal sealed class MarkupTagHelperTooltipFactory : TagHelperTooltipFactoryBas
             }
 
             var tagHelperType = descriptionInfo.TagHelperTypeName;
-            var reducedTypeName = ReduceTypeName(tagHelperType);
+            var reducedTypeName = DocCommentHelpers.ReduceTypeName(tagHelperType);
 
             // If the reducedTypeName != tagHelperType, then the type is prefixed by a namespace
             if (reducedTypeName != tagHelperType)
@@ -66,7 +66,7 @@ internal sealed class MarkupTagHelperTooltipFactory : TagHelperTooltipFactoryBas
             StartOrEndBold(descriptionBuilder, markupKind);
 
             var documentation = descriptionInfo.Documentation;
-            if (TryExtractSummary(documentation, out var summaryContent))
+            if (DocCommentHelpers.TryExtractSummary(documentation, out var summaryContent))
             {
                 descriptionBuilder.AppendLine();
                 descriptionBuilder.AppendLine();
@@ -132,12 +132,12 @@ internal sealed class MarkupTagHelperTooltipFactory : TagHelperTooltipFactoryBas
                 returnTypeName = descriptionInfo.ReturnTypeName;
             }
 
-            var reducedReturnTypeName = ReduceTypeName(returnTypeName);
+            var reducedReturnTypeName = DocCommentHelpers.ReduceTypeName(returnTypeName);
             descriptionBuilder.Append(reducedReturnTypeName);
             StartOrEndBold(descriptionBuilder, markupKind);
             descriptionBuilder.Append(' ');
             var tagHelperTypeName = descriptionInfo.TypeName;
-            var reducedTagHelperTypeName = ReduceTypeName(tagHelperTypeName);
+            var reducedTagHelperTypeName = DocCommentHelpers.ReduceTypeName(tagHelperTypeName);
             descriptionBuilder.Append(reducedTagHelperTypeName);
             descriptionBuilder.Append('.');
             StartOrEndBold(descriptionBuilder, markupKind);
@@ -145,7 +145,7 @@ internal sealed class MarkupTagHelperTooltipFactory : TagHelperTooltipFactoryBas
             StartOrEndBold(descriptionBuilder, markupKind);
 
             var documentation = descriptionInfo.Documentation;
-            if (!TryExtractSummary(documentation, out var summaryContent))
+            if (!DocCommentHelpers.TryExtractSummary(documentation, out var summaryContent))
             {
                 continue;
             }
@@ -173,7 +173,7 @@ internal sealed class MarkupTagHelperTooltipFactory : TagHelperTooltipFactoryBas
         // if there's a <para> in the summary element when it's shown in the completion description window
         // it'll be serialized as html (wont show).
         summaryContent = summaryContent.Trim();
-        var crefMatches = ExtractCrefMatches(summaryContent);
+        var crefMatches = DocCommentHelpers.ExtractCrefMatches(summaryContent);
 
         using var _ = StringBuilderPool.GetPooledObject(out var summaryBuilder);
 
@@ -184,8 +184,8 @@ internal sealed class MarkupTagHelperTooltipFactory : TagHelperTooltipFactoryBas
             var cref = crefMatches[i];
             if (cref.Success)
             {
-                var value = cref.Groups[TagContentGroupName].Value;
-                var reducedValue = ReduceCrefValue(value);
+                var value = cref.Groups[DocCommentHelpers.TagContentGroupName].Value;
+                var reducedValue = DocCommentHelpers.ReduceCrefValue(value);
                 reducedValue = reducedValue.Replace("{", "<").Replace("}", ">");
                 summaryBuilder.Remove(cref.Index, cref.Length);
                 summaryBuilder.Insert(cref.Index, $"`{reducedValue}`");

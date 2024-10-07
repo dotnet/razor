@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 
-internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactoryBase
+internal sealed class ClassifiedTagHelperTooltipFactory
 {
     public const string TypeClassificationName = "Type";
 
@@ -221,7 +221,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactor
                 returnTypeName = descriptionInfo.ReturnTypeName;
             }
 
-            var reducedReturnTypeName = ReduceTypeName(returnTypeName);
+            var reducedReturnTypeName = DocCommentHelpers.ReduceTypeName(returnTypeName);
             ClassifyReducedTypeName(typeRuns, reducedReturnTypeName);
             typeRuns.Add(s_space);
             ClassifyTypeName(typeRuns, descriptionInfo.TypeName);
@@ -242,7 +242,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactor
 
     private static void ClassifyTypeName(List<ClassifiedTextRun> runs, string tagHelperTypeName)
     {
-        var reducedTypeName = ReduceTypeName(tagHelperTypeName);
+        var reducedTypeName = DocCommentHelpers.ReduceTypeName(tagHelperTypeName);
         if (reducedTypeName == tagHelperTypeName)
         {
             ClassifyReducedTypeName(runs, reducedTypeName);
@@ -298,7 +298,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactor
                     // also need to reduce the inner type name(s), e.g. 'List<NamespaceName.TypeName>'
                     if (ch is '<' or '>' or '[' or ']' && currentRunTextStr.Contains('.'))
                     {
-                        var reducedName = ReduceTypeName(currentRunTextStr);
+                        var reducedName = DocCommentHelpers.ReduceTypeName(currentRunTextStr);
                         ClassifyShortName(runs, reducedName);
                     }
                     else
@@ -356,7 +356,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactor
 
     private static bool TryClassifySummary(List<ClassifiedTextRun> runs, string? documentation)
     {
-        if (!TryExtractSummary(documentation, out var summaryContent))
+        if (!DocCommentHelpers.TryExtractSummary(documentation, out var summaryContent))
         {
             return false;
         }
@@ -380,8 +380,8 @@ internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactor
         summaryContent = summaryContent.Replace("<para>", Environment.NewLine);
         summaryContent = summaryContent.Replace("</para>", Environment.NewLine);
 
-        var codeMatches = ExtractCodeMatches(summaryContent);
-        var crefMatches = ExtractCrefMatches(summaryContent);
+        var codeMatches = DocCommentHelpers.ExtractCodeMatches(summaryContent);
+        var crefMatches = DocCommentHelpers.ExtractCrefMatches(summaryContent);
 
         if (codeMatches.Count == 0 && crefMatches.Count == 0)
         {
@@ -410,7 +410,7 @@ internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactor
                 ClassifyExistingTextRun(runs, currentTextRun);
 
                 // We've processed the existing string, now we can process the code block.
-                var value = currentCodeMatch.Groups[TagContentGroupName].Value;
+                var value = currentCodeMatch.Groups[DocCommentHelpers.TagContentGroupName].Value;
                 if (value.Length != 0)
                 {
                     runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, value.ToString(), ClassifiedTextRunStyle.UseClassificationFont));
@@ -424,8 +424,8 @@ internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactor
                 ClassifyExistingTextRun(runs, currentTextRun);
 
                 // We've processed the existing string, now we can process the actual cref.
-                var value = currentCrefMatch.Groups[TagContentGroupName].Value;
-                var reducedValue = ReduceCrefValue(value);
+                var value = currentCrefMatch.Groups[DocCommentHelpers.TagContentGroupName].Value;
+                var reducedValue = DocCommentHelpers.ReduceCrefValue(value);
                 reducedValue = reducedValue.Replace("{", "<").Replace("}", ">").Replace("`1", "<>");
                 ClassifyTypeName(runs, reducedValue);
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -20,7 +18,7 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion;
 
-public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class DocCommentHelpersTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
     public void ReduceTypeName_Plain()
@@ -29,7 +27,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName";
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceTypeName(content);
+        var reduced = DocCommentHelpers.ReduceTypeName(content);
 
         // Assert
         Assert.Equal("SomeTypeName", reduced);
@@ -42,7 +40,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "System.Collections.Generic.List<System.String>";
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceTypeName(content);
+        var reduced = DocCommentHelpers.ReduceTypeName(content);
 
         // Assert
         Assert.Equal("List<System.String>", reduced);
@@ -55,7 +53,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "System.Collections.Generic.List{System.String}";
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceTypeName(content);
+        var reduced = DocCommentHelpers.ReduceTypeName(content);
 
         // Assert
         Assert.Equal("List{System.String}", reduced);
@@ -68,7 +66,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType<Foo.Bar<Baz.Phi>>";
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceTypeName(content);
+        var reduced = DocCommentHelpers.ReduceTypeName(content);
 
         // Assert
         Assert.Equal("SomeType<Foo.Bar<Baz.Phi>>", reduced);
@@ -82,7 +80,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         // Arrange
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceTypeName(content);
+        var reduced = DocCommentHelpers.ReduceTypeName(content);
 
         // Assert
         Assert.Equal(content, reduced);
@@ -95,7 +93,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType.SomeProperty";
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceMemberName(content);
+        var reduced = DocCommentHelpers.ReduceMemberName(content);
 
         // Assert
         Assert.Equal("SomeType.SomeProperty", reduced);
@@ -108,7 +106,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType<Foo.Bar>.SomeProperty<Foo.Bar>";
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceMemberName(content);
+        var reduced = DocCommentHelpers.ReduceMemberName(content);
 
         // Assert
         Assert.Equal("SomeType<Foo.Bar>.SomeProperty<Foo.Bar>", reduced);
@@ -121,7 +119,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType{Foo.Bar}.SomeProperty{Foo.Bar}";
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceMemberName(content);
+        var reduced = DocCommentHelpers.ReduceMemberName(content);
 
         // Assert
         Assert.Equal("SomeType{Foo.Bar}.SomeProperty{Foo.Bar}", reduced);
@@ -134,7 +132,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType<Foo.Bar<Baz,Fi>>.SomeMethod(Foo.Bar<System.String>,Baz<Something>.Fi)";
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceMemberName(content);
+        var reduced = DocCommentHelpers.ReduceMemberName(content);
 
         // Assert
         Assert.Equal("SomeType<Foo.Bar<Baz,Fi>>.SomeMethod(Foo.Bar<System.String>,Baz<Something>.Fi)", reduced);
@@ -150,7 +148,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         // Arrange
 
         // Act
-        var reduced = TagHelperTooltipFactoryBase.ReduceMemberName(content);
+        var reduced = DocCommentHelpers.ReduceMemberName(content);
 
         // Assert
         Assert.Equal(content, reduced);
@@ -163,7 +161,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "T:";
 
         // Act
-        var value = TagHelperTooltipFactoryBase.ReduceCrefValue(content);
+        var value = DocCommentHelpers.ReduceCrefValue(content);
 
         // Assert
         Assert.Equal(string.Empty, value);
@@ -176,7 +174,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "X:";
 
         // Act
-        var value = TagHelperTooltipFactoryBase.ReduceCrefValue(content);
+        var value = DocCommentHelpers.ReduceCrefValue(content);
 
         // Assert
         Assert.Equal(string.Empty, value);
@@ -189,7 +187,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "T:Microsoft.AspNetCore.SometTagHelpers.SomeType";
 
         // Act
-        var value = TagHelperTooltipFactoryBase.ReduceCrefValue(content);
+        var value = DocCommentHelpers.ReduceCrefValue(content);
 
         // Assert
         Assert.Equal("SomeType", value);
@@ -202,7 +200,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "P:Microsoft.AspNetCore.SometTagHelpers.SomeType.SomeProperty";
 
         // Act
-        var value = TagHelperTooltipFactoryBase.ReduceCrefValue(content);
+        var value = DocCommentHelpers.ReduceCrefValue(content);
 
         // Assert
         Assert.Equal("SomeType.SomeProperty", value);
@@ -215,7 +213,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
         var content = "P:Microsoft.AspNetCore.SometTagHelpers.SomeType.SomeMember";
 
         // Act
-        var value = TagHelperTooltipFactoryBase.ReduceCrefValue(content);
+        var value = DocCommentHelpers.ReduceCrefValue(content);
 
         // Assert
         Assert.Equal("SomeType.SomeMember", value);
@@ -225,7 +223,7 @@ public class TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput) : Lan
     public void TryExtractSummary_Null_ReturnsFalse()
     {
         // Arrange & Act
-        var result = TagHelperTooltipFactoryBase.TryExtractSummary(documentation: null, out var summary);
+        var result = DocCommentHelpers.TryExtractSummary(documentation: null, out var summary);
 
         // Assert
         Assert.False(result);
@@ -246,7 +244,7 @@ Prefixed invalid content
 Suffixed invalid content";
 
         // Act
-        var result = TagHelperTooltipFactoryBase.TryExtractSummary(documentation, out var summary);
+        var result = DocCommentHelpers.TryExtractSummary(documentation, out var summary);
 
         // Assert
         Assert.True(result);
@@ -266,7 +264,7 @@ Prefixed invalid content
 Suffixed invalid content";
 
         // Act
-        var result = TagHelperTooltipFactoryBase.TryExtractSummary(documentation, out var summary);
+        var result = DocCommentHelpers.TryExtractSummary(documentation, out var summary);
 
         // Assert
         Assert.True(result);
@@ -291,7 +289,7 @@ Prefixed invalid content
 Suffixed invalid content";
 
         // Act
-        var result = TagHelperTooltipFactoryBase.TryExtractSummary(documentation, out var summary);
+        var result = DocCommentHelpers.TryExtractSummary(documentation, out var summary);
 
         // Assert
         Assert.True(result);
@@ -313,7 +311,7 @@ Suffixed invalid content", summary);
 ";
 
         // Act
-        var result = TagHelperTooltipFactoryBase.TryExtractSummary(documentation, out var summary);
+        var result = DocCommentHelpers.TryExtractSummary(documentation, out var summary);
 
         // Assert
         Assert.False(result);
@@ -329,7 +327,7 @@ There is no xml, but I got you this < and the >.
 ";
 
         // Act
-        var result = TagHelperTooltipFactoryBase.TryExtractSummary(documentation, out var summary);
+        var result = DocCommentHelpers.TryExtractSummary(documentation, out var summary);
 
         // Assert
         Assert.True(result);
