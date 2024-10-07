@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -338,18 +337,18 @@ There is no xml, but I got you this < and the >.
     }
 
     [Fact]
-    public async Task GetAvailableProjects_NoProjects_ReturnsNull()
+    public async Task GetProjectAvailabilityText_NoProjects_ReturnsNull()
     {
         var projectManager = CreateProjectSnapshotManager();
-        var service = new TestTagHelperToolTipFactory();
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
-        var availability = await service.GetProjectAvailabilityAsync("file.razor", "MyTagHelper", projectManager.GetQueryOperations(), CancellationToken.None);
+        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync("file.razor", "MyTagHelper", DisposalToken);
 
         Assert.Null(availability);
     }
 
     [Fact]
-    public async Task GetAvailableProjects_OneProject_ReturnsNull()
+    public async Task GetProjectAvailabilityText_OneProject_ReturnsNull()
     {
         var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
@@ -379,15 +378,15 @@ There is no xml, but I got you this < and the >.
             updater.DocumentAdded(hostProject.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var service = new TestTagHelperToolTipFactory();
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
-        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, tagHelperTypeName, projectManager.GetQueryOperations(), CancellationToken.None);
+        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
 
         Assert.Null(availability);
     }
 
     [Fact]
-    public async Task GetAvailableProjects_AvailableInAllProjects_ReturnsNull()
+    public async Task GetProjectAvailabilityText_AvailableInAllProjects_ReturnsNull()
     {
         var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
@@ -428,15 +427,15 @@ There is no xml, but I got you this < and the >.
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var service = new TestTagHelperToolTipFactory();
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
-        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, tagHelperTypeName, projectManager.GetQueryOperations(), CancellationToken.None);
+        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
 
         Assert.Null(availability);
     }
 
     [Fact]
-    public async Task GetAvailableProjects_NotAvailableInAllProjects_ReturnsText()
+    public async Task GetProjectAvailabilityText_NotAvailableInAllProjects_ReturnsText()
     {
         var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
@@ -476,9 +475,9 @@ There is no xml, but I got you this < and the >.
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var service = new TestTagHelperToolTipFactory();
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
-        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, tagHelperTypeName, projectManager.GetQueryOperations(), CancellationToken.None);
+        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
 
         AssertEx.EqualOrDiff("""
 
@@ -488,7 +487,7 @@ There is no xml, but I got you this < and the >.
     }
 
     [Fact]
-    public async Task GetAvailableProjects_NotAvailableInAnyProject_ReturnsText()
+    public async Task GetProjectAvailabilityText_NotAvailableInAnyProject_ReturnsText()
     {
         var hostProject1 = new HostProject(
             "C:/path/to/project.csproj",
@@ -520,9 +519,9 @@ There is no xml, but I got you this < and the >.
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var service = new TestTagHelperToolTipFactory();
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
-        var availability = await service.GetProjectAvailabilityAsync(hostDocument.FilePath, "MyTagHelper", projectManager.GetQueryOperations(), CancellationToken.None);
+        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, "MyTagHelper", DisposalToken);
 
         AssertEx.EqualOrDiff("""
 
@@ -531,8 +530,4 @@ There is no xml, but I got you this < and the >.
                 project2
             """, availability);
     }
-}
-
-file class TestTagHelperToolTipFactory : TagHelperTooltipFactoryBase
-{
 }

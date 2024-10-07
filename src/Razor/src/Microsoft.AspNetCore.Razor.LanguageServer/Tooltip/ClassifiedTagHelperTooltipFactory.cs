@@ -185,8 +185,9 @@ internal sealed class ClassifiedTagHelperTooltipFactory : TagHelperTooltipFactor
         List<ClassifiedTextRun> documentationRuns,
         CancellationToken cancellationToken)
     {
-        var availability = await GetProjectAvailabilityAsync(
-            documentFilePath, tagHelperTypeName, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+        var availability = await solutionQueryOperations
+            .GetProjectAvailabilityTextAsync(documentFilePath, tagHelperTypeName, cancellationToken)
+            .ConfigureAwait(false);
 
         if (availability is not null)
         {

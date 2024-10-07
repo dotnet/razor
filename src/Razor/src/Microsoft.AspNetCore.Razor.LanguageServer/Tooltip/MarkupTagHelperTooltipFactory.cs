@@ -74,8 +74,10 @@ internal sealed class MarkupTagHelperTooltipFactory : TagHelperTooltipFactoryBas
                 descriptionBuilder.Append(finalSummaryContent);
             }
 
-            var availability = await GetProjectAvailabilityAsync(
-                documentFilePath, tagHelperType, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+            var availability = await solutionQueryOperations
+                .GetProjectAvailabilityTextAsync(documentFilePath, tagHelperType, cancellationToken)
+                .ConfigureAwait(false);
+
             if (availability is not null)
             {
                 descriptionBuilder.AppendLine();
