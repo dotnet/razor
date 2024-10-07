@@ -2108,7 +2108,7 @@ namespace Test
     {
         // Act
         var generated = CompileToCSharp("""
-        <MyComponent Value="Hello" />
+        <TestComponent Value="Hello" />
 
         @
 
