@@ -52,6 +52,13 @@ internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
     {
         lock (_gate)
         {
+            // PERF: It's intentional that we call _filePathToDocumentMap.ContainsKey(...)
+            // before State.Documents.ContainsKey(...), even though the latter check is
+            // enough to return the correct answer. This is because _filePathToDocumentMap is
+            // a Dictionary<,>, which has O(1) lookup, and State.Documents is an
+            // ImmutableDictionary<,>, which has O(log n) lookup. So, checking _filePathToDocumentMap
+            // first is faster if the DocumentSnapshot has already been created.
+
             return _filePathToDocumentMap.ContainsKey(filePath) ||
                    State.Documents.ContainsKey(filePath);
         }
@@ -66,17 +73,26 @@ internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
     {
         lock (_gate)
         {
-            // We only create a new DocumentSnapshot if we haven't created one yet
-            // but have DocumentState for it.
-            if (!_filePathToDocumentMap.TryGetValue(filePath, out var snapshot) &&
-                State.Documents.TryGetValue(filePath, out var state))
+            // Have we already seen this document? If so, return it!
+            if (_filePathToDocumentMap.TryGetValue(filePath, out var snapshot))
             {
-                snapshot = new DocumentSnapshot(this, state);
-                _filePathToDocumentMap.Add(filePath, snapshot);
+                document = snapshot;
+                return true;
             }
 
+            // Do we have DocumentSate for this document? If not, we're done!
+            if (!State.Documents.TryGetValue(filePath, out var state))
+            {
+                document = null;
+                return false;
+            }
+
+            // If we have DocumentState, go ahead and create a new DocumentSnapshot.
+            snapshot = new DocumentSnapshot(this, state);
+            _filePathToDocumentMap.Add(filePath, snapshot);
+
             document = snapshot;
-            return document is not null;
+            return true;
         }
     }
 
