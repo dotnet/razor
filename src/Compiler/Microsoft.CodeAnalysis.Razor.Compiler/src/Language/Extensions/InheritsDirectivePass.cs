@@ -24,7 +24,7 @@ public sealed class InheritsDirectivePass : IntermediateNodePassBase, IRazorDire
             var token = ((DirectiveIntermediateNode)inherits.Node).Tokens.FirstOrDefault();
             if (token != null)
             {
-                @class.BaseType = token.Content;
+                @class.BaseType = IntermediateToken.CreateCSharpToken(token.Content);
                 break;
             }
         }
