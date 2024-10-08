@@ -59,6 +59,11 @@
         <target state="translated">Razor 语言服务未正确配置，缺少语言服务 "{0}"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Not_Available_In">
+        <source>Not available in</source>
+        <target state="new">Not available in</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PositionCharacter_Outside_Range">
         <source>Character '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
         <target state="translated">查询了“{2}”的 {1} 范围外的字符“{0}”。文档可能不是最新的。</target>
@@ -67,6 +72,16 @@
       <trans-unit id="PositionLine_Outside_Range">
         <source>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
         <target state="translated">查询了 "{0}" 的 {1} 范围外的行 "{2}"。文档可能不是最新的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TagHelper_Attribute_Glyph">
+        <source>Razor TagHelper Attribute Glyph</source>
+        <target state="new">Razor TagHelper Attribute Glyph</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TagHelper_Element_Glyph">
+        <source>Razor TagHelper Element Glyph</source>
+        <target state="new">Razor TagHelper Element Glyph</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">

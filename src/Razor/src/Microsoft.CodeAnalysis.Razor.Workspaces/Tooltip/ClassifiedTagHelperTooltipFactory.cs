@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -9,17 +10,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Text.Adornments;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
-internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : VSLSPTagHelperTooltipFactory(projectManager)
+internal static class ClassifiedTagHelperTooltipFactory
 {
+    public const string TypeClassificationName = "Type";
+
     private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
 
     // Internal for testing
@@ -32,11 +34,12 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
         new ImageId(s_imageCatalogGuid, 2429), // KnownImageIds.Type = 2429
         SR.TagHelper_Attribute_Glyph);
 
-    private static readonly IReadOnlyList<string> s_cSharpPrimitiveTypes =
-        new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
-            "nint", "nuint", "long", "ulong", "short", "ushort", "object", "string", "dynamic" };
+    private static readonly FrozenSet<string> s_csharpPrimitiveTypes =
+        FrozenSet.ToFrozenSet([
+            "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
+            "nint", "nuint", "long", "ulong", "short", "ushort", "object", "string", "dynamic"]);
 
-    private static readonly IReadOnlyDictionary<string, string> s_typeNameToAlias = new Dictionary<string, string>(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> s_typeNameToAlias = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         { "Int32", "int" },
         { "Int64", "long" },
@@ -47,21 +50,27 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
         { "Boolean", "bool" },
         { "String", "string" },
         { "Char", "char" }
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly ClassifiedTextRun s_space = new(VSPredefinedClassificationTypeNames.WhiteSpace, " ");
-    private static readonly ClassifiedTextRun s_dot = new(VSPredefinedClassificationTypeNames.Punctuation, ".");
-    private static readonly ClassifiedTextRun s_newLine = new(VSPredefinedClassificationTypeNames.WhiteSpace, Environment.NewLine);
-    private static readonly ClassifiedTextRun s_nullableType = new(VSPredefinedClassificationTypeNames.Punctuation, "?");
+    private static readonly ClassifiedTextRun s_space = new(ClassificationTypeNames.WhiteSpace, " ");
+    private static readonly ClassifiedTextRun s_dot = new(ClassificationTypeNames.Punctuation, ".");
+    private static readonly ClassifiedTextRun s_newLine = new(ClassificationTypeNames.WhiteSpace, Environment.NewLine);
+    private static readonly ClassifiedTextRun s_nullableType = new(ClassificationTypeNames.Punctuation, "?");
 
-    public override async Task<ContainerElement?> TryCreateTooltipContainerAsync(string documentFilePath, AggregateBoundElementDescription elementDescriptionInfo, CancellationToken cancellationToken)
+    public static async Task<ContainerElement?> TryCreateTooltipContainerAsync(
+        string documentFilePath,
+        AggregateBoundElementDescription elementDescriptionInfo,
+        ISolutionQueryOperations solutionQueryOperations,
+        CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
         {
             throw new ArgumentNullException(nameof(elementDescriptionInfo));
         }
 
-        var descriptionClassifications = await TryClassifyElementAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
+        var descriptionClassifications = await TryClassifyElementAsync(
+            documentFilePath, elementDescriptionInfo, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+
         if (descriptionClassifications.IsDefaultOrEmpty)
         {
             return null;
@@ -70,7 +79,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
         return CombineClassifiedTextRuns(descriptionClassifications, ClassGlyph);
     }
 
-    public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ContainerElement? tooltipContent)
+    public static bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ContainerElement? tooltipContent)
     {
         if (attributeDescriptionInfo is null)
         {
@@ -89,14 +98,20 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
 
     // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
     // its Description property, tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319274.
-    public override async Task<ClassifiedTextElement?> TryCreateTooltipAsync(string documentFilePath, AggregateBoundElementDescription elementDescriptionInfo, CancellationToken cancellationToken)
+    public static async Task<ClassifiedTextElement?> TryCreateTooltipAsync(
+        string documentFilePath,
+        AggregateBoundElementDescription elementDescriptionInfo,
+        ISolutionQueryOperations solutionQueryOperations,
+        CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
         {
             throw new ArgumentNullException(nameof(elementDescriptionInfo));
         }
 
-        var descriptionClassifications = await TryClassifyElementAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
+        var descriptionClassifications = await TryClassifyElementAsync(
+            documentFilePath, elementDescriptionInfo, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+
         if (descriptionClassifications.IsDefaultOrEmpty)
         {
             return null;
@@ -107,7 +122,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
 
     // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
     // its Description property, tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319274.
-    public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ClassifiedTextElement? tooltipContent)
+    public static bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ClassifiedTextElement? tooltipContent)
     {
         if (attributeDescriptionInfo is null)
         {
@@ -124,7 +139,11 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
         return true;
     }
 
-    private async Task<ImmutableArray<DescriptionClassification>> TryClassifyElementAsync(string documentFilePath, AggregateBoundElementDescription elementInfo, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<DescriptionClassification>> TryClassifyElementAsync(
+        string documentFilePath,
+        AggregateBoundElementDescription elementInfo,
+        ISolutionQueryOperations solutionQueryOperations,
+        CancellationToken cancellationToken)
     {
         var associatedTagHelperInfos = elementInfo.DescriptionInfos;
         if (associatedTagHelperInfos.Length == 0)
@@ -150,7 +169,8 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
             TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
 
             // 3. Project availability
-            await AddProjectAvailabilityInfoAsync(documentFilePath, descriptionInfo.TagHelperTypeName, documentationRuns, cancellationToken).ConfigureAwait(false);
+            await AddProjectAvailabilityInfoAsync(
+                documentFilePath, descriptionInfo.TagHelperTypeName, solutionQueryOperations, documentationRuns, cancellationToken).ConfigureAwait(false);
 
             // 4. Combine type + summary information
             descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));
@@ -159,13 +179,20 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
         return descriptions.DrainToImmutable();
     }
 
-    private async Task AddProjectAvailabilityInfoAsync(string documentFilePath, string tagHelperTypeName, List<ClassifiedTextRun> documentationRuns, CancellationToken cancellationToken)
+    private static async Task AddProjectAvailabilityInfoAsync(
+        string documentFilePath,
+        string tagHelperTypeName,
+        ISolutionQueryOperations solutionQueryOperations,
+        List<ClassifiedTextRun> documentationRuns,
+        CancellationToken cancellationToken)
     {
-        var availability = await GetProjectAvailabilityAsync(documentFilePath, tagHelperTypeName, cancellationToken).ConfigureAwait(false);
+        var availability = await solutionQueryOperations
+            .GetProjectAvailabilityTextAsync(documentFilePath, tagHelperTypeName, cancellationToken)
+            .ConfigureAwait(false);
 
         if (availability is not null)
         {
-            documentationRuns.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, availability));
+            documentationRuns.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, availability));
         }
     }
 
@@ -195,12 +222,12 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
                 returnTypeName = descriptionInfo.ReturnTypeName;
             }
 
-            var reducedReturnTypeName = ReduceTypeName(returnTypeName);
+            var reducedReturnTypeName = DocCommentHelpers.ReduceTypeName(returnTypeName);
             ClassifyReducedTypeName(typeRuns, reducedReturnTypeName);
             typeRuns.Add(s_space);
             ClassifyTypeName(typeRuns, descriptionInfo.TypeName);
             typeRuns.Add(s_dot);
-            typeRuns.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
+            typeRuns.Add(new ClassifiedTextRun(ClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
 
             // 2. Classify summary
             var documentationRuns = new List<ClassifiedTextRun>();
@@ -216,7 +243,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
 
     private static void ClassifyTypeName(List<ClassifiedTextRun> runs, string tagHelperTypeName)
     {
-        var reducedTypeName = ReduceTypeName(tagHelperTypeName);
+        var reducedTypeName = DocCommentHelpers.ReduceTypeName(tagHelperTypeName);
         if (reducedTypeName == tagHelperTypeName)
         {
             ClassifyReducedTypeName(runs, reducedTypeName);
@@ -246,7 +273,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
             }
             else
             {
-                runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, typeNamePart));
+                runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, typeNamePart));
             }
         }
     }
@@ -272,7 +299,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
                     // also need to reduce the inner type name(s), e.g. 'List<NamespaceName.TypeName>'
                     if (ch is '<' or '>' or '[' or ']' && currentRunTextStr.Contains('.'))
                     {
-                        var reducedName = ReduceTypeName(currentRunTextStr);
+                        var reducedName = DocCommentHelpers.ReduceTypeName(currentRunTextStr);
                         ClassifyShortName(runs, reducedName);
                     }
                     else
@@ -283,7 +310,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
                     currentTextRun.Clear();
                 }
 
-                runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Punctuation, ch.ToString()));
+                runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ch.ToString()));
             }
             else
             {
@@ -309,17 +336,17 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
         // Case 1: Type can be aliased as a C# built-in type (e.g. Boolean -> bool, Int32 -> int, etc.).
         if (s_typeNameToAlias.TryGetValue(typeName, out var aliasedTypeName))
         {
-            runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Keyword, aliasedTypeName));
+            runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Keyword, aliasedTypeName));
         }
         // Case 2: Type is a C# built-in type (e.g. bool, int, etc.).
-        else if (s_cSharpPrimitiveTypes.Contains(typeName))
+        else if (s_csharpPrimitiveTypes.Contains(typeName))
         {
-            runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Keyword, typeName));
+            runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Keyword, typeName));
         }
         // Case 3: All other types.
         else
         {
-            runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Type, typeName));
+            runs.Add(new ClassifiedTextRun(TypeClassificationName, typeName));
         }
 
         if (nullableType)
@@ -330,7 +357,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
 
     private static bool TryClassifySummary(List<ClassifiedTextRun> runs, string? documentation)
     {
-        if (!TryExtractSummary(documentation, out var summaryContent))
+        if (!DocCommentHelpers.TryExtractSummary(documentation, out var summaryContent))
         {
             return false;
         }
@@ -354,12 +381,12 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
         summaryContent = summaryContent.Replace("<para>", Environment.NewLine);
         summaryContent = summaryContent.Replace("</para>", Environment.NewLine);
 
-        var codeMatches = ExtractCodeMatches(summaryContent);
-        var crefMatches = ExtractCrefMatches(summaryContent);
+        var codeMatches = DocCommentHelpers.ExtractCodeMatches(summaryContent);
+        var crefMatches = DocCommentHelpers.ExtractCrefMatches(summaryContent);
 
         if (codeMatches.Count == 0 && crefMatches.Count == 0)
         {
-            runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, summaryContent));
+            runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, summaryContent));
             return;
         }
 
@@ -384,10 +411,10 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
                 ClassifyExistingTextRun(runs, currentTextRun);
 
                 // We've processed the existing string, now we can process the code block.
-                var value = currentCodeMatch.Groups[TagContentGroupName].Value;
+                var value = currentCodeMatch.Groups[DocCommentHelpers.TagContentGroupName].Value;
                 if (value.Length != 0)
                 {
-                    runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, value.ToString(), ClassifiedTextRunStyle.UseClassificationFont));
+                    runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, value.ToString(), ClassifiedTextRunStyle.UseClassificationFont));
                 }
 
                 i += currentCodeMatch.Length - 1;
@@ -398,8 +425,8 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
                 ClassifyExistingTextRun(runs, currentTextRun);
 
                 // We've processed the existing string, now we can process the actual cref.
-                var value = currentCrefMatch.Groups[TagContentGroupName].Value;
-                var reducedValue = ReduceCrefValue(value);
+                var value = currentCrefMatch.Groups[DocCommentHelpers.TagContentGroupName].Value;
+                var reducedValue = DocCommentHelpers.ReduceCrefValue(value);
                 reducedValue = reducedValue.Replace("{", "<").Replace("}", ">").Replace("`1", "<>");
                 ClassifyTypeName(runs, reducedValue);
 
@@ -418,7 +445,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
         {
             if (currentTextRun.Length != 0)
             {
-                runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, currentTextRun.ToString()));
+                runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, currentTextRun.ToString()));
                 currentTextRun.Clear();
             }
         }
@@ -472,23 +499,6 @@ internal class DefaultVSLSPTagHelperTooltipFactory(IProjectSnapshotManager proje
         }
 
         return new ClassifiedTextElement(runs);
-    }
-
-    // Internal for testing
-    // Adapted from VS' PredefinedClassificationTypeNames
-    internal static class VSPredefinedClassificationTypeNames
-    {
-        public const string Identifier = "identifier";
-
-        public const string Keyword = "keyword";
-
-        public const string Punctuation = "punctuation";
-
-        public const string Text = "text";
-
-        public const string Type = "type";
-
-        public const string WhiteSpace = "whitespace";
     }
 
     private record DescriptionClassification(IReadOnlyList<ClassifiedTextRun> Type, IReadOnlyList<ClassifiedTextRun> Documentation);

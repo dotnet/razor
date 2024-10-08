@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -19,19 +20,25 @@ internal static partial class IProjectSnapshotManagerExtensions
             return _projectManager.GetProjects();
         }
 
-        public ImmutableArray<IProjectSnapshot> FindProjects(string documentFilePath)
+        public ImmutableArray<IProjectSnapshot> GetProjectsContainingDocument(string documentFilePath)
         {
-            using var results = new PooledArrayBuilder<IProjectSnapshot>();
+            using var projects = new PooledArrayBuilder<IProjectSnapshot>();
 
             foreach (var project in _projectManager.GetProjects())
             {
-                if (!project.TryGetDocument(documentFilePath, out _))
+                // Always exclude the miscellaneous project.
+                if (project.Key == MiscFilesHostProject.Instance.Key)
                 {
-                    results.Add(project);
+                    continue;
+                }
+
+                if (project.ContainsDocument(documentFilePath))
+                {
+                    projects.Add(project);
                 }
             }
 
-            return results.DrainToImmutable();
+            return projects.DrainToImmutable();
         }
     }
 }
