@@ -133,7 +133,11 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
             """);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        if (!DesignTime)
+        {
+            // https://github.com/dotnet/razor/issues/10981
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        }
         CompileToAssembly(generated,
             // x:\dir\subdir\Test\TestComponent.cshtml(7,1): error CS1028: Unexpected preprocessor directive
             // #endif
@@ -254,7 +258,11 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
             """);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        if (!DesignTime)
+        {
+            // https://github.com/dotnet/razor/issues/10981
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        }
         CompileToAssembly(generated);
     }
 
