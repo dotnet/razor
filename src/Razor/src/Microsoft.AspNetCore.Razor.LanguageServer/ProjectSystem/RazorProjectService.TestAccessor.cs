@@ -19,29 +19,6 @@ internal partial class RazorProjectService
         public ValueTask WaitForInitializationAsync()
             => instance.WaitForInitializationAsync();
 
-        public async Task UpdateProjectAsync(
-           ProjectKey projectKey,
-           RazorConfiguration? configuration,
-           string? rootNamespace,
-           string? displayName,
-           ProjectWorkspaceState projectWorkspaceState,
-           ImmutableArray<DocumentSnapshotHandle> documents,
-           CancellationToken cancellationToken)
-        {
-            await instance.WaitForInitializationAsync().ConfigureAwait(false);
-
-            await instance.AddOrUpdateProjectCoreAsync(
-                projectKey,
-                filePath: null,
-                configuration,
-                rootNamespace,
-                displayName,
-                projectWorkspaceState,
-                documents,
-                cancellationToken)
-                .ConfigureAwait(false);
-        }
-
         public async Task<ProjectKey> AddProjectAsync(
             string filePath,
             string intermediateOutputPath,

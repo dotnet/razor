@@ -31,6 +31,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 #nullable disable
     private TestProjectSnapshotManager _projectManager;
     private TestRazorProjectService _projectService;
+    private IRazorProjectInfoListener _projectInfoListener;
 #nullable enable
 
     protected override Task InitializeAsync()
@@ -49,6 +50,8 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             _projectManager,
             LoggerFactory);
 
+        _projectInfoListener = _projectService;
+
         return Task.CompletedTask;
     }
 
@@ -66,13 +69,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var projectWorkspaceState = ProjectWorkspaceState.Create(LanguageVersion.LatestMajor);
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             hostProject.Key,
+            hostProject.FilePath,
             hostProject.Configuration,
             hostProject.RootNamespace,
             hostProject.DisplayName,
             projectWorkspaceState,
-            documents: [],
+            documents: []),
             DisposalToken);
 
         // Assert
@@ -96,13 +100,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var newDocument = new DocumentSnapshotHandle("file.cshtml", "file.cshtml", FileKinds.Component);
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             hostProject.Key,
+            hostProject.FilePath,
             hostProject.Configuration,
             hostProject.RootNamespace,
             hostProject.DisplayName,
             ProjectWorkspaceState.Default,
-            [newDocument],
+            [newDocument]),
             DisposalToken);
 
         // Assert
@@ -129,13 +134,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             hostProject.Key,
+            hostProject.FilePath,
             hostProject.Configuration,
             hostProject.RootNamespace,
             hostProject.DisplayName,
             ProjectWorkspaceState.Default,
-            [oldDocument, newDocument],
+            [oldDocument, newDocument]),
             DisposalToken);
 
         // Assert
@@ -164,13 +170,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var addedDocument = new DocumentSnapshotHandle(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             hostProject.Key,
+            hostProject.FilePath,
             hostProject.Configuration,
             hostProject.RootNamespace,
             hostProject.DisplayName,
             ProjectWorkspaceState.Default,
-            [addedDocument],
+            [addedDocument]),
             DisposalToken);
 
         // Assert
@@ -202,13 +209,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var addedDocument = new DocumentSnapshotHandle(DocumentFilePath, DocumentFilePath, FileKinds.Legacy);
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             project.Key,
+            project.FilePath,
             project.Configuration,
             project.RootNamespace,
             project.DisplayName,
             ProjectWorkspaceState.Default,
-            [addedDocument],
+            [addedDocument]),
             DisposalToken);
 
         // Assert
@@ -241,13 +249,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             hostProject.Key,
+            hostProject.FilePath,
             hostProject.Configuration,
             hostProject.RootNamespace,
             hostProject.DisplayName,
             ProjectWorkspaceState.Default,
-            [newDocument],
+            [newDocument]),
             DisposalToken);
 
         // Assert
@@ -276,13 +285,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             hostProject.Key,
+            hostProject.FilePath,
             hostProject.Configuration,
             hostProject.RootNamespace,
             hostProject.DisplayName,
             ProjectWorkspaceState.Default,
-            [newDocument],
+            [newDocument]),
             DisposalToken);
 
         listener.AssertNoNotifications();
@@ -304,13 +314,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var newDocument = new DocumentSnapshotHandle(legacyDocument.FilePath, legacyDocument.TargetPath, FileKinds.Component);
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             hostProject.Key,
+            hostProject.FilePath,
             hostProject.Configuration,
             hostProject.RootNamespace,
             hostProject.DisplayName,
             ProjectWorkspaceState.Default,
-            [newDocument],
+            [newDocument]),
             DisposalToken);
 
         // Assert
@@ -336,13 +347,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             ownerProject.Key,
+            ownerProject.FilePath,
             ownerProject.Configuration,
             NewRootNamespace,
             ownerProject.DisplayName,
             ProjectWorkspaceState.Default,
-            documents: [],
+            documents: []),
             DisposalToken);
 
         var notification = Assert.Single(listener);
@@ -368,13 +380,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             ownerProject.Key,
+            ownerProject.FilePath,
             ownerProject.Configuration,
             ownerProject.RootNamespace,
             displayName: "",
             ProjectWorkspaceState.Default,
-            documents: [],
+            documents: []),
             DisposalToken);
 
         listener.AssertNoNotifications();
@@ -396,13 +409,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             ownerProject.Key,
+            ownerProject.FilePath,
             configuration: null,
             "TestRootNamespace",
             displayName: "",
             ProjectWorkspaceState.Default,
-            documents: [],
+            documents: []),
             DisposalToken);
 
         // Assert
@@ -427,13 +441,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             ownerProject.Key,
+            ownerProject.FilePath,
             FallbackRazorConfiguration.MVC_1_1,
             "TestRootNamespace",
             displayName: "",
             ProjectWorkspaceState.Default,
-            documents: [],
+            documents: []),
             DisposalToken);
 
         // Assert
@@ -449,13 +464,14 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
-        await _projectService.GetTestAccessor().UpdateProjectAsync(
+        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
             TestProjectKey.Create("C:/path/to/obj"),
+            "C:/path/to/project.csproj",
             FallbackRazorConfiguration.MVC_1_1,
             "TestRootNamespace",
             displayName: "",
             ProjectWorkspaceState.Default,
-            documents: [],
+            documents: []),
             DisposalToken);
 
         listener.AssertNoNotifications();
