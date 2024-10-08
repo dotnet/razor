@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using static Microsoft.AspNetCore.Razor.Language.Syntax.GreenNodeExtensions;
 
 using CSharpSyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
@@ -84,7 +85,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     private readonly ImmutableDictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>> _directiveParserMap;
 
     public CSharpCodeParser(ParserContext context)
-        : this(directives: Enumerable.Empty<DirectiveDescriptor>(), context: context)
+        : this(directives: [], context)
     {
     }
 
@@ -95,15 +96,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 ? new RoslynCSharpLanguageCharacteristics(context.CSharpParseOptions)
                 : NativeCSharpLanguageCharacteristics.Instance, context)
     {
-        if (directives == null)
-        {
-            throw new ArgumentNullException(nameof(directives));
-        }
-
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgHelper.ThrowIfNull(directives);
+        ArgHelper.ThrowIfNull(context);
 
         var keywordsBuilder = ImmutableHashSet<string>.Empty.ToBuilder();
         var keywordParserMapBuilder = ImmutableDictionary<CSharpSyntaxKind, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?>>.Empty.ToBuilder();
@@ -304,7 +298,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         {
                             var diagnostic = RazorDiagnosticFactory.CreateParsing_HelperDirectiveNotAvailable(
                                 new SourceSpan(CurrentStart, CurrentToken.Content.Length));
-                            CurrentToken.SetDiagnostics(new[] { diagnostic });
+                            CurrentToken.SetDiagnostics([diagnostic]);
                             Context.ErrorSink.OnError(diagnostic);
                         }
 
@@ -1232,14 +1226,13 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         AssertDirective(keyword);
 
-        var savedErrorSink = Context.ErrorSink;
-        var directiveErrorSink = new ErrorSink();
         RazorMetaCodeSyntax? keywordBlock = null;
-        using (var pooledResult = Pool.Allocate<RazorSyntaxNode>())
-        {
-            var directiveBuilder = pooledResult.Builder;
-            Context.ErrorSink = directiveErrorSink;
+        using var pooledResult = Pool.Allocate<RazorSyntaxNode>();
+        var directiveBuilder = pooledResult.Builder;
 
+        using var directiveErrorSink = new ErrorSink();
+        using (Context.PushNewErrorScope(directiveErrorSink))
+        {
             string? directiveValue = null;
             SourceLocation? valueStartLocation = null;
             EnsureDirectiveIsAtStartOfLine();
@@ -1297,19 +1290,18 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
             chunkGenerator = chunkGeneratorFactory(
                 directiveValue,
-                directiveErrorSink.Errors.ToList(),
+                [.. directiveErrorSink.GetErrorsAndClear()],
                 valueStartLocation ?? CurrentStart);
-            Context.ErrorSink = savedErrorSink;
-
-            // Finish the block and output the tokens
-            CompleteBlock();
-            SetAcceptedCharacters(AcceptedCharactersInternal.AnyExceptNewline);
-
-            directiveBuilder.Add(OutputTokensAsStatementLiteral());
-            var directiveCodeBlock = SyntaxFactory.CSharpCodeBlock(directiveBuilder.ToList());
-
-            return SyntaxFactory.RazorDirectiveBody(keywordBlock, directiveCodeBlock);
         }
+
+        // Finish the block and output the tokens
+        CompleteBlock();
+        SetAcceptedCharacters(AcceptedCharactersInternal.AnyExceptNewline);
+
+        directiveBuilder.Add(OutputTokensAsStatementLiteral());
+        var directiveCodeBlock = SyntaxFactory.CSharpCodeBlock(directiveBuilder.ToList());
+
+        return SyntaxFactory.RazorDirectiveBody(keywordBlock, directiveCodeBlock);
     }
 
     private ParsedDirective ParseDirective(
@@ -1449,17 +1441,14 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         AssertDirective(descriptor.Directive);
 
-        var directiveErrorSink = new ErrorSink();
-        var savedErrorSink = Context.ErrorSink;
-        Context.ErrorSink = directiveErrorSink;
-
         using (var pooledResult = Pool.Allocate<RazorSyntaxNode>())
         {
             var directiveBuilder = pooledResult.Builder;
             RazorMetaCodeSyntax? keywordBlock = null;
             bool shouldCaptureWhitespaceToEndOfLine = false;
 
-            try
+            using var directiveErrorSink = new ErrorSink();
+            using (Context.PushNewErrorScope(directiveErrorSink))
             {
                 EnsureDirectiveIsAtStartOfLine();
                 var directiveStart = CurrentStart;
@@ -1761,7 +1750,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                                     Resources.ErrorComponent_Newline));
                         }
 
-
                         // This should contain the optional whitespace after the optional semicolon and the new line.
                         // Output as Markup as we want intellisense here.
                         chunkGenerator = SpanChunkGenerator.Null;
@@ -1832,10 +1820,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         break;
                 }
             }
-            finally
-            {
-                Context.ErrorSink = savedErrorSink;
-            }
 
             builder.Add(BuildDirective(SyntaxKind.Identifier));
 
@@ -1857,7 +1841,9 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
                 var directiveBody = SyntaxFactory.RazorDirectiveBody(keywordBlock, directiveCodeBlock);
                 var directive = SyntaxFactory.RazorDirective(transition, directiveBody);
-                directive = (RazorDirectiveSyntax)directive.SetDiagnostics(directiveErrorSink.Errors.ToArray());
+
+                var diagnostics = directiveErrorSink.GetErrorsAndClear();
+                directive = directive.WithDiagnosticsGreen(diagnostics);
                 directive = directive.WithDirectiveDescriptor(descriptor);
                 return directive;
             }

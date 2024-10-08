@@ -17,9 +17,11 @@ internal interface IDocumentSnapshot
     IProjectSnapshot Project { get; }
     bool SupportsOutput { get; }
 
+    int Version { get; }
+
     Task<SourceText> GetTextAsync();
     Task<VersionStamp> GetTextVersionAsync();
-    Task<RazorCodeDocument> GetGeneratedOutputAsync();
+    Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput);
 
     /// <summary>
     /// Gets the Roslyn syntax tree for the generated C# for this Razor document
