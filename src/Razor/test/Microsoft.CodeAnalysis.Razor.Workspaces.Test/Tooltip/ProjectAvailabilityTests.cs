@@ -5,16 +5,16 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Test;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
 public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {

@@ -13,13 +13,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Text.Adornments;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
-internal sealed class ClassifiedTagHelperTooltipFactory
+internal static class ClassifiedTagHelperTooltipFactory
 {
     public const string TypeClassificationName = "Type";
 

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
 internal static class DocCommentHelpers
 {

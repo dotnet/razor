@@ -12,6 +12,49 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
 internal static class Extensions
 {
+    internal static async Task<string?> GetProjectAvailabilityTextAsync(
+        this ISolutionQueryOperations solutionQueryOperations,
+        string documentFilePath,
+        string tagHelperTypeName,
+        CancellationToken cancellationToken)
+    {
+        var projects = await solutionQueryOperations
+            .GetProjectAvailabilityAsync(documentFilePath, tagHelperTypeName, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (projects.IsEmpty)
+        {
+            return null;
+        }
+
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+        foreach (var (project, isAvailable) in projects)
+        {
+            if (isAvailable)
+            {
+                continue;
+            }
+
+            if (builder.Length == 0)
+            {
+                builder.AppendLine();
+                builder.Append($"⚠️ {SR.Not_Available_In}:");
+            }
+
+            builder.AppendLine();
+            builder.Append("    ");
+            builder.Append(project.DisplayName);
+        }
+
+        if (builder.Length == 0)
+        {
+            return null;
+        }
+
+        return builder.ToString();
+    }
+
     /// <summary>
     ///  Returns the Razor projects that contain the document specified by file path and a <see cref="bool"/>
     ///  that indicates whether or not the given tag helper is available within a project.

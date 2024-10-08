@@ -42,11 +42,6 @@
         <target state="translated">Gerar manipulador de eventos '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Not_Available_In">
-        <source>Not available in</source>
-        <target state="translated">Não disponível em</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">"Disparar conclusões novamente..."</target>
@@ -55,16 +50,6 @@
       <trans-unit id="Statement">
         <source>statement</source>
         <target state="translated">instrução</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Attribute_Glyph">
-        <source>Razor TagHelper Attribute Glyph</source>
-        <target state="translated">Atributo Glyph Razor TagHelper</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Element_Glyph">
-        <source>Razor TagHelper Element Glyph</source>
-        <target state="translated">Elemento Glyph Razor TagHelper</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">

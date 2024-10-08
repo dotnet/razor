@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
 public class DocCommentHelperTests(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
