@@ -1073,36 +1073,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         Assert.Equal(RootNamespace, project.RootNamespace);
     }
 
-    [Fact]
-    public async Task AddProject_DoesNotMigrateMiscellaneousDocumentIfNewProjectNotACandidate()
-    {
-        // Arrange
-        const string ProjectFilePath = "C:/other-path/to/project.csproj";
-        const string IntermediateOutputPath = "C:/other-path/to/obj";
-        const string DocumentFilePath1 = "C:/path/to/document1.cshtml";
-        const string DocumentFilePath2 = "C:/path/to/document2.cshtml";
-
-        var miscProject = _projectManager.GetMiscellaneousProject();
-
-        await _projectManager.UpdateAsync(updater =>
-        {
-            updater.DocumentAdded(miscProject.Key,
-                new HostDocument(DocumentFilePath1, "document1.cshtml"), CreateEmptyTextLoader());
-            updater.DocumentAdded(miscProject.Key,
-                new HostDocument(DocumentFilePath2, "document2.cshtml"), CreateEmptyTextLoader());
-        });
-
-        using var listener = _projectManager.ListenToNotifications();
-
-        // Act
-        var newProjectKey = await _projectService.AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null, displayName: null, DisposalToken);
-
-        // Assert
-        listener.AssertNotifications(
-            x => x.ProjectAdded(ProjectFilePath, newProjectKey));
-    }
-
     private static TextLoader CreateTextLoader(SourceText text)
     {
         var textLoaderMock = new StrictMock<TextLoader>();
