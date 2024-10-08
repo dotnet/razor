@@ -28,6 +28,13 @@ internal class GeneratedDocumentSynchronizer(
             return;
         }
 
+        // If the document has been removed from the project, then don't do anything, or version numbers will be thrown off
+        if (_projectManager.GetLoadedProject(document.Project.Key) is not { } project ||
+            !project.ContainsDocument(document.FilePath))
+        {
+            return;
+        }
+
         // If cohosting is on, then it is responsible for updating the Html buffer
         if (!_languageServerFeatureOptions.UseRazorCohostServer)
         {
