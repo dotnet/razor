@@ -17,11 +17,9 @@ internal interface ISolutionQueryOperations
     ///  Returns all Razor valid project snapshots that contain the given document file path.
     /// </summary>
     /// <param name="documentFilePath">A file path to a Razor document.</param>
-    /// <returns>
-    ///  Returns <see langword="true"/> if any projects were found; otherwise, <see langword="false"/>
-    /// </returns>
     /// <remarks>
-    ///  In multi-targeting scenarios, a document can belong to multi-projects for each target.
+    ///  In multi-targeting scenarios, this will return a project for each target that the
+    ///  contains the document.
     /// </remarks>
     ImmutableArray<IProjectSnapshot> GetProjectsContainingDocument(string documentFilePath);
 }
