@@ -52,7 +52,7 @@ internal class TestRazorProjectService(
                 .Select(d => new DocumentSnapshotHandle(d, d, FileKinds.GetFileKindFromFilePath(d)))
                 .ToImmutableArray();
 
-            await this.UpdateProjectAsync(projectSnapshot.Key, projectSnapshot.Configuration, projectSnapshot.RootNamespace, projectSnapshot.DisplayName, projectSnapshot.ProjectWorkspaceState,
+            await this.GetTestAccessor().UpdateProjectAsync(projectSnapshot.Key, projectSnapshot.Configuration, projectSnapshot.RootNamespace, projectSnapshot.DisplayName, projectSnapshot.ProjectWorkspaceState,
                 documents, cancellationToken).ConfigureAwait(false);
         }
     }
