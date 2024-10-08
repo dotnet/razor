@@ -56,7 +56,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_UpdatesProjectWorkspaceState()
+    public async Task IProjectInfoListener_UpdatedAsync_UpdatesProjectWorkspaceState()
     {
         // Arrange
         var hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
@@ -85,7 +85,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_UpdatingDocument_MapsRelativeFilePathToActualDocument()
+    public async Task IProjectInfoListener_UpdatedAsync_UpdatingDocument_MapsRelativeFilePathToActualDocument()
     {
         // Arrange
         var hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
@@ -118,7 +118,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_AddsNewDocuments()
+    public async Task IProjectInfoListener_UpdatedAsync_AddsNewDocuments()
     {
         // Arrange
         var hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
@@ -151,7 +151,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_MovesDocumentsFromMisc()
+    public async Task IProjectInfoListener_UpdatedAsync_MovesDocumentsFromMisc()
     {
         // Arrange
         var hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
@@ -189,7 +189,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_MovesDocumentsFromMisc_ViaService()
+    public async Task IProjectInfoListener_UpdatedAsync_MovesDocumentsFromMisc_ViaService()
     {
         // Arrange
         const string DocumentFilePath = "C:/path/to/file.cshtml";
@@ -228,7 +228,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_MovesExistingDocumentToMisc()
+    public async Task IProjectInfoListener_UpdatedAsync_MovesExistingDocumentToMisc()
     {
         // Arrange
         var hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
@@ -268,7 +268,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_KnownDocuments()
+    public async Task IProjectInfoListener_UpdatedAsync_KnownDocuments()
     {
         // Arrange
         var hostProject = new HostProject("path/to/project.csproj", "path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
@@ -299,7 +299,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_UpdatesLegacyDocumentsAsComponents()
+    public async Task IProjectInfoListener_UpdatedAsync_UpdatesLegacyDocumentsAsComponents()
     {
         // Arrange
         var hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
@@ -332,7 +332,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_SameConfigurationDifferentRootNamespace_UpdatesRootNamespace()
+    public async Task IProjectInfoListener_UpdatedAsync_SameConfigurationDifferentRootNamespace_UpdatesRootNamespace()
     {
         // Arrange
         const string ProjectFilePath = "C:/path/to/project.csproj";
@@ -365,7 +365,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_SameConfigurationAndRootNamespaceNoops()
+    public async Task IProjectInfoListener_UpdatedAsync_SameConfigurationAndRootNamespaceNoops()
     {
         // Arrange
         const string ProjectFilePath = "C:/path/to/project.csproj";
@@ -394,7 +394,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_ChangesProjectToUseProvidedConfiguration()
+    public async Task IProjectInfoListener_UpdatedAsync_ChangesProjectToUseProvidedConfiguration()
     {
         // Arrange
         const string ProjectFilePath = "C:/path/to/project.csproj";
