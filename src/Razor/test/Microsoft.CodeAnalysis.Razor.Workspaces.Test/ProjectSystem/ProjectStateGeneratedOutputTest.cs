@@ -20,20 +20,17 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     private readonly HostProject _hostProject;
     private readonly HostProject _hostProjectWithConfigurationChange;
     private readonly ImmutableArray<TagHelperDescriptor> _someTagHelpers;
-    private readonly SourceText _text;
 
     public ProjectStateGeneratedOutputTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
-        _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
+        _hostProject = TestProjectData.SomeProject with { Configuration = FallbackRazorConfiguration.MVC_2_0 };
+        _hostProjectWithConfigurationChange = TestProjectData.SomeProject with { Configuration = FallbackRazorConfiguration.MVC_1_0 };
 
         _someTagHelpers = ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build());
 
         _hostDocument = TestProjectData.SomeProjectFile1;
-
-        _text = SourceText.From("Hello, world!");
     }
 
     protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
@@ -192,7 +189,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
         // Arrange
         var csharp8ValidConfiguration = new RazorConfiguration(RazorLanguageVersion.Version_3_0, _hostProject.Configuration.ConfigurationName, _hostProject.Configuration.Extensions);
-        var hostProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, csharp8ValidConfiguration, TestProjectData.SomeProject.RootNamespace);
+        var hostProject = TestProjectData.SomeProject with { Configuration = csharp8ValidConfiguration };
         var originalWorkspaceState = ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp7);
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, hostProject, originalWorkspaceState)
