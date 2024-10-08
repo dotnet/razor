@@ -101,8 +101,11 @@ public static class ModelDirective
                 visitor.Namespace?.Children.Insert(0, usingNode);
             }
 
-            var baseType = visitor.Class?.BaseType?.Content.Replace("<TModel>", "<" + modelType + ">");
-            visitor.Class.BaseType = IntermediateToken.CreateCSharpToken(baseType);
+            if (visitor.Class?.BaseType is { } existingBaseType)
+            {
+                var typeName = existingBaseType.Content.Replace("<TModel>", "<" + modelType + ">");
+                visitor.Class.BaseType = IntermediateToken.CreateCSharpToken(typeName, existingBaseType.Source);
+            }
         }
     }
 
