@@ -57,7 +57,7 @@ internal static partial class IProjectSnapshotManagerExtensions
 
         foreach (var project in potentialProjects)
         {
-            if (project.GetDocument(documentFilePath) is not null)
+            if (project.ContainsDocument(documentFilePath))
             {
                 builder.Add(project);
             }
@@ -65,7 +65,7 @@ internal static partial class IProjectSnapshotManagerExtensions
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
         var miscProject = projectManager.GetMiscellaneousProject();
-        if (miscProject.GetDocument(normalizedDocumentPath) is not null)
+        if (miscProject.ContainsDocument(normalizedDocumentPath))
         {
             builder.Add(miscProject);
         }
@@ -87,10 +87,9 @@ internal static partial class IProjectSnapshotManagerExtensions
 
         foreach (var project in potentialProjects)
         {
-            if (project.GetDocument(normalizedDocumentPath) is { } projectDocument)
+            if (project.TryGetDocument(normalizedDocumentPath, out document))
             {
                 logger.LogTrace($"Found {documentFilePath} in {project.FilePath}");
-                document = projectDocument;
                 return true;
             }
         }
@@ -98,10 +97,9 @@ internal static partial class IProjectSnapshotManagerExtensions
         logger.LogTrace($"Looking for {documentFilePath} in miscellaneous project.");
         var miscellaneousProject = projectManager.GetMiscellaneousProject();
 
-        if (miscellaneousProject.GetDocument(normalizedDocumentPath) is { } miscDocument)
+        if (miscellaneousProject.TryGetDocument(normalizedDocumentPath, out document))
         {
             logger.LogTrace($"Found {documentFilePath} in miscellaneous project.");
-            document = miscDocument;
             return true;
         }
 
