@@ -9,12 +9,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -284,15 +287,16 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(code);
         var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
-        var documentMappingService = new TestDocumentMappingService()
-        {
-            LanguageKind = RazorLanguageKind.Html,
-            GeneratedPosition = new LinePosition(0, cursorPosition)
-        };
+        var generatedPosition = new LinePosition(0, cursorPosition);
+
+        var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
+        documentMappingServiceMock
+            .Setup(x => x.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out generatedPosition, out It.Ref<int>.IsAny))
+            .Returns(true);
 
         var completionProvider = new DelegatedCompletionListProvider(
-            Array.Empty<DelegatedCompletionResponseRewriter>(),
-            documentMappingService,
+            responseRewriters: [],
+            documentMappingServiceMock.Object,
             clientConnection,
             new CompletionListCache());
 
