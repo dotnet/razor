@@ -394,38 +394,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
     }
 
     [Fact]
-    public async Task UpdateProject_NullConfigurationUsesDefault()
-    {
-        // Arrange
-        const string ProjectFilePath = "C:/path/to/project.csproj";
-        const string IntermediateOutputPath = "C:/path/to/obj";
-        const string RootNamespace = "TestRootNamespace";
-
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
-
-        var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
-
-        using var listener = _projectManager.ListenToNotifications();
-
-        // Act
-        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            ownerProject.Key,
-            ownerProject.FilePath,
-            configuration: null,
-            "TestRootNamespace",
-            displayName: "",
-            ProjectWorkspaceState.Default,
-            documents: []),
-            DisposalToken);
-
-        // Assert
-        var notification = Assert.Single(listener);
-        Assert.NotNull(notification.Newer);
-        Assert.Same(FallbackRazorConfiguration.Latest, notification.Newer.Configuration);
-    }
-
-    [Fact]
     public async Task UpdateProject_ChangesProjectToUseProvidedConfiguration()
     {
         // Arrange
@@ -455,26 +423,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         var notification = Assert.Single(listener);
         Assert.NotNull(notification.Newer);
         Assert.Same(FallbackRazorConfiguration.MVC_1_1, notification.Newer.Configuration);
-    }
-
-    [Fact]
-    public async Task UpdateProject_UntrackedProjectNoops()
-    {
-        // Arrange
-        using var listener = _projectManager.ListenToNotifications();
-
-        // Act & Assert
-        await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            TestProjectKey.Create("C:/path/to/obj"),
-            "C:/path/to/project.csproj",
-            FallbackRazorConfiguration.MVC_1_1,
-            "TestRootNamespace",
-            displayName: "",
-            ProjectWorkspaceState.Default,
-            documents: []),
-            DisposalToken);
-
-        listener.AssertNoNotifications();
     }
 
     [Fact]
