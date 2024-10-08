@@ -341,8 +341,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
         _logger.LogInformation($"Added project '{filePath}' with key {hostProject.Key} to project system.");
 
-        TryMigrateMiscellaneousDocumentsToProject(updater);
-
         return hostProject.Key;
     }
 
@@ -610,47 +608,5 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         }
 
         return normalizedFilePath;
-    }
-
-    private void TryMigrateMiscellaneousDocumentsToProject(ProjectSnapshotManager.Updater updater)
-    {
-        var miscellaneousProject = _projectManager.GetMiscellaneousProject();
-
-        foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
-        {
-            var projectSnapshot = _projectManager.FindPotentialProjects(documentFilePath).FirstOrDefault();
-            if (projectSnapshot is null)
-            {
-                continue;
-            }
-
-            if (miscellaneousProject.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
-            {
-                continue;
-            }
-
-            // Remove from miscellaneous project
-            updater.DocumentRemoved(miscellaneousProject.Key, documentSnapshot.State.HostDocument);
-
-            // Add to new project
-
-            var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
-
-            // If we're moving from the misc files project to a real project, then target path will be the full path to the file
-            // and the next update to the project will update it to be a relative path. To save a bunch of busy work if that is
-            // the only change necessary, we can proactively do that work here. This also means that when we later find out about
-            // this document the "real" way, it will be equal to the one we already know about, and we won't lose content
-            var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(projectSnapshot.FilePath);
-            var newTargetPath = documentSnapshot.TargetPath;
-            if (FilePathNormalizer.Normalize(newTargetPath).StartsWith(projectDirectory))
-            {
-                newTargetPath = newTargetPath[projectDirectory.Length..];
-            }
-
-            var newHostDocument = new HostDocument(documentSnapshot.FilePath, newTargetPath, documentSnapshot.FileKind);
-            _logger.LogInformation($"Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.");
-
-            updater.DocumentAdded(projectSnapshot.Key, newHostDocument, textLoader);
-        }
     }
 }

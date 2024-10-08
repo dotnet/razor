@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1103,102 +1101,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         // Assert
         listener.AssertNotifications(
             x => x.ProjectAdded(ProjectFilePath, newProjectKey));
-    }
-
-    [Fact]
-    public async Task AddProject_MigratesMiscellaneousDocumentsToNewOwnerProject()
-    {
-        // Arrange
-        const string ProjectFilePath = "C:/path/to/project.csproj";
-        const string IntermediateOutputPath = "C:/path/to/obj";
-        const string DocumentFilePath1 = "C:/path/to/document1.cshtml";
-        const string DocumentFilePath2 = "C:/path/to/document2.cshtml";
-
-        var miscProject = _projectManager.GetMiscellaneousProject();
-
-        await _projectManager.UpdateAsync(updater =>
-        {
-            updater.DocumentAdded(miscProject.Key,
-                new HostDocument(DocumentFilePath1, "document1.cshtml"), CreateEmptyTextLoader());
-            updater.DocumentAdded(miscProject.Key,
-                new HostDocument(DocumentFilePath2, "document2.cshtml"), CreateEmptyTextLoader());
-        });
-
-        using var listener = _projectManager.ListenToNotifications();
-
-        // Act
-        var newProjectKey = await _projectService.AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null, displayName: null, DisposalToken);
-
-        // Assert
-
-        // AddProject iterates through a dictionary to migrate documents, so the order of the documents is not deterministic. In the real world
-        // the adds and removes are interleaved per document
-        listener.OrderBy(e => e.Kind).ThenBy(e => e.DocumentFilePath).AssertNotifications(
-            x => x.ProjectAdded(ProjectFilePath, newProjectKey),
-            x => x.DocumentAdded(DocumentFilePath1, newProjectKey),
-            x => x.DocumentAdded(DocumentFilePath2, newProjectKey),
-            x => x.DocumentRemoved(DocumentFilePath1, miscProject.Key),
-            x => x.DocumentRemoved(DocumentFilePath2, miscProject.Key));
-    }
-
-    [Fact]
-    public async Task AddProject_MigratesMiscellaneousDocumentsToNewOwnerProject_FixesTargetPath()
-    {
-        // Arrange
-        const string ProjectFilePath = "C:/path/to/project.csproj";
-        const string IntermediateOutputPath = "C:/path/to/obj";
-        const string DocumentFilePath1 = "C:/path/to/document1.cshtml";
-        const string DocumentFilePath2 = "C:/path/to/document2.cshtml";
-
-        var miscProject = _projectManager.GetMiscellaneousProject();
-
-        await _projectManager.UpdateAsync(updater =>
-        {
-            updater.DocumentAdded(miscProject.Key,
-                new HostDocument(DocumentFilePath1, "C:/path/to/document1.cshtml"), CreateEmptyTextLoader());
-            updater.DocumentAdded(miscProject.Key,
-                new HostDocument(DocumentFilePath2, "C:/path/to/document2.cshtml"), CreateEmptyTextLoader());
-        });
-
-        // Act
-        var newProjectKey = await _projectService.AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null, displayName: null, DisposalToken);
-
-        // Assert
-        var newProject = _projectManager.GetLoadedProject(newProjectKey);
-        Assert.Equal("document1.cshtml", newProject.GetDocument(DocumentFilePath1)!.TargetPath);
-        Assert.Equal("document2.cshtml", newProject.GetDocument(DocumentFilePath2)!.TargetPath);
-    }
-
-    [Fact]
-    public async Task AddOrUpdateProjectAsync_MigratesMiscellaneousDocumentsToNewOwnerProject_MaintainsTextState()
-    {
-        // Arrange
-        const string ProjectFilePath = "C:/path/to/project.csproj";
-        const string IntermediateOutputPath = "C:/path/to/obj";
-        const string DocumentFilePath1 = "C:/path/to/document1.cshtml";
-
-        var miscProject = _projectManager.GetMiscellaneousProject();
-
-        await _projectManager.UpdateAsync(updater =>
-        {
-            updater.DocumentAdded(miscProject.Key,
-                new HostDocument(DocumentFilePath1, "other/document1.cshtml"), CreateTextLoader(SourceText.From("Hello")));
-        });
-
-        var projectKey = new ProjectKey(IntermediateOutputPath);
-
-        var documentHandles = ImmutableArray.Create(new DocumentSnapshotHandle(DocumentFilePath1, "document1.cshtml", "mvc"));
-
-        // Act
-        await _projectService.AddOrUpdateProjectAsync(
-            projectKey, ProjectFilePath, RazorConfiguration.Default, rootNamespace: null, displayName: null, ProjectWorkspaceState.Default, documentHandles, DisposalToken);
-
-        // Assert
-        var newProject = _projectManager.GetLoadedProject(projectKey);
-        var documentText = await newProject.GetDocument(DocumentFilePath1)!.GetTextAsync();
-        Assert.Equal("Hello", documentText.ToString());
     }
 
     private static TextLoader CreateTextLoader(SourceText text)
