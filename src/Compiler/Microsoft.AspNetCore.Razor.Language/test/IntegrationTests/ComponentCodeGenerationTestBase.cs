@@ -5526,9 +5526,9 @@ namespace AnotherTest
             """,
             nullableEnable: false,
             expectedCSharpDiagnostics:
-                // (18,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                // (1,31): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(18, 62));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31));
 
         // Assert
         Assert.Empty(generated.RazorDiagnostics);
@@ -5544,9 +5544,9 @@ namespace AnotherTest
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62)
             ]
             : [
-                // (14,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                // (1,31): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31)
             ]);
     }
 
