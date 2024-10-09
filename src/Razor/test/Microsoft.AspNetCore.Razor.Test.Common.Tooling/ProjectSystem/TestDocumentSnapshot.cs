@@ -76,7 +76,6 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     public string? FilePath => RealSnapshot.FilePath;
     public string? TargetPath => RealSnapshot.TargetPath;
     public IProjectSnapshot Project => RealSnapshot.Project;
-    public bool SupportsOutput => RealSnapshot.SupportsOutput;
     public int Version => RealSnapshot.Version;
 
     public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)

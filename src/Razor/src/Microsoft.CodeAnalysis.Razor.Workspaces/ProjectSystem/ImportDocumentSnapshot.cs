@@ -18,7 +18,6 @@ internal class ImportDocumentSnapshot : IDocumentSnapshot
     public string? FilePath => null;
     public string? TargetPath => null;
 
-    public bool SupportsOutput => false;
     public IProjectSnapshot Project => _project;
 
     private readonly IProjectSnapshot _project;
