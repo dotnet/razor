@@ -22,35 +22,30 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
     private readonly object _gate = new();
     private readonly Dictionary<string, DocumentSnapshot> _filePathToDocumentMap = new(FilePathNormalizingComparer.Instance);
 
-    public ProjectKey Key => _state.HostProject.Key;
-
-    public RazorConfiguration Configuration => HostProject.Configuration;
-
-    public IEnumerable<string> DocumentFilePaths => _state.Documents.Keys;
-
-    public int DocumentCount => _state.Documents.Count;
-
-    public string FilePath => _state.HostProject.FilePath;
-
-    public string IntermediateOutputPath => _state.HostProject.IntermediateOutputPath;
-
-    public string? RootNamespace => _state.HostProject.RootNamespace;
-
-    public string DisplayName => _state.HostProject.DisplayName;
-
-    public LanguageVersion CSharpLanguageVersion => _state.CSharpLanguageVersion;
-
     public HostProject HostProject => _state.HostProject;
 
+    public ProjectKey Key => _state.HostProject.Key;
+    public RazorConfiguration Configuration => _state.HostProject.Configuration;
+    public IEnumerable<string> DocumentFilePaths => _state.Documents.Keys;
+    public string FilePath => _state.HostProject.FilePath;
+    public string IntermediateOutputPath => _state.HostProject.IntermediateOutputPath;
+    public string? RootNamespace => _state.HostProject.RootNamespace;
+    public string DisplayName => _state.HostProject.DisplayName;
     public VersionStamp Version => _state.Version;
+    public LanguageVersion CSharpLanguageVersion => _state.CSharpLanguageVersion;
+    public ProjectWorkspaceState ProjectWorkspaceState => _state.ProjectWorkspaceState;
+
+    public int DocumentCount => _state.Documents.Count;
 
     public VersionStamp ConfigurationVersion => _state.ConfigurationVersion;
     public VersionStamp ProjectWorkspaceStateVersion => _state.ProjectWorkspaceStateVersion;
     public VersionStamp DocumentCollectionVersion => _state.DocumentCollectionVersion;
 
-    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => new(_state.TagHelpers);
+    public RazorProjectEngine GetProjectEngine()
+        => _state.ProjectEngine;
 
-    public ProjectWorkspaceState ProjectWorkspaceState => _state.ProjectWorkspaceState;
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
+        => new(_state.TagHelpers);
 
     public bool ContainsDocument(string filePath)
     {
@@ -129,7 +124,4 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
             return builder.DrainToImmutable();
         }
     }
-
-    public RazorProjectEngine GetProjectEngine()
-        => _state.ProjectEngine;
 }
