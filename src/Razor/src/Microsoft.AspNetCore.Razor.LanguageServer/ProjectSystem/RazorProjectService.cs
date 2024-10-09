@@ -313,23 +313,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         }
     }
 
-    public async Task<ProjectKey> AddProjectAsync(
-        string filePath,
-        string intermediateOutputPath,
-        RazorConfiguration? configuration,
-        string? rootNamespace,
-        string? displayName,
-        CancellationToken cancellationToken)
-    {
-        await WaitForInitializationAsync().ConfigureAwait(false);
-
-        return await _projectManager
-            .UpdateAsync(
-                updater => AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName),
-                cancellationToken)
-            .ConfigureAwait(false);
-    }
-
     private ProjectKey AddProjectCore(ProjectSnapshotManager.Updater updater, string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace, string? displayName)
     {
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
@@ -342,53 +325,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         _logger.LogInformation($"Added project '{filePath}' with key {hostProject.Key} to project system.");
 
         return hostProject.Key;
-    }
-
-    public async Task UpdateProjectAsync(
-        ProjectKey projectKey,
-        RazorConfiguration? configuration,
-        string? rootNamespace,
-        string? displayName,
-        ProjectWorkspaceState projectWorkspaceState,
-        ImmutableArray<DocumentSnapshotHandle> documents,
-        CancellationToken cancellationToken)
-    {
-        await WaitForInitializationAsync().ConfigureAwait(false);
-
-        await AddOrUpdateProjectCoreAsync(
-            projectKey,
-            filePath: null,
-            configuration,
-            rootNamespace,
-            displayName,
-            projectWorkspaceState,
-            documents,
-            cancellationToken)
-            .ConfigureAwait(false);
-    }
-
-    public async Task AddOrUpdateProjectAsync(
-       ProjectKey projectKey,
-       string filePath,
-       RazorConfiguration? configuration,
-       string? rootNamespace,
-       string? displayName,
-       ProjectWorkspaceState projectWorkspaceState,
-       ImmutableArray<DocumentSnapshotHandle> documents,
-       CancellationToken cancellationToken)
-    {
-        await WaitForInitializationAsync().ConfigureAwait(false);
-
-        await AddOrUpdateProjectCoreAsync(
-            projectKey,
-            filePath,
-            configuration,
-            rootNamespace,
-            displayName,
-            projectWorkspaceState,
-            documents,
-            cancellationToken)
-            .ConfigureAwait(false);
     }
 
     private Task AddOrUpdateProjectCoreAsync(
