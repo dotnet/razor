@@ -38,7 +38,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <div id="parent">
                 <div>
                     <h1>Div a title</h1>
-                    <p>Div $$a par</p>
+                    <p>Div [||]a par</p>
                 </div>
                 <div>
                     <h1>Div b title</h1>
@@ -50,7 +50,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
             Welcome to your new app.
             """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
 
         var request = new VSCodeActionParams()
         {
@@ -59,8 +59,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
@@ -83,7 +82,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
-                <$$div>
+                <[||]div>
                     <h1>Div a title</h1>
                     <p>Div a par</p>
                 </div>
@@ -97,7 +96,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
             Welcome to your new app.
             """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
 
         var request = new VSCodeActionParams()
         {
@@ -106,8 +105,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents, supportsFileCreation: true);
 
         var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
@@ -143,7 +141,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
             Welcome to your new app.
             """;
-        TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var selectionSpan);
+        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
 
         var request = new VSCodeActionParams()
         {
@@ -152,8 +150,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents);
 
         var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
         request.Range = VsLspFactory.CreateRange(lineSpan);
@@ -200,7 +197,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
             Welcome to your new app.
             """;
-        TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var selectionSpan);
+        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
 
         var request = new VSCodeActionParams()
         {
@@ -209,8 +206,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents);
 
         var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
         request.Range = VsLspFactory.CreateRange(lineSpan);
@@ -227,8 +223,8 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(selectionSpan.Start, actionParams.ExtractStart);
-        Assert.Equal(selectionSpan.End, actionParams.ExtractEnd);
+        Assert.Equal(selectionSpan.Start, actionParams.Start);
+        Assert.Equal(selectionSpan.End, actionParams.End);
     }
 
     [Fact]
@@ -244,7 +240,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <div id="parent">
                 <div>
                     <h1>Div a title</h1>
-                    <p>Div $$a par</p>
+                    <p>Div [||]a par</p>
                 </div>
                 <div>
                     <h1>Div b title</h1>
@@ -256,7 +252,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
             Welcome to your new app.
             """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
 
         var request = new VSCodeActionParams()
         {
@@ -265,8 +261,11 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(
+            request,
+            selectionSpan,
+            documentPath,
+            contents);
 
         var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
 
@@ -277,11 +276,16 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         Assert.Empty(commandOrCodeActionContainer);
     }
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
-        => CreateRazorCodeActionContext(request, location, filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
-
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
+    private static RazorCodeActionContext CreateRazorCodeActionContext(
+        VSCodeActionParams request,
+        TextSpan selectionSpan,
+        string filePath,
+        string text,
+        string? relativePath = null,
+        bool supportsFileCreation = true)
     {
+        relativePath ??= filePath;
+
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
         var options = RazorParserOptions.Create(o =>
         {
@@ -303,7 +307,15 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
+        var context = new RazorCodeActionContext(
+            request,
+            documentSnapshot,
+            codeDocument,
+            new SourceLocation(selectionSpan.Start, -1, -1),
+            new SourceLocation(selectionSpan.End, -1, -1),
+            sourceText,
+            supportsFileCreation,
+            SupportsCodeActionResolve: true);
 
         return context;
     }

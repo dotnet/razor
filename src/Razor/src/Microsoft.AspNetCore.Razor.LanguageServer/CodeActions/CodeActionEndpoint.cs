@@ -158,16 +158,22 @@ internal sealed class CodeActionEndpoint(
             request.Range = vsCodeActionContext.SelectionRange;
         }
 
-        if (!sourceText.TryGetSourceLocation(request.Range.Start, out var location))
+        if (!sourceText.TryGetSourceLocation(request.Range.Start, out var startLocation))
         {
             return null;
+        }
+
+        if (!sourceText.TryGetSourceLocation(request.Range.End, out var endLocation))
+        {
+            endLocation = startLocation;
         }
 
         var context = new RazorCodeActionContext(
             request,
             documentSnapshot,
             codeDocument,
-            location,
+            startLocation,
+            endLocation,
             sourceText,
             _languageServerFeatureOptions.SupportsFileManipulation,
             _supportsCodeActionResolve);
@@ -177,7 +183,7 @@ internal sealed class CodeActionEndpoint(
 
     private async Task<ImmutableArray<RazorVSInternalCodeAction>> GetDelegatedCodeActionsAsync(DocumentContext documentContext, RazorCodeActionContext context, Guid correlationId, CancellationToken cancellationToken)
     {
-        var languageKind = context.CodeDocument.GetLanguageKind(context.Location.AbsoluteIndex, rightAssociative: false);
+        var languageKind = context.CodeDocument.GetLanguageKind(context.StartLocation.AbsoluteIndex, rightAssociative: false);
 
         // No point delegating if we're in a Razor context
         if (languageKind == RazorLanguageKind.Razor)

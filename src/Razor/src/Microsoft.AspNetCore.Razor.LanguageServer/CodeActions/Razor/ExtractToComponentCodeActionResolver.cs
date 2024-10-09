@@ -24,15 +24,18 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using Microsoft.VisualStudio.Utilities;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
-internal sealed class ExtractToComponentCodeActionResolver
-    (
+internal sealed class ExtractToComponentCodeActionResolver(
     IDocumentContextFactory documentContextFactory,
     LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
-
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
@@ -62,82 +65,75 @@ internal sealed class ExtractToComponentCodeActionResolver
             return null;
         }
 
-        if (!FileKinds.IsComponent(componentDocument.GetFileKind()))
-        {
-            return null;
-        }
-
-        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
-        var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
-        var templatePath = Path.Combine(directoryName, "Component");
-        var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
-
-        // VS Code in Windows expects path to start with '/'
-        var updatedComponentPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !componentPath.StartsWith('/')
-            ? '/' + componentPath
-            : componentPath;
-
-        var newComponentUri = new UriBuilder
-        {
-            Scheme = Uri.UriSchemeFile,
-            Path = updatedComponentPath,
-            Host = string.Empty,
-        }.Uri;
-
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (text is null)
         {
             return null;
         }
 
+        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
+        var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
+        var templatePath = Path.Combine(directoryName, "Component.razor");
+        var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentContent = string.Empty;
 
-        newComponentContent += string.Join(Environment.NewLine, actionParams.usingDirectives);
-        if (actionParams.usingDirectives.Count > 0)
+        // VS Code in Windows expects path to start with '/'
+        componentPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !componentPath.StartsWith('/')
+            ? '/' + componentPath
+            : componentPath;
+
+        var newComponentUri = new UriBuilder
         {
-            newComponentContent += Environment.NewLine + Environment.NewLine; // Ensure there's a newline after the dependencies if any exist.
+            Scheme = Uri.UriSchemeFile,
+            Path = componentPath,
+            Host = string.Empty,
+        }.Uri;
+
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+        var syntaxTree = componentDocument.GetSyntaxTree();
+        foreach (var usingDirective in GetUsingsInDocument(syntaxTree))
+        {
+            builder.AppendLine(usingDirective);
         }
 
-        newComponentContent += text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
+        var extractedText = text.GetSubTextString(new TextSpan(actionParams.Start, actionParams.End - actionParams.Start)).Trim();
+        builder.Append(extractedText);
 
-        var start = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractStart);
-        var end = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.ExtractEnd);
+        var start = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.Start);
+        var end = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.End);
         var removeRange = new Range
         {
             Start = new Position(start.Line, start.Character),
             End = new Position(end.Line, end.Character)
         };
 
-        var componentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
-        var newComponentDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
-
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {
             new CreateFile { Uri = newComponentUri },
             new TextDocumentEdit
             {
-                TextDocument = componentDocumentIdentifier,
-                Edits = new[]
-                {
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri },
+                Edits =
+                [
                     new TextEdit
                     {
                         NewText = $"<{componentName} />",
                         Range = removeRange,
                     }
-                },
+                ],
             },
             new TextDocumentEdit
             {
-                TextDocument = newComponentDocumentIdentifier,
-                Edits  = new[]
-                {
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri },
+                Edits  =
+                [
                     new TextEdit
                     {
-                        NewText = newComponentContent,
+                        NewText = builder.ToString(),
                         Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
                     }
-                },
+                ],
             }
         };
 
@@ -146,4 +142,19 @@ internal sealed class ExtractToComponentCodeActionResolver
             DocumentChanges = documentChanges,
         };
     }
+
+    private static IEnumerable<string> GetUsingsInDocument(RazorSyntaxTree syntaxTree)
+        => syntaxTree
+            .Root
+            .ChildNodes()
+            .Select(node =>
+            {
+                if (node.IsUsingDirective(out var _))
+                {
+                    return node.ToFullString().Trim();
+                }
+
+                return null;
+            })
+            .WhereNotNull();
 }
