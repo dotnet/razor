@@ -1,8 +1,8 @@
-﻿Source Location: (41:5,2 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (41:5,2 [10] x:\dir\subdir\Test\TestComponent.razor)
 |
 #endif
 |
-Generated Location: (951:25,0 [10] )
+Generated Location: (950:25,0 [10] )
 |
 #endif
 |

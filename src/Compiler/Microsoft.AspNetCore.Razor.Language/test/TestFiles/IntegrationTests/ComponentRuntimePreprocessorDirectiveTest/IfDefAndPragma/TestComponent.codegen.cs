@@ -18,7 +18,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line (1,3)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,3)-(6,1) "x:\dir\subdir\Test\TestComponent.razor"
 
 #pragma warning disable 219 // variable declared but not used
 #if true

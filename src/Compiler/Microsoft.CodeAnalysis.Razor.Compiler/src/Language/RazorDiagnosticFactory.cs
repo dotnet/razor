@@ -373,7 +373,7 @@ internal static class RazorDiagnosticFactory
         => RazorDiagnostic.Create(Parsing_DefineAndUndefNotAllowed, location);
 
     internal static readonly RazorDiagnosticDescriptor Parsing_PreprocessorDirectivesMustBeAtTheStartOfLine =
-        new($"{DiagnosticPrefix}1042",
+        new($"{DiagnosticPrefix}1043",
             Resources.Directives_must_be_at_the_start_of_the_line,
             RazorDiagnosticSeverity.Error);
 
@@ -381,7 +381,7 @@ internal static class RazorDiagnosticFactory
         => RazorDiagnostic.Create(Parsing_PreprocessorDirectivesMustBeAtTheStartOfLine, location);
 
     internal static readonly RazorDiagnosticDescriptor Parsing_PossibleMisplacedPreprocessorDirective =
-        new($"{DiagnosticPrefix}1042",
+        new($"{DiagnosticPrefix}1044",
             Resources.Possible_preprocessor_directive_is_misplaced,
             RazorDiagnosticSeverity.Warning);
 
@@ -637,14 +637,6 @@ internal static class RazorDiagnosticFactory
     public static RazorDiagnostic CreateTagHelper_InvalidBoundDirectiveAttributeName(string tagHelperDisplayName, string propertyDisplayName, string invalidName)
         => RazorDiagnostic.Create(TagHelper_InvalidBoundDirectiveAttributeName, tagHelperDisplayName, propertyDisplayName, invalidName);
 
-    internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundDirectiveAttributePrefix =
-        new($"{DiagnosticPrefix}3015",
-            Resources.TagHelper_InvalidBoundDirectiveAttributePrefix,
-            RazorDiagnosticSeverity.Error);
-
-    public static RazorDiagnostic CreateTagHelper_InvalidBoundDirectiveAttributePrefix(string tagHelperDisplayName, string propertyDisplayName, string invalidName)
-        => RazorDiagnostic.Create(TagHelper_InvalidBoundDirectiveAttributePrefix, tagHelperDisplayName, propertyDisplayName, invalidName);
-
     internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidRequiredDirectiveAttributeName =
         new($"{DiagnosticPrefix}3016",
             Resources.TagHelper_InvalidRequiredDirectiveAttributeName,
@@ -652,6 +644,14 @@ internal static class RazorDiagnosticFactory
 
     public static RazorDiagnostic CreateTagHelper_InvalidRequiredDirectiveAttributeName(string propertyDisplayName, string invalidName)
         => RazorDiagnostic.Create(TagHelper_InvalidRequiredDirectiveAttributeName, propertyDisplayName, invalidName);
+
+    internal static readonly RazorDiagnosticDescriptor TagHelper_InvalidBoundDirectiveAttributePrefix =
+        new($"{DiagnosticPrefix}3017",
+            Resources.TagHelper_InvalidBoundDirectiveAttributePrefix,
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateTagHelper_InvalidBoundDirectiveAttributePrefix(string tagHelperDisplayName, string propertyDisplayName, string invalidName)
+        => RazorDiagnostic.Create(TagHelper_InvalidBoundDirectiveAttributePrefix, tagHelperDisplayName, propertyDisplayName, invalidName);
 
     #endregion
 

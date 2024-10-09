@@ -13,7 +13,7 @@
                         CSharpStatementLiteral - [2..64)::62 - [LF#if falseLF}LF<div>LF    <p>Content</p>LF</div>LF@{ #endif }] - Gen<Stmt>
                             NewLine;[LF];
                             CSharpDirective;[#if falseLF];
-                            CSharpDisabledText;[}LF<div>LF    <p>Content</p>LF</div>LF@{ #endif }];RZ1042(56:6,3 [6] )
+                            CSharpDisabledText;[}LF<div>LF    <p>Content</p>LF</div>LF@{ #endif }];RZ1044(56:6,3 [6] )
                     RazorMetaCode - [64..64)::0 - Gen<None>
                         RightBrace;[<Missing>];
     EndOfFile;[];

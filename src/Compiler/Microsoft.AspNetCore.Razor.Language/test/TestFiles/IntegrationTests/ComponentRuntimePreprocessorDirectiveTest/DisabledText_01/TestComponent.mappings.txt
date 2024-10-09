@@ -1,10 +1,10 @@
-﻿Source Location: (2:0,2 [43] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (2:0,2 [43] x:\dir\subdir\Test\TestComponent.razor)
 |
 #if false
     <p>Some text</p>
 #endif
 |
-Generated Location: (734:21,0 [43] )
+Generated Location: (733:21,0 [43] )
 |
 #if false
     <p>Some text</p>

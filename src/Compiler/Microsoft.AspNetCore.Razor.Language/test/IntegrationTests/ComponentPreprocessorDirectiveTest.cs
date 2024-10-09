@@ -15,7 +15,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
 
     internal string ComponentName = "TestComponent";
 
-    internal override string DefaultFileName => ComponentName + ".cshtml";
+    internal override string DefaultFileName => ComponentName + ".razor";
 
     internal override bool DesignTime => designTime;
 
@@ -133,11 +133,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
             """);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        if (!DesignTime)
-        {
-            // https://github.com/dotnet/razor/issues/10981
-            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        }
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: false);
         CompileToAssembly(generated,
             // x:\dir\subdir\Test\TestComponent.cshtml(7,1): error CS1028: Unexpected preprocessor directive
             // #endif
@@ -258,11 +254,7 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
             """);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        if (!DesignTime)
-        {
-            // https://github.com/dotnet/razor/issues/10981
-            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        }
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: false);
         CompileToAssembly(generated);
     }
 

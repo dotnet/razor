@@ -14,15 +14,15 @@
             CSharpCode - 
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
-                CSharpCode - (2:0,2 [6] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (2:0,2 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    
-                MarkupElement - (8:1,4 [44] x:\dir\subdir\Test\TestComponent.cshtml) - div
-                    HtmlContent - (13:1,9 [16] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (13:1,9 [16] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n#if true\n    
-                    MarkupElement - (29:3,4 [23] x:\dir\subdir\Test\TestComponent.cshtml) - div
-                        HtmlContent - (34:3,9 [5] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (34:3,9 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n}\n
-                        CSharpCode - (41:5,2 [10] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (41:5,2 [10] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n#endif\n
-                CSharpCode - (52:7,1 [0] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (52:7,1 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 
+                CSharpCode - (2:0,2 [6] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [6] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    
+                MarkupElement - (8:1,4 [44] x:\dir\subdir\Test\TestComponent.razor) - div
+                    HtmlContent - (13:1,9 [16] x:\dir\subdir\Test\TestComponent.razor)
+                        LazyIntermediateToken - (13:1,9 [16] x:\dir\subdir\Test\TestComponent.razor) - Html - \n#if true\n    
+                    MarkupElement - (29:3,4 [23] x:\dir\subdir\Test\TestComponent.razor) - div
+                        HtmlContent - (34:3,9 [5] x:\dir\subdir\Test\TestComponent.razor)
+                            LazyIntermediateToken - (34:3,9 [5] x:\dir\subdir\Test\TestComponent.razor) - Html - \n}\n
+                        CSharpCode - (41:5,2 [10] x:\dir\subdir\Test\TestComponent.razor)
+                            LazyIntermediateToken - (41:5,2 [10] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n#endif\n
+                CSharpCode - (52:7,1 [0] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (52:7,1 [0] x:\dir\subdir\Test\TestComponent.razor) - CSharp - 

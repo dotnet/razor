@@ -1,11 +1,11 @@
-﻿Source Location: (2:0,2 [40] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (2:0,2 [40] x:\dir\subdir\Test\TestComponent.razor)
 |
 #if false
 }
 @{
 <div>#endif</div>
 }|
-Generated Location: (987:28,2 [40] )
+Generated Location: (986:28,2 [40] )
 |
 #if false
 }

@@ -1,1 +1,1 @@
-﻿(5,6): Warning RZ1042: Possible C# preprocessor directive is misplaced. C# preprocessor directives must be at the start of the line, except for whitespace.
+﻿(5,6): Warning RZ1044: Possible C# preprocessor directive is misplaced. C# preprocessor directives must be at the start of the line, except for whitespace.

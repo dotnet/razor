@@ -22,7 +22,7 @@ namespace Test
             __builder.OpenElement(2, "div");
             __builder.AddMarkupContent(3, "\r\n}\r\n");
 #nullable restore
-#line (6,3)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (6,3)-(8,1) "x:\dir\subdir\Test\TestComponent.razor"
 
 #endif
 

@@ -27,7 +27,7 @@ namespace Test
   
     
 #nullable restore
-#line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line 6 "x:\dir\subdir\Test\TestComponent.razor"
   
 #endif
 

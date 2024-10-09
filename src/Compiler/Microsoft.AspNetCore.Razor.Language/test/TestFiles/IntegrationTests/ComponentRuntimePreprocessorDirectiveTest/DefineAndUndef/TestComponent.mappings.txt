@@ -1,9 +1,9 @@
-﻿Source Location: (2:0,2 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (2:0,2 [41] x:\dir\subdir\Test\TestComponent.razor)
 |
 #define SomeSymbol
 #undef SomeSymbol
 |
-Generated Location: (734:21,0 [41] )
+Generated Location: (733:21,0 [41] )
 |
 #define SomeSymbol
 #undef SomeSymbol

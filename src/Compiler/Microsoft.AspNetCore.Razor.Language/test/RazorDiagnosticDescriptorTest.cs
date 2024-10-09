@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -73,5 +76,24 @@ public class RazorDiagnosticDescriptorTest
 
         // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public void NoDuplicateDiagnosticIds()
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        var factoryType = typeof(RazorDiagnosticFactory);
+        var diagnosticDescriptorType = typeof(RazorDiagnosticDescriptor);
+
+        foreach (var field in factoryType.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Where(f => f.FieldType == diagnosticDescriptorType))
+        {
+            var descriptor = (RazorDiagnosticDescriptor)field.GetValue(null)!;
+            if (ids.Contains(descriptor.Id))
+            {
+                Assert.Fail($"Duplicate diagnostic id '{descriptor.Id}' found.");
+            }
+
+            ids.Add(descriptor.Id);
+        }
     }
 }

@@ -18,7 +18,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line (1,3)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,3)-(2,1) "x:\dir\subdir\Test\TestComponent.razor"
  #if true }
 
 #line default
@@ -26,7 +26,7 @@ namespace Test
 #nullable disable
 
 #nullable restore
-#line (2,3)-(2,12) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (2,3)-(2,12) "x:\dir\subdir\Test\TestComponent.razor"
  #endif }
 
 #line default

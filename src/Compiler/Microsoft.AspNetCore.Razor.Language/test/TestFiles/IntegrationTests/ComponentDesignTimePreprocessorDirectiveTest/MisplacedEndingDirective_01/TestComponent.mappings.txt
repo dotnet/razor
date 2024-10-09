@@ -1,9 +1,9 @@
-﻿Source Location: (2:0,2 [27] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (2:0,2 [27] x:\dir\subdir\Test\TestComponent.razor)
 |
 #if false
 }
 @{ #endif }|
-Generated Location: (987:28,2 [27] )
+Generated Location: (986:28,2 [27] )
 |
 #if false
 }

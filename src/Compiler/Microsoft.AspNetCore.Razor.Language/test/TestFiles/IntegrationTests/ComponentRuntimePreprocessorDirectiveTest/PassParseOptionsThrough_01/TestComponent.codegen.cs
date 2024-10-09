@@ -18,7 +18,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line (1,3)-(3,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,3)-(3,1) "x:\dir\subdir\Test\TestComponent.razor"
 
 #if SomeSymbol
 
@@ -28,7 +28,7 @@ namespace Test
 
             __builder.AddMarkupContent(0, "<p>Some text</p>");
 #nullable restore
-#line (4,1)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (4,1)-(5,1) "x:\dir\subdir\Test\TestComponent.razor"
 #endif
 
 #line default
