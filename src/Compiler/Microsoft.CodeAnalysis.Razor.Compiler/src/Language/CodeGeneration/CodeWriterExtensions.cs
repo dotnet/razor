@@ -470,7 +470,7 @@ internal static class CodeWriterExtensions
         this CodeWriter writer,
         IList<string> modifiers,
         string name,
-        IntermediateToken baseType,
+        IntermediateNode baseType,
         IList<string> interfaces,
         IList<TypeParameter> typeParameters,
         CodeRenderingContext context,
@@ -518,7 +518,7 @@ internal static class CodeWriterExtensions
             writer.Write(">");
         }
 
-        var hasBaseType = !string.IsNullOrEmpty(baseType?.Content);
+        var hasBaseType = baseType is IntermediateToken baseTypeToken && !string.IsNullOrWhiteSpace(baseTypeToken.Content);
         var hasInterfaces = interfaces != null && interfaces.Count > 0;
 
         if (hasBaseType || hasInterfaces)
@@ -527,13 +527,14 @@ internal static class CodeWriterExtensions
 
             if (hasBaseType)
             {
-                if (baseType.Source is { } source)
+                baseTypeToken = (IntermediateToken)baseType;
+                if (baseTypeToken.Source is { } source)
                 {
-                    WriteWithPragma(writer, baseType.Content, context, source);
+                    WriteWithPragma(writer, baseTypeToken.Content, context, source);
                 }
                 else
                 {
-                    writer.Write(baseType.Content);
+                    writer.Write(baseTypeToken.Content);
                 }
 
                 if (hasInterfaces)

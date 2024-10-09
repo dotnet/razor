@@ -101,7 +101,7 @@ public static class ModelDirective
                 visitor.Namespace?.Children.Insert(0, usingNode);
             }
 
-            if (visitor.Class?.BaseType is { } existingBaseType)
+            if (visitor.Class?.BaseType is IntermediateToken existingBaseType)
             {
                 var typeName = existingBaseType.Content.Replace("<TModel>", "<" + modelType + ">");
                 visitor.Class.BaseType = IntermediateToken.CreateCSharpToken(typeName, existingBaseType.Source);
