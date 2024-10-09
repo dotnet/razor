@@ -17,7 +17,7 @@ public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermed
 
     public string ClassName { get; set; }
 
-    public string BaseType { get; set; }
+    public IntermediateToken BaseType { get; set; }
 
     public IList<string> Interfaces { get; set; } = new List<string>();
 
@@ -37,7 +37,7 @@ public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermed
     {
         formatter.WriteContent(ClassName);
 
-        formatter.WriteProperty(nameof(BaseType), BaseType);
+        BaseType.FormatNode(formatter);
         formatter.WriteProperty(nameof(ClassName), ClassName);
         formatter.WriteProperty(nameof(Interfaces), string.Join(", ", Interfaces));
         formatter.WriteProperty(nameof(Modifiers), string.Join(", ", Modifiers));

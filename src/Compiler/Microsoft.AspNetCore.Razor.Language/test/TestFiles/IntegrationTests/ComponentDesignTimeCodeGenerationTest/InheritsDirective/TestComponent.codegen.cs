@@ -11,30 +11,29 @@ namespace Test
     #line default
     #line hidden
     #nullable restore
-    public partial class TestComponent : 
+    public partial class TestComponent : BaseComponent
+    #nullable disable
+    {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
+        ((global::System.Action)(() => {
 #nullable restore
-#line (1,11)-(1,33) "x:\dir\subdir\Test\TestComponent.cshtml"
-BaseComponent<string?>
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+BaseComponent __typeHelper = default!;
 
 #line default
 #line hidden
 #nullable disable
-
-    #nullable disable
-    {
+        }
+        ))();
+        }
+        #pragma warning restore 219
+        #pragma warning disable 0414
+        private static object __o = null;
+        #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __builder.AddMarkupContent(0, "<h1>My component</h1>\r\n");
-            __builder.AddContent(1, 
-#nullable restore
-#line (4,3)-(4,20) "x:\dir\subdir\Test\TestComponent.cshtml"
-_field.ToString()
-
-#line default
-#line hidden
-#nullable disable
-            );
         }
         #pragma warning restore 1998
     }

@@ -56,7 +56,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         visitor.Visit(irDocument);
 
         // Assert
-        Assert.Equal("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", visitor.Class.BaseType);
+        Assert.Equal("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", visitor.Class.BaseType.Content);
         Assert.Equal(new[] { "internal", "sealed" }, visitor.Class.Modifiers);
         Assert.Equal("Test", visitor.Class.ClassName);
     }
@@ -81,7 +81,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         visitor.Visit(irDocument);
 
         // Assert
-        Assert.Equal("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", visitor.Class.BaseType);
+        Assert.Equal("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", visitor.Class.BaseType.Content);
         Assert.Equal(new[] { "internal", "sealed" }, visitor.Class.Modifiers);
         AssertEx.Equal("AspNetCore_ec563e63d931b806184cb02f79875e4f3b21d1ca043ad06699424459128b58c0", visitor.Class.ClassName);
     }
