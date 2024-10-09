@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class DocumentSnapshot : IDocumentSnapshot
+internal sealed class DocumentSnapshot : IDocumentSnapshot
 {
     public string FileKind => State.HostDocument.FileKind;
     public string FilePath => State.HostDocument.FilePath;
@@ -30,6 +30,8 @@ internal class DocumentSnapshot : IDocumentSnapshot
         State = state ?? throw new ArgumentNullException(nameof(state));
     }
 
+    public HostDocument HostDocument => State.HostDocument;
+
     public Task<SourceText> GetTextAsync()
         => State.GetTextAsync();
 
@@ -42,7 +44,7 @@ internal class DocumentSnapshot : IDocumentSnapshot
     public bool TryGetTextVersion(out VersionStamp result)
         => State.TryGetTextVersion(out result);
 
-    public virtual bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
     {
         if (State.IsGeneratedOutputResultAvailable)
         {
@@ -68,7 +70,7 @@ internal class DocumentSnapshot : IDocumentSnapshot
         return CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
     }
 
-    public virtual async Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
+    public async Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
     {
         if (forceDesignTimeGeneratedOutput)
         {

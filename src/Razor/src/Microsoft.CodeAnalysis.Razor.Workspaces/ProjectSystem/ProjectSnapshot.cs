@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
+internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
 {
     private readonly ProjectState _state = state;
 
@@ -42,7 +42,7 @@ internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
 
     public HostProject HostProject => _state.HostProject;
 
-    public virtual VersionStamp Version => _state.Version;
+    public VersionStamp Version => _state.Version;
 
     public VersionStamp ConfigurationVersion => _state.ConfigurationVersion;
     public VersionStamp ProjectWorkspaceStateVersion => _state.ProjectWorkspaceStateVersion;
@@ -130,8 +130,6 @@ internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
         }
     }
 
-    public virtual RazorProjectEngine GetProjectEngine()
-    {
-        return _state.ProjectEngine;
-    }
+    public RazorProjectEngine GetProjectEngine()
+        => _state.ProjectEngine;
 }
