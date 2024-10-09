@@ -75,7 +75,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType<Type1>", @class.BaseType);
+        Assert.Equal("BaseType<Type1>", @class.BaseType.Content);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType<Type1>", @class.BaseType);
+        Assert.Equal("BaseType<Type1>", @class.BaseType.Content);
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType", @class.BaseType);
+        Assert.Equal("BaseType", @class.BaseType.Content);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType<dynamic>", @class.BaseType);
+        Assert.Equal("BaseType<dynamic>", @class.BaseType.Content);
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType<dynamic>", @class.BaseType);
+        Assert.Equal("BaseType<dynamic>", @class.BaseType.Content);
 
         var @namespace = FindNamespaceNode(irDocument);
         var usingNode = Assert.IsType<UsingDirectiveIntermediateNode>(@namespace.Children[0]);
@@ -208,7 +208,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType<SomeType>", @class.BaseType);
+        Assert.Equal("BaseType<SomeType>", @class.BaseType.Content);
 
         var @namespace = FindNamespaceNode(irDocument);
         var usingNode = Assert.IsType<UsingDirectiveIntermediateNode>(@namespace.Children[0]);

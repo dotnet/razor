@@ -13,8 +13,8 @@ namespace Test
     #nullable restore
     public partial class TestComponent : 
 #nullable restore
-#line (1,11)-(1,33) "x:\dir\subdir\Test\TestComponent.cshtml"
-BaseComponent<string?>
+#line (1,11)-(1,24) "x:\dir\subdir\Test\TestComponent.cshtml"
+BaseComponent
 
 #line default
 #line hidden
@@ -25,16 +25,6 @@ BaseComponent<string?>
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __builder.AddMarkupContent(0, "<h1>My component</h1>\r\n");
-            __builder.AddContent(1, 
-#nullable restore
-#line (4,3)-(4,20) "x:\dir\subdir\Test\TestComponent.cshtml"
-_field.ToString()
-
-#line default
-#line hidden
-#nullable disable
-            );
         }
         #pragma warning restore 1998
     }
