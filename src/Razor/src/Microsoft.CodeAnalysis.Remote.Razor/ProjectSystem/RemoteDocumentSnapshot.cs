@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,36 +62,38 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
     public bool TryGetTextVersion(out VersionStamp result)
         => TextDocument.TryGetTextVersion(out result);
 
-    public async Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
+    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
     {
         // TODO: We don't need to worry about locking if we get called from the didOpen/didChange LSP requests, as CLaSP
         //       takes care of that for us, and blocks requests until those are complete. If that doesn't end up happening,
         //       then a locking mechanism here would prevent concurrent compilations.
-        if (TryGetGeneratedOutput(out var codeDocument))
+        return TryGetGeneratedOutput(out var codeDocument)
+            ? new(codeDocument)
+            : new(GetGeneratedOutputCoreAsync());
+
+        async Task<RazorCodeDocument> GetGeneratedOutputCoreAsync()
         {
-            return codeDocument;
+            // The non-cohosted DocumentSnapshot implementation uses DocumentState to get the generated output, and we could do that too
+            // but most of that code is optimized around caching pre-computed results when things change that don't affect the compilation.
+            // We can't do that here because we are using Roslyn's project snapshots, which don't contain the info that Razor needs. We could
+            // in future provide a side-car mechanism so we can cache things, but still take advantage of snapshots etc. but the working
+            // assumption for this code is that the source generator will be used, and it will do all of that, so this implementation is naive
+            // and simply compiles when asked, and if a new document snapshot comes in, we compile again. This is presumably worse for perf
+            // but since we don't expect users to ever use cohosting without source generators, it's fine for now.
+
+            var projectEngine = await ProjectSnapshot.GetProjectEngine_CohostOnlyAsync(CancellationToken.None).ConfigureAwait(false);
+            var tagHelpers = await ProjectSnapshot.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
+            var imports = await DocumentState.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
+
+            // TODO: Get the configuration for forceRuntimeCodeGeneration
+            // var forceRuntimeCodeGeneration = _projectSnapshot.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
+
+            codeDocument = await DocumentState
+                .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false)
+                .ConfigureAwait(false);
+
+            return _codeDocument ??= InterlockedOperations.Initialize(ref _codeDocument, codeDocument);
         }
-
-        // The non-cohosted DocumentSnapshot implementation uses DocumentState to get the generated output, and we could do that too
-        // but most of that code is optimized around caching pre-computed results when things change that don't affect the compilation.
-        // We can't do that here because we are using Roslyn's project snapshots, which don't contain the info that Razor needs. We could
-        // in future provide a side-car mechanism so we can cache things, but still take advantage of snapshots etc. but the working
-        // assumption for this code is that the source generator will be used, and it will do all of that, so this implementation is naive
-        // and simply compiles when asked, and if a new document snapshot comes in, we compile again. This is presumably worse for perf
-        // but since we don't expect users to ever use cohosting without source generators, it's fine for now.
-
-        var projectEngine = await ProjectSnapshot.GetProjectEngine_CohostOnlyAsync(CancellationToken.None).ConfigureAwait(false);
-        var tagHelpers = await ProjectSnapshot.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
-        var imports = await DocumentState.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
-
-        // TODO: Get the configuration for forceRuntimeCodeGeneration
-        // var forceRuntimeCodeGeneration = _projectSnapshot.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
-
-        codeDocument = await DocumentState
-            .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false)
-            .ConfigureAwait(false);
-
-        return _codeDocument ??= InterlockedOperations.Initialize(ref _codeDocument, codeDocument);
     }
 
     public IDocumentSnapshot WithText(SourceText text)

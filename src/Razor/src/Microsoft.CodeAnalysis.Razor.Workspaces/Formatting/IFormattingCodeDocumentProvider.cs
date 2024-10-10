@@ -9,5 +9,5 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal interface IFormattingCodeDocumentProvider
 {
-    Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot snapshot);
+    ValueTask<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot snapshot);
 }

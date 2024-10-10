@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 [Export(typeof(IFormattingCodeDocumentProvider)), Shared]
 internal sealed class RemoteFormattingCodeDocumentProvider : IFormattingCodeDocumentProvider
 {
-    public Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot snapshot)
+    public ValueTask<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot snapshot)
     {
         // Formatting always uses design time
         return snapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: true);

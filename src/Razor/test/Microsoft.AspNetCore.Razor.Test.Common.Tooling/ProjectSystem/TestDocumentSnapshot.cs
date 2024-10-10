@@ -67,11 +67,11 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     public IProjectSnapshot Project => RealSnapshot.Project;
     public int Version => RealSnapshot.Version;
 
-    public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
+    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
     {
         return _codeDocument is null
             ? RealSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput)
-            : Task.FromResult(_codeDocument);
+            : new(_codeDocument);
     }
 
     public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)

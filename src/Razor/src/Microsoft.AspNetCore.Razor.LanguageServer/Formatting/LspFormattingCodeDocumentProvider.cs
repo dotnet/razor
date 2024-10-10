@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal sealed class LspFormattingCodeDocumentProvider : IFormattingCodeDocumentProvider
 {
-    public Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot snapshot)
+    public ValueTask<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot snapshot)
     {
         // Formatting always uses design time
         return snapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: true);

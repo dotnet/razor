@@ -53,9 +53,8 @@ internal static class IDocumentSnapshotExtensions
         return fileName.AsSpan().Equals(path.Span, FilePathComparison.Instance);
     }
 
-    public static Task<RazorCodeDocument> GetGeneratedOutputAsync(this IDocumentSnapshot documentSnapshot)
+    public static ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(this IDocumentSnapshot documentSnapshot)
     {
         return documentSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false);
     }
-
 }

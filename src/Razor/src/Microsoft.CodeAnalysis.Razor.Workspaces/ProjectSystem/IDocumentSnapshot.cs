@@ -20,7 +20,7 @@ internal interface IDocumentSnapshot
 
     ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken);
     ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken);
-    Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput);
+    ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput);
 
     /// <summary>
     /// Gets the Roslyn syntax tree for the generated C# for this Razor document
