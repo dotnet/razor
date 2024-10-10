@@ -68,10 +68,10 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
     {
         // Reset isOnlyWhitespaceOnLine for the new block
         _isOnlyWhitespaceOnLine = true;
-        for (var i = Source.Position - 1; i >= 0; i--)
+        for (int i = Source.Position - 1; i >= 0; i--)
         {
             var currentChar = Source.SourceText[i];
-            if (currentChar == '\n')
+            if (currentChar is '\n' or '\r')
             {
                 break;
             }

@@ -83,17 +83,24 @@ public class RazorDiagnosticDescriptorTest
     {
         var ids = new HashSet<string>(StringComparer.Ordinal);
         var factoryType = typeof(RazorDiagnosticFactory);
-        var diagnosticDescriptorType = typeof(RazorDiagnosticDescriptor);
 
-        foreach (var field in factoryType.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Where(f => f.FieldType == diagnosticDescriptorType))
+        addAllDescriptors(ids, factoryType, typeof(AspNetCore.Razor.Language.RazorDiagnosticDescriptor));
+        addAllDescriptors(ids, factoryType, typeof(CodeAnalysis.Razor.RazorDiagnosticFactory));
+        addAllDescriptors(ids, factoryType, typeof(AspNetCore.Razor.Language.Components.ComponentDiagnosticFactory));
+        addAllDescriptors(ids, factoryType, typeof(AspNetCore.Mvc.Razor.Extensions.RazorExtensionsDiagnosticFactory));
+
+        static void addAllDescriptors(HashSet<string> ids, Type factoryType, Type diagnosticDescriptorType)
         {
-            var descriptor = (RazorDiagnosticDescriptor)field.GetValue(null)!;
-            if (ids.Contains(descriptor.Id))
+            foreach (var field in factoryType.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Where(f => f.FieldType == diagnosticDescriptorType))
             {
-                Assert.Fail($"Duplicate diagnostic id '{descriptor.Id}' found.");
-            }
+                var descriptor = (RazorDiagnosticDescriptor)field.GetValue(null)!;
+                if (ids.Contains(descriptor.Id))
+                {
+                    Assert.Fail($"Duplicate diagnostic id '{descriptor.Id}' found.");
+                }
 
-            ids.Add(descriptor.Id);
+                ids.Add(descriptor.Id);
+            }
         }
     }
 }
