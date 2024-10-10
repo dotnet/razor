@@ -167,9 +167,9 @@ internal partial class DocumentState
             // - This document
             //
             // All of these things are cached, so no work is wasted if we do need to generate the code.
-            var configurationVersion = project.State.ConfigurationVersion;
-            var projectWorkspaceStateVersion = project.State.ProjectWorkspaceStateVersion;
-            var documentCollectionVersion = project.State.DocumentCollectionVersion;
+            var configurationVersion = project.ConfigurationVersion;
+            var projectWorkspaceStateVersion = project.ProjectWorkspaceStateVersion;
+            var documentCollectionVersion = project.DocumentCollectionVersion;
             var imports = await GetImportsAsync(document, project.GetProjectEngine()).ConfigureAwait(false);
             var documentVersion = await document.GetTextVersionAsync().ConfigureAwait(false);
 

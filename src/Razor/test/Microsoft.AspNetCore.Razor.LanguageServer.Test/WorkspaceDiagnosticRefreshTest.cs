@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +9,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -52,7 +50,8 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
         await projectSnapshotManager.UpdateAsync(
             static updater =>
             {
-                updater.CreateAndAddProject("C:/path/to/project.csproj");
+                var hostProject = TestHostProject.Create("C:/path/to/project.csproj");
+                updater.ProjectAdded(hostProject);
             });
 
         await testAccessor.WaitForRefreshAsync();
@@ -86,23 +85,25 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
 
         var testAccessor = publisher.GetTestAccessor();
 
+        var hostProject = TestHostProject.Create("C:/path/to/project.csproj");
+
+        var directory = Path.GetDirectoryName(hostProject.FilePath);
+        Assert.NotNull(directory);
+
+        var hostDocument = TestHostDocument.Create(hostProject, Path.Combine(directory, "directory.razor"));
+
         await projectSnapshotManager.UpdateAsync(
-            static updater =>
+            updater =>
             {
-                updater.CreateAndAddProject("C:/path/to/project.csproj");
+                updater.ProjectAdded(hostProject);
             });
 
         await testAccessor.WaitForRefreshAsync();
 
         await projectSnapshotManager.UpdateAsync(
-            static updater =>
+            updater =>
             {
-                var project = (ProjectSnapshot)updater.GetProjects().First();
-                var directory = Path.GetDirectoryName(project.FilePath);
-                Assert.NotNull(directory);
-
-                var filePath = Path.Combine(directory, "document.razor");
-                updater.CreateAndAddDocument(project, filePath);
+                updater.DocumentAdded(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
             });
 
         await testAccessor.WaitForRefreshAsync();
@@ -136,9 +137,10 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
         var testAccessor = publisher.GetTestAccessor();
 
         await projectSnapshotManager.UpdateAsync(
-            static updater =>
+            updater =>
             {
-                updater.CreateAndAddProject("C:/path/to/project.csproj");
+                var hostProject = TestHostProject.Create("C:/path/to/project.csproj");
+                updater.ProjectAdded(hostProject);
             });
 
         await testAccessor.WaitForRefreshAsync();
@@ -176,7 +178,8 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
         await projectSnapshotManager.UpdateAsync(
             static updater =>
             {
-                updater.CreateAndAddProject("C:/path/to/project.csproj");
+                var hostProject = TestHostProject.Create("C:/path/to/project.csproj");
+                updater.ProjectAdded(hostProject);
             });
 
         await testAccessor.WaitForRefreshAsync();

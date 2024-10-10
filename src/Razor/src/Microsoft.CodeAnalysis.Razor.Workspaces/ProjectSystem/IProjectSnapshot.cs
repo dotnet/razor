@@ -33,10 +33,10 @@ internal interface IProjectSnapshot
     string DisplayName { get; }
     VersionStamp Version { get; }
     LanguageVersion CSharpLanguageVersion { get; }
-    ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken);
     ProjectWorkspaceState ProjectWorkspaceState { get; }
 
     RazorProjectEngine GetProjectEngine();
+    ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken);
 
     bool ContainsDocument(string filePath);
     IDocumentSnapshot? GetDocument(string filePath);

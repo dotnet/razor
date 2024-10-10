@@ -15,7 +15,6 @@ internal interface IDocumentSnapshot
     string? FilePath { get; }
     string? TargetPath { get; }
     IProjectSnapshot Project { get; }
-    bool SupportsOutput { get; }
 
     int Version { get; }
 

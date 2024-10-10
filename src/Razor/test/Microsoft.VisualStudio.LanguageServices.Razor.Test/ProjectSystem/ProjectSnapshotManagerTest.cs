@@ -36,17 +36,15 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         TestProjectData.SomeProjectComponentFile2,
     ];
 
-    private static readonly HostProject s_hostProject = new(
-        TestProjectData.SomeProject.FilePath,
-        TestProjectData.SomeProject.IntermediateOutputPath,
-        FallbackRazorConfiguration.MVC_2_0,
-        TestProjectData.SomeProject.RootNamespace);
+    private static readonly HostProject s_hostProject = TestProjectData.SomeProject with
+    {
+        Configuration = FallbackRazorConfiguration.MVC_2_0
+    };
 
-    private static readonly HostProject s_hostProjectWithConfigurationChange = new(
-        TestProjectData.SomeProject.FilePath,
-        TestProjectData.SomeProject.IntermediateOutputPath,
-        FallbackRazorConfiguration.MVC_1_0,
-        TestProjectData.SomeProject.RootNamespace);
+    private static readonly HostProject s_hostProjectWithConfigurationChange = TestProjectData.SomeProject with
+    {
+        Configuration = FallbackRazorConfiguration.MVC_1_0
+    };
 
     private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
     private readonly TestProjectSnapshotManager _projectManager;
