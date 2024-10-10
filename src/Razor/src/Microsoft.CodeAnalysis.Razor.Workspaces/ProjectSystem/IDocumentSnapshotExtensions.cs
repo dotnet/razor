@@ -57,5 +57,4 @@ internal static class IDocumentSnapshotExtensions
     {
         return documentSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false);
     }
-
 }
