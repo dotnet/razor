@@ -90,10 +90,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver,
-            // Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\System__Imports_razor.g.cs(21,44): error CS0234: The type or namespace name 'Object' does not exist in the namespace 'MyApp.System' (are you missing an assembly reference?)
-            //     public partial class _Imports : System.Object
-            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Object").WithArguments("Object", "MyApp.System").WithLocation(21, 44));
+        var result = RunGenerator(compilation!, ref driver);
 
         // Assert
         result.Diagnostics.Verify();

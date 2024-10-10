@@ -18,7 +18,7 @@ using global::System.Net.Http
 #nullable disable
     ;
     #nullable restore
-    public partial class _Imports : System.Object
+    public partial class _Imports : object
     #nullable disable
     {
         #pragma warning disable 1998
