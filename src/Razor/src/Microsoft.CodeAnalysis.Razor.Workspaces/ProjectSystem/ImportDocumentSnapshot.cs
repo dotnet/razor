@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class ImportDocumentSnapshot(IProjectSnapshot project, RazorProjectItem item) : IDocumentSnapshot
+internal sealed class ImportDocumentSnapshot(IProjectSnapshot project, RazorProjectItem item) : IDocumentSnapshot
 {
     private static readonly Task<VersionStamp> s_versionTask = Task.FromResult(VersionStamp.Default);
 
@@ -51,14 +51,8 @@ internal class ImportDocumentSnapshot(IProjectSnapshot project, RazorProjectItem
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
     {
-        if (_sourceText is SourceText sourceText)
-        {
-            result = sourceText;
-            return true;
-        }
-
-        result = null;
-        return false;
+        result = _sourceText;
+        return result is not null;
     }
 
     public bool TryGetTextVersion(out VersionStamp result)
