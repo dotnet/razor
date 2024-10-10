@@ -65,7 +65,7 @@ internal sealed class CodeActionEndpoint(
             return null;
         }
 
-        var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot).ConfigureAwait(false);
+        var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
         if (razorCodeActionContext is null)
         {
             return null;
@@ -134,7 +134,10 @@ internal sealed class CodeActionEndpoint(
     }
 
     // internal for testing
-    internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot)
+    internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(
+        VSCodeActionParams request,
+        IDocumentSnapshot documentSnapshot,
+        CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
@@ -142,7 +145,7 @@ internal sealed class CodeActionEndpoint(
             return null;
         }
 
-        var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         // VS Provides `CodeActionParams.Context.SelectionRange` in addition to
         // `CodeActionParams.Range`. The `SelectionRange` is relative to where the

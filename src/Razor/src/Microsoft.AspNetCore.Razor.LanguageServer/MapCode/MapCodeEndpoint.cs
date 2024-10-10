@@ -228,7 +228,7 @@ internal sealed class MapCodeEndpoint(
                     razorNodesToMap.Add(nodeToMap);
                 }
 
-                var sourceText = await documentContext.Snapshot.GetTextAsync().ConfigureAwait(false);
+                var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 foreach (var nodeToMap in razorNodesToMap)
                 {

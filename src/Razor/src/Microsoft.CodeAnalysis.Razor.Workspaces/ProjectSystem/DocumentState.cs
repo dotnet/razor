@@ -90,11 +90,11 @@ internal partial class DocumentState
         }
     }
 
-    public ValueTask<SourceText> GetTextAsync()
+    public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
         return TryGetText(out var text)
             ? new(text)
-            : GetTextCoreAsync(CancellationToken.None);
+            : GetTextCoreAsync(cancellationToken);
 
         async ValueTask<SourceText> GetTextCoreAsync(CancellationToken cancellationToken)
         {
@@ -104,11 +104,11 @@ internal partial class DocumentState
         }
     }
 
-    public ValueTask<VersionStamp> GetTextVersionAsync()
+    public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
     {
         return TryGetTextVersion(out var version)
             ? new(version)
-            : GetTextVersionCoreAsync(CancellationToken.None);
+            : GetTextVersionCoreAsync(cancellationToken);
 
         async ValueTask<VersionStamp> GetTextVersionCoreAsync(CancellationToken cancellationToken)
         {
@@ -258,7 +258,7 @@ internal partial class DocumentState
 
         foreach (var snapshot in imports)
         {
-            var versionStamp = await snapshot.GetTextVersionAsync().ConfigureAwait(false);
+            var versionStamp = await snapshot.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
             result.Add(new ImportItem(snapshot.FilePath, versionStamp, snapshot));
         }
 
@@ -267,7 +267,7 @@ internal partial class DocumentState
 
     private static async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(IDocumentSnapshot document, RazorProjectItem? projectItem)
     {
-        var sourceText = await document.GetTextAsync().ConfigureAwait(false);
+        var sourceText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
         return RazorSourceDocument.Create(sourceText, RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath));
     }
 }

@@ -46,7 +46,7 @@ internal class RazorDocumentExcerptService(
             return null;
         }
 
-        var razorDocumentText = await razorDocument.GetTextAsync().ConfigureAwait(false);
+        var razorDocumentText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var razorDocumentSpan = razorDocumentText.Lines.GetTextSpan(mappedSpans[0].LinePositionSpan);
 
         var generatedDocument = document;

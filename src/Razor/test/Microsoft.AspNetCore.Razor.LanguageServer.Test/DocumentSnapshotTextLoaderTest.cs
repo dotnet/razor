@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -20,7 +21,7 @@ public class DocumentSnapshotTextLoaderTest(ITestOutputHelper testOutput) : Tool
         var expectedSourceText = SourceText.From("Hello World");
         var snapshotMock = new StrictMock<IDocumentSnapshot>();
         snapshotMock
-            .Setup(x => x.GetTextAsync())
+            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedSourceText);
         var textLoader = new DocumentSnapshotTextLoader(snapshotMock.Object);
 

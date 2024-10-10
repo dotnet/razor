@@ -75,15 +75,15 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
             : Task.FromResult(_codeDocument);
     }
 
-    public ValueTask<SourceText> GetTextAsync()
+    public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
         return _codeDocument is null
-            ? RealSnapshot.GetTextAsync()
+            ? RealSnapshot.GetTextAsync(cancellationToken)
             : new(_codeDocument.Source.Text);
     }
 
-    public ValueTask<VersionStamp> GetTextVersionAsync()
-        => RealSnapshot.GetTextVersionAsync();
+    public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
+        => RealSnapshot.GetTextVersionAsync(cancellationToken);
 
     public Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {

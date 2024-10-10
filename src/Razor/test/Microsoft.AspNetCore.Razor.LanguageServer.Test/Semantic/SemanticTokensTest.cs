@@ -958,7 +958,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>()))
             .ReturnsAsync(document);
         documentSnapshotMock
-            .Setup(x => x.GetTextAsync())
+            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(document.Source.Text);
         documentSnapshotMock
             .SetupGet(x => x.Version)

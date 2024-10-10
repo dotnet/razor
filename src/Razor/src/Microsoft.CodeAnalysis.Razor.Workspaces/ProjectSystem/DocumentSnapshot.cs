@@ -23,11 +23,11 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
     public IProjectSnapshot Project => _project;
     public int Version => _state.Version;
 
-    public ValueTask<SourceText> GetTextAsync()
-        => _state.GetTextAsync();
+    public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
+        => _state.GetTextAsync(cancellationToken);
 
-    public ValueTask<VersionStamp> GetTextVersionAsync()
-        => _state.GetTextVersionAsync();
+    public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
+        => _state.GetTextVersionAsync(cancellationToken);
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
         => _state.TryGetText(out result);

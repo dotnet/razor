@@ -106,7 +106,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var state = original.WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
 
         // Assert
-        var text = await state.Documents[_documents[0].FilePath].GetTextAsync();
+        var text = await state.Documents[_documents[0].FilePath].GetTextAsync(DisposalToken);
         Assert.Equal(0, text.Length);
     }
 
@@ -278,7 +278,7 @@ public class ProjectStateTest : WorkspaceTestBase
         // Assert
         Assert.NotEqual(original.Version, state.Version);
 
-        var text = await state.Documents[_documents[1].FilePath].GetTextAsync();
+        var text = await state.Documents[_documents[1].FilePath].GetTextAsync(DisposalToken);
         Assert.Same(_text, text);
 
         Assert.Equal(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
@@ -298,7 +298,7 @@ public class ProjectStateTest : WorkspaceTestBase
         // Assert
         Assert.NotEqual(original.Version, state.Version);
 
-        var text = await state.Documents[_documents[1].FilePath].GetTextAsync();
+        var text = await state.Documents[_documents[1].FilePath].GetTextAsync(DisposalToken);
         Assert.Same(_text, text);
 
         Assert.Equal(original.DocumentCollectionVersion, state.DocumentCollectionVersion);

@@ -77,7 +77,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
 
         DocumentUri = new Uri(_filePath);
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
-        DocumentText = await DocumentSnapshot.GetTextAsync();
+        DocumentText = await DocumentSnapshot.GetTextAsync(CancellationToken.None);
 
         RazorCodeActionRange = DocumentText.GetZeroWidthRange(razorCodeActionIndex);
         CSharpCodeActionRange = DocumentText.GetZeroWidthRange(csharpCodeActionIndex);

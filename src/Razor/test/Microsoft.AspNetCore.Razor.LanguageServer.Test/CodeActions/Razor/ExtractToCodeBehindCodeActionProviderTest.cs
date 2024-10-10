@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -401,7 +402,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>()))
             .ReturnsAsync(codeDocument);
         documentSnapshotMock
-            .Setup(x => x.GetTextAsync())
+            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument.Source.Text);
 
         return new RazorCodeActionContext(
