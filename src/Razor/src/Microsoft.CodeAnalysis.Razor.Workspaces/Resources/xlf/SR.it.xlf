@@ -61,7 +61,7 @@
       </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
-        <target state="new">Not available in</target>
+        <target state="translated">Non disponibili in</target>
         <note />
       </trans-unit>
       <trans-unit id="PositionCharacter_Outside_Range">
@@ -76,12 +76,12 @@
       </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
-        <target state="new">Razor TagHelper Attribute Glyph</target>
+        <target state="translated">Glifo attributo TagHelper Razor</target>
         <note />
       </trans-unit>
       <trans-unit id="TagHelper_Element_Glyph">
         <source>Razor TagHelper Element Glyph</source>
-        <target state="new">Razor TagHelper Element Glyph</target>
+        <target state="translated">Glifo elemento TagHelper Razor</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
