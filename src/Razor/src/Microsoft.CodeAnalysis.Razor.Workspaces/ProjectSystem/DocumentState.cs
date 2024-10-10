@@ -102,16 +102,18 @@ internal partial class DocumentState
         return textAsVersion.Text;
     }
 
-    public async Task<VersionStamp> GetTextVersionAsync()
+    public ValueTask<VersionStamp> GetTextVersionAsync()
     {
-        if (TryGetTextVersion(out var version))
+        return TryGetTextVersion(out var version)
+            ? new(version)
+            : GetTextVersionCoreAsync(CancellationToken.None);
+
+        async ValueTask<VersionStamp> GetTextVersionCoreAsync(CancellationToken cancellationToken)
         {
-            return version;
+            var textAsVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            return textAsVersion.Version;
         }
-
-        var textAsVersion = await GetTextAndVersionAsync(CancellationToken.None).ConfigureAwait(false);
-
-        return textAsVersion.Version;
     }
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)

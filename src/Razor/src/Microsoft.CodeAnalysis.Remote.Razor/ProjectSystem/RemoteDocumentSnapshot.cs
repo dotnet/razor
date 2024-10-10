@@ -45,8 +45,12 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
     public Task<SourceText> GetTextAsync()
         => TextDocument.GetTextAsync();
 
-    public Task<VersionStamp> GetTextVersionAsync()
-        => TextDocument.GetTextVersionAsync();
+    public ValueTask<VersionStamp> GetTextVersionAsync()
+    {
+        return TryGetTextVersion(out var result)
+            ? new(result)
+            : new(TextDocument.GetTextVersionAsync());
+    }
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
         => TextDocument.TryGetText(out result);

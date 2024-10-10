@@ -26,7 +26,7 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
     public Task<SourceText> GetTextAsync()
         => _state.GetTextAsync();
 
-    public Task<VersionStamp> GetTextVersionAsync()
+    public ValueTask<VersionStamp> GetTextVersionAsync()
         => _state.GetTextVersionAsync();
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)

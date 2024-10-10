@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal sealed class ImportDocumentSnapshot(IProjectSnapshot project, RazorProjectItem item) : IDocumentSnapshot
 {
-    private static readonly Task<VersionStamp> s_versionTask = Task.FromResult(VersionStamp.Default);
-
     public IProjectSnapshot Project { get; } = project;
 
     private readonly RazorProjectItem _importItem = item;
@@ -46,8 +44,8 @@ internal sealed class ImportDocumentSnapshot(IProjectSnapshot project, RazorProj
     public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
         => throw new NotSupportedException();
 
-    public Task<VersionStamp> GetTextVersionAsync()
-        => s_versionTask;
+    public ValueTask<VersionStamp> GetTextVersionAsync()
+        => new(VersionStamp.Default);
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
     {

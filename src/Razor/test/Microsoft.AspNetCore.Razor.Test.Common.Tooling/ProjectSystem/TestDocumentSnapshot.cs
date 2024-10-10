@@ -82,7 +82,7 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
             : Task.FromResult(_codeDocument.Source.Text);
     }
 
-    public Task<VersionStamp> GetTextVersionAsync()
+    public ValueTask<VersionStamp> GetTextVersionAsync()
         => RealSnapshot.GetTextVersionAsync();
 
     public Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
