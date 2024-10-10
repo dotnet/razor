@@ -31,6 +31,21 @@ internal static class TestMocks
         return mock.Object;
     }
 
+    public static TextLoader CreateTextLoader(string text, VersionStamp version)
+        => CreateTextLoader(SourceText.From(text), version);
+
+    public static TextLoader CreateTextLoader(SourceText text, VersionStamp version)
+    {
+        var mock = new StrictMock<TextLoader>();
+
+        var textAndVersion = TextAndVersion.Create(text, version);
+
+        mock.Setup(x => x.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(textAndVersion);
+
+        return mock.Object;
+    }
+
     public interface IClientConnectionBuilder
     {
         void SetupSendRequest<TParams, TResponse>(string method, TResponse response, bool verifiable = false);

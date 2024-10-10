@@ -11,23 +11,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal partial class DocumentState
 {
-    private class ComputedStateTracker
+    private class ComputedStateTracker(ComputedStateTracker? older = null)
     {
-        private readonly object _lock;
+        private readonly object _lock = new();
 
-        private ComputedStateTracker? _older;
+        private ComputedStateTracker? _older = older;
 
         // We utilize a WeakReference here to avoid bloating committed memory. If pieces request document output inbetween GC collections
         // then we will provide the weak referenced task; otherwise we require any state requests to be re-computed.
         private WeakReference<Task<(RazorCodeDocument, VersionStamp)>>? _taskUnsafeReference;
 
         private ComputedOutput? _computedOutput;
-
-        public ComputedStateTracker(DocumentState state, ComputedStateTracker? older = null)
-        {
-            _lock = state._lock;
-            _older = older;
-        }
 
         public bool IsResultAvailable
         {

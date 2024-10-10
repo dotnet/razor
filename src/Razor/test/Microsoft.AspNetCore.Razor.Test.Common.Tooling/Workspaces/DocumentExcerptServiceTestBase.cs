@@ -40,9 +40,11 @@ public abstract class DocumentExcerptServiceTestBase(ITestOutputHelper testOutpu
     // Adds the text to a ProjectSnapshot, generates code, and updates the workspace.
     private (IDocumentSnapshot primary, Document secondary) InitializeDocument(SourceText sourceText)
     {
-        var project = new ProjectSnapshot(
-            ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
+        var state = ProjectState
+            .Create(ProjectEngineFactoryProvider, _hostProject, ProjectWorkspaceState.Default)
+            .WithAddedHostDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create()));
+
+        var project = new ProjectSnapshot(state);
 
         var primary = project.GetDocument(_hostDocument.FilePath).AssumeNotNull();
 

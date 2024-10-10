@@ -36,18 +36,18 @@ public class DefaultDocumentSnapshotTest : WorkspaceTestBase
         var projectState = ProjectState.Create(ProjectEngineFactoryProvider, TestProjectData.SomeProject, ProjectWorkspaceState.Default);
         var project = new ProjectSnapshot(projectState);
 
-        var textAndVersion = TextAndVersion.Create(_sourceText, _version);
+        var textLoader = TestMocks.CreateTextLoader(_sourceText, _version);
 
-        var documentState = DocumentState.Create(s_legacyHostDocument, () => Task.FromResult(textAndVersion));
+        var documentState = DocumentState.Create(s_legacyHostDocument, textLoader);
         _legacyDocument = new DocumentSnapshot(project, documentState);
 
-        documentState = DocumentState.Create(s_componentHostDocument, () => Task.FromResult(textAndVersion));
+        documentState = DocumentState.Create(s_componentHostDocument, textLoader);
         _componentDocument = new DocumentSnapshot(project, documentState);
 
-        documentState = DocumentState.Create(s_componentCshtmlHostDocument, () => Task.FromResult(textAndVersion));
+        documentState = DocumentState.Create(s_componentCshtmlHostDocument, textLoader);
         _componentCshtmlDocument = new DocumentSnapshot(project, documentState);
 
-        documentState = DocumentState.Create(s_nestedComponentHostDocument, () => Task.FromResult(textAndVersion));
+        documentState = DocumentState.Create(s_nestedComponentHostDocument, textLoader);
         _nestedComponentDocument = new DocumentSnapshot(project, documentState);
     }
 

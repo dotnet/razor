@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -81,8 +80,8 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     public async Task HostDocumentChanged_DoesNotCacheOutput()
     {
         // Arrange
-        var original =
-            ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, ProjectWorkspaceState.Default)
+        var original = ProjectState
+            .Create(ProjectEngineFactoryProvider, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
@@ -90,7 +89,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
 
         // Act
         var version = VersionStamp.Create();
-        var state = original.WithChangedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From("@using System"), version)));
+        var state = original.WithChangedHostDocument(_hostDocument, TestMocks.CreateTextLoader("@using System", version));
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
@@ -103,8 +102,8 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     public async Task HostDocumentChanged_Import_DoesNotCacheOutput()
     {
         // Arrange
-        var original =
-            ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, ProjectWorkspaceState.Default)
+        var original = ProjectState
+            .Create(ProjectEngineFactoryProvider, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
             .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
@@ -112,7 +111,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
 
         // Act
         var version = VersionStamp.Create();
-        var state = original.WithChangedHostDocument(TestProjectData.SomeProjectImportFile, () => Task.FromResult(TextAndVersion.Create(SourceText.From("@using System"), version)));
+        var state = original.WithChangedHostDocument(TestProjectData.SomeProjectImportFile, TestMocks.CreateTextLoader("@using System", version));
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
@@ -193,7 +192,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         var originalWorkspaceState = ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp7);
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, hostProject, originalWorkspaceState)
-            .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From("@DateTime.Now"), VersionStamp.Default)));
+            .WithAddedHostDocument(_hostDocument, TestMocks.CreateTextLoader("@DateTime.Now", VersionStamp.Default));
         var changedWorkspaceState = ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp8);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);

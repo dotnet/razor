@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 public class DocumentStateTest : ToolingTestBase
 {
     private readonly HostDocument _hostDocument;
-    private readonly Func<Task<TextAndVersion>> _textLoader;
+    private readonly TextLoader _textLoader;
     private readonly SourceText _text;
 
     public DocumentStateTest(ITestOutputHelper testOutput)
@@ -21,7 +20,7 @@ public class DocumentStateTest : ToolingTestBase
     {
         _hostDocument = TestProjectData.SomeProjectFile1;
         _text = SourceText.From("Hello, world!");
-        _textLoader = () => Task.FromResult(TextAndVersion.Create(_text, VersionStamp.Create()));
+        _textLoader = TestMocks.CreateTextLoader(_text, VersionStamp.Create());
     }
 
     [Fact]

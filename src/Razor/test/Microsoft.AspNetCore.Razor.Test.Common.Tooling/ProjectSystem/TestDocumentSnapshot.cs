@@ -39,12 +39,7 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
         var sourceText = SourceText.From(text);
         var textVersion = VersionStamp.Default;
 
-        var documentState = new DocumentState(
-            hostDocument,
-            sourceText,
-            textVersion,
-            version,
-            () => Task.FromResult(TextAndVersion.Create(sourceText, textVersion)));
+        var documentState = new DocumentState(hostDocument, version, sourceText, textVersion);
 
         return new TestDocumentSnapshot(project, documentState);
     }
@@ -60,12 +55,7 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
         var sourceText = codeDocument.Source.Text;
         var textVersion = VersionStamp.Default;
 
-        var documentState = new DocumentState(
-            hostDocument,
-            sourceText,
-            textVersion,
-            version,
-            () => Task.FromResult(TextAndVersion.Create(sourceText, textVersion)));
+        var documentState = new DocumentState(hostDocument, version, sourceText, textVersion);
 
         return new TestDocumentSnapshot(project, documentState, codeDocument);
     }
