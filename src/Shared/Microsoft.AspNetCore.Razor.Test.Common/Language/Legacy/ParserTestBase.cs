@@ -87,6 +87,7 @@ public abstract class ParserTestBase : IParserTest
         {
             // Write syntax tree baseline
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
+            Directory.CreateDirectory(Path.GetDirectoryName(baselineFullPath));
             File.WriteAllText(baselineFullPath, SyntaxNodeSerializer.Serialize(root, _validateSpanEditHandlers), _baselineEncoding);
 
             // Write diagnostics baseline
@@ -243,14 +244,19 @@ public abstract class ParserTestBase : IParserTest
         ParseDocumentTest(document, null, designTime);
     }
 
-    internal virtual void ParseDocumentTest(string document, IEnumerable<DirectiveDescriptor> directives, bool designTime, string fileKind = null)
+    internal void ParseDocumentTest(string document, CSharpParseOptions options)
     {
-        ParseDocumentTest(RazorLanguageVersion.Latest, document, directives, designTime, fileKind);
+        ParseDocumentTest(document, directives: null, designTime: false, csharpParseOptions: options);
     }
 
-    internal virtual void ParseDocumentTest(RazorLanguageVersion version, string document, IEnumerable<DirectiveDescriptor> directives, bool designTime, string fileKind = null)
+    internal virtual void ParseDocumentTest(string document, IEnumerable<DirectiveDescriptor> directives, bool designTime, string fileKind = null, CSharpParseOptions csharpParseOptions = null)
     {
-        var result = ParseDocument(version, document, directives, designTime, fileKind: fileKind);
+        ParseDocumentTest(RazorLanguageVersion.Latest, document, directives, designTime, fileKind, csharpParseOptions);
+    }
+
+    internal virtual void ParseDocumentTest(RazorLanguageVersion version, string document, IEnumerable<DirectiveDescriptor> directives, bool designTime, string fileKind = null, CSharpParseOptions csharpParseOptions = null)
+    {
+        var result = ParseDocument(version, document, directives, designTime, fileKind: fileKind, csharpParseOptions: csharpParseOptions);
 
         BaselineTest(result);
     }

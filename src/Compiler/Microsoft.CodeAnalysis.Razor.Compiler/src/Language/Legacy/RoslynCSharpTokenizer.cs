@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxToken;
@@ -13,7 +15,6 @@ using SyntaxFactory = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 using CSharpSyntaxToken = Microsoft.CodeAnalysis.SyntaxToken;
 using CSharpSyntaxTriviaList = Microsoft.CodeAnalysis.SyntaxTriviaList;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -31,7 +32,9 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
     /// by position, where the position is the start of the token that was parsed including leading trivia, so that searching
     /// is correct when performing a reset.
     /// </summary>
-    private readonly List<(int position, SyntaxTokenParser.Result result)> _resultCache = ListPool<(int, SyntaxTokenParser.Result)>.Default.Get();
+    private readonly List<(int position, SyntaxTokenParser.Result result, bool isOnlyWhitespaceOnLine)> _resultCache = ListPool<(int, SyntaxTokenParser.Result, bool)>.Default.Get();
+
+    private bool _isOnlyWhitespaceOnLine = true;
 
     public RoslynCSharpTokenizer(SeekableTextReader source, CSharpParseOptions parseOptions)
         : base(source)
@@ -58,6 +61,26 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
     internal override void StartingBlock()
     {
         _roslynTokenParser.SkipForwardTo(Source.Position);
+        ResetIsOnlyWhitespaceOnLine();
+    }
+
+    private void ResetIsOnlyWhitespaceOnLine()
+    {
+        // Reset isOnlyWhitespaceOnLine for the new block
+        _isOnlyWhitespaceOnLine = true;
+        for (int i = Source.Position - 1; i >= 0; i--)
+        {
+            var currentChar = Source.SourceText[i];
+            if (currentChar is '\n' or '\r')
+            {
+                break;
+            }
+            else if (!SyntaxFacts.IsWhitespace(currentChar))
+            {
+                _isOnlyWhitespaceOnLine = false;
+                break;
+            }
+        }
     }
 
     internal override void EndingBlock()
@@ -75,8 +98,9 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
         Debug.Assert(_currentCSharpTokenTriviaEnumerator is (_, isLeading: false));
         Debug.Assert(_resultCache.Count > 0);
 
-        var (_, result) = _resultCache[^1];
+        var (_, result, isOnlyWhitespaceOnLine) = _resultCache[^1];
         _roslynTokenParser.ResetTo(result);
+        _isOnlyWhitespaceOnLine = isOnlyWhitespaceOnLine;
         _resultCache.RemoveAt(_resultCache.Count - 1);
         var lastToken = result.Token;
         if (lastToken.HasLeadingTrivia)
@@ -212,7 +236,8 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
         {
             Assumed.Unreachable();
         }
-        else if (SyntaxFacts.IsIdentifierStartCharacter(CurrentCharacter))
+
+        if (SyntaxFacts.IsIdentifierStartCharacter(CurrentCharacter))
         {
             return Identifier();
         }
@@ -265,6 +290,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                 // Escaped razor transition. Likely will error in the parser.
                 AddResetPoint();
                 TakeCurrent();
+                _isOnlyWhitespaceOnLine = false;
                 _roslynTokenParser.SkipForwardTo(Source.Position);
                 AssertCurrent('@');
                 return Transition(RoslynCSharpTokenizerState.Token, EndToken(SyntaxKind.Transition));
@@ -273,10 +299,20 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                 // identifier if it's the latter case.
                 AddResetPoint();
                 TakeCurrent();
+                _isOnlyWhitespaceOnLine = false;
                 _roslynTokenParser.SkipForwardTo(Source.Position);
                 var trailingTrivia = GetNextResult(NextResultType.TrailingTrivia);
                 _currentCSharpTokenTriviaEnumerator = (trailingTrivia.Token.TrailingTrivia.GetEnumerator(), isLeading: false);
                 return Transition(RoslynCSharpTokenizerState.TriviaForCSharpToken, EndToken(SyntaxKind.Transition));
+        }
+
+        void AddResetPoint()
+        {
+            // We want to make it easy to reset the tokenizer back to just before this token; we can do that very simply by trying to parse
+            // leading trivia, which gives us a reset point. We know that we can't have any leading trivia, since we're on an `@` character.
+            var nextResult = GetNextResult(NextResultType.LeadingTrivia);
+            Debug.Assert(nextResult.Token.IsKind(CSharpSyntaxKind.None));
+            Debug.Assert(nextResult.Token.FullSpan.Length == 0);
         }
     }
 
@@ -462,13 +498,120 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                     new SourceSpan(CurrentStart, contentLength: 1 /* end of file */)));
         }
 
-        // PROTOTYPE: Handle preprocessor directives
-        var tokenType = trivia.Kind() switch
+        SyntaxKind tokenType;
+        switch (trivia.Kind())
         {
-            CSharpSyntaxKind.WhitespaceTrivia => SyntaxKind.Whitespace,
-            CSharpSyntaxKind.EndOfLineTrivia => SyntaxKind.NewLine,
-            CSharpSyntaxKind.SingleLineCommentTrivia or CSharpSyntaxKind.MultiLineCommentTrivia or CSharpSyntaxKind.MultiLineDocumentationCommentTrivia or CSharpSyntaxKind.SingleLineDocumentationCommentTrivia => SyntaxKind.CSharpComment,
-            var kind => throw new InvalidOperationException($"Unexpected trivia kind: {kind}."),
+            case CSharpSyntaxKind.WhitespaceTrivia:
+                tokenType = SyntaxKind.Whitespace;
+                break;
+            case CSharpSyntaxKind.EndOfLineTrivia:
+                tokenType = SyntaxKind.NewLine;
+                _isOnlyWhitespaceOnLine = true;
+                break;
+            case CSharpSyntaxKind.SingleLineCommentTrivia or
+                 CSharpSyntaxKind.MultiLineCommentTrivia or
+                 CSharpSyntaxKind.MultiLineDocumentationCommentTrivia or
+                 CSharpSyntaxKind.SingleLineDocumentationCommentTrivia:
+                tokenType = SyntaxKind.CSharpComment;
+                _isOnlyWhitespaceOnLine = false;
+                break;
+            case var kind when SyntaxFacts.IsPreprocessorDirective(kind):
+                tokenType = SyntaxKind.CSharpDirective;
+
+                if (!_isOnlyWhitespaceOnLine)
+                {
+                    CurrentErrors.Add(
+                        RazorDiagnosticFactory.CreateParsing_PreprocessorDirectivesMustBeAtTheStartOfLine(
+                            new SourceSpan(CurrentStart, contentLength: trivia.FullSpan.Length)));
+                }
+
+                var directiveTrivia = (DirectiveTriviaSyntax)trivia.GetStructure()!;
+                Debug.Assert(directiveTrivia != null);
+
+                if (directiveTrivia is DefineDirectiveTriviaSyntax or UndefDirectiveTriviaSyntax)
+                {
+                    CurrentErrors.Add(
+                        RazorDiagnosticFactory.CreateParsing_DefineAndUndefNotAllowed(
+                            new SourceSpan(CurrentStart, contentLength: directiveTrivia.FullSpan.Length)));
+                }
+
+                _isOnlyWhitespaceOnLine = directiveTrivia.EndOfDirectiveToken.TrailingTrivia is [.., { RawKind: (int)CSharpSyntaxKind.EndOfLineTrivia }];
+                break;
+            case CSharpSyntaxKind.DisabledTextTrivia:
+                tokenType = SyntaxKind.CSharpDisabledText;
+                _isOnlyWhitespaceOnLine = true;
+
+                // We want to scan through the disabled text and see if someone misplaced an #else or #endif by not putting it at the start of a line. We can't truly
+                // be certain; for example, it could be in html, intentionally. But this is just a warning, and the user can disable it; since we made a breaking change
+                // and there could be directives not at the start of a line, we want to be helpful.
+
+                {
+                    for (var i = 0; i < triviaString.Length; i++)
+                    {
+                        var currentChar = triviaString[i];
+                        switch (currentChar)
+                        {
+                            case '\r':
+                            case '\n':
+                                _isOnlyWhitespaceOnLine = true;
+                                break;
+
+                            case '#' when !_isOnlyWhitespaceOnLine:
+                                // If there is only whitespace on the current line, and we're about to see a directive, then it clearly wasn't
+                                // #endif or #else
+                                var start = CurrentStart.AbsoluteIndex + i;
+                                if (startsWith("else"))
+                                {
+                                    var length = "#else".Length;
+                                    var linePosition = Source.SourceText.Lines.GetLinePosition(start);
+                                    CurrentErrors.Add(
+                                        RazorDiagnosticFactory.CreateParsing_PossibleMisplacedPreprocessorDirective(
+                                            new SourceSpan(
+                                                absoluteIndex: start,
+                                                lineIndex: linePosition.Line,
+                                                characterIndex: linePosition.Character,
+                                                length)));
+                                    i += 4;
+                                }
+                                else if (startsWith("endif"))
+                                {
+                                    var length = "#endif".Length;
+                                    var linePosition = Source.SourceText.Lines.GetLinePosition(start);
+                                    CurrentErrors.Add(
+                                        RazorDiagnosticFactory.CreateParsing_PossibleMisplacedPreprocessorDirective(
+                                            new SourceSpan(
+                                                absoluteIndex: start,
+                                                lineIndex: linePosition.Line,
+                                                characterIndex: linePosition.Character,
+                                                length)));
+                                    i += 5;
+                                }
+
+                                break;
+
+                                bool startsWith(string substring)
+                                {
+                                    Debug.Assert(currentChar == '#');
+                                    if (i + 1 + substring.Length > triviaString.Length)
+                                    {
+                                        return false;
+                                    }
+
+                                    return triviaString.AsSpan()[(i + 1)..].StartsWith(substring.AsSpan());
+                                }
+
+                            default:
+                                if (!SyntaxFacts.IsWhitespace(currentChar))
+                                {
+                                    _isOnlyWhitespaceOnLine = false;
+                                }
+                                break;
+                        }
+                    }
+                }
+                break;
+            case var kind:
+                throw new InvalidOperationException($"Unexpected trivia kind: {kind}.");
         };
 
         return Stay(EndToken(tokenType));
@@ -567,23 +710,19 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
             // result and the current result, as the current result fully subsumes it.
             Debug.Assert(_resultCache[^1].result is { Token.FullSpan.Length: 0 });
             Debug.Assert(!nextResult.Token.HasLeadingTrivia);
-            _resultCache[^1] = (nextResult.Token.FullSpan.Start, nextResult);
+            _resultCache[^1] = (nextResult.Token.FullSpan.Start, nextResult, _isOnlyWhitespaceOnLine);
         }
         else
         {
-            _resultCache.Add((nextResult.Token.FullSpan.Start, nextResult));
+            _resultCache.Add((nextResult.Token.FullSpan.Start, nextResult, _isOnlyWhitespaceOnLine));
+        }
+
+        if (!nextResult.Token.IsKind(CSharpSyntaxKind.None))
+        {
+            _isOnlyWhitespaceOnLine = false;
         }
 
         return nextResult;
-    }
-
-    private void AddResetPoint()
-    {
-        // We want to make it easy to reset the tokenizer back to just before this token; we can do that very simply by trying to parse
-        // leading trivia, which gives us a reset point. We know that we can't have any leading trivia, since we're on an `@` character.
-        var nextResult = GetNextResult(NextResultType.LeadingTrivia);
-        Debug.Assert(nextResult.Token.IsKind(CSharpSyntaxKind.None));
-        Debug.Assert(nextResult.Token.FullSpan.Length == 0);
     }
 
     public override void Reset(int position)
@@ -596,13 +735,19 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
         // If this ever changes, we can consider doing a binary search at that point.
         for (var i = _resultCache.Count - 1; i >= 0; i--)
         {
-            var (currentPosition, currentResult) = _resultCache[i];
+            var (currentPosition, currentResult, isOnlyWhitespaceOnLine) = _resultCache[i];
             if (currentPosition == position)
             {
                 // We found an exact match, so we can reset to it directly.
                 _roslynTokenParser.ResetTo(currentResult);
+                _isOnlyWhitespaceOnLine = isOnlyWhitespaceOnLine;
                 _resultCache.RemoveAt(i);
                 base.CurrentState = (int)RoslynCSharpTokenizerState.Start;
+#if DEBUG
+                var oldIsOnlyWhitespaceOnLine = _isOnlyWhitespaceOnLine;
+                ResetIsOnlyWhitespaceOnLine();
+                Debug.Assert(isOnlyWhitespaceOnLine == _isOnlyWhitespaceOnLine);
+#endif
                 return;
             }
             else if (currentPosition < position)
@@ -614,6 +759,8 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                 _roslynTokenParser.ResetTo(currentResult);
                 _roslynTokenParser.SkipForwardTo(position);
                 base.CurrentState = (int)RoslynCSharpTokenizerState.Start;
+                // Can't reuse the isOnlyWhitespaceOnLine value, since we're not before the start of the result anymore.
+                ResetIsOnlyWhitespaceOnLine();
                 return;
             }
             else
@@ -629,7 +776,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
     {
         base.Dispose();
         _roslynTokenParser.Dispose();
-        ListPool<(int, SyntaxTokenParser.Result)>.Default.Return(_resultCache);
+        ListPool<(int, SyntaxTokenParser.Result, bool)>.Default.Return(_resultCache);
     }
 
     private enum NextResultType
