@@ -16,7 +16,7 @@ internal sealed class ImportDocumentSnapshot(IProjectSnapshot project, RazorProj
     public IProjectSnapshot Project { get; } = project;
 
     private readonly RazorProjectItem _importItem = item;
-    private SourceText? _sourceText;
+    private SourceText? _text;
 
     // The default import file does not have a kind or paths.
     public string? FileKind => null;
@@ -25,19 +25,19 @@ internal sealed class ImportDocumentSnapshot(IProjectSnapshot project, RazorProj
 
     public int Version => 1;
 
-    public Task<SourceText> GetTextAsync()
+    public ValueTask<SourceText> GetTextAsync()
     {
-        return _sourceText is SourceText sourceText
-            ? Task.FromResult(sourceText)
-            : GetTextCoreAsync();
+        return TryGetText(out var text)
+            ? new(text)
+            : ReadTextAsync();
 
-        Task<SourceText> GetTextCoreAsync()
+        ValueTask<SourceText> ReadTextAsync()
         {
             using var stream = _importItem.Read();
             var sourceText = SourceText.From(stream);
 
-            var result = _sourceText ??= InterlockedOperations.Initialize(ref _sourceText, sourceText);
-            return Task.FromResult(result);
+            var result = _text ??= InterlockedOperations.Initialize(ref _text, sourceText);
+            return new(result);
         }
     }
 
@@ -49,7 +49,7 @@ internal sealed class ImportDocumentSnapshot(IProjectSnapshot project, RazorProj
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
     {
-        result = _sourceText;
+        result = _text;
         return result is not null;
     }
 

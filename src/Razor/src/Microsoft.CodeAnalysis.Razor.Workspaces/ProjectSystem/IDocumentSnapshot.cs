@@ -18,7 +18,7 @@ internal interface IDocumentSnapshot
 
     int Version { get; }
 
-    Task<SourceText> GetTextAsync();
+    ValueTask<SourceText> GetTextAsync();
     ValueTask<VersionStamp> GetTextVersionAsync();
     Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput);
 

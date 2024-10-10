@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -395,14 +396,21 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         }));
         codeDocument.SetSyntaxTree(syntaxTree);
 
-        var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.GetGeneratedOutputAsync(It.IsAny<bool>()) == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text), MockBehavior.Strict);
+        var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
+        documentSnapshotMock
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>()))
+            .ReturnsAsync(codeDocument);
+        documentSnapshotMock
+            .Setup(x => x.GetTextAsync())
+            .ReturnsAsync(codeDocument.Source.Text);
 
-        var sourceText = SourceText.From(text);
-
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
-
-        return context;
+        return new RazorCodeActionContext(
+            request,
+            documentSnapshotMock.Object,
+            codeDocument,
+            location,
+            codeDocument.Source.Text,
+            supportsFileCreation,
+            SupportsCodeActionResolve: true);
     }
 }

@@ -75,11 +75,11 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
             : Task.FromResult(_codeDocument);
     }
 
-    public Task<SourceText> GetTextAsync()
+    public ValueTask<SourceText> GetTextAsync()
     {
         return _codeDocument is null
             ? RealSnapshot.GetTextAsync()
-            : Task.FromResult(_codeDocument.Source.Text);
+            : new(_codeDocument.Source.Text);
     }
 
     public ValueTask<VersionStamp> GetTextVersionAsync()

@@ -23,7 +23,7 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
     public IProjectSnapshot Project => _project;
     public int Version => _state.Version;
 
-    public Task<SourceText> GetTextAsync()
+    public ValueTask<SourceText> GetTextAsync()
         => _state.GetTextAsync();
 
     public ValueTask<VersionStamp> GetTextVersionAsync()

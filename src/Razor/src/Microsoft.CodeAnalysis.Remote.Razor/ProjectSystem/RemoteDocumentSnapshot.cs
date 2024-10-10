@@ -42,8 +42,12 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 
     public int Version => -999; // We don't expect to use this in cohosting, but plenty of existing code logs it's value
 
-    public Task<SourceText> GetTextAsync()
-        => TextDocument.GetTextAsync();
+    public ValueTask<SourceText> GetTextAsync()
+    {
+        return TryGetText(out var result)
+            ? new(result)
+            : new(TextDocument.GetTextAsync());
+    }
 
     public ValueTask<VersionStamp> GetTextVersionAsync()
     {
