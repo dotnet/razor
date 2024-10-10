@@ -2,17 +2,19 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Remote.Razor.Completion;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
+using RoslynCompletionContext = Roslyn.LanguageServer.Protocol.CompletionContext;
+using RoslynCompletionSetting = Roslyn.LanguageServer.Protocol.CompletionSetting;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -66,7 +68,16 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                     remoteDocumentContext,
                     mappedPosition,
                     completionContext,
+                    clientCapabilities,
                     cancellationToken);
+            if (csharpCompletion is null)
+            {
+                return Response.NoFurtherHandling;
+            }
+            else
+            {
+                return Response.Results(csharpCompletion);
+            }
         }
 
         var vsInternalCompletionContext = new VSInternalCompletionContext()
@@ -99,10 +110,43 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         RemoteDocumentContext remoteDocumentContext,
         LinePosition mappedPosition,
         CompletionContext completionContext,
+        VSInternalClientCapabilities clientCapabilities,
         CancellationToken cancellationToken)
     {
-        // TODO: hookup Roslyn API
+        var generatedDocument = await remoteDocumentContext.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
 
-        return new VSInternalCompletionList();
+        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
+        var options = new JsonSerializerOptions();
+        foreach (var converter in RazorServiceDescriptorsWrapper.GetLspConverters())
+        {
+            options.Converters.Add(converter);
+        }
+
+        if (JsonSerializer.Deserialize<RoslynCompletionContext>(JsonSerializer.SerializeToDocument(completionContext), options) is not { } roslynCompletionContext)
+        {
+            return null;
+        }
+
+        if (JsonSerializer.Deserialize<RoslynCompletionSetting>(JsonSerializer.SerializeToDocument(clientCapabilities.TextDocument?.Completion), options) is not { } roslynCompletionSetting)
+        {
+            return null;
+        }
+
+        var roslynCompletionList = await ExternalAccess.Razor.Cohost.Handlers.Completion.GetCompletionListAsync(
+            generatedDocument,
+            mappedPosition,
+            roslynCompletionContext,
+            clientCapabilities.SupportsVisualStudioExtensions,
+            roslynCompletionSetting,
+            cancellationToken);
+
+        if (roslynCompletionList is null)
+        {
+            return null;
+        }
+
+        var vsPlatformCompletionList = JsonSerializer.Deserialize<VSInternalCompletionList>(JsonSerializer.SerializeToDocument(roslynCompletionList), options);
+
+        return vsPlatformCompletionList;
     }
 }

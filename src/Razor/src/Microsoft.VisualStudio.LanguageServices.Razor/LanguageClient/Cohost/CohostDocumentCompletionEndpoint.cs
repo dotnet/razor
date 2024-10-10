@@ -56,7 +56,7 @@ internal class CohostDocumentCompletionEndpoint(
                 RegisterOptions = new CompletionRegistrationOptions()
                 {
                     ResolveProvider = true,
-                    TriggerCharacters = [" ", "<"], // TODO: Implement TriggerCharacterProvider
+                    TriggerCharacters = [" ", "<", "@"], // TODO: Implement TriggerCharacterProvider
                     DocumentSelector = filter,
                     AllCommitCharacters = [" ", ">", ";", "="]
                 }
