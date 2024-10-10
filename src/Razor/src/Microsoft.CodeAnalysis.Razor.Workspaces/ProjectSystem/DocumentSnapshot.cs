@@ -54,11 +54,17 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
         return new DocumentSnapshot(_project, _state.WithText(text, VersionStamp.Create()));
     }
 
-    public async Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
+    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
-        var codeDocument = await GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false).ConfigureAwait(false);
-        var csharpText = codeDocument.GetCSharpSourceText();
-        return CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
+        return TryGetGeneratedOutput(out var codeDocument)
+            ? new(codeDocument.GetCSharpSyntaxTree(cancellationToken))
+            : new(GetCSharpSyntaxTreeCoreAsync(cancellationToken));
+
+        async Task<SyntaxTree> GetCSharpSyntaxTreeCoreAsync(CancellationToken cancellationToken)
+        {
+            var codeDocument = await GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false).ConfigureAwait(false);
+            return codeDocument.GetCSharpSyntaxTree(cancellationToken);
+        }
     }
 
     public async Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)

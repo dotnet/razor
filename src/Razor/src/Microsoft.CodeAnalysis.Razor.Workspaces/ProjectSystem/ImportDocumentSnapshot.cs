@@ -65,6 +65,6 @@ internal sealed class ImportDocumentSnapshot(IProjectSnapshot project, RazorProj
     public IDocumentSnapshot WithText(SourceText text)
         => throw new NotSupportedException();
 
-    public Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
+    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
 }

@@ -26,7 +26,7 @@ internal interface IDocumentSnapshot
     /// Gets the Roslyn syntax tree for the generated C# for this Razor document
     /// </summary>
     /// <remarks>Using this from the LSP server side of things is not ideal. Use sparingly :)</remarks>
-    Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken);
+    ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken);
 
     bool TryGetText([NotNullWhen(true)] out SourceText? result);
     bool TryGetTextVersion(out VersionStamp result);

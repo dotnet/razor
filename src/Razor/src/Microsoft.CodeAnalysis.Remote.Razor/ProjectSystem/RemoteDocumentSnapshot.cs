@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -112,15 +113,23 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return result is not null;
     }
 
-    public async Task<Document> GetGeneratedDocumentAsync()
+    public ValueTask<Document> GetGeneratedDocumentAsync()
     {
-        if (_generatedDocument is Document generatedDocument)
-        {
-            return generatedDocument;
-        }
+        return TryGetGeneratedDocument(out var generatedDocument)
+            ? new(generatedDocument)
+            : GetGeneratedDocumentCoreAsync();
 
-        generatedDocument = await HACK_GenerateDocumentAsync().ConfigureAwait(false);
-        return _generatedDocument ??= InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
+        async ValueTask<Document> GetGeneratedDocumentCoreAsync()
+        {
+            var generatedDocument = await HACK_GenerateDocumentAsync().ConfigureAwait(false);
+            return _generatedDocument ??= InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
+        }
+    }
+
+    public bool TryGetGeneratedDocument([NotNullWhen(true)] out Document? generatedDocument)
+    {
+        generatedDocument = _generatedDocument;
+        return generatedDocument is not null;
     }
 
     private async Task<Document> HACK_GenerateDocumentAsync()
@@ -141,10 +150,22 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return generatedDocument.WithText(csharpSourceText);
     }
 
-    public async Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
+    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
-        var document = await GetGeneratedDocumentAsync().ConfigureAwait(false);
-        var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        return tree.AssumeNotNull();
+        if (TryGetGeneratedDocument(out var document) &&
+            document.TryGetSyntaxTree(out var tree))
+        {
+            return new(tree.AssumeNotNull());
+        }
+
+        return GetCSharpSyntaxTreeCoreAsync(document, cancellationToken);
+
+        async ValueTask<SyntaxTree> GetCSharpSyntaxTreeCoreAsync(Document? document, CancellationToken cancellationToken)
+        {
+            document ??= await GetGeneratedDocumentAsync();
+
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            return tree.AssumeNotNull();
+        }
     }
 }

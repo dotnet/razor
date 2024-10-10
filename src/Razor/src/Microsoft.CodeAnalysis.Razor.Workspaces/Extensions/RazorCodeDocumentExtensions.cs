@@ -6,8 +6,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -18,6 +21,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal static class RazorCodeDocumentExtensions
 {
     private static readonly object s_csharpSourceTextKey = new();
+    private static readonly object s_csharpSyntaxTreeKey = new();
     private static readonly object s_htmlSourceTextKey = new();
 
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
@@ -32,6 +36,20 @@ internal static class RazorCodeDocumentExtensions
         }
 
         return sourceText.AssumeNotNull();
+    }
+
+    public static SyntaxTree GetCSharpSyntaxTree(this RazorCodeDocument document, CancellationToken cancellationToken = default)
+    {
+        if (!document.Items.TryGetValue(s_csharpSyntaxTreeKey, out SyntaxTree? syntaxTree))
+        {
+            var csharpText = document.GetCSharpSourceText();
+            syntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
+            document.Items[s_csharpSyntaxTreeKey] = syntaxTree;
+
+            return syntaxTree;
+        }
+
+        return syntaxTree.AssumeNotNull();
     }
 
     public static SourceText GetHtmlSourceText(this RazorCodeDocument document)

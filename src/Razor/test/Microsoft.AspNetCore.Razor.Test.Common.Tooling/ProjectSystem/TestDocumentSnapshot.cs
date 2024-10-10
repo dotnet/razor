@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -85,17 +84,11 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
         => RealSnapshot.GetTextVersionAsync(cancellationToken);
 
-    public Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
+    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
-        if (_codeDocument is { } codeDocument)
-        {
-            var csharpText = codeDocument.GetCSharpSourceText();
-            var csharpSyntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
-
-            return Task.FromResult(csharpSyntaxTree);
-        }
-
-        return RealSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken);
+        return _codeDocument is null
+            ? RealSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken)
+            : new(_codeDocument.GetCSharpSyntaxTree(cancellationToken));
     }
 
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
