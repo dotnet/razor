@@ -12,10 +12,8 @@ public sealed class BaseTypeIntermediateNode : ExtensionIntermediateNode
 
     public override IntermediateNodeCollection Children { get; } = IntermediateNodeCollection.ReadOnly;
 
-    // TODO: should we have a ctor that makes these directly for the static cases?
     public BaseTypeIntermediateNode(string baseType, SourceSpan? location)
     {
-        // TODO: comment about this code
         if (baseType.EndsWith(ModelGenericParameter, System.StringComparison.Ordinal))
         {
             BaseType = IntermediateToken.CreateCSharpToken(baseType[0..^ModelGenericParameter.Length]);
