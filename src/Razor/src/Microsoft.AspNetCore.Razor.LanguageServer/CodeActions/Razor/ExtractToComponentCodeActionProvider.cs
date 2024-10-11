@@ -75,12 +75,9 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
 
     private static (MarkupElementSyntax? Start, MarkupElementSyntax? End) GetStartAndEndElements(RazorCodeActionContext context, RazorSyntaxTree syntaxTree, ILogger logger)
     {
-        var selectionStart = context.Request.Range.Start;
-        var selectionEnd = context.Request.Range.End;
         var owner = syntaxTree.Root.FindInnermostNode(context.StartLocation.AbsoluteIndex, includeWhitespace: true);
         if (owner is null)
         {
-            logger.LogWarning($"Owner should never be null.");
             return (null, null);
         }
 
