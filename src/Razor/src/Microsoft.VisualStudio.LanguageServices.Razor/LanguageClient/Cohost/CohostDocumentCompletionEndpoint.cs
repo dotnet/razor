@@ -3,16 +3,21 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Settings;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
 
@@ -34,7 +39,7 @@ internal class CohostDocumentCompletionEndpoint(
     : AbstractRazorCohostDocumentRequestHandler<CompletionParams, VSInternalCompletionList?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly IClientSettingsManager _clientSettingsManager= clientSettingsManager,
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
@@ -81,6 +86,7 @@ internal class CohostDocumentCompletionEndpoint(
             return null;
         }
 
+        // Return immediately if this is auto-shown completion but auto-shown completion is disallowed in settings
         var clientSettings =  _clientSettingsManager.GetClientSettings();
         var autoShownCompletion = request.Context.TriggerKind != CompletionTriggerKind.Invoked;
         if (autoShownCompletion && !clientSettings.ClientCompletionSettings.AutoShowCompletion)
@@ -89,6 +95,36 @@ internal class CohostDocumentCompletionEndpoint(
         }
 
         _logger.LogDebug($"Invoking completion for {razorDocument.FilePath}");
+
+        // First of all, see if we in HTML and get HTML completions before calling OOP to get Razor completions.
+        // Razor completion provider needs a set of existing HTML item labels.
+        using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
+        if (CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.HtmlTriggerCharacters, request.Context))
+        {
+            var positionInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, DocumentPositionInfo?>(
+                razorDocument.Project.Solution,
+                (service, solutionInfo, cancellationToken)
+                    => service.GetPositionInfoAsync(
+                            solutionInfo,
+                            razorDocument.Id,
+                            request.Position,
+                            cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (positionInfo is not { } positionInfoValue)
+            {
+                // If we can't figure out position info for request position we can't return completions
+                return null;
+            }
+
+            // We can just blindly call HTML LSP because if we are in C#, generated HTML seen by HTML LSP may return
+            // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
+            if (positionInfoValue.LanguageKind == RazorLanguageKind.Html
+                && await GetHtmlCompletionListAsync(request, razorDocument, cancellationToken) is { } htmlCompletionList)
+            {
+                existingHtmlCompletions.AddRange(htmlCompletionList.Items.Select(i => i.Label));
+            }
+        }
 
         var razorCompletionOptions = new RazorCompletionOptions(
             SnippetsSupported: false,
@@ -107,6 +143,7 @@ internal class CohostDocumentCompletionEndpoint(
                         request.Context.AssumeNotNull(),
                         _clientCapabilities.AssumeNotNull(),
                         razorCompletionOptions,
+                        existingHtmlCompletions,
                         cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
@@ -115,12 +152,7 @@ internal class CohostDocumentCompletionEndpoint(
             return completionList;
         }
 
-        if (data.StopHandling)
-        {
-            return null;
-        }
-
-        return await GetHtmlCompletionListAsync(request, razorDocument, cancellationToken);
+        return null;
     }
 
     private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(CompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)

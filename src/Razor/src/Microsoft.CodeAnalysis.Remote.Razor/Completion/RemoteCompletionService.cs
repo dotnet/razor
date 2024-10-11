@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -28,6 +29,33 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
     private readonly RazorCompletionListProvider _razorCompletionListProvider = args.ExportProvider.GetExportedValue<RazorCompletionListProvider>();
 
+    public ValueTask<DocumentPositionInfo?> GetPositionInfoAsync(
+        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableDocumentId documentId,
+        Position position,
+        CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            documentId,
+            context => GetPositionInfoAsync(context, position, cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<DocumentPositionInfo?> GetPositionInfoAsync(
+        RemoteDocumentContext remoteDocumentContext,
+        Position position,
+        CancellationToken cancellationToken)
+    {
+        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        if (!sourceText.TryGetAbsoluteIndex(position, out var index))
+        {
+            return null;
+        }
+
+        var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+        return GetPositionInfo(codeDocument, index);
+    }
+
     public ValueTask<Response> GetCompletionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
@@ -35,30 +63,30 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         CompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
+        HashSet<string> existingHtmlCompletions,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetCompletionAsync(context, position, completionContext, clientCapabilities, razorCompletionOptions, cancellationToken),
+            context => GetCompletionAsync(
+                context,
+                position,
+                completionContext,
+                clientCapabilities,
+                razorCompletionOptions,
+                existingHtmlCompletions,
+                cancellationToken),
             cancellationToken);
 
     private async ValueTask<Response> GetCompletionAsync(
         RemoteDocumentContext remoteDocumentContext,
-        Position position,
+        DocumentPositionInfo positionInfo,
         CompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
+        HashSet<string> existingHtmlCompletions,
         CancellationToken cancellationToken)
     {
-        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!sourceText.TryGetAbsoluteIndex(position, out var index))
-        {
-            return Response.NoFurtherHandling;
-        }
-
-        var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-
-        var positionInfo = GetPositionInfo(codeDocument, index);
         var languageKind = positionInfo.LanguageKind;
 
         if (languageKind == RazorLanguageKind.CSharp)
@@ -70,14 +98,14 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                     completionContext,
                     clientCapabilities,
                     cancellationToken);
+
             if (csharpCompletion is null)
             {
                 return Response.NoFurtherHandling;
             }
-            else
-            {
-                return Response.Results(csharpCompletion);
-            }
+
+            // TODO: still need to merge with Razor items
+            return Response.Results(csharpCompletion);
         }
 
         var vsInternalCompletionContext = new VSInternalCompletionContext()
@@ -88,11 +116,11 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         };
 
         var completionList = await _razorCompletionListProvider.GetCompletionListAsync(
-            index,
+            positionInfo.HostDocumentIndex,
             vsInternalCompletionContext,
             remoteDocumentContext,
             clientCapabilities,
-            existingCompletions: new HashSet<string>(), // TODO: use existing data
+            existingCompletions: existingHtmlCompletions, // TODO: use existing data
             razorCompletionOptions,
             cancellationToken);
 
