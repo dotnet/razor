@@ -71,7 +71,7 @@ public abstract class DocumentExcerptServiceTestBase(ITestOutputHelper testOutpu
     // that appears in the primary buffer.
     private static async Task<TextSpan> GetSecondarySpanAsync(IDocumentSnapshot primary, TextSpan primarySpan, Document secondary, CancellationToken cancellationToken)
     {
-        var output = await primary.GetGeneratedOutputAsync();
+        var output = await primary.GetGeneratedOutputAsync(cancellationToken);
 
         foreach (var mapping in output.GetCSharpDocument().SourceMappings)
         {

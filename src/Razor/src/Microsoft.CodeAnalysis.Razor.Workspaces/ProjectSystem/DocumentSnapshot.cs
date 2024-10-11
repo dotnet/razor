@@ -36,11 +36,9 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
 
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
     {
-        if (_state.IsGeneratedOutputResultAvailable)
+        if (_state.TryGetGeneratedOutputAndVersion(out var outputAndVersion))
         {
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            result = _state.GetGeneratedOutputAndVersionAsync(_project, this).Result.output;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+            result = outputAndVersion.output;
             return true;
         }
 
@@ -61,27 +59,32 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
 
         async Task<SyntaxTree> GetCSharpSyntaxTreeCoreAsync(CancellationToken cancellationToken)
         {
-            var codeDocument = await GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false).ConfigureAwait(false);
+            var codeDocument = await GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false, cancellationToken).ConfigureAwait(false);
             return codeDocument.GetCSharpSyntaxTree(cancellationToken);
         }
     }
 
-    public async ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
+    public async ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput, CancellationToken cancellationToken)
     {
         if (forceDesignTimeGeneratedOutput)
         {
-            return await GetDesignTimeGeneratedOutputAsync().ConfigureAwait(false);
+            return await GetDesignTimeGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        var (output, _) = await _state.GetGeneratedOutputAndVersionAsync(_project, this).ConfigureAwait(false);
+        var (output, _) = await _state
+            .GetGeneratedOutputAndVersionAsync(_project, this, cancellationToken)
+            .ConfigureAwait(false);
+
         return output;
     }
 
-    private async Task<RazorCodeDocument> GetDesignTimeGeneratedOutputAsync()
+    private async Task<RazorCodeDocument> GetDesignTimeGeneratedOutputAsync(CancellationToken cancellationToken)
     {
-        var tagHelpers = await Project.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
+        var tagHelpers = await Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
         var projectEngine = Project.GetProjectEngine();
-        var imports = await DocumentState.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
-        return await DocumentState.GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false).ConfigureAwait(false);
+        var imports = await DocumentState.GetImportsAsync(this, projectEngine, cancellationToken).ConfigureAwait(false);
+        return await DocumentState
+            .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

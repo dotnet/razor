@@ -46,20 +46,39 @@ internal partial class DocumentState
             }
         }
 
-        public async Task<(RazorCodeDocument, VersionStamp)> GetGeneratedOutputAndVersionAsync(ProjectSnapshot project, IDocumentSnapshot document)
+        public bool TryGetGeneratedOutputAndVersion(out (RazorCodeDocument Output, VersionStamp InputVersion) result)
+        {
+            if (_computedOutput?.TryGetCachedOutput(out var output, out var version) == true)
+            {
+                result = (output, version);
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+        public async Task<(RazorCodeDocument, VersionStamp)> GetGeneratedOutputAndVersionAsync(
+            ProjectSnapshot project,
+            IDocumentSnapshot document,
+            CancellationToken cancellationToken)
         {
             if (_computedOutput?.TryGetCachedOutput(out var cachedCodeDocument, out var cachedInputVersion) == true)
             {
                 return (cachedCodeDocument, cachedInputVersion);
             }
 
-            var (codeDocument, inputVersion) = await GetMemoizedGeneratedOutputAndVersionAsync(project, document).ConfigureAwait(false);
+            var (codeDocument, inputVersion) = await GetMemoizedGeneratedOutputAndVersionAsync(project, document, cancellationToken)
+                .ConfigureAwait(false);
 
             _computedOutput = new ComputedOutput(codeDocument, inputVersion);
             return (codeDocument, inputVersion);
         }
 
-        private Task<(RazorCodeDocument, VersionStamp)> GetMemoizedGeneratedOutputAndVersionAsync(ProjectSnapshot project, IDocumentSnapshot document)
+        private Task<(RazorCodeDocument, VersionStamp)> GetMemoizedGeneratedOutputAndVersionAsync(
+            ProjectSnapshot project,
+            IDocumentSnapshot document,
+            CancellationToken cancellationToken)
         {
             if (project is null)
             {
@@ -99,7 +118,7 @@ internal partial class DocumentState
                 }
 
                 // Typically in VS scenarios this will run synchronously because all resources are readily available.
-                var outputTask = ComputeGeneratedOutputAndVersionAsync(project, document);
+                var outputTask = ComputeGeneratedOutputAndVersionAsync(project, document, cancellationToken);
                 if (outputTask.IsCompleted)
                 {
                     // Compiling ran synchronously, lets just immediately propagate to the TCS
@@ -150,7 +169,10 @@ internal partial class DocumentState
             }
         }
 
-        private async Task<(RazorCodeDocument, VersionStamp)> ComputeGeneratedOutputAndVersionAsync(ProjectSnapshot project, IDocumentSnapshot document)
+        private async Task<(RazorCodeDocument, VersionStamp)> ComputeGeneratedOutputAndVersionAsync(
+            ProjectSnapshot project,
+            IDocumentSnapshot document,
+            CancellationToken cancellationToken)
         {
             // We only need to produce the generated code if any of our inputs is newer than the
             // previously cached output.
@@ -164,8 +186,8 @@ internal partial class DocumentState
             var configurationVersion = project.ConfigurationVersion;
             var projectWorkspaceStateVersion = project.ProjectWorkspaceStateVersion;
             var documentCollectionVersion = project.DocumentCollectionVersion;
-            var imports = await GetImportsAsync(document, project.GetProjectEngine()).ConfigureAwait(false);
-            var documentVersion = await document.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
+            var imports = await GetImportsAsync(document, project.GetProjectEngine(), cancellationToken).ConfigureAwait(false);
+            var documentVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // OK now that have the previous output and all of the versions, we can see if anything
             // has changed that would require regenerating the code.
@@ -210,9 +232,9 @@ internal partial class DocumentState
                 }
             }
 
-            var tagHelpers = await project.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
+            var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
             var forceRuntimeCodeGeneration = project.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
-            var codeDocument = await GenerateCodeDocumentAsync(document, project.GetProjectEngine(), imports, tagHelpers, forceRuntimeCodeGeneration).ConfigureAwait(false);
+            var codeDocument = await GenerateCodeDocumentAsync(document, project.GetProjectEngine(), imports, tagHelpers, forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
             return (codeDocument, inputVersion);
         }
 

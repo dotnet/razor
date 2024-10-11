@@ -36,7 +36,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var document = project.GetDocument(_hostDocument.FilePath);
         Assert.NotNull(document);
 
-        var output = await document.GetGeneratedOutputAsync();
+        var output = await document.GetGeneratedOutputAsync(DisposalToken);
         var generated = output.GetCSharpDocument();
 
         var symbol = "SomeProperty";
@@ -68,7 +68,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var document = project.GetDocument(_hostDocument.FilePath);
         Assert.NotNull(document);
 
-        var output = await document.GetGeneratedOutputAsync();
+        var output = await document.GetGeneratedOutputAsync(DisposalToken);
         var generated = output.GetCSharpDocument();
 
         var symbol = "SomeProperty";
@@ -101,7 +101,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var document = project.GetDocument(_hostDocument.FilePath);
         Assert.NotNull(document);
 
-        var output = await document.GetGeneratedOutputAsync();
+        var output = await document.GetGeneratedOutputAsync(DisposalToken);
         var generated = output.GetCSharpDocument();
 
         var symbol = "SomeProperty";
@@ -133,7 +133,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var document = project.GetDocument(_hostDocument.FilePath);
         Assert.NotNull(document);
 
-        var output = await document.GetGeneratedOutputAsync();
+        var output = await document.GetGeneratedOutputAsync(DisposalToken);
         var generated = output.GetCSharpDocument();
 
         var symbol = "ExecuteAsync";

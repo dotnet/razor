@@ -139,13 +139,13 @@ internal sealed class CodeActionEndpoint(
         IDocumentSnapshot documentSnapshot,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
             return null;
         }
 
-        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
 
         // VS Provides `CodeActionParams.Context.SelectionRange` in addition to
         // `CodeActionParams.Range`. The `SelectionRange` is relative to where the

@@ -316,7 +316,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
     {
         var documentSnapshot = new StrictMock<IDocumentSnapshot>();
         documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.FilePath)

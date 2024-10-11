@@ -45,7 +45,7 @@ internal sealed class AddUsingsCodeActionResolver(IDocumentContextFactory docume
 
         var documentSnapshot = documentContext.Snapshot;
 
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
             return null;

@@ -408,12 +408,12 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
             base.Enqueue(project, document);
         }
 
-        protected override Task ProcessDocumentAsync(IProjectSnapshot project, IDocumentSnapshot document)
+        protected override Task ProcessDocumentAsync(IProjectSnapshot project, IDocumentSnapshot document, CancellationToken cancellationToken)
         {
             var key = GetKey(project, document);
             PendingWork.Remove(key);
 
-            var task = base.ProcessDocumentAsync(project, document);
+            var task = base.ProcessDocumentAsync(project, document, cancellationToken);
 
             CompletedWork.Add(key);
 

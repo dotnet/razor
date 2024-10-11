@@ -62,16 +62,18 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
     public bool TryGetTextVersion(out VersionStamp result)
         => TextDocument.TryGetTextVersion(out result);
 
-    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
+    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(
+        bool forceDesignTimeGeneratedOutput,
+        CancellationToken cancellationToken)
     {
         // TODO: We don't need to worry about locking if we get called from the didOpen/didChange LSP requests, as CLaSP
         //       takes care of that for us, and blocks requests until those are complete. If that doesn't end up happening,
         //       then a locking mechanism here would prevent concurrent compilations.
         return TryGetGeneratedOutput(out var codeDocument)
             ? new(codeDocument)
-            : new(GetGeneratedOutputCoreAsync());
+            : new(GetGeneratedOutputCoreAsync(cancellationToken));
 
-        async Task<RazorCodeDocument> GetGeneratedOutputCoreAsync()
+        async Task<RazorCodeDocument> GetGeneratedOutputCoreAsync(CancellationToken cancellationToken)
         {
             // The non-cohosted DocumentSnapshot implementation uses DocumentState to get the generated output, and we could do that too
             // but most of that code is optimized around caching pre-computed results when things change that don't affect the compilation.
@@ -81,15 +83,15 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
             // and simply compiles when asked, and if a new document snapshot comes in, we compile again. This is presumably worse for perf
             // but since we don't expect users to ever use cohosting without source generators, it's fine for now.
 
-            var projectEngine = await ProjectSnapshot.GetProjectEngine_CohostOnlyAsync(CancellationToken.None).ConfigureAwait(false);
-            var tagHelpers = await ProjectSnapshot.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
-            var imports = await DocumentState.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
+            var projectEngine = await ProjectSnapshot.GetProjectEngine_CohostOnlyAsync(cancellationToken).ConfigureAwait(false);
+            var tagHelpers = await ProjectSnapshot.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+            var imports = await DocumentState.GetImportsAsync(this, projectEngine, cancellationToken).ConfigureAwait(false);
 
             // TODO: Get the configuration for forceRuntimeCodeGeneration
             // var forceRuntimeCodeGeneration = _projectSnapshot.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
 
             codeDocument = await DocumentState
-                .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false)
+                .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false, cancellationToken)
                 .ConfigureAwait(false);
 
             return _codeDocument ??= InterlockedOperations.Initialize(ref _codeDocument, codeDocument);
@@ -114,15 +116,15 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return result is not null;
     }
 
-    public ValueTask<Document> GetGeneratedDocumentAsync()
+    public ValueTask<Document> GetGeneratedDocumentAsync(CancellationToken cancellationToken)
     {
         return TryGetGeneratedDocument(out var generatedDocument)
             ? new(generatedDocument)
-            : GetGeneratedDocumentCoreAsync();
+            : GetGeneratedDocumentCoreAsync(cancellationToken);
 
-        async ValueTask<Document> GetGeneratedDocumentCoreAsync()
+        async ValueTask<Document> GetGeneratedDocumentCoreAsync(CancellationToken cancellationToken)
         {
-            var generatedDocument = await HACK_GenerateDocumentAsync().ConfigureAwait(false);
+            var generatedDocument = await HACK_GenerateDocumentAsync(cancellationToken).ConfigureAwait(false);
             return _generatedDocument ??= InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
         }
     }
@@ -133,7 +135,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return generatedDocument is not null;
     }
 
-    private async Task<Document> HACK_GenerateDocumentAsync()
+    private async Task<Document> HACK_GenerateDocumentAsync(CancellationToken cancellationToken)
     {
         // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
 
@@ -144,7 +146,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == projectId);
         var generatedDocument = solution.GetRequiredDocument(generatedDocumentId);
 
-        var codeDocument = await this.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var codeDocument = await this.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
 
         // HACK: We're not in the same solution fork as the LSP server that provides content for this document
@@ -163,7 +165,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 
         async ValueTask<SyntaxTree> GetCSharpSyntaxTreeCoreAsync(Document? document, CancellationToken cancellationToken)
         {
-            document ??= await GetGeneratedDocumentAsync();
+            document ??= await GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return tree.AssumeNotNull();
