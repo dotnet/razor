@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -67,7 +68,7 @@ internal class CompletionListProvider
         return finalCompletionList;
     }
 
-    private bool IsValidTrigger(ImmutableHashSet<string> triggerCharacters, VSInternalCompletionContext completionContext)
+    private bool IsValidTrigger(FrozenSet<string> triggerCharacters, VSInternalCompletionContext completionContext)
         => completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
            completionContext.TriggerCharacter is null ||
            triggerCharacters.Contains(completionContext.TriggerCharacter);

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
@@ -29,7 +28,6 @@ internal class CohostDocumentCompletionEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
-    IFilePathService filePathService,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<CompletionParams, VSInternalCompletionList?>, IDynamicRegistrationProvider
 {
@@ -56,7 +54,7 @@ internal class CohostDocumentCompletionEndpoint(
                 RegisterOptions = new CompletionRegistrationOptions()
                 {
                     ResolveProvider = true,
-                    TriggerCharacters = [" ", "<", "@"], // TODO: Implement TriggerCharacterProvider
+                    TriggerCharacters = [.. CompletionTriggerCharacters.AllTriggerCharacters],
                     DocumentSelector = filter,
                     AllCommitCharacters = [" ", ">", ";", "="]
                 }

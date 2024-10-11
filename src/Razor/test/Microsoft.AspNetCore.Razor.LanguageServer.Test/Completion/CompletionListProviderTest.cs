@@ -4,8 +4,8 @@
 #nullable disable
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -84,10 +84,10 @@ public class CompletionListProviderTest : LanguageServerTestBase
             : base(Array.Empty<DelegatedCompletionResponseRewriter>(), null, null, null)
         {
             _completionList = completionList;
-            TriggerCharacters = triggerCharacters.ToImmutableHashSet();
+            TriggerCharacters = triggerCharacters.ToFrozenSet();
         }
 
-        public override ImmutableHashSet<string> TriggerCharacters { get; }
+        public override FrozenSet<string> TriggerCharacters { get; }
 
         public override Task<VSInternalCompletionList> GetCompletionListAsync(
             int absoluteIndex,
@@ -112,10 +112,10 @@ public class CompletionListProviderTest : LanguageServerTestBase
             : base(completionFactsService: null, completionListCache: null, loggerFactory)
         {
             _completionList = completionList;
-            TriggerCharacters = triggerCharacters.ToImmutableHashSet();
+            TriggerCharacters = triggerCharacters.ToFrozenSet();
         }
 
-        public override ImmutableHashSet<string> TriggerCharacters { get; }
+        public override FrozenSet<string> TriggerCharacters { get; }
 
         public override Task<VSInternalCompletionList> GetCompletionListAsync(
             int absoluteIndex,

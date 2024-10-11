@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -21,14 +22,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
 internal class DelegatedCompletionListProvider
 {
-    private static readonly ImmutableHashSet<string> s_razorTriggerCharacters = new[] { "@" }.ToImmutableHashSet();
-    private static readonly ImmutableHashSet<string> s_csharpTriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" }.ToImmutableHashSet();
-    private static readonly ImmutableHashSet<string> s_htmlTriggerCharacters = new[] { ":", "@", "#", ".", "!", "*", ",", "(", "[", "-", "<", "&", "\\", "/", "'", "\"", "=", ":", " ", "`" }.ToImmutableHashSet();
-    private static readonly ImmutableHashSet<string> s_allTriggerCharacters =
-        s_csharpTriggerCharacters
-            .Union(s_htmlTriggerCharacters)
-            .Union(s_razorTriggerCharacters);
-
     private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _responseRewriters;
     private readonly IDocumentMappingService _documentMappingService;
     private readonly IClientConnection _clientConnection;
@@ -47,7 +40,7 @@ internal class DelegatedCompletionListProvider
     }
 
     // virtual for tests
-    public virtual ImmutableHashSet<string> TriggerCharacters => s_allTriggerCharacters;
+    public virtual FrozenSet<string> TriggerCharacters => CompletionTriggerCharacters.AllDelegationTriggerCharacters;
 
     // virtual for tests
     public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
@@ -154,13 +147,15 @@ internal class DelegatedCompletionListProvider
             return context;
         }
 
-        if (languageKind == RazorLanguageKind.CSharp && s_csharpTriggerCharacters.Contains(triggerCharacter))
+        if (languageKind == RazorLanguageKind.CSharp
+            && CompletionTriggerCharacters.CSharpTriggerCharacters.Contains(triggerCharacter))
         {
             // C# trigger character for C# content
             return context;
         }
 
-        if (languageKind == RazorLanguageKind.Html && s_htmlTriggerCharacters.Contains(triggerCharacter))
+        if (languageKind == RazorLanguageKind.Html
+            && CompletionTriggerCharacters.HtmlTriggerCharacters.Contains(triggerCharacter))
         {
             // HTML trigger character for HTML content
             return context;
@@ -173,7 +168,8 @@ internal class DelegatedCompletionListProvider
             TriggerKind = CompletionTriggerKind.Invoked,
         };
 
-        if (languageKind == RazorLanguageKind.CSharp && s_razorTriggerCharacters.Contains(triggerCharacter))
+        if (languageKind == RazorLanguageKind.CSharp
+            && CompletionTriggerCharacters.RazorDelegationTriggerCharacters.Contains(triggerCharacter))
         {
             // The C# language server will not return any completions for the '@' character unless we
             // send the completion request explicitly.
