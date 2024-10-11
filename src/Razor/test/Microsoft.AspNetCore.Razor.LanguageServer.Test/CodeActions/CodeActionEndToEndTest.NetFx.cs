@@ -1263,8 +1263,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             }
 
             var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
-            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.Source.Text.ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
-            testDocumentSnapshot.With(CodeDocument);
+            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument, projectWorkspaceState);
 
             context = CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
             return true;

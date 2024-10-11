@@ -32,17 +32,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 {
     private static readonly HostDocument[] s_documents = [TestProjectData.SomeProjectFile1, TestProjectData.AnotherProjectFile1];
 
-    private static readonly HostProject s_hostProject1 = new(
-        TestProjectData.SomeProject.FilePath,
-        TestProjectData.SomeProject.IntermediateOutputPath,
-        FallbackRazorConfiguration.MVC_1_0,
-        TestProjectData.SomeProject.RootNamespace);
-
-    private static readonly HostProject s_hostProject2 = new(
-        TestProjectData.AnotherProject.FilePath,
-        TestProjectData.AnotherProject.IntermediateOutputPath,
-        FallbackRazorConfiguration.MVC_1_0,
-        TestProjectData.AnotherProject.RootNamespace);
+    private static readonly HostProject s_hostProject1 = TestProjectData.SomeProject with { Configuration = FallbackRazorConfiguration.MVC_1_0 };
+    private static readonly HostProject s_hostProject2 = TestProjectData.AnotherProject with { Configuration = FallbackRazorConfiguration.MVC_1_0 };
 
     private readonly TestDynamicFileInfoProvider _dynamicFileInfoProvider = new();
 

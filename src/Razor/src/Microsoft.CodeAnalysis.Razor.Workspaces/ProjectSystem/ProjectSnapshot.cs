@@ -15,38 +15,37 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
+internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
 {
+    private readonly ProjectState _state = state;
+
     private readonly object _gate = new();
     private readonly Dictionary<string, DocumentSnapshot> _filePathToDocumentMap = new(FilePathNormalizingComparer.Instance);
 
-    public ProjectKey Key => State.HostProject.Key;
+    public HostProject HostProject => _state.HostProject;
 
-    public ProjectState State { get; } = state;
+    public ProjectKey Key => _state.HostProject.Key;
+    public RazorConfiguration Configuration => _state.HostProject.Configuration;
+    public IEnumerable<string> DocumentFilePaths => _state.Documents.Keys;
+    public string FilePath => _state.HostProject.FilePath;
+    public string IntermediateOutputPath => _state.HostProject.IntermediateOutputPath;
+    public string? RootNamespace => _state.HostProject.RootNamespace;
+    public string DisplayName => _state.HostProject.DisplayName;
+    public VersionStamp Version => _state.Version;
+    public LanguageVersion CSharpLanguageVersion => _state.CSharpLanguageVersion;
+    public ProjectWorkspaceState ProjectWorkspaceState => _state.ProjectWorkspaceState;
 
-    public RazorConfiguration Configuration => HostProject.Configuration;
+    public int DocumentCount => _state.Documents.Count;
 
-    public IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
+    public VersionStamp ConfigurationVersion => _state.ConfigurationVersion;
+    public VersionStamp ProjectWorkspaceStateVersion => _state.ProjectWorkspaceStateVersion;
+    public VersionStamp DocumentCollectionVersion => _state.DocumentCollectionVersion;
 
-    public int DocumentCount => State.Documents.Count;
+    public RazorProjectEngine GetProjectEngine()
+        => _state.ProjectEngine;
 
-    public string FilePath => State.HostProject.FilePath;
-
-    public string IntermediateOutputPath => State.HostProject.IntermediateOutputPath;
-
-    public string? RootNamespace => State.HostProject.RootNamespace;
-
-    public string DisplayName => State.HostProject.DisplayName;
-
-    public LanguageVersion CSharpLanguageVersion => State.CSharpLanguageVersion;
-
-    public HostProject HostProject => State.HostProject;
-
-    public virtual VersionStamp Version => State.Version;
-
-    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => new(State.TagHelpers);
-
-    public ProjectWorkspaceState ProjectWorkspaceState => State.ProjectWorkspaceState;
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
+        => new(_state.TagHelpers);
 
     public bool ContainsDocument(string filePath)
     {
@@ -60,7 +59,7 @@ internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
             // first is faster if the DocumentSnapshot has already been created.
 
             return _filePathToDocumentMap.ContainsKey(filePath) ||
-                   State.Documents.ContainsKey(filePath);
+                   _state.Documents.ContainsKey(filePath);
         }
     }
 
@@ -81,7 +80,7 @@ internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
             }
 
             // Do we have DocumentSate for this document? If not, we're done!
-            if (!State.Documents.TryGetValue(filePath, out var state))
+            if (!_state.Documents.TryGetValue(filePath, out var state))
             {
                 document = null;
                 return false;
@@ -105,7 +104,7 @@ internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
     {
         var targetPath = document.TargetPath.AssumeNotNull();
 
-        if (!State.ImportsToRelatedDocuments.TryGetValue(targetPath, out var relatedDocuments))
+        if (!_state.ImportsToRelatedDocuments.TryGetValue(targetPath, out var relatedDocuments))
         {
             return [];
         }
@@ -124,10 +123,5 @@ internal class ProjectSnapshot(ProjectState state) : IProjectSnapshot
 
             return builder.DrainToImmutable();
         }
-    }
-
-    public virtual RazorProjectEngine GetProjectEngine()
-    {
-        return State.ProjectEngine;
     }
 }

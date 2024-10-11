@@ -107,7 +107,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
     private protected static DocumentContext CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument)
     {
-        return TestDocumentContext.From(documentPath.GetAbsoluteOrUNCPath(), codeDocument);
+        return TestDocumentContext.Create(documentPath.GetAbsoluteOrUNCPath(), codeDocument);
     }
 
     private protected static IDocumentContextFactory CreateDocumentContextFactory(
