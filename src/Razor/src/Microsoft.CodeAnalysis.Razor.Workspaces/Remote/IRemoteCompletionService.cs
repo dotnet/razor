@@ -23,7 +23,7 @@ internal interface IRemoteCompletionService : IRemoteJsonService
     ValueTask<Response> GetCompletionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        Position position,
+        DocumentPositionInfo positionInfo,
         CompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,

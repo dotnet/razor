@@ -89,28 +89,23 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         HashSet<string> existingDelegatedCompletions,
         CancellationToken cancellationToken)
     {
-        var languageKind = positionInfo.LanguageKind;
-
-        if (languageKind == RazorLanguageKind.CSharp)
+        VSInternalCompletionList? csharpCompletionList = null;
+        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp &&
+            CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.CSharpTriggerCharacters, completionContext))
         {
             var mappedPosition = positionInfo.Position.ToLinePosition();
-            var csharpCompletion = await GetCSharpCompletionAsync(
+            csharpCompletionList = await GetCSharpCompletionAsync(
                     remoteDocumentContext,
                     mappedPosition,
                     completionContext,
                     clientCapabilities,
                     cancellationToken);
 
-            if (csharpCompletion is null)
+            if (csharpCompletionList is not null)
             {
-                return Response.NoFurtherHandling;
+                Debug.Assert(existingDelegatedCompletions.Count == 0, "Delegated completion should be either C# or HTML, not both");
+                existingDelegatedCompletions.UnionWith(csharpCompletionList.Items.Select((item) => item.Label));
             }
-
-            Debug.Assert(existingDelegatedCompletions.Count == 0, "Delegated completion should be either C# or HTML, not both");
-            existingDelegatedCompletions.UnionWith(csharpCompletion.Items.Select((item) => item.Label));
-
-            // TODO: still need to merge with Razor items
-            return Response.Results(csharpCompletion);
         }
 
         var vsInternalCompletionContext = new VSInternalCompletionContext()
@@ -120,21 +115,23 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             TriggerCharacter = completionContext.TriggerCharacter
         };
 
-        var completionList = await _razorCompletionListProvider.GetCompletionListAsync(
-            positionInfo.HostDocumentIndex,
-            vsInternalCompletionContext,
-            remoteDocumentContext,
-            clientCapabilities,
-            existingCompletions: existingDelegatedCompletions,
-            razorCompletionOptions,
-            cancellationToken);
+        var razorCompletionList = CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.RazorTriggerCharacters, completionContext)
+            ? await _razorCompletionListProvider.GetCompletionListAsync(
+                positionInfo.HostDocumentIndex,
+                vsInternalCompletionContext,
+                remoteDocumentContext,
+                clientCapabilities,
+                existingCompletions: existingDelegatedCompletions,
+                razorCompletionOptions,
+                cancellationToken)
+            : null;
 
-        if (completionList is null)
+        if (CompletionListMerger.Merge(razorCompletionList, csharpCompletionList) is not { } mergedCompletionList)
         {
             return Response.CallHtml;
         }
 
-        return Response.Results(completionList);
+        return Response.Results(mergedCompletionList);
     }
 
     private async ValueTask<VSInternalCompletionList?> GetCSharpCompletionAsync(

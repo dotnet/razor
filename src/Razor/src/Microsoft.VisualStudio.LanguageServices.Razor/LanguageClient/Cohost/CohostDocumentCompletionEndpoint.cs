@@ -95,12 +95,7 @@ internal class CohostDocumentCompletionEndpoint(
 
         _logger.LogDebug($"Invoking completion for {razorDocument.FilePath}");
 
-        // First of all, see if we in HTML and get HTML completions before calling OOP to get Razor completions.
-        // Razor completion provider needs a set of existing HTML item labels.
-        using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
-        if (CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.HtmlTriggerCharacters, request.Context))
-        {
-            var positionInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, DocumentPositionInfo?>(
+        if (await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, DocumentPositionInfo?>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken)
                     => service.GetPositionInfoAsync(
@@ -108,20 +103,28 @@ internal class CohostDocumentCompletionEndpoint(
                             razorDocument.Id,
                             request.Position,
                             cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false) is not { } documentPositionInfo)
+        {
+            // If we can't figure out position info for request position we can't return completions
+            return null;
+        }
 
-            if (positionInfo is not { } positionInfoValue)
-            {
-                // If we can't figure out position info for request position we can't return completions
-                return null;
-            }
+        // First of all, see if we in HTML and get HTML completions before calling OOP to get Razor completions.
+        // Razor completion provider needs a set of existing HTML item labels.
 
+        VSInternalCompletionList? htmlCompletionList = null;
+        using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
+        if (CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.HtmlTriggerCharacters, request.Context))
+        {
             // We can just blindly call HTML LSP because if we are in C#, generated HTML seen by HTML LSP may return
             // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
-            if (positionInfoValue.LanguageKind == RazorLanguageKind.Html
-                && await GetHtmlCompletionListAsync(request, razorDocument, cancellationToken) is { } htmlCompletionList)
+            if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html)
             {
-                existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
+                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, cancellationToken);
+                if (htmlCompletionList is not null)
+                {
+                    existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
+                }
             }
         }
 
@@ -138,7 +141,7 @@ internal class CohostDocumentCompletionEndpoint(
                 => service.GetCompletionAsync(
                         solutionInfo,
                         razorDocument.Id,
-                        request.Position,
+                        documentPositionInfo,
                         request.Context.AssumeNotNull(),
                         _clientCapabilities.AssumeNotNull(),
                         razorCompletionOptions,
@@ -146,12 +149,21 @@ internal class CohostDocumentCompletionEndpoint(
                         cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (data.Result is { } completionList)
+        if (data.StopHandling)
         {
-            return completionList;
+            return null;
         }
 
-        return null;
+        if (data.Result is { } oopCompletionList)
+        {
+            return htmlCompletionList?.Items is not null && htmlCompletionList.Items.Length > 0
+                // If we have HTML completions, that means OOP completion list is really just Razor completion list
+                ? CompletionListMerger.Merge(oopCompletionList, htmlCompletionList)
+                : oopCompletionList;
+        }
+
+        // Didn't get anything from OOP, so just return HTML completion list or null
+        return htmlCompletionList;
     }
 
     private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(CompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
