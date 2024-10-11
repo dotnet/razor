@@ -40,7 +40,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
         _razorCompletionProvider = new TestRazorCompletionListProvider(_completionList1, new[] { SharedTriggerCharacter, }, LoggerFactory);
         _delegatedCompletionProvider = new TestDelegatedCompletionListProvider(_completionList2, new[] { SharedTriggerCharacter, CompletionList2OnlyTriggerCharacter });
         _completionContext = new VSInternalCompletionContext();
-        _documentContext = TestDocumentContext.From("C:/path/to/file.cshtml");
+        _documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml");
         _clientCapabilities = new VSInternalClientCapabilities();
         _razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true);
     }

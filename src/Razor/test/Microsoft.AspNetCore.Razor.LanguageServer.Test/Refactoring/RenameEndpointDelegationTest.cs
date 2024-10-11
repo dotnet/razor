@@ -57,9 +57,9 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
         await projectManager.UpdateAsync(updater =>
         {
             updater.ProjectAdded(new(
-                projectFilePath: "C:/path/to/project.csproj",
+                filePath: "C:/path/to/project.csproj",
                 intermediateOutputPath: "C:/path/to/obj",
-                razorConfiguration: RazorConfiguration.Default,
+                configuration: RazorConfiguration.Default,
                 rootNamespace: "project"));
         });
 

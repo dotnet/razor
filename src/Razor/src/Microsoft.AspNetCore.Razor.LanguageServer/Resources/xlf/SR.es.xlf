@@ -37,24 +37,9 @@
         <target state="translated">Generar controlador de eventos ''{0}''</target>
         <note />
       </trans-unit>
-      <trans-unit id="Not_Available_In">
-        <source>Not available in</source>
-        <target state="translated">No disponible en</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Statement">
         <source>statement</source>
         <target state="translated">instrucción</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Attribute_Glyph">
-        <source>Razor TagHelper Attribute Glyph</source>
-        <target state="translated">Glifo del atributo TagHelper de Razor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Element_Glyph">
-        <source>Razor TagHelper Element Glyph</source>
-        <target state="translated">Glifo del elemento TagHelper de Razor</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">

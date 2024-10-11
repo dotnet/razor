@@ -74,8 +74,7 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IRazorStartupSe
             return null;
         }
 
-        var document = project.GetDocument(filePath);
-        if (document is null)
+        if (!project.TryGetDocument(filePath, out var document))
         {
             return null;
         }

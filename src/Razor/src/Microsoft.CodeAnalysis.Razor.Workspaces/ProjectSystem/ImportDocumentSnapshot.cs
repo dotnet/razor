@@ -3,73 +3,61 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class ImportDocumentSnapshot : IDocumentSnapshot
+internal sealed class ImportDocumentSnapshot(IProjectSnapshot project, RazorProjectItem item) : IDocumentSnapshot
 {
+    private static readonly Task<VersionStamp> s_versionTask = Task.FromResult(VersionStamp.Default);
+
+    public IProjectSnapshot Project { get; } = project;
+
+    private readonly RazorProjectItem _importItem = item;
+    private SourceText? _sourceText;
+
     // The default import file does not have a kind or paths.
     public string? FileKind => null;
     public string? FilePath => null;
     public string? TargetPath => null;
 
-    public bool SupportsOutput => false;
-    public IProjectSnapshot Project => _project;
-
-    private readonly IProjectSnapshot _project;
-    private readonly RazorProjectItem _importItem;
-    private SourceText? _sourceText;
-    private readonly VersionStamp _version;
-
-    public ImportDocumentSnapshot(IProjectSnapshot project, RazorProjectItem item)
-    {
-        _project = project;
-        _importItem = item;
-        _version = VersionStamp.Default;
-    }
-
     public int Version => 1;
 
-    public async Task<SourceText> GetTextAsync()
+    public Task<SourceText> GetTextAsync()
     {
-        using (var stream = _importItem.Read())
-        using (var reader = new StreamReader(stream))
-        {
-            var content = await reader.ReadToEndAsync().ConfigureAwait(false);
-            _sourceText = SourceText.From(content);
-        }
+        return _sourceText is SourceText sourceText
+            ? Task.FromResult(sourceText)
+            : GetTextCoreAsync();
 
-        return _sourceText;
+        Task<SourceText> GetTextCoreAsync()
+        {
+            using var stream = _importItem.Read();
+            var sourceText = SourceText.From(stream);
+
+            var result = _sourceText ??= InterlockedOperations.Initialize(ref _sourceText, sourceText);
+            return Task.FromResult(result);
+        }
     }
 
-    public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool _)
+    public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
         => throw new NotSupportedException();
 
     public Task<VersionStamp> GetTextVersionAsync()
-    {
-        return Task.FromResult(_version);
-    }
+        => s_versionTask;
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
     {
-        if (_sourceText is { } sourceText)
-        {
-            result = sourceText;
-            return true;
-        }
-
-        result = null;
-        return false;
+        result = _sourceText;
+        return result is not null;
     }
 
     public bool TryGetTextVersion(out VersionStamp result)
     {
-        result = _version;
+        result = VersionStamp.Default;
         return true;
     }
 

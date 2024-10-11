@@ -28,8 +28,8 @@ public class ProjectStateTest : WorkspaceTestBase
     public ProjectStateTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
-        _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
+        _hostProject = TestProjectData.SomeProject with { Configuration = FallbackRazorConfiguration.MVC_2_0 };
+        _hostProjectWithConfigurationChange = TestProjectData.SomeProject with { Configuration = FallbackRazorConfiguration.MVC_1_0 };
         _projectWorkspaceState = ProjectWorkspaceState.Create(
             ImmutableArray.Create(
                 TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()));
@@ -573,11 +573,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
-        var hostProjectWithRootNamespaceChange = new HostProject(
-            original.HostProject.FilePath,
-            original.HostProject.IntermediateOutputPath,
-            original.HostProject.Configuration,
-            "ChangedRootNamespace");
+        var hostProjectWithRootNamespaceChange = original.HostProject with { RootNamespace = "ChangedRootNamespace" };
 
         // Force init
         _ = original.TagHelpers;

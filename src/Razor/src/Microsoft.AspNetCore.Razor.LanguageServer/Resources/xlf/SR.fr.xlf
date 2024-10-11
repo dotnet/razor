@@ -37,24 +37,9 @@
         <target state="translated">Générer le gestionnaire d’événements '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Not_Available_In">
-        <source>Not available in</source>
-        <target state="translated">Non disponible dans</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Statement">
         <source>statement</source>
         <target state="translated">déclaration</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Attribute_Glyph">
-        <source>Razor TagHelper Attribute Glyph</source>
-        <target state="translated">Glyphe d’attribut Razor TagHelper</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Element_Glyph">
-        <source>Razor TagHelper Element Glyph</source>
-        <target state="translated">Glyphe de l’élément Razor TagHelper</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">

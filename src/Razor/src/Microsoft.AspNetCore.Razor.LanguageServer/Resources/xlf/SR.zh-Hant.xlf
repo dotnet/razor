@@ -37,24 +37,9 @@
         <target state="translated">產生事件處理常式 '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Not_Available_In">
-        <source>Not available in</source>
-        <target state="translated">無法使用於</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Statement">
         <source>statement</source>
         <target state="translated">陳述式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Attribute_Glyph">
-        <source>Razor TagHelper Attribute Glyph</source>
-        <target state="translated">Razor TagHelper 屬性字元</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Element_Glyph">
-        <source>Razor TagHelper Element Glyph</source>
-        <target state="translated">Razor TagHelper 元素字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">

@@ -57,7 +57,7 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
             .Where(static p => p.ContainsRazorDocuments())
             .Select(GetProjectCore);
 
-    public ImmutableArray<IProjectSnapshot> FindProjects(string documentFilePath)
+    public ImmutableArray<IProjectSnapshot> GetProjectsContainingDocument(string documentFilePath)
     {
         if (!documentFilePath.IsRazorFilePath())
         {
@@ -81,10 +81,10 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
             // We use a set to ensure that we only ever return the same project once.
             if (projectIdSet.Add(projectId))
             {
-                // Since documentFilePath was proven to be a Razor file path, we assume that
-                // the projects will contain Razor documents.
-                var project = GetProject(projectId);
-                results.Add(project);
+                // Since documentFilePath was proven to be a Razor file path, we know that
+                // the projects will contain Razor documents and won't throw here.
+                var project = _solution.GetRequiredProject(projectId);
+                results.Add(GetProjectCore(project));
             }
         }
 

@@ -243,7 +243,7 @@ internal partial class DocumentState
     {
         var projectItem = projectEngine.FileSystem.GetItem(filePath, fileKind);
 
-        using var _1 = ListPool<RazorProjectItem>.GetPooledObject(out var importItems);
+        using var importItems = new PooledArrayBuilder<RazorProjectItem>();
 
         foreach (var feature in projectEngine.ProjectFeatures.OfType<IImportProjectFeature>())
         {
@@ -255,10 +255,10 @@ internal partial class DocumentState
 
         if (importItems.Count == 0)
         {
-            return ImmutableArray<IDocumentSnapshot>.Empty;
+            return [];
         }
 
-        using var _2 = ArrayBuilderPool<IDocumentSnapshot>.GetPooledObject(out var imports);
+        using var imports = new PooledArrayBuilder<IDocumentSnapshot>(capacity: importItems.Count);
 
         foreach (var item in importItems)
         {
@@ -273,13 +273,13 @@ internal partial class DocumentState
                 var defaultImport = new ImportDocumentSnapshot(project, item);
                 imports.Add(defaultImport);
             }
-            else if (project.GetDocument(item.PhysicalPath) is { } import)
+            else if (project.TryGetDocument(item.PhysicalPath, out var import))
             {
                 imports.Add(import);
             }
         }
 
-        return imports.ToImmutable();
+        return imports.DrainToImmutable();
     }
 
     internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, ImmutableArray<ImportItem> imports, ImmutableArray<TagHelperDescriptor> tagHelpers, bool forceRuntimeCodeGeneration)

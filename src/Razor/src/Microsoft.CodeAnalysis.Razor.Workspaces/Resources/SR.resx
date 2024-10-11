@@ -163,6 +163,15 @@
   <data name="Language_Services_Missing_Service" xml:space="preserve">
     <value>Razor language services not configured properly, missing language service '{0}'.</value>
   </data>
+  <data name="Not_Available_In" xml:space="preserve">
+    <value>Not available in</value>
+  </data>
+  <data name="TagHelper_Attribute_Glyph" xml:space="preserve">
+    <value>Razor TagHelper Attribute Glyph</value>
+  </data>
+  <data name="TagHelper_Element_Glyph" xml:space="preserve">
+    <value>Razor TagHelper Element Glyph</value>
+  </data>
   <data name="ReTrigger_Completions_Title" xml:space="preserve">
     <value>"Re-trigger completions..."</value>
   </data>

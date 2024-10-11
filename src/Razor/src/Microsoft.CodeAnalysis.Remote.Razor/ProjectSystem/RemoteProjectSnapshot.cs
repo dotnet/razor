@@ -83,17 +83,22 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public LanguageVersion CSharpLanguageVersion => ((CSharpParseOptions)_project.ParseOptions.AssumeNotNull()).LanguageVersion;
 
-    public async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
     {
-        if (_tagHelpers.IsDefault)
+        return !_tagHelpers.IsDefault
+            ? new(_tagHelpers)
+            : GetTagHelpersCoreAsync(cancellationToken);
+
+        async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersCoreAsync(CancellationToken cancellationToken)
         {
             var projectEngine = await _lazyProjectEngine.GetValueAsync(cancellationToken);
             var telemetryReporter = SolutionSnapshot.SnapshotManager.TelemetryReporter;
             var computedTagHelpers = await _project.GetTagHelpersAsync(projectEngine, telemetryReporter, cancellationToken);
-            ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
-        }
 
-        return _tagHelpers;
+            ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
+
+            return _tagHelpers;
+        }
     }
 
     public ProjectWorkspaceState ProjectWorkspaceState => throw new InvalidOperationException("Should not be called for cohosted projects.");
@@ -133,18 +138,53 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         }
     }
 
-    public IDocumentSnapshot? GetDocument(string filePath)
+    public bool ContainsDocument(string filePath)
     {
-        var document = _project.AdditionalDocuments.FirstOrDefault(d => d.FilePath == filePath);
-        return document is not null
-            ? GetDocument(document)
-            : null;
+        if (!filePath.IsRazorFilePath())
+        {
+            throw new ArgumentException(SR.Format0_is_not_a_Razor_file_path(filePath), nameof(filePath));
+        }
+
+        var documentIds = _project.Solution.GetDocumentIdsWithFilePath(filePath);
+
+        foreach (var documentId in documentIds)
+        {
+            if (_project.Id == documentId.ProjectId &&
+                _project.ContainsAdditionalDocument(documentId))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
+
+    public IDocumentSnapshot? GetDocument(string filePath)
+        => TryGetDocument(filePath, out var document)
+            ? document
+            : null;
 
     public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
-        document = GetDocument(filePath);
-        return document is not null;
+        if (!filePath.IsRazorFilePath())
+        {
+            throw new ArgumentException(SR.Format0_is_not_a_Razor_file_path(filePath), nameof(filePath));
+        }
+
+        var documentIds = _project.Solution.GetDocumentIdsWithFilePath(filePath);
+
+        foreach (var documentId in documentIds)
+        {
+            if (_project.Id == documentId.ProjectId &&
+                _project.GetAdditionalDocument(documentId) is { } doc)
+            {
+                document = GetDocumentCore(doc);
+                return true;
+            }
+        }
+
+        document = null;
+        return false;
     }
 
     public RazorProjectEngine GetProjectEngine() => throw new InvalidOperationException("Should not be called for cohosted projects.");

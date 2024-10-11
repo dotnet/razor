@@ -7,19 +7,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
-internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager projectManager) : LSPTagHelperTooltipFactory(projectManager)
+internal static class MarkupTagHelperTooltipFactory
 {
-    public override async Task<MarkupContent?> TryCreateTooltipAsync(
+    public static async Task<MarkupContent?> TryCreateTooltipAsync(
         string documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
+        ISolutionQueryOperations solutionQueryOperations,
         MarkupKind markupKind,
         CancellationToken cancellationToken)
     {
@@ -52,7 +51,7 @@ internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager project
             }
 
             var tagHelperType = descriptionInfo.TagHelperTypeName;
-            var reducedTypeName = ReduceTypeName(tagHelperType);
+            var reducedTypeName = DocCommentHelpers.ReduceTypeName(tagHelperType);
 
             // If the reducedTypeName != tagHelperType, then the type is prefixed by a namespace
             if (reducedTypeName != tagHelperType)
@@ -66,7 +65,7 @@ internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager project
             StartOrEndBold(descriptionBuilder, markupKind);
 
             var documentation = descriptionInfo.Documentation;
-            if (TryExtractSummary(documentation, out var summaryContent))
+            if (DocCommentHelpers.TryExtractSummary(documentation, out var summaryContent))
             {
                 descriptionBuilder.AppendLine();
                 descriptionBuilder.AppendLine();
@@ -74,7 +73,10 @@ internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager project
                 descriptionBuilder.Append(finalSummaryContent);
             }
 
-            var availability = await GetProjectAvailabilityAsync(documentFilePath, tagHelperType, cancellationToken).ConfigureAwait(false);
+            var availability = await solutionQueryOperations
+                .GetProjectAvailabilityTextAsync(documentFilePath, tagHelperType, cancellationToken)
+                .ConfigureAwait(false);
+
             if (availability is not null)
             {
                 descriptionBuilder.AppendLine();
@@ -82,14 +84,14 @@ internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager project
             }
         }
 
-        return  new MarkupContent
+        return new MarkupContent
         {
             Kind = markupKind,
             Value = descriptionBuilder.ToString(),
         };
     }
 
-    public override bool TryCreateTooltip(
+    public static bool TryCreateTooltip(
         AggregateBoundAttributeDescription attributeDescriptionInfo,
         MarkupKind markupKind,
         [NotNullWhen(true)] out MarkupContent? tooltipContent)
@@ -129,12 +131,12 @@ internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager project
                 returnTypeName = descriptionInfo.ReturnTypeName;
             }
 
-            var reducedReturnTypeName = ReduceTypeName(returnTypeName);
+            var reducedReturnTypeName = DocCommentHelpers.ReduceTypeName(returnTypeName);
             descriptionBuilder.Append(reducedReturnTypeName);
             StartOrEndBold(descriptionBuilder, markupKind);
             descriptionBuilder.Append(' ');
             var tagHelperTypeName = descriptionInfo.TypeName;
-            var reducedTagHelperTypeName = ReduceTypeName(tagHelperTypeName);
+            var reducedTagHelperTypeName = DocCommentHelpers.ReduceTypeName(tagHelperTypeName);
             descriptionBuilder.Append(reducedTagHelperTypeName);
             descriptionBuilder.Append('.');
             StartOrEndBold(descriptionBuilder, markupKind);
@@ -142,7 +144,7 @@ internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager project
             StartOrEndBold(descriptionBuilder, markupKind);
 
             var documentation = descriptionInfo.Documentation;
-            if (!TryExtractSummary(documentation, out var summaryContent))
+            if (!DocCommentHelpers.TryExtractSummary(documentation, out var summaryContent))
             {
                 continue;
             }
@@ -170,7 +172,7 @@ internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager project
         // if there's a <para> in the summary element when it's shown in the completion description window
         // it'll be serialized as html (wont show).
         summaryContent = summaryContent.Trim();
-        var crefMatches = ExtractCrefMatches(summaryContent);
+        var crefMatches = DocCommentHelpers.ExtractCrefMatches(summaryContent);
 
         using var _ = StringBuilderPool.GetPooledObject(out var summaryBuilder);
 
@@ -181,8 +183,8 @@ internal class DefaultLSPTagHelperTooltipFactory(IProjectSnapshotManager project
             var cref = crefMatches[i];
             if (cref.Success)
             {
-                var value = cref.Groups[TagContentGroupName].Value;
-                var reducedValue = ReduceCrefValue(value);
+                var value = cref.Groups[DocCommentHelpers.TagContentGroupName].Value;
+                var reducedValue = DocCommentHelpers.ReduceCrefValue(value);
                 reducedValue = reducedValue.Replace("{", "<").Replace("}", ">");
                 summaryBuilder.Remove(cref.Index, cref.Length);
                 summaryBuilder.Insert(cref.Index, $"`{reducedValue}`");

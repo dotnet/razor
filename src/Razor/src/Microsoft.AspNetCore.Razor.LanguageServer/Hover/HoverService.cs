@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -26,13 +26,11 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 internal sealed partial class HoverService(
-    LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
-    VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
+    IProjectSnapshotManager projectManager,
     IDocumentMappingService documentMappingService,
     IClientCapabilitiesService clientCapabilitiesService) : IHoverService
 {
-    private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
-    private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
+    private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
 
@@ -261,7 +259,7 @@ internal sealed partial class HoverService(
         var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
-        if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement? classifiedTextElement))
+        if (isVSClient && ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement? classifiedTextElement))
         {
             var vsHover = new VSInternalHover
             {
@@ -276,7 +274,7 @@ internal sealed partial class HoverService(
         {
             var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
 
-            if (!_lspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
+            if (!MarkupTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
             {
                 return null;
             }
@@ -305,7 +303,10 @@ internal sealed partial class HoverService(
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
         if (isVSClient)
         {
-            var classifiedTextElement = await _vsLspTagHelperTooltipFactory.TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, cancellationToken).ConfigureAwait(false);
+            var classifiedTextElement = await ClassifiedTagHelperTooltipFactory
+                .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), cancellationToken)
+                .ConfigureAwait(false);
+
             if (classifiedTextElement is not null)
             {
                 var vsHover = new VSInternalHover
@@ -321,7 +322,10 @@ internal sealed partial class HoverService(
 
         var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
 
-        var vsMarkupContent = await _lspTagHelperTooltipFactory.TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, hoverContentFormat, cancellationToken).ConfigureAwait(false);
+        var vsMarkupContent = await MarkupTagHelperTooltipFactory
+            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), hoverContentFormat, cancellationToken)
+            .ConfigureAwait(false);
+
         if (vsMarkupContent is null)
         {
             return null;

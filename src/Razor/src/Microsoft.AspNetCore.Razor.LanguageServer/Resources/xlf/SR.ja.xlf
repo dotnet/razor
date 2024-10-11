@@ -37,24 +37,9 @@
         <target state="translated">イベント ハンドラー '{0}' の生成</target>
         <note />
       </trans-unit>
-      <trans-unit id="Not_Available_In">
-        <source>Not available in</source>
-        <target state="translated">次では使用できません:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Statement">
         <source>statement</source>
         <target state="translated">ステートメント</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Attribute_Glyph">
-        <source>Razor TagHelper Attribute Glyph</source>
-        <target state="translated">Razor TagHelper 属性のグリフ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Element_Glyph">
-        <source>Razor TagHelper Element Glyph</source>
-        <target state="translated">Razor TagHelper 要素のグリフ</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">

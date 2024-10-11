@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -19,19 +18,6 @@ internal partial class TestProjectSnapshotManager(
     : ProjectSnapshotManager(projectEngineFactoryProvider, loggerFactory, initializer)
 {
     private readonly CancellationToken _disposalToken = disposalToken;
-
-    public Task<TestDocumentSnapshot> CreateAndAddDocumentAsync(ProjectSnapshot projectSnapshot, string filePath)
-    {
-        return UpdateAsync(
-            updater =>
-            {
-                var documentSnapshot = TestDocumentSnapshot.Create(projectSnapshot, filePath);
-                updater.DocumentAdded(projectSnapshot.Key, documentSnapshot.HostDocument, new DocumentSnapshotTextLoader(documentSnapshot));
-
-                return documentSnapshot;
-            },
-            _disposalToken);
-    }
 
     public Listener ListenToNotifications() => new(this);
 

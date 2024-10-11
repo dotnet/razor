@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
 
@@ -16,7 +17,7 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
 {
     private static readonly string[] PublicModifiers = new[] { "public" };
 
-    public string TagHelperTypeName { get; set; } = "Microsoft.AspNetCore.Razor.TagHelpers.TagHelper";
+    public IntermediateToken TagHelperTypeName { get; set; } = IntermediateToken.CreateCSharpToken("Microsoft.AspNetCore.Razor.TagHelpers.TagHelper");
 
     public string ViewComponentHelperTypeName { get; set; } = "global::Microsoft.AspNetCore.Mvc.IViewComponentHelper";
 

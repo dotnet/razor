@@ -46,10 +46,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
     }
 
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager()
-        => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
-
-    private protected TestProjectSnapshotManager CreateProjectSnapshotManager(
+    private protected override TestProjectSnapshotManager CreateProjectSnapshotManager(
         IProjectEngineFactoryProvider projectEngineFactoryProvider)
         => new(
             projectEngineFactoryProvider,
@@ -110,7 +107,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
     private protected static DocumentContext CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument)
     {
-        return TestDocumentContext.From(documentPath.GetAbsoluteOrUNCPath(), codeDocument);
+        return TestDocumentContext.Create(documentPath.GetAbsoluteOrUNCPath(), codeDocument);
     }
 
     private protected static IDocumentContextFactory CreateDocumentContextFactory(

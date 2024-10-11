@@ -67,6 +67,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
     {
         var input = """
             @page "/"
+            @model AppThing.Model
             @using System
 
             <div>This is some HTML</div>
