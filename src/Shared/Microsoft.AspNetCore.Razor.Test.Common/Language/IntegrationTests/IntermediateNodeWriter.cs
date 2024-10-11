@@ -43,7 +43,7 @@ public class IntermediateNodeWriter :
             {
                 string.Join(" ", node.Modifiers),
                 node.ClassName,
-                node.BaseType,
+                node.BaseType?.Content,
                 string.Join(", ", node.Interfaces ?? Array.Empty<string>())
             };
 

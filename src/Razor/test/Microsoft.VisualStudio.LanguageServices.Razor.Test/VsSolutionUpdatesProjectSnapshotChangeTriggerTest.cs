@@ -22,16 +22,15 @@ namespace Microsoft.VisualStudio.Razor;
 
 public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTestBase
 {
-    private static readonly HostProject s_someProject = new(
-        TestProjectData.SomeProject.FilePath,
-        TestProjectData.SomeProject.IntermediateOutputPath,
-        FallbackRazorConfiguration.MVC_1_0,
-        TestProjectData.SomeProject.RootNamespace);
-    private static readonly HostProject s_someOtherProject = new(
-        TestProjectData.AnotherProject.FilePath,
-        TestProjectData.AnotherProject.IntermediateOutputPath,
-        FallbackRazorConfiguration.MVC_2_0,
-        TestProjectData.AnotherProject.RootNamespace);
+    private static readonly HostProject s_someProject = TestProjectData.SomeProject with
+    {
+        Configuration = FallbackRazorConfiguration.MVC_1_0
+    };
+
+    private static readonly HostProject s_someOtherProject = TestProjectData.AnotherProject with
+    {
+        Configuration = FallbackRazorConfiguration.MVC_2_0
+    };
 
     private readonly Project _someWorkspaceProject;
     private readonly IWorkspaceProvider _workspaceProvider;

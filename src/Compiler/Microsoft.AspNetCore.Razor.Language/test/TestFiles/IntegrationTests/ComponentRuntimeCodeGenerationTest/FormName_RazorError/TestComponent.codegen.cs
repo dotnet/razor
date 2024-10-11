@@ -9,7 +9,7 @@ namespace Test
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (1,2)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (1,2)-(1,43) "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components.Web
 
 #line default
@@ -34,7 +34,15 @@ using Microsoft.AspNetCore.Components.Web
 #line hidden
 #nullable disable
             ));
-            string __formName = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
+            string __formName = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>(
+#nullable restore
+#line (2,56)-(2,57) "x:\dir\subdir\Test\TestComponent.cshtml"
+ 
+
+#line default
+#line hidden
+#nullable disable
+            );
             __builder.AddNamedEvent("onsubmit", __formName);
             __builder.CloseElement();
         }

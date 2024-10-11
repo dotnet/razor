@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,43 +10,37 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class DocumentSnapshot : IDocumentSnapshot
+internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState state) : IDocumentSnapshot
 {
-    public string FileKind => State.HostDocument.FileKind;
-    public string FilePath => State.HostDocument.FilePath;
-    public string TargetPath => State.HostDocument.TargetPath;
-    public IProjectSnapshot Project => ProjectInternal;
-    public bool SupportsOutput => true;
+    private readonly DocumentState _state = state;
+    private readonly ProjectSnapshot _project = project;
 
-    public int Version => State.Version;
+    public HostDocument HostDocument => _state.HostDocument;
 
-    public ProjectSnapshot ProjectInternal { get; }
-    public DocumentState State { get; }
-
-    public DocumentSnapshot(ProjectSnapshot project, DocumentState state)
-    {
-        ProjectInternal = project ?? throw new ArgumentNullException(nameof(project));
-        State = state ?? throw new ArgumentNullException(nameof(state));
-    }
+    public string FileKind => _state.HostDocument.FileKind;
+    public string FilePath => _state.HostDocument.FilePath;
+    public string TargetPath => _state.HostDocument.TargetPath;
+    public IProjectSnapshot Project => _project;
+    public int Version => _state.Version;
 
     public Task<SourceText> GetTextAsync()
-        => State.GetTextAsync();
+        => _state.GetTextAsync();
 
     public Task<VersionStamp> GetTextVersionAsync()
-        => State.GetTextVersionAsync();
+        => _state.GetTextVersionAsync();
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
-        => State.TryGetText(out result);
+        => _state.TryGetText(out result);
 
     public bool TryGetTextVersion(out VersionStamp result)
-        => State.TryGetTextVersion(out result);
+        => _state.TryGetTextVersion(out result);
 
-    public virtual bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
     {
-        if (State.IsGeneratedOutputResultAvailable)
+        if (_state.IsGeneratedOutputResultAvailable)
         {
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            result = State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).Result.output;
+            result = _state.GetGeneratedOutputAndVersionAsync(_project, this).Result.output;
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             return true;
         }
@@ -58,7 +51,7 @@ internal class DocumentSnapshot : IDocumentSnapshot
 
     public IDocumentSnapshot WithText(SourceText text)
     {
-        return new DocumentSnapshot(ProjectInternal, State.WithText(text, VersionStamp.Create()));
+        return new DocumentSnapshot(_project, _state.WithText(text, VersionStamp.Create()));
     }
 
     public async Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
@@ -68,14 +61,14 @@ internal class DocumentSnapshot : IDocumentSnapshot
         return CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
     }
 
-    public virtual async Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
+    public async Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
     {
         if (forceDesignTimeGeneratedOutput)
         {
             return await GetDesignTimeGeneratedOutputAsync().ConfigureAwait(false);
         }
 
-        var (output, _) = await State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).ConfigureAwait(false);
+        var (output, _) = await _state.GetGeneratedOutputAndVersionAsync(_project, this).ConfigureAwait(false);
         return output;
     }
 

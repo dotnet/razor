@@ -2,8 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -95,7 +97,8 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             search: "<button",
-            stringsToType: [" ", "d", "i", "s"]);
+            stringsToType: [" ", "d", "i", "s"],
+            expectedSelectedItemLabel: "disabled");
     }
 
     [IdeFact]
@@ -135,7 +138,8 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             search: "<button",
-            stringsToType: [" ", "s", "t", "y"]);
+            stringsToType: [" ", "s", "t", "y"],
+            expectedSelectedItemLabel: "style");
     }
 
     [IdeFact]
@@ -173,7 +177,8 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             search: "</PageTitle>",
-            stringsToType: ["{ENTER}", "{ENTER}", "<", "s", "p", "a"]);
+            stringsToType: ["{ENTER}", "{ENTER}", "<", "s", "p", "a"],
+            expectedSelectedItemLabel: "span");
     }
 
     [IdeFact]
@@ -212,7 +217,8 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 """,
             search: "</PageTitle>",
             stringsToType: ["{ENTER}", "{ENTER}", "<", "s", "p", "a"],
-            commitChar: '>');
+            commitChar: '>',
+            "span");
     }
 
     [IdeFact]
@@ -250,10 +256,11 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             search: "myCurrentCount++;",
-            stringsToType: ["{ENTER}", "{ENTER}", "m", "y", "C", "u", "r"]);
+            stringsToType: ["{ENTER}", "{ENTER}", "m", "y", "C", "u", "r"],
+            expectedSelectedItemLabel: "myCurrentCount");
     }
 
-    private async Task VerifyTypeAndCommitCompletionAsync(string input, string output, string search, string[] stringsToType, char? commitChar = null)
+    private async Task VerifyTypeAndCommitCompletionAsync(string input, string output, string search, string[] stringsToType, char? commitChar = null, string? expectedSelectedItemLabel = null)
     {
         await TestServices.SolutionExplorer.AddFileAsync(
             RazorProjectConstants.BlazorProjectName,
@@ -270,7 +277,14 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
             TestServices.Input.Send(stringToType);
         }
 
-        await CommitCompletionAndVerifyAsync(output, commitChar);
+        if (expectedSelectedItemLabel is not null)
+        {
+            await CommitCompletionAndVerifyAsync(output, expectedSelectedItemLabel, commitChar);
+        }
+        else
+        {
+            await CommitCompletionAndVerifyAsync(output, commitChar);
+        }
     }
 
     [IdeFact]
@@ -457,4 +471,41 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         // tests allow for it as long as the content is correct
         AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, text);
     }
+
+    private async Task CommitCompletionAndVerifyAsync(string expected, string expectedSelectedItemLabel, char? commitChar = null)
+    {
+        // Actually open completion UI and wait for it have selected item we are interested in
+        var session = await TestServices.Editor.OpenCompletionSessionAndWaitForItemAsync(TimeSpan.FromSeconds(10), expectedSelectedItemLabel, HangMitigatingCancellationToken);
+
+        Assert.NotNull(session);
+        if (commitChar is char commitCharValue)
+        {
+            // Commit using the specified commit character
+            session.Commit(commitCharValue, HangMitigatingCancellationToken);
+
+            // session.Commit call above commits as if the commit character was typed,
+            // but doesn't actually insert the character into the buffer.
+            // So we still need to insert the character into the buffer ourselves.
+            TestServices.Input.Send(commitCharValue.ToString());
+        }
+        else
+        {
+            Assert.True(session.CommitIfUnique(HangMitigatingCancellationToken));
+        }
+
+        var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+
+        var stopwatch = new Stopwatch();
+        string text;
+        while ((text = textView.TextBuffer.CurrentSnapshot.GetText()) != expected && stopwatch.ElapsedMilliseconds < EditorInProcess.DefaultCompletionWaitTimeMilliseconds)
+        {
+            // Text might get updated *after* completion by something like auto-insert, so wait for the desired text
+            await Task.Delay(100, HangMitigatingCancellationToken);
+        }
+
+        // Snippets may have slight whitespace differences due to line endings. These
+        // tests allow for it as long as the content is correct
+        Assert.Equal(expected, text);
+    }
+
 }

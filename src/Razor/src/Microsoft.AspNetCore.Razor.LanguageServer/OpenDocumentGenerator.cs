@@ -175,7 +175,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 return;
             }
 
-            _logger.LogDebug($"Enqueuing generation of {document.FilePath} in {document.Project.Key.Id}");
+            _logger.LogDebug($"Enqueuing generation of {document.FilePath} in {document.Project.Key.Id} at version {document.Version}");
 
             _workQueue.AddWork(document);
         }

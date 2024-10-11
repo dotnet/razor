@@ -3,12 +3,12 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
-using Moq.Language.Flow;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
@@ -84,4 +84,34 @@ internal static class TestMocks
 
     public static void VerifySendRequest<TParams, TResponse>(this Mock<IClientConnection> mock, string method, TParams @params, Func<Times> times)
         => mock.Verify(x => x.SendRequestAsync<TParams, TResponse>(method, @params, It.IsAny<CancellationToken>()), times);
+
+    public static IProjectSnapshot CreateProjectSnapshot(HostProject hostProject, ProjectWorkspaceState? projectWorkspaceState = null)
+    {
+        var mock = new StrictMock<IProjectSnapshot>();
+
+        mock.SetupGet(x => x.Key)
+            .Returns(hostProject.Key);
+        mock.SetupGet(x => x.FilePath)
+            .Returns(hostProject.FilePath);
+        mock.SetupGet(x => x.IntermediateOutputPath)
+            .Returns(hostProject.IntermediateOutputPath);
+        mock.SetupGet(x => x.Configuration)
+            .Returns(hostProject.Configuration);
+        mock.SetupGet(x => x.RootNamespace)
+            .Returns(hostProject.RootNamespace);
+        mock.SetupGet(x => x.DisplayName)
+            .Returns(hostProject.DisplayName);
+
+        if (projectWorkspaceState is not null)
+        {
+            mock.SetupGet(x => x.ProjectWorkspaceState)
+                .Returns(projectWorkspaceState);
+            mock.SetupGet(x => x.CSharpLanguageVersion)
+                .Returns(projectWorkspaceState.CSharpLanguageVersion);
+            mock.Setup(x => x.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(projectWorkspaceState.TagHelpers);
+        }
+
+        return mock.Object;
+    }
 }
