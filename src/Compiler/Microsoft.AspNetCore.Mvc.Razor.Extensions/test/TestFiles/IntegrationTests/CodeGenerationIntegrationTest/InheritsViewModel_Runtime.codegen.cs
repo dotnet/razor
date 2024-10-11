@@ -20,8 +20,29 @@ namespace AspNetCoreGeneratedDocument
     #nullable restore
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsViewModel : 
 #nullable restore
-#line (1,11)-(1,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"
-MyBasePageForViews<MyModel>
+#line (1,11)-(1,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"
+MyBasePageForViews
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (1,29)-(1,30) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"
+<
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (2,8)-(2,15) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"
+MyModel
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line (1,36)-(1,37) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"
+>
 
 #line default
 #line hidden
