@@ -121,8 +121,6 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         changedContext = await changedContext.WithTextAsync(cleanedText, cancellationToken).ConfigureAwait(false);
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         // At this point we should have applied all edits that adds/removes newlines.
         // Let's now ensure the indentation of each of those lines is correct.
 
