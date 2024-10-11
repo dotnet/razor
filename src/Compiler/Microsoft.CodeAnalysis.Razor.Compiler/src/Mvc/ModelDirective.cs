@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -43,10 +44,10 @@ public static class ModelDirective
         }
 
         var visitor = new Visitor();
-        return GetModelType(document, visitor);
+        return GetModelType(document, visitor).Content;
     }
 
-    private static string GetModelType(DocumentIntermediateNode document, Visitor visitor)
+    private static IntermediateToken GetModelType(DocumentIntermediateNode document, Visitor visitor)
     {
         visitor.Visit(document);
 
@@ -57,17 +58,17 @@ public static class ModelDirective
             var tokens = directive.Tokens.ToArray();
             if (tokens.Length >= 1)
             {
-                return tokens[0].Content;
+                return IntermediateToken.CreateCSharpToken(tokens[0].Content, tokens[0].Source);
             }
         }
 
         if (document.DocumentKind == RazorPageDocumentClassifierPass.RazorPageDocumentKind)
         {
-            return visitor.Class.ClassName;
+            return IntermediateToken.CreateCSharpToken(visitor.Class.ClassName);
         }
         else
         {
-            return "dynamic";
+            return IntermediateToken.CreateCSharpToken("dynamic");
         }
     }
 
@@ -99,12 +100,12 @@ public static class ModelDirective
                 };
 
                 visitor.Namespace?.Children.Insert(0, usingNode);
+                modelType.Source = null;
             }
 
-            if (visitor.Class?.BaseType is IntermediateToken existingBaseType)
+            if (visitor.Class?.BaseType is BaseTypeIntermediateNode { ModelType: not null } existingBaseType)
             {
-                var typeName = existingBaseType.Content.Replace("<TModel>", "<" + modelType + ">");
-                visitor.Class.BaseType = IntermediateToken.CreateCSharpToken(typeName, existingBaseType.Source);
+                existingBaseType.ModelType = modelType;
             }
         }
     }

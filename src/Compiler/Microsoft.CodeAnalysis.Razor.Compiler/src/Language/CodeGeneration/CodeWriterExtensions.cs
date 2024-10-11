@@ -518,7 +518,7 @@ internal static class CodeWriterExtensions
             writer.Write(">");
         }
 
-        var hasBaseType = baseType is IntermediateToken baseTypeToken && !string.IsNullOrWhiteSpace(baseTypeToken.Content);
+        var hasBaseType = baseType is IntermediateToken baseTypeToken && !string.IsNullOrWhiteSpace(baseTypeToken.Content) || baseType is not IntermediateToken and not null;
         var hasInterfaces = interfaces != null && interfaces.Count > 0;
 
         if (hasBaseType || hasInterfaces)
@@ -527,14 +527,21 @@ internal static class CodeWriterExtensions
 
             if (hasBaseType)
             {
-                baseTypeToken = (IntermediateToken)baseType;
-                if (baseTypeToken.Source is { } source)
+                baseTypeToken = baseType as IntermediateToken;
+                if (baseTypeToken is not null)
                 {
-                    WriteWithPragma(writer, baseTypeToken.Content, context, source);
+                    if (baseTypeToken.Source is { } source)
+                    {
+                        WriteWithPragma(writer, baseTypeToken.Content, context, source);
+                    }
+                    else
+                    {
+                        writer.Write(baseTypeToken.Content);
+                    }
                 }
                 else
                 {
-                    writer.Write(baseTypeToken.Content);
+                    context.Visitor.Visit(baseType);
                 }
 
                 if (hasInterfaces)
@@ -577,23 +584,23 @@ internal static class CodeWriterExtensions
         }
 
         return new CSharpCodeWritingScope(writer);
+    }
 
-        static void WriteWithPragma(CodeWriter writer, string content, CodeRenderingContext context, SourceSpan source)
+    public static void WriteWithPragma(this CodeWriter writer, string content, CodeRenderingContext context, SourceSpan source)
+    {
+        if (context.Options.DesignTime)
         {
-            if (context.Options.DesignTime)
+            using (writer.BuildLinePragma(source, context))
             {
-                using (writer.BuildLinePragma(source, context))
-                {
-                    context.AddSourceMappingFor(source);
-                    writer.Write(content);
-                }
+                context.AddSourceMappingFor(source);
+                writer.Write(content);
             }
-            else
+        }
+        else
+        {
+            using (writer.BuildEnhancedLinePragma(source, context))
             {
-                using (writer.BuildEnhancedLinePragma(source, context))
-                {
-                    writer.Write(content);
-                }
+                writer.Write(content);
             }
         }
     }

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -25,7 +26,11 @@ public sealed class InheritsDirectivePass : IntermediateNodePassBase, IRazorDire
             if (token != null)
             {
                 var source = codeDocument.GetParserOptions()?.DesignTime == true ? null : token.Source;
-                @class.BaseType = IntermediateToken.CreateCSharpToken(token.Content, source);
+
+                // Only MVC and razor documents support also updating the base type when setting the model
+                @class.BaseType = documentNode.DocumentKind == MvcViewDocumentClassifierPass.MvcViewDocumentKind || documentNode.DocumentKind == RazorPageDocumentClassifierPass.RazorPageDocumentKind
+                                ? new BaseTypeIntermediateNode(token.Content, source)
+                                : IntermediateToken.CreateCSharpToken(token.Content, source);
                 break;
             }
         }
