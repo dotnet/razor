@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,7 +61,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     public ValueTask<Response> GetCompletionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        Position position,
+        DocumentPositionInfo positionInfo,
         CompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
@@ -70,7 +72,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             documentId,
             context => GetCompletionAsync(
                 context,
-                position,
+                positionInfo,
                 completionContext,
                 clientCapabilities,
                 razorCompletionOptions,
@@ -84,7 +86,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         CompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
-        HashSet<string> existingHtmlCompletions,
+        HashSet<string> existingDelegatedCompletions,
         CancellationToken cancellationToken)
     {
         var languageKind = positionInfo.LanguageKind;
@@ -104,6 +106,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 return Response.NoFurtherHandling;
             }
 
+            Debug.Assert(existingDelegatedCompletions.Count == 0, "Delegated completion should be either C# or HTML, not both");
+            existingDelegatedCompletions.UnionWith(csharpCompletion.Items.Select((item) => item.Label));
+
             // TODO: still need to merge with Razor items
             return Response.Results(csharpCompletion);
         }
@@ -120,7 +125,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             vsInternalCompletionContext,
             remoteDocumentContext,
             clientCapabilities,
-            existingCompletions: existingHtmlCompletions, // TODO: use existing data
+            existingCompletions: existingDelegatedCompletions,
             razorCompletionOptions,
             cancellationToken);
 
@@ -128,10 +133,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         {
             return Response.CallHtml;
         }
-        else
-        {
-            return Response.Results(completionList);
-        }
+
+        return Response.Results(completionList);
     }
 
     private async ValueTask<VSInternalCompletionList?> GetCSharpCompletionAsync(

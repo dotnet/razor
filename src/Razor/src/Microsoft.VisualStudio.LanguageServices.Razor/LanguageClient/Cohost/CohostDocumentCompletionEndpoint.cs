@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Settings;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
 
@@ -122,7 +121,7 @@ internal class CohostDocumentCompletionEndpoint(
             if (positionInfoValue.LanguageKind == RazorLanguageKind.Html
                 && await GetHtmlCompletionListAsync(request, razorDocument, cancellationToken) is { } htmlCompletionList)
             {
-                existingHtmlCompletions.AddRange(htmlCompletionList.Items.Select(i => i.Label));
+                existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
             }
         }
 
