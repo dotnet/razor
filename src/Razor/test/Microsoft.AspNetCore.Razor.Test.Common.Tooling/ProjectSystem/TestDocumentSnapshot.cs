@@ -90,7 +90,7 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     {
         return _codeDocument is null
             ? RealSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken)
-            : new(_codeDocument.GetCSharpSyntaxTree(cancellationToken));
+            : new(DocumentSnapshot.GetOrParseCSharpSyntaxTree(_codeDocument, cancellationToken));
     }
 
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)

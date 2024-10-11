@@ -4,13 +4,17 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState state) : IDocumentSnapshot
 {
+    private static readonly object s_csharpSyntaxTreeKey = new();
+
     private readonly DocumentState _state = state;
     private readonly ProjectSnapshot _project = project;
 
@@ -54,13 +58,13 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
     public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
         return TryGetGeneratedOutput(out var codeDocument)
-            ? new(codeDocument.GetCSharpSyntaxTree(cancellationToken))
+            ? new(GetOrParseCSharpSyntaxTree(codeDocument, cancellationToken))
             : new(GetCSharpSyntaxTreeCoreAsync(cancellationToken));
 
         async Task<SyntaxTree> GetCSharpSyntaxTreeCoreAsync(CancellationToken cancellationToken)
         {
             var codeDocument = await GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false, cancellationToken).ConfigureAwait(false);
-            return codeDocument.GetCSharpSyntaxTree(cancellationToken);
+            return GetOrParseCSharpSyntaxTree(codeDocument, cancellationToken);
         }
     }
 
@@ -86,5 +90,23 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
         return await DocumentState
             .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false, cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    ///  Retrieves a cached Roslyn <see cref="SyntaxTree"/> from the generated C# document.
+    ///  If a tree has not yet been cached, a new one will be parsed and added to the cache.
+    /// </summary>
+    public static SyntaxTree GetOrParseCSharpSyntaxTree(RazorCodeDocument document, CancellationToken cancellationToken)
+    {
+        if (!document.Items.TryGetValue(s_csharpSyntaxTreeKey, out SyntaxTree? syntaxTree))
+        {
+            var csharpText = document.GetCSharpSourceText();
+            syntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
+            document.Items[s_csharpSyntaxTreeKey] = syntaxTree;
+
+            return syntaxTree;
+        }
+
+        return syntaxTree.AssumeNotNull();
     }
 }
