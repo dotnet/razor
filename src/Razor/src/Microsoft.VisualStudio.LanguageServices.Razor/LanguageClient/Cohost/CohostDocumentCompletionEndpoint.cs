@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Razor.Settings;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -26,12 +27,14 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning restore RS0030 // Do not use banned APIs
 internal class CohostDocumentCompletionEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
+    IClientSettingsManager clientSettingsManager,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<CompletionParams, VSInternalCompletionList?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
+    private readonly IClientSettingsManager _clientSettingsManager= clientSettingsManager,
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
@@ -72,6 +75,19 @@ internal class CohostDocumentCompletionEndpoint(
 
     private async Task<VSInternalCompletionList?> HandleRequestAsync(CompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
+        if (request.Context is null)
+        {
+            _logger.LogError("Completion request context is null");
+            return null;
+        }
+
+        var clientSettings =  _clientSettingsManager.GetClientSettings();
+        var autoShownCompletion = request.Context.TriggerKind != CompletionTriggerKind.Invoked;
+        if (autoShownCompletion && !clientSettings.ClientCompletionSettings.AutoShowCompletion)
+        {
+            return null;
+        }
+
         _logger.LogDebug($"Invoking completion for {razorDocument.FilePath}");
 
         var razorCompletionOptions = new RazorCompletionOptions(
