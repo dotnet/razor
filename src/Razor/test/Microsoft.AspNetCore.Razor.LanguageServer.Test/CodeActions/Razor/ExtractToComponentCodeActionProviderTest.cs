@@ -117,117 +117,6 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_MultiPointSelection_ReturnsNotEmpty()
-    {
-        // Arrange
-        var documentPath = "c:/Test.razor";
-        var contents = """
-            @page "/"
-
-            <PageTitle>Home</PageTitle>
-
-            <div id="parent">
-                [|<div>
-                    $$<h1>Div a title</h1>
-                    <p>Div a par</p>
-                </div>
-                <div>
-                    <h1>Div b title</h1>
-                    <p>Div b par</p>
-                </div|]>
-            </div>
-
-            <h1>Hello, world!</h1>
-
-            Welcome to your new app.
-            """;
-        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
-
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
-            Context = new VSInternalCodeActionContext()
-        };
-
-        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents);
-
-        var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
-        request.Range = VsLspFactory.CreateRange(lineSpan);
-
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
-
-        // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
-
-        // Assert
-        Assert.NotEmpty(commandOrCodeActionContainer);
-        var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
-        Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
-        Assert.NotNull(actionParams);
-    }
-
-    [Fact]
-    public async Task Handle_MultiPointSelection_WithEndAfterElement_ReturnsCurrentElement()
-    {
-        // Arrange
-        var documentPath = "c:/Test.razor";
-        var contents = """
-            @page "/"
-            @namespace MarketApp.Pages.Product.Home
-
-            namespace MarketApp.Pages.Product.Home
-
-            <PageTitle>Home</PageTitle>
-
-            <div id="parent">
-                [|$$<div>
-                    <h1>Div a title</h1>
-                    <p>Div a par</p>
-                </div>
-                <div>
-                    <h1>Div b title</h1>
-                    <p>Div b par</p>
-                </div>|]
-            </div>
-
-            <h1>Hello, world!</h1>
-
-            Welcome to your new app.
-            """;
-        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
-
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
-            Context = new VSInternalCodeActionContext()
-        };
-
-        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents);
-
-        var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
-        request.Range = VsLspFactory.CreateRange(lineSpan);
-
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
-
-        // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
-
-        // Assert
-        Assert.NotEmpty(commandOrCodeActionContainer);
-        var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
-        Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
-        Assert.NotNull(actionParams);
-        Assert.Equal(selectionSpan.Start, actionParams.Start);
-        Assert.Equal(selectionSpan.End, actionParams.End);
-    }
-
-    [Fact]
     public async Task Handle_InProperMarkup_ReturnsEmpty()
     {
         // Arrange
@@ -276,6 +165,107 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         Assert.Empty(commandOrCodeActionContainer);
     }
 
+    [Fact]
+    public Task Handle_MultiPointSelection_ReturnsNotEmpty()
+       => TestSelectionStartAndCursorAsync("""
+            @page "/"
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<div>
+                    $$<h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div|]>
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultiPointSelection_WithEndAfterElement()
+        => TestSelectionStartAndCursorAsync("""
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<div>
+                    <h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>|]
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultiPointSelection_WithEndInsideSiblingElement()
+        => TestSelectionStartAndCursorAsync("""
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<div>
+                    <h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>|]
+                    <p>Div b par</p>
+                </div>$$
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultiPointSelection_WithEndInsideElement()
+        => TestSelectionStartAndCursorAsync("""
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<div>
+                    <h1>Div a title</h1>
+                    <p>Div a par</p>|]
+                </div>$$
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
         TextSpan selectionSpan,
@@ -318,5 +308,42 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             SupportsCodeActionResolve: true);
 
         return context;
+    }
+
+    /// <summary>
+    /// Tests the contents where the expected start/end are marked by '[|' and '$$'
+    /// </summary>
+    private async Task TestSelectionStartAndCursorAsync(string contents)
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var selectionSpan);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = VsLspFactory.DefaultRange,
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents);
+
+        var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
+        request.Range = VsLspFactory.CreateRange(lineSpan);
+
+        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotEmpty(commandOrCodeActionContainer);
+        var codeAction = Assert.Single(commandOrCodeActionContainer);
+        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
+        Assert.NotNull(razorCodeActionResolutionParams);
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
+        Assert.NotNull(actionParams);
+        Assert.Equal(selectionSpan.Start, actionParams.Start);
+        Assert.Equal(cursorPosition, actionParams.End);
     }
 }
