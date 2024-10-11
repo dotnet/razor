@@ -95,25 +95,21 @@ internal sealed class DefinitionEndpoint(
         DocumentPositionInfo positionInfo,
         CancellationToken cancellationToken)
     {
-        if (response is null)
-        {
-            return null;
-        }
+        var result = response.GetValueOrDefault().Value;
 
-        var result = response.Value;
-
-        if (result.TryGetFirst(out var location))
+        // Not using .TryGetXXX because this does the null check for us too
+        if (result is Location location)
         {
             (location.Uri, location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(location.Uri, location.Range, cancellationToken).ConfigureAwait(false);
         }
-        else if (result.TryGetSecond(out var locations))
+        else if (result is Location[] locations)
         {
             foreach (var loc in locations)
             {
                 (loc.Uri, loc.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
             }
         }
-        else if (result.TryGetThird(out var links))
+        else if (result is DocumentLink[] links)
         {
             foreach (var link in links)
             {
@@ -124,6 +120,6 @@ internal sealed class DefinitionEndpoint(
             }
         }
 
-        return result;
+        return response;
     }
 }

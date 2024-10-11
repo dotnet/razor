@@ -60,15 +60,10 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
     protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        if (!delegatedResponse.HasValue)
-        {
-            return null;
-        }
-
-        var result = delegatedResponse.Value;
+        var result = delegatedResponse.GetValueOrDefault().Value;
 
         // Not using .TryGetXXX because this does the null check for us too
-        if (result.Value is Location[] locations)
+        if (result is Location[] locations)
         {
             foreach (var loc in locations)
             {
@@ -77,7 +72,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
             return locations;
         }
-        else if (result.Value is VSInternalReferenceItem[] referenceItems)
+        else if (result is VSInternalReferenceItem[] referenceItems)
         {
             foreach (var item in referenceItems)
             {
