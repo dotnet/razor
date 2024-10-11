@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+using ImplementationResult = System.Nullable<Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>>;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 
@@ -60,8 +60,15 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
     protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
+        if (!delegatedResponse.HasValue)
+        {
+            return null;
+        }
+
+        var result = delegatedResponse.Value;
+
         // Not using .TryGetXXX because this does the null check for us too
-        if (delegatedResponse.Value is Location[] locations)
+        if (result.Value is Location[] locations)
         {
             foreach (var loc in locations)
             {
@@ -70,7 +77,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
             return locations;
         }
-        else if (delegatedResponse.Value is VSInternalReferenceItem[] referenceItems)
+        else if (result.Value is VSInternalReferenceItem[] referenceItems)
         {
             foreach (var item in referenceItems)
             {
@@ -80,6 +87,6 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
             return referenceItems;
         }
 
-        return default;
+        return null;
     }
 }
