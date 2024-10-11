@@ -49,7 +49,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         }
 
         // Make sure the selection starts on an element tag
-        var (startNode, endNode) = GetStartAndEndElements(context, syntaxTree, _logger);
+        var (startNode, endNode) = GetStartAndEndElements(context, syntaxTree);
         if (startNode is null || endNode is null)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -73,7 +73,7 @@ internal sealed class ExtractToComponentCodeActionProvider(ILoggerFactory logger
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
-    private static (MarkupElementSyntax? Start, MarkupElementSyntax? End) GetStartAndEndElements(RazorCodeActionContext context, RazorSyntaxTree syntaxTree, ILogger logger)
+    private static (MarkupElementSyntax? Start, MarkupElementSyntax? End) GetStartAndEndElements(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
         var owner = syntaxTree.Root.FindInnermostNode(context.StartLocation.AbsoluteIndex, includeWhitespace: true);
         if (owner is null)
