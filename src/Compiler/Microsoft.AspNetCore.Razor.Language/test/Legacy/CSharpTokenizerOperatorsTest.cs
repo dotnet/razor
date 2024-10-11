@@ -287,11 +287,4 @@ public class CSharpTokenizerOperatorsTest : CSharpTokenizerTestBase
             SyntaxFactory.Token(SyntaxKind.GreaterThan, ">"),
             SyntaxFactory.Token(SyntaxKind.GreaterThan, ">"));
     }
-
-    // PROTOTYPE: Re-enable
-    // [Fact]
-    // public void Hash_Is_Recognized()
-    // {
-    //     TestSingleToken("#", SyntaxKind.Hash);
-    // }
 }

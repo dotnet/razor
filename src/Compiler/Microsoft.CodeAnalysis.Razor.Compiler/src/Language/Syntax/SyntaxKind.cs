@@ -89,6 +89,8 @@ internal enum SyntaxKind : byte
     RealLiteral,
     CharacterLiteral,
     StringLiteral,
+    CSharpDirective,
+    CSharpDisabledText,
 
     // CSharp operators
     CSharpOperator,

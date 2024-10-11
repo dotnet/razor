@@ -39,9 +39,9 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase, IDisposa
         return IsSpacingToken(token) || token.Kind == SyntaxKind.CSharpComment;
     };
 
-    protected static readonly Func<SyntaxToken, bool> IsSpacingTokenIncludingNewLinesAndComments = (token) =>
+    protected static readonly Func<SyntaxToken, bool> IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives = (token) =>
     {
-        return IsSpacingTokenIncludingNewLines(token) || token.Kind == SyntaxKind.CSharpComment;
+        return IsSpacingTokenIncludingNewLines(token) || token.Kind is SyntaxKind.CSharpComment or SyntaxKind.CSharpDirective or SyntaxKind.CSharpDisabledText;
     };
 
     protected TokenizerBackedParser(LanguageCharacteristics<TTokenizer> language, ParserContext context)

@@ -906,6 +906,20 @@ catch(bar) { baz(); }");
             """);
     }
 
+    [Fact]
+    public void Usings()
+    {
+        ParseDocumentTest("""
+            {
+            @using global::System
+            @using global::System.Collections.Generic
+            @using global::System.Linq
+            @using global::System.Threading.Tasks
+            @using global::Microsoft.AspNetCore.Components
+            }
+            """);
+    }
+
     private void RunRazorCommentBetweenClausesTest(string preComment, string postComment, AcceptedCharactersInternal acceptedCharacters = AcceptedCharactersInternal.Any)
     {
         ParseDocumentTest(preComment + "@* Foo *@ @* Bar *@" + postComment);
