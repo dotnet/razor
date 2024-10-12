@@ -24,7 +24,7 @@ internal interface IRemoteCompletionService : IRemoteJsonService
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         DocumentPositionInfo positionInfo,
-        CompletionContext completionContext,
+        VSInternalCompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
         HashSet<string> existingHtmlCompletions,

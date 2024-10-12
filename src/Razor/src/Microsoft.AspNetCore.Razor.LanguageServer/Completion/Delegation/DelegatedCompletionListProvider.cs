@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -63,13 +64,13 @@ internal class DelegatedCompletionListProvider
 
         var provisionalCompletion = await TryGetProvisionalCompletionInfoAsync(documentContext, completionContext, positionInfo, cancellationToken).ConfigureAwait(false);
         TextEdit? provisionalTextEdit = null;
-        if (provisionalCompletion is not null)
+        if (provisionalCompletion is { } provisionalCompletionValue)
         {
-            provisionalTextEdit = provisionalCompletion.ProvisionalTextEdit;
-            positionInfo = provisionalCompletion.ProvisionalPositionInfo;
+            provisionalTextEdit = provisionalCompletionValue.ProvisionalTextEdit;
+            positionInfo = provisionalCompletionValue.ProvisionalPositionInfo;
         }
 
-        completionContext = RewriteContext(completionContext, positionInfo.LanguageKind);
+        completionContext = DelegatedCompletionHelper.RewriteContext(completionContext, positionInfo.LanguageKind);
 
         var shouldIncludeSnippets = await ShouldIncludeSnippetsAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
@@ -140,48 +141,7 @@ internal class DelegatedCompletionListProvider
         return !startOrEndTag.Span.Contains(absoluteIndex);
     }
 
-    private static VSInternalCompletionContext RewriteContext(VSInternalCompletionContext context, RazorLanguageKind languageKind)
-    {
-        if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
-            context.TriggerCharacter is not { } triggerCharacter)
-        {
-            // Non-triggered based completion, the existing context is valid.
-            return context;
-        }
-
-        if (languageKind == RazorLanguageKind.CSharp
-            && CompletionTriggerCharacters.CSharpTriggerCharacters.Contains(triggerCharacter))
-        {
-            // C# trigger character for C# content
-            return context;
-        }
-
-        if (languageKind == RazorLanguageKind.Html
-            && CompletionTriggerCharacters.HtmlTriggerCharacters.Contains(triggerCharacter))
-        {
-            // HTML trigger character for HTML content
-            return context;
-        }
-
-        // Trigger character not associated with the current language. Transform the context into an invoked context.
-        var rewrittenContext = new VSInternalCompletionContext()
-        {
-            InvokeKind = context.InvokeKind,
-            TriggerKind = CompletionTriggerKind.Invoked,
-        };
-
-        if (languageKind == RazorLanguageKind.CSharp
-            && CompletionTriggerCharacters.RazorDelegationTriggerCharacters.Contains(triggerCharacter))
-        {
-            // The C# language server will not return any completions for the '@' character unless we
-            // send the completion request explicitly.
-            rewrittenContext.InvokeKind = VSInternalCompletionInvokeKind.Explicit;
-        }
-
-        return rewrittenContext;
-    }
-
-    private async Task<ProvisionalCompletionInfo?> TryGetProvisionalCompletionInfoAsync(
+    private async Task<CompletionPositionInfo?> TryGetProvisionalCompletionInfoAsync(
         DocumentContext documentContext,
         VSInternalCompletionContext completionContext,
         DocumentPositionInfo positionInfo,
@@ -223,8 +183,10 @@ internal class DelegatedCompletionListProvider
                 previousPosition.Character + 1),
             HostDocumentIndex = previousCharacterPositionInfo.HostDocumentIndex + 1 };
 
-        return new ProvisionalCompletionInfo(addProvisionalDot, provisionalPositionInfo);
+        return new CompletionPositionInfo()
+        {
+            ProvisionalTextEdit = addProvisionalDot,
+            ProvisionalPositionInfo = provisionalPositionInfo
+        };
     }
-
-    private record class ProvisionalCompletionInfo(TextEdit ProvisionalTextEdit, DocumentPositionInfo ProvisionalPositionInfo);
 }

@@ -109,6 +109,12 @@ internal class CohostDocumentCompletionEndpoint(
             return null;
         }
 
+        var completionContext = ToVSInternalCompletionContext(request.Context);
+        if (documentPositionInfo.LanguageKind != RazorLanguageKind.Razor)
+        {
+            completionContext = DelegatedCompletionHelper.RewriteContext(completionContext, documentPositionInfo.LanguageKind);
+        }
+
         // First of all, see if we in HTML and get HTML completions before calling OOP to get Razor completions.
         // Razor completion provider needs a set of existing HTML item labels.
 
@@ -142,7 +148,7 @@ internal class CohostDocumentCompletionEndpoint(
                         solutionInfo,
                         razorDocument.Id,
                         documentPositionInfo,
-                        request.Context.AssumeNotNull(),
+                        completionContext,
                         _clientCapabilities.AssumeNotNull(),
                         razorCompletionOptions,
                         existingHtmlCompletions,
@@ -168,11 +174,6 @@ internal class CohostDocumentCompletionEndpoint(
 
     private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(CompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        if (request.Context?.TriggerCharacter != "<")
-        {
-            return null;
-        }
-
         var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
         if (htmlDocument is null)
         {
@@ -190,12 +191,25 @@ internal class CohostDocumentCompletionEndpoint(
             request,
             cancellationToken).ConfigureAwait(false);
 
-        if (result?.Response is null)
+        if (result?.Response is not { } htmlCompletionList)
         {
             _logger.LogDebug($"Didn't get completion list from Html.");
             return null;
         }
 
-        return result.Response;
+        return htmlCompletionList;
+    }
+
+    // TODO: This is likely not quite correct, need to investigate why this request is not getting VSInternalCompletionContext
+    private static VSInternalCompletionContext ToVSInternalCompletionContext(CompletionContext context)
+    {
+        return new VSInternalCompletionContext
+        {
+            InvokeKind = context.TriggerCharacter != null
+                ? VSInternalCompletionInvokeKind.Typing
+                : VSInternalCompletionInvokeKind.Explicit,
+            TriggerCharacter = context.TriggerCharacter,
+            TriggerKind = context.TriggerKind
+        };
     }
 }

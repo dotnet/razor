@@ -62,7 +62,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         DocumentPositionInfo positionInfo,
-        CompletionContext completionContext,
+        VSInternalCompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
         HashSet<string> existingHtmlCompletions,
@@ -83,7 +83,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     private async ValueTask<Response> GetCompletionAsync(
         RemoteDocumentContext remoteDocumentContext,
         DocumentPositionInfo positionInfo,
-        CompletionContext completionContext,
+        VSInternalCompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
         HashSet<string> existingDelegatedCompletions,
@@ -108,17 +108,10 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             }
         }
 
-        var vsInternalCompletionContext = new VSInternalCompletionContext()
-        {
-            InvokeKind = completionContext.TriggerCharacter != null ? VSInternalCompletionInvokeKind.Typing : VSInternalCompletionInvokeKind.Explicit,
-            TriggerKind = completionContext.TriggerKind,
-            TriggerCharacter = completionContext.TriggerCharacter
-        };
-
         var razorCompletionList = CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.RazorTriggerCharacters, completionContext)
             ? await _razorCompletionListProvider.GetCompletionListAsync(
                 positionInfo.HostDocumentIndex,
-                vsInternalCompletionContext,
+                completionContext,
                 remoteDocumentContext,
                 clientCapabilities,
                 existingCompletions: existingDelegatedCompletions,
