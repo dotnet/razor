@@ -199,7 +199,7 @@ internal partial class DocumentState
                     inputVersion = importVersion;
                 }
             }
-
+            
             if (_older?._taskUnsafeReference != null &&
                 _older._taskUnsafeReference.TryGetTarget(out var taskUnsafe))
             {

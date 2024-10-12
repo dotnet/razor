@@ -4,19 +4,19 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor;
 using System.IO;
+
 #if DEBUG
 using System.Linq;
 #endif
 
 namespace Microsoft.VisualStudio.Razor.Telemetry;
 
-internal abstract class TelemetryReporter : ITelemetryReporter
+internal abstract partial class TelemetryReporter : ITelemetryReporter
 {
     private const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
     private const string AspNetCoreNamespace = nameof(Microsoft) + "." + nameof(AspNetCore);
@@ -28,27 +28,23 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         "Microsoft.AspNetCore.Razor.NullableExtensions"
     }.ToFrozenSet();
 
-    protected ImmutableArray<TelemetrySession> TelemetrySessions { get; set; }
+    TelemetrySessionManager? Manager;
 
-    protected TelemetryReporter(ImmutableArray<TelemetrySession> telemetrySessions = default)
+    protected TelemetryReporter(TelemetrySession? telemetrySession = null)
     {
-        // Get the DefaultSession for telemetry. This is set by VS with
-        // TelemetryService.SetDefaultSession and provides the correct
-        // appinsights keys etc
-        TelemetrySessions = telemetrySessions.NullToEmpty();
+        if (telemetrySession is not null)
+        {
+            SetSession(telemetrySession);
+        }
     }
 
-    private static string GetEventName(string name) => "dotnet/razor/" + name;
-    private static string GetPropertyName(string name) => "dotnet.razor." + name;
+    internal static string GetEventName(string name) => "dotnet/razor/" + name;
+    internal static string GetPropertyName(string name) => "dotnet.razor." + name;
 
-    private static TelemetrySeverity ConvertSeverity(Severity severity)
-        => severity switch
-        {
-            Severity.Normal => TelemetrySeverity.Normal,
-            Severity.Low => TelemetrySeverity.Low,
-            Severity.High => TelemetrySeverity.High,
-            _ => throw new InvalidOperationException($"Unknown severity: {severity}")
-        };
+    public void Dispose()
+    {
+        Manager?.Dispose();
+    }
 
     public void ReportEvent(string name, Severity severity)
     {
@@ -96,7 +92,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         Report(telemetryEvent);
     }
 
-    private static void AddToProperties(IDictionary<string, object?> properties, Property property)
+    internal static void AddToProperties(IDictionary<string, object?> properties, Property property)
     {
         if (IsComplexValue(property.Value))
         {
@@ -187,15 +183,18 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         }
     }
 
+    protected void SetSession(TelemetrySession session)
+    {
+        Manager?.Dispose();
+        Manager = new(session, new AggregatingTelemetryLogManager(session));
+    }
+
     protected virtual void Report(TelemetryEvent telemetryEvent)
     {
         try
         {
 #if !DEBUG
-            foreach (var session in TelemetrySessions)
-            {
-                session.PostEvent(telemetryEvent);
-            }
+            Manager?.Session.PostEvent(telemetryEvent);
 #else
             // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
             // before we're ready to send them to the cloud
@@ -264,6 +263,24 @@ internal abstract class TelemetryReporter : ITelemetryReporter
             new("eventscope.method", lspMethodName),
             new("eventscope.languageservername", languageServerName),
             new("eventscope.correlationid", correlationId));
+    }
+
+    public void UpdateRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, AspNetCore.Razor.Telemetry.TelemetryResult result, Exception? exception)
+    {
+        // Store the request time metrics per LSP method.
+        LogAggregated("LSP_TimeInQueue",
+            new AggregateValue((int)queuedDuration.TotalMilliseconds),
+            new MetricName("TimeInQueue"),
+            new Property("Method", name),
+            new Property("Language", language));
+
+        LogAggregated("LSP_RequestDuration",
+            new AggregateValue((int)requestDuration.TotalMilliseconds),
+            new MetricName("RequestDuration"),
+            new Property("Method", name),
+            new Property("Language", language));
+
+        //_requestCounters.GetOrAdd((methodName, language), (_) => new Counter()).IncrementCount(result);
     }
 
     /// <summary>
@@ -379,8 +396,36 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         }
     }
 
+    private void LogAggregated(
+        string name,
+        AggregateValue aggregateValue,
+        MetricName metricName,
+        Property property1,
+        Property property2)
+    {
+        var aggregatingLog = Manager?.AggregatingManager?.GetLog(name);
+        aggregatingLog?.Log(name, aggregateValue, metricName, property1, property2);
+    }
+
+    private static TelemetrySeverity ConvertSeverity(Severity severity)
+        => severity switch
+        {
+            Severity.Normal => TelemetrySeverity.Normal,
+            Severity.Low => TelemetrySeverity.Low,
+            Severity.High => TelemetrySeverity.High,
+            _ => throw new InvalidOperationException($"Unknown severity: {severity}")
+        };
+
     private static bool IsInOwnedNamespace(string declaringTypeName)
         => declaringTypeName.StartsWith(CodeAnalysisNamespace) ||
             declaringTypeName.StartsWith(AspNetCoreNamespace) ||
             declaringTypeName.StartsWith(MicrosoftVSRazorNamespace);
+
+    private record class TelemetrySessionManager(TelemetrySession Session, AggregatingTelemetryLogManager AggregatingManager) : IDisposable
+    {
+        public void Dispose()
+        {
+            AggregatingManager.Dispose();
+        }
+    }
 }

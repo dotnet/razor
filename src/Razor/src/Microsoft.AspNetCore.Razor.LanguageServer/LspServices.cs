@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,9 +18,18 @@ internal class LspServices : ILspServices
     private readonly IEnumerable<IRazorStartupService> _startupServices;
     public bool IsDisposed = false;
 
-    public LspServices(IServiceCollection serviceCollection)
+    public LspServices(IServiceCollection serviceCollection, ITelemetryReporter? telemetryReporter)
     {
         serviceCollection.AddSingleton<ILspServices>(this);
+
+        if (telemetryReporter is not null)
+        {
+            serviceCollection.AddSingleton<AbstractTelemetryService>(_ =>
+            {
+                return new CLaSPTelemetryService(telemetryReporter);
+            });
+        }
+
         _serviceProvider = serviceCollection.BuildServiceProvider();
 
         // Create all startup services

@@ -21,14 +21,12 @@ internal sealed class DevKitTelemetryReporter : TelemetryReporter, ITelemetryRep
 
     [ImportingConstructor]
     public DevKitTelemetryReporter()
-        : base(telemetrySessions: default)
+        : base(null)
     {
     }
 
     public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession)
     {
-        Debug.Assert(TelemetrySessions.IsDefaultOrEmpty);
-
         var sessionSettingsJson = CreateSessionSettingsJson(telemetryLevel, sessionId);
         var session = new TelemetrySession(sessionSettingsJson);
 
@@ -40,7 +38,7 @@ internal sealed class DevKitTelemetryReporter : TelemetryReporter, ITelemetryRep
         session.Start();
         session.RegisterForReliabilityEvent();
 
-        TelemetrySessions = ImmutableArray.Create<TelemetrySession>(session);
+        SetSession(session);
     }
 
     private static string CreateSessionSettingsJson(string telemetryLevel, string? sessionId)

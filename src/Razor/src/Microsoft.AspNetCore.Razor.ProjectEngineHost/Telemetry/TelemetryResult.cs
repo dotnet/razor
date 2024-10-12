@@ -3,6 +3,9 @@
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
-internal readonly record struct Property(string Name, object? Value);
-internal readonly record struct AggregateValue(int Value);
-internal readonly record struct MetricName(string Name);
+internal enum TelemetryResult
+{
+    Succeeded,
+    Failed,
+    Canceled
+}

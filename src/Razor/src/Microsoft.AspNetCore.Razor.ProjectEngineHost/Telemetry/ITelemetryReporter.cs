@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
-internal interface ITelemetryReporter
+internal interface ITelemetryReporter : IDisposable
 {
     TelemetryScope BeginBlock(string name, Severity severity);
     TelemetryScope BeginBlock(string name, Severity severity, Property property);
@@ -22,4 +22,6 @@ internal interface ITelemetryReporter
     void ReportEvent(string name, Severity severity, params ReadOnlySpan<Property> properties);
 
     void ReportFault(Exception exception, string? message, params object?[] @params);
+
+    void UpdateRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result, Exception? exception);
 }

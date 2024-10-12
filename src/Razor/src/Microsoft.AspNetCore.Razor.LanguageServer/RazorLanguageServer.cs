@@ -171,7 +171,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
         AddHandlers(services, featureOptions);
 
-        var lspServices = new LspServices(services);
+        var lspServices = new LspServices(services, telemetryReporter: null);
 
         return lspServices;
 

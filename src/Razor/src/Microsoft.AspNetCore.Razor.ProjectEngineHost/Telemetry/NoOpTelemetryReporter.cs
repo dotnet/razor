@@ -28,6 +28,10 @@ internal class NoOpTelemetryReporter : ITelemetryReporter
     public TelemetryScope BeginBlock(string name, Severity severity, params Property[] properties)
         => TelemetryScope.Null;
 
+    public void Dispose()
+    {
+    }
+
     public void ReportEvent(string name, Severity severity)
     {
     }
@@ -54,4 +58,8 @@ internal class NoOpTelemetryReporter : ITelemetryReporter
 
     public TelemetryScope TrackLspRequest(string lspMethodName, string lspServerName, Guid correlationId)
         => TelemetryScope.Null;
+
+    public void UpdateRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result, Exception? exception)
+    {
+    }
 }
