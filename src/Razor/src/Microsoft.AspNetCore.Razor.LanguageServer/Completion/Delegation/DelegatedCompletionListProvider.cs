@@ -62,12 +62,17 @@ internal class DelegatedCompletionListProvider
             return null;
         }
 
-        var provisionalCompletion = await TryGetProvisionalCompletionInfoAsync(documentContext, completionContext, positionInfo, cancellationToken).ConfigureAwait(false);
+        var provisionalCompletion = await DelegatedCompletionHelper.TryGetProvisionalCompletionInfoAsync(
+            documentContext,
+            completionContext,
+            positionInfo,
+            _documentMappingService,
+            cancellationToken).ConfigureAwait(false);
         TextEdit? provisionalTextEdit = null;
         if (provisionalCompletion is { } provisionalCompletionValue)
         {
             provisionalTextEdit = provisionalCompletionValue.ProvisionalTextEdit;
-            positionInfo = provisionalCompletionValue.ProvisionalPositionInfo;
+            positionInfo = provisionalCompletionValue.DocumentPositionInfo;
         }
 
         completionContext = DelegatedCompletionHelper.RewriteContext(completionContext, positionInfo.LanguageKind);
@@ -139,54 +144,5 @@ internal class DelegatedCompletionListProvider
         }
 
         return !startOrEndTag.Span.Contains(absoluteIndex);
-    }
-
-    private async Task<CompletionPositionInfo?> TryGetProvisionalCompletionInfoAsync(
-        DocumentContext documentContext,
-        VSInternalCompletionContext completionContext,
-        DocumentPositionInfo positionInfo,
-        CancellationToken cancellationToken)
-    {
-        if (positionInfo.LanguageKind != RazorLanguageKind.Html ||
-            completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
-            completionContext.TriggerCharacter != ".")
-        {
-            // Invalid provisional completion context
-            return null;
-        }
-
-        if (positionInfo.Position.Character == 0)
-        {
-            // We're at the start of line. Can't have provisional completions here.
-            return null;
-        }
-
-        var previousCharacterPositionInfo = await _documentMappingService
-            .GetPositionInfoAsync(documentContext, positionInfo.HostDocumentIndex - 1, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (previousCharacterPositionInfo.LanguageKind != RazorLanguageKind.CSharp)
-        {
-            return null;
-        }
-
-        var previousPosition = previousCharacterPositionInfo.Position;
-
-        // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
-        // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
-        var addProvisionalDot = VsLspFactory.CreateTextEdit(previousPosition, ".");
-
-        var provisionalPositionInfo = new DocumentPositionInfo {
-            LanguageKind = RazorLanguageKind.CSharp,
-            Position = VsLspFactory.CreatePosition(
-                previousPosition.Line,
-                previousPosition.Character + 1),
-            HostDocumentIndex = previousCharacterPositionInfo.HostDocumentIndex + 1 };
-
-        return new CompletionPositionInfo()
-        {
-            ProvisionalTextEdit = addProvisionalDot,
-            ProvisionalPositionInfo = provisionalPositionInfo
-        };
     }
 }

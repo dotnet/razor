@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
 
@@ -14,16 +14,17 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteCompletionService : IRemoteJsonService
 {
-    ValueTask<DocumentPositionInfo?> GetPositionInfoAsync(
+    ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
+        VSInternalCompletionContext completionContext,
         Position position,
         CancellationToken cancellationToken);
 
     ValueTask<Response> GetCompletionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        DocumentPositionInfo positionInfo,
+        CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,

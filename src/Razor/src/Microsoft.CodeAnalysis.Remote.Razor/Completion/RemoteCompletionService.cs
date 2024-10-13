@@ -9,8 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -31,19 +31,21 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
     private readonly RazorCompletionListProvider _razorCompletionListProvider = args.ExportProvider.GetExportedValue<RazorCompletionListProvider>();
 
-    public ValueTask<DocumentPositionInfo?> GetPositionInfoAsync(
+    public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
+        VSInternalCompletionContext completionContext,
         Position position,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetPositionInfoAsync(context, position, cancellationToken),
+            context => GetPositionInfoAsync(context, completionContext, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<DocumentPositionInfo?> GetPositionInfoAsync(
+    private async ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         RemoteDocumentContext remoteDocumentContext,
+        VSInternalCompletionContext completionContext,
         Position position,
         CancellationToken cancellationToken)
     {
@@ -55,13 +57,30 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        return GetPositionInfo(codeDocument, index);
+        var positionInfo = GetPositionInfo(codeDocument, index);
+
+        if(positionInfo.LanguageKind != RazorLanguageKind.Razor
+           && await DelegatedCompletionHelper.TryGetProvisionalCompletionInfoAsync(
+                remoteDocumentContext,
+                completionContext,
+                positionInfo,
+                DocumentMappingService,
+                cancellationToken) is { } provisionalCompletionInfo)
+        {
+            return new CompletionPositionInfo()
+            {
+                DocumentPositionInfo = provisionalCompletionInfo.DocumentPositionInfo,
+                ProvisionalTextEdit = provisionalCompletionInfo.ProvisionalTextEdit
+            };
+        }
+
+        return new CompletionPositionInfo() { DocumentPositionInfo = positionInfo };
     }
 
     public ValueTask<Response> GetCompletionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        DocumentPositionInfo positionInfo,
+        CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
@@ -82,7 +101,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
     private async ValueTask<Response> GetCompletionAsync(
         RemoteDocumentContext remoteDocumentContext,
-        DocumentPositionInfo positionInfo,
+        CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
@@ -90,13 +109,15 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         CancellationToken cancellationToken)
     {
         VSInternalCompletionList? csharpCompletionList = null;
-        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp &&
+        var documentPositionInfo = positionInfo.DocumentPositionInfo;
+        if (documentPositionInfo.LanguageKind == RazorLanguageKind.CSharp &&
             CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.CSharpTriggerCharacters, completionContext))
         {
-            var mappedPosition = positionInfo.Position.ToLinePosition();
+            var mappedPosition = documentPositionInfo.Position.ToLinePosition();
             csharpCompletionList = await GetCSharpCompletionAsync(
                     remoteDocumentContext,
                     mappedPosition,
+                    positionInfo.ProvisionalTextEdit,
                     completionContext,
                     clientCapabilities,
                     cancellationToken);
@@ -110,7 +131,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         var razorCompletionList = CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.RazorTriggerCharacters, completionContext)
             ? await _razorCompletionListProvider.GetCompletionListAsync(
-                positionInfo.HostDocumentIndex,
+                documentPositionInfo.HostDocumentIndex,
                 completionContext,
                 remoteDocumentContext,
                 clientCapabilities,
@@ -130,11 +151,20 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     private async ValueTask<VSInternalCompletionList?> GetCSharpCompletionAsync(
         RemoteDocumentContext remoteDocumentContext,
         LinePosition mappedPosition,
+        TextEdit? provisionalTextEdit,
         CompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
         CancellationToken cancellationToken)
     {
         var generatedDocument = await remoteDocumentContext.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
+        if (provisionalTextEdit is not null)
+        {
+            var generatedText = await generatedDocument.GetTextAsync(cancellationToken);
+            var startIndex = generatedText.GetPosition(provisionalTextEdit.Range.Start);
+            var endIndex = generatedText.GetPosition(provisionalTextEdit.Range.End);
+            var generatedTextWithEdit = generatedText.Replace(startIndex, length: endIndex - startIndex, newText: provisionalTextEdit.NewText);
+            generatedDocument = generatedDocument.WithText(generatedTextWithEdit);
+        }
 
         // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
         var options = new JsonSerializerOptions();

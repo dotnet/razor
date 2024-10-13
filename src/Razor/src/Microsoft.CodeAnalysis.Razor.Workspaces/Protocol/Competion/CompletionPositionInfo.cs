@@ -17,5 +17,5 @@ internal record struct CompletionPositionInfo
 
     [DataMember(Name = "provisionalPositionInfo")]
     [JsonPropertyName("provisionalPositionInfo")]
-    public required DocumentPositionInfo ProvisionalPositionInfo { get; set; }
+    public required DocumentPositionInfo DocumentPositionInfo { get; set; }
 }

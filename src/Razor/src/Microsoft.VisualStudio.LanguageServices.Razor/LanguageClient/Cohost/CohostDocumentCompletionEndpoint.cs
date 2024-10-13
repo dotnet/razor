@@ -11,9 +11,9 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -95,21 +95,23 @@ internal class CohostDocumentCompletionEndpoint(
 
         _logger.LogDebug($"Invoking completion for {razorDocument.FilePath}");
 
-        if (await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, DocumentPositionInfo?>(
+        var completionContext = ToVSInternalCompletionContext(request.Context);
+        if (await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, CompletionPositionInfo?>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken)
                     => service.GetPositionInfoAsync(
                             solutionInfo,
                             razorDocument.Id,
+                            completionContext,
                             request.Position,
                             cancellationToken),
-                cancellationToken).ConfigureAwait(false) is not { } documentPositionInfo)
+                cancellationToken).ConfigureAwait(false) is not { } completionPositionInfo)
         {
             // If we can't figure out position info for request position we can't return completions
             return null;
         }
 
-        var completionContext = ToVSInternalCompletionContext(request.Context);
+        var documentPositionInfo = completionPositionInfo.DocumentPositionInfo;
         if (documentPositionInfo.LanguageKind != RazorLanguageKind.Razor)
         {
             completionContext = DelegatedCompletionHelper.RewriteContext(completionContext, documentPositionInfo.LanguageKind);
@@ -120,7 +122,7 @@ internal class CohostDocumentCompletionEndpoint(
 
         VSInternalCompletionList? htmlCompletionList = null;
         using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
-        if (CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.HtmlTriggerCharacters, request.Context))
+        if (CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.HtmlTriggerCharacters, completionContext))
         {
             // We can just blindly call HTML LSP because if we are in C#, generated HTML seen by HTML LSP may return
             // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
@@ -147,7 +149,7 @@ internal class CohostDocumentCompletionEndpoint(
                 => service.GetCompletionAsync(
                         solutionInfo,
                         razorDocument.Id,
-                        documentPositionInfo,
+                        completionPositionInfo,
                         completionContext,
                         _clientCapabilities.AssumeNotNull(),
                         razorCompletionOptions,
