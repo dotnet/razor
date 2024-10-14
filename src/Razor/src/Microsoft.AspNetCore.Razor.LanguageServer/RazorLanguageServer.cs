@@ -165,13 +165,14 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         // TelemetryService.SetDefaultSession and provides the correct
         // appinsights keys etc
         services.AddSingleton<ITelemetryReporter>(_telemetryReporter);
+        services.AddSingleton<AbstractTelemetryService, CLaSPTelemetryService>();
 
         // Defaults: For when the caller hasn't provided them through the `configure` action.
         services.TryAddSingleton<IHostServicesProvider, DefaultHostServicesProvider>();
 
         AddHandlers(services, featureOptions);
 
-        var lspServices = new LspServices(services, telemetryReporter: null);
+        var lspServices = new LspServices(services);
 
         return lspServices;
 

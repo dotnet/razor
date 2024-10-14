@@ -16,25 +16,22 @@ internal class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : Abs
 
     private class RequestTelemetryScope : AbstractRequestScope
     {
-        private readonly PooledObject<Stopwatch> _stopwatchPool;
+        private readonly Stopwatch _stopWatch;
         private readonly ITelemetryReporter _telemetryReporter;
         private TelemetryResult _result = TelemetryResult.Succeeded;
         private TimeSpan _queuedDuration;
         private Exception? _exception;
 
-        private Stopwatch StopWatch => _stopwatchPool.Object;
-
         public RequestTelemetryScope(string lspMethodName, ITelemetryReporter telemetryReporter) : base(lspMethodName)
         {
-            _stopwatchPool = StopwatchPool.GetPooledObject();
+            _stopWatch = Stopwatch.StartNew();
             _telemetryReporter = telemetryReporter;
         }
 
         public override void Dispose()
         {
-            var requestDuration = StopWatch.Elapsed;
+            var requestDuration = _stopWatch.Elapsed;
             _telemetryReporter.UpdateRequestTelemetry(Name, Language, _queuedDuration, requestDuration, _result, _exception);
-            _stopwatchPool.Dispose();
         }
 
         public override void RecordCancellation()
@@ -50,7 +47,7 @@ internal class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : Abs
 
         public override void RecordExecutionStart()
         {
-            _queuedDuration = StopWatch.Elapsed;
+            _queuedDuration = _stopWatch.Elapsed;
         }
 
         public override void RecordWarning(string message)

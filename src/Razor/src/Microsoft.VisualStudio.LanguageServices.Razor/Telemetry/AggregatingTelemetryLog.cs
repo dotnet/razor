@@ -2,11 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.VisualStudio.Telemetry;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.VisualStudio.Telemetry.Metrics.Events;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics;
-using static Microsoft.VisualStudio.Razor.Telemetry.AggregatingTelemetryLog;
+using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 
 namespace Microsoft.VisualStudio.Razor.Telemetry;
 

@@ -9,10 +9,7 @@ using Microsoft.VisualStudio.Telemetry;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor;
 using System.IO;
-using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 using static Microsoft.VisualStudio.Razor.Telemetry.AggregatingTelemetryLog;
-
-
 
 #if DEBUG
 using System.Linq;
@@ -45,7 +42,11 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
     internal static string GetEventName(string name) => "dotnet/razor/" + name;
     internal static string GetPropertyName(string name) => "dotnet.razor." + name;
 
+#if DEBUG
+    public virtual bool IsEnabled => true;
+#else
     public virtual bool IsEnabled => Manager?.Session.IsOptedIn ?? false;
+#endif
 
     public void Dispose()
     {
@@ -198,7 +199,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 #else
             // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
             // before we're ready to send them to the cloud
-            LogTrace(metricEvent.ToString());
+            LogTelemetry(metricEvent.Event);
 #endif
         }
         catch (Exception e)
@@ -222,21 +223,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 #if !DEBUG
             Manager?.Session.PostEvent(telemetryEvent);
 #else
-            // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
-            // before we're ready to send them to the cloud
-            var name = telemetryEvent.Name;
-            var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
-            LogTrace($"Telemetry Event: {name} \n Properties: {propertyString}\n");
-
-            if (telemetryEvent is FaultEvent)
-            {
-                var eventType = telemetryEvent.GetType();
-                var description = eventType.GetProperty("Description", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
-                var exception = eventType.GetProperty("ExceptionObject", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
-                var message = $"Fault Event: {name} \n Exception Info: {exception ?? description} \n Properties: {propertyString}";
-
-                Debug.Fail(message);
-            }
+            LogTelemetry(telemetryEvent);
 #endif
         }
         catch (Exception e)
@@ -457,6 +444,26 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         public void Flush()
         {
             AggregatingManager.Flush();
+        }
+    }
+
+    [Conditional("DEBUG")]
+    private void LogTelemetry(TelemetryEvent telemetryEvent)
+    {
+        // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
+        // before we're ready to send them to the cloud
+        var name = telemetryEvent.Name;
+        var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
+        LogTrace($"Telemetry Event: {name} \n Properties: {propertyString}\n");
+
+        if (telemetryEvent is FaultEvent)
+        {
+            var eventType = telemetryEvent.GetType();
+            var description = eventType.GetProperty("Description", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
+            var exception = eventType.GetProperty("ExceptionObject", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
+            var message = $"Fault Event: {name} \n Exception Info: {exception ?? description} \n Properties: {propertyString}";
+
+            Debug.Fail(message);
         }
     }
 }
