@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -463,15 +462,24 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var csharpDocumentWithDiagnostic = new RazorCSharpDocument(codeDocument, csharpDocument.GeneratedCode, csharpDocument.Options, [diagnostic]);
         codeDocument.SetCSharpDocument(csharpDocumentWithDiagnostic);
 
-        var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.GetGeneratedOutputAsync(It.IsAny<bool>()) == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text) &&
-            document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers), MockBehavior.Strict);
+        var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
+        documentSnapshotMock
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(codeDocument);
+        documentSnapshotMock
+            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(codeDocument.Source.Text);
+        documentSnapshotMock
+            .Setup(x => x.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tagHelpers);
 
-        var sourceText = SourceText.From(text);
-
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve);
-
-        return context;
+        return new RazorCodeActionContext(
+            request,
+            documentSnapshotMock.Object,
+            codeDocument,
+            location,
+            codeDocument.Source.Text,
+            supportsFileCreation,
+            supportsCodeActionResolve);
     }
 }

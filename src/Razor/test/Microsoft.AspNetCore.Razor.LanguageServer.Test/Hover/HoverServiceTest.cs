@@ -933,10 +933,10 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
         documentSnapshotMock
-            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>()))
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
         documentSnapshotMock
-            .Setup(x => x.GetTextAsync())
+            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument.Source.Text);
         documentSnapshotMock
             .SetupGet(x => x.FilePath)

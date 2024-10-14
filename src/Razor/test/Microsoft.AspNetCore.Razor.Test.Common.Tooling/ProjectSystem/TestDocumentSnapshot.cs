@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -39,12 +38,7 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
         var sourceText = SourceText.From(text);
         var textVersion = VersionStamp.Default;
 
-        var documentState = new DocumentState(
-            hostDocument,
-            sourceText,
-            textVersion,
-            version,
-            () => Task.FromResult(TextAndVersion.Create(sourceText, textVersion)));
+        var documentState = new DocumentState(hostDocument, version, sourceText, textVersion);
 
         return new TestDocumentSnapshot(project, documentState);
     }
@@ -60,12 +54,7 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
         var sourceText = codeDocument.Source.Text;
         var textVersion = VersionStamp.Default;
 
-        var documentState = new DocumentState(
-            hostDocument,
-            sourceText,
-            textVersion,
-            version,
-            () => Task.FromResult(TextAndVersion.Create(sourceText, textVersion)));
+        var documentState = new DocumentState(hostDocument, version, sourceText, textVersion);
 
         return new TestDocumentSnapshot(project, documentState, codeDocument);
     }
@@ -78,34 +67,30 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     public IProjectSnapshot Project => RealSnapshot.Project;
     public int Version => RealSnapshot.Version;
 
-    public Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
+    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(
+        bool forceDesignTimeGeneratedOutput,
+        CancellationToken cancellationToken)
     {
         return _codeDocument is null
-            ? RealSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput)
-            : Task.FromResult(_codeDocument);
+            ? RealSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput, cancellationToken)
+            : new(_codeDocument);
     }
 
-    public Task<SourceText> GetTextAsync()
+    public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
         return _codeDocument is null
-            ? RealSnapshot.GetTextAsync()
-            : Task.FromResult(_codeDocument.Source.Text);
+            ? RealSnapshot.GetTextAsync(cancellationToken)
+            : new(_codeDocument.Source.Text);
     }
 
-    public Task<VersionStamp> GetTextVersionAsync()
-        => RealSnapshot.GetTextVersionAsync();
+    public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
+        => RealSnapshot.GetTextVersionAsync(cancellationToken);
 
-    public Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
+    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
-        if (_codeDocument is { } codeDocument)
-        {
-            var csharpText = codeDocument.GetCSharpSourceText();
-            var csharpSyntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
-
-            return Task.FromResult(csharpSyntaxTree);
-        }
-
-        return RealSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken);
+        return _codeDocument is null
+            ? RealSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken)
+            : new(DocumentSnapshot.GetOrParseCSharpSyntaxTree(_codeDocument, cancellationToken));
     }
 
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
