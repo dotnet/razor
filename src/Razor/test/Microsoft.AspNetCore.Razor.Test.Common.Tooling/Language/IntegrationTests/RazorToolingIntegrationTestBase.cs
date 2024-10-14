@@ -129,7 +129,6 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             });
 
             b.SetCSharpLanguageVersion(CSharpParseOptions.LanguageVersion);
-            b.SetCSharpLanguageVersion(CSharpParseOptions.LanguageVersion);
             b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions));
 
             CompilerFeatures.Register(b);
