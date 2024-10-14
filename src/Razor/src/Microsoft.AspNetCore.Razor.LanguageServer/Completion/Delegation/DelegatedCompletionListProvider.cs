@@ -95,11 +95,12 @@ internal class DelegatedCompletionListProvider
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 
+        var responseRewriterParams = new DelegatedCompletionResponseRewriterParams(delegatedParams.ProjectedKind, delegatedParams.ProjectedPosition);
         var rewrittenResponse = await DelegatedCompletionHelper.RewriteResponseAsync(
             delegatedResponse,
             absoluteIndex,
             documentContext,
-            delegatedParams,
+            responseRewriterParams,
             _responseRewriters,
             razorCompletionOptions,
             cancellationToken)

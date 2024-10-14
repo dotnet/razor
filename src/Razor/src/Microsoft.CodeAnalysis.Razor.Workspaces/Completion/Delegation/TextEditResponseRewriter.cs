@@ -17,7 +17,7 @@ internal class TextEditResponseRewriter : DelegatedCompletionResponseRewriter
         VSInternalCompletionList completionList,
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,
-        DelegatedCompletionParams delegatedParameters,
+        DelegatedCompletionResponseRewriterParams delegatedParameters,
         RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {

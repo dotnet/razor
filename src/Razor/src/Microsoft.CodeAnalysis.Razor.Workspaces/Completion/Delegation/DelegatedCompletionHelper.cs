@@ -88,7 +88,7 @@ internal static class DelegatedCompletionHelper
         VSInternalCompletionList? delegatedResponse,
         int absoluteIndex,
         DocumentContext documentContext,
-        DelegatedCompletionParams delegatedParams,
+        DelegatedCompletionResponseRewriterParams delegatedParams,
         ImmutableArray<DelegatedCompletionResponseRewriter> responseRewriters,
         RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)

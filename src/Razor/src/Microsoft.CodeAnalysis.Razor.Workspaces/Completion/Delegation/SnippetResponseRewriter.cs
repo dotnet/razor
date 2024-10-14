@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -35,7 +34,7 @@ internal class SnippetResponseRewriter : DelegatedCompletionResponseRewriter
         VSInternalCompletionList completionList,
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,
-        DelegatedCompletionParams delegatedParameters,
+        DelegatedCompletionResponseRewriterParams delegatedParameters,
         RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {

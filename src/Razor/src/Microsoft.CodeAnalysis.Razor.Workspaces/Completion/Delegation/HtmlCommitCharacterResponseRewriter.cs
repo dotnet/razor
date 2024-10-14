@@ -19,7 +19,7 @@ internal class HtmlCommitCharacterResponseRewriter : DelegatedCompletionResponse
         VSInternalCompletionList completionList,
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,
-        DelegatedCompletionParams delegatedParameters,
+        DelegatedCompletionResponseRewriterParams delegatedParameters,
         RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {

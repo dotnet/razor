@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
@@ -31,6 +32,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     private readonly RazorCompletionListProvider _razorCompletionListProvider = args.ExportProvider.GetExportedValue<RazorCompletionListProvider>();
+    private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _delegatedResponseRewriters =
+        args.ExportProvider.GetExportedValues<DelegatedCompletionResponseRewriter>().ToImmutableArray();
 
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
@@ -114,13 +117,15 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         if (documentPositionInfo.LanguageKind == RazorLanguageKind.CSharp &&
             CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.CSharpTriggerCharacters, completionContext))
         {
-            var mappedPosition = documentPositionInfo.Position.ToLinePosition();
+            var mappedPosition = documentPositionInfo.Position;
             csharpCompletionList = await GetCSharpCompletionAsync(
                     remoteDocumentContext,
+                    documentPositionInfo.HostDocumentIndex,
                     mappedPosition,
                     positionInfo.ProvisionalTextEdit,
                     completionContext,
                     clientCapabilities,
+                    razorCompletionOptions,
                     cancellationToken);
 
             if (csharpCompletionList is not null)
@@ -151,10 +156,12 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
     private async ValueTask<VSInternalCompletionList?> GetCSharpCompletionAsync(
         RemoteDocumentContext remoteDocumentContext,
-        LinePosition mappedPosition,
+        int documentIndex,
+        Position mappedPosition,
         TextEdit? provisionalTextEdit,
         CompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
+        RazorCompletionOptions razorCompletionOptions,
         CancellationToken cancellationToken)
     {
         var generatedDocument = await remoteDocumentContext.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
@@ -184,9 +191,10 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return null;
         }
 
+        var mappedLinePosition = mappedPosition.ToLinePosition();
         var roslynCompletionList = await ExternalAccess.Razor.Cohost.Handlers.Completion.GetCompletionListAsync(
             generatedDocument,
-            mappedPosition,
+            mappedLinePosition,
             roslynCompletionContext,
             clientCapabilities.SupportsVisualStudioExtensions,
             roslynCompletionSetting,
@@ -194,11 +202,29 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         if (roslynCompletionList is null)
         {
-            return null;
+            // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
+            // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
+            // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
+            // so we'd only ever return Razor completion items.
+            return new VSInternalCompletionList()
+            {
+                Items = [],
+                IsIncomplete = true
+            };
         }
 
         var vsPlatformCompletionList = JsonSerializer.Deserialize<VSInternalCompletionList>(JsonSerializer.SerializeToDocument(roslynCompletionList), options);
 
-        return vsPlatformCompletionList;
+        var responseRewriterParams = new DelegatedCompletionResponseRewriterParams(RazorLanguageKind.CSharp, mappedPosition);
+        var rewrittenResponse = await DelegatedCompletionHelper.RewriteResponseAsync(
+            vsPlatformCompletionList,
+            documentIndex,
+            remoteDocumentContext,
+            responseRewriterParams,
+            _delegatedResponseRewriters,
+            razorCompletionOptions,
+            cancellationToken);
+
+        return rewrittenResponse;
     }
 }
