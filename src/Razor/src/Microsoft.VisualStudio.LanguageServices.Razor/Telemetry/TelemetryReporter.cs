@@ -9,6 +9,10 @@ using Microsoft.VisualStudio.Telemetry;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor;
 using System.IO;
+using Microsoft.VisualStudio.Telemetry.Metrics.Events;
+using static Microsoft.VisualStudio.Razor.Telemetry.AggregatingTelemetryLog;
+
+
 
 #if DEBUG
 using System.Linq;
@@ -28,7 +32,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         "Microsoft.AspNetCore.Razor.NullableExtensions"
     }.ToFrozenSet();
 
-    TelemetrySessionManager? Manager;
+    protected TelemetrySessionManager? Manager;
 
     protected TelemetryReporter(TelemetrySession? telemetrySession = null)
     {
@@ -40,6 +44,8 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 
     internal static string GetEventName(string name) => "dotnet/razor/" + name;
     internal static string GetPropertyName(string name) => "dotnet.razor." + name;
+
+    public virtual bool IsEnabled => Manager?.Session.IsOptedIn ?? false;
 
     public void Dispose()
     {
@@ -183,10 +189,30 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         }
     }
 
+    public virtual void ReportMetric(TelemetryInstrumentEvent metricEvent)
+    {
+        try
+        {
+#if !DEBUG
+            Manager?.Session.PostMetricEvent(metricEvent);
+#else
+            // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
+            // before we're ready to send them to the cloud
+            LogTrace(metricEvent.ToString());
+#endif
+        }
+        catch (Exception e)
+        {
+            // No need to do anything here. We failed to report telemetry
+            // which isn't good, but not catastrophic for a user
+            LogError(e, "Failed logging telemetry event");
+        }
+    }
+
     protected void SetSession(TelemetrySession session)
     {
         Manager?.Dispose();
-        Manager = new(session, new AggregatingTelemetryLogManager(session));
+        Manager = new(session, new AggregatingTelemetryLogManager(this));
     }
 
     protected virtual void Report(TelemetryEvent telemetryEvent)
@@ -421,11 +447,16 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             declaringTypeName.StartsWith(AspNetCoreNamespace) ||
             declaringTypeName.StartsWith(MicrosoftVSRazorNamespace);
 
-    private record class TelemetrySessionManager(TelemetrySession Session, AggregatingTelemetryLogManager AggregatingManager) : IDisposable
+    protected record class TelemetrySessionManager(TelemetrySession Session, AggregatingTelemetryLogManager AggregatingManager) : IDisposable
     {
         public void Dispose()
         {
             AggregatingManager.Dispose();
+        }
+
+        public void Flush()
+        {
+            AggregatingManager.Flush();
         }
     }
 }
