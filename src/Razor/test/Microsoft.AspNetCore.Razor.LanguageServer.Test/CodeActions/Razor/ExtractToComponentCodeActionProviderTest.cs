@@ -174,13 +174,13 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
             <div id="parent">
                 [|<div>
-                    $$<h1>Div a title</h1>
+                    |]<h1>Div a title</h1>
                     <p>Div a par</p>
-                </div>
+                </div>$$
                 <div>
                     <h1>Div b title</h1>
                     <p>Div b par</p>
-                </div|]>
+                </div>
             </div>
 
             <h1>Hello, world!</h1>
@@ -206,7 +206,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
                 <div>
                     <h1>Div b title</h1>
                     <p>Div b par</p>
-                </div>|]
+                </div>$$|]
             </div>
 
             <h1>Hello, world!</h1>
