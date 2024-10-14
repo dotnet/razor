@@ -7,25 +7,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
-internal class HtmlCommitCharacterResponseRewriter(RazorLSPOptionsMonitor razorLSPOptionsMonitor) : DelegatedCompletionResponseRewriter
+internal class HtmlCommitCharacterResponseRewriter : DelegatedCompletionResponseRewriter
 {
-    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
-
     public override int Order => ExecutionBehaviorOrder.ChangesCompletionItems;
 
-    public override Task<VSInternalCompletionList> RewriteAsync(VSInternalCompletionList completionList, int hostDocumentIndex, DocumentContext hostDocumentContext, DelegatedCompletionParams delegatedParameters, CancellationToken cancellationToken)
+    public override Task<VSInternalCompletionList> RewriteAsync(
+        VSInternalCompletionList completionList,
+        int hostDocumentIndex,
+        DocumentContext hostDocumentContext,
+        DelegatedCompletionParams delegatedParameters,
+        RazorCompletionOptions completionOptions,
+        CancellationToken cancellationToken)
     {
         if (delegatedParameters.ProjectedKind != RazorLanguageKind.Html)
         {
             return Task.FromResult(completionList);
         }
 
-        if (_razorLSPOptionsMonitor.CurrentValue.CommitElementsWithSpace)
+        if (completionOptions.CommitElementsWithSpace)
         {
             return Task.FromResult(completionList);
         }

@@ -37,11 +37,6 @@
         <target state="translated">Generovat obslužnou rutinu události {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">příkaz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">Neznámý ProjectChangeKind {0}</target>

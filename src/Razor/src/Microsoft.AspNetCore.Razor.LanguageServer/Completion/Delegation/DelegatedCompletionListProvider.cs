@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -49,6 +50,7 @@ internal class DelegatedCompletionListProvider
         VSInternalCompletionContext completionContext,
         DocumentContext documentContext,
         VSInternalClientCapabilities clientCapabilities,
+        RazorCompletionOptions razorCompletionOptions,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
@@ -93,26 +95,15 @@ internal class DelegatedCompletionListProvider
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 
-        if (delegatedResponse is null)
-        {
-            // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
-            // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
-            // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
-            // so we'd only ever return Razor completion items.
-            return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
-        }
-
-        var rewrittenResponse = delegatedResponse;
-
-        foreach (var rewriter in _responseRewriters)
-        {
-            rewrittenResponse = await rewriter.RewriteAsync(
-                rewrittenResponse,
-                absoluteIndex,
-                documentContext,
-                delegatedParams,
-                cancellationToken).ConfigureAwait(false);
-        }
+        var rewrittenResponse = await DelegatedCompletionHelper.RewriteResponseAsync(
+            delegatedResponse,
+            absoluteIndex,
+            documentContext,
+            delegatedParams,
+            _responseRewriters,
+            razorCompletionOptions,
+            cancellationToken)
+            .ConfigureAwait(false);
 
         var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
         var resolutionContext = new DelegatedCompletionResolutionContext(delegatedParams, rewrittenResponse.Data);

@@ -37,11 +37,6 @@
         <target state="translated">Genera gestore dell'evento '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">istruzione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">ProjectChangeKind {0} sconosciuto</target>

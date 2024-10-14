@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
 /// <summary>
 /// Modifies delegated snippet completion items
@@ -31,7 +31,13 @@ internal class SnippetResponseRewriter : DelegatedCompletionResponseRewriter
 
     public override int Order => ExecutionBehaviorOrder.ChangesCompletionItems;
 
-    public override Task<VSInternalCompletionList> RewriteAsync(VSInternalCompletionList completionList, int hostDocumentIndex, DocumentContext hostDocumentContext, DelegatedCompletionParams delegatedParameters, CancellationToken cancellationToken)
+    public override Task<VSInternalCompletionList> RewriteAsync(
+        VSInternalCompletionList completionList,
+        int hostDocumentIndex,
+        DocumentContext hostDocumentContext,
+        DelegatedCompletionParams delegatedParameters,
+        RazorCompletionOptions completionOptions,
+        CancellationToken cancellationToken)
     {
         foreach (var item in completionList.Items)
         {

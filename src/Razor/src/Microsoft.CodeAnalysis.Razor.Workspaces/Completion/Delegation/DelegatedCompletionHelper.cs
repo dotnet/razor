@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
 /// <summary>
 /// Helper methods for C# and HTML completion ("delegated" completion) that are used both in LSP and cohosting
@@ -69,6 +70,52 @@ internal static class DelegatedCompletionHelper
         }
 
         return rewrittenContext;
+    }
+
+    /// <summary>
+    /// Modifies delegated server (currently C# or HTML) completion response to be usable by Razor.
+    /// </summary>
+    /// <param name="delegatedResponse"></param>
+    /// <param name="absoluteIndex"></param>
+    /// <param name="documentContext"></param>
+    /// <param name="delegatedParams"></param>
+    /// <param name="responseRewriters">A list of individual response re-writers with a single purpose</param>
+    /// <param name="completionOptions"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>
+    /// </returns>
+    public static async ValueTask<VSInternalCompletionList> RewriteResponseAsync(
+        VSInternalCompletionList? delegatedResponse,
+        int absoluteIndex,
+        DocumentContext documentContext,
+        DelegatedCompletionParams delegatedParams,
+        ImmutableArray<DelegatedCompletionResponseRewriter> responseRewriters,
+        RazorCompletionOptions completionOptions,
+        CancellationToken cancellationToken)
+    {
+        if (delegatedResponse is null)
+        {
+            // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
+            // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
+            // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
+            // so we'd only ever return Razor completion items.
+            return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
+        }
+
+        var rewrittenResponse = delegatedResponse;
+
+        foreach (var rewriter in responseRewriters)
+        {
+            rewrittenResponse = await rewriter.RewriteAsync(
+                rewrittenResponse,
+                absoluteIndex,
+                documentContext,
+                delegatedParams,
+                completionOptions,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        return rewrittenResponse;
     }
 
     /// <summary>

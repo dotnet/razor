@@ -43,7 +43,14 @@ internal class CompletionListProvider
     {
         // First we delegate to get completion items from the individual language server
         var delegatedCompletionList = CompletionTriggerCharacters.IsValidTrigger(_delegatedCompletionListProvider.TriggerCharacters, completionContext)
-            ? await _delegatedCompletionListProvider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, correlationId, cancellationToken).ConfigureAwait(false)
+            ? await _delegatedCompletionListProvider.GetCompletionListAsync(
+                absoluteIndex,
+                completionContext,
+                documentContext,
+                clientCapabilities,
+                razorCompletionOptions,
+                correlationId,
+                cancellationToken).ConfigureAwait(false)
             : null;
 
         // Extract the items we got back from the delegated server, to inform tag helper completion

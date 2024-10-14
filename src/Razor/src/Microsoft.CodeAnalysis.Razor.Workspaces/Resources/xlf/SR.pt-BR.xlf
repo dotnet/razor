@@ -79,6 +79,11 @@
         <target state="translated">A linha '{0}' fora do intervalo {1} de '{2}' foi consultada. O documento pode não estar atualizado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="new">statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Atributo Glyph Razor TagHelper</target>

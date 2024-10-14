@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -147,7 +148,14 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         {
         }
 
-        public override Task<VSInternalCompletionList?> GetCompletionListAsync(int absoluteIndex, VSInternalCompletionContext completionContext, DocumentContext documentContext, VSInternalClientCapabilities clientCapabilities, Guid correlationId, CancellationToken cancellationToken)
+        public override Task<VSInternalCompletionList?> GetCompletionListAsync(
+            int absoluteIndex,
+            VSInternalCompletionContext completionContext,
+            DocumentContext documentContext,
+            VSInternalClientCapabilities clientCapabilities,
+            RazorCompletionOptions completionOptions,
+            Guid correlationId,
+            CancellationToken cancellationToken)
         {
             return Task.FromResult<VSInternalCompletionList?>(
                 new VSInternalCompletionList

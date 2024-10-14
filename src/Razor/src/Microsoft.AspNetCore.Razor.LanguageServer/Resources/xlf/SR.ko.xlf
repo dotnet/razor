@@ -37,11 +37,6 @@
         <target state="translated">이벤트 처리기 '{0}' 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">문</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">알 수 없는 ProjectChangeKind {0}</target>

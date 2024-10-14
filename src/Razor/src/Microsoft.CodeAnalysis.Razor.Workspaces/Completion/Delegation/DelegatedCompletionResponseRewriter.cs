@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
 internal abstract class DelegatedCompletionResponseRewriter
 {
@@ -24,6 +24,7 @@ internal abstract class DelegatedCompletionResponseRewriter
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,
         DelegatedCompletionParams delegatedParameters,
+        RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken);
 
     protected static class ExecutionBehaviorOrder

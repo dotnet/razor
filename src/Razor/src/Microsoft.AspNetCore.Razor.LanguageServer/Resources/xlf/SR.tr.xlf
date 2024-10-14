@@ -37,11 +37,6 @@
         <target state="translated">'{0}' Olay İşleyicisi Oluştur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">deyim</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">Bilinmeyen ProjectChangeKind {0}</target>

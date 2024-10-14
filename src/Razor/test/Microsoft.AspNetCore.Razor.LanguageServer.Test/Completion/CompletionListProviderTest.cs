@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -94,6 +95,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
             VSInternalCompletionContext completionContext,
             DocumentContext documentContext,
             VSInternalClientCapabilities clientCapabilities,
+            RazorCompletionOptions completionOptions,
             Guid correlationId,
             CancellationToken cancellationToken)
         {

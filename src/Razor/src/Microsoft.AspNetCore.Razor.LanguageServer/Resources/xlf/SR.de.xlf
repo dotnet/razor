@@ -37,11 +37,6 @@
         <target state="translated">Ereignishandler "{0}" generieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">Anweisung</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">Unbekannte ProjectChangeKind {0}</target>

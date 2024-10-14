@@ -79,6 +79,11 @@
         <target state="translated">Proběhl dotaz na řádek {0} mimo rozsah {1} {2}. Dokument nemusí být aktuální.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="new">statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Piktogram atributu Razor TagHelper</target>

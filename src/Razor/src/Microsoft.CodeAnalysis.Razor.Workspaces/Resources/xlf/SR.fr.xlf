@@ -79,6 +79,11 @@
         <target state="translated">La ligne «{0}» en dehors de la plage{1} de «{2}» a été interrogée. Le document n’est peut-être pas à jour.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="new">statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Glyphe d’attribut Razor TagHelper</target>

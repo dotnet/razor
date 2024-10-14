@@ -37,11 +37,6 @@
         <target state="translated">Gerar manipulador de eventos '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">instrução</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">ProjectChangeKind desconhecido {0}</target>

@@ -37,11 +37,6 @@
         <target state="translated">Generuj obsługę zdarzeń „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">instrukcja</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">Nieznany ProjectChangeKind {0}</target>

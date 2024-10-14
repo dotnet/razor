@@ -37,11 +37,6 @@
         <target state="translated">生成事件处理程序 "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">语句</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">未知的 ProjectChangeKind {0}</target>

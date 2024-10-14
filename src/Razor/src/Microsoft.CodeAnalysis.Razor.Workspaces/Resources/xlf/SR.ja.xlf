@@ -79,6 +79,11 @@
         <target state="translated">'{2}' の {1} 範囲外の行 '{0}' がクエリされました。ドキュメントが最新ではない可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="new">statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Razor TagHelper 属性のグリフ</target>

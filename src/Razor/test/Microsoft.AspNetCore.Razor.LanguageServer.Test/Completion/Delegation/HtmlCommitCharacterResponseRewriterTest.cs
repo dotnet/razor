@@ -4,8 +4,9 @@
 #nullable disable
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
@@ -14,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
 public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutput)
-    : ResponseRewriterTestBase(new HtmlCommitCharacterResponseRewriter(TestRazorLSPOptionsMonitor.Create()), testOutput)
+    : ResponseRewriterTestBase(new HtmlCommitCharacterResponseRewriter(), testOutput)
 {
     [Theory]
     [CombinatorialData]
@@ -68,12 +69,15 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
         TestFileMarkupParser.GetPosition(input, out var documentContent, out var cursorPosition);
         var delegatedCompletionList = GenerateCompletionList(useDefaultCommitCharacters: true, useVSTypes, "Element1", "Element2");
 
-        var options = TestRazorLSPOptionsMonitor.Create();
-        await options.UpdateAsync(options.CurrentValue with { CommitElementsWithSpace = false }, CancellationToken.None);
-        var rewriter = new HtmlCommitCharacterResponseRewriter(options);
+        var rewriter = new HtmlCommitCharacterResponseRewriter();
+        var razorCompletionOptions = new RazorCompletionOptions(
+                SnippetsSupported: true,
+                AutoInsertAttributeQuotes: true,
+                CommitElementsWithSpace: false);
 
         // Act
-        var rewrittenCompletionList = await GetRewrittenCompletionListAsync(cursorPosition, documentContent, delegatedCompletionList, rewriter);
+        var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+            cursorPosition, documentContent, delegatedCompletionList, razorCompletionOptions, rewriter);
 
         // Assert
         if (useVSTypes)
@@ -111,12 +115,19 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
         TestFileMarkupParser.GetPosition(input, out var documentContent, out var cursorPosition);
         var delegatedCompletionList = GenerateCompletionList(useDefaultCommitCharacters: false, useVSTypes, "Element1", "Element2");
 
-        var options = TestRazorLSPOptionsMonitor.Create();
-        await options.UpdateAsync(options.CurrentValue with { CommitElementsWithSpace = false }, CancellationToken.None);
-        var rewriter = new HtmlCommitCharacterResponseRewriter(options);
+        var razorCompletionOptions = new RazorCompletionOptions(
+            SnippetsSupported: true,
+            AutoInsertAttributeQuotes: true,
+            CommitElementsWithSpace: false);
+        var rewriter = new HtmlCommitCharacterResponseRewriter();
 
         // Act
-        var rewrittenCompletionList = await GetRewrittenCompletionListAsync(cursorPosition, documentContent, delegatedCompletionList, rewriter);
+        var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+            cursorPosition,
+            documentContent,
+            delegatedCompletionList,
+            razorCompletionOptions,
+            rewriter);
 
         // Assert
         Assert.Null(rewrittenCompletionList.CommitCharacters);

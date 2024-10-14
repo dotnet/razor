@@ -178,4 +178,7 @@
   <data name="Blazor_directive_attributes" xml:space="preserve">
     <value>Blazor directive attributes</value>
   </data>
+  <data name="Statement" xml:space="preserve">
+    <value>statement</value>
+  </data>
 </root>

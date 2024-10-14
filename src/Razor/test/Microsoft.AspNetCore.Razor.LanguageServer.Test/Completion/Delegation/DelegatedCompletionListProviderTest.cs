@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -28,12 +29,17 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 {
     private readonly TestDelegatedCompletionListProvider _provider;
     private readonly VSInternalClientCapabilities _clientCapabilities;
+    private readonly RazorCompletionOptions _defaultRazorCompletionOptions;
 
     public DelegatedCompletionListProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _provider = TestDelegatedCompletionListProvider.Create(LoggerFactory);
         _clientCapabilities = new VSInternalClientCapabilities();
+        _defaultRazorCompletionOptions = new RazorCompletionOptions(
+            SnippetsSupported: true,
+            AutoInsertAttributeQuotes: true,
+            CommitElementsWithSpace: true);
     }
 
     [Fact]
@@ -49,7 +55,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 1,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         // Assert
         Assert.Collection(completionList.Items,
@@ -67,7 +79,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 1,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -94,7 +112,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 1,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -122,7 +146,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 1,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -151,7 +181,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var delegatedCompletionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 1,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         // Assert
         Assert.NotNull(delegatedCompletionList);
@@ -198,7 +234,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await _provider.GetCompletionListAsync(
-            absoluteIndex: 11, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 11,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         // Assert
         Assert.Null(completionList);
@@ -221,7 +263,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 10,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -251,7 +299,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: 10,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -317,7 +371,14 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
             TriggerCharacter = ".",
         };
 
-        await completionProvider.GetCompletionListAsync(cursorPosition, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, DisposalToken);
+        await completionProvider.GetCompletionListAsync(
+            cursorPosition,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            DisposalToken);
 
         Assert.True(requestSent);
     }
@@ -333,7 +394,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         public override int Order => _order;
 
-        public override Task<VSInternalCompletionList> RewriteAsync(VSInternalCompletionList completionList, int hostDocumentIndex, DocumentContext hostDocumentContext, DelegatedCompletionParams delegatedParameters, CancellationToken cancellationToken)
+        public override Task<VSInternalCompletionList> RewriteAsync(
+            VSInternalCompletionList completionList,
+            int hostDocumentIndex,
+            DocumentContext hostDocumentContext,
+            DelegatedCompletionParams delegatedParameters,
+            RazorCompletionOptions options,
+            CancellationToken cancellationToken)
         {
             var completionItem = new VSInternalCompletionItem()
             {
@@ -377,7 +444,13 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var provider = TestDelegatedCompletionListProvider.Create(csharpServer, LoggerFactory, DisposalToken);
 
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: cursorPosition, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            absoluteIndex: cursorPosition,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         return completionList;
     }

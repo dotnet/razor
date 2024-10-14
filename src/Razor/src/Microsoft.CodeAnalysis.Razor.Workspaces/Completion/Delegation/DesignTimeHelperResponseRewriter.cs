@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -13,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
 /// <summary>
 ///  Removes Razor design-time helpers from a C# completion list.
@@ -39,6 +40,7 @@ internal class DesignTimeHelperResponseRewriter : DelegatedCompletionResponseRew
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,
         DelegatedCompletionParams delegatedParameters,
+        RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
         if (delegatedParameters.ProjectedKind != RazorLanguageKind.CSharp)

@@ -79,6 +79,11 @@
         <target state="translated">已查詢 '{2}' 之 {1} 範圍以外的行 '{0}'。文件可能不是最新狀態。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="new">statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Razor TagHelper 屬性字元</target>

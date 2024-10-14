@@ -37,11 +37,6 @@
         <target state="translated">Создать обработчик событий "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">инструкция</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
         <target state="translated">Неизвестный ProjectChangeKind {0}</target>
