@@ -292,7 +292,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             exception);
     }
 
-    [Conditional("DEBUG")]
+#if DEBUG
     private void LogTelemetry(TelemetryEvent telemetryEvent)
     {
         // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
@@ -311,6 +311,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             Debug.Fail(message);
         }
     }
+#endif
 
     /// <summary>
     /// Returns values that should be set to (failureParameter1, failureParameter2) when reporting a fault.
