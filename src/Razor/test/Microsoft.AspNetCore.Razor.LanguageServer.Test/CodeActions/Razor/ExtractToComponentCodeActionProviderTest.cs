@@ -62,7 +62,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -107,7 +107,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
         var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents, supportsFileCreation: true);
 
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -156,7 +156,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             documentPath,
             contents);
 
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -331,7 +331,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
         request.Range = VsLspFactory.CreateRange(lineSpan);
 
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
