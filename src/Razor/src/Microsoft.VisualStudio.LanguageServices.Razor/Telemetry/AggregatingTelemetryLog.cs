@@ -55,10 +55,9 @@ internal sealed class AggregatingTelemetryLog
     /// are used as the metric name and value to record.
     /// </summary>
     public void Log(string name,
-        AggregateValue value,
-        MetricName metricName,
-        Property property1,
-        Property property2)
+        int value,
+        string metricName,
+        string method)
     {
         if (!IsEnabled)
             return;
@@ -66,10 +65,9 @@ internal sealed class AggregatingTelemetryLog
         (var histogram, _, var histogramLock) = ImmutableInterlocked.GetOrAdd(ref _histograms, name, name =>
         {
             var telemetryEvent = new TelemetryEvent(_eventName);
-            TelemetryReporter.AddToProperties(telemetryEvent.Properties, property1);
-            TelemetryReporter.AddToProperties(telemetryEvent.Properties, property2);
+            TelemetryReporter.AddToProperties(telemetryEvent.Properties, new Property("method", method));
 
-            var histogram = _meter.CreateHistogram<long>(metricName.Name, _histogramConfiguration);
+            var histogram = _meter.CreateHistogram<long>(metricName, _histogramConfiguration);
             var histogramLock = new object();
 
             return (histogram, telemetryEvent, histogramLock);
@@ -77,7 +75,7 @@ internal sealed class AggregatingTelemetryLog
 
         lock (histogramLock)
         {
-            histogram.Record(value.Value);
+            histogram.Record(value);
         }
     }
 

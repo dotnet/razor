@@ -36,7 +36,7 @@ internal class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : Abs
 
         public override void RecordCancellation()
         {
-            _result = TelemetryResult.Canceled;
+            _result = TelemetryResult.Cancelled;
         }
 
         public override void RecordException(Exception exception)

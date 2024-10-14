@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor;
 using System.IO;
 using static Microsoft.VisualStudio.Razor.Telemetry.AggregatingTelemetryLog;
+using System.Collections.Concurrent;
+using System.Threading;
+using TelemetryResult = Microsoft.AspNetCore.Razor.Telemetry.TelemetryResult;
 
 #if DEBUG
 using System.Linq;
@@ -213,7 +216,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
     protected void SetSession(TelemetrySession session)
     {
         Manager?.Dispose();
-        Manager = new(session, new AggregatingTelemetryLogManager(this));
+        Manager = TelemetrySessionManager.Create(this, session);
     }
 
     protected virtual void Report(TelemetryEvent telemetryEvent)
@@ -280,20 +283,33 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 
     public void UpdateRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, AspNetCore.Razor.Telemetry.TelemetryResult result, Exception? exception)
     {
-        // Store the request time metrics per LSP method.
-        LogAggregated("LSP_TimeInQueue",
-            new AggregateValue((int)queuedDuration.TotalMilliseconds),
-            new MetricName("TimeInQueue"),
-            new Property("Method", name),
-            new Property("Language", language));
+        Manager?.LogRequestTelemetry(
+            name,
+            language,
+            queuedDuration,
+            requestDuration,
+            result,
+            exception);
+    }
 
-        LogAggregated("LSP_RequestDuration",
-            new AggregateValue((int)requestDuration.TotalMilliseconds),
-            new MetricName("RequestDuration"),
-            new Property("Method", name),
-            new Property("Language", language));
+    [Conditional("DEBUG")]
+    private void LogTelemetry(TelemetryEvent telemetryEvent)
+    {
+        // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
+        // before we're ready to send them to the cloud
+        var name = telemetryEvent.Name;
+        var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
+        LogTrace($"Telemetry Event: {name} \n Properties: {propertyString}\n");
 
-        //_requestCounters.GetOrAdd((methodName, language), (_) => new Counter()).IncrementCount(result);
+        if (telemetryEvent is FaultEvent)
+        {
+            var eventType = telemetryEvent.GetType();
+            var description = eventType.GetProperty("Description", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
+            var exception = eventType.GetProperty("ExceptionObject", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
+            var message = $"Fault Event: {name} \n Exception Info: {exception ?? description} \n Properties: {propertyString}";
+
+            Debug.Fail(message);
+        }
     }
 
     /// <summary>
@@ -409,17 +425,6 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         }
     }
 
-    private void LogAggregated(
-        string name,
-        AggregateValue aggregateValue,
-        MetricName metricName,
-        Property property1,
-        Property property2)
-    {
-        var aggregatingLog = Manager?.AggregatingManager?.GetLog(name);
-        aggregatingLog?.Log(name, aggregateValue, metricName, property1, property2);
-    }
-
     private static TelemetrySeverity ConvertSeverity(Severity severity)
         => severity switch
         {
@@ -434,36 +439,108 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             declaringTypeName.StartsWith(AspNetCoreNamespace) ||
             declaringTypeName.StartsWith(MicrosoftVSRazorNamespace);
 
-    protected record class TelemetrySessionManager(TelemetrySession Session, AggregatingTelemetryLogManager AggregatingManager) : IDisposable
+    protected class TelemetrySessionManager : IDisposable
     {
+        /// <summary>
+        /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
+        /// run alongside other non-mutating requests.
+        /// </summary>
+        private readonly ConcurrentDictionary<(string Method, string? Language), Counter> _requestCounters = new();
+        private readonly ITelemetryReporter _telemetryReporter;
+        private readonly AggregatingTelemetryLogManager _aggregatingManager;
+
+        private TelemetrySessionManager(ITelemetryReporter telemetryReporter, TelemetrySession session, AggregatingTelemetryLogManager aggregatingManager)
+        {
+            _telemetryReporter = telemetryReporter;
+            _aggregatingManager = aggregatingManager;
+            Session = session;
+        }
+
+        public static TelemetrySessionManager Create(TelemetryReporter telemetryReporter, TelemetrySession session)
+            => new(
+                telemetryReporter,
+                session,
+                new AggregatingTelemetryLogManager(telemetryReporter));
+
+        public TelemetrySession Session { get; }
+
         public void Dispose()
         {
-            AggregatingManager.Dispose();
+            _aggregatingManager.Dispose();
+            LogRequestCounters();
         }
 
         public void Flush()
         {
-            AggregatingManager.Flush();
+            _aggregatingManager.Flush();
+            LogRequestCounters();
         }
-    }
 
-    [Conditional("DEBUG")]
-    private void LogTelemetry(TelemetryEvent telemetryEvent)
-    {
-        // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
-        // before we're ready to send them to the cloud
-        var name = telemetryEvent.Name;
-        var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
-        LogTrace($"Telemetry Event: {name} \n Properties: {propertyString}\n");
-
-        if (telemetryEvent is FaultEvent)
+        public void LogRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result, Exception? _)
         {
-            var eventType = telemetryEvent.GetType();
-            var description = eventType.GetProperty("Description", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
-            var exception = eventType.GetProperty("ExceptionObject", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
-            var message = $"Fault Event: {name} \n Exception Info: {exception ?? description} \n Properties: {propertyString}";
+            LogAggregated("LSP_TimeInQueue",
+                (int)queuedDuration.TotalMilliseconds,
+                "TimeInQueue",
+                name);
 
-            Debug.Fail(message);
+            LogAggregated("LSP_RequestDuration",
+                (int)requestDuration.TotalMilliseconds,
+                "RequestDuration",
+                name);
+
+            _requestCounters.GetOrAdd((name, language), (_) => new Counter()).IncrementCount(result);
+        }
+
+        private void LogRequestCounters()
+        {
+            foreach (var kvp in _requestCounters)
+            {
+                _telemetryReporter.ReportEvent("LSP_RequestCounter",
+                    Severity.Low,
+                    new Property("method", kvp.Key.Method),
+                    new Property("successful", kvp.Value.SucceededCount),
+                    new Property("failed", kvp.Value.FailedCount),
+                    new Property("cancelled", kvp.Value.CancelledCount));
+            }
+
+            _requestCounters.Clear();
+        }
+
+        private void LogAggregated(
+            string name,
+            int value,
+            string metricName,
+            string method)
+        {
+            var aggregatingLog = _aggregatingManager?.GetLog(name);
+            aggregatingLog?.Log(name, value, metricName, method);
+        }
+
+        private class Counter
+        {
+            private int _succeededCount;
+            private int _failedCount;
+            private int _cancelledCount;
+
+            public int SucceededCount => _succeededCount;
+            public int FailedCount => _failedCount;
+            public int CancelledCount => _cancelledCount;
+
+            public void IncrementCount(TelemetryResult result)
+            {
+                switch (result)
+                {
+                    case TelemetryResult.Succeeded:
+                        Interlocked.Increment(ref _succeededCount);
+                        break;
+                    case TelemetryResult.Failed:
+                        Interlocked.Increment(ref _failedCount);
+                        break;
+                    case TelemetryResult.Cancelled:
+                        Interlocked.Increment(ref _cancelledCount);
+                        break;
+                }
+            }
         }
     }
 }

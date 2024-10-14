@@ -7,5 +7,5 @@ internal enum TelemetryResult
 {
     Succeeded,
     Failed,
-    Canceled
+    Cancelled
 }

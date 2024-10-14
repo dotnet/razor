@@ -419,7 +419,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
             WellKnownLspServerKinds.RazorLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(200),
             TimeSpan.FromMilliseconds(200),
-            AspNetCore.Razor.Telemetry.TelemetryResult.Canceled,
+            AspNetCore.Razor.Telemetry.TelemetryResult.Cancelled,
             null);
 
         reporter.UpdateRequestTelemetry(
