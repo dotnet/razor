@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -97,7 +96,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.DocumentAdded(hostProject.Key, hostDocument, StrictMock.Of<TextLoader>());
         });
 
-        var newDocument = new DocumentSnapshotHandle("file.cshtml", "file.cshtml", FileKinds.Component);
+        var newDocument = new HostDocument("file.cshtml", "file.cshtml", FileKinds.Component);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
@@ -130,8 +129,8 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.DocumentAdded(hostProject.Key, hostDocument, StrictMock.Of<TextLoader>());
         });
 
-        var oldDocument = new DocumentSnapshotHandle(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
-        var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
+        var oldDocument = new HostDocument(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
+        var newDocument = new HostDocument("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
@@ -167,7 +166,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         var project = _projectManager.GetLoadedProject(hostProject.Key);
 
-        var addedDocument = new DocumentSnapshotHandle(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
+        var addedDocument = new HostDocument(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
@@ -206,7 +205,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         var project = _projectManager.GetLoadedProject(ownerProjectKey);
 
-        var addedDocument = new DocumentSnapshotHandle(DocumentFilePath, DocumentFilePath, FileKinds.Legacy);
+        var addedDocument = new HostDocument(DocumentFilePath, DocumentFilePath, FileKinds.Legacy);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
@@ -246,7 +245,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             return project;
         });
 
-        var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
+        var newDocument = new HostDocument("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
@@ -280,7 +279,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.DocumentAdded(hostProject.Key, document, StrictMock.Of<TextLoader>());
         });
 
-        var newDocument = new DocumentSnapshotHandle(document.FilePath, document.TargetPath, document.FileKind);
+        var newDocument = new HostDocument(document.FilePath, document.TargetPath, document.FileKind);
 
         using var listener = _projectManager.ListenToNotifications();
 
@@ -311,7 +310,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.DocumentAdded(hostProject.Key, legacyDocument, StrictMock.Of<TextLoader>());
         });
 
-        var newDocument = new DocumentSnapshotHandle(legacyDocument.FilePath, legacyDocument.TargetPath, FileKinds.Component);
+        var newDocument = new HostDocument(legacyDocument.FilePath, legacyDocument.TargetPath, FileKinds.Component);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(

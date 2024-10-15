@@ -2,13 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -50,8 +47,7 @@ internal class TestRazorProjectService(
             var documents = ImmutableArray
                 .CreateRange(projectSnapshot.DocumentFilePaths)
                 .Add(textDocumentPath)
-                .Select(d => new DocumentSnapshotHandle(d, d, FileKinds.GetFileKindFromFilePath(d)))
-                .ToImmutableArray();
+                .SelectAsArray(static path => new HostDocument(filePath: path, targetPath: path));
 
             await ((IRazorProjectInfoListener)this).UpdatedAsync(new RazorProjectInfo(projectSnapshot.Key, projectSnapshot.FilePath, projectSnapshot.Configuration, projectSnapshot.RootNamespace, projectSnapshot.DisplayName, projectSnapshot.ProjectWorkspaceState,
                 documents), cancellationToken).ConfigureAwait(false);

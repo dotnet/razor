@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -332,7 +333,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         string? rootNamespace,
         string? displayName,
         ProjectWorkspaceState projectWorkspaceState,
-        ImmutableArray<DocumentSnapshotHandle> documents,
+        ImmutableArray<HostDocument> documents,
         CancellationToken cancellationToken)
     {
         // Note: We specifically don't wait for initialization here because this is called *during* initialization.
@@ -401,7 +402,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
     private void UpdateProjectDocuments(
         ProjectSnapshotManager.Updater updater,
-        ImmutableArray<DocumentSnapshotHandle> documents,
+        ImmutableArray<HostDocument> documents,
         ProjectKey projectKey)
     {
         _logger.LogDebug($"UpdateProjectDocuments for {projectKey} with {documents.Length} documents: {string.Join(", ", documents.Select(d => d.FilePath))}");
@@ -431,7 +432,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         // Update existing documents
         foreach (var documentFilePath in project.DocumentFilePaths)
         {
-            if (!documentMap.TryGetValue(documentFilePath, out var documentHandle))
+            if (!documentMap.TryGetValue(documentFilePath, out var document))
             {
                 // Document exists in the project but not in the configured documents. Chances are the project configuration is from a fallback
                 // configuration case (< 2.1) or the project isn't fully loaded yet.
@@ -444,8 +445,8 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             }
 
             var currentHostDocument = documentSnapshot.HostDocument;
-            var newFilePath = EnsureFullPath(documentHandle.FilePath, projectDirectory);
-            var newHostDocument = new HostDocument(newFilePath, documentHandle.TargetPath, documentHandle.FileKind);
+            var newFilePath = EnsureFullPath(document.FilePath, projectDirectory);
+            var newHostDocument = document with { FilePath = newFilePath };
 
             if (currentHostDocument == newHostDocument)
             {
@@ -470,9 +471,8 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         miscellaneousProject = _projectManager.GetMiscellaneousProject();
 
         // Add (or migrate from misc) any new documents
-        foreach (var documentKvp in documentMap)
+        foreach (var (documentFilePath, document) in documentMap)
         {
-            var documentFilePath = documentKvp.Key;
             if (project.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance))
             {
                 // Already know about this document
@@ -485,9 +485,8 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             }
             else
             {
-                var documentHandle = documentKvp.Value;
                 var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
-                var newHostDocument = new HostDocument(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
+                var newHostDocument = document with { FilePath = documentFilePath };
 
                 _logger.LogInformation($"Adding new document '{documentFilePath}' to project '{currentProjectKey}'.");
 
@@ -524,7 +523,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             newTargetPath = newTargetPath[projectDirectory.Length..];
         }
 
-        var newHostDocument = new HostDocument(documentSnapshot.FilePath, newTargetPath, documentSnapshot.FileKind);
+        var newHostDocument = currentHostDocument with { TargetPath = newTargetPath };
 
         _logger.LogInformation($"Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.");
 

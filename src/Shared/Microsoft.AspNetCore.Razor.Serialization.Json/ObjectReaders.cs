@@ -359,7 +359,7 @@ internal static partial class ObjectReaders
         var configuration = reader.ReadObject(nameof(RazorProjectInfo.Configuration), ReadConfigurationFromProperties) ?? RazorConfiguration.Default;
         var projectWorkspaceState = reader.ReadObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties) ?? ProjectWorkspaceState.Default;
         var rootNamespace = reader.ReadString(nameof(RazorProjectInfo.RootNamespace));
-        var documents = reader.ReadImmutableArray(nameof(RazorProjectInfo.Documents), static r => r.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties));
+        var documents = reader.ReadImmutableArray(nameof(RazorProjectInfo.Documents), static r => r.ReadNonNullObject(ReadHostDocumentFromProperties));
 
         var displayName = Path.GetFileNameWithoutExtension(filePath);
 

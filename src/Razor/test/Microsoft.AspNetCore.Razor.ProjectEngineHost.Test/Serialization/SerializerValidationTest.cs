@@ -3,19 +3,16 @@
 
 using System.Collections.Immutable;
 using System.IO;
-using System.Reflection;
 using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
-using MessagePackSerializationFormat = Microsoft.AspNetCore.Razor.Serialization.MessagePack.SerializationFormat;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test.Serialization;
 
@@ -95,7 +92,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         Assert.Equal(originalProjectInfo.Configuration, actualProjectInfo.Configuration);
         Assert.Equal(originalProjectInfo.RootNamespace, actualProjectInfo.RootNamespace);
         Assert.Equal(originalProjectInfo.ProjectWorkspaceState, actualProjectInfo.ProjectWorkspaceState);
-        Assert.Equal<DocumentSnapshotHandle>(originalProjectInfo.Documents, actualProjectInfo.Documents);
+        Assert.Equal<HostDocument>(originalProjectInfo.Documents, actualProjectInfo.Documents);
     }
 
     [Theory]

@@ -5,10 +5,10 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -16,15 +16,17 @@ internal static class IProjectSnapshotExtensions
 {
     public static RazorProjectInfo ToRazorProjectInfo(this IProjectSnapshot project)
     {
-        using var documents = new PooledArrayBuilder<DocumentSnapshotHandle>();
+        using var documents = new PooledArrayBuilder<HostDocument>();
 
         foreach (var documentFilePath in project.DocumentFilePaths)
         {
             if (project.TryGetDocument(documentFilePath, out var document))
             {
-                var documentHandle = document.ToHandle();
+                var hostDocument = document is DocumentSnapshot documentSnapshot
+                    ? documentSnapshot.HostDocument
+                    : new(document.FilePath.AssumeNotNull(), document.TargetPath.AssumeNotNull(), document.FileKind);
 
-                documents.Add(documentHandle);
+                documents.Add(hostDocument);
             }
         }
 

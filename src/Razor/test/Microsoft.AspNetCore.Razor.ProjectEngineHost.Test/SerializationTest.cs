@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -100,8 +101,8 @@ public class SerializationTest : ToolingTestBase
     public void RazorProjectInfo_CanRoundTrip()
     {
         // Arrange
-        var legacyDocument = new DocumentSnapshotHandle("/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
-        var componentDocument = new DocumentSnapshotHandle("/path/to/otherfile.razor", "otherfile.razor", FileKinds.Component);
+        var legacyDocument = new HostDocument("/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
+        var componentDocument = new HostDocument("/path/to/otherfile.razor", "otherfile.razor", FileKinds.Component);
         var projectInfo = new RazorProjectInfo(
             new ProjectKey("/path/to/obj/"),
             "/path/to/project.csproj",

@@ -10,8 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
@@ -86,7 +86,7 @@ public class StreamExtensionTests
             "TestNamespace",
             "Test",
             projectWorkspaceState,
-            [new DocumentSnapshotHandle(@"C:\test\document.razor", @"document.razor", FileKinds.Component)]);
+            [new HostDocument(@"C:\test\document.razor", @"document.razor", FileKinds.Component)]);
 
         var bytesToSerialize = projectInfo.Serialize();
 

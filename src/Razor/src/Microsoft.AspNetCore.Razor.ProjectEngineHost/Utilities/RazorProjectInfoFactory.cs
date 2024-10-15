@@ -12,13 +12,13 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
@@ -132,9 +132,9 @@ internal static class RazorProjectInfoFactory
         return razorConfiguration;
     }
 
-    internal static ImmutableArray<DocumentSnapshotHandle> GetDocuments(Project project, string projectPath)
+    internal static ImmutableArray<HostDocument> GetDocuments(Project project, string projectPath)
     {
-        using var documents = new PooledArrayBuilder<DocumentSnapshotHandle>();
+        using var documents = new PooledArrayBuilder<HostDocument>();
 
         var normalizedProjectPath = FilePathNormalizer.NormalizeDirectory(projectPath);
 
@@ -144,7 +144,7 @@ internal static class RazorProjectInfoFactory
             if (document.FilePath is { } filePath &&
                 TryGetFileKind(filePath, out var kind))
             {
-                documents.Add(new DocumentSnapshotHandle(filePath, GetTargetPath(filePath, normalizedProjectPath), kind));
+                documents.Add(new HostDocument(filePath, GetTargetPath(filePath, normalizedProjectPath), kind));
             }
         }
 
@@ -159,7 +159,7 @@ internal static class RazorProjectInfoFactory
                 if (TryGetRazorFileName(document.FilePath, out var razorFilePath) &&
                     TryGetFileKind(razorFilePath, out var kind))
                 {
-                    documents.Add(new DocumentSnapshotHandle(razorFilePath, GetTargetPath(razorFilePath, normalizedProjectPath), kind));
+                    documents.Add(new HostDocument(razorFilePath, GetTargetPath(razorFilePath, normalizedProjectPath), kind));
                 }
             }
         }

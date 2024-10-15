@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
@@ -33,7 +34,7 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
         var projectWorkspaceState = reader.DeserializeOrNull<ProjectWorkspaceState>(options) ?? ProjectWorkspaceState.Default;
         var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
-        var documents = reader.Deserialize<ImmutableArray<DocumentSnapshotHandle>>(options);
+        var documents = reader.Deserialize<ImmutableArray<HostDocument>>(options);
 
         return new RazorProjectInfo(new ProjectKey(projectKeyId), filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
     }

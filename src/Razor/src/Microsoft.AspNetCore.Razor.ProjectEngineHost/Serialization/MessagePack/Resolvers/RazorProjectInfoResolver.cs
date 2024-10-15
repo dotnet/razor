@@ -40,7 +40,7 @@ internal sealed class RazorProjectInfoResolver : IFormatterResolver
             RazorProjectInfoFormatter.Instance,
 
             ChecksumFormatter.Instance,
-            DocumentSnapshotHandleFormatter.Instance,
+            HostDocumentFormatter.Instance,
             ProjectWorkspaceStateFormatter.Instance,
             RazorConfigurationFormatter.Instance,
 
