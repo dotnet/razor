@@ -38,7 +38,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <div id="parent">
                 <div>
                     <h1>Div a title</h1>
-                    <p>Div $$a par</p>
+                    <p>Div [||]a par</p>
                 </div>
                 <div>
                     <h1>Div b title</h1>
@@ -50,7 +50,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
             Welcome to your new app.
             """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
 
         var request = new VSCodeActionParams()
         {
@@ -59,11 +59,10 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -83,7 +82,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
-                <$$div>
+                <[||]div>
                     <h1>Div a title</h1>
                     <p>Div a par</p>
                 </div>
@@ -97,7 +96,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
             Welcome to your new app.
             """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
 
         var request = new VSCodeActionParams()
         {
@@ -106,129 +105,15 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents, supportsFileCreation: true);
 
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
-
-        // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
-
-        // Assert
-        Assert.NotEmpty(commandOrCodeActionContainer);
-    }
-
-    [Fact]
-    public async Task Handle_MultiPointSelection_ReturnsNotEmpty()
-    {
-        // Arrange
-        var documentPath = "c:/Test.razor";
-        var contents = """
-            @page "/"
-
-            <PageTitle>Home</PageTitle>
-
-            <div id="parent">
-                [|<div>
-                    $$<h1>Div a title</h1>
-                    <p>Div a par</p>
-                </div>
-                <div>
-                    <h1>Div b title</h1>
-                    <p>Div b par</p>
-                </div|]>
-            </div>
-
-            <h1>Hello, world!</h1>
-
-            Welcome to your new app.
-            """;
-        TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var selectionSpan);
-
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
-            Context = new VSInternalCodeActionContext()
-        };
-
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
-
-        var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
-        request.Range = VsLspFactory.CreateRange(lineSpan);
-
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
         Assert.NotEmpty(commandOrCodeActionContainer);
-        var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
-        Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
-        Assert.NotNull(actionParams);
-    }
-
-    [Fact]
-    public async Task Handle_MultiPointSelection_WithEndAfterElement_ReturnsCurrentElement()
-    {
-        // Arrange
-        var documentPath = "c:/Test.razor";
-        var contents = """
-            @page "/"
-            @namespace MarketApp.Pages.Product.Home
-
-            namespace MarketApp.Pages.Product.Home
-
-            <PageTitle>Home</PageTitle>
-
-            <div id="parent">
-                [|$$<div>
-                    <h1>Div a title</h1>
-                    <p>Div a par</p>
-                </div>
-                <div>
-                    <h1>Div b title</h1>
-                    <p>Div b par</p>
-                </div>|]
-            </div>
-
-            <h1>Hello, world!</h1>
-
-            Welcome to your new app.
-            """;
-        TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var selectionSpan);
-
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
-            Context = new VSInternalCodeActionContext()
-        };
-
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
-
-        var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
-        request.Range = VsLspFactory.CreateRange(lineSpan);
-
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
-
-        // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
-
-        // Assert
-        Assert.NotEmpty(commandOrCodeActionContainer);
-        var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
-        Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
-        Assert.NotNull(actionParams);
-        Assert.Equal(selectionSpan.Start, actionParams.ExtractStart);
-        Assert.Equal(selectionSpan.End, actionParams.ExtractEnd);
     }
 
     [Fact]
@@ -244,7 +129,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <div id="parent">
                 <div>
                     <h1>Div a title</h1>
-                    <p>Div $$a par</p>
+                    <p>Div [||]a par</p>
                 </div>
                 <div>
                     <h1>Div b title</h1>
@@ -256,7 +141,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
             Welcome to your new app.
             """;
-        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
 
         var request = new VSCodeActionParams()
         {
@@ -265,10 +150,13 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(
+            request,
+            selectionSpan,
+            documentPath,
+            contents);
 
-        var provider = new ExtractToComponentCodeActionProvider(LoggerFactory);
+        var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -277,11 +165,117 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         Assert.Empty(commandOrCodeActionContainer);
     }
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
-        => CreateRazorCodeActionContext(request, location, filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
+    [Fact]
+    public Task Handle_MultiPointSelection_ReturnsNotEmpty()
+       => TestSelectionStartAndCursorAsync("""
+            @page "/"
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<div>
+                    |]<h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>$$
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultiPointSelection_WithEndAfterElement()
+        => TestSelectionStartAndCursorAsync("""
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<div>
+                    <h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>$$|]
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultiPointSelection_WithEndInsideSiblingElement()
+        => TestSelectionStartAndCursorAsync("""
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<div>
+                    <h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>
+                <div>
+                    <h1>Div b title</h1>|]
+                    <p>Div b par</p>
+                </div>$$
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultiPointSelection_WithEndInsideElement()
+        => TestSelectionStartAndCursorAsync("""
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<div>
+                    <h1>Div a title</h1>
+                    <p>Div a par</p>|]
+                </div>$$
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    private static RazorCodeActionContext CreateRazorCodeActionContext(
+        VSCodeActionParams request,
+        TextSpan selectionSpan,
+        string filePath,
+        string text,
+        string? relativePath = null,
+        bool supportsFileCreation = true)
     {
+        relativePath ??= filePath;
+
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
         var options = RazorParserOptions.Create(o =>
         {
@@ -303,8 +297,53 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
+        var context = new RazorCodeActionContext(
+            request,
+            documentSnapshot,
+            codeDocument,
+            new SourceLocation(selectionSpan.Start, -1, -1),
+            new SourceLocation(selectionSpan.End, -1, -1),
+            sourceText,
+            supportsFileCreation,
+            SupportsCodeActionResolve: true);
 
         return context;
+    }
+
+    /// <summary>
+    /// Tests the contents where the expected start/end are marked by '[|' and '$$'
+    /// </summary>
+    private async Task TestSelectionStartAndCursorAsync(string contents)
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var selectionSpan);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = VsLspFactory.DefaultRange,
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents);
+
+        var lineSpan = context.SourceText.GetLinePositionSpan(selectionSpan);
+        request.Range = VsLspFactory.CreateRange(lineSpan);
+
+        var provider = new ExtractToComponentCodeActionProvider();
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotEmpty(commandOrCodeActionContainer);
+        var codeAction = Assert.Single(commandOrCodeActionContainer);
+        var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
+        Assert.NotNull(razorCodeActionResolutionParams);
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
+        Assert.NotNull(actionParams);
+        Assert.Equal(selectionSpan.Start, actionParams.Start);
+        Assert.Equal(cursorPosition, actionParams.End);
     }
 }

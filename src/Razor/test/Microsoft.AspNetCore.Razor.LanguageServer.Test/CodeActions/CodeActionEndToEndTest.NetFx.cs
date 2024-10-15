@@ -1043,7 +1043,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             input,
             expectedRazorComponent,
             ExtractToComponentTitle,
-            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
             codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
     }
 
@@ -1076,7 +1076,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             input,
             expectedRazorComponent,
             ExtractToComponentTitle,
-            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
             codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
     }
 
@@ -1111,7 +1111,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             input,
             expectedRazorComponent,
             ExtractToComponentTitle,
-            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider(LoggerFactory)],
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
             codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
     }
 

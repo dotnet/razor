@@ -158,7 +158,15 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
 
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve);
+        var context = new RazorCodeActionContext(
+            request,
+            documentSnapshot,
+            codeDocument,
+            location,
+            location,
+            sourceText,
+            supportsFileCreation,
+            supportsCodeActionResolve);
 
         return context;
     }

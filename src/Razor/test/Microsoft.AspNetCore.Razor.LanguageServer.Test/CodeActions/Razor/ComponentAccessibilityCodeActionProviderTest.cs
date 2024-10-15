@@ -470,7 +470,15 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
 
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
+        var context = new RazorCodeActionContext(
+            request,
+            documentSnapshot,
+            codeDocument,
+            location,
+            location,
+            sourceText,
+            supportsFileCreation,
+            SupportsCodeActionResolve: true);
 
         return context;
     }
