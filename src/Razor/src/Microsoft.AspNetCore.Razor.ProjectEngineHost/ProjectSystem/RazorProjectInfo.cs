@@ -27,7 +27,7 @@ internal sealed record class RazorProjectInfo
 
     public HostProject HostProject { get; }
 
-    public ProjectKey ProjectKey => HostProject.Key;
+    public ProjectKey Key => HostProject.Key;
     public string FilePath => HostProject.FilePath;
     public RazorConfiguration Configuration => HostProject.Configuration;
     public string? RootNamespace => HostProject.RootNamespace;

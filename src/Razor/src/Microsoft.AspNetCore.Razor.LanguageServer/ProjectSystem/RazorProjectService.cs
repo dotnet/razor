@@ -81,7 +81,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         foreach (var projectInfo in _projectInfoDriver.GetLatestProjectInfo())
         {
             await AddOrUpdateProjectCoreAsync(
-                projectInfo.ProjectKey,
+                projectInfo.Key,
                 projectInfo.FilePath,
                 projectInfo.Configuration,
                 projectInfo.RootNamespace,
@@ -107,10 +107,10 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         // Don't update a project during initialization.
         await WaitForInitializationAsync().ConfigureAwait(false);
 
-        _logger.LogTrace($"{nameof(IRazorProjectInfoListener)} received update for {projectInfo.ProjectKey}");
+        _logger.LogTrace($"{nameof(IRazorProjectInfoListener)} received update for {projectInfo.Key}");
 
         await AddOrUpdateProjectCoreAsync(
-            projectInfo.ProjectKey,
+            projectInfo.Key,
             projectInfo.FilePath,
             projectInfo.Configuration,
             projectInfo.RootNamespace,

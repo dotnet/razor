@@ -243,7 +243,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         Assert.Single(deserializedProjectInfo.Documents);
         Assert.Equal("TestProject", deserializedProjectInfo.DisplayName);
         Assert.Equal("ASP", deserializedProjectInfo.RootNamespace);
-        Assert.Equal(@"C:/test/out/", deserializedProjectInfo.ProjectKey.Id);
+        Assert.Equal(@"C:/test/out/", deserializedProjectInfo.Key.Id);
         Assert.Equal(@"C:\test\test.csproj", deserializedProjectInfo.FilePath);
 
         // Test remove action
