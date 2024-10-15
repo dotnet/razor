@@ -91,13 +91,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         var extractedText = text.GetSubTextString(new TextSpan(actionParams.Start, actionParams.End - actionParams.Start)).Trim();
         builder.Append(extractedText);
 
-        var start = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.Start);
-        var end = componentDocument.Source.Text.Lines.GetLinePosition(actionParams.End);
-        var removeRange = new Range
-        {
-            Start = new Position(start.Line, start.Character),
-            End = new Position(end.Line, end.Character)
-        };
+        var removeRange = text.GetRange(actionParams.Start, actionParams.End);
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {
