@@ -16,7 +16,7 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
 {
     private static readonly string[] PublicModifiers = new[] { "public" };
 
-    public IntermediateToken TagHelperTypeName { get; set; } = IntermediateToken.CreateCSharpToken("Microsoft.AspNetCore.Razor.TagHelpers.TagHelper");
+    public string TagHelperTypeName { get; set; } = "Microsoft.AspNetCore.Razor.TagHelpers.TagHelper";
 
     public string ViewComponentHelperTypeName { get; set; } = "global::Microsoft.AspNetCore.Mvc.IViewComponentHelper";
 
@@ -69,7 +69,7 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
         using (context.CodeWriter.BuildClassDeclaration(
             PublicModifiers,
             node.ClassName,
-            TagHelperTypeName,
+            new BaseTypeIntermediateNode(TagHelperTypeName),
             interfaces: null,
             typeParameters: null,
             context))

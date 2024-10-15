@@ -181,7 +181,7 @@ public class DefaultDocumentWriterTest
             {
                 "internal"
             },
-            BaseType = IntermediateToken.CreateCSharpToken("TestBase"),
+            BaseType = new BaseTypeIntermediateNode("TestBase"),
             Interfaces = new List<string> { "IFoo", "IBar", },
             TypeParameters = new List<TypeParameter>
             {
@@ -228,7 +228,7 @@ public class DefaultDocumentWriterTest
             {
                 "internal"
             },
-            BaseType = IntermediateToken.CreateCSharpToken("TestBase"),
+            BaseType = new BaseTypeIntermediateNode("TestBase"),
             Interfaces = new List<string> { "IFoo", "IBar", },
             TypeParameters = new List<TypeParameter>
             {
@@ -281,7 +281,7 @@ public class DefaultDocumentWriterTest
                 {
                     "internal"
                 },
-            BaseType = IntermediateToken.CreateCSharpToken("TestBase"),
+            BaseType = new BaseTypeIntermediateNode("TestBase"),
             Interfaces = new List<string> { "IFoo", "IBar", },
             TypeParameters = new List<TypeParameter>
                 {

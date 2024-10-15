@@ -39,21 +39,13 @@ public class IntermediateNodeWriter :
 
     public override void VisitClassDeclaration(ClassDeclarationIntermediateNode node)
     {
-        string baseType = node.BaseType switch
-        {
-            IntermediateToken token => token.Content,
-            BaseTypeIntermediateNode baseNode => $"{baseNode.BaseType.Content}{baseNode.GreaterThan?.Content}{baseNode.ModelType?.Content}{baseNode.LessThan?.Content}",
-            null => "",
-            _ => throw new InvalidOperationException($"Unexpected node type in {nameof(ClassDeclarationIntermediateNode)}.{nameof(ClassDeclarationIntermediateNode.BaseType)}")
-        };
-
         var entries = new List<string>()
-            {
-                string.Join(" ", node.Modifiers),
-                node.ClassName,
-                baseType,
-                string.Join(", ", node.Interfaces ?? Array.Empty<string>())
-            };
+        {
+            string.Join(" ", node.Modifiers),
+            node.ClassName,
+            node.BaseType is { } baseType ? $"{baseType.BaseType.Content}{baseType.GreaterThan?.Content}{baseType.ModelType?.Content}{baseType.LessThan?.Content}" : "",
+            string.Join(", ", node.Interfaces ?? Array.Empty<string>())
+        };
 
         // Avoid adding the type parameters to the baseline if they aren't present.
         if (node.TypeParameters != null && node.TypeParameters.Count > 0)

@@ -17,7 +17,7 @@ public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermed
 
     public string ClassName { get; set; }
 
-    public IntermediateNode BaseType { get; set; }
+    public BaseTypeIntermediateNode BaseType { get; set; }
 
     public IList<string> Interfaces { get; set; } = new List<string>();
 

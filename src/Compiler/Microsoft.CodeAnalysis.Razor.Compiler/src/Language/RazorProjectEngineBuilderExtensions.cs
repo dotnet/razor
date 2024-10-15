@@ -94,7 +94,7 @@ public static class RazorProjectEngineBuilderExtensions
         }
 
         var configurationFeature = GetDefaultDocumentClassifierPassFeature(builder);
-        configurationFeature.ConfigureClass.Add((document, @class) => @class.BaseType = IntermediateToken.CreateCSharpToken(baseType));
+        configurationFeature.ConfigureClass.Add((document, @class) => @class.BaseType = new BaseTypeIntermediateNode(baseType));
         return builder;
     }
 

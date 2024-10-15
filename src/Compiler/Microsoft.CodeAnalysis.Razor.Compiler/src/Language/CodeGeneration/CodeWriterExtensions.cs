@@ -470,7 +470,7 @@ internal static class CodeWriterExtensions
         this CodeWriter writer,
         IList<string> modifiers,
         string name,
-        IntermediateNode baseType,
+        BaseTypeIntermediateNode baseType,
         IList<string> interfaces,
         IList<TypeParameter> typeParameters,
         CodeRenderingContext context,
@@ -501,7 +501,7 @@ internal static class CodeWriterExtensions
                 var typeParameter = typeParameters[i];
                 if (typeParameter.ParameterNameSource is { } source)
                 {
-                    WriteWithPragma(writer, typeParameter.ParameterName, context, source);
+                    writeWithPragma(writer, typeParameter.ParameterName, context, source);
                 }
                 else
                 {
@@ -518,7 +518,7 @@ internal static class CodeWriterExtensions
             writer.Write(">");
         }
 
-        var hasBaseType = baseType is IntermediateToken baseTypeToken && !string.IsNullOrWhiteSpace(baseTypeToken.Content) || baseType is not IntermediateToken and not null;
+        var hasBaseType = !string.IsNullOrWhiteSpace(baseType?.BaseType.Content);
         var hasInterfaces = interfaces != null && interfaces.Count > 0;
 
         if (hasBaseType || hasInterfaces)
@@ -527,22 +527,10 @@ internal static class CodeWriterExtensions
 
             if (hasBaseType)
             {
-                baseTypeToken = baseType as IntermediateToken;
-                if (baseTypeToken is not null)
-                {
-                    if (baseTypeToken.Source is { } source)
-                    {
-                        WriteWithPragma(writer, baseTypeToken.Content, context, source);
-                    }
-                    else
-                    {
-                        writer.Write(baseTypeToken.Content);
-                    }
-                }
-                else
-                {
-                    context.Visitor.Visit(baseType);
-                }
+                writeOptionalToken(baseType.BaseType);
+                writeOptionalToken(baseType.GreaterThan);
+                writeOptionalToken(baseType.ModelType);
+                writeOptionalToken(baseType.LessThan);
 
                 if (hasInterfaces)
                 {
@@ -567,7 +555,7 @@ internal static class CodeWriterExtensions
                     if (typeParameter.ConstraintsSource is { } source)
                     {
                         Debug.Assert(context != null);
-                        WriteWithPragma(writer, constraint, context, source);
+                        writeWithPragma(writer, constraint, context, source);
                     }
                     else
                     {
@@ -584,23 +572,38 @@ internal static class CodeWriterExtensions
         }
 
         return new CSharpCodeWritingScope(writer);
-    }
 
-    public static void WriteWithPragma(this CodeWriter writer, string content, CodeRenderingContext context, SourceSpan source)
-    {
-        if (context.Options.DesignTime)
+        void writeOptionalToken(IntermediateToken token)
         {
-            using (writer.BuildLinePragma(source, context))
+            if (token is not null)
             {
-                context.AddSourceMappingFor(source);
-                writer.Write(content);
+                if (token.Source is { } source)
+                {
+                    writeWithPragma(writer, token.Content, context, source);
+                }
+                else
+                {
+                    writer.Write(token.Content);
+                }
             }
         }
-        else
+
+        static void writeWithPragma(CodeWriter writer, string content, CodeRenderingContext context, SourceSpan? source)
         {
-            using (writer.BuildEnhancedLinePragma(source, context))
+            if (context.Options.DesignTime)
             {
-                writer.Write(content);
+                using (writer.BuildLinePragma(source, context))
+                {
+                    context.AddSourceMappingFor(source.Value);
+                    writer.Write(content);
+                }
+            }
+            else
+            {
+                using (writer.BuildEnhancedLinePragma(source, context))
+                {
+                    writer.Write(content);
+                }
             }
         }
     }

@@ -1,18 +1,15 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
+namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-namespace Microsoft.AspNetCore.Razor.Language.Extensions;
-
-public sealed class BaseTypeIntermediateNode : ExtensionIntermediateNode
+public sealed class BaseTypeIntermediateNode : IntermediateNode
 {
     const string ModelGenericParameter = "<TModel>";
 
     public override IntermediateNodeCollection Children { get; } = IntermediateNodeCollection.ReadOnly;
 
-    public BaseTypeIntermediateNode(string baseType, SourceSpan? location)
+    public BaseTypeIntermediateNode(string baseType, SourceSpan? location = null)
     {
         if (baseType.EndsWith(ModelGenericParameter, System.StringComparison.Ordinal))
         {
@@ -47,7 +44,8 @@ public sealed class BaseTypeIntermediateNode : ExtensionIntermediateNode
 
     public override void Accept(IntermediateNodeVisitor visitor)
     {
-        AcceptExtensionNode(this, visitor);
+        visitor.Visit(this);
+        //AcceptExtensionNode(this, visitor);
     }
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
@@ -55,24 +53,24 @@ public sealed class BaseTypeIntermediateNode : ExtensionIntermediateNode
         formatter.WriteProperty("Content", BaseType.Content + GreaterThan?.Content + ModelType?.Content + LessThan?.Content);
     }
 
-    public override void WriteNode(CodeTarget target, CodeRenderingContext context)
-    {
-        WriteToken(BaseType);
-        WriteToken(GreaterThan);
-        WriteToken(ModelType);
-        WriteToken(LessThan);
+    //public override void WriteNode(CodeTarget target, CodeRenderingContext context)
+    //{
+    //    WriteToken(BaseType);
+    //    WriteToken(GreaterThan);
+    //    WriteToken(ModelType);
+    //    WriteToken(LessThan);
 
-        void WriteToken(IntermediateToken? token)
-        {
-            if (token?.Source is not null)
-            {
-                context.CodeWriter.WriteWithPragma(token.Content, context, token.Source.Value);
-            }
-            else if (token is not null)
-            {
-                context.CodeWriter.Write(token.Content);
-            }
-        }
+    //    void WriteToken(IntermediateToken? token)
+    //    {
+    //        if (token?.Source is not null)
+    //        {
+    //            context.CodeWriter.WriteWithPragma(token.Content, context, token.Source.Value);
+    //        }
+    //        else if (token is not null)
+    //        {
+    //            context.CodeWriter.Write(token.Content);
+    //        }
+    //    }
 
-    }
+    //}
 }

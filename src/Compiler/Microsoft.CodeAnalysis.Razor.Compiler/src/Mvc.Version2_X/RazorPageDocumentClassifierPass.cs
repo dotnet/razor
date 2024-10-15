@@ -51,7 +51,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
 
         @namespace.Content = "AspNetCore";
 
-        @class.BaseType = IntermediateToken.CreateCSharpToken("global::Microsoft.AspNetCore.Mvc.RazorPages.Page");
+        @class.BaseType = new BaseTypeIntermediateNode("global::Microsoft.AspNetCore.Mvc.RazorPages.Page");
 
         var filePath = codeDocument.Source.RelativePath ?? codeDocument.Source.FilePath;
         if (string.IsNullOrEmpty(filePath))
