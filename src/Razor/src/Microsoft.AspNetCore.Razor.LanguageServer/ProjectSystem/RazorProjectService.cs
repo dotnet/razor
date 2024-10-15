@@ -19,8 +19,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
@@ -449,7 +447,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             var newFilePath = EnsureFullPath(documentHandle.FilePath, projectDirectory);
             var newHostDocument = new HostDocument(newFilePath, documentHandle.TargetPath, documentHandle.FileKind);
 
-            if (HostDocumentComparer.Instance.Equals(currentHostDocument, newHostDocument))
+            if (currentHostDocument == newHostDocument)
             {
                 // Current and "new" host documents are equivalent
                 continue;
