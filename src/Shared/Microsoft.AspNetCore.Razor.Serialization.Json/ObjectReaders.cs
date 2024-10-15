@@ -91,15 +91,6 @@ internal static partial class ObjectReaders
         return new(projectId, configuration, rootNamespace);
     }
 
-    public static DocumentSnapshotHandle ReadDocumentSnapshotHandleFromProperties(JsonDataReader reader)
-    {
-        var filePath = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.FilePath));
-        var targetPath = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.TargetPath));
-        var fileKind = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.FileKind));
-
-        return new DocumentSnapshotHandle(filePath, targetPath, fileKind);
-    }
-
     public static HostDocument ReadHostDocumentFromProperties(JsonDataReader reader)
     {
         var filePath = reader.ReadNonNullString(nameof(HostDocument.FilePath));
