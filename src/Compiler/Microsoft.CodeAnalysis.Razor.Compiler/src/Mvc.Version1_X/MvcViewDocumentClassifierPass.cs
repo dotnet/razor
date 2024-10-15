@@ -39,7 +39,7 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
             @class.ClassName = CSharpIdentifier.GetClassNameFromPath(filePath);
         }
 
-        @class.BaseType = "global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>";
+        @class.BaseType = IntermediateToken.CreateCSharpToken("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>");
         @class.Modifiers.Clear();
         @class.Modifiers.Add("public");
 

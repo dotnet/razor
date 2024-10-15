@@ -58,7 +58,9 @@ internal class RenameService(
             return null;
         }
 
-        var originComponentDocumentSnapshot = await _componentSearchEngine.TryLocateComponentAsync(originTagHelpers.First(), solutionQueryOperations).ConfigureAwait(false);
+        var originComponentDocumentSnapshot = await _componentSearchEngine
+            .TryLocateComponentAsync(originTagHelpers.First(), solutionQueryOperations, cancellationToken)
+            .ConfigureAwait(false);
         if (originComponentDocumentSnapshot is null)
         {
             return null;
@@ -80,7 +82,7 @@ internal class RenameService(
 
         foreach (var documentSnapshot in documentSnapshots)
         {
-            await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, newName, documentSnapshot).ConfigureAwait(false);
+            await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, newName, documentSnapshot, cancellationToken).ConfigureAwait(false);
         }
 
         foreach (var documentChange in documentChanges)
@@ -120,7 +122,7 @@ internal class RenameService(
                 }
 
                 // Add to the list and add the path to the set
-                if (project.GetDocument(documentPath) is not { } snapshot)
+                if (!project.TryGetDocument(documentPath, out var snapshot))
                 {
                     throw new InvalidOperationException($"{documentPath} in project {project.FilePath} but not retrievable");
                 }
@@ -165,14 +167,15 @@ internal class RenameService(
         List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
         ImmutableArray<TagHelperDescriptor> originTagHelpers,
         string newName,
-        IDocumentSnapshot documentSnapshot)
+        IDocumentSnapshot documentSnapshot,
+        CancellationToken cancellationToken)
     {
         if (!FileKinds.IsComponent(documentSnapshot.FileKind))
         {
             return;
         }
 
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
             return;

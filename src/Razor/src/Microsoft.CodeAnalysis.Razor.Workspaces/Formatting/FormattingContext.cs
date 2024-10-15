@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -224,11 +225,13 @@ internal sealed class FormattingContext
         return false;
     }
 
-    public async Task<FormattingContext> WithTextAsync(SourceText changedText)
+    public async Task<FormattingContext> WithTextAsync(SourceText changedText, CancellationToken cancellationToken)
     {
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
-        var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(changedSnapshot).ConfigureAwait(false);
+        var codeDocument = await _codeDocumentProvider
+            .GetCodeDocumentAsync(changedSnapshot, cancellationToken)
+            .ConfigureAwait(false);
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 

@@ -955,10 +955,10 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             .SetupGet(x => x.Project)
             .Returns(projectSnapshot.Object);
         documentSnapshotMock
-            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>()))
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
         documentSnapshotMock
-            .Setup(x => x.GetTextAsync())
+            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(document.Source.Text);
         documentSnapshotMock
             .SetupGet(x => x.Version)

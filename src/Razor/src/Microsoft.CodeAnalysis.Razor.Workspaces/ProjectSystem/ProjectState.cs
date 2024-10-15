@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
@@ -224,7 +223,7 @@ internal class ProjectState
 
     public VersionStamp ConfigurationVersion { get; }
 
-    public ProjectState WithAddedHostDocument(HostDocument hostDocument, Func<Task<TextAndVersion>> loader)
+    public ProjectState WithAddedHostDocument(HostDocument hostDocument, TextLoader loader)
     {
         if (hostDocument is null)
         {
@@ -321,7 +320,7 @@ internal class ProjectState
         return state;
     }
 
-    public ProjectState WithChangedHostDocument(HostDocument hostDocument, Func<Task<TextAndVersion>> loader)
+    public ProjectState WithChangedHostDocument(HostDocument hostDocument, TextLoader loader)
     {
         if (hostDocument is null)
         {
