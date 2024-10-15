@@ -17,12 +17,14 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit.Abstractions;
 
@@ -83,6 +85,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
             }
 
             RazorExtensions.Register(b);
+            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
         });
         var importDocumentName = fileKind == FileKinds.Legacy ? "_ViewImports.cshtml" : "_Imports.razor";
         var defaultImportDocument = TestRazorSourceDocument.Create(

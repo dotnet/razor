@@ -254,7 +254,7 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
             directives.ToArray(),
             designTime,
             parseLeadingDirectives: false,
-            useRoslynTokenizer: false, // PROTOTYPE: switch to true
+            useRoslynTokenizer: true,
             version: version,
             fileKind: fileKind,
             enableSpanEditHandlers,

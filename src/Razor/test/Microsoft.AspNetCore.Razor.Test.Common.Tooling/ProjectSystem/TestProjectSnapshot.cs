@@ -8,8 +8,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
@@ -57,6 +59,9 @@ internal class TestProjectSnapshot : ProjectSnapshot
 
     public override RazorProjectEngine GetProjectEngine()
     {
-        return RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("C:/"));
+        return RazorProjectEngine.Create(
+            RazorConfiguration.Default,
+            RazorProjectFileSystem.Create("C:/"),
+            b => b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default)));
     }
 }

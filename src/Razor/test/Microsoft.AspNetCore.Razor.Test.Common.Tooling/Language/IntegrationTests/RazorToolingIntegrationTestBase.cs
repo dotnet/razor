@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -128,6 +129,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             });
 
             b.SetCSharpLanguageVersion(CSharpParseOptions.LanguageVersion);
+            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions));
 
             CompilerFeatures.Register(b);
         });
