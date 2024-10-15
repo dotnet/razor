@@ -116,7 +116,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
                     new TextEdit
                     {
                         NewText = builder.ToString(),
-                        Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+                        Range = VsLspFactory.DefaultRange,
                     }
                 ],
             }
