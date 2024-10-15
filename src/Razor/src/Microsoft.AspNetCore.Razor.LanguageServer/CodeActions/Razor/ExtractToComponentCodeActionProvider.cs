@@ -25,11 +25,6 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
 {
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
-        if (context is null)
-        {
-            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-        }
-
         if (!context.SupportsFileCreation)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -46,14 +41,13 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // Make sure the selection starts on an element tag
-        var (startNode, endNode) = GetStartAndEndElements(context, syntaxTree);
-        if (startNode is null || endNode is null)
+        if (!TryGetNamespace(context.CodeDocument, out var @namespace))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (!TryGetNamespace(context.CodeDocument, out var @namespace))
+        var (startNode, endNode) = GetStartAndEndElements(context, syntaxTree);
+        if (startNode is null || endNode is null)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -80,7 +74,7 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         }
 
         var startElementNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
-        if (startElementNode is not { EndTag: not null } || LocationOutsideNode(context.StartLocation, startElementNode))
+        if (startElementNode is null || LocationOutsideNode(context.StartLocation, startElementNode))
         {
             return (null, null);
         }
@@ -107,7 +101,9 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         }
 
         // Correct selection to include the current node if the selection ends immediately after a closing tag.
-        if (endOwner is MarkupTextLiteralSyntax && endOwner.ContainsOnlyWhitespace() && endOwner.TryGetPreviousSibling(out var previousSibling))
+        if (endOwner is MarkupTextLiteralSyntax
+            && endOwner.ContainsOnlyWhitespace()
+            && endOwner.TryGetPreviousSibling(out var previousSibling))
         {
             endOwner = previousSibling;
         }
@@ -122,7 +118,7 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         string @namespace)
     {
         var selectionSpan = AreSiblings(startNode, endNode)
-            ? TextSpanFromNodes(startNode, endNode)
+            ? TextSpan.FromBounds(startNode.Span.Start, endNode.Span.End)
             : GetEncompassingTextSpan(startNode, endNode);
 
         return new ExtractToComponentCodeActionParams
@@ -191,16 +187,13 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
 
             if (modifiedStart is not null && modifiedEnd is not null)
             {
-                return TextSpanFromNodes(modifiedStart, modifiedEnd);
+                return TextSpan.FromBounds(modifiedStart.Span.Start, modifiedEnd.Span.End);
             }
         }
 
         // Fallback to extracting the nearest common ancestor span
         return commonAncestor.Span;
     }
-
-    private static TextSpan TextSpanFromNodes(SyntaxNode start, SyntaxNode end)
-        => new(start.Span.Start, end.Span.End - start.Span.Start);
 
     private static bool AreSiblings(SyntaxNode node1, SyntaxNode node2)
         => node1.Parent == node2.Parent;

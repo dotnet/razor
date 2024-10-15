@@ -56,12 +56,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return null;
         }
 
-        var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (text is null)
-        {
-            return null;
-        }
-
+        var text = componentDocument.Source.Text;
         var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
         var templatePath = Path.Combine(directoryName, "Component.razor");
@@ -134,6 +129,8 @@ internal sealed class ExtractToComponentCodeActionResolver(
         };
     }
 
+    // Right now this includes all the usings in the original document.
+    // https://github.com/dotnet/razor/issues/11025 tracks reducing to only the required set.
     private static IEnumerable<string> GetUsingsInDocument(RazorSyntaxTree syntaxTree)
         => syntaxTree
             .Root

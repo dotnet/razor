@@ -268,6 +268,30 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             Welcome to your new app.
             """);
 
+    [Fact]
+    public Task Handle_MultiPointSelection_StartSelfClosing()
+       => TestSelectionStartAndCursorAsync("""
+            @page "/"
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                [|<img src="/myimg.png" />
+                <div>
+                    <h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>$$|]
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
         TextSpan selectionSpan,
