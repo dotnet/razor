@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -12,6 +13,8 @@ using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
+
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 /// <summary>
 /// Helper methods for C# and HTML completion ("delegated" completion) that are used both in LSP and cohosting
@@ -214,5 +217,29 @@ internal static class DelegatedCompletionHelper
             ProvisionalTextEdit = addProvisionalDot,
             DocumentPositionInfo = provisionalPositionInfo
         };
+    }
+
+    public static async Task<bool> ShouldIncludeSnippetsAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
+    {
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var tree = codeDocument.GetSyntaxTree();
+
+        var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: false);
+        var node = token.Parent;
+        var startOrEndTag = node?.FirstAncestorOrSelf<SyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n));
+
+        if (startOrEndTag is null)
+        {
+            return token.Kind is not (SyntaxKind.OpenAngle or SyntaxKind.CloseAngle);
+        }
+
+        if (startOrEndTag.Span.Start == absoluteIndex)
+        {
+            // We're at the start of the tag, we should include snippets. This is the case for things like $$<div></div> or <div>$$</div>, since the
+            // index is right associative to the token when using FindToken.
+            return true;
+        }
+
+        return !startOrEndTag.Span.Contains(absoluteIndex);
     }
 }

@@ -18,4 +18,8 @@ internal record struct CompletionPositionInfo
     [DataMember(Name = "provisionalPositionInfo")]
     [JsonPropertyName("provisionalPositionInfo")]
     public required DocumentPositionInfo DocumentPositionInfo { get; set; }
+
+    [DataMember(Name = "shouldIncludeSnippets")]
+    [JsonPropertyName("shouldIncludeSnippets")]
+    public bool ShouldIncludeSnippets { get; set; }
 }
