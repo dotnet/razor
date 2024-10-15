@@ -103,7 +103,7 @@ public static class ModelDirective
                 modelType.Source = null;
             }
 
-            if (visitor.Class?.BaseType is BaseTypeIntermediateNode { ModelType: not null } existingBaseType)
+            if (visitor.Class?.BaseType is BaseTypeWithModel { ModelType: not null } existingBaseType)
             {
                 existingBaseType.ModelType = modelType;
             }

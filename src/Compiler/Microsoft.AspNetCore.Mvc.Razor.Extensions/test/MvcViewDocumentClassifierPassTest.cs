@@ -98,7 +98,7 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
         visitor.Visit(irDocument);
 
         // Assert
-        var baseNode = Assert.IsType<BaseTypeIntermediateNode>(visitor.Class.BaseType);
+        var baseNode = Assert.IsType<BaseTypeWithModel>(visitor.Class.BaseType);
         Assert.Equal("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage", baseNode.BaseType.Content);
         Assert.Equal("TModel", baseNode.ModelType.Content);
         Assert.Equal(new[] { "public" }, visitor.Class.Modifiers);
@@ -125,7 +125,7 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
         visitor.Visit(irDocument);
 
         // Assert
-        var baseNode = Assert.IsType<BaseTypeIntermediateNode>(visitor.Class.BaseType);
+        var baseNode = Assert.IsType<BaseTypeWithModel>(visitor.Class.BaseType);
         Assert.Equal("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage", baseNode.BaseType.Content);
         Assert.Equal("TModel", baseNode.ModelType.Content);
         Assert.Equal(new[] { "public" }, visitor.Class.Modifiers);

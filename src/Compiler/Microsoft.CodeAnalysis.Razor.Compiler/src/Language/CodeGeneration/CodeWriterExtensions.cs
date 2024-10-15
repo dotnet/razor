@@ -470,7 +470,7 @@ internal static class CodeWriterExtensions
         this CodeWriter writer,
         IList<string> modifiers,
         string name,
-        BaseTypeIntermediateNode baseType,
+        BaseTypeWithModel baseType,
         IList<string> interfaces,
         IList<TypeParameter> typeParameters,
         CodeRenderingContext context,

@@ -69,7 +69,7 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
         using (context.CodeWriter.BuildClassDeclaration(
             PublicModifiers,
             node.ClassName,
-            new BaseTypeIntermediateNode(TagHelperTypeName),
+            new BaseTypeWithModel(TagHelperTypeName),
             interfaces: null,
             typeParameters: null,
             context))

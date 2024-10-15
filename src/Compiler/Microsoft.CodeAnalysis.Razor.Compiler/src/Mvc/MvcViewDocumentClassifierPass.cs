@@ -54,7 +54,7 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
         {
             @class.ClassName = className;
         }
-        @class.BaseType = new BaseTypeIntermediateNode("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", location: null);
+        @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", location: null);
         @class.Modifiers.Clear();
         if (_useConsolidatedMvcViews)
         {

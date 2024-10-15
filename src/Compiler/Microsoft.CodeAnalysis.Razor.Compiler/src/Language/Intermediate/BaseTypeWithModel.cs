@@ -3,13 +3,11 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public sealed class BaseTypeIntermediateNode : IntermediateNode
+public sealed class BaseTypeWithModel 
 {
     const string ModelGenericParameter = "<TModel>";
 
-    public override IntermediateNodeCollection Children { get; } = IntermediateNodeCollection.ReadOnly;
-
-    public BaseTypeIntermediateNode(string baseType, SourceSpan? location = null)
+    public BaseTypeWithModel(string baseType, SourceSpan? location = null)
     {
         if (baseType.EndsWith(ModelGenericParameter, System.StringComparison.Ordinal))
         {
@@ -31,7 +29,6 @@ public sealed class BaseTypeIntermediateNode : IntermediateNode
         {
             BaseType = IntermediateToken.CreateCSharpToken(baseType, location);  
         }
-        Source = location;
     }
 
     public IntermediateToken BaseType { get; set; }
@@ -41,36 +38,4 @@ public sealed class BaseTypeIntermediateNode : IntermediateNode
     public IntermediateToken? ModelType { get; set; }
 
     public IntermediateToken? LessThan { get; set; }
-
-    public override void Accept(IntermediateNodeVisitor visitor)
-    {
-        visitor.Visit(this);
-        //AcceptExtensionNode(this, visitor);
-    }
-
-    public override void FormatNode(IntermediateNodeFormatter formatter)
-    {
-        formatter.WriteProperty("Content", BaseType.Content + GreaterThan?.Content + ModelType?.Content + LessThan?.Content);
-    }
-
-    //public override void WriteNode(CodeTarget target, CodeRenderingContext context)
-    //{
-    //    WriteToken(BaseType);
-    //    WriteToken(GreaterThan);
-    //    WriteToken(ModelType);
-    //    WriteToken(LessThan);
-
-    //    void WriteToken(IntermediateToken? token)
-    //    {
-    //        if (token?.Source is not null)
-    //        {
-    //            context.CodeWriter.WriteWithPragma(token.Content, context, token.Source.Value);
-    //        }
-    //        else if (token is not null)
-    //        {
-    //            context.CodeWriter.Write(token.Content);
-    //        }
-    //    }
-
-    //}
 }
