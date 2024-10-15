@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Castle.Core.Logging;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -1039,8 +1038,16 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             </div>
             """;
 
+        var expectedOriginalDocument = """
+            <Component />
+            <div id="shouldSkip">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div>
+            """;
+
         await ValidateExtractComponentCodeActionAsync(
             input,
+            expectedOriginalDocument,
             expectedRazorComponent,
             ExtractToComponentTitle,
             razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
@@ -1072,8 +1079,13 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             </div>
             """;
 
+        var expectedOriginalDocument = """
+            <Component />
+            """;
+
         await ValidateExtractComponentCodeActionAsync(
             input,
+            expectedOriginalDocument,
             expectedRazorComponent,
             ExtractToComponentTitle,
             razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
@@ -1107,8 +1119,13 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             </div>
             """;
 
+        var expectedOriginalDocument = """
+            <Component />
+            """;
+
         await ValidateExtractComponentCodeActionAsync(
             input,
+            expectedOriginalDocument,
             expectedRazorComponent,
             ExtractToComponentTitle,
             razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
@@ -1260,7 +1277,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
     private async Task ValidateExtractComponentCodeActionAsync(
         string input,
-        string? expected,
+        string expectedOriginalDocument,
+        string? expectedNewComponent,
         string codeAction,
         int childActionIndex = 0,
         IEnumerable<(string filePath, string contents)>? additionalRazorDocuments = null,
@@ -1292,7 +1310,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         Assert.NotEmpty(result);
         var codeActionToRun = GetCodeActionToRun(codeAction, childActionIndex, result);
 
-        if (expected is null)
+        if (expectedNewComponent is null)
         {
             Assert.Null(codeActionToRun);
             return;
@@ -1310,7 +1328,13 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var edits = changes.Where(change => change.TextDocument.Uri.AbsolutePath == componentFilePath).Single();
         var actual = edits.Edits.Select(edit => edit.NewText).Single();
 
-        AssertEx.EqualOrDiff(expected, actual);
+        AssertEx.EqualOrDiff(expectedNewComponent, actual);
+
+        var originalDocumentEdits = changes
+            .Where(change => change.TextDocument.Uri.AbsolutePath == razorFilePath)
+            .SelectMany(change => change.Edits.Select(sourceText.GetTextChange));
+        var documentText = sourceText.WithChanges(originalDocumentEdits).ToString();
+        AssertEx.EqualOrDiff(expectedOriginalDocument, documentText);
     }
 
     private static VSInternalCodeAction? GetCodeActionToRun(string codeAction, int childActionIndex, SumType<Command, CodeAction>[] result)
