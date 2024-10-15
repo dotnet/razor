@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 using SR = Microsoft.AspNetCore.Razor.Serialization.Json.Internal.Strings;
 
@@ -97,6 +98,15 @@ internal static partial class ObjectReaders
         var fileKind = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.FileKind));
 
         return new DocumentSnapshotHandle(filePath, targetPath, fileKind);
+    }
+
+    public static HostDocument ReadHostDocumentFromProperties(JsonDataReader reader)
+    {
+        var filePath = reader.ReadNonNullString(nameof(HostDocument.FilePath));
+        var targetPath = reader.ReadNonNullString(nameof(HostDocument.TargetPath));
+        var fileKind = reader.ReadNonNullString(nameof(HostDocument.FileKind));
+
+        return new HostDocument(filePath, targetPath, fileKind);
     }
 
     public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonDataReader reader)

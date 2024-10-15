@@ -9,6 +9,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
@@ -72,6 +73,16 @@ internal static class ObjectWriters
         => writer.WriteObject(value, WriteProperties);
 
     public static void WriteProperties(JsonDataWriter writer, DocumentSnapshotHandle value)
+    {
+        writer.Write(nameof(value.FilePath), value.FilePath);
+        writer.Write(nameof(value.TargetPath), value.TargetPath);
+        writer.Write(nameof(value.FileKind), value.FileKind);
+    }
+
+    public static void Write(JsonDataWriter writer, HostDocument? value)
+        => writer.WriteObject(value, WriteProperties);
+
+    public static void WriteProperties(JsonDataWriter writer, HostDocument value)
     {
         writer.Write(nameof(value.FilePath), value.FilePath);
         writer.Write(nameof(value.TargetPath), value.TargetPath);
