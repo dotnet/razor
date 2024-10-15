@@ -104,7 +104,7 @@ internal static class DelegatedCompletionHelper
         RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
-        if (delegatedResponse is null)
+        if (delegatedResponse?.Items is null)
         {
             // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
             // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
@@ -133,7 +133,7 @@ internal static class DelegatedCompletionHelper
         VSInternalCompletionList? delegatedResponse,
         RazorCompletionOptions completionOptions)
     {
-        if (delegatedResponse is null)
+        if (delegatedResponse?.Items is null)
         {
             // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
             // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,

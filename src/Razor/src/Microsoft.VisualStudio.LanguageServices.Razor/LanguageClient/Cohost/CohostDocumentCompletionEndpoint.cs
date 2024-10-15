@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Settings;
+using Microsoft.VisualStudio.Razor.Snippets;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
 using RoslynCompletionParams = Roslyn.LanguageServer.Protocol.CompletionParams;
 using RoslynLspExtensions = Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
@@ -38,6 +39,7 @@ internal class CohostDocumentCompletionEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientSettingsManager clientSettingsManager,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
+    SnippetCompletionItemProvider snippetCompletionItemProvider,
     LSPRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<RoslynCompletionParams, VSInternalCompletionList?>, IDynamicRegistrationProvider
@@ -45,6 +47,7 @@ internal class CohostDocumentCompletionEndpoint(
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
+    private readonly SnippetCompletionItemProvider _snippetCompletionItemProvider = snippetCompletionItemProvider;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
 
@@ -166,16 +169,30 @@ internal class CohostDocumentCompletionEndpoint(
             return null;
         }
 
+        VSInternalCompletionList? combinedCompletionList = null;
         if (data.Result is { } oopCompletionList)
         {
-            return htmlCompletionList?.Items is not null && htmlCompletionList.Items.Length > 0
+            combinedCompletionList = htmlCompletionList?.Items is not null && htmlCompletionList.Items.Length > 0
                 // If we have HTML completions, that means OOP completion list is really just Razor completion list
                 ? CompletionListMerger.Merge(oopCompletionList, htmlCompletionList)
                 : oopCompletionList;
         }
+        else
+        {
+            // Didn't get anything from OOP, so just return HTML completion list or null
+            combinedCompletionList = htmlCompletionList;
+        }
 
-        // Didn't get anything from OOP, so just return HTML completion list or null
-        return htmlCompletionList;
+        if (completionPositionInfo.ShouldIncludeSnippets)
+        {
+            combinedCompletionList = AddSnippets(
+                combinedCompletionList,
+                documentPositionInfo.LanguageKind,
+                completionContext.InvokeKind,
+                completionContext.TriggerCharacter);
+        }
+
+        return combinedCompletionList; 
     }
 
     private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(
@@ -221,5 +238,40 @@ internal class CohostDocumentCompletionEndpoint(
         }
 
         return target;
+    }
+
+    private VSInternalCompletionList? AddSnippets(
+        VSInternalCompletionList? completionList,
+        RazorLanguageKind languageKind,
+        VSInternalCompletionInvokeKind invokeKind,
+        string? triggerCharacter)
+    {
+        using var builder = new PooledArrayBuilder<CompletionItem>();
+        _snippetCompletionItemProvider.AddSnippetCompletions(
+            languageKind,
+            invokeKind,
+            triggerCharacter,
+            ref builder.AsRef());
+
+        if (builder.Count == 0)
+        {
+            return completionList;
+        }
+
+        if (completionList?.Items is { } combinedItems)
+        {
+            builder.AddRange(combinedItems);
+        }
+
+        if (completionList is null)
+        {
+            completionList = new VSInternalCompletionList { IsIncomplete = true, Items = builder.ToArray() };
+        }
+        else
+        {
+            completionList.Items = builder.ToArray();
+        }
+
+        return completionList;
     }
 }
