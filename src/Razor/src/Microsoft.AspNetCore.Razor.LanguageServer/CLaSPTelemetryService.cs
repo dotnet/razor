@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -20,7 +19,6 @@ internal class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : Abs
         private readonly ITelemetryReporter _telemetryReporter;
         private TelemetryResult _result = TelemetryResult.Succeeded;
         private TimeSpan _queuedDuration;
-        private Exception? _exception;
 
         public RequestTelemetryScope(string lspMethodName, ITelemetryReporter telemetryReporter) : base(lspMethodName)
         {
@@ -31,7 +29,7 @@ internal class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : Abs
         public override void Dispose()
         {
             var requestDuration = _stopWatch.Elapsed;
-            _telemetryReporter.UpdateRequestTelemetry(Name, Language, _queuedDuration, requestDuration, _result, _exception);
+            _telemetryReporter.ReportRequestTiming(Name, Language, _queuedDuration, requestDuration, _result);
         }
 
         public override void RecordCancellation()
@@ -39,9 +37,8 @@ internal class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : Abs
             _result = TelemetryResult.Cancelled;
         }
 
-        public override void RecordException(Exception exception)
+        public override void RecordException(Exception _)
         {
-            _exception = exception;
             _result = TelemetryResult.Failed;
         }
 
@@ -52,7 +49,6 @@ internal class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : Abs
 
         public override void RecordWarning(string message)
         {
-            _exception = new Exception(message);
             _result = TelemetryResult.Failed;
         }
     }

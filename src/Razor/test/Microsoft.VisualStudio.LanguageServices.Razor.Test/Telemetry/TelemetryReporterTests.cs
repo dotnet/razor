@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Editor.Razor.Test.Shared;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics;
-using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
@@ -406,29 +405,26 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
         var reporter = new TestTelemetryReporter(LoggerFactory);
 
         // Act
-        reporter.UpdateRequestTelemetry(
+        reporter.ReportRequestTiming(
             Methods.TextDocumentCodeActionName,
             WellKnownLspServerKinds.RazorLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(100),
             TimeSpan.FromMilliseconds(100),
-            AspNetCore.Razor.Telemetry.TelemetryResult.Succeeded,
-            null);
+            AspNetCore.Razor.Telemetry.TelemetryResult.Succeeded);
 
-        reporter.UpdateRequestTelemetry(
+        reporter.ReportRequestTiming(
             Methods.TextDocumentCodeActionName,
             WellKnownLspServerKinds.RazorLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(200),
             TimeSpan.FromMilliseconds(200),
-            AspNetCore.Razor.Telemetry.TelemetryResult.Cancelled,
-            null);
+            AspNetCore.Razor.Telemetry.TelemetryResult.Cancelled);
 
-        reporter.UpdateRequestTelemetry(
+        reporter.ReportRequestTiming(
             Methods.TextDocumentCodeActionName,
             WellKnownLspServerKinds.RazorLspServer.GetContractName(),
             TimeSpan.FromMilliseconds(300),
             TimeSpan.FromMilliseconds(300),
-            AspNetCore.Razor.Telemetry.TelemetryResult.Failed,
-            null);
+            AspNetCore.Razor.Telemetry.TelemetryResult.Failed);
 
         reporter.Dispose();
 
@@ -444,13 +440,8 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
                 Assert.Collection(telemetryEvent.Properties,
                     static prop =>
                     {
-                        Assert.Equal("dotnet.razor.Method", prop.Key);
+                        Assert.Equal("dotnet.razor.method", prop.Key);
                         Assert.Equal(Methods.TextDocumentCodeActionName, prop.Value);
-                    },
-                    static prop =>
-                    {
-                        Assert.Equal("dotnet.razor.Language", prop.Key);
-                        Assert.Equal("RoslynLspLanguages", prop.Value);
                     });
             },
             static evt =>
@@ -463,13 +454,35 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
                 Assert.Collection(telemetryEvent.Properties,
                     static prop =>
                     {
-                        Assert.Equal("dotnet.razor.Method", prop.Key);
+                        Assert.Equal("dotnet.razor.method", prop.Key);
+                        Assert.Equal(Methods.TextDocumentCodeActionName, prop.Value);
+                    });
+            });
+
+        Assert.Collection(reporter.Events,
+            static evt =>
+            {
+                Assert.Equal("dotnet/razor/lsp_requestcounter", evt.Name);
+                Assert.Collection(evt.Properties,
+                    static prop =>
+                    {
+                        Assert.Equal("dotnet.razor.method", prop.Key);
                         Assert.Equal(Methods.TextDocumentCodeActionName, prop.Value);
                     },
                     static prop =>
                     {
-                        Assert.Equal("dotnet.razor.Language", prop.Key);
-                        Assert.Equal("RoslynLspLanguages", prop.Value);
+                        Assert.Equal("dotnet.razor.successful", prop.Key);
+                        Assert.Equal(1, prop.Value);
+                    },
+                    static prop =>
+                    {
+                        Assert.Equal("dotnet.razor.failed", prop.Key);
+                        Assert.Equal(1, prop.Value);
+                    },
+                    static prop =>
+                    {
+                        Assert.Equal("dotnet.razor.cancelled", prop.Key);
+                        Assert.Equal(1, prop.Value);
                     });
             });
     }

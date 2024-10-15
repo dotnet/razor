@@ -11,23 +11,10 @@ using static Microsoft.VisualStudio.Razor.Telemetry.AggregatingTelemetryLog;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Test.Shared;
 
-internal class TestTelemetryReporter : VSTelemetryReporter
+internal class TestTelemetryReporter(ILoggerFactory loggerFactory) : VSTelemetryReporter(loggerFactory)
 {
     public List<TelemetryEvent> Events { get; } = [];
     public List<TelemetryInstrumentEvent> Metrics { get; } = [];
-
-    public TestTelemetryReporter(ILoggerFactory loggerFactory) : base(loggerFactory)
-    {
-        var session = TelemetryService.DefaultSession;
-        session.IsOptedIn = true;
-        session.HostName = "RazorTestHost";
-        SetSession(session);
-    }
-
-    public void Flush()
-    {
-        Manager.Flush();
-    }
 
     public override bool IsEnabled => true;
 

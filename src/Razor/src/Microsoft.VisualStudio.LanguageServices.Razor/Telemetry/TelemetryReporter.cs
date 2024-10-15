@@ -2,16 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Telemetry;
-using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.AspNetCore.Razor;
 using System.IO;
-using static Microsoft.VisualStudio.Razor.Telemetry.AggregatingTelemetryLog;
-using System.Collections.Concurrent;
 using System.Threading;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.VisualStudio.Telemetry;
+using static Microsoft.VisualStudio.Razor.Telemetry.AggregatingTelemetryLog;
 using TelemetryResult = Microsoft.AspNetCore.Razor.Telemetry.TelemetryResult;
 
 #if DEBUG
@@ -32,7 +32,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         "Microsoft.AspNetCore.Razor.NullableExtensions"
     }.ToFrozenSet();
 
-    protected TelemetrySessionManager? Manager;
+    private TelemetrySessionManager? _manager;
 
     protected TelemetryReporter(TelemetrySession? telemetrySession = null)
     {
@@ -48,12 +48,12 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 #if DEBUG
     public virtual bool IsEnabled => true;
 #else
-    public virtual bool IsEnabled => Manager?.Session.IsOptedIn ?? false;
+    public virtual bool IsEnabled => _manager?.Session.IsOptedIn ?? false;
 #endif
 
     public void Dispose()
     {
-        Manager?.Dispose();
+        _manager?.Dispose();
     }
 
     public void ReportEvent(string name, Severity severity)
@@ -198,7 +198,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         try
         {
 #if !DEBUG
-            Manager?.Session.PostMetricEvent(metricEvent);
+            _manager?.Session.PostMetricEvent(metricEvent);
 #else
             // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
             // before we're ready to send them to the cloud
@@ -215,8 +215,8 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 
     protected void SetSession(TelemetrySession session)
     {
-        Manager?.Dispose();
-        Manager = TelemetrySessionManager.Create(this, session);
+        _manager?.Dispose();
+        _manager = TelemetrySessionManager.Create(this, session);
     }
 
     protected virtual void Report(TelemetryEvent telemetryEvent)
@@ -224,7 +224,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         try
         {
 #if !DEBUG
-            Manager?.Session.PostEvent(telemetryEvent);
+            _manager?.Session.PostEvent(telemetryEvent);
 #else
             LogTelemetry(telemetryEvent);
 #endif
@@ -281,15 +281,14 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             new("eventscope.correlationid", correlationId));
     }
 
-    public void UpdateRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, AspNetCore.Razor.Telemetry.TelemetryResult result, Exception? exception)
+    public void ReportRequestTiming(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, AspNetCore.Razor.Telemetry.TelemetryResult result)
     {
-        Manager?.LogRequestTelemetry(
+        _manager?.LogRequestTelemetry(
             name,
             language,
             queuedDuration,
             requestDuration,
-            result,
-            exception);
+            result);
     }
 
 #if DEBUG
@@ -440,7 +439,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             declaringTypeName.StartsWith(AspNetCoreNamespace) ||
             declaringTypeName.StartsWith(MicrosoftVSRazorNamespace);
 
-    protected class TelemetrySessionManager : IDisposable
+    private sealed class TelemetrySessionManager : IDisposable
     {
         /// <summary>
         /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
@@ -467,8 +466,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 
         public void Dispose()
         {
-            _aggregatingManager.Dispose();
-            LogRequestCounters();
+            Flush();
         }
 
         public void Flush()
@@ -477,7 +475,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             LogRequestCounters();
         }
 
-        public void LogRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result, Exception? _)
+        public void LogRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result)
         {
             LogAggregated("LSP_TimeInQueue",
                 (int)queuedDuration.TotalMilliseconds,
@@ -517,7 +515,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             aggregatingLog?.Log(name, value, metricName, method);
         }
 
-        private class Counter
+        private sealed class Counter
         {
             private int _succeededCount;
             private int _failedCount;

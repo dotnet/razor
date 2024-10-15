@@ -23,5 +23,13 @@ internal interface ITelemetryReporter : IDisposable
 
     void ReportFault(Exception exception, string? message, params object?[] @params);
 
-    void UpdateRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result, Exception? exception);
+    /// <summary>
+    /// Reports timing data for an lsp request
+    /// </summary>
+    /// <param name="name">The method name</param>
+    /// <param name="language">The language for the request</param>
+    /// <param name="queuedDuration">How long the request was in the queue before it was handled by code</param>
+    /// <param name="requestDuration">How long it took to handle the request</param>
+    /// <param name="result">The result of handling the request</param>
+    void ReportRequestTiming(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result);
 }

@@ -59,7 +59,7 @@ internal class NoOpTelemetryReporter : ITelemetryReporter
     public TelemetryScope TrackLspRequest(string lspMethodName, string lspServerName, Guid correlationId)
         => TelemetryScope.Null;
 
-    public void UpdateRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result, Exception? exception)
+    public void ReportRequestTiming(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result)
     {
     }
 }
