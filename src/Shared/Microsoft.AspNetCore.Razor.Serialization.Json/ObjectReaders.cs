@@ -100,6 +100,17 @@ internal static partial class ObjectReaders
         return new HostDocument(filePath, targetPath, fileKind);
     }
 
+    public static HostProject ReadHostProjectFromProperties(JsonDataReader reader)
+    {
+        var filePath = reader.ReadNonNullString(nameof(HostProject.FilePath));
+        var intermediateOutputPath = reader.ReadNonNullString(nameof(HostProject.IntermediateOutputPath));
+        var configuration = reader.ReadNonNullObject(nameof(HostProject.Configuration), ReadConfigurationFromProperties);
+        var rootNamespace = reader.ReadStringOrNull(nameof(HostProject.RootNamespace));
+        var displayName = reader.ReadNonNullString(nameof(HostProject.DisplayName));
+
+        return new HostProject(filePath, intermediateOutputPath, configuration, rootNamespace, displayName);
+    }
+
     public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonDataReader reader)
     {
         var tagHelpers = reader.ReadImmutableArrayOrEmpty(nameof(ProjectWorkspaceState.TagHelpers), static r => ReadTagHelper(r, useCache: true));

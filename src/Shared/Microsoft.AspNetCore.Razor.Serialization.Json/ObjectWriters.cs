@@ -79,6 +79,18 @@ internal static class ObjectWriters
         writer.Write(nameof(value.FileKind), value.FileKind);
     }
 
+    public static void Write(JsonDataWriter writer, HostProject? value)
+        => writer.WriteObject(value, WriteProperties);
+
+    public static void WriteProperties(JsonDataWriter writer, HostProject value)
+    {
+        writer.Write(nameof(value.FilePath), value.FilePath);
+        writer.Write(nameof(value.IntermediateOutputPath), value.IntermediateOutputPath);
+        writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);
+        writer.WriteIfNotNull(nameof(value.RootNamespace), value.RootNamespace);
+        writer.Write(nameof(value.DisplayName), value.DisplayName);
+    }
+
     public static void Write(JsonDataWriter writer, ProjectWorkspaceState? value)
         => writer.WriteObject(value, WriteProperties);
 
