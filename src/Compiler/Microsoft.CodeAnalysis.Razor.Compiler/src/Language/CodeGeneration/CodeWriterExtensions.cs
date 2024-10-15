@@ -501,7 +501,7 @@ internal static class CodeWriterExtensions
                 var typeParameter = typeParameters[i];
                 if (typeParameter.ParameterNameSource is { } source)
                 {
-                    writeWithPragma(writer, typeParameter.ParameterName, context, source);
+                    WriteWithPragma(writer, typeParameter.ParameterName, context, source);
                 }
                 else
                 {
@@ -555,7 +555,7 @@ internal static class CodeWriterExtensions
                     if (typeParameter.ConstraintsSource is { } source)
                     {
                         Debug.Assert(context != null);
-                        writeWithPragma(writer, constraint, context, source);
+                        WriteWithPragma(writer, constraint, context, source);
                     }
                     else
                     {
@@ -579,7 +579,7 @@ internal static class CodeWriterExtensions
             {
                 if (token.Source is { } source)
                 {
-                    writeWithPragma(writer, token.Content, context, source);
+                    WriteWithPragma(writer, token.Content, context, source);
                 }
                 else
                 {
@@ -588,13 +588,13 @@ internal static class CodeWriterExtensions
             }
         }
 
-        static void writeWithPragma(CodeWriter writer, string content, CodeRenderingContext context, SourceSpan? source)
+        static void WriteWithPragma(CodeWriter writer, string content, CodeRenderingContext context, SourceSpan source)
         {
             if (context.Options.DesignTime)
             {
                 using (writer.BuildLinePragma(source, context))
                 {
-                    context.AddSourceMappingFor(source.Value);
+                    context.AddSourceMappingFor(source);
                     writer.Write(content);
                 }
             }
