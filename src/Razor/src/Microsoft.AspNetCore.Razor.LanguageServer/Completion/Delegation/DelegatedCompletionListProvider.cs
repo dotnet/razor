@@ -24,18 +24,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
 internal class DelegatedCompletionListProvider
 {
-    private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _responseRewriters;
     private readonly IDocumentMappingService _documentMappingService;
     private readonly IClientConnection _clientConnection;
     private readonly CompletionListCache _completionListCache;
 
     public DelegatedCompletionListProvider(
-        IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
         IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         CompletionListCache completionListCache)
     {
-        _responseRewriters = responseRewriters.OrderByAsArray(static x => x.Order);
         _documentMappingService = documentMappingService;
         _clientConnection = clientConnection;
         _completionListCache = completionListCache;
@@ -95,16 +92,16 @@ internal class DelegatedCompletionListProvider
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 
-        var responseRewriterParams = new DelegatedCompletionResponseRewriterParams(delegatedParams.ProjectedKind, delegatedParams.ProjectedPosition);
-        var rewrittenResponse = await DelegatedCompletionHelper.RewriteResponseAsync(
-            delegatedResponse,
-            absoluteIndex,
-            documentContext,
-            responseRewriterParams,
-            _responseRewriters,
-            razorCompletionOptions,
-            cancellationToken)
-            .ConfigureAwait(false);
+        var rewrittenResponse = delegatedParams.ProjectedKind == RazorLanguageKind.CSharp
+             ? await DelegatedCompletionHelper.RewriteCSharpResponseAsync(
+                delegatedResponse,
+                absoluteIndex,
+                documentContext,
+                delegatedParams.ProjectedPosition,
+                razorCompletionOptions,
+                cancellationToken)
+                .ConfigureAwait(false)
+            : DelegatedCompletionHelper.RewriteHtmlResponse(delegatedResponse, razorCompletionOptions);
 
         var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
         var resolutionContext = new DelegatedCompletionResolutionContext(delegatedParams, rewrittenResponse.Data);

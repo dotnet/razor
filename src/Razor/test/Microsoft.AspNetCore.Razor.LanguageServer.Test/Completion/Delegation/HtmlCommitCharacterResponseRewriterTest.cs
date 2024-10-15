@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
 public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutput)
-    : ResponseRewriterTestBase(new HtmlCommitCharacterResponseRewriter(), testOutput)
+    : ResponseRewriterTestBase(testOutput)
 {
     [Theory]
     [CombinatorialData]
@@ -69,7 +69,6 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
         TestFileMarkupParser.GetPosition(input, out var documentContent, out var cursorPosition);
         var delegatedCompletionList = GenerateCompletionList(useDefaultCommitCharacters: true, useVSTypes, "Element1", "Element2");
 
-        var rewriter = new HtmlCommitCharacterResponseRewriter();
         var razorCompletionOptions = new RazorCompletionOptions(
                 SnippetsSupported: true,
                 AutoInsertAttributeQuotes: true,
@@ -77,7 +76,7 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
 
         // Act
         var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList, razorCompletionOptions, rewriter);
+            cursorPosition, documentContent, delegatedCompletionList, razorCompletionOptions);
 
         // Assert
         if (useVSTypes)
@@ -126,8 +125,7 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
             cursorPosition,
             documentContent,
             delegatedCompletionList,
-            razorCompletionOptions,
-            rewriter);
+            razorCompletionOptions);
 
         // Assert
         Assert.Null(rewrittenCompletionList.CommitCharacters);

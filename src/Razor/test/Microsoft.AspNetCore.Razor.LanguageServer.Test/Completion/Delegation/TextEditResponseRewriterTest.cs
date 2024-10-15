@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -12,7 +11,7 @@ using Xunit.Abstractions;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
 public class TextEditResponseRewriterTest(ITestOutputHelper testOutput)
-    : ResponseRewriterTestBase(new TextEditResponseRewriter(), testOutput)
+    : ResponseRewriterTestBase(testOutput)
 {
     [Fact]
     public async Task RewriteAsync_NotCSharp_Noops()

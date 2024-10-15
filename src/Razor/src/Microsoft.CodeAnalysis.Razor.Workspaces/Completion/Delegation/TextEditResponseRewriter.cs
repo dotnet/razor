@@ -4,43 +4,35 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
-internal class TextEditResponseRewriter : DelegatedCompletionResponseRewriter
+internal class TextEditResponseRewriter : DelegatedCSharpCompletionResponseRewriter
 {
-    public override int Order => ExecutionBehaviorOrder.ChangesCompletionItems;
-
     public override async Task<VSInternalCompletionList> RewriteAsync(
         VSInternalCompletionList completionList,
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,
-        DelegatedCompletionResponseRewriterParams delegatedParameters,
+        Position projectedPosition,
         RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
-        if (delegatedParameters.ProjectedKind != RazorLanguageKind.CSharp)
-        {
-            return completionList;
-        }
-
         var sourceText = await hostDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
         var hostDocumentPosition = sourceText.GetPosition(hostDocumentIndex);
-        completionList = TranslateTextEdits(hostDocumentPosition, delegatedParameters.ProjectedPosition, completionList);
+        completionList = TranslateTextEdits(hostDocumentPosition, projectedPosition, completionList);
 
         if (completionList.ItemDefaults?.EditRange is { } editRange)
         {
             if (editRange.TryGetFirst(out var range))
             {
-                completionList.ItemDefaults.EditRange = TranslateRange(hostDocumentPosition, delegatedParameters.ProjectedPosition, range);
+                completionList.ItemDefaults.EditRange = TranslateRange(hostDocumentPosition, projectedPosition, range);
             }
             else if (editRange.TryGetSecond(out var insertReplaceRange))
             {
-                insertReplaceRange.Insert = TranslateRange(hostDocumentPosition, delegatedParameters.ProjectedPosition, insertReplaceRange.Insert);
-                insertReplaceRange.Replace = TranslateRange(hostDocumentPosition, delegatedParameters.ProjectedPosition, insertReplaceRange.Replace);
+                insertReplaceRange.Insert = TranslateRange(hostDocumentPosition, projectedPosition, insertReplaceRange.Insert);
+                insertReplaceRange.Replace = TranslateRange(hostDocumentPosition, projectedPosition, insertReplaceRange.Replace);
             }
         }
 

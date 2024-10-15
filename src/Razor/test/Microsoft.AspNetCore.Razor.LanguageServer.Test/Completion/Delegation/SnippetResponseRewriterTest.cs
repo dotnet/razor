@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion.Delegation;
 
 public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
-    : ResponseRewriterTestBase(new SnippetResponseRewriter(), testOutput)
+    : ResponseRewriterTestBase(testOutput)
 {
     [Fact]
     public async Task RewriteAsync_ChangesUsingSnippetLabel()
@@ -30,7 +30,7 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
 
         // Act
         var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList, rewriter);
+            cursorPosition, documentContent, delegatedCompletionList);
 
         // Assert
         Assert.Null(rewrittenCompletionList.CommitCharacters);
@@ -63,7 +63,7 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
 
         // Act
         var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList, rewriter);
+            cursorPosition, documentContent, delegatedCompletionList);
 
         // Assert
         Assert.Null(rewrittenCompletionList.CommitCharacters);
@@ -96,7 +96,7 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
 
         // Act
         var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList, rewriter);
+            cursorPosition, documentContent, delegatedCompletionList);
 
         // Assert
         Assert.Null(rewrittenCompletionList.CommitCharacters);
@@ -129,7 +129,7 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
 
         // Act
         var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList, rewriter);
+            cursorPosition, documentContent, delegatedCompletionList);
 
         // Assert
         Assert.Null(rewrittenCompletionList.CommitCharacters);

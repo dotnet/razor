@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -82,7 +81,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
         private readonly VSInternalCompletionList _completionList;
 
         public TestDelegatedCompletionListProvider(VSInternalCompletionList completionList, IEnumerable<string> triggerCharacters)
-            : base(Array.Empty<DelegatedCompletionResponseRewriter>(), null, null, null)
+            : base(null, null, null)
         {
             _completionList = completionList;
             TriggerCharacters = triggerCharacters.ToFrozenSet();

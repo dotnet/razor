@@ -3,34 +3,19 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
-internal class HtmlCommitCharacterResponseRewriter : DelegatedCompletionResponseRewriter
+internal class HtmlCommitCharacterResponseRewriter
 {
-    public override int Order => ExecutionBehaviorOrder.ChangesCompletionItems;
-
-    public override Task<VSInternalCompletionList> RewriteAsync(
+    public VSInternalCompletionList Rewrite(
         VSInternalCompletionList completionList,
-        int hostDocumentIndex,
-        DocumentContext hostDocumentContext,
-        DelegatedCompletionResponseRewriterParams delegatedParameters,
-        RazorCompletionOptions completionOptions,
-        CancellationToken cancellationToken)
+        RazorCompletionOptions completionOptions)
     {
-        if (delegatedParameters.ProjectedKind != RazorLanguageKind.Html)
-        {
-            return Task.FromResult(completionList);
-        }
-
         if (completionOptions.CommitElementsWithSpace)
         {
-            return Task.FromResult(completionList);
+            return completionList;
         }
 
         string[]? itemCommitChars = null;
@@ -78,6 +63,6 @@ internal class HtmlCommitCharacterResponseRewriter : DelegatedCompletionResponse
             }
         }
 
-        return Task.FromResult(completionList);
+        return completionList;
     }
 }

@@ -19,6 +19,16 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 /// </summary>
 internal static class DelegatedCompletionHelper
 {
+    // Ordering should be:
+    // 1. Changes items
+    // 2. Adds items
+    // 3. Filters items
+    private static readonly ImmutableArray<DelegatedCSharpCompletionResponseRewriter> s_delegatedCSharpCompletionResponseRewriters =
+        [new SnippetResponseRewriter(), new TextEditResponseRewriter(), new DesignTimeHelperResponseRewriter()];
+
+    // Currently we only have one HTML response re-writer. Should we ever need more, we can create a common base and a collection
+    private static readonly HtmlCommitCharacterResponseRewriter s_delegatedHtmlCompletionResponseRewriter = new HtmlCommitCharacterResponseRewriter();
+
     /// <summary>
     /// Modifies completion context if needed so that it's acceptable to the delegated language.
     /// </summary>
@@ -73,23 +83,21 @@ internal static class DelegatedCompletionHelper
     }
 
     /// <summary>
-    /// Modifies delegated server (currently C# or HTML) completion response to be usable by Razor.
+    /// Modifies C# completion response to be usable by Razor.
     /// </summary>
     /// <param name="delegatedResponse"></param>
     /// <param name="absoluteIndex"></param>
     /// <param name="documentContext"></param>
-    /// <param name="delegatedParams"></param>
-    /// <param name="responseRewriters">A list of individual response re-writers with a single purpose</param>
+    /// <param name="projectedPosition"></param>
     /// <param name="completionOptions"></param>
     /// <param name="cancellationToken"></param>
     /// <returns>
     /// </returns>
-    public static async ValueTask<VSInternalCompletionList> RewriteResponseAsync(
+    public static async ValueTask<VSInternalCompletionList> RewriteCSharpResponseAsync(
         VSInternalCompletionList? delegatedResponse,
         int absoluteIndex,
         DocumentContext documentContext,
-        DelegatedCompletionResponseRewriterParams delegatedParams,
-        ImmutableArray<DelegatedCompletionResponseRewriter> responseRewriters,
+        Position projectedPosition,
         RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
@@ -104,16 +112,36 @@ internal static class DelegatedCompletionHelper
 
         var rewrittenResponse = delegatedResponse;
 
-        foreach (var rewriter in responseRewriters)
+        foreach (var rewriter in s_delegatedCSharpCompletionResponseRewriters)
         {
             rewrittenResponse = await rewriter.RewriteAsync(
                 rewrittenResponse,
                 absoluteIndex,
                 documentContext,
-                delegatedParams,
+                projectedPosition,
                 completionOptions,
                 cancellationToken).ConfigureAwait(false);
         }
+
+        return rewrittenResponse;
+    }
+
+    public static VSInternalCompletionList RewriteHtmlResponse(
+        VSInternalCompletionList? delegatedResponse,
+        RazorCompletionOptions completionOptions)
+    {
+        if (delegatedResponse is null)
+        {
+            // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
+            // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
+            // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
+            // so we'd only ever return Razor completion items.
+            return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
+        }
+
+        var rewrittenResponse = s_delegatedHtmlCompletionResponseRewriter.Rewrite(
+            delegatedResponse,
+            completionOptions);
 
         return rewrittenResponse;
     }

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
@@ -32,8 +31,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     private readonly RazorCompletionListProvider _razorCompletionListProvider = args.ExportProvider.GetExportedValue<RazorCompletionListProvider>();
-    private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _delegatedResponseRewriters =
-        args.ExportProvider.GetExportedValues<DelegatedCompletionResponseRewriter>().ToImmutableArray();
 
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
@@ -215,13 +212,11 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         var vsPlatformCompletionList = JsonSerializer.Deserialize<VSInternalCompletionList>(JsonSerializer.SerializeToDocument(roslynCompletionList), options);
 
-        var responseRewriterParams = new DelegatedCompletionResponseRewriterParams(RazorLanguageKind.CSharp, mappedPosition);
-        var rewrittenResponse = await DelegatedCompletionHelper.RewriteResponseAsync(
+        var rewrittenResponse = await DelegatedCompletionHelper.RewriteCSharpResponseAsync(
             vsPlatformCompletionList,
             documentIndex,
             remoteDocumentContext,
-            responseRewriterParams,
-            _delegatedResponseRewriters,
+            mappedPosition,
             razorCompletionOptions,
             cancellationToken);
 

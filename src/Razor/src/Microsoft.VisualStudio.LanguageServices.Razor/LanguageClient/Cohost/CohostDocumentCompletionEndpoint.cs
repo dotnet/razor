@@ -100,7 +100,6 @@ internal class CohostDocumentCompletionEndpoint(
 
         _logger.LogDebug($"Invoking completion for {razorDocument.FilePath}");
 
-        //var completionContext = ToVSInternalCompletionContext(request.Context);
         if (await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, CompletionPositionInfo?>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken)
@@ -126,25 +125,25 @@ internal class CohostDocumentCompletionEndpoint(
         // Razor completion provider needs a set of existing HTML item labels.
 
         VSInternalCompletionList? htmlCompletionList = null;
+        var razorCompletionOptions = new RazorCompletionOptions(
+            SnippetsSupported: false,
+            AutoInsertAttributeQuotes: true, // TODO: Get real values
+            CommitElementsWithSpace: true);
         using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
+
         if (CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.HtmlTriggerCharacters, completionContext))
         {
             // We can just blindly call HTML LSP because if we are in C#, generated HTML seen by HTML LSP may return
             // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
             if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html)
             {
-                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, cancellationToken);
+                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, cancellationToken);
                 if (htmlCompletionList is not null)
                 {
                     existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
                 }
             }
         }
-
-        var razorCompletionOptions = new RazorCompletionOptions(
-            SnippetsSupported: false,
-            AutoInsertAttributeQuotes: true, // TODO: Get real values
-            CommitElementsWithSpace: true);
 
         _logger.LogDebug($"Calling OOP to get completion items at {request.Position} invoked by typing '{request.Context?.TriggerCharacter}'");
 
@@ -179,7 +178,11 @@ internal class CohostDocumentCompletionEndpoint(
         return htmlCompletionList;
     }
 
-    private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(RoslynCompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(
+        RoslynCompletionParams request,
+        TextDocument razorDocument,
+        RazorCompletionOptions razorCompletionOptions,
+        CancellationToken cancellationToken)
     {
         var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
         if (htmlDocument is null)
@@ -198,13 +201,9 @@ internal class CohostDocumentCompletionEndpoint(
             request,
             cancellationToken).ConfigureAwait(false);
 
-        if (result?.Response is not { } htmlCompletionList)
-        {
-            _logger.LogDebug($"Didn't get completion list from Html.");
-            return null;
-        }
+        var rewrittenResponse = DelegatedCompletionHelper.RewriteHtmlResponse(result?.Response, razorCompletionOptions);
 
-        return htmlCompletionList;
+        return rewrittenResponse;
     }
 
     private static T? ToVsLSP<T>(object source) where T : class 

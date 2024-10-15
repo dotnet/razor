@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 /// <summary>
 ///  Removes Razor design-time helpers from a C# completion list.
 /// </summary>
-internal class DesignTimeHelperResponseRewriter : DelegatedCompletionResponseRewriter
+internal class DesignTimeHelperResponseRewriter : DelegatedCSharpCompletionResponseRewriter
 {
     private static readonly ImmutableHashSet<string> s_designTimeHelpers = new[]
     {
@@ -33,21 +32,14 @@ internal class DesignTimeHelperResponseRewriter : DelegatedCompletionResponseRew
         "BuildRenderTree"
     }.ToImmutableHashSet();
 
-    public override int Order => ExecutionBehaviorOrder.FiltersCompletionItems;
-
     public override async Task<VSInternalCompletionList> RewriteAsync(
         VSInternalCompletionList completionList,
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,
-        DelegatedCompletionResponseRewriterParams delegatedParameters,
+        Position projectedPosition,
         RazorCompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
-        if (delegatedParameters.ProjectedKind != RazorLanguageKind.CSharp)
-        {
-            return completionList;
-        }
-
         var syntaxTree = await hostDocumentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var owner = syntaxTree.Root.FindInnermostNode(hostDocumentIndex);
         if (owner is null)
