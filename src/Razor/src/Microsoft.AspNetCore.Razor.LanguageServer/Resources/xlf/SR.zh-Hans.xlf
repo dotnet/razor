@@ -47,11 +47,6 @@
         <target state="translated">生成事件处理程序 "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Not_Available_In">
-        <source>Not available in</source>
-        <target state="translated">在以下位置不可用</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">“重新触发完成…”</target>
@@ -60,16 +55,6 @@
       <trans-unit id="Statement">
         <source>statement</source>
         <target state="translated">语句</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Attribute_Glyph">
-        <source>Razor TagHelper Attribute Glyph</source>
-        <target state="translated">Razor TagHelper 特性字形</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Element_Glyph">
-        <source>Razor TagHelper Element Glyph</source>
-        <target state="translated">Razor TagHelper 元素字形</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">

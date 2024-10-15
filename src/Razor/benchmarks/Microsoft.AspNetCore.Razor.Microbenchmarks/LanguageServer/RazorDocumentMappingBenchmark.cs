@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
@@ -50,7 +51,7 @@ public class RazorDocumentMappingBenchmark : RazorLanguageServerBenchmarkBase
 
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
 
-        var codeDocument = await DocumentSnapshot.GetGeneratedOutputAsync();
+        var codeDocument = await DocumentSnapshot.GetGeneratedOutputAsync(CancellationToken.None);
         CSharpDocument = codeDocument.GetCSharpDocument();
     }
 

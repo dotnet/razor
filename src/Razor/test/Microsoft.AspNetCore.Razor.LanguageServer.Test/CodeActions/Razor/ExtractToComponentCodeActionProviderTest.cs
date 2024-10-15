@@ -3,6 +3,7 @@
 
 using System;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -292,14 +294,16 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         }));
         codeDocument.SetSyntaxTree(syntaxTree);
 
-        var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text), MockBehavior.Strict);
+        var documentSnapshot = new StrictMock<IDocumentSnapshot>();
+        documentSnapshot
+            .Setup(document => document.GetTextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(codeDocument.Source.Text);
 
         var sourceText = SourceText.From(text);
 
         var context = new RazorCodeActionContext(
             request,
-            documentSnapshot,
+            documentSnapshot.Object,
             codeDocument,
             new SourceLocation(selectionSpan.Start, -1, -1),
             new SourceLocation(selectionSpan.End, -1, -1),

@@ -80,7 +80,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
 
         var documentSnapshot = documentContext.Snapshot;
 
-        var razorDiagnostics = await GetRazorDiagnosticsAsync(documentSnapshot).ConfigureAwait(false);
+        var razorDiagnostics = await GetRazorDiagnosticsAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
 
         await ReportRZ10012TelemetryAsync(documentContext, razorDiagnostics, cancellationToken).ConfigureAwait(false);
 
@@ -106,7 +106,9 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             {
                 if (report.Diagnostics is not null)
                 {
-                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentSnapshot).ConfigureAwait(false);
+                    var mappedDiagnostics = await _translateDiagnosticsService
+                        .TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentSnapshot, cancellationToken)
+                        .ConfigureAwait(false);
                     report.Diagnostics = mappedDiagnostics;
                 }
 
@@ -120,7 +122,9 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             {
                 if (report.Diagnostics is not null)
                 {
-                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentSnapshot).ConfigureAwait(false);
+                    var mappedDiagnostics = await _translateDiagnosticsService
+                        .TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentSnapshot, cancellationToken)
+                        .ConfigureAwait(false);
                     report.Diagnostics = mappedDiagnostics;
                 }
 
@@ -131,9 +135,9 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         return allDiagnostics.ToArray();
     }
 
-    private static async Task<VSInternalDiagnosticReport[]?> GetRazorDiagnosticsAsync(IDocumentSnapshot documentSnapshot)
+    private static async Task<VSInternalDiagnosticReport[]?> GetRazorDiagnosticsAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
         var csharpDocument = codeDocument.GetCSharpDocument();
         var diagnostics = csharpDocument.Diagnostics;

@@ -47,11 +47,6 @@
         <target state="translated">Generovat obslužnou rutinu události {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Not_Available_In">
-        <source>Not available in</source>
-        <target state="translated">Není k dispozici v</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">Aktivovat znovu dokončení…</target>
@@ -60,16 +55,6 @@
       <trans-unit id="Statement">
         <source>statement</source>
         <target state="translated">příkaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Attribute_Glyph">
-        <source>Razor TagHelper Attribute Glyph</source>
-        <target state="translated">Piktogram atributu Razor TagHelper</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TagHelper_Element_Glyph">
-        <source>Razor TagHelper Element Glyph</source>
-        <target state="translated">Piktogram elementu Razor TagHelper</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">

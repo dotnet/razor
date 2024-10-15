@@ -49,7 +49,7 @@ internal sealed class DefaultHtmlCodeActionProvider(IEditMappingService editMapp
 
         if (codeAction.Edit.TryGetTextDocumentEdits(out var documentEdits))
         {
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
             var htmlSourceText = codeDocument.GetHtmlSourceText();
 
             foreach (var edit in documentEdits)

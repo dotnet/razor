@@ -92,7 +92,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     .Replace(Path.DirectorySeparatorChar, '/')
                     .Replace("//", "/"),
                 relativePhysicalPath: relativePath,
-                fileKind: additionalText.Path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase) ? FileKinds.Component : FileKinds.Legacy,
+                fileKind: FileKinds.GetFileKindFromFilePath(additionalText.Path),
                 additionalText: additionalText,
                 cssScope: cssScope);
             return (projectItem, null);

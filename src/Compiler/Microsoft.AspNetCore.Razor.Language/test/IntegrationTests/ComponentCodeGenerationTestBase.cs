@@ -2103,6 +2103,34 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10965")]
+    public void InvalidCode_EmptyTransition()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+        <TestComponent Value="Hello" />
+
+        @
+
+        @code {
+            [Parameter] public int Param { get; set; }
+        }
+        """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, DesignTime?[
+            // x:\dir\subdir\Test\TestComponent.cshtml(3,7): error CS1525: Invalid expression term ';'
+            // __o = ;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 7)
+            ] : [
+            // (24,36): error CS1525: Invalid expression term ')'
+            //             __builder.AddContent(3, 
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(24, 36)
+            ]);
+    }
+
     #endregion
 
     #region Bind
@@ -5470,6 +5498,30 @@ namespace AnotherTest
         Assert.Collection(generated.RazorDiagnostics, d => { Assert.Equal("RZ1038", d.Id); });
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10963")]
+    public void InheritsDirective()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            public class BaseComponent : Microsoft.AspNetCore.Components.ComponentBase
+            {
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits BaseComponent
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
     public void InheritsDirective_NullableReferenceType()
     {
@@ -5526,9 +5578,9 @@ namespace AnotherTest
             """,
             nullableEnable: false,
             expectedCSharpDiagnostics:
-                // (18,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                // (1,31): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(18, 62));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31));
 
         // Assert
         Assert.Empty(generated.RazorDiagnostics);
@@ -5544,9 +5596,9 @@ namespace AnotherTest
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62)
             ]
             : [
-                // (14,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                // (1,31): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31)
             ]);
     }
 
@@ -5629,7 +5681,6 @@ namespace AnotherTest
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
-
 
     #endregion
 

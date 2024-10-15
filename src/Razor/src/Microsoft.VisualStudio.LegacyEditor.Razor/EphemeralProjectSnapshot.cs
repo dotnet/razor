@@ -56,6 +56,9 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
 
     public ProjectWorkspaceState ProjectWorkspaceState => ProjectWorkspaceState.Default;
 
+    public bool ContainsDocument(string filePath)
+        => false;
+
     public IDocumentSnapshot? GetDocument(string filePath)
     {
         if (filePath is null)

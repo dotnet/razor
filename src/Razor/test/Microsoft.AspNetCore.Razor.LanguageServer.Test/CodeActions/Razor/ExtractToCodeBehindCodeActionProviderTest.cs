@@ -5,11 +5,13 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -395,22 +397,22 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         }));
         codeDocument.SetSyntaxTree(syntaxTree);
 
-        var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.GetGeneratedOutputAsync(It.IsAny<bool>()) == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text), MockBehavior.Strict);
+        var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
+        documentSnapshotMock
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(codeDocument);
+        documentSnapshotMock
+            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(codeDocument.Source.Text);
 
-        var sourceText = SourceText.From(text);
-
-        var context = new RazorCodeActionContext(
+        return new RazorCodeActionContext(
             request,
-            documentSnapshot,
+            documentSnapshotMock.Object,
             codeDocument,
             location,
             location,
-            sourceText,
+            codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);
-
-        return context;
     }
 }
