@@ -4,6 +4,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -37,6 +38,17 @@ internal class TestRazorProjectService(
         mock.Setup(x => x.AddListener(It.IsAny<IRazorProjectInfoListener>()));
 
         return mock.Object;
+    }
+
+    public Task<ProjectKey> AddProjectAsync(
+        string filePath,
+        string intermediateOutputPath,
+        RazorConfiguration configuration,
+        string? rootNamespace,
+        string? displayName,
+        CancellationToken cancellationToken)
+    {
+        return GetTestAccessor().AddProjectAsync(filePath, intermediateOutputPath, configuration, rootNamespace, displayName, cancellationToken);
     }
 
     public async Task AddDocumentToPotentialProjectsAsync(string textDocumentPath, CancellationToken cancellationToken)

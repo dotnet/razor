@@ -66,7 +66,7 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
             LoggerFactory);
         AddDisposable(projectService);
 
-        await projectService.GetTestAccessor().AddProjectAsync(
+        await projectService.AddProjectAsync(
             s_projectFilePath1,
             s_intermediateOutputPath1,
             RazorConfiguration.Default,
@@ -80,7 +80,7 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath2, DisposalToken);
         await projectService.UpdateDocumentAsync(s_componentFilePath2, SourceText.From("@namespace Test"), DisposalToken);
 
-        await projectService.GetTestAccessor().AddProjectAsync(
+        await projectService.AddProjectAsync(
             s_projectFilePath2,
             s_intermediateOutputPath2,
             RazorConfiguration.Default,
