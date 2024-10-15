@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -356,16 +355,11 @@ internal static partial class ObjectReaders
             throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        var projectKeyId = reader.ReadNonNullString(nameof(RazorProjectInfo.ProjectKey));
-        var filePath = reader.ReadNonNullString(nameof(RazorProjectInfo.FilePath));
-        var configuration = reader.ReadObject(nameof(RazorProjectInfo.Configuration), ReadConfigurationFromProperties) ?? RazorConfiguration.Default;
-        var projectWorkspaceState = reader.ReadObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties) ?? ProjectWorkspaceState.Default;
-        var rootNamespace = reader.ReadString(nameof(RazorProjectInfo.RootNamespace));
+        var hostProject = reader.ReadNonNullObject(nameof(RazorProjectInfo.HostProject), ReadHostProjectFromProperties);
+        var projectWorkspaceState = reader.ReadNonNullObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties);
         var documents = reader.ReadImmutableArray(nameof(RazorProjectInfo.Documents), static r => r.ReadNonNullObject(ReadHostDocumentFromProperties));
 
-        var displayName = Path.GetFileNameWithoutExtension(filePath);
-
-        return new RazorProjectInfo(new ProjectKey(projectKeyId), filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
+        return new RazorProjectInfo(hostProject, projectWorkspaceState, documents);
     }
 
     public static Checksum ReadChecksum(JsonDataReader reader)

@@ -16,6 +16,10 @@ internal static class IProjectSnapshotExtensions
 {
     public static RazorProjectInfo ToRazorProjectInfo(this IProjectSnapshot project)
     {
+        var hostProject = project is ProjectSnapshot projectSnapshot
+            ? projectSnapshot.HostProject
+            : new(project.FilePath, project.IntermediateOutputPath, project.Configuration, project.RootNamespace, project.DisplayName);
+
         using var documents = new PooledArrayBuilder<HostDocument>();
 
         foreach (var documentFilePath in project.DocumentFilePaths)
@@ -31,13 +35,9 @@ internal static class IProjectSnapshotExtensions
         }
 
         return new RazorProjectInfo(
-            projectKey: project.Key,
-            filePath: project.FilePath,
-            configuration: project.Configuration,
-            rootNamespace: project.RootNamespace,
-            displayName: project.DisplayName,
-            projectWorkspaceState: project.ProjectWorkspaceState,
-            documents: documents.DrainToImmutable());
+            hostProject,
+            project.ProjectWorkspaceState,
+            documents.DrainToImmutable());
     }
 
     public static ImmutableArray<TagHelperDescriptor> GetTagHelpersSynchronously(this IProjectSnapshot projectSnapshot)

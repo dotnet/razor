@@ -25,39 +25,30 @@ internal sealed record class RazorProjectInfo
             RazorProjectInfoResolver.Instance,
             StandardResolver.Instance));
 
-    public ProjectKey ProjectKey { get; init; }
-    public string FilePath { get; init; }
-    public RazorConfiguration Configuration { get; init; }
-    public string? RootNamespace { get; init; }
-    public string DisplayName { get; init; }
-    public ProjectWorkspaceState ProjectWorkspaceState { get; init; }
-    public ImmutableArray<HostDocument> Documents { get; init; }
+    public HostProject HostProject { get; }
+
+    public ProjectKey ProjectKey => HostProject.Key;
+    public string FilePath => HostProject.FilePath;
+    public RazorConfiguration Configuration => HostProject.Configuration;
+    public string? RootNamespace => HostProject.RootNamespace;
+    public string DisplayName => HostProject.DisplayName;
+
+    public ProjectWorkspaceState ProjectWorkspaceState { get; }
+    public ImmutableArray<HostDocument> Documents { get; }
 
     public RazorProjectInfo(
-        ProjectKey projectKey,
-        string filePath,
-        RazorConfiguration configuration,
-        string? rootNamespace,
-        string displayName,
+        HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState,
         ImmutableArray<HostDocument> documents)
     {
-        ProjectKey = projectKey;
-        FilePath = filePath;
-        Configuration = configuration;
-        RootNamespace = rootNamespace;
-        DisplayName = displayName;
+        HostProject = hostProject;
         ProjectWorkspaceState = projectWorkspaceState;
         Documents = documents.NullToEmpty();
     }
 
     public bool Equals(RazorProjectInfo? other)
         => other is not null &&
-           ProjectKey == other.ProjectKey &&
-           FilePath == other.FilePath &&
-           Configuration.Equals(other.Configuration) &&
-           RootNamespace == other.RootNamespace &&
-           DisplayName == other.DisplayName &&
+           HostProject == other.HostProject &&
            ProjectWorkspaceState.Equals(other.ProjectWorkspaceState) &&
            Documents.SequenceEqual(other.Documents);
 
@@ -65,11 +56,7 @@ internal sealed record class RazorProjectInfo
     {
         var hash = HashCodeCombiner.Start();
 
-        hash.Add(ProjectKey);
-        hash.Add(FilePath);
-        hash.Add(Configuration);
-        hash.Add(RootNamespace);
-        hash.Add(DisplayName);
+        hash.Add(HostProject);
         hash.Add(ProjectWorkspaceState);
         hash.Add(Documents);
 

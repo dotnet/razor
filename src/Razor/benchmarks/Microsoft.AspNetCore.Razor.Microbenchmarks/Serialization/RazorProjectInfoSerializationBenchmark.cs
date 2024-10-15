@@ -71,8 +71,7 @@ public class RazorProjectInfoSerializationBenchmark
 
         var projectInfo = DeserializeProjectInfo_Json(reader);
 
-        if (projectInfo.ProjectWorkspaceState is null ||
-            projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState?.TagHelpers.Length)
+        if (projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState.TagHelpers.Length)
         {
             throw new InvalidDataException();
         }
@@ -93,8 +92,7 @@ public class RazorProjectInfoSerializationBenchmark
 
         var projectInfo = DeserializeProjectInfo_Json(reader);
 
-        if (projectInfo.ProjectWorkspaceState is null ||
-            projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState?.TagHelpers.Length)
+        if (projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState.TagHelpers.Length)
         {
             throw new InvalidDataException();
         }
@@ -132,8 +130,7 @@ public class RazorProjectInfoSerializationBenchmark
     {
         var projectInfo = DeserializeProjectInfo_MessagePack(_projectInfoMessagePackBytes);
 
-        if (projectInfo.ProjectWorkspaceState is null ||
-            projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState?.TagHelpers.Length)
+        if (projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState.TagHelpers.Length)
         {
             throw new InvalidDataException();
         }
@@ -146,8 +143,7 @@ public class RazorProjectInfoSerializationBenchmark
         var projectInfo = DeserializeProjectInfo_MessagePack(bytes);
         _buffer.Clear();
 
-        if (projectInfo.ProjectWorkspaceState is null ||
-            projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState?.TagHelpers.Length)
+        if (projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState.TagHelpers.Length)
         {
             throw new InvalidDataException();
         }

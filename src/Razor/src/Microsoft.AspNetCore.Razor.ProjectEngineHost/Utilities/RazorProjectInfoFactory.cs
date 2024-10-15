@@ -35,6 +35,11 @@ internal static class RazorProjectInfoFactory
 
     public static async Task<RazorProjectInfo?> ConvertAsync(Project project, CancellationToken cancellationToken)
     {
+        if (project.FilePath is null)
+        {
+            return null;
+        }
+
         var projectPath = Path.GetDirectoryName(project.FilePath);
         if (projectPath is null)
         {
@@ -65,42 +70,38 @@ internal static class RazorProjectInfoFactory
         }
 
         var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-        var configuration = ComputeRazorConfigurationOptions(options, compilation, out var defaultNamespace);
+        var (configuration, rootNamespace) = ComputeRazorConfigurationOptions(options, compilation);
         var fileSystem = RazorProjectFileSystem.Create(projectPath);
-
-        var defaultConfigure = (RazorProjectEngineBuilder builder) =>
-        {
-            if (defaultNamespace is not null)
-            {
-                builder.SetRootNamespace(defaultNamespace);
-            }
-
-            builder.SetCSharpLanguageVersion(csharpLanguageVersion);
-            builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too!
-        };
 
         var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration);
 
         var engine = engineFactory.Create(
             configuration,
             fileSystem,
-            configure: defaultConfigure);
+            configure: builder =>
+            {
+                if (rootNamespace is not null)
+                {
+                    builder.SetRootNamespace(rootNamespace);
+                }
+
+                builder.SetCSharpLanguageVersion(csharpLanguageVersion);
+                builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too
+            });
 
         var tagHelpers = await project.GetTagHelpersAsync(engine, NoOpTelemetryReporter.Instance, cancellationToken).ConfigureAwait(false);
 
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
 
+        var hostProject = new HostProject(project.FilePath, intermediateOutputPath, configuration, rootNamespace, displayName: project.Name);
+
         return new RazorProjectInfo(
-            projectKey: new ProjectKey(intermediateOutputPath),
-            filePath: project.FilePath!,
-            configuration: configuration,
-            rootNamespace: defaultNamespace,
-            displayName: project.Name,
+            hostProject,
             projectWorkspaceState: projectWorkspaceState,
             documents: documents);
     }
 
-    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation, out string defaultNamespace)
+    private static (RazorConfiguration configuration, string? rootNamespace) ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation)
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
@@ -120,16 +121,14 @@ internal static class RazorProjectInfoFactory
 
         var suppressAddComponentParameter = !compilation.HasAddComponentParameter();
 
-        var razorConfiguration = new RazorConfiguration(
+        var configuration = new RazorConfiguration(
             razorLanguageVersion,
             configurationName,
             Extensions: [],
             UseConsolidatedMvcViews: true,
             suppressAddComponentParameter);
 
-        defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
-
-        return razorConfiguration;
+        return (configuration, rootNamespace ?? "ASP"); // TODO: Source generator does this. Do we want it?
     }
 
     internal static ImmutableArray<HostDocument> GetDocuments(Project project, string projectPath)

@@ -35,12 +35,15 @@ public class SerializationTest : ToolingTestBase
     public void RazorProjectInfo_InvalidVersionThrows()
     {
         // Arrange
-        var projectInfo = new RazorProjectInfo(
-            new ProjectKey("/path/to/obj/"),
-            "/path/to/project.csproj",
+        var hostProject = new HostProject(
+            filePath: "/path/to/project.csproj",
+            intermediateOutputPath: "/path/to/obj/",
             _configuration,
             rootNamespace: "TestProject",
-            displayName: "project",
+            displayName: "project");
+
+        var projectInfo = new RazorProjectInfo(
+            hostProject,
             _projectWorkspaceState,
             documents: []);
 
@@ -68,12 +71,15 @@ public class SerializationTest : ToolingTestBase
     public void RazorProjectInfo_MissingVersionThrows()
     {
         // Arrange
-        var projectInfo = new RazorProjectInfo(
-            new ProjectKey("/path/to/obj/"),
-            "/path/to/project.csproj",
+        var hostProject = new HostProject(
+            filePath: "/path/to/project.csproj",
+            intermediateOutputPath: "/path/to/obj/",
             _configuration,
             rootNamespace: "TestProject",
-            displayName: "project",
+            displayName: "project");
+
+        var projectInfo = new RazorProjectInfo(
+            hostProject,
             _projectWorkspaceState,
             documents: []);
 
@@ -101,14 +107,17 @@ public class SerializationTest : ToolingTestBase
     public void RazorProjectInfo_CanRoundTrip()
     {
         // Arrange
+        var hostProject = new HostProject(
+            filePath: "/path/to/project.csproj",
+            intermediateOutputPath: "/path/to/obj/",
+            _configuration,
+            rootNamespace: "TestProject",
+            displayName: "project");
+
         var legacyDocument = new HostDocument("/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
         var componentDocument = new HostDocument("/path/to/otherfile.razor", "otherfile.razor", FileKinds.Component);
         var projectInfo = new RazorProjectInfo(
-            new ProjectKey("/path/to/obj/"),
-            "/path/to/project.csproj",
-            _configuration,
-            rootNamespace: "TestProject",
-            displayName: "project",
+            hostProject,
             _projectWorkspaceState,
             documents: [legacyDocument, componentDocument]);
 
@@ -120,23 +129,11 @@ public class SerializationTest : ToolingTestBase
         Assert.NotNull(deserializedProjectInfo);
 
         // Assert
-        Assert.Equal(projectInfo.FilePath, deserializedProjectInfo.FilePath);
-        Assert.Equal(projectInfo.Configuration, deserializedProjectInfo.Configuration);
-        Assert.Equal(projectInfo.RootNamespace, deserializedProjectInfo.RootNamespace);
+        Assert.Equal(projectInfo.HostProject, deserializedProjectInfo.HostProject);
         Assert.Equal(projectInfo.ProjectWorkspaceState, deserializedProjectInfo.ProjectWorkspaceState);
-        Assert.Collection(projectInfo.Documents.OrderBy(doc => doc.FilePath),
-            document =>
-            {
-                Assert.Equal(legacyDocument.FilePath, document.FilePath);
-                Assert.Equal(legacyDocument.TargetPath, document.TargetPath);
-                Assert.Equal(legacyDocument.FileKind, document.FileKind);
-            },
-            document =>
-            {
-                Assert.Equal(componentDocument.FilePath, document.FilePath);
-                Assert.Equal(componentDocument.TargetPath, document.TargetPath);
-                Assert.Equal(componentDocument.FileKind, document.FileKind);
-            });
+        Assert.Collection(projectInfo.Documents.OrderBy(static d => d.FilePath),
+            document => Assert.Equal(document, legacyDocument),
+            document => Assert.Equal(document, componentDocument));
     }
 
     [Fact]

@@ -55,14 +55,17 @@ internal class TestRazorProjectService(
     {
         foreach (var projectSnapshot in _projectManager.FindPotentialProjects(textDocumentPath))
         {
-            var normalizedProjectPath = FilePathNormalizer.NormalizeDirectory(projectSnapshot.FilePath);
+            var hostProject = ((ProjectSnapshot)projectSnapshot).HostProject;
+
+            var normalizedProjectPath = FilePathNormalizer.NormalizeDirectory(hostProject.FilePath);
             var documents = ImmutableArray
                 .CreateRange(projectSnapshot.DocumentFilePaths)
                 .Add(textDocumentPath)
                 .SelectAsArray(static path => new HostDocument(filePath: path, targetPath: path));
 
-            await ((IRazorProjectInfoListener)this).UpdatedAsync(new RazorProjectInfo(projectSnapshot.Key, projectSnapshot.FilePath, projectSnapshot.Configuration, projectSnapshot.RootNamespace, projectSnapshot.DisplayName, projectSnapshot.ProjectWorkspaceState,
-                documents), cancellationToken).ConfigureAwait(false);
+            await ((IRazorProjectInfoListener)this)
+                .UpdatedAsync(new RazorProjectInfo(hostProject, projectSnapshot.ProjectWorkspaceState, documents), cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

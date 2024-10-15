@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -71,7 +70,14 @@ public class StreamExtensionTests
         var configuration = new RazorConfiguration(
             RazorLanguageVersion.Latest,
             "TestConfiguration",
-            ImmutableArray<RazorExtension>.Empty);
+            Extensions: []);
+
+        var hostProject = new HostProject(
+            filePath: @"C:\test\test.csproj",
+            intermediateOutputPath: "TestProject",
+            configuration,
+            rootNamespace: "TestNamespace",
+            displayName: "Test");
 
         var tagHelper = TagHelperDescriptorBuilder.Create("TypeName", "AssemblyName")
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tag-name"))
@@ -80,11 +86,7 @@ public class StreamExtensionTests
         var projectWorkspaceState = ProjectWorkspaceState.Create([tagHelper], CodeAnalysis.CSharp.LanguageVersion.Latest);
 
         var projectInfo = new RazorProjectInfo(
-            new ProjectKey("TestProject"),
-            @"C:\test\test.csproj",
-            configuration,
-            "TestNamespace",
-            "Test",
+            hostProject,
             projectWorkspaceState,
             [new HostDocument(@"C:\test\document.razor", @"document.razor", FileKinds.Component)]);
 

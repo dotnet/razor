@@ -87,10 +87,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         Assert.NotNull(actualProjectInfo);
 
         // Assert
-        Assert.Equal(originalProjectInfo.ProjectKey, actualProjectInfo.ProjectKey);
-        Assert.Equal(originalProjectInfo.FilePath, actualProjectInfo.FilePath);
-        Assert.Equal(originalProjectInfo.Configuration, actualProjectInfo.Configuration);
-        Assert.Equal(originalProjectInfo.RootNamespace, actualProjectInfo.RootNamespace);
+        Assert.Equal(originalProjectInfo.HostProject, actualProjectInfo.HostProject);
         Assert.Equal(originalProjectInfo.ProjectWorkspaceState, actualProjectInfo.ProjectWorkspaceState);
         Assert.Equal<HostDocument>(originalProjectInfo.Documents, actualProjectInfo.Documents);
     }

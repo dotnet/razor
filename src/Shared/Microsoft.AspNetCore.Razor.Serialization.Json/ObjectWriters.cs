@@ -252,11 +252,8 @@ internal static class ObjectWriters
     public static void WriteProperties(JsonDataWriter writer, RazorProjectInfo value)
     {
         writer.Write(WellKnownPropertyNames.Version, SerializationFormat.Version);
-        writer.Write(nameof(value.ProjectKey), value.ProjectKey.Id);
-        writer.Write(nameof(value.FilePath), value.FilePath);
-        writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);
+        writer.WriteObject(nameof(value.HostProject), value.HostProject, WriteProperties);
         writer.WriteObject(nameof(value.ProjectWorkspaceState), value.ProjectWorkspaceState, WriteProperties);
-        writer.Write(nameof(value.RootNamespace), value.RootNamespace);
         writer.WriteArray(nameof(value.Documents), value.Documents, Write);
     }
 
