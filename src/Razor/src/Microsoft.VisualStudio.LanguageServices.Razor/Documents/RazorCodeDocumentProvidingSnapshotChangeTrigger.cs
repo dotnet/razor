@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -61,7 +62,7 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IRazorStartupSe
         }
     }
 
-    public async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(string filePath)
+    public async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(string filePath, CancellationToken cancellationToken)
     {
         if (!_documentProjectMap.TryGetValue(filePath, out var projectKey))
         {
@@ -79,8 +80,6 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IRazorStartupSe
             return null;
         }
 
-        var razorDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
-
-        return razorDocument;
+        return await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
     }
 }

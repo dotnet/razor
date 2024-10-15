@@ -64,7 +64,9 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         var csharpDocument = codeDocument.GetCSharpDocument();
         if (DocumentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
         {
-            var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
+            var generatedDocument = await context.Snapshot
+                .GetGeneratedDocumentAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             var highlights = await DocumentHighlights.GetHighlightsAsync(generatedDocument, mappedPosition, cancellationToken).ConfigureAwait(false);
 

@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
@@ -71,7 +72,11 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         FeatureOptions.SetOptions(_clientInitializationOptions);
     }
 
-    protected Task<TextDocument> CreateProjectAndRazorDocumentAsync(string contents, string? fileKind = null, (string fileName, string contents)[]? additionalFiles = null, bool createSeparateRemoteAndLocalWorkspaces = false)
+    protected Task<TextDocument> CreateProjectAndRazorDocumentAsync(
+        string contents,
+        string? fileKind = null,
+        (string fileName, string contents)[]? additionalFiles = null,
+        bool createSeparateRemoteAndLocalWorkspaces = false)
     {
         // Using IsLegacy means null == component, so easier for test authors
         var isComponent = !FileKinds.IsLegacy(fileKind);
@@ -95,7 +100,14 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             // actual solution syncing set up for testing, and don't really use a service broker, but since we also would
             // expect to never make changes to a workspace, it should be fine to simply create duplicated solutions as part
             // of test setup.
-            return CreateLocalProjectAndRazorDocumentAsync(remoteDocument.Project.Solution, projectId, projectName, documentId, documentFilePath, contents, additionalFiles);
+            return CreateLocalProjectAndRazorDocumentAsync(
+                remoteDocument.Project.Solution,
+                projectId,
+                projectName,
+                documentId,
+                documentFilePath,
+                contents,
+                additionalFiles);
         }
 
         // If we're just creating one workspace, then its the remote one and we just return the remote document
@@ -104,7 +116,14 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         return Task.FromResult(remoteDocument);
     }
 
-    private async Task<TextDocument> CreateLocalProjectAndRazorDocumentAsync(Solution remoteSolution, ProjectId projectId, string projectName, DocumentId documentId, string documentFilePath, string contents, (string fileName, string contents)[]? additionalFiles)
+    private async Task<TextDocument> CreateLocalProjectAndRazorDocumentAsync(
+        Solution remoteSolution,
+        ProjectId projectId,
+        string projectName,
+        DocumentId documentId,
+        string documentFilePath,
+        string contents,
+        (string fileName, string contents)[]? additionalFiles)
     {
         var exportProvider = TestComposition.Roslyn.ExportProviderFactory.CreateExportProvider();
         AddDisposable(exportProvider);
@@ -120,7 +139,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         var snapshotManager = _exportProvider.AssumeNotNull().GetExportedValue<RemoteSnapshotManager>();
         var snapshot = snapshotManager.GetSnapshot(razorDocument);
         // Compile the Razor file
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false, DisposalToken);
         // Update the generated doc contents
         var generatedDocumentIds = solution.GetDocumentIdsWithFilePath(documentFilePath + CSharpVirtualDocumentSuffix);
         solution = solution.WithDocumentText(generatedDocumentIds, codeDocument.GetCSharpSourceText());

@@ -58,7 +58,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
 
         DocumentUri = new Uri(_filePath);
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
-        DocumentText = await DocumentSnapshot.GetTextAsync();
+        DocumentText = await DocumentSnapshot.GetTextAsync(CancellationToken.None);
     }
 
     private static void WriteSampleFormattingFile(string filePath, bool preformatted, int blocks)

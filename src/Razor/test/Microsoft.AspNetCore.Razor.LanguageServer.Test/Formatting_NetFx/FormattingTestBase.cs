@@ -273,9 +273,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var importsPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
         var importsSourceText = SourceText.From(DefaultImports);
         var importsDocument = RazorSourceDocument.Create(importsSourceText, RazorSourceDocumentProperties.Create(importsPath, importsPath));
-        var importsSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
+        var importsSnapshot = new StrictMock<IDocumentSnapshot>();
         importsSnapshot
-            .Setup(d => d.GetTextAsync())
+            .Setup(d => d.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(importsSourceText);
         importsSnapshot
             .Setup(d => d.FilePath)
@@ -286,8 +286,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
         var projectFileSystem = new TestRazorProjectFileSystem([
             new TestRazorProjectItem(path, fileKind: fileKind),
-            new TestRazorProjectItem(importsPath, fileKind: FileKinds.ComponentImport),
-            ]);
+            new TestRazorProjectItem(importsPath, fileKind: FileKinds.ComponentImport)]);
 
         var projectEngine = RazorProjectEngine.Create(
             new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", Extensions: [], LanguageServerFlags: new LanguageServerFlags(forceRuntimeCodeGeneration)),
@@ -315,9 +314,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
     internal static IDocumentSnapshot CreateDocumentSnapshot(string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind, ImmutableArray<RazorSourceDocument> importsDocuments, ImmutableArray<IDocumentSnapshot> imports, RazorProjectEngine projectEngine, RazorCodeDocument codeDocument, bool inGlobalNamespace = false)
     {
-        var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
+        var documentSnapshot = new StrictMock<IDocumentSnapshot>();
         documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.FilePath)
@@ -332,7 +331,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             .Setup(d => d.Project.Configuration)
             .Returns(projectEngine.Configuration);
         documentSnapshot
-            .Setup(d => d.GetTextAsync())
+            .Setup(d => d.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument.Source.Text);
         documentSnapshot
             .Setup(d => d.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))

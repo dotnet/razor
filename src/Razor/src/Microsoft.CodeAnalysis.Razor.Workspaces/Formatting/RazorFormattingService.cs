@@ -67,7 +67,9 @@ internal class RazorFormattingService : IRazorFormattingService
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(documentContext.Snapshot).ConfigureAwait(false);
+        var codeDocument = await _codeDocumentProvider
+            .GetCodeDocumentAsync(documentContext.Snapshot, cancellationToken)
+            .ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -223,8 +225,8 @@ internal class RazorFormattingService : IRazorFormattingService
         // Code actions were computed on the regular document, which with FUSE could be a runtime document. We have to make
         // sure for code actions specifically we are formatting that same document, or TextChange spans may not line up
         var codeDocument = isCodeActionFormattingRequest
-            ? await documentSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false).ConfigureAwait(false)
-            : await _codeDocumentProvider.GetCodeDocumentAsync(documentSnapshot).ConfigureAwait(false);
+            ? await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false)
+            : await _codeDocumentProvider.GetCodeDocumentAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
 
         var context = FormattingContext.CreateForOnTypeFormatting(
             documentSnapshot,
