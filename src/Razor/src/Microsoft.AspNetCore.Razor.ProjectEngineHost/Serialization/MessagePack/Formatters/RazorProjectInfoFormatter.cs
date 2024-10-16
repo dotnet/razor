@@ -18,7 +18,7 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
 
     public override RazorProjectInfo Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        VerifyVersionNumber(ref reader);
+        VerifyVersionNumber(in reader);
 
         reader.ReadArrayHeaderAndVerify(4);
 
@@ -42,7 +42,7 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
         writer.Serialize(value.Documents, options);
     }
 
-    private static void VerifyVersionNumber(ref MessagePackReader reader)
+    private static void VerifyVersionNumber(ref readonly MessagePackReader reader)
     {
         // Peek ahead to check version number.
         var peekReader = reader.CreatePeekReader();
