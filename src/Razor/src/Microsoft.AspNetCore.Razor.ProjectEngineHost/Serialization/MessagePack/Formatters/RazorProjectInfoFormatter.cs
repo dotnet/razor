@@ -18,14 +18,12 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
 
     public override RazorProjectInfo Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
+        VerifyVersionNumber(ref reader);
+
         reader.ReadArrayHeaderAndVerify(4);
 
-        var version = reader.ReadInt32();
-
-        if (version != SerializationFormat.Version)
-        {
-            throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
-        }
+        // We skip the version number here, since we verified it above.
+        reader.Skip();
 
         var hostProject = reader.Deserialize<HostProject>(options);
         var projectWorkspaceState = reader.DeserializeOrNull<ProjectWorkspaceState>(options) ?? ProjectWorkspaceState.Default;
@@ -42,5 +40,21 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
         writer.Serialize(value.HostProject, options);
         writer.Serialize(value.ProjectWorkspaceState, options);
         writer.Serialize(value.Documents, options);
+    }
+
+    private static void VerifyVersionNumber(ref MessagePackReader reader)
+    {
+        // Peek ahead to check version number.
+        var peekReader = reader.CreatePeekReader();
+
+        if (peekReader.TryReadArrayHeader(out var count) && count > 0)
+        {
+            var version = peekReader.ReadInt32();
+
+            if (version != SerializationFormat.Version)
+            {
+                throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
+            }
+        }
     }
 }
