@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -21,7 +20,7 @@ internal class VSTelemetryReporter : TelemetryReporter
         // Get the DefaultSession for telemetry. This is set by VS with
         // TelemetryService.SetDefaultSession and provides the correct
         // appinsights keys etc
-        : base(ImmutableArray.Create(TelemetryService.DefaultSession))
+        : base(TelemetryService.DefaultSession)
     {
         _logger = loggerFactory.GetOrCreateLogger<VSTelemetryReporter>();
     }
