@@ -44,7 +44,7 @@ public class IntermediateNodeWriter :
             string.Join(" ", node.Modifiers),
             node.ClassName,
             node.BaseType is { } baseType ? $"{baseType.BaseType.Content}{baseType.GreaterThan?.Content}{baseType.ModelType?.Content}{baseType.LessThan?.Content}" : "",
-            string.Join(", ", node.Interfaces ?? Array.Empty<string>())
+            string.Join(", ", node.Interfaces.Select(i => i.Content))
         };
 
         // Avoid adding the type parameters to the baseline if they aren't present.

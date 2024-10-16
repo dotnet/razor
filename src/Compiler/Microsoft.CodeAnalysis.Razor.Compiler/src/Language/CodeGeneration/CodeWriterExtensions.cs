@@ -471,7 +471,7 @@ internal static class CodeWriterExtensions
         IList<string> modifiers,
         string name,
         BaseTypeWithModel baseType,
-        IList<string> interfaces,
+        IList<IntermediateToken> interfaces,
         IList<TypeParameter> typeParameters,
         CodeRenderingContext context,
         bool useNullableContext = false)
@@ -540,7 +540,14 @@ internal static class CodeWriterExtensions
 
             if (hasInterfaces)
             {
-                writer.Write(string.Join(", ", interfaces));
+                for (var i = 0; i < interfaces.Count; i++)
+                {
+                    writeOptionalToken(interfaces[i]);
+                    if (i != interfaces.Count - 1)
+                    {
+                        writer.Write(", ");
+                    }
+                }
             }
         }
 
