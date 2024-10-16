@@ -1,11 +1,15 @@
 {
-  "__Version": 6,
-  "ProjectKey": "C:\\Users\\admin\\location\\blazorserver\\obj\\Debug\\net7.0\\",
-  "FilePath": "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj",
-  "Configuration": {
-    "ConfigurationName": "MVC-3.0",
-    "LanguageVersion": "3.0",
-    "Extensions": [ "MVC-3.0" ]
+  "__Version": 7,
+  "HostProject": {
+    "FilePath": "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj",
+    "IntermediateOutputPath": "C:\\Users\\admin\\location\\blazorserver\\obj\\Debug\\net7.0\\",
+    "Configuration": {
+      "ConfigurationName": "MVC-3.0",
+      "LanguageVersion": "3.0",
+      "Extensions": [ "MVC-3.0" ]
+    },
+    "RootNamespace": "blazorserver",
+    "DisplayName": "blazorserver"
   },
   "ProjectWorkspaceState": {
     "TagHelpers": [
@@ -16128,7 +16132,6 @@
     ],
     "CSharpLanguageVersion": 800
   },
-  "RootNamespace": "blazorserver",
   "Documents": [
     {
       "FilePath": "C:\\Users\\admin\\location\\blazorserver\\Shared\\MainLayout.razor",
