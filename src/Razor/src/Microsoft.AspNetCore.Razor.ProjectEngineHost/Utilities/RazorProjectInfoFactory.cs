@@ -80,11 +80,7 @@ internal static class RazorProjectInfoFactory
             fileSystem,
             configure: builder =>
             {
-                if (rootNamespace is not null)
-                {
-                    builder.SetRootNamespace(rootNamespace);
-                }
-
+                builder.SetRootNamespace(rootNamespace);
                 builder.SetCSharpLanguageVersion(csharpLanguageVersion);
                 builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too
             });
@@ -101,7 +97,7 @@ internal static class RazorProjectInfoFactory
             documents: documents);
     }
 
-    private static (RazorConfiguration configuration, string? rootNamespace) ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation)
+    private static (RazorConfiguration configuration, string rootNamespace) ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation)
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
