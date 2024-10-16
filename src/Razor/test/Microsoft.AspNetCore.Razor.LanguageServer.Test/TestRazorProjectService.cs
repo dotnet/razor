@@ -4,11 +4,9 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -51,7 +49,6 @@ internal class TestRazorProjectService(
         {
             var hostProject = ((ProjectSnapshot)projectSnapshot).HostProject;
 
-            var normalizedProjectPath = FilePathNormalizer.NormalizeDirectory(hostProject.FilePath);
             var documents = ImmutableArray
                 .CreateRange(projectSnapshot.DocumentFilePaths)
                 .Add(textDocumentPath)
