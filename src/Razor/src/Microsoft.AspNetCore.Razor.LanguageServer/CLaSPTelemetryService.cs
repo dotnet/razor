@@ -13,7 +13,7 @@ internal class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : Abs
     public override AbstractRequestScope CreateRequestScope(string lspMethodName)
         => new RequestTelemetryScope(lspMethodName, telemetryReporter);
 
-    private class RequestTelemetryScope : AbstractRequestScope
+    private sealed class RequestTelemetryScope : AbstractRequestScope
     {
         private readonly Stopwatch _stopWatch;
         private readonly ITelemetryReporter _telemetryReporter;
