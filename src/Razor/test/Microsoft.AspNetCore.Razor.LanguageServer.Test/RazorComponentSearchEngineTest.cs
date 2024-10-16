@@ -66,13 +66,14 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
             LoggerFactory);
         AddDisposable(projectService);
 
-        await projectService.AddProjectAsync(
+        var hostProject1 = new HostProject(
             s_projectFilePath1,
             s_intermediateOutputPath1,
             RazorConfiguration.Default,
             RootNamespace1,
-            displayName: "",
-            DisposalToken);
+            displayName: "");
+
+        await projectService.AddProjectAsync(hostProject1, DisposalToken);
 
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath1, DisposalToken);
         await projectService.UpdateDocumentAsync(s_componentFilePath1, SourceText.From(""), DisposalToken);
@@ -80,13 +81,14 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath2, DisposalToken);
         await projectService.UpdateDocumentAsync(s_componentFilePath2, SourceText.From("@namespace Test"), DisposalToken);
 
-        await projectService.AddProjectAsync(
+        var hostProject2 = new HostProject(
             s_projectFilePath2,
             s_intermediateOutputPath2,
             RazorConfiguration.Default,
             RootNamespace2,
-            displayName: "",
-            DisposalToken);
+            displayName: "");
+
+        await projectService.AddProjectAsync(hostProject2, DisposalToken);
 
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath3, DisposalToken);
         await projectService.UpdateDocumentAsync(s_componentFilePath3, SourceText.From(""), DisposalToken);

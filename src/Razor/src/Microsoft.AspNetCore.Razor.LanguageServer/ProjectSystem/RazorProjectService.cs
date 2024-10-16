@@ -9,10 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -82,10 +80,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         {
             await AddOrUpdateProjectCoreAsync(
                 projectInfo.Key,
-                projectInfo.FilePath,
-                projectInfo.Configuration,
-                projectInfo.RootNamespace,
-                projectInfo.DisplayName,
+                projectInfo.HostProject,
                 projectInfo.ProjectWorkspaceState,
                 projectInfo.Documents,
                 cancellationToken)
@@ -111,29 +106,23 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
         await AddOrUpdateProjectCoreAsync(
             projectInfo.Key,
-            projectInfo.FilePath,
-            projectInfo.Configuration,
-            projectInfo.RootNamespace,
-            projectInfo.DisplayName,
+            projectInfo.HostProject,
             projectInfo.ProjectWorkspaceState,
             projectInfo.Documents,
             cancellationToken)
             .ConfigureAwait(false);
     }
 
-    async Task IRazorProjectInfoListener.RemovedAsync(ProjectKey projectKey, CancellationToken cancellationToken)
+    async Task IRazorProjectInfoListener.RemovedAsync(ProjectKey key, CancellationToken cancellationToken)
     {
         // Don't remove a project during initialization.
         await WaitForInitializationAsync().ConfigureAwait(false);
 
-        _logger.LogTrace($"{nameof(IRazorProjectInfoListener)} received remove for {projectKey}");
+        _logger.LogTrace($"{nameof(IRazorProjectInfoListener)} received remove for {key}");
 
         await AddOrUpdateProjectCoreAsync(
-            projectKey,
-            filePath: null,
-            configuration: null,
-            rootNamespace: null,
-            displayName: "",
+            key,
+            hostProject: null,
             ProjectWorkspaceState.Default,
             documents: [],
             cancellationToken)
@@ -312,56 +301,47 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         }
     }
 
-    private ProjectKey AddProjectCore(ProjectSnapshotManager.Updater updater, string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace, string? displayName)
+    private ProjectKey AddProjectCore(ProjectSnapshotManager.Updater updater, HostProject hostProject)
     {
-        var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var hostProject = new HostProject(
-            normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
-
         // ProjectAdded will no-op if the project already exists
         updater.ProjectAdded(hostProject);
 
-        _logger.LogInformation($"Added project '{filePath}' with key {hostProject.Key} to project system.");
+        _logger.LogInformation($"Added project '{hostProject.FilePath}' with key {hostProject.Key} to project system.");
 
         return hostProject.Key;
     }
 
     private Task AddOrUpdateProjectCoreAsync(
-        ProjectKey projectKey,
-        string? filePath,
-        RazorConfiguration? configuration,
-        string? rootNamespace,
-        string? displayName,
+        ProjectKey key,
+        HostProject? hostProject,
         ProjectWorkspaceState projectWorkspaceState,
         ImmutableArray<HostDocument> documents,
         CancellationToken cancellationToken)
     {
+        Debug.Assert(hostProject is null || hostProject.Key == key);
+
         // Note: We specifically don't wait for initialization here because this is called *during* initialization.
         // All other callers of this method must await WaitForInitializationAsync().
 
         return _projectManager.UpdateAsync(
             updater =>
             {
-                if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
+                if (!_projectManager.TryGetLoadedProject(key, out var project))
                 {
-                    if (filePath is null)
+                    if (hostProject is null)
                     {
                         // Never tracked the project to begin with, noop.
-                        _logger.LogInformation($"Failed to update untracked project '{projectKey}'.");
+                        _logger.LogInformation($"Failed to update untracked project '{key}'.");
                         return;
                     }
 
-                    // If we've been given a project file path, then we have enough info to add the project ourselves, because we know
-                    // the intermediate output path from the id
-                    var intermediateOutputPath = projectKey.Id;
+                    var newKey = AddProjectCore(updater, hostProject);
+                    Debug.Assert(newKey == key);
 
-                    var newKey = AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName);
-                    Debug.Assert(newKey == projectKey);
-
-                    project = _projectManager.GetLoadedProject(projectKey);
+                    project = _projectManager.GetLoadedProject(key);
                 }
 
-                UpdateProjectDocuments(updater, documents, project.Key);
+                UpdateProjectDocuments(updater, project.Key, documents);
 
                 if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
                 {
@@ -372,10 +352,15 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
                 var currentConfiguration = project.Configuration;
                 var currentRootNamespace = project.RootNamespace;
+
+                var configuration = hostProject?.Configuration;
+                var rootNamespace = hostProject?.RootNamespace;
+                var displayName = hostProject?.DisplayName;
+
                 if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
                     currentRootNamespace == rootNamespace)
                 {
-                    _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.");
+                    _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration?.ConfigurationName}' and root namespace '{rootNamespace}'.");
                     return;
                 }
 
@@ -394,21 +379,20 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     _logger.LogInformation($"Updating project '{project.Key}''s root namespace to '{rootNamespace}'.");
                 }
 
-                var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
-                updater.ProjectConfigurationChanged(hostProject);
+                var newHostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
+                updater.ProjectConfigurationChanged(newHostProject);
             },
             cancellationToken);
     }
 
     private void UpdateProjectDocuments(
         ProjectSnapshotManager.Updater updater,
-        ImmutableArray<HostDocument> documents,
-        ProjectKey projectKey)
+        ProjectKey key,
+        ImmutableArray<HostDocument> documents)
     {
-        _logger.LogDebug($"UpdateProjectDocuments for {projectKey} with {documents.Length} documents: {string.Join(", ", documents.Select(d => d.FilePath))}");
+        _logger.LogDebug($"UpdateProjectDocuments for {key} with {documents.Length} documents: {string.Join(", ", documents.Select(d => d.FilePath))}");
 
-        var project = _projectManager.GetLoadedProject(projectKey);
-        var currentProjectKey = project.Key;
+        var project = _projectManager.GetLoadedProject(key);
         var projectDirectory = FilePathNormalizer.GetNormalizedDirectoryName(project.FilePath);
         var documentMap = documents.ToDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
         var miscellaneousProject = _projectManager.GetMiscellaneousProject();
@@ -422,12 +406,12 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 continue;
             }
 
-            _logger.LogDebug($"Document '{documentFilePath}' no longer exists in project '{projectKey}'. Moving to miscellaneous project.");
+            _logger.LogDebug($"Document '{documentFilePath}' no longer exists in project '{key}'. Moving to miscellaneous project.");
 
             MoveDocument(updater, documentFilePath, fromProject: project, toProject: miscellaneousProject);
         }
 
-        project = _projectManager.GetLoadedProject(projectKey);
+        project = _projectManager.GetLoadedProject(key);
 
         // Update existing documents
         foreach (var documentFilePath in project.DocumentFilePaths)
@@ -463,8 +447,8 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 ? new DocumentSnapshotTextLoader(documentSnapshot)
                 : _remoteTextLoaderFactory.Create(newFilePath);
 
-            updater.DocumentRemoved(currentProjectKey, currentHostDocument);
-            updater.DocumentAdded(currentProjectKey, newHostDocument, textLoader);
+            updater.DocumentRemoved(key, currentHostDocument);
+            updater.DocumentAdded(key, newHostDocument, textLoader);
         }
 
         project = _projectManager.GetLoadedProject(project.Key);
@@ -488,9 +472,9 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
                 var newHostDocument = document with { FilePath = documentFilePath };
 
-                _logger.LogInformation($"Adding new document '{documentFilePath}' to project '{currentProjectKey}'.");
+                _logger.LogInformation($"Adding new document '{documentFilePath}' to project '{key}'.");
 
-                updater.DocumentAdded(currentProjectKey, newHostDocument, remoteTextLoader);
+                updater.DocumentAdded(key, newHostDocument, remoteTextLoader);
             }
         }
     }

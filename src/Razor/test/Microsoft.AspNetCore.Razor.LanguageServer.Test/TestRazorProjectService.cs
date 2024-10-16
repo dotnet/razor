@@ -40,15 +40,9 @@ internal class TestRazorProjectService(
         return mock.Object;
     }
 
-    public Task<ProjectKey> AddProjectAsync(
-        string filePath,
-        string intermediateOutputPath,
-        RazorConfiguration configuration,
-        string? rootNamespace,
-        string? displayName,
-        CancellationToken cancellationToken)
+    public Task<ProjectKey> AddProjectAsync(HostProject hostProject, CancellationToken cancellationToken)
     {
-        return GetTestAccessor().AddProjectAsync(filePath, intermediateOutputPath, configuration, rootNamespace, displayName, cancellationToken);
+        return GetTestAccessor().AddProjectAsync(hostProject, cancellationToken);
     }
 
     public async Task AddDocumentToPotentialProjectsAsync(string textDocumentPath, CancellationToken cancellationToken)

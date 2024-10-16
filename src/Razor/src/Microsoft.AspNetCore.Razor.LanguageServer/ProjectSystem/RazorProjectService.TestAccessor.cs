@@ -3,8 +3,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
@@ -17,13 +17,7 @@ internal partial class RazorProjectService
         public ValueTask WaitForInitializationAsync()
             => instance.WaitForInitializationAsync();
 
-        public async Task<ProjectKey> AddProjectAsync(
-            string filePath,
-            string intermediateOutputPath,
-            RazorConfiguration? configuration,
-            string? rootNamespace,
-            string? displayName,
-            CancellationToken cancellationToken)
+        public async Task<ProjectKey> AddProjectAsync(HostProject hostProject, CancellationToken cancellationToken)
         {
             await instance.WaitForInitializationAsync().ConfigureAwait(false);
 
@@ -31,10 +25,10 @@ internal partial class RazorProjectService
                 .UpdateAsync(
                     (updater, state) =>
                     {
-                        var (service, filePath, intermediatePath, configuration, rootNamespace, displayName) = state;
-                        return service.AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName);
+                        var (service, hostProject) = state;
+                        return service.AddProjectCore(updater, hostProject);
                     },
-                    (instance, filePath, intermediateOutputPath, configuration, rootNamespace, displayName),
+                    (instance, hostProject),
                     cancellationToken)
                 .ConfigureAwait(false);
         }
