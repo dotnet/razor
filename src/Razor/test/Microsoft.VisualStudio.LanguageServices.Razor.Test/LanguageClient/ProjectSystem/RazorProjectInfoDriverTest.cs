@@ -55,22 +55,22 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         var latestProjects = driver.GetLatestProjectInfo();
 
         // The misc files projects project should be present.
-        Assert.Contains(latestProjects, x => x.ProjectKey == MiscFilesHostProject.Instance.Key);
+        Assert.Contains(latestProjects, x => x.Key == MiscFilesHostProject.Instance.Key);
 
         // Sort the remaining projects by project key.
         var projects = latestProjects
-            .WhereAsArray(x => x.ProjectKey != MiscFilesHostProject.Instance.Key)
-            .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
+            .WhereAsArray(x => x.Key != MiscFilesHostProject.Instance.Key)
+            .Sort((x, y) => x.Key.Id.CompareTo(y.Key.Id));
 
         Assert.Equal(2, projects.Length);
 
         var projectInfo1 = projects[0];
-        Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
+        Assert.Equal(s_hostProject1.Key, projectInfo1.Key);
         var document1 = Assert.Single(projectInfo1.Documents);
         Assert.Equal(s_hostDocument1.FilePath, document1.FilePath);
 
         var projectInfo2 = projects[1];
-        Assert.Equal(s_hostProject2.Key, projectInfo2.ProjectKey);
+        Assert.Equal(s_hostProject2.Key, projectInfo2.Key);
         var document2 = Assert.Single(projectInfo2.Documents);
         Assert.Equal(s_hostDocument2.FilePath, document2.FilePath);
     }
@@ -88,7 +88,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         var initialProjects = driver.GetLatestProjectInfo();
 
         var miscFilesProject = Assert.Single(initialProjects);
-        Assert.Equal(MiscFilesHostProject.Instance.Key, miscFilesProject.ProjectKey);
+        Assert.Equal(MiscFilesHostProject.Instance.Key, miscFilesProject.Key);
 
         // Now add some projects
         await projectManager.UpdateAsync(static updater =>
@@ -105,18 +105,18 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         // Sort the non-misc files projects by project key.
         var projects = driver
             .GetLatestProjectInfo()
-            .WhereAsArray(x => x.ProjectKey != MiscFilesHostProject.Instance.Key)
-            .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
+            .WhereAsArray(x => x.Key != MiscFilesHostProject.Instance.Key)
+            .Sort((x, y) => x.Key.Id.CompareTo(y.Key.Id));
 
         Assert.Equal(2, projects.Length);
 
         var projectInfo1 = projects[0];
-        Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
+        Assert.Equal(s_hostProject1.Key, projectInfo1.Key);
         var document1 = Assert.Single(projectInfo1.Documents);
         Assert.Equal(s_hostDocument1.FilePath, document1.FilePath);
 
         var projectInfo2 = projects[1];
-        Assert.Equal(s_hostProject2.Key, projectInfo2.ProjectKey);
+        Assert.Equal(s_hostProject2.Key, projectInfo2.Key);
         var document2 = Assert.Single(projectInfo2.Documents);
         Assert.Equal(s_hostDocument2.FilePath, document2.FilePath);
     }
@@ -143,11 +143,11 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         // Sort the non-misc files projects by project key.
         var projects = driver
             .GetLatestProjectInfo()
-            .WhereAsArray(x => x.ProjectKey != MiscFilesHostProject.Instance.Key)
-            .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
+            .WhereAsArray(x => x.Key != MiscFilesHostProject.Instance.Key)
+            .Sort((x, y) => x.Key.Id.CompareTo(y.Key.Id));
 
         var projectInfo1 = Assert.Single(projects);
-        Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
+        Assert.Equal(s_hostProject1.Key, projectInfo1.Key);
         var document1 = Assert.Single(projectInfo1.Documents);
         Assert.Equal(s_hostDocument1.FilePath, document1.FilePath);
     }
@@ -169,11 +169,11 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         // Sort the non-misc files projects by project key.
         var projects = driver
             .GetLatestProjectInfo()
-            .WhereAsArray(x => x.ProjectKey != MiscFilesHostProject.Instance.Key)
-            .Sort((x, y) => x.ProjectKey.Id.CompareTo(y.ProjectKey.Id));
+            .WhereAsArray(x => x.Key != MiscFilesHostProject.Instance.Key)
+            .Sort((x, y) => x.Key.Id.CompareTo(y.Key.Id));
 
         var projectInfo1 = Assert.Single(projects);
-        Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
+        Assert.Equal(s_hostProject1.Key, projectInfo1.Key);
 
         await projectManager.UpdateAsync(static updater =>
         {
@@ -183,7 +183,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         var miscFilesProject = Assert.Single(driver.GetLatestProjectInfo());
-        Assert.Equal(MiscFilesHostProject.Instance.Key, miscFilesProject.ProjectKey);
+        Assert.Equal(MiscFilesHostProject.Instance.Key, miscFilesProject.Key);
     }
 
     [UIFact]
@@ -213,7 +213,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         Assert.Empty(listener.Removes);
 
         var projectInfo1 = Assert.Single(listener.Updates);
-        Assert.Equal(s_hostProject1.Key, projectInfo1.ProjectKey);
+        Assert.Equal(s_hostProject1.Key, projectInfo1.Key);
         var document1 = Assert.Single(projectInfo1.Documents);
         Assert.Equal(s_hostDocument1.FilePath, document1.FilePath);
     }
