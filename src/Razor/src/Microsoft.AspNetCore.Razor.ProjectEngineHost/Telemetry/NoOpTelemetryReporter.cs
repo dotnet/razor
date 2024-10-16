@@ -28,10 +28,6 @@ internal class NoOpTelemetryReporter : ITelemetryReporter
     public TelemetryScope BeginBlock(string name, Severity severity, params Property[] properties)
         => TelemetryScope.Null;
 
-    public void Dispose()
-    {
-    }
-
     public void ReportEvent(string name, Severity severity)
     {
     }

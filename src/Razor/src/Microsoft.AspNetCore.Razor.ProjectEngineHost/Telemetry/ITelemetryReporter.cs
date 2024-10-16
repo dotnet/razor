@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
-internal interface ITelemetryReporter : IDisposable
+internal interface ITelemetryReporter
 {
     TelemetryScope BeginBlock(string name, Severity severity);
     TelemetryScope BeginBlock(string name, Severity severity, Property property);

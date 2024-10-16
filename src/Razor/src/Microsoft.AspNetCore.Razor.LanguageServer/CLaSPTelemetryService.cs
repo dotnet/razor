@@ -8,7 +8,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : AbstractTelemetryService
+internal sealed class CLaSPTelemetryService(ITelemetryReporter telemetryReporter) : AbstractTelemetryService
 {
     public override AbstractRequestScope CreateRequestScope(string lspMethodName)
         => new RequestTelemetryScope(lspMethodName, telemetryReporter);

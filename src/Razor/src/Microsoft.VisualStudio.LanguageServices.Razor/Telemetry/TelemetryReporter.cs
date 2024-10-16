@@ -20,7 +20,7 @@ using System.Linq;
 
 namespace Microsoft.VisualStudio.Razor.Telemetry;
 
-internal abstract partial class TelemetryReporter : ITelemetryReporter
+internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposable
 {
     private const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
     private const string AspNetCoreNamespace = nameof(Microsoft) + "." + nameof(AspNetCore);
