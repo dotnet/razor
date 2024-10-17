@@ -1,0 +1,2 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(5,6): Error RZ1034: Found a malformed 'Col' tag helper. Tag helpers must have a start and end tag or be self closing.
+x:\dir\subdir\Test\TestComponent.cshtml(6,33): Error RZ1034: Found a malformed 'Col' tag helper. Tag helpers must have a start and end tag or be self closing.
