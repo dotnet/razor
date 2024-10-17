@@ -19,10 +19,10 @@ public sealed class BaseTypeWithModel
             if (location.HasValue)
             {
                 var openBracketPosition = baseType.Length - ModelGenericParameter.Length;
-                BaseType.Source = location.Value.Slice(0, openBracketPosition);
-                GreaterThan.Source = location.Value.Slice(openBracketPosition, openBracketPosition + 1);
-                ModelType.Source = location.Value.Slice(openBracketPosition + 1, baseType.Length - 1);
-                LessThan.Source = location.Value.Slice(baseType.Length - 1, baseType.Length);
+                BaseType.Source = location.Value[..openBracketPosition];
+                GreaterThan.Source = location.Value[openBracketPosition..(openBracketPosition + 1)];
+                ModelType.Source = location.Value[(openBracketPosition + 1)..^1];
+                LessThan.Source = location.Value[^1..];
             }
         }
         else
