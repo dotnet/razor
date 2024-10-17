@@ -18,9 +18,6 @@ internal static class FileUtilities
     /// <returns>A non-existent file path with a name in the specified format and a corresponding extension.</returns>
     public static string GenerateUniquePath(string path, string extension)
     {
-        // Add check for rooted path in the future, currently having issues in platforms other than Windows.
-        // See: https://github.com/dotnet/razor/issues/10684
-
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
         var baseFileName = Path.GetFileNameWithoutExtension(path);
 

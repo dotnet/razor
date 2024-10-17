@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +23,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions.Razor;
 
@@ -74,20 +75,17 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_SinglePointSelection_ReturnsNotEmpty()
-    {
-        // Arrange
-        var documentPath = "c:/Test.razor";
-        var contents = """
+    public Task Handle_SinglePointSelection_ReturnsNotEmpty()
+        => TestAsync("""
             @page "/"
 
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
-                <[||]div>
+                {|result:<{|selection:|}div>
                     <h1>Div a title</h1>
                     <p>Div a par</p>
-                </div>
+                </div>|}
                 <div>
                     <h1>Div b title</h1>
                     <p>Div b par</p>
@@ -97,33 +95,11 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <h1>Hello, world!</h1>
 
             Welcome to your new app.
-            """;
-        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
-
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = VsLspFactory.DefaultRange,
-            Context = new VSInternalCodeActionContext()
-        };
-
-        var context = CreateRazorCodeActionContext(request, selectionSpan, documentPath, contents, supportsFileCreation: true);
-
-        var provider = new ExtractToComponentCodeActionProvider();
-
-        // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
-
-        // Assert
-        Assert.NotEmpty(commandOrCodeActionContainer);
-    }
+            """);
 
     [Fact]
-    public async Task Handle_InProperMarkup_ReturnsEmpty()
-    {
-        // Arrange
-        var documentPath = "c:/Test.razor";
-        var contents = """
+    public Task Handle_InProperMarkup_ReturnsEmpty()
+        => TestAsync("""
             @page "/"
             
             <PageTitle>Home</PageTitle>
@@ -131,7 +107,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <div id="parent">
                 <div>
                     <h1>Div a title</h1>
-                    <p>Div [||]a par</p>
+                    <p>Div {|selection:|}a par</p>
                 </div>
                 <div>
                     <h1>Div b title</h1>
@@ -142,43 +118,20 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <h1>Hello, world!</h1>
 
             Welcome to your new app.
-            """;
-        TestFileMarkupParser.GetSpan(contents, out contents, out var selectionSpan);
-
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
-            Context = new VSInternalCodeActionContext()
-        };
-
-        var context = CreateRazorCodeActionContext(
-            request,
-            selectionSpan,
-            documentPath,
-            contents);
-
-        var provider = new ExtractToComponentCodeActionProvider();
-
-        // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
-
-        // Assert
-        Assert.Empty(commandOrCodeActionContainer);
-    }
+            """);
 
     [Fact]
     public Task Handle_MultiPointSelection_ReturnsNotEmpty()
-       => TestSelectionStartAndCursorAsync("""
+       => TestAsync("""
             @page "/"
 
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
-                [|<div>
-                    |]<h1>Div a title</h1>
+                {|result:{|selection:<div>
+                    |}<h1>Div a title</h1>
                     <p>Div a par</p>
-                </div>$$
+                </div>|}
                 <div>
                     <h1>Div b title</h1>
                     <p>Div b par</p>
@@ -192,7 +145,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
     [Fact]
     public Task Handle_MultiPointSelection_WithEndAfterElement()
-        => TestSelectionStartAndCursorAsync("""
+        => TestAsync("""
             @page "/"
             @namespace MarketApp.Pages.Product.Home
 
@@ -201,14 +154,14 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
-                [|<div>
+                {|result:{|selection:<div>
                     <h1>Div a title</h1>
                     <p>Div a par</p>
                 </div>
                 <div>
                     <h1>Div b title</h1>
                     <p>Div b par</p>
-                </div>$$|]
+                </div>|}|}
             </div>
 
             <h1>Hello, world!</h1>
@@ -218,7 +171,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
     [Fact]
     public Task Handle_MultiPointSelection_WithEndInsideSiblingElement()
-        => TestSelectionStartAndCursorAsync("""
+        => TestAsync("""
             @page "/"
             @namespace MarketApp.Pages.Product.Home
 
@@ -227,14 +180,14 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
-                [|<div>
+                {|result:{|selection:<div>
                     <h1>Div a title</h1>
                     <p>Div a par</p>
                 </div>
                 <div>
-                    <h1>Div b title</h1>|]
+                    <h1>Div b title</h1>|}
                     <p>Div b par</p>
-                </div>$$
+                </div>|}
             </div>
 
             <h1>Hello, world!</h1>
@@ -244,7 +197,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
     [Fact]
     public Task Handle_MultiPointSelection_WithEndInsideElement()
-        => TestSelectionStartAndCursorAsync("""
+        => TestAsync("""
             @page "/"
             @namespace MarketApp.Pages.Product.Home
 
@@ -253,10 +206,10 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
-                [|<div>
+                {|result:{|selection:<div>
                     <h1>Div a title</h1>
-                    <p>Div a par</p>|]
-                </div>$$
+                    <p>Div a par</p>|}
+                </div>|}
                 <div>
                     <h1>Div b title</h1>
                     <p>Div b par</p>
@@ -269,18 +222,116 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             """);
 
     [Fact]
+    public Task Handle_MultiPointSelection_WithNestedEnd()
+        => TestAsync("""
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                {|result:{|selection:<div>
+                    <h1>Div a title</h1>
+                    <p>Div a par</p>
+                </div>
+                <div>
+                    <div>
+                        <div>
+                            <h1>Div b title|}</h1>
+                            <p>Div b par</p>
+                        </div>
+                    </div>
+                </div>|}
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultiPointSelection_WithNestedStart()
+        => TestAsync("""
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                {|result:<div>
+                    <div>
+                        <div>
+                            <h1>{|selection:Div a title</h1>
+                            <p>Div a par</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div>
+                        <div>
+                            <h1>Div b title</h1>
+                            <p>Div b par</p>
+                        </div>
+                    </div>
+                </div>|}|}
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultiPointSelection_WithNestedStartAndEnd()
+        => TestAsync("""
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                {|result:<div>
+                    <div>
+                        <div>
+                            <h1>{|selection:Div a title</h1>
+                            <p>Div a par</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div>
+                        <div>
+                            <h1>Div b title</h1>
+                            <p>Div b par|}</p>
+                        </div>
+                    </div>
+                </div>|}
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
     public Task Handle_MultiPointSelection_StartSelfClosing()
-       => TestSelectionStartAndCursorAsync("""
+       => TestAsync("""
             @page "/"
 
             <PageTitle>Home</PageTitle>
 
             <div id="parent">
-                [|<img src="/myimg.png" />
+                {|result:{|selection:<img src="/myimg.png" />
                 <div>
                     <h1>Div a title</h1>
                     <p>Div a par</p>
-                </div>$$|]
+                </div>|}|}
                 <div>
                     <h1>Div b title</h1>
                     <p>Div b par</p>
@@ -290,6 +341,51 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             <h1>Hello, world!</h1>
 
             Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_CodeBlock()
+        => TestAsync("""
+            {|result:{|selection:<p>Hello</p>
+
+            @code {
+              |}
+            }|}
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_IfBlock()
+        => TestAsync("""
+            {|result:{|selection:<p>Hello</p>
+
+            @if (true) {
+              |}
+            }|}
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_EmbeddedIfBlock()
+        => TestAsync("""
+            {|result:{|selection:<p>Hello</p>
+
+            <div>
+                <div>
+                    @if (true) {
+                      |}
+                    }
+                </div>
+            </div>|}
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_CSharpBlock()
+        => TestAsync(
+            """
+            {|result:<div{|selection:>blah</div>
+
+            @{
+                RenderFragment fragment = @<Component1 Id="Comp1" Caption="Title">|] </Component1>;
+            }|}
             """);
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(
@@ -341,11 +437,16 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
     /// <summary>
     /// Tests the contents where the expected start/end are marked by '[|' and '$$'
     /// </summary>
-    private async Task TestSelectionStartAndCursorAsync(string contents)
+    private async Task TestAsync(string contents)
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var selectionSpan);
+        TestFileMarkupParser.GetSpans(contents, out contents, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+
+        var selectionSpan = spans["selection"].Single();
+        var resultSpan = spans.ContainsKey("result")
+            ? spans["result"].Single()
+            : default;
 
         var request = new VSCodeActionParams()
         {
@@ -365,13 +466,19 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
+        if (resultSpan.IsEmpty)
+        {
+            Assert.Empty(commandOrCodeActionContainer);
+            return;
+        }
+
         Assert.NotEmpty(commandOrCodeActionContainer);
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(selectionSpan.Start, actionParams.Start);
-        Assert.Equal(cursorPosition, actionParams.End);
+        Assert.Equal(resultSpan.Start, actionParams.Start);
+        Assert.Equal(resultSpan.End, actionParams.End);
     }
 }

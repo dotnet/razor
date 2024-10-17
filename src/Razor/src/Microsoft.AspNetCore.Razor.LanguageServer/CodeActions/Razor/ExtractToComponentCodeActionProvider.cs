@@ -65,7 +65,7 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
-    private static (MarkupElementSyntax? Start, MarkupElementSyntax? End) GetStartAndEndElements(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
+    private static (SyntaxNode? Start, SyntaxNode? End) GetStartAndEndElements(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
         var owner = syntaxTree.Root.FindInnermostNode(context.StartLocation.AbsoluteIndex, includeWhitespace: true);
         if (owner is null)
@@ -73,8 +73,9 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             return (null, null);
         }
 
-        var startElementNode = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
-        if (startElementNode is null || LocationOutsideNode(context.StartLocation, startElementNode))
+        var startElementNode = owner.FirstAncestorOrSelf<SyntaxNode>(IsBlockNode);
+
+        if (startElementNode is null || LocationInvalid(context.StartLocation, startElementNode))
         {
             return (null, null);
         }
@@ -84,15 +85,22 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             : GetEndElementNode(context, syntaxTree);
 
         return (startElementNode, endElementNode);
+
+        static bool LocationInvalid(SourceLocation location, SyntaxNode node)
+        {
+            // Make sure to test for cases where selection
+            // is inside of a markup tag such as <p>hello$ there</p>
+            if (node is MarkupElementSyntax markupElement)
+            {
+                return location.AbsoluteIndex > markupElement.StartTag.Span.End &&
+                        location.AbsoluteIndex < markupElement.EndTag.SpanStart;
+            }
+
+            return !node.Span.Contains(location.AbsoluteIndex);
+        }
     }
 
-    private static bool LocationOutsideNode(SourceLocation location, MarkupElementSyntax node)
-    {
-        return location.AbsoluteIndex > node.StartTag.Span.End &&
-               location.AbsoluteIndex < node.EndTag.SpanStart;
-    }
-
-    private static MarkupElementSyntax? GetEndElementNode(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
+    private static SyntaxNode? GetEndElementNode(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
         var endOwner = syntaxTree.Root.FindInnermostNode(context.EndLocation.AbsoluteIndex, includeWhitespace: true);
         if (endOwner is null)
@@ -108,13 +116,19 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             endOwner = previousSibling;
         }
 
-        return endOwner.FirstAncestorOrSelf<MarkupElementSyntax>();
+        return endOwner.FirstAncestorOrSelf<SyntaxNode>(IsBlockNode);
     }
+
+    private static bool IsBlockNode(SyntaxNode node)
+        => node.Kind is
+                SyntaxKind.MarkupElement or
+                SyntaxKind.MarkupTagHelperElement or
+                SyntaxKind.CSharpCodeBlock;
 
     private static ExtractToComponentCodeActionParams CreateActionParams(
         RazorCodeActionContext context,
-        MarkupElementSyntax startNode,
-        MarkupElementSyntax endNode,
+        SyntaxNode startNode,
+        SyntaxNode endNode,
         string @namespace)
     {
         var selectionSpan = AreSiblings(startNode, endNode)
@@ -130,11 +144,11 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         };
     }
 
-    private static TextSpan GetEncompassingTextSpan(MarkupElementSyntax startNode, MarkupElementSyntax endNode)
+    private static TextSpan GetEncompassingTextSpan(SyntaxNode startNode, SyntaxNode endNode)
     {
         // Find a valid node that encompasses both the start and the end to
         // become the selection.
-        SyntaxNode commonAncestor = endNode.Span.Contains(startNode.Span)
+        var commonAncestor = endNode.Span.Contains(startNode.Span)
             ? endNode
             : startNode;
 
@@ -195,8 +209,20 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         return commonAncestor.Span;
     }
 
-    private static bool AreSiblings(SyntaxNode node1, SyntaxNode node2)
-        => node1.Parent == node2.Parent;
+    private static bool AreSiblings(SyntaxNode? node1, SyntaxNode? node2)
+    {
+        if (node1 is null)
+        {
+            return false;
+        }
+
+        if (node2 is null)
+        {
+            return false;
+        }
+
+        return node1.Parent == node2.Parent;
+    }
 
     private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
         // If the compiler can't provide a computed namespace it will fallback to "__GeneratedComponent" or

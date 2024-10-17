@@ -1017,7 +1017,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     }
 
     [Fact]
-    public async Task Handle_ExtractComponent_SingleElement_ReturnsResult()
+    public async Task Handle_ExtractComponent_SingleElement()
     {
         var input = """
             <[||]div id="a">
@@ -1055,7 +1055,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     }
 
     [Fact]
-    public async Task Handle_ExtractComponent_SiblingElement_ReturnsResult()
+    public async Task Handle_ExtractComponent_SiblingElement()
     {
         var input = """
             <[|div id="a">
@@ -1093,9 +1093,12 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     }
 
     [Fact]
-    public async Task Handle_ExtractComponent_StartNodeContainsEndNode_ReturnsResult()
+    public async Task Handle_ExtractComponent_AddsUsings()
     {
         var input = """
+            @using MyApp.Data
+            @using MyApp.Models
+
             <[|div id="parent">
                 <div>
                     <div>
@@ -1108,6 +1111,9 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             """;
 
         var expectedRazorComponent = """
+            @using MyApp.Data
+            @using MyApp.Models
+            
             <div id="parent">
                 <div>
                     <div>
@@ -1120,8 +1126,131 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             """;
 
         var expectedOriginalDocument = """
+            @using MyApp.Data
+            @using MyApp.Models
+            
             <Component />
             """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_NestedNodes()
+    {
+        var input = """
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <h1>[|selection:Div a title</h1>
+                            <p>Div a par</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div>
+                        <div>
+                            <h1>Div b title</h1>
+                            <p>Div b par|]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """;
+
+        var expectedRazorComponent = """
+        <div>
+            <div>
+                <div>
+                    <h1>selection:Div a title</h1>
+                    <p>Div a par</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div>
+                <div>
+                    <h1>Div b title</h1>
+                    <p>Div b par</p>
+                </div>
+            </div>
+        </div>
+        """;
+
+        var expectedOriginalDocument = """
+        @page "/"
+        @namespace MarketApp.Pages.Product.Home
+        
+        namespace MarketApp.Pages.Product.Home
+        
+        <PageTitle>Home</PageTitle>
+        
+        <div id="parent">
+            <Component />
+        </div>
+        
+        <h1>Hello, world!</h1>
+        
+        Welcome to your new app.
+        """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_StartNodeContainsEndNode()
+    {
+        var input = """
+        < [|div id="parent">
+            <div>
+                <div>
+                    <div>
+                        <p>Deeply nested par</p|]>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """;
+
+        var expectedRazorComponent = """
+        <div id="parent">
+            <div>
+                <div>
+                    <div>
+                        <p>Deeply nested par</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """;
+
+        var expectedOriginalDocument = """
+        <Component />
+        """;
 
         await ValidateExtractComponentCodeActionAsync(
             input,

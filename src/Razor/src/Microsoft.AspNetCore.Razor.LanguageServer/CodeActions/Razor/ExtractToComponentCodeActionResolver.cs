@@ -78,13 +78,36 @@ internal sealed class ExtractToComponentCodeActionResolver(
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         var syntaxTree = componentDocument.GetSyntaxTree();
-        foreach (var usingDirective in GetUsingsInDocument(syntaxTree))
+
+        // Right now this includes all the usings in the original document.
+        // https://github.com/dotnet/razor/issues/11025 tracks reducing to only the required set.
+        var usingDirectives = syntaxTree.GetUsingDirectives();
+        foreach (var usingDirective in usingDirectives)
         {
-            builder.AppendLine(usingDirective);
+            builder.AppendLine(usingDirective.ToFullString());
         }
 
-        var extractedText = text.GetSubTextString(new TextSpan(actionParams.Start, actionParams.End - actionParams.Start)).Trim();
-        builder.Append(extractedText);
+        // If any using directives were added, add a newline before the extracted content.
+        if (usingDirectives.Length > 0)
+        {
+            builder.AppendLine();
+        }
+
+        var indentation = GetIndentation(actionParams.Start, text);
+        var extractedText = text.GetSubTextString(TextSpan.FromBounds(actionParams.Start, actionParams.End));
+        var lines = extractedText.Split('\n');
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var line = UnindentLine(lines[i], indentation);
+            if (i == (lines.Length - 1))
+            {
+                builder.Append(line);
+            }
+            else
+            {
+                builder.Append(line + '\n');
+            }
+        }
 
         var removeRange = text.GetRange(actionParams.Start, actionParams.End);
 
@@ -123,20 +146,32 @@ internal sealed class ExtractToComponentCodeActionResolver(
         };
     }
 
-    // Right now this includes all the usings in the original document.
-    // https://github.com/dotnet/razor/issues/11025 tracks reducing to only the required set.
-    private static IEnumerable<string> GetUsingsInDocument(RazorSyntaxTree syntaxTree)
-        => syntaxTree
-            .Root
-            .ChildNodes()
-            .Select(node =>
-            {
-                if (node.IsUsingDirective(out var _))
-                {
-                    return node.ToFullString().Trim();
-                }
+    private string UnindentLine(string line, int indentation)
+    {
+        var startCharacter = 0;
 
-                return null;
-            })
-            .WhereNotNull();
+        // Keep passing characters until either we reach the root indendation level
+        // or we would consume a character that isn't whitespace. This does make assumptions
+        // about consistency of tabs or spaces but at least will only fail to unindent correctly
+        while (startCharacter < indentation && IsWhitespace(line[startCharacter]))
+        {
+            startCharacter++;
+        }
+
+        return line[startCharacter..];
+    }
+
+    private int GetIndentation(int start, SourceText text)
+    {
+        var dedent = 0;
+        while (IsWhitespace(text[--start]))
+        {
+            dedent++;
+        }
+
+        return dedent;
+    }
+
+    private static bool IsWhitespace(char c)
+        => c == ' ' || c == '\t';
 }
