@@ -84,8 +84,8 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify(
-            // Views/Home/Index.cshtml(3,5): error RZ1034: Found a malformed 'col' tag helper. Tag helpers must have a start and end tag or be self closing.
-            Diagnostic("RZ1034").WithLocation(3, 5));
+            // Views/Home/Index.cshtml(3,5): error RZ1042: Component or tag helper 'col' must be self-closing because it's named like an HTML void element. To use child content, qualify such components with their namespace or use prefixes with such tag helpers.
+            Diagnostic("RZ1042").WithLocation(3, 5));
         result.VerifyOutputsMatchBaseline();
     }
 
