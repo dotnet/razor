@@ -129,9 +129,9 @@ internal class CohostDocumentCompletionEndpoint(
 
         VSInternalCompletionList? htmlCompletionList = null;
         var razorCompletionOptions = new RazorCompletionOptions(
-            SnippetsSupported: false,
-            AutoInsertAttributeQuotes: true, // TODO: Get real values
-            CommitElementsWithSpace: true);
+            SnippetsSupported: true, // always true in non-legacy Razor
+            AutoInsertAttributeQuotes: clientSettings.AdvancedSettings.AutoInsertAttributeQuotes,
+            CommitElementsWithSpace: clientSettings.AdvancedSettings.CommitElementsWithSpace);
         using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
 
         if (CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.HtmlTriggerCharacters, completionContext))
