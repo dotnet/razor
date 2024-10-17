@@ -40,7 +40,7 @@ public static class DocumentIntermediateNodeExtensions
         return FindWithAnnotation<NamespaceDeclarationIntermediateNode>(node, CommonAnnotations.PrimaryNamespace);
     }
 
-    public static IReadOnlyList<IntermediateNodeReference> FindDirectiveReferences(this DocumentIntermediateNode node, DirectiveDescriptor directive)
+    public static IReadOnlyList<IntermediateNodeReference> FindDirectiveReferences(this DocumentIntermediateNode node, DirectiveDescriptor directive, bool includeMalformed = false)
     {
         if (node == null)
         {
@@ -52,7 +52,7 @@ public static class DocumentIntermediateNodeExtensions
             throw new ArgumentNullException(nameof(directive));
         }
 
-        var visitor = new DirectiveVisitor(directive);
+        var visitor = new DirectiveVisitor(directive, includeMalformed);
         visitor.Visit(node);
         return visitor.Directives;
     }
@@ -92,10 +92,12 @@ public static class DocumentIntermediateNodeExtensions
     private class DirectiveVisitor : IntermediateNodeWalker
     {
         private readonly DirectiveDescriptor _directive;
+        private readonly bool _includeMalformed;
 
-        public DirectiveVisitor(DirectiveDescriptor directive)
+        public DirectiveVisitor(DirectiveDescriptor directive, bool includeMalformed)
         {
             _directive = directive;
+            _includeMalformed = includeMalformed;
         }
 
         public List<IntermediateNodeReference> Directives = new List<IntermediateNodeReference>();
@@ -108,6 +110,18 @@ public static class DocumentIntermediateNodeExtensions
             }
 
             base.VisitDirective(node);
+        }
+
+        public override void VisitMalformedDirective(MalformedDirectiveIntermediateNode node)
+        {
+            if (_includeMalformed)
+            {
+                if(_directive == node.Directive)
+                {
+                    Directives.Add(new IntermediateNodeReference(Parent, node));
+                }
+            }
+            base.VisitMalformedDirective(node);
         }
     }
 

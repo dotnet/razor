@@ -5649,6 +5649,79 @@ namespace AnotherTest
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10963")]
+    public void InheritsDirective_IncompleteType()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            public abstract class BaseComponent<T> : Microsoft.AspNetCore.Components.ComponentBase
+            {
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits 
+            """,
+            // (22,33): error CS0115: 'TestComponent.BuildRenderTree(RenderTreeBuilder)': no suitable method found to override
+            //         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+            Diagnostic(ErrorCode.ERR_OverrideNotExpected, "BuildRenderTree").WithArguments("Test.TestComponent.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder)").WithLocation(22, 33)
+            );
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+            DesignTime
+            ? []
+            : [
+                // (18,33): error CS0115: 'TestComponent.BuildRenderTree(RenderTreeBuilder)': no suitable method found to override
+                //         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "BuildRenderTree").WithArguments("Test.TestComponent.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder)").WithLocation(18, 33)
+              ]
+            );
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10963")]
+    public void InheritsDirective_IncompleteGenericType()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            public abstract class BaseComponent<T> : Microsoft.AspNetCore.Components.ComponentBase
+            {
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits BaseComponent<object
+            """,
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS1003: Syntax error, '>' expected
+            // BaseComponent<object
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(1, 31)
+            );
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+            DesignTime?[
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,22): error CS1003: Syntax error, '>' expected
+                // BaseComponent<object __typeHelper = default!;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "__typeHelper").WithArguments(">").WithLocation(1, 22)
+                ] : [
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,31): error CS1003: Syntax error, '>' expected
+                // BaseComponent<object
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(1, 31)
+                ]);
+    }
+
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
     public void InheritsDirective_NullableReferenceType()
     {
