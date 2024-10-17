@@ -499,6 +499,9 @@
   <data name="TagHelpersParseTreeRewriter_FoundMalformedTagHelper" xml:space="preserve">
     <value>Found a malformed '{0}' tag helper. Tag helpers must have a start and end tag or be self closing.</value>
   </data>
+  <data name="TagHelpersParseTreeRewriter_VoidElement" xml:space="preserve">
+    <value>Component or tag helper '{0}' must be self-closing because it's named like an HTML void element. To use child content, qualify such components with their namespace or use prefixes with such tag helpers.</value>
+  </data>
   <data name="TagHelpersParseTreeRewriter_MissingCloseAngle" xml:space="preserve">
     <value>Missing close angle for tag helper '{0}'.</value>
   </data>
