@@ -37,9 +37,19 @@ internal class DocumentRangeFormattingEndpoint(
 
     public async Task<TextEdit[]?> HandleRequestAsync(DocumentRangeFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (!_optionsMonitor.CurrentValue.EnableFormatting)
+        if (!_optionsMonitor.CurrentValue.Formatting.IsEnabled())
         {
             return null;
+        }
+
+        if (request.Options.OtherOptions is not null &&
+            request.Options.OtherOptions.TryGetValue("fromPaste", out var fromPasteObj) &&
+            fromPasteObj is bool fromPaste)
+        {
+            if (fromPaste && !_optionsMonitor.CurrentValue.Formatting.IsOnPasteEnabled())
+            {
+                return null;
+            }
         }
 
         var documentContext = requestContext.DocumentContext;
