@@ -527,7 +527,7 @@ internal static class CodeWriterExtensions
 
             if (hasBaseType)
             {
-                WriteOptionalToken(baseType.BaseType);
+                WriteToken(baseType.BaseType);
                 WriteOptionalToken(baseType.GreaterThan);
                 WriteOptionalToken(baseType.ModelType);
                 WriteOptionalToken(baseType.LessThan);
@@ -540,11 +540,11 @@ internal static class CodeWriterExtensions
 
             if (hasInterfaces)
             {
-                WriteOptionalToken(interfaces[0]);
+                WriteToken(interfaces[0]);
                 for (var i = 1; i < interfaces.Count; i++)
                 {
                     writer.Write(", ");
-                    WriteOptionalToken(interfaces[i]);
+                    WriteToken(interfaces[i]);
                 }
             }
         }
@@ -582,14 +582,19 @@ internal static class CodeWriterExtensions
         {
             if (token is not null)
             {
-                if (token.Source is { } source)
-                {
-                    WriteWithPragma(writer, token.Content, context, source);
-                }
-                else
-                {
-                    writer.Write(token.Content);
-                }
+                WriteToken(token);
+            }
+        }
+
+        void WriteToken(IntermediateToken token)
+        {
+            if (token.Source is { } source)
+            {
+                WriteWithPragma(writer, token.Content, context, source);
+            }
+            else
+            {
+                writer.Write(token.Content);
             }
         }
 
