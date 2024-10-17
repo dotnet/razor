@@ -76,7 +76,11 @@ internal class DelegatedCompletionListProvider
 
         completionContext = DelegatedCompletionHelper.RewriteContext(completionContext, positionInfo.LanguageKind);
 
-        var shouldIncludeSnippets = await DelegatedCompletionHelper.ShouldIncludeSnippetsAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
+        // It's a bit confusing, but we have two different "add snippets" options - one is a part of
+        // RazorCompletionOptions and becomes a part of RazorCompletionContext and is used by
+        // RazorCompletionFactsService, and the second one below that's used for delegated completion
+        // Their values are not related in any way.
+        var shouldIncludeDelegationSnippets = await DelegatedCompletionHelper.ShouldIncludeSnippetsAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
         var delegatedParams = new DelegatedCompletionParams(
             documentContext.GetTextDocumentIdentifierAndVersion(),
@@ -84,7 +88,7 @@ internal class DelegatedCompletionListProvider
             positionInfo.LanguageKind,
             completionContext,
             provisionalTextEdit,
-            shouldIncludeSnippets,
+            shouldIncludeDelegationSnippets,
             correlationId);
 
         var delegatedResponse = await _clientConnection.SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(

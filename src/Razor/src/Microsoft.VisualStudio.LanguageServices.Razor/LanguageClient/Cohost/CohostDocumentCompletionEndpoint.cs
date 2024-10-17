@@ -183,7 +183,7 @@ internal class CohostDocumentCompletionEndpoint(
             combinedCompletionList = htmlCompletionList;
         }
 
-        if (completionPositionInfo.ShouldIncludeSnippets)
+        if (completionPositionInfo.ShouldIncludeDelegationSnippets)
         {
             combinedCompletionList = AddSnippets(
                 combinedCompletionList,
