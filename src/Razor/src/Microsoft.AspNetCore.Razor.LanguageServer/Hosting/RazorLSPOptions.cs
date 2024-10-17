@@ -6,28 +6,6 @@ using Microsoft.CodeAnalysis.Razor.Settings;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
-[Flags]
-internal enum FormattingFlags
-{
-    Disabled = 0,
-    Enabled  = 1,
-    OnPaste  = 1 << 1,
-    OnType   = 1 << 2,
-    All      = Enabled | OnPaste | OnType
-};
-
-internal static class FormattingFlagExtensions
-{
-    public static bool IsEnabled(this FormattingFlags flags)
-        => flags.IsFlagSet(FormattingFlags.Enabled);
-
-    public static bool IsOnTypeEnabled(this FormattingFlags flags)
-        => flags.IsFlagSet(FormattingFlags.OnType);
-
-    public static bool IsOnPasteEnabled(this FormattingFlags flags)
-        => flags.IsFlagSet(FormattingFlags.OnPaste);
-}
-
 internal record RazorLSPOptions(
     FormattingFlags Formatting,
     bool AutoClosingTags,
