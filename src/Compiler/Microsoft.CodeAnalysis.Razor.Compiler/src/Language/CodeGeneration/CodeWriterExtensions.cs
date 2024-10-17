@@ -540,13 +540,11 @@ internal static class CodeWriterExtensions
 
             if (hasInterfaces)
             {
-                for (var i = 0; i < interfaces.Count; i++)
+                WriteOptionalToken(interfaces[0]);
+                for (var i = 1; i < interfaces.Count; i++)
                 {
+                    writer.Write(", ");
                     WriteOptionalToken(interfaces[i]);
-                    if (i != interfaces.Count - 1)
-                    {
-                        writer.Write(", ");
-                    }
                 }
             }
         }
