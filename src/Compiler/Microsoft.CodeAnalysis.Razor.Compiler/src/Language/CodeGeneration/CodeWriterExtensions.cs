@@ -527,10 +527,10 @@ internal static class CodeWriterExtensions
 
             if (hasBaseType)
             {
-                writeOptionalToken(baseType.BaseType);
-                writeOptionalToken(baseType.GreaterThan);
-                writeOptionalToken(baseType.ModelType);
-                writeOptionalToken(baseType.LessThan);
+                WriteOptionalToken(baseType.BaseType);
+                WriteOptionalToken(baseType.GreaterThan);
+                WriteOptionalToken(baseType.ModelType);
+                WriteOptionalToken(baseType.LessThan);
 
                 if (hasInterfaces)
                 {
@@ -542,7 +542,7 @@ internal static class CodeWriterExtensions
             {
                 for (var i = 0; i < interfaces.Count; i++)
                 {
-                    writeOptionalToken(interfaces[i]);
+                    WriteOptionalToken(interfaces[i]);
                     if (i != interfaces.Count - 1)
                     {
                         writer.Write(", ");
@@ -580,7 +580,7 @@ internal static class CodeWriterExtensions
 
         return new CSharpCodeWritingScope(writer);
 
-        void writeOptionalToken(IntermediateToken token)
+        void WriteOptionalToken(IntermediateToken token)
         {
             if (token is not null)
             {

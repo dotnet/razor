@@ -74,7 +74,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         var @class = FindClassNode(irDocument);
-        var baseType = Assert.IsType<BaseTypeWithModel>(@class.BaseType);
+        var baseType = @class.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
@@ -106,7 +106,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         var @class = FindClassNode(irDocument);
-        var baseType = Assert.IsType<BaseTypeWithModel>(@class.BaseType);
+        var baseType = @class.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
@@ -138,7 +138,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        var baseType = Assert.IsType<BaseTypeWithModel>(@class.BaseType);
+        var baseType = @class.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
@@ -169,7 +169,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        var baseType = Assert.IsType<BaseTypeWithModel>(@class.BaseType);
+        var baseType = @class.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
@@ -200,7 +200,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        var baseType = Assert.IsType<BaseTypeWithModel>(@class.BaseType);
+        var baseType = @class.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
@@ -236,7 +236,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        var baseType = Assert.IsType<BaseTypeWithModel>(@class.BaseType);
+        var baseType = @class.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
