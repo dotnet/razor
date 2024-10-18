@@ -131,9 +131,34 @@ public abstract class LanguageServerTestBase : ToolingTestBase
     {
         var configService = StrictMock.Of<IConfigurationSyncService>();
 
-        var options = new RazorLSPOptions(enableFormatting, true, InsertSpaces: true, TabSize: 4, autoShowCompletion, autoListParams, formatOnType, autoInsertAttributeQuotes, colorBackground, codeBlockBraceOnNextLine, commitElementsWithSpace);
+        var options = new RazorLSPOptions(
+            GetFormattingFlags(enableFormatting, formatOnType),
+            true,
+            InsertSpaces: true,
+            TabSize: 4,
+            autoShowCompletion,
+            autoListParams,
+            autoInsertAttributeQuotes,
+            colorBackground,
+            codeBlockBraceOnNextLine,
+            commitElementsWithSpace);
         var optionsMonitor = new RazorLSPOptionsMonitor(configService, options);
         return optionsMonitor;
+    }
+
+    private static FormattingFlags GetFormattingFlags(bool enableFormatting, bool formatOnType)
+    {
+        if (!enableFormatting)
+        {
+            return FormattingFlags.Disabled;
+        }
+
+        if (formatOnType)
+        {
+            return FormattingFlags.All;
+        }
+
+        return FormattingFlags.Enabled;
     }
 
     private class ThrowingRazorSpanMappingService : IRazorSpanMappingService
