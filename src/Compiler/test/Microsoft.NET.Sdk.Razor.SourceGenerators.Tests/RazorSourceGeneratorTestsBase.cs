@@ -100,9 +100,14 @@ public abstract class RazorSourceGeneratorTestsBase
 
     protected static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, out Compilation outputCompilation, params DiagnosticDescription[] expectedDiagnostics)
     {
+        return RunGenerator(compilation, ref driver, out outputCompilation, c => c.VerifyDiagnostics(expectedDiagnostics));
+    }
+
+    protected static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, out Compilation outputCompilation, Action<Compilation> verify)
+    {
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
 
-        outputCompilation.VerifyDiagnostics(expectedDiagnostics);
+        verify(outputCompilation);
 
         var result = driver.GetRunResult();
         return result.Results.Single();

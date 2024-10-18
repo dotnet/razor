@@ -5153,6 +5153,133 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class Col : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            <Col>in markup</Col>
+            @{
+                <Col>in code block</Col>
+                RenderFragment template = @<Col>in template</Col>;
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, verifyDiagnostics: static diagnostics =>
+        {
+            // Malformed C# is generated due to everything after the <Col> tag being considered C#.
+            Assert.Contains(diagnostics, static d => d.Severity == DiagnosticSeverity.Error);
+        });
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName_FullyQualified()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class Col : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            <Test.Col>in markup</Test.Col>
+            @{
+                <Test.Col>in code block</Test.Col>
+                RenderFragment template = @<Test.Col>in template</Test.Col>;
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName_SelfClosing()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class Col : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            <Col />
+            @{
+                <Col />
+                RenderFragment template = @<Col />;
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName_NoMatchingComponent()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            <Col>in markup</Col>
+            @{
+                <Col>in code block</Col>
+                RenderFragment template = @<Col>in template</Col>;
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: !DesignTime);
+        CompileToAssembly(generated, verifyDiagnostics: static diagnostics =>
+        {
+            // Malformed C# is generated due to everything after the <Col> tag being considered C#.
+            Assert.Contains(diagnostics, static d => d.Severity == DiagnosticSeverity.Error);
+        });
+    }
+
     #endregion
 
     #region Directives
