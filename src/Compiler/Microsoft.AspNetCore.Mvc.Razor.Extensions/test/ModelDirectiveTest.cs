@@ -249,6 +249,77 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         Assert.Equal($"TModel = global::System.Object", usingNode.Content);
     }
 
+    [Fact]
+    public void ModelDirective_Uses_IncompleteGenericType()
+    {
+        // Arrange
+        var codeDocument = CreateDocument(@"
+@model Type1<
+");
+        var engine = CreateRuntimeEngine();
+        var irDocument = CreateIRDocument(engine, codeDocument);
+
+        // Act
+        var result = ModelDirective.GetModelType(irDocument);
+
+        // Assert
+        Assert.Equal("""
+                     Type1<
+ 
+                     """, result);
+    }
+
+    [Fact]
+    public void ModelDirective_Uses_IncompleteGenericType2()
+    {
+        // Arrange
+        var codeDocument = CreateDocument(@"
+@model Type1<object
+");
+        var engine = CreateRuntimeEngine();
+        var irDocument = CreateIRDocument(engine, codeDocument);
+        
+        // Act
+        var result = ModelDirective.GetModelType(irDocument);
+
+        // Assert
+        Assert.Equal("""
+                     Type1<object
+
+                     """, result);
+    }
+
+    [Fact]
+    public void ModelDirectivePass_Execute_ReplacesTModelInBaseType_WithComment()
+    {
+        // Arrange
+        var codeDocument = CreateDocument(@"
+@inherits BaseType<TModel>
+@model /*comment*/ Type1
+");
+
+        var engine = CreateRuntimeEngine();
+        var pass = new ModelDirective.Pass()
+        {
+            Engine = engine,
+        };
+
+        var irDocument = CreateIRDocument(engine, codeDocument);
+
+        // Act
+        pass.Execute(codeDocument, irDocument);
+
+        // Assert
+        var @class = FindClassNode(irDocument);
+        var baseType = @class.BaseType;
+
+        Assert.Equal("BaseType", baseType.BaseType.Content);
+        Assert.NotNull(baseType.BaseType.Source);
+
+        Assert.Equal("Type1", baseType.ModelType.Content);
+        Assert.NotNull(baseType.ModelType.Source);
+    }
+
     private RazorCodeDocument CreateDocument(string content)
     {
         var source = RazorSourceDocument.Create(content, "test.cshtml");

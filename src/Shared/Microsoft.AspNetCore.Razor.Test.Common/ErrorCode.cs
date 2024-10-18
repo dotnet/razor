@@ -11,6 +11,7 @@ public enum ErrorCode
     ERR_BadIndexLHS = 21,
     ERR_NoImplicitConv = 29,
     ERR_NameNotInContext = 103,
+    ERR_OverrideNotExpected = 115,
     ERR_BadSKunknown = 119,
     ERR_ObjectRequired = 120,
     WRN_UnreferencedField = 169,
