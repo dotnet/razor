@@ -114,12 +114,9 @@ public static class DocumentIntermediateNodeExtensions
 
         public override void VisitMalformedDirective(MalformedDirectiveIntermediateNode node)
         {
-            if (_includeMalformed)
+            if (_includeMalformed && _directive == node.Directive)
             {
-                if(_directive == node.Directive)
-                {
-                    Directives.Add(new IntermediateNodeReference(Parent, node));
-                }
+                Directives.Add(new IntermediateNodeReference(Parent, node));
             }
             base.VisitMalformedDirective(node);
         }
