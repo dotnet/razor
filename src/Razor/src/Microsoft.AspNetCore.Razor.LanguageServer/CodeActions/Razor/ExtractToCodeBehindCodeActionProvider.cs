@@ -42,7 +42,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory logge
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex);
+        var owner = syntaxTree.Root.FindInnermostNode(context.StartLocation.AbsoluteIndex);
         if (owner is null)
         {
             _logger.LogWarning($"Owner should never be null.");
@@ -84,7 +84,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory logge
         }
 
         // Do not provide code action if the cursor is inside the code block
-        if (context.Location.AbsoluteIndex > csharpCodeBlockNode.SpanStart)
+        if (context.StartLocation.AbsoluteIndex > csharpCodeBlockNode.SpanStart)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }

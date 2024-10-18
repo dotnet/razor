@@ -348,6 +348,7 @@ $$Path;
             documentSnapshotMock.Object,
             codeDocument,
             location,
+            location,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);
