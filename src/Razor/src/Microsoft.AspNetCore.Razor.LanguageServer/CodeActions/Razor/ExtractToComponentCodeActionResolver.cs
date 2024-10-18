@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -93,21 +94,8 @@ internal sealed class ExtractToComponentCodeActionResolver(
             builder.AppendLine();
         }
 
-        var indentation = GetIndentation(actionParams.Start, text);
-        var extractedText = text.GetSubTextString(TextSpan.FromBounds(actionParams.Start, actionParams.End));
-        var lines = extractedText.Split('\n');
-        for (var i = 0; i < lines.Length; i++)
-        {
-            var line = UnindentLine(lines[i], indentation);
-            if (i == (lines.Length - 1))
-            {
-                builder.Append(line);
-            }
-            else
-            {
-                builder.Append(line + '\n');
-            }
-        }
+        var span = TextSpan.FromBounds(actionParams.Start, actionParams.End);
+        FormattingUtilities.NaivelyUnindentSubstring(text, span, builder);
 
         var removeRange = text.GetRange(actionParams.Start, actionParams.End);
 
@@ -145,33 +133,4 @@ internal sealed class ExtractToComponentCodeActionResolver(
             DocumentChanges = documentChanges,
         };
     }
-
-    private string UnindentLine(string line, int indentation)
-    {
-        var startCharacter = 0;
-
-        // Keep passing characters until either we reach the root indendation level
-        // or we would consume a character that isn't whitespace. This does make assumptions
-        // about consistency of tabs or spaces but at least will only fail to unindent correctly
-        while (startCharacter < indentation && IsWhitespace(line[startCharacter]))
-        {
-            startCharacter++;
-        }
-
-        return line[startCharacter..];
-    }
-
-    private int GetIndentation(int start, SourceText text)
-    {
-        var dedent = 0;
-        while (IsWhitespace(text[--start]))
-        {
-            dedent++;
-        }
-
-        return dedent;
-    }
-
-    private static bool IsWhitespace(char c)
-        => c == ' ' || c == '\t';
 }

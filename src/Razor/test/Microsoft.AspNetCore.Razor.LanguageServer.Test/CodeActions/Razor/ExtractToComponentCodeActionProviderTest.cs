@@ -384,7 +384,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             {|result:<div{|selection:>blah</div>
 
             @{
-                RenderFragment fragment = @<Component1 Id="Comp1" Caption="Title">|] </Component1>;
+                RenderFragment fragment = @<Component1 Id="Comp1" Caption="Title">|} </Component1>;
             }|}
             """);
 

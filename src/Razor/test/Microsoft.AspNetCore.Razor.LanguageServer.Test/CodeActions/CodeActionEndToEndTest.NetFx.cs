@@ -1156,7 +1156,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                 <div>
                     <div>
                         <div>
-                            <h1>[|selection:Div a title</h1>
+                            <h1>[|Div a title</h1>
                             <p>Div a par</p>
                         </div>
                     </div>
@@ -1177,40 +1177,40 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             """;
 
         var expectedRazorComponent = """
-        <div>
             <div>
                 <div>
-                    <h1>selection:Div a title</h1>
-                    <p>Div a par</p>
+                    <div>
+                        <h1>Div a title</h1>
+                        <p>Div a par</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div>
             <div>
                 <div>
-                    <h1>Div b title</h1>
-                    <p>Div b par</p>
+                    <div>
+                        <h1>Div b title</h1>
+                        <p>Div b par</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        """;
+            """;
 
         var expectedOriginalDocument = """
-        @page "/"
-        @namespace MarketApp.Pages.Product.Home
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
         
-        namespace MarketApp.Pages.Product.Home
+            namespace MarketApp.Pages.Product.Home
         
-        <PageTitle>Home</PageTitle>
+            <PageTitle>Home</PageTitle>
         
-        <div id="parent">
-            <Component />
-        </div>
+            <div id="parent">
+                <Component />
+            </div>
         
-        <h1>Hello, world!</h1>
+            <h1>Hello, world!</h1>
         
-        Welcome to your new app.
-        """;
+            Welcome to your new app.
+            """;
 
         await ValidateExtractComponentCodeActionAsync(
             input,
@@ -1225,32 +1225,32 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     public async Task Handle_ExtractComponent_StartNodeContainsEndNode()
     {
         var input = """
-        < [|div id="parent">
-            <div>
+            <[|div id="parent">
                 <div>
                     <div>
-                        <p>Deeply nested par</p|]>
+                        <div>
+                            <p>Deeply nested par</p|]>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        """;
+            """;
 
         var expectedRazorComponent = """
-        <div id="parent">
-            <div>
+            <div id="parent">
                 <div>
                     <div>
-                        <p>Deeply nested par</p>
+                        <div>
+                            <p>Deeply nested par</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        """;
+            """;
 
         var expectedOriginalDocument = """
-        <Component />
-        """;
+            <Component />
+            """;
 
         await ValidateExtractComponentCodeActionAsync(
             input,
