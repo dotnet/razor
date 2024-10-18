@@ -4,10 +4,7 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -43,28 +40,20 @@ public static class ModelDirective
             throw new ArgumentNullException(nameof(document));
         }
 
-        var visitor = new Visitor();
-        return GetModelType(document, visitor).Content;
+        var @class = document.FindPrimaryClass();
+        return GetModelType(document, @class).Content;
     }
 
-    private static IntermediateToken GetModelType(DocumentIntermediateNode document, Visitor visitor)
+    private static IntermediateToken GetModelType(DocumentIntermediateNode document, ClassDeclarationIntermediateNode classNode)
     {
-        visitor.Visit(document);
-
-        for (var i = visitor.ModelDirectives.Count - 1; i >= 0; i--)
+        var directives = document.FindDirectiveReferences(Directive, includeMalformed: true);
+        if (directives is [IntermediateNodeReference { Node.Children: [DirectiveTokenIntermediateNode firstToken, ..] } , ..])
         {
-            var directive = visitor.ModelDirectives[i];
-
-            var tokens = directive.Tokens.ToArray();
-            if (tokens.Length >= 1)
-            {
-                return IntermediateToken.CreateCSharpToken(tokens[0].Content, tokens[0].Source);
-            }
+            return IntermediateToken.CreateCSharpToken(firstToken.Content, firstToken.Source);
         }
-
-        if (document.DocumentKind == RazorPageDocumentClassifierPass.RazorPageDocumentKind)
+        else if (document.DocumentKind == RazorPageDocumentClassifierPass.RazorPageDocumentKind)
         {
-            return IntermediateToken.CreateCSharpToken(visitor.Class.ClassName);
+            return IntermediateToken.CreateCSharpToken(classNode.ClassName);
         }
         else
         {
@@ -86,8 +75,8 @@ public static class ModelDirective
                 return;
             }
 
-            var visitor = new Visitor();
-            var modelType = GetModelType(documentNode, visitor);
+            var @class = documentNode.FindPrimaryClass();
+            var modelType = GetModelType(documentNode, @class);
 
             if (documentNode.Options.DesignTime)
             {
@@ -99,50 +88,14 @@ public static class ModelDirective
                     Content = $"TModel = {typeName}"
                 };
 
-                visitor.Namespace?.Children.Insert(0, usingNode);
+                var @namespace = documentNode.FindPrimaryNamespace();
+                @namespace?.Children.Insert(0, usingNode);
                 modelType.Source = null;
             }
 
-            if (visitor.Class?.BaseType is BaseTypeWithModel { ModelType: not null } existingBaseType)
+            if (@class?.BaseType is BaseTypeWithModel { ModelType: not null } existingBaseType)
             {
                 existingBaseType.ModelType = modelType;
-            }
-        }
-    }
-
-    private class Visitor : IntermediateNodeWalker
-    {
-        public NamespaceDeclarationIntermediateNode Namespace { get; private set; }
-
-        public ClassDeclarationIntermediateNode Class { get; private set; }
-
-        public IList<DirectiveIntermediateNode> ModelDirectives { get; } = new List<DirectiveIntermediateNode>();
-
-        public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
-        {
-            if (Namespace == null)
-            {
-                Namespace = node;
-            }
-
-            base.VisitNamespaceDeclaration(node);
-        }
-
-        public override void VisitClassDeclaration(ClassDeclarationIntermediateNode node)
-        {
-            if (Class == null)
-            {
-                Class = node;
-            }
-
-            base.VisitClassDeclaration(node);
-        }
-
-        public override void VisitDirective(DirectiveIntermediateNode node)
-        {
-            if (node.Directive == Directive)
-            {
-                ModelDirectives.Add(node);
             }
         }
     }
