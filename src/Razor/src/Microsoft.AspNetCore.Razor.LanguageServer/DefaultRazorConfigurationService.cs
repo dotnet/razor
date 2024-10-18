@@ -130,7 +130,11 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
             if (parsedFormat.TryGetPropertyValue("enable", out var parsedEnableFormatting) &&
                 parsedEnableFormatting is not null)
             {
-                formatting = GetObjectOrDefault(parsedEnableFormatting, formatting);
+                var formattingEnabled = GetObjectOrDefault(parsedEnableFormatting, formatting.IsEnabled());
+                if (formattingEnabled)
+                {
+                    formatting |= FormattingFlags.Enabled;
+                }
             }
 
             if (parsedFormat.TryGetPropertyValue("codeBlockBraceOnNextLine", out var parsedCodeBlockBraceOnNextLine) &&
