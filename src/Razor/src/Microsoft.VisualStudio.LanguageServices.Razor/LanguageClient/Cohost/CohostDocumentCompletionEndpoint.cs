@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
@@ -253,16 +254,19 @@ internal class CohostDocumentCompletionEndpoint(
             triggerCharacter,
             ref builder.AsRef());
 
+        // If there were no snippets, just return the original list
         if (builder.Count == 0)
         {
             return completionList;
         }
 
+        // If there was a list with items, add them to snippets
         if (completionList?.Items is { } combinedItems)
         {
             builder.AddRange(combinedItems);
         }
 
+        // Create or update final completion list
         if (completionList is null)
         {
             completionList = new VSInternalCompletionList { IsIncomplete = true, Items = builder.ToArray() };
@@ -274,4 +278,20 @@ internal class CohostDocumentCompletionEndpoint(
 
         return completionList;
     }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostDocumentCompletionEndpoint instance)
+    {
+        public Task<VSInternalCompletionList?> HandleRequestAsync(
+            RoslynCompletionParams request,
+            TextDocument razorDocument,
+            CancellationToken cancellationToken)
+                => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+        public void SetClientCapabilities(VSInternalClientCapabilities clientCapabilities)
+        {
+            instance._clientCapabilities = clientCapabilities;
+        }
+    }
+
 }
