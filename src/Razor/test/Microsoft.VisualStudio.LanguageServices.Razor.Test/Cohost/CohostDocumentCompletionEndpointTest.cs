@@ -118,6 +118,35 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
+    public async Task RazorDirectives()
+    {
+        await VerifyCompletionListAsync(
+            input: $$"""
+                @$$
+                This is a Razor document.
+
+                <div></div>
+
+                @code{
+                    void foo()
+                    {
+                        
+                    }
+                }
+
+                The end.
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                 TriggerCharacter = "@",
+                 TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
+             },
+             expectedItemLabels: ["using", "using directive ...", "page", "page directive ..."],
+             expectedItemCount: 538);
+    }
+
+    [Fact]
     public async Task ElementNameTagHelpersCompletion()
     {
         await VerifyCompletionListAsync(
