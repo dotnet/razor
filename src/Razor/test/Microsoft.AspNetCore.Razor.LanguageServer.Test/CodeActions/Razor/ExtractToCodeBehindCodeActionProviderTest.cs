@@ -410,6 +410,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             documentSnapshotMock.Object,
             codeDocument,
             location,
+            location,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

@@ -479,6 +479,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             documentSnapshotMock.Object,
             codeDocument,
             location,
+            location,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

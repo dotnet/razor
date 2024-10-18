@@ -39,6 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
     private const string GenerateEventHandlerTitle = "Generate Event Handler 'DoesNotExist'";
+    private const string ExtractToComponentTitle = "Extract element to new component";
     private const string GenerateAsyncEventHandlerTitle = "Generate Async Event Handler 'DoesNotExist'";
     private const string GenerateEventHandlerReturnType = "void";
     private const string GenerateAsyncEventHandlerReturnType = "global::System.Threading.Tasks.Task";
@@ -59,6 +60,15 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                     new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
                     razorFormattingService)
             ];
+
+    private ExtractToComponentCodeActionResolver[] CreateExtractComponentCodeActionResolver(string filePath, RazorCodeDocument codeDocument)
+    {
+        return [
+                new ExtractToComponentCodeActionResolver(
+                    new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
+                    TestLanguageServerFeatureOptions.Instance)
+            ];
+    }
 
     #region CSharp CodeAction Tests
 
@@ -1006,6 +1016,251 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
+    [Fact]
+    public async Task Handle_ExtractComponent_SingleElement()
+    {
+        var input = """
+            <[||]div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            <div id="shouldSkip">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            <div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            """;
+
+        var expectedOriginalDocument = """
+            <Component />
+            <div id="shouldSkip">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div>
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_SiblingElement()
+    {
+        var input = """
+            <[|div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            <div id="b">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div|]>
+            """;
+
+        var expectedRazorComponent = """
+            <div id="a">
+                <h1>Div a title</h1>
+                <Book Title="To Kill a Mockingbird" Author="Harper Lee" Year="Long ago" />
+                <p>Div a par</p>
+            </div>
+            <div id="b">
+                <Movie Title="Aftersun" Director="Charlotte Wells" Year="2022" />
+            </div>
+            """;
+
+        var expectedOriginalDocument = """
+            <Component />
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_AddsUsings()
+    {
+        var input = """
+            @using MyApp.Data
+            @using MyApp.Models
+
+            <[|div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <p>Deeply nested par</p|]>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            @using MyApp.Data
+            @using MyApp.Models
+            
+            <div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <p>Deeply nested par</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedOriginalDocument = """
+            @using MyApp.Data
+            @using MyApp.Models
+            
+            <Component />
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_NestedNodes()
+    {
+        var input = """
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+
+            namespace MarketApp.Pages.Product.Home
+
+            <PageTitle>Home</PageTitle>
+
+            <div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <h1>[|Div a title</h1>
+                            <p>Div a par</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div>
+                        <div>
+                            <h1>Div b title</h1>
+                            <p>Div b par|]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h1>Hello, world!</h1>
+
+            Welcome to your new app.
+            """;
+
+        var expectedRazorComponent = """
+            <div>
+                <div>
+                    <div>
+                        <h1>Div a title</h1>
+                        <p>Div a par</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div>
+                    <div>
+                        <h1>Div b title</h1>
+                        <p>Div b par</p>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedOriginalDocument = """
+            @page "/"
+            @namespace MarketApp.Pages.Product.Home
+        
+            namespace MarketApp.Pages.Product.Home
+        
+            <PageTitle>Home</PageTitle>
+        
+            <div id="parent">
+                <Component />
+            </div>
+        
+            <h1>Hello, world!</h1>
+        
+            Welcome to your new app.
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractComponent_StartNodeContainsEndNode()
+    {
+        var input = """
+            <[|div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <p>Deeply nested par</p|]>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedRazorComponent = """
+            <div id="parent">
+                <div>
+                    <div>
+                        <div>
+                            <p>Deeply nested par</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """;
+
+        var expectedOriginalDocument = """
+            <Component />
+            """;
+
+        await ValidateExtractComponentCodeActionAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent,
+            ExtractToComponentTitle,
+            razorCodeActionProviders: [new ExtractToComponentCodeActionProvider()],
+            codeActionResolversCreator: CreateExtractComponentCodeActionResolver);
+    }
+
     #endregion
 
     private async Task ValidateCodeBehindFileAsync(
@@ -1149,6 +1404,68 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         AssertEx.EqualOrDiff(expected, actual);
     }
 
+    private async Task ValidateExtractComponentCodeActionAsync(
+        string input,
+        string expectedOriginalDocument,
+        string? expectedNewComponent,
+        string codeAction,
+        int childActionIndex = 0,
+        IEnumerable<(string filePath, string contents)>? additionalRazorDocuments = null,
+        IRazorCodeActionProvider[]? razorCodeActionProviders = null,
+        Func<string, RazorCodeDocument, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        RazorLSPOptionsMonitor? optionsMonitor = null,
+        Diagnostic[]? diagnostics = null)
+    {
+        TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
+
+        var razorFilePath = "C:/path/to/test.razor";
+        var componentFilePath = "C:/path/to/Component.razor";
+        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
+        var sourceText = codeDocument.Source.Text;
+        var uri = new Uri(razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath, additionalRazorDocuments);
+        var documentContext = CreateDocumentContext(uri, codeDocument);
+        var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
+
+        var result = await GetCodeActionsAsync(
+            uri,
+            textSpan,
+            sourceText,
+            requestContext,
+            languageServer,
+            razorCodeActionProviders,
+            diagnostics);
+
+        Assert.NotEmpty(result);
+        var codeActionToRun = GetCodeActionToRun(codeAction, childActionIndex, result);
+
+        if (expectedNewComponent is null)
+        {
+            Assert.Null(codeActionToRun);
+            return;
+        }
+
+        Assert.NotNull(codeActionToRun);
+
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, optionsMonitor?.CurrentValue);
+        var changes = await GetEditsAsync(
+            codeActionToRun,
+            requestContext,
+            languageServer,
+            codeActionResolversCreator?.Invoke(razorFilePath, codeDocument) ?? []);
+
+        var edits = changes.Where(change => change.TextDocument.Uri.AbsolutePath == componentFilePath).Single();
+        var actual = edits.Edits.Select(edit => edit.NewText).Single();
+
+        AssertEx.EqualOrDiff(expectedNewComponent, actual);
+
+        var originalDocumentEdits = changes
+            .Where(change => change.TextDocument.Uri.AbsolutePath == razorFilePath)
+            .SelectMany(change => change.Edits.Select(sourceText.GetTextChange));
+        var documentText = sourceText.WithChanges(originalDocumentEdits).ToString();
+        AssertEx.EqualOrDiff(expectedOriginalDocument, documentText);
+    }
+
     private static VSInternalCodeAction? GetCodeActionToRun(string codeAction, int childActionIndex, SumType<Command, CodeAction>[] result)
     {
         var codeActionToRun = (VSInternalCodeAction?)result.SingleOrDefault(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeAction || ((RazorVSInternalCodeAction)e.Value!).Title == codeAction).Value;
@@ -1239,6 +1556,77 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         private readonly List<TagHelperDescriptor> _tagHelperDescriptors;
 
         public GenerateMethodResolverDocumentContextFactory
+            (string filePath,
+            RazorCodeDocument codeDocument,
+            TagHelperDescriptor[]? tagHelpers = null)
+            : base(filePath, codeDocument)
+        {
+            _tagHelperDescriptors = CreateTagHelperDescriptors();
+            if (tagHelpers is not null)
+            {
+                _tagHelperDescriptors.AddRange(tagHelpers);
+            }
+        }
+
+        public override bool TryCreate(
+            Uri documentUri,
+            VSProjectContext? projectContext,
+            [NotNullWhen(true)] out DocumentContext? context)
+        {
+            if (FilePath is null || CodeDocument is null)
+            {
+                context = null;
+                return false;
+            }
+
+            var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
+            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument, projectWorkspaceState);
+
+            context = CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
+            return true;
+        }
+
+        private static List<TagHelperDescriptor> CreateTagHelperDescriptors()
+        {
+            return BuildTagHelpers().ToList();
+
+            static IEnumerable<TagHelperDescriptor> BuildTagHelpers()
+            {
+                var builder = TagHelperDescriptorBuilder.Create("oncontextmenu", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+                yield return builder.Build();
+
+                builder = TagHelperDescriptorBuilder.Create("onclick", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+
+                yield return builder.Build();
+
+                builder = TagHelperDescriptorBuilder.Create("oncopy", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"),
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+
+                yield return builder.Build();
+
+                builder = TagHelperDescriptorBuilder.Create("ref", "Microsoft.AspNetCore.Components");
+                builder.SetMetadata(
+                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind),
+                    new KeyValuePair<string, string>(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString));
+
+                yield return builder.Build();
+            }
+        }
+    }
+
+    private class ExtractToComponentResolverDocumentContextFactory : TestDocumentContextFactory
+    {
+        private readonly List<TagHelperDescriptor> _tagHelperDescriptors;
+
+        public ExtractToComponentResolverDocumentContextFactory
             (string filePath,
             RazorCodeDocument codeDocument,
             TagHelperDescriptor[]? tagHelpers = null)
