@@ -135,6 +135,10 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
                 {
                     formatting |= FormattingFlags.Enabled;
                 }
+                else
+                {
+                    formatting = FormattingFlags.Disabled;
+                }
             }
 
             if (parsedFormat.TryGetPropertyValue("codeBlockBraceOnNextLine", out var parsedCodeBlockBraceOnNextLine) &&
