@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Xunit;
@@ -220,6 +222,30 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
+    public async Task HtmlElementDoNotCommitWithSpace()
+    {
+        await VerifyCompletionListAsync(
+            input: $"""
+                This is a Razor document.
+
+                <$$
+
+                The end.
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                 TriggerCharacter = "<",
+                 TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
+             },
+             expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"],
+             expectedItemCount: 35,
+             delegatedItemLabels: ["div", "h1"],
+             delegatedItemCommitCharacters: [" ", ">"],
+             commitElementsWithSpace: false);
+    }
+
+    [Fact]
     public async Task HtmlSnippetsCompletion()
     {
         await VerifyCompletionListAsync(
@@ -338,6 +364,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         string[] expectedItemLabels,
         int expectedItemCount,
         string[]? delegatedItemLabels = null,
+        string[]? delegatedItemCommitCharacters = null,
         string[]? snippetLabels = null,
         bool autoInsertAttributeQuotes = true,
         bool commitElementsWithSpace = true)
@@ -355,7 +382,11 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             {
                 Items = delegatedItemLabels.Select((label) => new VSInternalCompletionItem()
                 {
-                    Label = label
+                    Label = label,
+                    CommitCharacters = delegatedItemCommitCharacters,
+                    // If test specifies not to commit with space, set kind to element since we remove space
+                    // commit from elements only. Otherwise test doesn't care, so set to None
+                    Kind = !commitElementsWithSpace ? CompletionItemKind.Element : CompletionItemKind.None,
                 }).ToArray(),
                 IsIncomplete = true
             };
@@ -429,14 +460,18 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                && resultCount++ < maxResultCount);
 
         Assert.NotNull(result);
-        if (result is not null)
+        Assert.Equal(expectedItemCount, result.Items.Length);
+
+        using var _ = HashSetPool<string>.GetPooledObject(out var labelSet);
+        labelSet.AddRange(result.Items.Select((item) => item.Label));
+        foreach (var expectedItemLabel in expectedItemLabels)
         {
-            Assert.Equal(expectedItemCount, result.Items.Length);
-            var labelSet = new HashSet<string>(result.Items.Select((item) => item.Label));
-            foreach (var expectedItemLabel in expectedItemLabels)
-            {
-                Assert.Contains(expectedItemLabel, labelSet);
-            }
+            Assert.Contains(expectedItemLabel, labelSet);
+        }
+
+        if (!commitElementsWithSpace)
+        {
+            Assert.False(result.Items.Any(item => item.CommitCharacters?.First().Contains(" ") ?? false));
         }
     }
 }
