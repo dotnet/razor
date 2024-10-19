@@ -79,6 +79,7 @@ public class TextEditResponseRewriterTest(ITestOutputHelper testOutput)
             Items = [
                 new VSInternalCompletionItem()
                 {
+                    Label = string.Empty, // label string is non-nullable
                     TextEdit = VsLspFactory.CreateTextEdit(textEditRange, "Hello")
                 }
             ]

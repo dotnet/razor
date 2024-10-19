@@ -115,39 +115,6 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
         );
     }
 
-    [Fact]
-    public async Task RewriteAsync_HandlesNullLabels()
-    {
-        // Arrange
-        var documentContent = "@$$";
-        TestFileMarkupParser.GetPosition(documentContent, out documentContent, out var cursorPosition);
-        var delegatedCompletionList = GenerateCompletionList(
-            (null, CompletionItemKind.Keyword),
-            ("using", CompletionItemKind.Snippet)
-            );
-        var rewriter = new SnippetResponseRewriter();
-
-        // Act
-        var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList);
-
-        // Assert
-        Assert.Null(rewrittenCompletionList.CommitCharacters);
-        Assert.Collection(
-            rewrittenCompletionList.Items,
-            completion =>
-            {
-                Assert.Null(completion.Label);
-                Assert.Null(completion.SortText);
-            },
-            completion =>
-            {
-                Assert.Equal("using statement", completion.Label);
-                Assert.Equal("using ", completion.SortText);
-            }
-        );
-    }
-
     private static VSInternalCompletionList GenerateCompletionList(params (string? Label, CompletionItemKind Kind)[] itemsData)
     {
         var items = itemsData.Select(itemData => new VSInternalCompletionItem()
