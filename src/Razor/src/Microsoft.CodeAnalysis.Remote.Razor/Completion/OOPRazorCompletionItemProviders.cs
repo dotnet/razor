@@ -7,12 +7,21 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 [Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class OOPDirectiveCompletionItemProvider : DirectiveCompletionItemProvider;
+
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class OOPDirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProvider;
+
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class OOPDirectiveAttributeParameterCompletionItemProvider : DirectiveAttributeParameterCompletionItemProvider;
+
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class OOPDirectiveAttributeTransitionCompletionItemProvider : DirectiveAttributeTransitionCompletionItemProvider;
+
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
 internal sealed class OOPMarkupTransitionCompletionItemProvider : MarkupTransitionCompletionItemProvider;
 
 [Export(typeof(IRazorCompletionItemProvider)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPTagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService)
     : TagHelperCompletionProvider(tagHelperCompletionService);
-
-[Export(typeof(IRazorCompletionItemProvider)), Shared]
-internal sealed class OOPDirectiveCompletionItemProvider : DirectiveCompletionItemProvider;

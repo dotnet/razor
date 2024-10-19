@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -117,6 +118,35 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
              expectedItemCount: 20);
     }
 
+    // Tests MarkupTransitionCompletionItemProvider
+    [Fact]
+    public async Task CSharpMarkupTransitionAndTagHelpersInCodeBlock()
+    {
+        await VerifyCompletionListAsync(
+            input: $$"""
+                This is a Razor document.
+
+                <div></div>
+
+                @code{
+                    void foo()
+                    {
+                        <$$
+                    }
+                }
+
+                The end.
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                 TriggerCharacter = "<",
+                 TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
+             },
+             expectedItemLabels: ["text", "EditForm", "InputDate"],
+             expectedItemCount: 34);
+    }
+
     [Fact]
     public async Task RazorDirectives()
     {
@@ -190,7 +220,30 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    public async Task HtmlAttributeNamesCompletion()
+    public async Task HtmlSnippetsCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: $"""
+                This is a Razor document.
+
+                $$
+
+                The end.
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Explicit,
+                 TriggerCharacter = null,
+                 TriggerKind = RoslynCompletionTriggerKind.Invoked
+             },
+             expectedItemLabels: ["snippet1", "snippet2"],
+             expectedItemCount: 2,
+             snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    // Tests HTML attributes and DirectiveAttributeTransitionCompletionItemProvider
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeTransitionNamesCompletion()
     {
         await VerifyCompletionListAsync(
             input: $"""
@@ -206,8 +259,54 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = " ",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["style", "dir"],
-             expectedItemCount: 2,
+             expectedItemLabels: ["style", "dir", "@..."],
+             expectedItemCount: 3,
+             delegatedItemLabels: ["style", "dir"]);
+    }
+
+    // Tests HTML attributes and DirectiveAttributeCompletionItemProvider
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeNamesCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: $"""
+                This is a Razor document.
+
+                <div @$$></div>
+
+                The end.
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                 TriggerCharacter = "@",
+                 TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
+             },
+             expectedItemLabels: ["style", "dir", "@rendermode", "@bind-..."],
+             expectedItemCount: 104,
+             delegatedItemLabels: ["style", "dir"]);
+    }
+
+    // Tests HTML attributes and DirectiveAttributeParameterCompletionItemProvider
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeParameterNamesCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: $"""
+                This is a Razor document.
+
+                <input @bind:f$$></div>
+
+                The end.
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                 TriggerCharacter = "f",
+                 TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
+             },
+             expectedItemLabels: ["style", "dir", "culture", "event", "format", "get", "set", "after"],
+             expectedItemCount: 8,
              delegatedItemLabels: ["style", "dir"]);
     }
 
@@ -228,8 +327,8 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = " ",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit"],
-             expectedItemCount: 12,
+             expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."],
+             expectedItemCount: 13,
              delegatedItemLabels: ["style", "dir"]);
     }
 
@@ -239,9 +338,10 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         string[] expectedItemLabels,
         int expectedItemCount,
         string[]? delegatedItemLabels = null,
+        string[]? snippetLabels = null,
         bool autoInsertAttributeQuotes = true,
         bool commitElementsWithSpace = true)
-    {     
+    {
         var document = await CreateProjectAndRazorDocumentAsync(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
@@ -264,6 +364,12 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentCompletionName, response)]);
 
         var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
+        if (snippetLabels is not null)
+        {
+            var snippetInfos = snippetLabels.Select(label => new SnippetInfo(label, label, label, string.Empty, SnippetLanguage.Html)).ToImmutableArray();
+            snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
+        }
+
         var completionSetting = new CompletionSetting
         {
             CompletionItem = new CompletionItemSetting(),
