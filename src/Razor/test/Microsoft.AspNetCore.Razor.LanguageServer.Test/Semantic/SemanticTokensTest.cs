@@ -48,13 +48,13 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         }
     };
 
-    private static readonly Regex s_matchNewLines = MyRegex();
+    private static readonly Regex s_matchNewLines = NewLineRegex();
 
 #if NET
     [GeneratedRegex("\r\n")]
-    private static partial Regex MyRegex();
+    private static partial Regex NewLineRegex();
 #else
-    private static Regex MyRegex() => new Regex("\r\n|\r|\n");
+    private static Regex NewLineRegex() => new Regex("\r\n|\r|\n");
 #endif
 
     [Theory]
@@ -656,6 +656,26 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     [Theory]
     [CombinatorialData]
+    public async Task GetSemanticTokens_Legacy_Model(bool precise)
+    {
+        var documentText = """
+            @using System
+            @model SampleApp.Pages.ErrorModel
+
+            <div>
+
+                @{
+                    @Model.ToString();
+                }
+
+            </div>
+            """;
+
+        await VerifySemanticTokensAsync(documentText, precise, isRazorFile: false);
+    }
+
+    [Theory]
+    [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_LargeFile(bool precise)
     {
         var start = """
@@ -935,10 +955,10 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             .SetupGet(x => x.Project)
             .Returns(projectSnapshot.Object);
         documentSnapshotMock
-            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>()))
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
         documentSnapshotMock
-            .Setup(x => x.GetTextAsync())
+            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(document.Source.Text);
         documentSnapshotMock
             .SetupGet(x => x.Version)

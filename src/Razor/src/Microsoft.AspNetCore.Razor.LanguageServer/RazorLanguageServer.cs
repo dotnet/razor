@@ -161,10 +161,8 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         // Other
         services.AddSingleton<IRazorComponentSearchEngine, RazorComponentSearchEngine>();
 
-        // Get the DefaultSession for telemetry. This is set by VS with
-        // TelemetryService.SetDefaultSession and provides the correct
-        // appinsights keys etc
         services.AddSingleton<ITelemetryReporter>(_telemetryReporter);
+        services.AddSingleton<AbstractTelemetryService, CLaSPTelemetryService>();
 
         // Defaults: For when the caller hasn't provided them through the `configure` action.
         services.TryAddSingleton<IHostServicesProvider, DefaultHostServicesProvider>();
@@ -208,6 +206,8 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
                 services.AddHandlerWithCapabilities<DocumentColorEndpoint>();
                 services.AddHandler<ColorPresentationEndpoint>();
+
+                services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
             }
 
             services.AddHandler<WrapWithTagEndpoint>();
@@ -216,7 +216,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
             services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
             services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
-            services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
             services.AddHandlerWithCapabilities<MapCodeEndpoint>();
         }
     }

@@ -51,7 +51,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         var documentSnapshot = await GetDocumentSnapshotAsync(ProjectFilePath, filePath, TargetPath);
         DocumentContext = new DocumentContext(documentUri, documentSnapshot, projectContext: null);
 
-        var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
+        var text = await DocumentSnapshot.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
         Range = VsLspFactory.CreateRange(
             start: (0, 0),
             end: (text.Lines.Count - 1, 0));
