@@ -76,6 +76,28 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         result.VerifyOutputsMatchBaseline();
     }
 
+    [Fact]
+    public async Task ImportsRazor_SystemInNamespace()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["System/_Imports.razor"] = """
+                @using global::System.Net.Http
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert
+        result.Diagnostics.Verify();
+        Assert.Single(result.GeneratedSources);
+        result.VerifyOutputsMatchBaseline();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8718")]
     public async Task PartialClass()
     {

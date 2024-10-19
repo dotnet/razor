@@ -75,7 +75,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 return;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await document.GetGeneratedOutputAsync(token).ConfigureAwait(false);
 
             foreach (var listener in _listeners)
             {

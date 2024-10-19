@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -13,18 +14,35 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorComponentSearchEngine>();
 
-    /// <summary>Search for a component in a project based on its tag name and fully qualified name.</summary>
+    /// <summary>
+    ///  Search for a component in a project based on its tag name and fully qualified name.
+    /// </summary>
+    /// <param name="tagHelper">
+    ///  A <see cref="TagHelperDescriptor"/> to find the corresponding Razor component for.
+    /// </param>
+    /// <param name="solutionQueryOperations">
+    ///  An <see cref="ISolutionQueryOperations"/> to enumerate project snapshots.
+    /// </param>
+    /// <param name="cancellationToken">
+    ///  A token that is checked to cancel work.
+    /// </param>
+    /// <returns>
+    ///  The corresponding <see cref="IDocumentSnapshot"/> if found, <see langword="null"/> otherwise.
+    /// </returns>
     /// <remarks>
-    /// This method makes several assumptions about the nature of components. First, it assumes that a component
-    /// a given name "Name" will be located in a file "Name.razor". Second, it assumes that the namespace the
-    /// component is present in has the same name as the assembly its corresponding tag helper is loaded from.
-    /// Implicitly, this method inherits any assumptions made by TrySplitNamespaceAndType.
+    ///  This method makes several assumptions about the nature of components. First,
+    ///  it assumes that a component a given name "Name" will be located in a file
+    ///  "Name.razor". Second, it assumes that the namespace the component is present in
+    ///  has the same name as the assembly its corresponding tag helper is loaded from.
+    ///  Implicitly, this method inherits any assumptions made by TrySplitNamespaceAndType.
     /// </remarks>
-    /// <param name="tagHelper">A TagHelperDescriptor to find the corresponding Razor component for.</param>
-    /// <param name="solutionQueryOperations">An <see cref="ISolutionQueryOperations"/> to enumerate project snapshots.</param>
-    /// <returns>The corresponding DocumentSnapshot if found, null otherwise.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="tagHelper"/> is null.</exception>
-    public async Task<IDocumentSnapshot?> TryLocateComponentAsync(TagHelperDescriptor tagHelper, ISolutionQueryOperations solutionQueryOperations)
+    /// <exception cref="ArgumentNullException">
+    ///  Thrown if <paramref name="tagHelper"/> is <see langword="null"/>.
+    /// </exception>
+    public async Task<IDocumentSnapshot?> TryLocateComponentAsync(
+        TagHelperDescriptor tagHelper,
+        ISolutionQueryOperations solutionQueryOperations,
+        CancellationToken cancellationToken)
     {
         var typeName = tagHelper.GetTypeNameIdentifier();
         var namespaceName = tagHelper.GetTypeNamespace();
@@ -52,7 +70,7 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
                     continue;
                 }
 
-                var razorCodeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
+                var razorCodeDocument = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
                 if (razorCodeDocument is null)
                 {
                     continue;

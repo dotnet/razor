@@ -18,15 +18,19 @@ internal interface IDocumentSnapshot
 
     int Version { get; }
 
-    Task<SourceText> GetTextAsync();
-    Task<VersionStamp> GetTextVersionAsync();
-    Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput);
+    ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken);
+    ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken);
+    ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(
+        bool forceDesignTimeGeneratedOutput,
+        CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets the Roslyn syntax tree for the generated C# for this Razor document
+    ///  Gets the Roslyn syntax tree for the generated C# for this Razor document
     /// </summary>
-    /// <remarks>Using this from the LSP server side of things is not ideal. Use sparingly :)</remarks>
-    Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken);
+    /// <remarks>
+    ///  ⚠️ Should be used sparingly in language server scenarios.
+    /// </remarks>
+    ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken);
 
     bool TryGetText([NotNullWhen(true)] out SourceText? result);
     bool TryGetTextVersion(out VersionStamp result);

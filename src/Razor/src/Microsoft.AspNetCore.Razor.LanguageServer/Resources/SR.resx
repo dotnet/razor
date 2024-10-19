@@ -144,4 +144,7 @@
   <data name="Version_Should_Not_Be_Null" xml:space="preserve">
     <value>Provided version should not be null.</value>
   </data>
+  <data name="ExtractTo_Component_Title" xml:space="preserve">
+    <value>Extract element to new component</value>
+  </data>
 </root>

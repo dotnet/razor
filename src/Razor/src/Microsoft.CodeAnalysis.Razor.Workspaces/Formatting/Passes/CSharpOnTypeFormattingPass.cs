@@ -109,7 +109,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var formattedText = ApplyChangesAndTrackChange(originalText, filteredChanges, out _, out var spanAfterFormatting);
         _logger.LogTestOnly($"After C# changes:\r\n{formattedText}");
 
-        var changedContext = await context.WithTextAsync(formattedText).ConfigureAwait(false);
+        var changedContext = await context.WithTextAsync(formattedText, cancellationToken).ConfigureAwait(false);
         var linePositionSpanAfterFormatting = formattedText.GetLinePositionSpan(spanAfterFormatting);
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -119,9 +119,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var cleanedText = formattedText.WithChanges(cleanupChanges);
         _logger.LogTestOnly($"After CleanupDocument:\r\n{cleanedText}");
 
-        changedContext = await changedContext.WithTextAsync(cleanedText).ConfigureAwait(false);
-
-        cancellationToken.ThrowIfCancellationRequested();
+        changedContext = await changedContext.WithTextAsync(cleanedText, cancellationToken).ConfigureAwait(false);
 
         // At this point we should have applied all edits that adds/removes newlines.
         // Let's now ensure the indentation of each of those lines is correct.
