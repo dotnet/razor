@@ -358,6 +358,28 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
              delegatedItemLabels: ["style", "dir"]);
     }
 
+    [Fact]
+    public async Task TagHelperAttributes_NoAutoInsertQuotes_Completion()
+    {
+        await VerifyCompletionListAsync(
+            input: $"""
+                This is a Razor document.
+
+                <EditForm $$></EditForm>
+
+                The end.
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                 TriggerCharacter = " ",
+                 TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
+             },
+             expectedItemLabels: ["FormName", "OnValidSubmit", "@..."],
+             expectedItemCount: 11,
+             autoInsertAttributeQuotes: false);
+    }
+
     private async Task VerifyCompletionListAsync(
         TestCode input,
         RoslynVSInternalCompletionContext completionContext,
@@ -472,6 +494,15 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         if (!commitElementsWithSpace)
         {
             Assert.False(result.Items.Any(item => item.CommitCharacters?.First().Contains(" ") ?? false));
+        }
+
+        if (!autoInsertAttributeQuotes)
+        {
+            // Tag helper attributes create InsertText that looks something like
+            // "OnValidSubmit=\"$0\"" (for OnValidSubmit attribute). Make sure the value
+            // placeholder $0 is not surrounded with quotes if we set AutoInsertAttributeQuotes
+            // to false
+            Assert.False(result.Items.Any(item => item.InsertText?.Contains("\"$0\"") ?? false));
         }
     }
 }
