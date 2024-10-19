@@ -3,9 +3,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Razor.Completion;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal sealed class LspRazorCompletionFactsService(IEnumerable<IRazorCompletionItemProvider> providers)
     : AbstractRazorCompletionFactsService(providers.ToImmutableArray())

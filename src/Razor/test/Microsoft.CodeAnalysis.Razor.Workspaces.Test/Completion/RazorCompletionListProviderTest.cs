@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,7 +19,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 public class RazorCompletionListProviderTest : LanguageServerTestBase
 {
@@ -566,9 +565,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         codeDocument.SetTagHelperContext(tagHelperContext);
         var documentContext = TestDocumentContext.Create(documentPath, codeDocument);
 
-        // Set up a custom options monitor with desired options
-        var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
-        await optionsMonitor.UpdateAsync(optionsMonitor.CurrentValue with { AutoInsertAttributeQuotes = false }, DisposalToken);
+        // Set up desired options
         var razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: false, CommitElementsWithSpace: true);
 
         var completionFactsService = new LspRazorCompletionFactsService(GetCompletionProviders());

@@ -8,11 +8,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.Completion;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 public abstract class TagHelperServiceTestBase : LanguageServerTestBase
 {
@@ -252,17 +251,17 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
     protected static string GetFileName(bool isRazorFile)
         => isRazorFile ? RazorFile : CSHtmlFile;
 
-    internal static RazorCodeDocument CreateCodeDocument(string text, bool isRazorFile, ImmutableArray<TagHelperDescriptor> tagHelpers)
+    protected internal static RazorCodeDocument CreateCodeDocument(string text, bool isRazorFile, ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
         return CreateCodeDocument(text, GetFileName(isRazorFile), tagHelpers);
     }
 
-    internal static RazorCodeDocument CreateCodeDocument(string text, bool isRazorFile, params TagHelperDescriptor[] tagHelpers)
+    protected internal static RazorCodeDocument CreateCodeDocument(string text, bool isRazorFile, params TagHelperDescriptor[] tagHelpers)
     {
         return CreateCodeDocument(text, GetFileName(isRazorFile), tagHelpers);
     }
 
-    internal static RazorCodeDocument CreateCodeDocument(string text, string filePath, ImmutableArray<TagHelperDescriptor> tagHelpers)
+    protected internal static RazorCodeDocument CreateCodeDocument(string text, string filePath, ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
         tagHelpers = tagHelpers.NullToEmpty();
 
@@ -274,7 +273,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
         return codeDocument;
     }
 
-    internal static RazorCodeDocument CreateCodeDocument(string text, string filePath, params TagHelperDescriptor[] tagHelpers)
+    protected internal static RazorCodeDocument CreateCodeDocument(string text, string filePath, params TagHelperDescriptor[] tagHelpers)
     {
         tagHelpers ??= Array.Empty<TagHelperDescriptor>();
 
