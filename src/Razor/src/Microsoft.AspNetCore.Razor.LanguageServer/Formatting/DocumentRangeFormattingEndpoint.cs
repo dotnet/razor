@@ -42,16 +42,6 @@ internal class DocumentRangeFormattingEndpoint(
             return null;
         }
 
-        if (request.Options.OtherOptions is not null &&
-            request.Options.OtherOptions.TryGetValue("fromPaste", out var fromPasteObj) &&
-            fromPasteObj is bool fromPaste)
-        {
-            if (fromPaste && !_optionsMonitor.CurrentValue.Formatting.IsOnPasteEnabled())
-            {
-                return null;
-            }
-        }
-
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null || cancellationToken.IsCancellationRequested)
         {
@@ -62,6 +52,16 @@ internal class DocumentRangeFormattingEndpoint(
         if (codeDocument.IsUnsupported())
         {
             return null;
+        }
+
+        if (request.Options.OtherOptions is not null &&
+            request.Options.OtherOptions.TryGetValue("fromPaste", out var fromPasteObj) &&
+            fromPasteObj is bool fromPaste)
+        {
+            if (fromPaste && !_optionsMonitor.CurrentValue.Formatting.IsOnPasteEnabled())
+            {
+                return null;
+            }
         }
 
         var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);

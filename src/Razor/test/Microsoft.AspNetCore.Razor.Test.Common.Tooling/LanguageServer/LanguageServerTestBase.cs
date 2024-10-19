@@ -127,12 +127,21 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return new DocumentContext(uri, snapshot, projectContext: null);
     }
 
-    private protected static RazorLSPOptionsMonitor GetOptionsMonitor(bool enableFormatting = true, bool autoShowCompletion = true, bool autoListParams = true, bool formatOnType = true, bool autoInsertAttributeQuotes = true, bool colorBackground = false, bool codeBlockBraceOnNextLine = false, bool commitElementsWithSpace = true)
+    private protected static RazorLSPOptionsMonitor GetOptionsMonitor(
+        bool enableFormatting = true,
+        bool autoShowCompletion = true,
+        bool autoListParams = true,
+        bool formatOnType = true,
+        bool autoInsertAttributeQuotes = true,
+        bool colorBackground = false,
+        bool codeBlockBraceOnNextLine = false,
+        bool commitElementsWithSpace = true,
+        bool formatOnPaste = true)
     {
         var configService = StrictMock.Of<IConfigurationSyncService>();
 
         var options = new RazorLSPOptions(
-            GetFormattingFlags(enableFormatting, formatOnType),
+            GetFormattingFlags(enableFormatting, formatOnType, formatOnPaste),
             true,
             InsertSpaces: true,
             TabSize: 4,
@@ -146,19 +155,26 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return optionsMonitor;
     }
 
-    private static FormattingFlags GetFormattingFlags(bool enableFormatting, bool formatOnType)
+    private static FormattingFlags GetFormattingFlags(bool enableFormatting, bool formatOnType, bool formatOnPaste)
     {
-        if (!enableFormatting)
+        var flags = FormattingFlags.Disabled;
+
+        if (enableFormatting)
         {
-            return FormattingFlags.Disabled;
+            flags |= FormattingFlags.Enabled;
         }
 
         if (formatOnType)
         {
-            return FormattingFlags.All;
+            flags |= FormattingFlags.OnType;
         }
 
-        return FormattingFlags.Enabled;
+        if (formatOnPaste)
+        {
+            flags |= FormattingFlags.OnPaste;
+        }
+
+        return flags;
     }
 
     private class ThrowingRazorSpanMappingService : IRazorSpanMappingService
