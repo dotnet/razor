@@ -802,13 +802,12 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             """;
 
         var razorLSPOptions = new RazorLSPOptions(
-            EnableFormatting: true,
+            FormattingFlags.All,
             AutoClosingTags: true,
             insertSpaces,
             tabSize,
             AutoShowCompletion: true,
             AutoListParams: true,
-            FormatOnType: true,
             AutoInsertAttributeQuotes: true,
             ColorBackground: false,
             CodeBlockBraceOnNextLine: false,
