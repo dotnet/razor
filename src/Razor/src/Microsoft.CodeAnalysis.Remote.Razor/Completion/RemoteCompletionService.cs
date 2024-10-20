@@ -164,7 +164,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         RazorCompletionOptions razorCompletionOptions,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = await remoteDocumentContext.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
+        var generatedDocument = await remoteDocumentContext.Snapshot
+            .GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (provisionalTextEdit is not null)
         {
             var generatedText = await generatedDocument.GetTextAsync(cancellationToken);
