@@ -36,7 +36,7 @@ internal class RazorCompletionEndpoint(
         serverCapabilities.CompletionProvider = new CompletionOptions()
         {
             ResolveProvider = true,
-            TriggerCharacters = _completionListProvider.AggregateTriggerCharacters.ToArray(),
+            TriggerCharacters = CompletionTriggerCharacters.AllTriggerCharacters,
             // This is the intersection of C# and HTML commit characters.
             // We need to specify it so that platform can correctly calculate ApplicableToSpan in
             // https://devdiv.visualstudio.com/DevDiv/_git/VSLanguageServerClient?path=/src/product/RemoteLanguage/Impl/Features/Completion/AsyncCompletionSource.cs&version=GBdevelop&line=855&lineEnd=855&lineStartColumn=9&lineEndColumn=49&lineStyle=plain&_a=contents

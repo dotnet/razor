@@ -69,7 +69,7 @@ internal class CohostDocumentCompletionEndpoint(
                 RegisterOptions = new CompletionRegistrationOptions()
                 {
                     ResolveProvider = true,
-                    TriggerCharacters = [.. CompletionTriggerCharacters.AllTriggerCharacters],
+                    TriggerCharacters = CompletionTriggerCharacters.AllTriggerCharacters,
                     DocumentSelector = filter,
                     AllCommitCharacters = [" ", ">", ";", "="]
                 }

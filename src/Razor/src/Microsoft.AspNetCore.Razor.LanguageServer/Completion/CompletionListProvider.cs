@@ -24,13 +24,7 @@ internal class CompletionListProvider
     {
         _razorCompletionListProvider = razorCompletionListProvider;
         _delegatedCompletionListProvider = delegatedCompletionListProvider;
-
-        var allTriggerCharacters = razorCompletionListProvider.TriggerCharacters.Concat(delegatedCompletionListProvider.TriggerCharacters);
-        var distinctTriggerCharacters = new HashSet<string>(allTriggerCharacters);
-        AggregateTriggerCharacters = distinctTriggerCharacters.ToImmutableHashSet();
     }
-
-    public ImmutableHashSet<string> AggregateTriggerCharacters { get; }
 
     public async Task<VSInternalCompletionList?> GetCompletionListAsync(
         int absoluteIndex,

@@ -14,7 +14,7 @@ internal static class CompletionTriggerCharacters
     public static FrozenSet<string> CSharpTriggerCharacters { get; } = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" }.ToFrozenSet();
     public static FrozenSet<string> HtmlTriggerCharacters { get; } = new[] { ":", "@", "#", ".", "!", "*", ",", "(", "[", "-", "<", "&", "\\", "/", "'", "\"", "=", ":", " ", "`" }.ToFrozenSet();
     public static FrozenSet<string> AllDelegationTriggerCharacters { get; } = RazorDelegationTriggerCharacters.Union(CSharpTriggerCharacters).Union(HtmlTriggerCharacters).ToFrozenSet();
-    public static FrozenSet<string> AllTriggerCharacters { get; } = RazorTriggerCharacters.Union(AllDelegationTriggerCharacters).ToFrozenSet();
+    public static string[] AllTriggerCharacters { get; } = RazorTriggerCharacters.Union(AllDelegationTriggerCharacters).ToArray();
 
     public static bool IsValidTrigger(FrozenSet<string> triggerCharacters, CompletionContext completionContext)
         => completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
