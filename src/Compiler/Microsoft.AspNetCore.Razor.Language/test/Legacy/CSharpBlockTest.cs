@@ -1,8 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -857,7 +858,7 @@ catch(bar) { baz(); }");
                 [Parameter]
                 public Func<int, int> ChildContent { get; set; } = (context) => 1 < @context;
             }
-            """);
+            """, directives: [ComponentCodeDirective.Directive]);
     }
 
     [Fact]
