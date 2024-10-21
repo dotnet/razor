@@ -68,17 +68,16 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 DocumentMappingService,
                 cancellationToken) is { } provisionalCompletionInfo)
         {
-            return new CompletionPositionInfo()
-            {
-                DocumentPositionInfo = provisionalCompletionInfo.DocumentPositionInfo,
-                ProvisionalTextEdit = provisionalCompletionInfo.ProvisionalTextEdit
-            };
+            return new CompletionPositionInfo(
+                provisionalCompletionInfo.ProvisionalTextEdit,
+                provisionalCompletionInfo.DocumentPositionInfo,
+                ShouldIncludeDelegationSnippets: false);
         }
 
         var shouldIncludeSnippets = positionInfo.LanguageKind == RazorLanguageKind.Html
             && await DelegatedCompletionHelper.ShouldIncludeSnippetsAsync(remoteDocumentContext, index, cancellationToken);
 
-        return new CompletionPositionInfo() { DocumentPositionInfo = positionInfo, ShouldIncludeDelegationSnippets = shouldIncludeSnippets };
+        return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets);
     }
 
     public ValueTask<Response> GetCompletionAsync(

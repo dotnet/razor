@@ -147,12 +147,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             {
                 // We're just gonna pretend this mapped perfectly normally onto C#. Moving this logic to the actual position info
                 // calculating code is possible, but could have untold effects, so opt-in is better (for now?)
-                positionInfo = new DocumentPositionInfo
-                {
-                    LanguageKind = RazorLanguageKind.CSharp,
-                    Position = csharpPosition,
-                    HostDocumentIndex = positionInfo.HostDocumentIndex
-                };
+                positionInfo = new DocumentPositionInfo(RazorLanguageKind.CSharp, csharpPosition, positionInfo.HostDocumentIndex);
             }
         }
 

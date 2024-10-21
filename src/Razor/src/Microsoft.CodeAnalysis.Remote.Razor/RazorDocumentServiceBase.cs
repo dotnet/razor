@@ -41,7 +41,7 @@ internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBro
                 // calculating code is possible, but could have untold effects, so opt-in is better (for now?)
 
                 // TODO: Not using a with operator here because it doesn't work in OOP for some reason.
-                positionInfo = new DocumentPositionInfo { LanguageKind = RazorLanguageKind.CSharp, Position = csharpPosition, HostDocumentIndex = positionInfo.HostDocumentIndex };
+                positionInfo = new DocumentPositionInfo(RazorLanguageKind.CSharp, csharpPosition, positionInfo.HostDocumentIndex);
             }
         }
 

@@ -70,7 +70,7 @@ internal static class IDocumentMappingServiceExtensions
             }
         }
 
-        return new DocumentPositionInfo { LanguageKind = languageKind, Position = position, HostDocumentIndex = hostDocumentIndex };
+        return new DocumentPositionInfo(languageKind, position, hostDocumentIndex);
     }
 
     public static bool TryMapToHostDocumentRange(this IDocumentMappingService service, IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? hostDocumentRange)

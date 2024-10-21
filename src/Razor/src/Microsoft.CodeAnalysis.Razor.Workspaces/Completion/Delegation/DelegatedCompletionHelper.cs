@@ -203,20 +203,14 @@ internal static class DelegatedCompletionHelper
         // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
         var addProvisionalDot = VsLspFactory.CreateTextEdit(previousPosition, ".");
 
-        var provisionalPositionInfo = new DocumentPositionInfo
-        {
-            LanguageKind = RazorLanguageKind.CSharp,
-            Position = VsLspFactory.CreatePosition(
+        var provisionalPositionInfo = new DocumentPositionInfo(
+            RazorLanguageKind.CSharp,
+            VsLspFactory.CreatePosition(
                 previousPosition.Line,
                 previousPosition.Character + 1),
-            HostDocumentIndex = previousCharacterPositionInfo.HostDocumentIndex + 1
-        };
+            previousCharacterPositionInfo.HostDocumentIndex + 1);
 
-        return new CompletionPositionInfo()
-        {
-            ProvisionalTextEdit = addProvisionalDot,
-            DocumentPositionInfo = provisionalPositionInfo
-        };
+        return new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
     }
 
     public static async Task<bool> ShouldIncludeSnippetsAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
