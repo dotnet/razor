@@ -75,7 +75,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         }
 
         var shouldIncludeSnippets = positionInfo.LanguageKind == RazorLanguageKind.Html
-            && await DelegatedCompletionHelper.ShouldIncludeSnippetsAsync(remoteDocumentContext, index, cancellationToken);
+            && DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, index);
 
         return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets);
     }

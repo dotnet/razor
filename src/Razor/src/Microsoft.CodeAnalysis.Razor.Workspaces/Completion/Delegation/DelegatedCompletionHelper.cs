@@ -213,10 +213,9 @@ internal static class DelegatedCompletionHelper
         return new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
     }
 
-    public static async Task<bool> ShouldIncludeSnippetsAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
+    public static bool ShouldIncludeSnippets(RazorCodeDocument razorCodeDocument, int absoluteIndex)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var tree = codeDocument.GetSyntaxTree();
+        var tree = razorCodeDocument.GetSyntaxTree();
 
         var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: false);
         var node = token.Parent;
