@@ -203,13 +203,13 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                 const string bindPrefix = "@bind-";
                 if (child is TagHelperDirectiveAttributeIntermediateNode { OriginalAttributeName: { } originalAttributeName } &&
                     originalAttributeName.StartsWith(bindPrefix, StringComparison.Ordinal) &&
-                    EqualsWithOptionalChangedSuffix(originalAttributeName.AsSpan(start: bindPrefix.Length), attributeName))
+                    EqualsWithOptionalChangedOrExpressionSuffix(originalAttributeName.AsSpan(start: bindPrefix.Length), attributeName))
                 {
                     return true;
                 }
                 if (child is TagHelperDirectiveAttributeParameterIntermediateNode { OriginalAttributeName: { } originalName, AttributeNameWithoutParameter: { } nameWithoutParameter } &&
                     originalName.StartsWith(bindPrefix, StringComparison.Ordinal) &&
-                    EqualsWithOptionalChangedSuffix(nameWithoutParameter.AsSpan(start: bindPrefix.Length - 1), attributeName))
+                    EqualsWithOptionalChangedOrExpressionSuffix(nameWithoutParameter.AsSpan(start: bindPrefix.Length - 1), attributeName))
                 {
                     // `@bind-Value:get` or `@bind-Value:set` is specified.
                     return true;
@@ -219,14 +219,20 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
             return false;
         }
 
-        // True if `specifiedName` is equal to `requiredName` or to `requiredName + "Changed"`.
-        static bool EqualsWithOptionalChangedSuffix(ReadOnlySpan<char> specifiedName, string requiredName)
+        // True if `requiredName` is equal to `specifiedName` or to `specifiedName + "Changed"` or to `specifiedName + "Expression"`.
+        static bool EqualsWithOptionalChangedOrExpressionSuffix(ReadOnlySpan<char> specifiedName, string requiredName)
         {
-            const string changedSuffix = "Changed";
             var requiredNameSpan = requiredName.AsSpan();
-            return requiredNameSpan.EndsWith(changedSuffix.AsSpan(), StringComparison.Ordinal)
-                ? specifiedName.Equals(requiredNameSpan[..^changedSuffix.Length], StringComparison.Ordinal)
-                : specifiedName.Equals(requiredNameSpan, StringComparison.Ordinal);
+            return EqualsWithSuffix(specifiedName, requiredNameSpan, "Changed") ||
+                EqualsWithSuffix(specifiedName, requiredNameSpan, "Expression") ||
+                specifiedName.Equals(requiredNameSpan, StringComparison.Ordinal);
+        }
+
+        // True if `requiredName` is equal to `specifiedName + suffix`.
+        static bool EqualsWithSuffix(ReadOnlySpan<char> specifiedName, ReadOnlySpan<char> requiredName, string suffix)
+        {
+            return requiredName.EndsWith(suffix.AsSpan(), StringComparison.Ordinal) &&
+                specifiedName.Equals(requiredName[..^suffix.Length], StringComparison.Ordinal);
         }
     }
 
