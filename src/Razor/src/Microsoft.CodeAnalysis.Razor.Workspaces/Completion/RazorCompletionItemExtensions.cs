@@ -16,42 +16,22 @@ internal static class RazorCompletionItemExtensions
 
     public static void SetAttributeCompletionDescription(this RazorCompletionItem completionItem, AggregateBoundAttributeDescription attributeCompletionDescription)
     {
-        if (completionItem is null)
-        {
-            throw new ArgumentNullException(nameof(completionItem));
-        }
-
         completionItem.Items[s_attributeCompletionDescriptionKey] = attributeCompletionDescription;
     }
 
     public static AggregateBoundAttributeDescription? GetAttributeCompletionDescription(this RazorCompletionItem completionItem)
     {
-        if (completionItem is null)
-        {
-            throw new ArgumentNullException(nameof(completionItem));
-        }
-
         var attributeCompletionDescription = completionItem.Items[s_attributeCompletionDescriptionKey] as AggregateBoundAttributeDescription;
         return attributeCompletionDescription;
     }
 
     public static void SetDirectiveCompletionDescription(this RazorCompletionItem completionItem, DirectiveCompletionDescription attributeCompletionDescription)
     {
-        if (completionItem is null)
-        {
-            throw new ArgumentNullException(nameof(completionItem));
-        }
-
         completionItem.Items[s_directiveCompletionDescriptionKey] = attributeCompletionDescription;
     }
 
     public static DirectiveCompletionDescription? GetDirectiveCompletionDescription(this RazorCompletionItem completionItem)
     {
-        if (completionItem is null)
-        {
-            throw new ArgumentNullException(nameof(completionItem));
-        }
-
         var attributeCompletionDescription = completionItem.Items[s_directiveCompletionDescriptionKey] as DirectiveCompletionDescription;
         return attributeCompletionDescription;
     }
@@ -73,21 +53,11 @@ internal static class RazorCompletionItemExtensions
 
     public static void SetMarkupTransitionCompletionDescription(this RazorCompletionItem completionItem, MarkupTransitionCompletionDescription markupTransitionCompletionDescription)
     {
-        if (completionItem is null)
-        {
-            throw new ArgumentNullException(nameof(completionItem));
-        }
-
         completionItem.Items[s_markupTransitionDescriptionKey] = markupTransitionCompletionDescription;
     }
 
     public static MarkupTransitionCompletionDescription? GetMarkupTransitionCompletionDescription(this RazorCompletionItem completionItem)
     {
-        if (completionItem is null)
-        {
-            throw new ArgumentNullException(nameof(completionItem));
-        }
-
         var markupTransitionCompletionDescription = completionItem.Items[s_markupTransitionDescriptionKey] as MarkupTransitionCompletionDescription;
         return markupTransitionCompletionDescription;
     }
@@ -99,11 +69,6 @@ internal static class RazorCompletionItemExtensions
 
     public static AggregateBoundElementDescription? GetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem)
     {
-        if (completionItem is null)
-        {
-            throw new ArgumentNullException(nameof(completionItem));
-        }
-
         var description = completionItem.Items[s_tagHelperElementCompletionDescriptionKey] as AggregateBoundElementDescription;
         return description;
     }
