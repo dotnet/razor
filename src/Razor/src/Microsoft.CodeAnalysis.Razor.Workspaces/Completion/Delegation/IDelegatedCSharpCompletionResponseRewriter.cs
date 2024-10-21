@@ -8,9 +8,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
-internal abstract class DelegatedCSharpCompletionResponseRewriter
+internal interface IDelegatedCSharpCompletionResponseRewriter
 {
-    public abstract Task<VSInternalCompletionList> RewriteAsync(
+    public Task<VSInternalCompletionList> RewriteAsync(
         VSInternalCompletionList completionList,
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,

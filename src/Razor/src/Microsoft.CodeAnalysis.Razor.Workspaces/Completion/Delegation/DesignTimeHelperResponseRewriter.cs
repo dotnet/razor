@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 /// <summary>
 ///  Removes Razor design-time helpers from a C# completion list.
 /// </summary>
-internal class DesignTimeHelperResponseRewriter : DelegatedCSharpCompletionResponseRewriter
+internal class DesignTimeHelperResponseRewriter : IDelegatedCSharpCompletionResponseRewriter
 {
     private static readonly ImmutableHashSet<string> s_designTimeHelpers = new[]
     {
@@ -32,7 +32,7 @@ internal class DesignTimeHelperResponseRewriter : DelegatedCSharpCompletionRespo
         "BuildRenderTree"
     }.ToImmutableHashSet();
 
-    public override async Task<VSInternalCompletionList> RewriteAsync(
+    public async Task<VSInternalCompletionList> RewriteAsync(
         VSInternalCompletionList completionList,
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 /// At the moment primarily used to modify C# "using" snippet to "using statement" snippet
 /// in order to disambiguate it from Razor "using directive" snippet
 /// </remarks>
-internal class SnippetResponseRewriter : DelegatedCSharpCompletionResponseRewriter
+internal class SnippetResponseRewriter : IDelegatedCSharpCompletionResponseRewriter
 {
     private static readonly FrozenDictionary<string, (string Label, string SortText)> s_snippetToCompletionData = new Dictionary<string, (string Label, string SortText)>()
     {
@@ -28,7 +28,7 @@ internal class SnippetResponseRewriter : DelegatedCSharpCompletionResponseRewrit
     }
     .ToFrozenDictionary();
 
-    public override Task<VSInternalCompletionList> RewriteAsync(
+    public Task<VSInternalCompletionList> RewriteAsync(
         VSInternalCompletionList completionList,
         int hostDocumentIndex,
         DocumentContext hostDocumentContext,

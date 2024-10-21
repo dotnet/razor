@@ -82,7 +82,7 @@ internal class RazorCompletionEndpoint(
         var razorCompletionOptions = new RazorCompletionOptions(
             SnippetsSupported: true,
             AutoInsertAttributeQuotes: _optionsMonitor.CurrentValue.AutoInsertAttributeQuotes,
-            CommitElementsWithSpace: _optionsMonitor?.CurrentValue.CommitElementsWithSpace ?? true);
+            CommitElementsWithSpace: _optionsMonitor.CurrentValue.CommitElementsWithSpace);
         var completionList = await _completionListProvider.GetCompletionListAsync(
             hostDocumentIndex,
             completionContext,
