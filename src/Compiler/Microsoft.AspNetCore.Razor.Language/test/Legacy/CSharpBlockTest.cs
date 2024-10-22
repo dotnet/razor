@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -917,6 +917,16 @@ catch(bar) { baz(); }");
             @using global::System.Linq
             @using global::System.Threading.Tasks
             @using global::Microsoft.AspNetCore.Components
+            }
+            """);
+    }
+
+    [Fact]
+    public void CommentOnSameLineAsHtml()
+    {
+        ParseDocumentTest("""
+            @{
+                @* comment *@<div></div>
             }
             """);
     }

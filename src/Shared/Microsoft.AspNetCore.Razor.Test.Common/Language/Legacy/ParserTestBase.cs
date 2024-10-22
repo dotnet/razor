@@ -191,7 +191,7 @@ public abstract class ParserTestBase : IParserTest
 
     internal RazorSyntaxTree ParseDocument(string document, bool designTime = false, IEnumerable<DirectiveDescriptor> directives = null, RazorParserFeatureFlags featureFlags = null, string fileKind = null, CSharpParseOptions csharpParseOptions = null)
     {
-        return ParseDocument(RazorLanguageVersion.Latest, document, directives, designTime, featureFlags, fileKind);
+        return ParseDocument(RazorLanguageVersion.Latest, document, directives, designTime, featureFlags, fileKind, csharpParseOptions);
     }
 
     internal virtual RazorSyntaxTree ParseDocument(RazorLanguageVersion version, string document, IEnumerable<DirectiveDescriptor> directives, bool designTime = false, RazorParserFeatureFlags featureFlags = null, string fileKind = null, CSharpParseOptions csharpParseOptions = null)
