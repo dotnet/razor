@@ -149,6 +149,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 .ConfigureAwait(false)
             : null;
 
+        // Merge won't return anything only if both completion lists passed in are null,
+        // in which case client should just proceed with HTML completion.
         if (CompletionListMerger.Merge(razorCompletionList, csharpCompletionList) is not { } mergedCompletionList)
         {
             return Response.CallHtml;
