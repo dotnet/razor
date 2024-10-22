@@ -134,6 +134,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                 return StarAfterRazorCommentBody();
             case RoslynCSharpTokenizerState.AtTokenAfterRazorCommentBody:
                 Debug.Assert(_currentCSharpTokenTriviaEnumerator is not null);
+                _isOnlyWhitespaceOnLine = false;
                 return AtTokenAfterRazorCommentBody(nextState: (int)RoslynCSharpTokenizerState.TriviaForCSharpToken);
             default:
                 Debug.Fail("Invalid TokenizerState");
