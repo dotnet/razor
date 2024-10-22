@@ -7,16 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -47,11 +45,16 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
         await queue.ExecuteAsync(initializeParams, Methods.InitializeName, server.GetLspServices(), DisposalToken);
 
         // We have to send one more request, because culture is set before any request starts, but the first initialize request has to
-        // be started in order to set the culture.
-        // The request isn't actually valid, so we wrap it in a try catch, but we don't care for this test
+        // be started in order to set the culture. The request must be valid because the culture is set in `BeforeRequest` but it doesn't
+        // have to succeed.
         try
         {
-            await queue.ExecuteAsync(JsonSerializer.SerializeToElement(new TestParams()), "razor/test", server.GetLspServices(), DisposalToken);
+            var namedPipeParams = new RazorNamedPipeConnectParams()
+            {
+                PipeName = ""
+            };
+
+            await queue.ExecuteAsync(JsonSerializer.SerializeToElement(namedPipeParams), CustomMessageNames.RazorNamedPipeConnectEndpointName, server.GetLspServices(), DisposalToken);
         }
         catch { }
 
@@ -122,7 +125,6 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
 
                 // VS Code only handler is added by rzls, but add here for testing purposes
                 s.AddHandler<RazorNamedPipeConnectEndpoint>();
-                s.AddHandler<TestEndpoint>();
             });
     }
 
@@ -135,22 +137,5 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
         public ImmutableArray<RazorProjectInfo> GetLatestProjectInfo() => [];
 
         public Task WaitForInitializationAsync() => Task.CompletedTask;
-    }
-
-    private class TestParams
-    {
-        [JsonPropertyName("test")]
-        public int Test { get; set; }
-    }
-
-    [RazorLanguageServerEndpoint("razor/test")]
-    private class TestEndpoint : IRazorNotificationHandler<TestParams>
-    {
-        public bool MutatesSolutionState => false;
-
-        public Task HandleNotificationAsync(TestParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
     }
 }
