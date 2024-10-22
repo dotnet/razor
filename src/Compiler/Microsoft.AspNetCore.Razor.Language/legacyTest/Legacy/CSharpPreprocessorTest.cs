@@ -350,4 +350,38 @@ public class CSharpPreprocessorTest() : ParserTestBase(layer: TestProject.Layer.
             }
             """);
     }
+
+    [Fact]
+    public void DirectiveBetweenSwitchAndCase()
+    {
+        ParseDocumentTest("""
+            @{
+                switch (1)
+                {
+            #if true
+                    case 1:
+                        <div>Case 1</div>
+                        break;
+            #endif
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void DirectiveBetweenSwitchAndCase_BeforeBrace()
+    {
+        ParseDocumentTest("""
+            @{
+                switch (1)
+            #if true
+                {
+                    case 1:
+                        <div>Case 1</div>
+                        break;
+            #endif
+                }
+            }
+            """);
+    }
 }
