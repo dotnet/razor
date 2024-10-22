@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="ExtractTo_Component_Title">
         <source>Extract element to new component</source>
-        <target state="new">Extract element to new component</target>
+        <target state="translated">Extrair elemento para o novo componente</target>
         <note />
       </trans-unit>
       <trans-unit id="File_Externally_Modified">
