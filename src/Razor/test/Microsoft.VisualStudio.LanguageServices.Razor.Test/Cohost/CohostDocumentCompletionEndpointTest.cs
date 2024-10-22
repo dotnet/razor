@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -31,7 +33,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task CSharpClassesAtTransition()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <div>@$$</div>
@@ -52,7 +54,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task CSharpClassMembersAtProvisionalCompletion()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <div>@DateTime.$$</div>
@@ -73,7 +75,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task CSharpClassesInCodeBlock()
     {
         await VerifyCompletionListAsync(
-            input: $$"""
+            input: """
                 This is a Razor document.
 
                 <div></div>
@@ -96,7 +98,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task CSharpClassMembersInCodeBlock()
     {
         await VerifyCompletionListAsync(
-            input: $$"""
+            input: """
                 This is a Razor document.
 
                 <div></div>
@@ -125,7 +127,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task CSharpMarkupTransitionAndTagHelpersInCodeBlock()
     {
         await VerifyCompletionListAsync(
-            input: $$"""
+            input: """
                 This is a Razor document.
 
                 <div></div>
@@ -152,8 +154,18 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     [Fact]
     public async Task RazorDirectives()
     {
+        var expectedDirectiveLabels =
+            DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets.Keys
+                .Where(label => label is not ("addTagHelper" or "removeTagHelper" or "tagHelperPrefix" or "model"));
+        var expectedDirectiveSnippetLabels = expectedDirectiveLabels.Select(label => $"{label} directive ...");
+        var expectedCSharpLabels = new string[] { "char", "DateTime", "Exception" };
+        var expectedLabels = expectedDirectiveLabels
+            .Concat(expectedDirectiveSnippetLabels)
+            .Concat(expectedCSharpLabels)
+            .ToArray();
+
         await VerifyCompletionListAsync(
-            input: $$"""
+            input: """
                 @$$
                 This is a Razor document.
 
@@ -174,7 +186,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = "@",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["using", "using directive ...", "page", "page directive ..."],
+             expectedItemLabels: expectedLabels,
              expectedItemCount: 538);
     }
 
@@ -182,7 +194,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task ElementNameTagHelpersCompletion()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <$$
@@ -203,7 +215,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task HtmlElementNamesAndTagHelpersCompletion()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <$$
@@ -225,7 +237,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task HtmlElementDoNotCommitWithSpace()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <$$
@@ -249,7 +261,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task HtmlSnippetsCompletion()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 $$
@@ -272,7 +284,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task HtmlAndDirectiveAttributeTransitionNamesCompletion()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <div $$></div>
@@ -295,7 +307,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task HtmlAndDirectiveAttributeNamesCompletion()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <div @$$></div>
@@ -318,7 +330,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task HtmlAndDirectiveAttributeParameterNamesCompletion()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <input @bind:f$$></div>
@@ -340,7 +352,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task HtmlAttributeNamesAndTagHelpersCompletion()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <EditForm $$></EditForm>
@@ -362,7 +374,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     public async Task TagHelperAttributes_NoAutoInsertQuotes_Completion()
     {
         await VerifyCompletionListAsync(
-            input: $"""
+            input: """
                 This is a Razor document.
 
                 <EditForm $$></EditForm>
