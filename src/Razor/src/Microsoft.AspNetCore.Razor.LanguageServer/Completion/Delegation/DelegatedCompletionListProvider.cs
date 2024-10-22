@@ -39,7 +39,7 @@ internal class DelegatedCompletionListProvider
     }
 
     // virtual for tests
-    public virtual FrozenSet<string> TriggerCharacters => CompletionTriggerCharacters.AllDelegationTriggerCharacters;
+    public virtual FrozenSet<string> TriggerCharacters => CompletionTriggerAndCommitCharacters.AllDelegationTriggerCharacters;
 
     // virtual for tests
     public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(

@@ -33,7 +33,7 @@ internal class RazorCompletionListProvider(
     };
 
     // virtual for tests
-    public virtual FrozenSet<string> TriggerCharacters => CompletionTriggerCharacters.RazorTriggerCharacters;
+    public virtual FrozenSet<string> TriggerCharacters => CompletionTriggerAndCommitCharacters.RazorTriggerCharacters;
 
     // virtual for tests
     public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(

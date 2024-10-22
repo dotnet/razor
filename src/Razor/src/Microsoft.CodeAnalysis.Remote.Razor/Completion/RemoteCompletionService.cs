@@ -66,7 +66,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 completionContext,
                 positionInfo,
                 DocumentMappingService,
-                cancellationToken) is { } provisionalCompletionInfo)
+                cancellationToken)
+                .ConfigureAwait(false) is { } provisionalCompletionInfo)
+                
         {
             return new CompletionPositionInfo(
                 provisionalCompletionInfo.ProvisionalTextEdit,
@@ -114,7 +116,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         VSInternalCompletionList? csharpCompletionList = null;
         var documentPositionInfo = positionInfo.DocumentPositionInfo;
         if (documentPositionInfo.LanguageKind == RazorLanguageKind.CSharp &&
-            CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.CSharpTriggerCharacters, completionContext))
+            CompletionTriggerAndCommitCharacters.IsValidTrigger(CompletionTriggerAndCommitCharacters.CSharpTriggerCharacters, completionContext))
         {
             var mappedPosition = documentPositionInfo.Position;
             csharpCompletionList = await GetCSharpCompletionAsync(
@@ -125,7 +127,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                     completionContext,
                     clientCapabilities,
                     razorCompletionOptions,
-                    cancellationToken);
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
             if (csharpCompletionList is not null)
             {
@@ -134,7 +137,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             }
         }
 
-        var razorCompletionList = CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.RazorTriggerCharacters, completionContext)
+        var razorCompletionList = CompletionTriggerAndCommitCharacters.IsValidTrigger(CompletionTriggerAndCommitCharacters.RazorTriggerCharacters, completionContext)
             ? await _razorCompletionListProvider.GetCompletionListAsync(
                 documentPositionInfo.HostDocumentIndex,
                 completionContext,
@@ -143,6 +146,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 existingCompletions: existingDelegatedCompletions,
                 razorCompletionOptions,
                 cancellationToken)
+                .ConfigureAwait(false)
             : null;
 
         if (CompletionListMerger.Merge(razorCompletionList, csharpCompletionList) is not { } mergedCompletionList)
@@ -167,7 +171,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             .GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (provisionalTextEdit is not null)
         {
-            var generatedText = await generatedDocument.GetTextAsync(cancellationToken);
+            var generatedText = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var startIndex = generatedText.GetPosition(provisionalTextEdit.Range.Start);
             var endIndex = generatedText.GetPosition(provisionalTextEdit.Range.End);
             var generatedTextWithEdit = generatedText.Replace(startIndex, length: endIndex - startIndex, newText: provisionalTextEdit.NewText);
@@ -198,7 +202,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             roslynCompletionContext,
             clientCapabilities.SupportsVisualStudioExtensions,
             roslynCompletionSetting,
-            cancellationToken);
+            cancellationToken)
+            .ConfigureAwait(false);
 
         if (roslynCompletionList is null)
         {
@@ -221,7 +226,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             remoteDocumentContext,
             mappedPosition,
             razorCompletionOptions,
-            cancellationToken);
+            cancellationToken)
+            .ConfigureAwait(false);
 
         return rewrittenResponse;
     }

@@ -69,9 +69,9 @@ internal class CohostDocumentCompletionEndpoint(
                 RegisterOptions = new CompletionRegistrationOptions()
                 {
                     ResolveProvider = true,
-                    TriggerCharacters = CompletionTriggerCharacters.AllTriggerCharacters,
+                    TriggerCharacters = CompletionTriggerAndCommitCharacters.AllTriggerCharacters,
                     DocumentSelector = filter,
-                    AllCommitCharacters = [" ", ">", ";", "="]
+                    AllCommitCharacters = CompletionTriggerAndCommitCharacters.AllCommitCharacters
                 }
             }];
         }
@@ -134,13 +134,14 @@ internal class CohostDocumentCompletionEndpoint(
             CommitElementsWithSpace: clientSettings.AdvancedSettings.CommitElementsWithSpace);
         using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
 
-        if (CompletionTriggerCharacters.IsValidTrigger(CompletionTriggerCharacters.HtmlTriggerCharacters, completionContext))
+        if (CompletionTriggerAndCommitCharacters.IsValidTrigger(CompletionTriggerAndCommitCharacters.HtmlTriggerCharacters, completionContext))
         {
             // We can just blindly call HTML LSP because if we are in C#, generated HTML seen by HTML LSP may return
             // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
             if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html)
             {
-                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, cancellationToken);
+                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, cancellationToken)
+                                                                      .ConfigureAwait(false);
                 if (htmlCompletionList is not null)
                 {
                     existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
@@ -172,7 +173,7 @@ internal class CohostDocumentCompletionEndpoint(
         VSInternalCompletionList? combinedCompletionList = null;
         if (data.Result is { } oopCompletionList)
         {
-            combinedCompletionList = htmlCompletionList?.Items is not null && htmlCompletionList.Items.Length > 0
+            combinedCompletionList = htmlCompletionList is { Items: [_, ..] }
                 // If we have HTML completions, that means OOP completion list is really just Razor completion list
                 ? CompletionListMerger.Merge(oopCompletionList, htmlCompletionList)
                 : oopCompletionList;
@@ -287,6 +288,7 @@ internal class CohostDocumentCompletionEndpoint(
             TextDocument razorDocument,
             CancellationToken cancellationToken)
                 => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+
         public void SetClientCapabilities(VSInternalClientCapabilities clientCapabilities)
         {
             instance._clientCapabilities = clientCapabilities;

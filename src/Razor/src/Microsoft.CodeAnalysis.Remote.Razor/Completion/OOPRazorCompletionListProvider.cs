@@ -13,6 +13,6 @@ internal sealed class OOPRazorCompletionListProvider(
     IRazorCompletionFactsService completionFactsService,
     CompletionListCache completionListCache,
     ILoggerFactory loggerFactory)
-: RazorCompletionListProvider(completionFactsService, completionListCache, loggerFactory)
+    : RazorCompletionListProvider(completionFactsService, completionListCache, loggerFactory)
 {
 }

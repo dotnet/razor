@@ -36,7 +36,7 @@ internal class CompletionListProvider
         CancellationToken cancellationToken)
     {
         // First we delegate to get completion items from the individual language server
-        var delegatedCompletionList = CompletionTriggerCharacters.IsValidTrigger(_delegatedCompletionListProvider.TriggerCharacters, completionContext)
+        var delegatedCompletionList = CompletionTriggerAndCommitCharacters.IsValidTrigger(_delegatedCompletionListProvider.TriggerCharacters, completionContext)
             ? await _delegatedCompletionListProvider.GetCompletionListAsync(
                 absoluteIndex,
                 completionContext,
@@ -53,7 +53,7 @@ internal class CompletionListProvider
             : null;
 
         // Now we get the Razor completion list, using information from the actual language server if necessary
-        var razorCompletionList = CompletionTriggerCharacters.IsValidTrigger(_razorCompletionListProvider.TriggerCharacters, completionContext)
+        var razorCompletionList = CompletionTriggerAndCommitCharacters.IsValidTrigger(_razorCompletionListProvider.TriggerCharacters, completionContext)
             ? await _razorCompletionListProvider.GetCompletionListAsync(
                 absoluteIndex,
                 completionContext,

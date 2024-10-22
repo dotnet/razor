@@ -54,14 +54,14 @@ internal static class DelegatedCompletionHelper
         }
 
         if (languageKind == RazorLanguageKind.CSharp
-            && CompletionTriggerCharacters.CSharpTriggerCharacters.Contains(triggerCharacter))
+            && CompletionTriggerAndCommitCharacters.CSharpTriggerCharacters.Contains(triggerCharacter))
         {
             // C# trigger character for C# content
             return context;
         }
 
         if (languageKind == RazorLanguageKind.Html
-            && CompletionTriggerCharacters.HtmlTriggerCharacters.Contains(triggerCharacter))
+            && CompletionTriggerAndCommitCharacters.HtmlTriggerCharacters.Contains(triggerCharacter))
         {
             // HTML trigger character for HTML content
             return context;
@@ -75,7 +75,7 @@ internal static class DelegatedCompletionHelper
         };
 
         if (languageKind == RazorLanguageKind.CSharp
-            && CompletionTriggerCharacters.RazorDelegationTriggerCharacters.Contains(triggerCharacter))
+            && CompletionTriggerAndCommitCharacters.RazorDelegationTriggerCharacters.Contains(triggerCharacter))
         {
             // The C# language server will not return any completions for the '@' character unless we
             // send the completion request explicitly.
