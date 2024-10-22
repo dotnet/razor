@@ -27,6 +27,11 @@
         <target state="translated">코드 숨김에 블록 추출</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_Component_Title">
+        <source>Extract element to new component</source>
+        <target state="translated">새 구성 요소에 요소 추출</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_Externally_Modified">
         <source>File was externally modified: {0}</source>
         <target state="translated">{0}의 파일이 외부에서 수정되었습니다.</target>

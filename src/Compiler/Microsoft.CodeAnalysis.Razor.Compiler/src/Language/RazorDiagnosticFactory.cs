@@ -364,6 +364,14 @@ internal static class RazorDiagnosticFactory
     public static RazorDiagnostic CreateParsing_DirectiveExpectsIdentifierOrExpression(SourceSpan location, string directiveName)
         => RazorDiagnostic.Create(Parsing_DirectiveExpectsIdentifierOrExpression, location, directiveName);
 
+    internal static readonly RazorDiagnosticDescriptor Parsing_VoidElement =
+        new($"{DiagnosticPrefix}1042",
+            Resources.TagHelpersParseTreeRewriter_VoidElement,
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateParsing_VoidElement(SourceSpan location, string tagName)
+        => RazorDiagnostic.Create(Parsing_VoidElement, location, tagName);
+
     #endregion
 
     #region Semantic Errors
