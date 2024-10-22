@@ -1141,6 +1141,70 @@ namespace Test
         Assert.Empty(generated.RazorDiagnostics);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecified_EventCallbackRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public bool Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<bool> Property1Changed { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters Property1="false" />
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,1): warning RZ2012: Component 'ComponentWithEditorRequiredParameters' expects a value for the parameter 'Property1Changed', but a value may not have been provided.
+            Diagnostic("RZ2012").WithLocation(1, 1));
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecified_ExpressionRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using System.Linq.Expressions;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public bool Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<bool> Property1Changed { get; set; }
+
+                [Parameter, EditorRequired]
+                public Expression<Func<bool>> Property1Expression { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters Property1="false" />
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,1): warning RZ2012: Component 'ComponentWithEditorRequiredParameters' expects a value for the parameter 'Property1Changed', but a value may not have been provided.
+            Diagnostic("RZ2012").WithLocation(1, 1),
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,1): warning RZ2012: Component 'ComponentWithEditorRequiredParameters' expects a value for the parameter 'Property1Expression', but a value may not have been provided.
+            Diagnostic("RZ2012").WithLocation(1, 1));
+    }
+
     [IntegrationTestFact]
     public void Component_WithEditorRequiredParameter_ValueSpecified_DifferentCasing()
     {
@@ -1217,6 +1281,72 @@ namespace Test
         Assert.Empty(generated.RazorDiagnostics);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind_EventCallbackRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public string Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<string> Property1Changed { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1="myField" />
+
+            @code {
+                private string myField = "Some Value";
+            }
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify();
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind_ExpressionRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using System.Linq.Expressions;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public string Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<string> Property1Changed { get; set; }
+
+                [Parameter, EditorRequired]
+                public Expression<Func<string>> Property1Expression { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1="myField" />
+
+            @code {
+                private string myField = "Some Value";
+            }
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify();
+    }
+
     [IntegrationTestFact]
     public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind_DifferentCasing()
     {
@@ -1264,6 +1394,74 @@ namespace Test
 
         CompileToAssembly(generated);
         Assert.Empty(generated.RazorDiagnostics);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBindGetSet_EventCallbackRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public string Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<string> Property1Changed { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1:get="myField" @bind-Property1:set="OnFieldChanged" />
+
+            @code {
+                private string myField = "Some Value";
+                private void OnFieldChanged(string value) { }
+            }
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify();
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBindGetSet_ExpressionRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using System.Linq.Expressions;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public string Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<string> Property1Changed { get; set; }
+
+                [Parameter, EditorRequired]
+                public Expression<Func<string>> Property1Expression { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1:get="myField" @bind-Property1:set="OnFieldChanged" />
+
+            @code {
+                private string myField = "Some Value";
+                private void OnFieldChanged(string value) { }
+            }
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify();
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
