@@ -172,10 +172,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         if (provisionalTextEdit is not null)
         {
             var generatedText = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var startIndex = generatedText.GetPosition(provisionalTextEdit.Range.Start);
-            var endIndex = generatedText.GetPosition(provisionalTextEdit.Range.End);
-            var generatedTextWithEdit = generatedText.Replace(startIndex, length: endIndex - startIndex, newText: provisionalTextEdit.NewText);
-            generatedDocument = generatedDocument.WithText(generatedTextWithEdit);
+            var change = generatedText.GetTextChange(provisionalTextEdit);
+            generatedText = generatedText.WithChanges([change]);
+            generatedDocument = generatedDocument.WithText(generatedText);
         }
 
         // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
