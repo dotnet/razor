@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Setting_FormattingOnPasteDescription">
         <source>If true, formatting will be enabled when pasting content</source>
-        <target state="new">If true, formatting will be enabled when pasting content</target>
+        <target state="translated">true の場合、コンテンツを貼り付けたときに書式設定が有効になります</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_FormattingOnPasteDisplayName">
         <source>Format on paste</source>
-        <target state="new">Format on paste</target>
+        <target state="translated">貼り付け時に書式設定する</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
