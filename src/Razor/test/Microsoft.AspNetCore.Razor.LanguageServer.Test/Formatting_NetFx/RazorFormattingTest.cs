@@ -814,7 +814,7 @@ public class RazorFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelpe
             }
             """,
             triggerCharacter: '}',
-            razorLSPOptions: RazorLSPOptions.Default);
+            razorLSPOptions: RazorLSPOptions.Default with { FormatOnType = true });
     }
 
     [Fact]

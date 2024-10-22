@@ -49,13 +49,13 @@ internal class DocumentOnTypeFormattingEndpoint(
     {
         _logger.LogInformation($"Starting OnTypeFormatting request for {request.TextDocument.Uri}.");
 
-        if (!_optionsMonitor.CurrentValue.Formatting.IsEnabled())
+        if (!_optionsMonitor.CurrentValue.EnableFormatting)
         {
             _logger.LogInformation($"Formatting option disabled.");
             return null;
         }
 
-        if (!_optionsMonitor.CurrentValue.Formatting.IsOnTypeEnabled())
+        if (!_optionsMonitor.CurrentValue.FormatOnType)
         {
             _logger.LogInformation($"Formatting on type disabled.");
             return null;

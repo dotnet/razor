@@ -25,7 +25,6 @@ internal class AdvancedOptionPage : DialogPage
     private bool? _commitElementsWithSpace;
     private SnippetSetting? _snippets;
     private LogLevel? _logLevel;
-    private bool? _formatOnPaste;
 
     public AdvancedOptionPage()
     {
@@ -90,15 +89,6 @@ internal class AdvancedOptionPage : DialogPage
     {
         get => _codeBlockBraceOnNextLine ?? _optionsStorage.Value.CodeBlockBraceOnNextLine;
         set => _codeBlockBraceOnNextLine = value;
-    }
-
-    [LocCategory(nameof(VSPackage.Formatting))]
-    [LocDescription(nameof(VSPackage.Setting_FormattingOnPasteDescription))]
-    [LocDisplayName(nameof(VSPackage.Setting_FormattingOnPasteDisplayName))]
-    public bool FormatOnPaste
-    {
-        get => _formatOnPaste ?? true;
-        set => _formatOnPaste = value;
     }
 
     [LocCategory(nameof(VSPackage.Completion))]

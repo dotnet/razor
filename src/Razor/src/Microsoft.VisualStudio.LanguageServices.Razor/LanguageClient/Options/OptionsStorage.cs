@@ -77,12 +77,6 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
         set => SetInt(SettingsNames.LogLevel.LegacyName, (int)value);
     }
 
-    public bool FormatOnPaste
-    {
-        get => GetBool(SettingsNames.FormatOnPaste.LegacyName, defaultValue: true);
-        set => SetBool(SettingsNames.FormatOnPaste.LegacyName, value);
-    }
-
     [ImportingConstructor]
     public OptionsStorage(
         SVsServiceProvider synchronousServiceProvider,
@@ -113,7 +107,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
 
     private EventHandler<ClientAdvancedSettingsChangedEventArgs>? _changed;
 
-    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CodeBlockBraceOnNextLine, CommitElementsWithSpace, Snippets, LogLevel, FormatOnPaste);
+    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CodeBlockBraceOnNextLine, CommitElementsWithSpace, Snippets, LogLevel);
 
     public bool GetBool(string name, bool defaultValue)
     {

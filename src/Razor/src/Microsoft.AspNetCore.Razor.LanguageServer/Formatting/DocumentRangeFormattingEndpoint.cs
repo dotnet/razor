@@ -37,7 +37,7 @@ internal class DocumentRangeFormattingEndpoint(
 
     public async Task<TextEdit[]?> HandleRequestAsync(DocumentRangeFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (!_optionsMonitor.CurrentValue.Formatting.IsEnabled())
+        if (!_optionsMonitor.CurrentValue.EnableFormatting)
         {
             return null;
         }
@@ -52,16 +52,6 @@ internal class DocumentRangeFormattingEndpoint(
         if (codeDocument.IsUnsupported())
         {
             return null;
-        }
-
-        if (request.Options.OtherOptions is not null &&
-            request.Options.OtherOptions.TryGetValue("fromPaste", out var fromPasteObj) &&
-            fromPasteObj is bool fromPaste)
-        {
-            if (fromPaste && !_optionsMonitor.CurrentValue.Formatting.IsOnPasteEnabled())
-            {
-                return null;
-            }
         }
 
         var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);

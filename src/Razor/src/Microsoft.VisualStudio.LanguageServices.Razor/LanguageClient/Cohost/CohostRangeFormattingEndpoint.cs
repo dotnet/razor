@@ -70,14 +70,6 @@ internal sealed class CohostRangeFormattingEndpoint(
 
     private async Task<TextEdit[]?> HandleRequestAsync(DocumentRangeFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        if (request.Options.OtherOptions is not null && request.Options.OtherOptions.TryGetValue("fromPaste", out var fromPasteObj) && fromPasteObj is bool fromPaste)
-        {
-            if (fromPaste && !_clientSettingsManager.GetClientSettings().AdvancedSettings.FormatOnPaste)
-            {
-                return null;
-            }
-        }
-
         _logger.LogDebug($"Getting Html formatting changes for {razorDocument.FilePath}");
         var htmlResult = await TryGetHtmlFormattingEditsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
 
