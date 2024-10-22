@@ -9002,6 +9002,29 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact]
+    public void GenericComponent_MissingTypeParameter_SystemInNamespace()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            namespace Test;
+            public class MyComponent<TItem> : ComponentBase;
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @namespace Test.System
+            <MyComponent />
+            """);
+
+        // Assert
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(2,1): error RZ10001: The type of component 'MyComponent' cannot be inferred based on the values provided. Consider specifying the type arguments directly using the following attributes: 'TItem'.
+            Diagnostic("RZ10001").WithLocation(2, 1));
+    }
+
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10827")]
     public void GenericTypeCheck()
     {
