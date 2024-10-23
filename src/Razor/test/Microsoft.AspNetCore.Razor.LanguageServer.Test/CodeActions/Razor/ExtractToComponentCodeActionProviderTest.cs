@@ -439,8 +439,8 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             request,
             documentSnapshot.Object,
             codeDocument,
-            new SourceLocation(selectionSpan.Start, -1, -1),
-            new SourceLocation(selectionSpan.End, -1, -1),
+            selectionSpan.Start,
+            selectionSpan.End,
             sourceText,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

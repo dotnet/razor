@@ -39,8 +39,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var documentMappingService = StrictMock.Of<IEditMappingService>();
@@ -72,8 +71,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var remappedEdit = new WorkspaceEdit
@@ -140,7 +138,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
-        SourceLocation location,
+        int absoluteIndex,
         string filePath,
         string text,
         bool supportsFileCreation = true,
@@ -166,8 +164,8 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
             request,
             documentSnapshotMock.Object,
             codeDocument,
-            location,
-            location,
+            absoluteIndex,
+            absoluteIndex,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);

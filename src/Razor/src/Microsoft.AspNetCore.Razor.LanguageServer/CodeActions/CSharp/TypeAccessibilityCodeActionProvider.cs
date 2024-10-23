@@ -215,7 +215,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                 return false;
             }
 
-            owner = syntaxTree.Root.FindInnermostNode(context.StartLocation.AbsoluteIndex);
+            owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex);
             if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");

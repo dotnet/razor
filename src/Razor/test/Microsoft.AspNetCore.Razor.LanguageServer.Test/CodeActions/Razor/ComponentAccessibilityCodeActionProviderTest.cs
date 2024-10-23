@@ -39,8 +39,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 1));
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(0, 1));
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -68,8 +67,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 0));
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(0, 0));
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new ComponentAccessibilityCodeActionProvider();
@@ -98,8 +96,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9));
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9));
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -127,8 +124,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -175,8 +171,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("CompOnent", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("CompOnent", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -225,8 +220,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("CompOnent", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("CompOnent", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -267,8 +261,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("GenericComponent", StringComparison.Ordinal), "GenericComponent".Length), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("GenericComponent", StringComparison.Ordinal), "GenericComponent".Length), supportsFileCreation: true);
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -315,8 +308,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -346,8 +338,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -377,8 +368,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -406,8 +396,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
 
         var provider = new ComponentAccessibilityCodeActionProvider();
 
@@ -431,7 +420,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             });
     }
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, SourceSpan componentSourceSpan, bool supportsFileCreation = true)
+    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int absoluteIndex, string filePath, string text, SourceSpan componentSourceSpan, bool supportsFileCreation = true)
     {
         var shortComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.Component", "TestAssembly");
         shortComponent.CaseSensitive = true;
@@ -478,8 +467,8 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             request,
             documentSnapshotMock.Object,
             codeDocument,
-            location,
-            location,
+            absoluteIndex,
+            absoluteIndex,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

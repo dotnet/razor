@@ -30,7 +30,7 @@ internal sealed class GenerateMethodCodeActionProvider : IRazorCodeActionProvide
         }
 
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var owner = syntaxTree.Root.FindToken(context.StartLocation.AbsoluteIndex).Parent.AssumeNotNull();
+        var owner = syntaxTree.Root.FindToken(context.StartAbsoluteIndex).Parent.AssumeNotNull();
 
         if (IsGenerateEventHandlerValid(owner, out var methodName, out var eventName))
         {

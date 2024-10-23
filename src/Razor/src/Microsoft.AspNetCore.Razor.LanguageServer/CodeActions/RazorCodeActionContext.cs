@@ -13,8 +13,8 @@ internal sealed record class RazorCodeActionContext(
     VSCodeActionParams Request,
     IDocumentSnapshot DocumentSnapshot,
     RazorCodeDocument CodeDocument,
-    SourceLocation StartLocation,
-    SourceLocation EndLocation,
+    int StartAbsoluteIndex,
+    int EndAbsoluteIndex,
     SourceText SourceText,
     bool SupportsFileCreation,
     bool SupportsCodeActionResolve);

@@ -28,7 +28,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
     public async Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         // Locate cursor
-        var node = context.CodeDocument.GetSyntaxTree().Root.FindInnermostNode(context.StartLocation.AbsoluteIndex);
+        var node = context.CodeDocument.GetSyntaxTree().Root.FindInnermostNode(context.StartAbsoluteIndex);
         if (node is null)
         {
             return [];
@@ -45,7 +45,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             return [];
         }
 
-        if (context.StartLocation.AbsoluteIndex < startTag.SpanStart)
+        if (context.StartAbsoluteIndex < startTag.SpanStart)
         {
             // Cursor is before the start tag, so we shouldn't show a light bulb. This can happen
             // in cases where the cursor is in whitespace at the beginning of the document

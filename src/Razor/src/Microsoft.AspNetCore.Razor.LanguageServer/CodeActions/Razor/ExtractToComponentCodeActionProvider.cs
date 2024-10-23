@@ -77,7 +77,7 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
 
     private static (SyntaxNode? Start, SyntaxNode? End) GetStartAndEndElements(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
-        var owner = syntaxTree.Root.FindInnermostNode(context.StartLocation.AbsoluteIndex, includeWhitespace: true);
+        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: true);
         if (owner is null)
         {
             return (null, null);
@@ -85,34 +85,34 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
 
         var startElementNode = owner.FirstAncestorOrSelf<SyntaxNode>(IsBlockNode);
 
-        if (startElementNode is null || LocationInvalid(context.StartLocation, startElementNode))
+        if (startElementNode is null || LocationInvalid(context.StartAbsoluteIndex, startElementNode))
         {
             return (null, null);
         }
 
-        var endElementNode = context.StartLocation == context.EndLocation
+        var endElementNode = context.StartAbsoluteIndex == context.EndAbsoluteIndex
             ? startElementNode
             : GetEndElementNode(context, syntaxTree);
 
         return (startElementNode, endElementNode);
 
-        static bool LocationInvalid(SourceLocation location, SyntaxNode node)
+        static bool LocationInvalid(int location, SyntaxNode node)
         {
             // Make sure to test for cases where selection
             // is inside of a markup tag such as <p>hello$ there</p>
             if (node is MarkupElementSyntax markupElement)
             {
-                return location.AbsoluteIndex > markupElement.StartTag.Span.End &&
-                        location.AbsoluteIndex < markupElement.EndTag.SpanStart;
+                return location > markupElement.StartTag.Span.End &&
+                        location < markupElement.EndTag.SpanStart;
             }
 
-            return !node.Span.Contains(location.AbsoluteIndex);
+            return !node.Span.Contains(location);
         }
     }
 
     private static SyntaxNode? GetEndElementNode(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
-        var endOwner = syntaxTree.Root.FindInnermostNode(context.EndLocation.AbsoluteIndex, includeWhitespace: true);
+        var endOwner = syntaxTree.Root.FindInnermostNode(context.EndAbsoluteIndex, includeWhitespace: true);
         if (endOwner is null)
         {
             return null;

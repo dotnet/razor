@@ -41,8 +41,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             },
         };
 
-        var location = new SourceLocation(0, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 0));
+        var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(0, 0));
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
@@ -96,8 +95,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             }
         };
 
-        var location = new SourceLocation(0, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 0), supportsCodeActionResolve: false);
+        var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(0, 0), supportsCodeActionResolve: false);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
@@ -138,8 +136,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             }
         };
 
-        var location = new SourceLocation(0, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 0));
+        var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(0, 0));
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
@@ -189,8 +186,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             }
         };
 
-        var location = new SourceLocation(0, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: false);
+        var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: false);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
@@ -248,8 +244,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             }
         };
 
-        var location = new SourceLocation(8, 0, 8);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: true);
+        var context = CreateRazorCodeActionContext(request, absoluteIndex: 8, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: true);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
@@ -300,8 +295,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             }
         };
 
-        var location = new SourceLocation(0, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: true);
+        var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: true);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
@@ -375,8 +369,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             }
         };
 
-        var location = new SourceLocation(0, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: false);
+        var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: false);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
@@ -434,7 +427,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
-        SourceLocation location,
+        int absoluteIndex,
         string filePath,
         string text,
         SourceSpan componentSourceSpan,
@@ -477,8 +470,8 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             request,
             documentSnapshotMock.Object,
             codeDocument,
-            location,
-            location,
+            absoluteIndex,
+            absoluteIndex,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);
