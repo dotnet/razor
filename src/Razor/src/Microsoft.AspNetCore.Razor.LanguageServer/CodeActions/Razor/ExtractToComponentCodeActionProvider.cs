@@ -60,10 +60,11 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var actionParams = CreateActionParams(context, startNode, endNode, @namespace);
+        var actionParams = CreateActionParams(startNode, endNode, @namespace);
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToNewComponentAction,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = actionParams,
@@ -134,7 +135,6 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
                 SyntaxKind.CSharpCodeBlock;
 
     private static ExtractToComponentCodeActionParams CreateActionParams(
-        RazorCodeActionContext context,
         SyntaxNode startNode,
         SyntaxNode endNode,
         string @namespace)
@@ -145,7 +145,6 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
 
         return new ExtractToComponentCodeActionParams
         {
-            Uri = context.Request.TextDocument.Uri,
             Start = selectionSpan.Start,
             End = selectionSpan.End,
             Namespace = @namespace
