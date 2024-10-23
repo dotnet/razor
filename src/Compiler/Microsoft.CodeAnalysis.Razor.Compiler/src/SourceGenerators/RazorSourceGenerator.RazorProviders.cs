@@ -49,15 +49,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Where(r => r.Display is { } display && display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal))
                 .ToImmutableArray();
 
-            var isComponentParameterSupported = minimalReferences.Length == 0 
-                ? false 
+            var isComponentParameterSupported = minimalReferences.Length == 0
+                ? false
                 : CSharpCompilation.Create("components", references: minimalReferences).HasAddComponentParameter();
 
             var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported);
 
             // We use the new tokenizer by default
-            var useRazorTokenizer = !parseOptions.Features.TryGetValue("use-razor-tokenizer", out var useRazorTokenizerValue)
-                                    || !string.Equals(useRazorTokenizerValue, "false", StringComparison.OrdinalIgnoreCase);
+            var useRoslynTokenizer = parseOptions.Features.TryGetValue("use-roslyn-tokenizer", out var useRazorTokenizerValue)
+                                    && string.Equals(useRazorTokenizerValue, "true", StringComparison.OrdinalIgnoreCase);
 
             var razorSourceGenerationOptions = new RazorSourceGenerationOptions()
             {
@@ -67,7 +67,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 SupportLocalizedComponentNames = supportLocalizedComponentNames == "true",
                 CSharpParseOptions = (CSharpParseOptions)parseOptions,
                 TestSuppressUniqueIds = _testSuppressUniqueIds,
-                UseRoslynTokenizer = useRazorTokenizer,
+                UseRoslynTokenizer = useRoslynTokenizer,
             };
 
             return (razorSourceGenerationOptions, diagnostic);

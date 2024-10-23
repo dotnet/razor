@@ -230,9 +230,10 @@ public abstract class RazorSourceGeneratorTestsBase
 
     protected static Project CreateTestProject(
         OrderedStringDictionary additionalSources,
-        OrderedStringDictionary? sources = null)
+        OrderedStringDictionary? sources = null,
+        CSharpParseOptions? cSharpParseOptions = null)
     {
-        var project = CreateBaseProject();
+        var project = CreateBaseProject(cSharpParseOptions);
 
         if (sources is not null)
         {
@@ -294,7 +295,7 @@ public abstract class RazorSourceGeneratorTestsBase
         }
     }
 
-    private static Project CreateBaseProject()
+    private static Project CreateBaseProject(CSharpParseOptions? cSharpParseOptions)
     {
         var projectId = ProjectId.CreateNewId(debugName: "TestProject");
 
@@ -314,7 +315,7 @@ public abstract class RazorSourceGeneratorTestsBase
                     new("CS8019", ReportDiagnostic.Suppress),
                 }));
 
-        project = project.WithParseOptions(((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.Preview));
+        project = project.WithParseOptions(cSharpParseOptions ?? ((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.Preview));
 
         foreach (var defaultCompileLibrary in DependencyContext.Load(typeof(RazorSourceGeneratorTests).Assembly)!.CompileLibraries)
         {
