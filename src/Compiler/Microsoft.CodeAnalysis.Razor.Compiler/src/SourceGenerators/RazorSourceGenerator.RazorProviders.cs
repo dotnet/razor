@@ -55,7 +55,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported);
 
-            // We use the new tokenizer by default
+            // We use the new tokenizer only when requested for now.
             var useRoslynTokenizer = parseOptions.Features.TryGetValue("use-roslyn-tokenizer", out var useRazorTokenizerValue)
                                     && string.Equals(useRazorTokenizerValue, "true", StringComparison.OrdinalIgnoreCase);
 
