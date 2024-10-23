@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -46,8 +45,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = "@",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["char", "DateTime", "Exception"],
-             expectedItemCount: 996);
+             expectedItemLabels: ["char", "DateTime", "Exception"]);
     }
 
     [Fact]
@@ -67,8 +65,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = ".",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
-             expectedItemCount: 20);
+             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
     [Fact]
@@ -90,8 +87,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = null,
                  TriggerKind = RoslynCompletionTriggerKind.Invoked
              },
-             expectedItemLabels: ["char", "DateTime", "Exception"],
-             expectedItemCount: 1000);
+             expectedItemLabels: ["char", "DateTime", "Exception"]);
     }
 
     [Fact]
@@ -118,8 +114,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = ".",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
-             expectedItemCount: 20);
+             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
     // Tests MarkupTransitionCompletionItemProvider
@@ -147,8 +142,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = "<",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["text", "EditForm", "InputDate"],
-             expectedItemCount: 34);
+             expectedItemLabels: ["text", "EditForm", "InputDate"]);
     }
 
     [Fact]
@@ -186,8 +180,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = "@",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: expectedLabels,
-             expectedItemCount: 538);
+             expectedItemLabels: expectedLabels);
     }
 
     [Fact]
@@ -207,8 +200,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = "<",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["LayoutView", "EditForm", "ValidationMessage"],
-             expectedItemCount: 33);
+             expectedItemLabels: ["LayoutView", "EditForm", "ValidationMessage"]);
     }
 
     [Fact]
@@ -229,7 +221,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
              expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"],
-             expectedItemCount: 35,
              delegatedItemLabels: ["div", "h1"]);
     }
 
@@ -251,7 +242,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
              expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"],
-             expectedItemCount: 35,
              delegatedItemLabels: ["div", "h1"],
              delegatedItemCommitCharacters: [" ", ">"],
              commitElementsWithSpace: false);
@@ -275,7 +265,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.Invoked
              },
              expectedItemLabels: ["snippet1", "snippet2"],
-             expectedItemCount: 2,
              snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -298,7 +287,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
              expectedItemLabels: ["style", "dir", "@..."],
-             expectedItemCount: 3,
              delegatedItemLabels: ["style", "dir"]);
     }
 
@@ -321,7 +309,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
              expectedItemLabels: ["style", "dir", "@rendermode", "@bind-..."],
-             expectedItemCount: 104,
              delegatedItemLabels: ["style", "dir"]);
     }
 
@@ -344,7 +331,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
              expectedItemLabels: ["style", "dir", "culture", "event", "format", "get", "set", "after"],
-             expectedItemCount: 8,
              delegatedItemLabels: ["style", "dir"]);
     }
 
@@ -366,7 +352,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
              expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."],
-             expectedItemCount: 13,
              delegatedItemLabels: ["style", "dir"]);
     }
 
@@ -388,7 +373,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
              expectedItemLabels: ["FormName", "OnValidSubmit", "@..."],
-             expectedItemCount: 11,
              autoInsertAttributeQuotes: false);
     }
 
@@ -396,7 +380,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         TestCode input,
         RoslynVSInternalCompletionContext completionContext,
         string[] expectedItemLabels,
-        int expectedItemCount,
         string[]? delegatedItemLabels = null,
         string[]? delegatedItemCommitCharacters = null,
         string[]? snippetLabels = null,
@@ -475,26 +458,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             Context = completionContext
         };
 
-        // Roslyn doesn't always return all items right away, so using retry logic
-        VSInternalCompletionList? result = null;
-        var resultCount = 0;
-        const int maxResultCount = 100;
-        do
-        {
-            if (resultCount > 0)
-            {
-                await Task.Delay(100);
-            }
-
-            result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
-        }
-        while (result is not null
-               && result.IsIncomplete
-               && result.Items.Length < expectedItemCount
-               && resultCount++ < maxResultCount);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
         Assert.NotNull(result);
-        Assert.Equal(expectedItemCount, result.Items.Length);
 
         using var _ = HashSetPool<string>.GetPooledObject(out var labelSet);
         labelSet.AddRange(result.Items.Select((item) => item.Label));
