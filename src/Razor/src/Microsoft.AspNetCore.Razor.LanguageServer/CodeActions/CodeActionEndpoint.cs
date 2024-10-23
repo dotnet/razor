@@ -79,7 +79,7 @@ internal sealed class CodeActionEndpoint(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var delegatedCodeActions = await GetDelegatedCodeActionsAsync(documentContext, razorCodeActionContext, correlationId, cancellationToken).ConfigureAwait(false);
+        var delegatedCodeActions = await GetDelegatedCodeActionsAsync(razorCodeActionContext, correlationId, cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -184,7 +184,7 @@ internal sealed class CodeActionEndpoint(
         return context;
     }
 
-    private async Task<ImmutableArray<RazorVSInternalCodeAction>> GetDelegatedCodeActionsAsync(DocumentContext documentContext, RazorCodeActionContext context, Guid correlationId, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<RazorVSInternalCodeAction>> GetDelegatedCodeActionsAsync(RazorCodeActionContext context, Guid correlationId, CancellationToken cancellationToken)
     {
         var languageKind = context.CodeDocument.GetLanguageKind(context.StartAbsoluteIndex, rightAssociative: false);
 
@@ -194,7 +194,7 @@ internal sealed class CodeActionEndpoint(
             return [];
         }
 
-        var codeActions = await GetCodeActionsFromLanguageServerAsync(languageKind, documentContext, context, correlationId, cancellationToken).ConfigureAwait(false);
+        var codeActions = await GetCodeActionsFromLanguageServerAsync(languageKind, context, correlationId, cancellationToken).ConfigureAwait(false);
         if (codeActions is not [_, ..])
         {
             return [];
@@ -265,7 +265,7 @@ internal sealed class CodeActionEndpoint(
     }
 
     // Internal for testing
-    internal async Task<RazorVSInternalCodeAction[]> GetCodeActionsFromLanguageServerAsync(RazorLanguageKind languageKind, DocumentContext documentContext, RazorCodeActionContext context, Guid correlationId, CancellationToken cancellationToken)
+    internal async Task<RazorVSInternalCodeAction[]> GetCodeActionsFromLanguageServerAsync(RazorLanguageKind languageKind, RazorCodeActionContext context, Guid correlationId, CancellationToken cancellationToken)
     {
         if (languageKind == RazorLanguageKind.CSharp)
         {
@@ -291,7 +291,7 @@ internal sealed class CodeActionEndpoint(
 
         var delegatedParams = new DelegatedCodeActionParams()
         {
-            HostDocumentVersion = documentContext.Snapshot.Version,
+            HostDocumentVersion = context.DocumentSnapshot.Version,
             CodeActionParams = context.Request,
             LanguageKind = languageKind,
             CorrelationId = correlationId
