@@ -88,12 +88,12 @@ internal sealed class CodeActionEndpoint(
         // Grouping the code actions causes VS to sort them into groups, rather than just alphabetically sorting them
         // by title. The latter is bad for us because it can put "Remove <div>" at the top in some locales, and our fully
         // qualify component code action at the bottom, depending on the users namespace.
-        ConvertCodeActionsToSumType(razorCodeActions, "A-Razor");
-        ConvertCodeActionsToSumType(delegatedCodeActions, "B-Delegated");
+        ConvertCodeActionsToSumType(request.TextDocument, razorCodeActions, "A-Razor");
+        ConvertCodeActionsToSumType(request.TextDocument, delegatedCodeActions, "B-Delegated");
 
         return commandsOrCodeActions.ToArray();
 
-        void ConvertCodeActionsToSumType(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName)
+        void ConvertCodeActionsToSumType(VSTextDocumentIdentifier textDocument, ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName)
         {
             // We must cast the RazorCodeAction into a platform compliant code action
             // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the `CommandOrCodeAction` struct
@@ -111,7 +111,7 @@ internal sealed class CodeActionEndpoint(
             {
                 foreach (var action in codeActions)
                 {
-                    commandsOrCodeActions.Add(action.AsVSCodeCommandOrCodeAction());
+                    commandsOrCodeActions.Add(action.AsVSCodeCommandOrCodeAction(textDocument));
                 }
             }
         }

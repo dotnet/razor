@@ -107,12 +107,12 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
 
         var actionParams = new CreateComponentCodeActionParams
         {
-            Uri = context.Request.TextDocument.Uri,
             Path = newComponentPath,
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams
         {
+            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.CreateComponentFromTag,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = actionParams,
@@ -176,7 +176,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
                 // name to give the tag.
                 if (!tagHelperPair.CaseInsensitiveMatch || newTagName is not null)
                 {
-                    if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument.Uri, additionalEdit, out var @namespace, out var resolutionParams))
+                    if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument, additionalEdit, out var @namespace, out var resolutionParams))
                     {
                         var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, newTagName, resolutionParams);
                         container.Add(addUsingCodeAction);

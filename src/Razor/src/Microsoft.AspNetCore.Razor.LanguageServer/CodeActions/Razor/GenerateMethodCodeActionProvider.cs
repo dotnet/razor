@@ -34,11 +34,11 @@ internal sealed class GenerateMethodCodeActionProvider : IRazorCodeActionProvide
 
         if (IsGenerateEventHandlerValid(owner, out var methodName, out var eventName))
         {
-            var uri = context.Request.TextDocument.Uri;
+            var textDocument = context.Request.TextDocument;
             return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>(
                 [
-                    RazorCodeActionFactory.CreateGenerateMethod(uri, methodName, eventName),
-                    RazorCodeActionFactory.CreateAsyncGenerateMethod(uri, methodName, eventName)
+                    RazorCodeActionFactory.CreateGenerateMethod(textDocument, methodName, eventName),
+                    RazorCodeActionFactory.CreateAsyncGenerateMethod(textDocument, methodName, eventName)
                 ]);
         }
 

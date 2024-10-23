@@ -81,17 +81,17 @@ internal static class RazorCodeActionFactory
         return codeAction;
     }
 
-    public static RazorVSInternalCodeAction CreateGenerateMethod(Uri uri, string methodName, string eventName)
+    public static RazorVSInternalCodeAction CreateGenerateMethod(VSTextDocumentIdentifier textDocument, string methodName, string eventName)
     {
         var @params = new GenerateMethodCodeActionParams
         {
-            Uri = uri,
             MethodName = methodName,
             EventName = eventName,
             IsAsync = false
         };
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = @params,
@@ -108,17 +108,17 @@ internal static class RazorCodeActionFactory
         return codeAction;
     }
 
-    public static RazorVSInternalCodeAction CreateAsyncGenerateMethod(Uri uri, string methodName, string eventName)
+    public static RazorVSInternalCodeAction CreateAsyncGenerateMethod(VSTextDocumentIdentifier textDocument, string methodName, string eventName)
     {
         var @params = new GenerateMethodCodeActionParams
         {
-            Uri = uri,
             MethodName = methodName,
             EventName = eventName,
             IsAsync = true
         };
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = @params,

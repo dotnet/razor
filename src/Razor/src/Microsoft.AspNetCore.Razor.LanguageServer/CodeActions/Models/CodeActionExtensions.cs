@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
 internal static class CodeActionExtensions
 {
-    public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction)
+    public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction, VSTextDocumentIdentifier textDocument)
     {
         if (razorCodeAction.Data is null)
         {
@@ -19,6 +19,7 @@ internal static class CodeActionExtensions
 
             var resolutionParams = new RazorCodeActionResolutionParams
             {
+                TextDocument = textDocument,
                 Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = razorCodeAction.Edit ?? new WorkspaceEdit(),
@@ -53,11 +54,11 @@ internal static class CodeActionExtensions
         var resolveParams = new CodeActionResolveParams()
         {
             Data = razorCodeAction.Data,
-            RazorFileIdentifier = context.Request.TextDocument
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = context.Request.TextDocument,
             Action = action,
             Language = language,
             Data = resolveParams
@@ -90,11 +91,11 @@ internal static class CodeActionExtensions
         var resolveParams = new CodeActionResolveParams()
         {
             Data = razorCodeAction.Data,
-            RazorFileIdentifier = context.Request.TextDocument
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = context.Request.TextDocument,
             Action = action,
             Language = language,
             Data = resolveParams

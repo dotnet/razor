@@ -101,7 +101,6 @@ internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory logge
 
         var actionParams = new ExtractToCodeBehindCodeActionParams()
         {
-            Uri = context.Request.TextDocument.Uri,
             ExtractStart = csharpCodeBlockNode.Span.Start,
             ExtractEnd = csharpCodeBlockNode.Span.End,
             RemoveStart = directiveNode.Span.Start,
@@ -111,6 +110,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory logge
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToCodeBehindAction,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = actionParams,
