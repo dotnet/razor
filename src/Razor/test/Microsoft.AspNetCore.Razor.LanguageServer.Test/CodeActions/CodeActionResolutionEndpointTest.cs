@@ -300,7 +300,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeActionAsync(documentContext, codeAction, request, DisposalToken);
+        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveRazorCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -332,7 +332,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeActionAsync(documentContext, codeAction, request, DisposalToken);
+        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveRazorCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -360,7 +360,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
+        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -388,7 +388,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
+        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -419,7 +419,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
+        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);

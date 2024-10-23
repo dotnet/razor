@@ -40,7 +40,7 @@ internal sealed class CodeActionResolveEndpoint(
         var documentContext = requestContext.DocumentContext.AssumeNotNull();
 
         var codeActionId = GetCodeActionId(resolutionParams);
-        _logger.LogInformation($"Resolving workspace edit for action {codeActionId}.");
+        _logger.LogDebug($"Resolving workspace edit for action {codeActionId}.");
 
         // If it's a special "edit based code action" then the edit has been pre-computed and we
         // can extract the edit details and return to the client. This is only required for VSCode
@@ -93,8 +93,7 @@ internal sealed class CodeActionResolveEndpoint(
         return resolutionParams;
     }
 
-    // Internal for testing
-    internal async Task<CodeAction> ResolveRazorCodeActionAsync(
+    private async Task<CodeAction> ResolveRazorCodeActionAsync(
         DocumentContext documentContext,
         CodeAction codeAction,
         RazorCodeActionResolutionParams resolutionParams,
@@ -118,12 +117,10 @@ internal sealed class CodeActionResolveEndpoint(
         return codeAction;
     }
 
-    // Internal for testing
-    internal Task<CodeAction> ResolveCSharpCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+    private Task<CodeAction> ResolveCSharpCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
         => ResolveDelegatedCodeActionAsync(documentContext, _csharpCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
 
-    // Internal for testing
-    internal Task<CodeAction> ResolveHtmlCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+    private Task<CodeAction> ResolveHtmlCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
         => ResolveDelegatedCodeActionAsync(documentContext, _htmlCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
 
     private async Task<CodeAction> ResolveDelegatedCodeActionAsync(DocumentContext documentContext, FrozenDictionary<string, BaseDelegatedCodeActionResolver> resolvers, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
@@ -162,4 +159,18 @@ internal sealed class CodeActionResolveEndpoint(
 
     private static string GetCodeActionId(RazorCodeActionResolutionParams resolutionParams) =>
         $"`{resolutionParams.Language}.{resolutionParams.Action}`";
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CodeActionResolveEndpoint instance)
+    {
+        public Task<CodeAction> ResolveRazorCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+            => instance.ResolveRazorCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);
+
+        public Task<CodeAction> ResolveCSharpCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+            => instance.ResolveCSharpCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);
+
+        public Task<CodeAction> ResolveHtmlCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+            => instance.ResolveCSharpCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);
+    }
 }
