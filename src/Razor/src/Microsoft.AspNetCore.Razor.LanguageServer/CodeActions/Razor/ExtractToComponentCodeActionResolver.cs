@@ -2,38 +2,31 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 internal sealed class ExtractToComponentCodeActionResolver(
-    IDocumentContextFactory documentContextFactory,
     LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
-    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponentAction;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, CancellationToken cancellationToken)
     {
         if (data.ValueKind == JsonValueKind.Undefined)
         {
@@ -46,11 +39,6 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return null;
         }
 
-        if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
-        {
-            return null;
-        }
-
         var componentDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (componentDocument.IsUnsupported())
         {
@@ -58,7 +46,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         }
 
         var text = componentDocument.Source.Text;
-        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
+        var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
         var templatePath = Path.Combine(directoryName, "Component.razor");
         var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
@@ -104,7 +92,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             new CreateFile { Uri = newComponentUri },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = documentContext.Uri },
                 Edits =
                 [
                     new TextEdit

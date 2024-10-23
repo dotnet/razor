@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -27,19 +26,17 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class ExtractToCodeBehindCodeActionResolver(
-    IDocumentContextFactory documentContextFactory,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection) : IRazorCodeActionResolver
 {
     private static readonly Workspace s_workspace = new AdhocWorkspace();
 
-    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IClientConnection _clientConnection = clientConnection;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<ExtractToCodeBehindCodeActionParams>();
         if (actionParams is null)
@@ -47,12 +44,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
             return null;
         }
 
-        var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
-
-        if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
-        {
-            return null;
-        }
+        var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
@@ -87,7 +79,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
 
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = documentContext.Uri };
         var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = codeBehindUri };
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]

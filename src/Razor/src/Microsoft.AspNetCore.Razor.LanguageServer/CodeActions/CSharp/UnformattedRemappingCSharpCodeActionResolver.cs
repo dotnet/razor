@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -21,28 +20,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 /// Resolves and remaps the code action, without running formatting passes.
 /// </summary>
 internal sealed class UnformattedRemappingCSharpCodeActionResolver(
-    IDocumentContextFactory documentContextFactory,
     IClientConnection clientConnection,
     IDocumentMappingService documentMappingService) : CSharpCodeActionResolver(clientConnection)
 {
-    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
     public override string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
 
     public async override Task<CodeAction> ResolveAsync(
+        DocumentContext documentContext,
         CodeActionResolveParams csharpParams,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_documentContextFactory.TryCreate(csharpParams.RazorFileIdentifier, out var documentContext))
-        {
-            return codeAction;
-        }
-
-        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileIdentifier, documentContext.Snapshot.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
+        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(documentContext.GetTextDocumentIdentifier(), documentContext.Snapshot.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
         if (resolvedCodeAction?.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action
@@ -86,7 +79,7 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver(
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
         {
-            Uri = csharpParams.RazorFileIdentifier.Uri,
+            Uri = documentContext.Uri,
         };
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {

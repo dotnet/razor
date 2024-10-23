@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -22,20 +21,17 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 internal sealed class GenerateMethodCodeActionResolver(
-    IDocumentContextFactory documentContextFactory,
     RazorLSPOptionsMonitor razorLSPOptionsMonitor,
     IClientConnection clientConnection,
     IDocumentMappingService documentMappingService,
     IRazorFormattingService razorFormattingService) : IRazorCodeActionResolver
 {
-    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
     private readonly IClientConnection _clientConnection = clientConnection;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
@@ -53,7 +49,7 @@ internal sealed class GenerateMethodCodeActionResolver(
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<GenerateMethodCodeActionParams>();
         if (actionParams is null)
@@ -61,13 +57,8 @@ internal sealed class GenerateMethodCodeActionResolver(
             return null;
         }
 
-        if (!_documentContextFactory.TryCreate(actionParams.Uri, out var documentContext))
-        {
-            return null;
-        }
-
         var code = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var uriPath = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
+        var uriPath = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var razorClassName = Path.GetFileNameWithoutExtension(uriPath);
         var codeBehindPath = $"{uriPath}.cs";
 
@@ -225,7 +216,7 @@ internal sealed class GenerateMethodCodeActionResolver(
 
         var razorTextDocEdit = new TextDocumentEdit()
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = actionParams.Uri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = documentContext.Uri },
             Edits = edits,
         };
 

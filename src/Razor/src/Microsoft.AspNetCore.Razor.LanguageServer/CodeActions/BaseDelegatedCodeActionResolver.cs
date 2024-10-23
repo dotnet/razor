@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -18,7 +19,7 @@ internal abstract class BaseDelegatedCodeActionResolver(IClientConnection client
 
     public abstract string Action { get; }
 
-    public abstract Task<CodeAction> ResolveAsync(CodeActionResolveParams resolveParams, CodeAction codeAction, CancellationToken cancellationToken);
+    public abstract Task<CodeAction> ResolveAsync(DocumentContext documentContext, CodeActionResolveParams resolveParams, CodeAction codeAction, CancellationToken cancellationToken);
 
     protected async Task<CodeAction?> ResolveCodeActionWithServerAsync(TextDocumentIdentifier razorFileIdentifier, int hostDocumentVersion, RazorLanguageKind languageKind, CodeAction codeAction, CancellationToken cancellationToken)
     {
