@@ -4,25 +4,24 @@
             Text;[{];
             NewLine;[LF];
         CSharpCodeBlock - [3..26)::23
-            RazorDirective - [3..26)::23
+            RazorDirective - [3..24)::21
                 CSharpTransition - [3..4)::1 - Gen<None>
                     Transition;[@];
-                RazorDirectiveBody - [4..26)::22
-                    CSharpStatementLiteral - [4..26)::22 - [using global::SystemLF] - Gen<Import: global::System;>
+                RazorDirectiveBody - [4..24)::20
+                    CSharpStatementLiteral - [4..24)::20 - [using global::System] - Gen<Import: global::System;>
                         Keyword;[using];
                         Whitespace;[ ];
                         Keyword;[global];
                         DoubleColon;[::];
                         Identifier;[System];
-                        NewLine;[LF];
-        MarkupTextLiteral - [26..26)::0 - [] - Gen<Markup>
-            Marker;[];
+            RazorMetaCode - [24..26)::2 - Gen<None>
+                NewLine;[LF];
         CSharpCodeBlock - [26..69)::43
-            RazorDirective - [26..69)::43
+            RazorDirective - [26..67)::41
                 CSharpTransition - [26..27)::1 - Gen<None>
                     Transition;[@];
-                RazorDirectiveBody - [27..69)::42
-                    CSharpStatementLiteral - [27..69)::42 - [using global::System.Collections.GenericLF] - Gen<Import: global::System.Collections.Generic;>
+                RazorDirectiveBody - [27..67)::40
+                    CSharpStatementLiteral - [27..67)::40 - [using global::System.Collections.Generic] - Gen<Import: global::System.Collections.Generic;>
                         Keyword;[using];
                         Whitespace;[ ];
                         Keyword;[global];
@@ -32,15 +31,14 @@
                         Identifier;[Collections];
                         Dot;[.];
                         Identifier;[Generic];
-                        NewLine;[LF];
-        MarkupTextLiteral - [69..69)::0 - [] - Gen<Markup>
-            Marker;[];
+            RazorMetaCode - [67..69)::2 - Gen<None>
+                NewLine;[LF];
         CSharpCodeBlock - [69..97)::28
-            RazorDirective - [69..97)::28
+            RazorDirective - [69..95)::26
                 CSharpTransition - [69..70)::1 - Gen<None>
                     Transition;[@];
-                RazorDirectiveBody - [70..97)::27
-                    CSharpStatementLiteral - [70..97)::27 - [using global::System.LinqLF] - Gen<Import: global::System.Linq;>
+                RazorDirectiveBody - [70..95)::25
+                    CSharpStatementLiteral - [70..95)::25 - [using global::System.Linq] - Gen<Import: global::System.Linq;>
                         Keyword;[using];
                         Whitespace;[ ];
                         Keyword;[global];
@@ -48,15 +46,14 @@
                         Identifier;[System];
                         Dot;[.];
                         Identifier;[Linq];
-                        NewLine;[LF];
-        MarkupTextLiteral - [97..97)::0 - [] - Gen<Markup>
-            Marker;[];
+            RazorMetaCode - [95..97)::2 - Gen<None>
+                NewLine;[LF];
         CSharpCodeBlock - [97..136)::39
-            RazorDirective - [97..136)::39
+            RazorDirective - [97..134)::37
                 CSharpTransition - [97..98)::1 - Gen<None>
                     Transition;[@];
-                RazorDirectiveBody - [98..136)::38
-                    CSharpStatementLiteral - [98..136)::38 - [using global::System.Threading.TasksLF] - Gen<Import: global::System.Threading.Tasks;>
+                RazorDirectiveBody - [98..134)::36
+                    CSharpStatementLiteral - [98..134)::36 - [using global::System.Threading.Tasks] - Gen<Import: global::System.Threading.Tasks;>
                         Keyword;[using];
                         Whitespace;[ ];
                         Keyword;[global];
@@ -66,15 +63,14 @@
                         Identifier;[Threading];
                         Dot;[.];
                         Identifier;[Tasks];
-                        NewLine;[LF];
-        MarkupTextLiteral - [136..136)::0 - [] - Gen<Markup>
-            Marker;[];
+            RazorMetaCode - [134..136)::2 - Gen<None>
+                NewLine;[LF];
         CSharpCodeBlock - [136..184)::48
-            RazorDirective - [136..184)::48
+            RazorDirective - [136..182)::46
                 CSharpTransition - [136..137)::1 - Gen<None>
                     Transition;[@];
-                RazorDirectiveBody - [137..184)::47
-                    CSharpStatementLiteral - [137..184)::47 - [using global::Microsoft.AspNetCore.ComponentsLF] - Gen<Import: global::Microsoft.AspNetCore.Components;>
+                RazorDirectiveBody - [137..182)::45
+                    CSharpStatementLiteral - [137..182)::45 - [using global::Microsoft.AspNetCore.Components] - Gen<Import: global::Microsoft.AspNetCore.Components;>
                         Keyword;[using];
                         Whitespace;[ ];
                         Keyword;[global];
@@ -84,7 +80,8 @@
                         Identifier;[AspNetCore];
                         Dot;[.];
                         Identifier;[Components];
-                        NewLine;[LF];
+            RazorMetaCode - [182..184)::2 - Gen<None>
+                NewLine;[LF];
         MarkupTextLiteral - [184..185)::1 - [}] - Gen<Markup>
             Text;[}];
     EndOfFile;[];
