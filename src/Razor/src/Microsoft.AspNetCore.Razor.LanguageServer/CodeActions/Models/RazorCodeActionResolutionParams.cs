@@ -18,5 +18,5 @@ internal sealed class RazorCodeActionResolutionParams
     public required string Language { get; set; }
 
     [JsonPropertyName("data")]
-    public required object Data { get; set; }
+    public object? Data { get; set; }
 }

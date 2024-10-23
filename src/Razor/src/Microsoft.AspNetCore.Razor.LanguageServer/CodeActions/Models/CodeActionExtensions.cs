@@ -51,17 +51,12 @@ internal static class CodeActionExtensions
         string language = LanguageServerConstants.CodeActions.Languages.CSharp,
         bool isOnAllowList = true)
     {
-        var resolveParams = new CodeActionResolveParams()
-        {
-            Data = razorCodeAction.Data,
-        };
-
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = context.Request.TextDocument,
             Action = action,
             Language = language,
-            Data = resolveParams
+            Data = razorCodeAction.Data
         };
         razorCodeAction.Data = JsonSerializer.SerializeToElement(resolutionParams);
 
@@ -88,17 +83,12 @@ internal static class CodeActionExtensions
         string language,
         bool isOnAllowList)
     {
-        var resolveParams = new CodeActionResolveParams()
-        {
-            Data = razorCodeAction.Data,
-        };
-
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = context.Request.TextDocument,
             Action = action,
             Language = language,
-            Data = resolveParams
+            Data = razorCodeAction.Data
         };
         razorCodeAction.Data = JsonSerializer.SerializeToElement(resolutionParams);
 

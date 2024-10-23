@@ -128,20 +128,7 @@ internal sealed class CodeActionResolveEndpoint(
 
     private async Task<CodeAction> ResolveDelegatedCodeActionAsync(DocumentContext documentContext, FrozenDictionary<string, BaseDelegatedCodeActionResolver> resolvers, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
     {
-        if (resolutionParams.Data is not JsonElement csharpParamsObj)
-        {
-            _logger.LogError($"Invalid CodeAction Received.");
-            Debug.Fail($"Invalid CSharp CodeAction Received.");
-            return codeAction;
-        }
-
-        var csharpParams = csharpParamsObj.Deserialize<CodeActionResolveParams>();
-        if (csharpParams is null)
-        {
-            throw new ArgumentOutOfRangeException($"Data was not convertible to {nameof(CodeActionResolveParams)}");
-        }
-
-        codeAction.Data = csharpParams.Data;
+        codeAction.Data = resolutionParams.Data;
 
         if (!resolvers.TryGetValue(resolutionParams.Action, out var resolver))
         {
