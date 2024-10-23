@@ -30,7 +30,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
     private const string ExtractToComponentTitle = "Extract element to new component";
 
     [Fact]
-    public async Task Handle_ExtractComponent_SingleElement()
+    public async Task Handle_SingleElement()
     {
         var input = """
             <[||]div id="a">
@@ -65,7 +65,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_ExtractComponent_SiblingElement()
+    public async Task Handle_SiblingElement()
     {
         var input = """
             <[|div id="a">
@@ -100,7 +100,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_ExtractComponent_AddsUsings()
+    public async Task Handle_AddsUsings()
     {
         var input = """
             @using MyApp.Data
@@ -146,7 +146,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_ExtractComponent_NestedNodes()
+    public async Task Handle_NestedNodes()
     {
         var input = """
             @page "/"
@@ -223,7 +223,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_ExtractComponent_StartNodeContainsEndNode()
+    public async Task Handle_StartNodeContainsEndNode()
     {
         var input = """
             <[|div id="parent">

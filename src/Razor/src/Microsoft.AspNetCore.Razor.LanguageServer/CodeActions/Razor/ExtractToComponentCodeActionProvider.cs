@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -48,6 +49,13 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
 
         var (startNode, endNode) = GetStartAndEndElements(context, syntaxTree);
         if (startNode is null || endNode is null)
+        {
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
+        }
+
+        // If the selection begins in @code don't offer to extract. The inserted
+        // component would not be valid since it's inserted at the starting point
+        if (RazorSyntaxFacts.IsInCodeBlock(startNode))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }

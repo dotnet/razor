@@ -1158,7 +1158,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         return codeActionToRun;
     }
 
-    protected async Task<SumType<Command, CodeAction>[]> GetCodeActionsAsync(
+    internal async Task<SumType<Command, CodeAction>[]> GetCodeActionsAsync(
         Uri uri,
         TextSpan textSpan,
         SourceText sourceText,
@@ -1205,7 +1205,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         return result;
     }
 
-    protected async Task<TextDocumentEdit[]> GetEditsAsync(
+    internal async Task<TextDocumentEdit[]> GetEditsAsync(
         VSInternalCodeAction codeActionToRun,
         RazorRequestContext requestContext,
         IClientConnection clientConnection,
