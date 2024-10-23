@@ -223,7 +223,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToCodeBehindCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data!).Deserialize<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
 
         Assert.Equal(removeSpan, TextSpan.FromBounds(actionParams.RemoveStart, actionParams.RemoveEnd));
@@ -266,7 +266,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToCodeBehindCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data!).Deserialize<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
 
         Assert.Equal(removeSpan, TextSpan.FromBounds(actionParams.RemoveStart, actionParams.RemoveEnd));
@@ -339,7 +339,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToCodeBehindCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data!).Deserialize<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
 
         Assert.Equal(removeSpan, TextSpan.FromBounds(actionParams.RemoveStart, actionParams.RemoveEnd));

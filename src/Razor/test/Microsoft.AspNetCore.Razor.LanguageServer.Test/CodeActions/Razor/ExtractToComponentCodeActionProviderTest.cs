@@ -490,7 +490,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data!).Deserialize<ExtractToComponentCodeActionParams>();
         Assert.NotNull(actionParams);
         Assert.Equal(resultSpan.Start, actionParams.Start);
         Assert.Equal(resultSpan.End, actionParams.End);
