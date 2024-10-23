@@ -53,10 +53,10 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
     public async Task ResolveAsync_ReturnsResolvedCodeAction()
     {
         // Arrange
-        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver);
+        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, out var documentContext);
 
         // Act
-        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
+        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, codeActionParams, s_defaultUnresolvedCodeAction, DisposalToken);
 
         // Assert
         Assert.Equal(s_defaultResolvedCodeAction.Title, returnedCodeAction.Title);
@@ -86,10 +86,10 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
 
         var languageServer = CreateLanguageServer(resolvedCodeAction);
 
-        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, clientConnection: languageServer);
+        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, out var documentContext, clientConnection: languageServer);
 
         // Act
-        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
+        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, codeActionParams, s_defaultUnresolvedCodeAction, DisposalToken);
 
         // Assert
         Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
@@ -121,10 +121,10 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
 
         var languageServer = CreateLanguageServer(resolvedCodeAction);
 
-        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, clientConnection: languageServer);
+        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, out var documentContext, clientConnection: languageServer);
 
         // Act
-        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
+        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, codeActionParams, s_defaultUnresolvedCodeAction, DisposalToken);
 
         // Assert
         Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
@@ -151,10 +151,10 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
 
         var languageServer = CreateLanguageServer(resolvedCodeAction);
 
-        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, clientConnection: languageServer);
+        CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, out var documentContext, clientConnection: languageServer);
 
         // Act
-        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
+        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, codeActionParams, s_defaultUnresolvedCodeAction, DisposalToken);
 
         // Assert
         Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
@@ -163,6 +163,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
     private static void CreateCodeActionResolver(
         out CodeActionResolveParams codeActionParams,
         out DefaultCSharpCodeActionResolver csharpCodeActionResolver,
+        out DocumentContext documentContext,
         IClientConnection? clientConnection = null,
         IRazorFormattingService? razorFormattingService = null)
     {
@@ -174,19 +175,16 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         codeActionParams = new CodeActionResolveParams()
         {
             Data = new JsonElement(),
-            RazorFileIdentifier = new VSTextDocumentIdentifier
-            {
-                Uri = documentUri
-            }
         };
 
         clientConnection ??= CreateLanguageServer();
         razorFormattingService ??= CreateRazorFormattingService(documentUri);
 
         csharpCodeActionResolver = new DefaultCSharpCodeActionResolver(
-            CreateDocumentContextFactory(documentUri, codeDocument),
             clientConnection,
             razorFormattingService);
+
+        documentContext = CreateDocumentContext(documentUri, codeDocument);
     }
 
     private static IRazorFormattingService CreateRazorFormattingService(Uri documentUri)

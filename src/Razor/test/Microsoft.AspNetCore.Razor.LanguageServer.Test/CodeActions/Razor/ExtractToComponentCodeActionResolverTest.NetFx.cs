@@ -296,8 +296,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
         Assert.NotNull(codeActionToRun);
 
         var resolver = new ExtractToComponentCodeActionResolver(
-                    new GenerateMethodResolverDocumentContextFactory(razorFilePath, codeDocument),
-                    TestLanguageServerFeatureOptions.Instance);
+            TestLanguageServerFeatureOptions.Instance);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, null);
         var changes = await GetEditsAsync(

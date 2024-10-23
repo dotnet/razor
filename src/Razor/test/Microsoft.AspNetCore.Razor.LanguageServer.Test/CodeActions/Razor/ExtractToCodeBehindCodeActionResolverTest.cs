@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -22,42 +21,12 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
+public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly IDocumentContextFactory _emptyDocumentContextFactory;
-    private readonly TestLanguageServer _languageServer;
-
-    public ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOutput)
-        : base(testOutput)
+    private readonly TestLanguageServer _languageServer = new TestLanguageServer(new Dictionary<string, Func<object?, Task<object>>>()
     {
-        _emptyDocumentContextFactory = new TestDocumentContextFactory();
-        _languageServer = new TestLanguageServer(new Dictionary<string, Func<object?, Task<object>>>()
-        {
-            [CustomMessageNames.RazorFormatNewFileEndpointName] = c => Task.FromResult<object>(null!),
-        });
-    }
-
-    [Fact]
-    public async Task Handle_MissingFile()
-    {
-        // Arrange
-        var resolver = new ExtractToCodeBehindCodeActionResolver(_emptyDocumentContextFactory, TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var data = JsonSerializer.SerializeToElement(new ExtractToCodeBehindCodeActionParams()
-        {
-            Uri = new Uri("c:/Test.razor"),
-            RemoveStart = 14,
-            ExtractStart = 19,
-            ExtractEnd = 41,
-            RemoveEnd = 41,
-            Namespace = "Test"
-        });
-
-        // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
-
-        // Assert
-        Assert.Null(workspaceEdit);
-    }
+        [CustomMessageNames.RazorFormatNewFileEndpointName] = c => Task.FromResult<object>(null!),
+    });
 
     [Fact]
     public async Task Handle_Unsupported()
@@ -71,11 +40,12 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetUnsupported();
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var data = JsonSerializer.SerializeToElement(CreateExtractToCodeBehindCodeActionParams(new Uri("c:/Test.razor"), contents, "@code", "Test"));
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var data = JsonSerializer.SerializeToElement(CreateExtractToCodeBehindCodeActionParams(contents, "@code", "Test"));
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.Null(workspaceEdit);
@@ -93,11 +63,12 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         codeDocument.SetFileKind(FileKinds.Legacy);
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var data = JsonSerializer.SerializeToElement(CreateExtractToCodeBehindCodeActionParams(new Uri("c:/Test.razor"), contents, "@code", "Test"));
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var data = JsonSerializer.SerializeToElement(CreateExtractToCodeBehindCodeActionParams(contents, "@code", "Test"));
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.Null(workspaceEdit);
@@ -118,12 +89,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(contents, "@code", @namespace);
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -181,12 +153,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(contents, "@code", @namespace);
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -252,12 +225,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(contents, "@code", @namespace);
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -333,12 +307,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(contents, "@code", @namespace);
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -416,12 +391,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(contents, "@code", @namespace);
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -487,12 +463,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@functions", @namespace);
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(contents, "@functions", @namespace);
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -550,12 +527,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(contents, "@code", @namespace);
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -615,12 +593,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, _languageServer);
-        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, _languageServer);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(contents, "@code", @namespace);
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -684,12 +663,13 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             [CustomMessageNames.RazorFormatNewFileEndpointName] = c => Task.FromResult<object>("Hi there! I'm from Roslyn"),
         });
 
-        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance, languageServer);
-        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var resolver = new ExtractToCodeBehindCodeActionResolver(TestLanguageServerFeatureOptions.Instance, languageServer);
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(contents, "@code", @namespace);
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -730,13 +710,12 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         return codeDocument;
     }
 
-    private static ExtractToCodeBehindCodeActionParams CreateExtractToCodeBehindCodeActionParams(Uri uri, string contents, string removeStart, string @namespace)
+    private static ExtractToCodeBehindCodeActionParams CreateExtractToCodeBehindCodeActionParams(string contents, string removeStart, string @namespace)
     {
         // + 1 to ensure we do not cut off the '}'.
         var endIndex = contents.LastIndexOf("}", StringComparison.Ordinal) + 1;
         return new ExtractToCodeBehindCodeActionParams
         {
-            Uri = uri,
             RemoveStart = contents.IndexOf(removeStart, StringComparison.Ordinal),
             ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
             ExtractEnd = endIndex,

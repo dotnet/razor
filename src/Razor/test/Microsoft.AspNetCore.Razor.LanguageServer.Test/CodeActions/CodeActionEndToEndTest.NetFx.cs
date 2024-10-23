@@ -53,7 +53,6 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             =>
             [
                 new GenerateMethodCodeActionResolver(
-                    new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
                     optionsMonitor ?? TestRazorLSPOptionsMonitor.Create(),
                     clientConnection,
                     new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
@@ -1215,7 +1214,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
         var csharpResolvers = new CSharpCodeActionResolver[]
         {
-            new DefaultCSharpCodeActionResolver(DocumentContextFactory.AssumeNotNull(), clientConnection, formattingService)
+            new DefaultCSharpCodeActionResolver(clientConnection, formattingService)
         };
 
         var htmlResolvers = Array.Empty<HtmlCodeActionResolver>();

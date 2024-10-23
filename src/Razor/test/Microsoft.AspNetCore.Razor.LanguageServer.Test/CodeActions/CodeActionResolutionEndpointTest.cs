@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -23,6 +24,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task Handle_Valid_RazorCodeAction_WithResolver()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             new IRazorCodeActionResolver[] {
                 new MockRazorCodeActionResolver("Test"),
@@ -32,12 +34,12 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var requestParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
-                Uri = new Uri("C:/path/to/Page.razor")
             }
         };
         var request = new CodeAction()
@@ -45,10 +47,10 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Title = "Valid request",
             Data = JsonSerializer.SerializeToElement(requestParams)
         };
-        var requestContext = CreateRazorRequestContext(documentContext: null);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(razorCodeAction.Edit);
@@ -58,6 +60,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task Handle_Valid_CSharpCodeAction_WithResolver()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             Array.Empty<IRazorCodeActionResolver>(),
             new CSharpCodeActionResolver[] {
@@ -67,14 +70,11 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var requestParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
-                RazorFileIdentifier = new VSTextDocumentIdentifier
-                {
-                    Uri = new Uri("C:/path/to/Page.razor")
-                },
             })
         };
         var request = new CodeAction()
@@ -82,10 +82,10 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Title = "Valid request",
             Data = JsonSerializer.SerializeToElement(requestParams)
         };
-        var requestContext = CreateRazorRequestContext(documentContext: null);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(razorCodeAction.Edit);
@@ -95,6 +95,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task Handle_Valid_CSharpCodeAction_WithMultipleLanguageResolvers()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             new IRazorCodeActionResolver[] {
                 new MockRazorCodeActionResolver("TestRazor"),
@@ -106,14 +107,11 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var requestParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "TestCSharp",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
-                RazorFileIdentifier = new VSTextDocumentIdentifier
-                {
-                    Uri = new Uri("C:/path/to/Page.razor")
-                },
             })
         };
         var request = new CodeAction()
@@ -121,10 +119,10 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Title = "Valid request",
             Data = JsonSerializer.SerializeToElement(requestParams)
         };
-        var requestContext = CreateRazorRequestContext(documentContext: null);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(razorCodeAction.Edit);
@@ -134,6 +132,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task Handle_Valid_RazorCodeAction_WithoutResolver()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             Array.Empty<IRazorCodeActionResolver>(),
             Array.Empty<CSharpCodeActionResolver>(),
@@ -141,12 +140,12 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var requestParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
-                Uri = new Uri("C:/path/to/Page.razor")
             }
         };
         var request = new CodeAction()
@@ -154,14 +153,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Title = "Valid request",
             Data = JsonSerializer.SerializeToElement(requestParams)
         };
-        var requestContext = CreateRazorRequestContext(documentContext: null);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
 #if DEBUG
         // Act & Assert (Throws due to debug assert on no Razor.Test resolver)
         await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(resolvedCodeAction.Edit);
@@ -172,6 +171,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task Handle_Valid_CSharpCodeAction_WithoutResolver()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             Array.Empty<IRazorCodeActionResolver>(),
             Array.Empty<CSharpCodeActionResolver>(),
@@ -179,14 +179,11 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var requestParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
-                RazorFileIdentifier = new VSTextDocumentIdentifier
-                {
-                    Uri = new Uri("C:/path/to/Page.razor")
-                },
             })
         };
         var request = new CodeAction()
@@ -194,14 +191,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Title = "Valid request",
             Data = JsonSerializer.SerializeToElement(requestParams)
         };
-        var requestContext = CreateRazorRequestContext(documentContext: null);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
 #if DEBUG
         // Act & Assert (Throws due to debug assert on no resolver registered for CSharp.Test)
         await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(resolvedCodeAction.Edit);
@@ -212,6 +209,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task Handle_Valid_RazorCodeAction_WithCSharpResolver_ResolvesNull()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             Array.Empty<IRazorCodeActionResolver>(),
             new CSharpCodeActionResolver[] {
@@ -221,12 +219,12 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var requestParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
-                Uri = new Uri("C:/path/to/Page.razor")
             }
         };
         var request = new CodeAction()
@@ -234,14 +232,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Title = "Valid request",
             Data = JsonSerializer.SerializeToElement(requestParams)
         };
-        var requestContext = CreateRazorRequestContext(documentContext: null);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
 #if DEBUG
         // Act & Assert (Throws due to debug assert on no resolver registered for Razor.Test)
         await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(resolvedCodeAction.Edit);
@@ -252,6 +250,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task Handle_Valid_CSharpCodeAction_WithRazorResolver_ResolvesNull()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             new IRazorCodeActionResolver[] {
                 new MockRazorCodeActionResolver("Test"),
@@ -261,14 +260,11 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var requestParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
-                RazorFileIdentifier = new VSTextDocumentIdentifier
-                {
-                    Uri = new Uri("C:/path/to/Page.razor")
-                },
             })
         };
         var request = new CodeAction()
@@ -276,14 +272,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Title = "Valid request",
             Data = JsonSerializer.SerializeToElement(requestParams)
         };
-        var requestContext = CreateRazorRequestContext(documentContext: null);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
 #if DEBUG
         // Act & Assert (Throws due to debug asserts)
         await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(resolvedCodeAction.Edit);
@@ -294,6 +290,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task ResolveRazorCodeAction_ResolveMultipleRazorProviders_FirstMatches()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
                 new IRazorCodeActionResolver[] {
                     new MockRazorCodeActionResolver("A"),
@@ -305,17 +302,17 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "A",
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = JsonSerializer.SerializeToElement(new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
-                Uri = new Uri("C:/path/to/Page.razor")
             }),
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeActionAsync(codeAction, request, default);
+        var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -325,6 +322,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task ResolveRazorCodeAction_ResolveMultipleRazorProviders_SecondMatches()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             new IRazorCodeActionResolver[] {
                 new MockRazorNullCodeActionResolver("A"),
@@ -336,17 +334,17 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "B",
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = JsonSerializer.SerializeToElement(new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
-                Uri = new Uri("C:/path/to/Page.razor")
             })
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeActionAsync(codeAction, request, default);
+        var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -356,6 +354,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task ResolveCSharpCodeAction_ResolveMultipleCSharpProviders_FirstMatches()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             Array.Empty<IRazorCodeActionResolver>(),
             new CSharpCodeActionResolver[] {
@@ -367,19 +366,16 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "A",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
-                RazorFileIdentifier = new VSTextDocumentIdentifier
-                {
-                    Uri = new Uri("C:/path/to/Page.razor")
-                },
             })
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(codeAction, request, default);
+        var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -389,6 +385,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task ResolveCSharpCodeAction_ResolveMultipleCSharpProviders_SecondMatches()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             Array.Empty<IRazorCodeActionResolver>(),
             new CSharpCodeActionResolver[] {
@@ -400,19 +397,16 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "B",
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
-                RazorFileIdentifier = new VSTextDocumentIdentifier
-                {
-                    Uri = new Uri("C:/path/to/Page.razor")
-                },
             })
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(codeAction, request, default);
+        var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -422,6 +416,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task ResolveCSharpCodeAction_ResolveMultipleLanguageProviders()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             new IRazorCodeActionResolver[] {
                 new MockRazorNullCodeActionResolver("A"),
@@ -436,19 +431,16 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "D",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
             Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
-                RazorFileIdentifier = new VSTextDocumentIdentifier
-                {
-                    Uri = new Uri("C:/path/to/Page.razor")
-                },
             })
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(codeAction, request, default);
+        var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -458,6 +450,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     public async Task Handle_ResolveEditBasedCodeActionCommand()
     {
         // Arrange
+        var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             Array.Empty<IRazorCodeActionResolver>(),
             new CSharpCodeActionResolver[] {
@@ -467,6 +460,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var requestParams = new RazorCodeActionResolutionParams()
         {
+            TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = JsonSerializer.SerializeToElement(new WorkspaceEdit())
@@ -477,10 +471,10 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Title = "Valid request",
             Data = JsonSerializer.SerializeToElement(requestParams)
         };
-        var requestContext = CreateRazorRequestContext(documentContext: null);
+        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(razorCodeAction.Edit);
@@ -495,7 +489,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Action = action;
         }
 
-        public Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
+        public Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, CancellationToken cancellationToken)
         {
             return Task.FromResult<WorkspaceEdit?>(new WorkspaceEdit());
         }
@@ -510,7 +504,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Action = action;
         }
 
-        public  Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
+        public  Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, CancellationToken cancellationToken)
         {
             return SpecializedTasks.Null<WorkspaceEdit>();
         }
@@ -526,7 +520,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Action = action;
         }
 
-        public override Task<CodeAction> ResolveAsync(CodeActionResolveParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
+        public override Task<CodeAction> ResolveAsync(DocumentContext documentContext, CodeActionResolveParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
         {
             codeAction.Edit = new WorkspaceEdit();
             return Task.FromResult(codeAction);
@@ -543,7 +537,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Action = action;
         }
 
-        public override Task<CodeAction> ResolveAsync(CodeActionResolveParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
+        public override Task<CodeAction> ResolveAsync(DocumentContext documentContext, CodeActionResolveParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
         {
             // This is deliberately returning null when it's not supposed to, so that if this code action
             // is ever returned by a method, the test will fail

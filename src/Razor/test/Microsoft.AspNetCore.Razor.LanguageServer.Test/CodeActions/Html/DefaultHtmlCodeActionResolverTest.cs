@@ -59,7 +59,7 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
             .Setup(x => x.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remappedEdit);
 
-        var resolver = new DefaultHtmlCodeActionResolver(documentContextFactory, CreateLanguageServer(resolvedCodeAction), editMappingServiceMock.Object);
+        var resolver = new DefaultHtmlCodeActionResolver(CreateLanguageServer(resolvedCodeAction), editMappingServiceMock.Object);
 
         var codeAction = new RazorVSInternalCodeAction()
         {
@@ -83,14 +83,10 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
         var codeActionParams = new CodeActionResolveParams()
         {
             Data = new JsonElement(),
-            RazorFileIdentifier = new VSTextDocumentIdentifier
-            {
-                Uri = new Uri(documentPath)
-            }
         };
 
         // Act
-        var action = await resolver.ResolveAsync(codeActionParams, codeAction, DisposalToken);
+        var action = await resolver.ResolveAsync(context, codeActionParams, codeAction, DisposalToken);
 
         // Assert
         Assert.NotNull(action.Edit);

@@ -647,7 +647,6 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
                 Data = JsonSerializer.SerializeToElement(new AddUsingsCodeActionParams()
                 {
                     Namespace = "Test",
-                    Uri = new Uri("C:/path/to/Page.razor")
                 })
             });
 
