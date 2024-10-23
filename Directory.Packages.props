@@ -14,7 +14,7 @@
     <_BenchmarkDotNetPackageVersion>0.13.5.2136</_BenchmarkDotNetPackageVersion>
     <_MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</_MicrosoftVisualStudioExtensibilityTestingVersion>
     <_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.11.0</_MicrosoftCodeAnalysisAnalyzersPackageVersion>
-    <_RoslynDiagnosticAnalyzersPackageVersion>3.11.0-beta1.24170.2</_RoslynDiagnosticAnalyzersPackageVersion>
+    <_RoslynDiagnosticAnalyzersPackageVersion>3.11.0-beta1.24508.2</_RoslynDiagnosticAnalyzersPackageVersion>
     <_MicrosoftVisualStudioLanguageServicesPackageVersion>$(MicrosoftVisualStudioLanguageServicesPackageVersion)</_MicrosoftVisualStudioLanguageServicesPackageVersion>
     <_XunitPackageVersion>2.6.3</_XunitPackageVersion>
     <_MicrosoftBuildPackageVersion>17.11.0-preview-24309-01</_MicrosoftBuildPackageVersion>
