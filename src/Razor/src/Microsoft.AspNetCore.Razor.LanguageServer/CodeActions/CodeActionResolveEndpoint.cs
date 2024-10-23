@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
@@ -152,7 +151,7 @@ internal sealed class CodeActionResolveEndpoint(
             return codeAction;
         }
 
-        var resolvedCodeAction = await resolver.ResolveAsync(documentContext, csharpParams, codeAction, cancellationToken).ConfigureAwait(false);
+        var resolvedCodeAction = await resolver.ResolveAsync(documentContext, codeAction, cancellationToken).ConfigureAwait(false);
         return resolvedCodeAction;
     }
 

@@ -520,7 +520,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Action = action;
         }
 
-        public override Task<CodeAction> ResolveAsync(DocumentContext documentContext, CodeActionResolveParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
+        public override Task<CodeAction> ResolveAsync(DocumentContext documentContext, CodeAction codeAction, CancellationToken cancellationToken)
         {
             codeAction.Edit = new WorkspaceEdit();
             return Task.FromResult(codeAction);
@@ -537,7 +537,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Action = action;
         }
 
-        public override Task<CodeAction> ResolveAsync(DocumentContext documentContext, CodeActionResolveParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
+        public override Task<CodeAction> ResolveAsync(DocumentContext documentContext, CodeAction codeAction, CancellationToken cancellationToken)
         {
             // This is deliberately returning null when it's not supposed to, so that if this code action
             // is ever returned by a method, the test will fail

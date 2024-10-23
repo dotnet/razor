@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,7 +24,6 @@ internal sealed class DefaultCSharpCodeActionResolver(
 
     public async override Task<CodeAction> ResolveAsync(
         DocumentContext documentContext,
-        CodeActionResolveParams csharpParams,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
