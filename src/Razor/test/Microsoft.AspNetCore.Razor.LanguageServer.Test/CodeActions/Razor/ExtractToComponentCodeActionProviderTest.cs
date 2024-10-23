@@ -121,6 +121,20 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             """);
 
     [Fact]
+    public Task Handle_IsInCodeBlock_ReturnsEmpty()
+        => TestAsync("""
+            @page "/"
+
+            @code
+            {
+                {|selection:public int I { get; set; }
+                public void M()
+                {
+                }|}
+            }
+            """);
+
+    [Fact]
     public Task Handle_MultiPointSelection_ReturnsNotEmpty()
        => TestAsync("""
             @page "/"
