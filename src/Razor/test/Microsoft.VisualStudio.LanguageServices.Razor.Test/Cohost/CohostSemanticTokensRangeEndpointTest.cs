@@ -67,6 +67,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
     {
         var input = """
             @page "/"
+            @model AppThing.Model
             @using System
 
             <div>This is some HTML</div>
@@ -90,7 +91,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
 
     private async Task VerifySemanticTokensAsync(string input, bool colorBackground, bool precise, string? fileKind = null, [CallerMemberName] string? testName = null)
     {
-        var document = CreateProjectAndRazorDocument(input, fileKind);
+        var document = await CreateProjectAndRazorDocumentAsync(input, fileKind);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var legend = TestRazorSemanticTokensLegendService.Instance;

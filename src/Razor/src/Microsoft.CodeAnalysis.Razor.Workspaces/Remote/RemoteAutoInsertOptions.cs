@@ -1,7 +1,9 @@
-﻿using System.Runtime.Serialization;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
@@ -15,21 +17,17 @@ internal readonly record struct RemoteAutoInsertOptions
     public bool FormatOnType { get; init; } = true;
 
     [DataMember(Order = 2)]
-    public RazorFormattingOptions FormattingOptions { get; init; } = new RazorFormattingOptions()
-    {
-        InsertSpaces = true,
-        TabSize = 4
-    };
+    public RazorFormattingOptions FormattingOptions { get; init; } = new();
 
     public RemoteAutoInsertOptions()
     {
     }
 
-    public static RemoteAutoInsertOptions From(ClientSettings clientSettings, FormattingOptions formattingOptions)
+    public static RemoteAutoInsertOptions From(ClientSettings clientSettings, RazorFormattingOptions formattingOptions)
         => new()
         {
             EnableAutoClosingTags = clientSettings.AdvancedSettings.AutoClosingTags,
             FormatOnType = clientSettings.AdvancedSettings.FormatOnType,
-            FormattingOptions = RazorFormattingOptions.From(formattingOptions, codeBlockBraceOnNextLine: false)
+            FormattingOptions = formattingOptions
         };
 }

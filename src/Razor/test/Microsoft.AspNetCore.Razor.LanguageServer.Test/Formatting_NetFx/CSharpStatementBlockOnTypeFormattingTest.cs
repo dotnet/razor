@@ -4,12 +4,15 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
+[Collection(HtmlFormattingCollection.Name)]
+public class CSharpStatementBlockOnTypeFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
+    : FormattingTestBase(fixture.Service, testOutput)
 {
     [Fact]
     public async Task CloseCurly_IfBlock_SingleLineAsync()
@@ -115,6 +118,23 @@ public class CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper testOutp
                     @{
                         var x = @"
                     foo";
+                    }
+                    """,
+            triggerCharacter: ';');
+    }
+
+    [Fact]
+    public async Task Semicolon_PropertyGet()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @code {
+                     private string Name {get;$$}
+                    }
+                    """,
+            expected: """
+                    @code {
+                        private string Name { get; }
                     }
                     """,
             triggerCharacter: ';');

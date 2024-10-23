@@ -9,19 +9,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
-[UseExportProvider]
 public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 {
     private readonly TestDelegatedCompletionListProvider _provider;
@@ -40,7 +41,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         // Arrange
         var completionContext = new VSInternalCompletionContext();
         var codeDocument = CreateCodeDocument("<");
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 0);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 0);
         var rewriter1 = new TestResponseRewriter(order: 100);
         var rewriter2 = new TestResponseRewriter(order: 20);
         var provider = TestDelegatedCompletionListProvider.Create(LoggerFactory, rewriter1, rewriter2);
@@ -61,7 +62,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         // Arrange
         var completionContext = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked };
         var codeDocument = CreateCodeDocument("<");
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
         // Act
         await _provider.GetCompletionListAsync(
@@ -88,7 +89,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
             TriggerCharacter = "<",
         };
         var codeDocument = CreateCodeDocument("<");
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
         // Act
         await _provider.GetCompletionListAsync(
@@ -116,7 +117,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
             TriggerCharacter = "|",
         };
         var codeDocument = CreateCodeDocument("|");
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
         // Act
         await _provider.GetCompletionListAsync(
@@ -144,7 +145,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
             TriggerCharacter = "<",
         };
         var codeDocument = CreateCodeDocument("<");
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
         var provider = TestDelegatedCompletionListProvider.CreateWithNullResponse(LoggerFactory);
 
         // Act
@@ -192,7 +193,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         // Arrange
         var completionContext = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked };
         var codeDocument = CreateCodeDocument("@functions ");
-        var documentContext = TestDocumentContext.From("C:/path/to/file.razor", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.razor", codeDocument, hostDocumentVersion: 1337);
 
         // Act
         var completionList = await _provider.GetCompletionListAsync(
@@ -215,7 +216,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
             TriggerCharacter = ".",
         };
         var codeDocument = CreateCodeDocument("@DateTime.");
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
         // Act
         await _provider.GetCompletionListAsync(
@@ -245,7 +246,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
             TriggerCharacter = ".",
         };
         var codeDocument = CreateCodeDocument("@DateTime.Now");
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
         // Act
         await _provider.GetCompletionListAsync(
@@ -284,17 +285,18 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         TestFileMarkupParser.GetPosition(input, out var code, out var cursorPosition);
         var codeDocument = CreateCodeDocument(code);
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
-        var documentMappingService = new TestDocumentMappingService()
-        {
-            LanguageKind = RazorLanguageKind.Html,
-            GeneratedPosition = new LinePosition(0, cursorPosition)
-        };
+        var generatedPosition = new LinePosition(0, cursorPosition);
+
+        var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
+        documentMappingServiceMock
+            .Setup(x => x.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out generatedPosition, out It.Ref<int>.IsAny))
+            .Returns(true);
 
         var completionProvider = new DelegatedCompletionListProvider(
-            Array.Empty<DelegatedCompletionResponseRewriter>(),
-            documentMappingService,
+            responseRewriters: [],
+            documentMappingServiceMock.Object,
             clientConnection,
             new CompletionListCache());
 
@@ -370,7 +372,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
             TriggerCharacter = triggerCharacter,
             InvokeKind = invocationKind,
         };
-        var documentContext = TestDocumentContext.From("C:/path/to/file.razor", codeDocument, hostDocumentVersion: 1337);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.razor", codeDocument, hostDocumentVersion: 1337);
         var provider = TestDelegatedCompletionListProvider.Create(csharpServer, LoggerFactory, DisposalToken);
 
         var completionList = await provider.GetCompletionListAsync(

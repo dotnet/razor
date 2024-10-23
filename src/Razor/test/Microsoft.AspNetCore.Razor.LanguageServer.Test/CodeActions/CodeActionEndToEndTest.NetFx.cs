@@ -59,7 +59,6 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                     new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
                     razorFormattingService)
             ];
-
     #region CSharp CodeAction Tests
 
     [Fact]
@@ -792,13 +791,12 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             """;
 
         var razorLSPOptions = new RazorLSPOptions(
-            EnableFormatting: true,
+            FormattingFlags.All,
             AutoClosingTags: true,
             insertSpaces,
             tabSize,
             AutoShowCompletion: true,
             AutoListParams: true,
-            FormatOnType: true,
             AutoInsertAttributeQuotes: true,
             ColorBackground: false,
             CodeBlockBraceOnNextLine: false,
@@ -1149,7 +1147,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         AssertEx.EqualOrDiff(expected, actual);
     }
 
-    private static VSInternalCodeAction? GetCodeActionToRun(string codeAction, int childActionIndex, SumType<Command, CodeAction>[] result)
+    protected static VSInternalCodeAction? GetCodeActionToRun(string codeAction, int childActionIndex, SumType<Command, CodeAction>[] result)
     {
         var codeActionToRun = (VSInternalCodeAction?)result.SingleOrDefault(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeAction || ((RazorVSInternalCodeAction)e.Value!).Title == codeAction).Value;
         if (codeActionToRun?.Children?.Length > 0)
@@ -1160,7 +1158,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         return codeActionToRun;
     }
 
-    private async Task<SumType<Command, CodeAction>[]> GetCodeActionsAsync(
+    internal async Task<SumType<Command, CodeAction>[]> GetCodeActionsAsync(
         Uri uri,
         TextSpan textSpan,
         SourceText sourceText,
@@ -1207,7 +1205,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         return result;
     }
 
-    private async Task<TextDocumentEdit[]> GetEditsAsync(
+    internal async Task<TextDocumentEdit[]> GetEditsAsync(
         VSInternalCodeAction codeActionToRun,
         RazorRequestContext requestContext,
         IClientConnection clientConnection,
@@ -1234,7 +1232,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         return documentEdits;
     }
 
-    private class GenerateMethodResolverDocumentContextFactory : TestDocumentContextFactory
+    internal class GenerateMethodResolverDocumentContextFactory : TestDocumentContextFactory
     {
         private readonly List<TagHelperDescriptor> _tagHelperDescriptors;
 
@@ -1263,8 +1261,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             }
 
             var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
-            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.Source.Text.ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
-            testDocumentSnapshot.With(CodeDocument);
+            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument, projectWorkspaceState);
 
             context = CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
             return true;

@@ -70,7 +70,7 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver(
             return codeAction;
         }
 
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
             return codeAction;

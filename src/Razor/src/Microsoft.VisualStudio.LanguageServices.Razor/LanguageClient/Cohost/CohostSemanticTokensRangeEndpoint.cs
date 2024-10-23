@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Text.Json;
 using System.Threading;
@@ -41,7 +42,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;
 
-    public Registration? GetRegistration(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
         {
@@ -49,17 +50,17 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
             var clientCapabilitiesString = JsonSerializer.Serialize(clientCapabilities);
             semanticTokensRefreshQueue.Initialize(clientCapabilitiesString);
 
-            return new Registration()
+            return [new Registration()
             {
                 Method = Methods.TextDocumentSemanticTokensRangeName,
                 RegisterOptions = new SemanticTokensRegistrationOptions()
                 {
                     DocumentSelector = filter,
                 }.EnableSemanticTokens(_semanticTokensLegendService)
-            };
+            }];
         }
 
-        return null;
+        return [];
     }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(SemanticTokensRangeParams request)

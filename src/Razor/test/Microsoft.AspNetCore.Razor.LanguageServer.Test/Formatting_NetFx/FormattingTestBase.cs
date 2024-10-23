@@ -36,10 +36,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public class FormattingTestBase : RazorToolingIntegrationTestBase
 {
-    public FormattingTestBase(ITestOutputHelper testOutput)
+    private readonly HtmlFormattingService _htmlFormattingService;
+
+    internal FormattingTestBase(HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
         : base(testOutput)
     {
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
+
+        _htmlFormattingService = htmlFormattingService;
     }
 
     private protected async Task RunFormattingTestAsync(
@@ -96,7 +100,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
-        var client = new FormattingLanguageServerClient(LoggerFactory);
+        var client = new FormattingLanguageServerClient(_htmlFormattingService, LoggerFactory);
         client.AddCodeDocument(codeDocument);
 
         var htmlFormatter = new HtmlFormatter(client);
@@ -161,7 +165,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         }
         else
         {
-            var client = new FormattingLanguageServerClient(LoggerFactory);
+            var client = new FormattingLanguageServerClient(_htmlFormattingService, LoggerFactory);
             client.AddCodeDocument(codeDocument);
 
             var htmlFormatter = new HtmlFormatter(client);
@@ -170,7 +174,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         }
 
         // Assert
-        var edited = razorSourceText.WithChanges( changes);
+        var edited = razorSourceText.WithChanges(changes);
         var actual = edited.ToString();
 
         AssertEx.EqualOrDiff(expected, actual);
@@ -271,9 +275,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var importsPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
         var importsSourceText = SourceText.From(DefaultImports);
         var importsDocument = RazorSourceDocument.Create(importsSourceText, RazorSourceDocumentProperties.Create(importsPath, importsPath));
-        var importsSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
+        var importsSnapshot = new StrictMock<IDocumentSnapshot>();
         importsSnapshot
-            .Setup(d => d.GetTextAsync())
+            .Setup(d => d.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(importsSourceText);
         importsSnapshot
             .Setup(d => d.FilePath)
@@ -284,11 +288,10 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
         var projectFileSystem = new TestRazorProjectFileSystem([
             new TestRazorProjectItem(path, fileKind: fileKind),
-            new TestRazorProjectItem(importsPath, fileKind: FileKinds.ComponentImport),
-            ]);
+            new TestRazorProjectItem(importsPath, fileKind: FileKinds.ComponentImport)]);
 
         var projectEngine = RazorProjectEngine.Create(
-            new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", Extensions: [], new LanguageServerFlags(forceRuntimeCodeGeneration)),
+            new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", Extensions: [], LanguageServerFlags: new LanguageServerFlags(forceRuntimeCodeGeneration)),
             projectFileSystem,
             builder =>
             {
@@ -314,9 +317,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
     internal static IDocumentSnapshot CreateDocumentSnapshot(string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind, ImmutableArray<RazorSourceDocument> importsDocuments, ImmutableArray<IDocumentSnapshot> imports, RazorProjectEngine projectEngine, RazorCodeDocument codeDocument, bool inGlobalNamespace = false)
     {
-        var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
+        var documentSnapshot = new StrictMock<IDocumentSnapshot>();
         documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.FilePath)
@@ -331,7 +334,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             .Setup(d => d.Project.Configuration)
             .Returns(projectEngine.Configuration);
         documentSnapshot
-            .Setup(d => d.GetTextAsync())
+            .Setup(d => d.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument.Source.Text);
         documentSnapshot
             .Setup(d => d.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))

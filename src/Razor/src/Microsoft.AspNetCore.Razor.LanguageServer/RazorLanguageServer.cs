@@ -119,9 +119,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         // Add the logger as a service in case anything in CLaSP pulls it out to do logging
         services.AddSingleton<ILspLogger>(Logger);
 
-        services.AddSingleton<IAdhocWorkspaceFactory, AdhocWorkspaceFactory>();
-        services.AddSingleton<IWorkspaceProvider, LspWorkspaceProvider>();
-
         services.AddSingleton<IFormattingCodeDocumentProvider, LspFormattingCodeDocumentProvider>();
 
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
@@ -131,7 +128,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 
-        services.AddDiagnosticServices();
         services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
         services.AddCompletionServices();
@@ -143,6 +139,9 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
         if (!featureOptions.UseRazorCohostServer)
         {
+            // Diagnostics
+            services.AddDiagnosticServices();
+
             // Auto insert
             services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
             services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
@@ -162,10 +161,8 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         // Other
         services.AddSingleton<IRazorComponentSearchEngine, RazorComponentSearchEngine>();
 
-        // Get the DefaultSession for telemetry. This is set by VS with
-        // TelemetryService.SetDefaultSession and provides the correct
-        // appinsights keys etc
         services.AddSingleton<ITelemetryReporter>(_telemetryReporter);
+        services.AddSingleton<AbstractTelemetryService, CLaSPTelemetryService>();
 
         // Defaults: For when the caller hasn't provided them through the `configure` action.
         services.TryAddSingleton<IHostServicesProvider, DefaultHostServicesProvider>();
@@ -209,6 +206,8 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
                 services.AddHandlerWithCapabilities<DocumentColorEndpoint>();
                 services.AddHandler<ColorPresentationEndpoint>();
+
+                services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
             }
 
             services.AddHandler<WrapWithTagEndpoint>();
@@ -217,7 +216,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
             services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
             services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
-            services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
             services.AddHandlerWithCapabilities<MapCodeEndpoint>();
         }
     }

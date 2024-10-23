@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -26,7 +25,6 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
-[UseExportProvider]
 public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
 {
     private readonly VSInternalClientCapabilities _clientCapabilities;
@@ -52,7 +50,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
             }
         };
 
-        var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml");
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml");
         _csharpCompletionParams = new DelegatedCompletionParams(
             documentContext.GetTextDocumentIdentifierAndVersion(),
             VsLspFactory.CreatePosition(10, 6),
@@ -275,7 +273,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         CSharpTestLspServer csharpServer)
     {
         var completionContext = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked };
-        var documentContext = TestDocumentContext.From("C:/path/to/file.razor", codeDocument);
+        var documentContext = TestDocumentContext.Create("C:/path/to/file.razor", codeDocument);
         var provider = TestDelegatedCompletionListProvider.Create(csharpServer, LoggerFactory, DisposalToken);
 
         var completionList = await provider.GetCompletionListAsync(

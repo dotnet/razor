@@ -182,6 +182,9 @@ public class InjectDirectiveTest
             b.AddDirective(InjectDirective.Directive);
             b.AddDirective(ModelDirective.Directive);
             b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+
+            b.Features.Add(new RazorPageDocumentClassifierPass());
+            b.Features.Add(new MvcViewDocumentClassifierPass());
         }).Engine;
     }
 

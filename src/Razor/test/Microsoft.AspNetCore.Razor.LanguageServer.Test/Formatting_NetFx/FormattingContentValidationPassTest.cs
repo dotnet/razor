@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.CSharp;
@@ -31,7 +30,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             [||]public class Foo { }
             }
             """;
-        using var context = CreateFormattingContext(source);
+        var context = CreateFormattingContext(source);
         var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
         var input = edits;
         var pass = GetPass();
@@ -52,7 +51,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             [|public class Foo { }
             |]}
             """;
-        using var context = CreateFormattingContext(source);
+        var context = CreateFormattingContext(source);
         var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
         var input = edits;
         var pass = GetPass();
@@ -87,12 +86,10 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         };
 
         var context = FormattingContext.Create(
-            uri,
             documentSnapshot,
             codeDocument,
             options,
-            new LspFormattingCodeDocumentProvider(),
-            TestAdhocWorkspaceFactory.Instance);
+            new LspFormattingCodeDocumentProvider());
         return context;
     }
 
@@ -108,9 +105,9 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
 
-        var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
+        var documentSnapshot = new StrictMock<IDocumentSnapshot>();
         documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.TargetPath)
