@@ -75,7 +75,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
 
         DocumentUri = new Uri(_filePath);
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
-        DocumentText = await DocumentSnapshot.GetTextAsync();
+        DocumentText = await DocumentSnapshot.GetTextAsync(CancellationToken.None);
 
         RazorPosition = DocumentText.GetPosition(razorCodeActionIndex);
 

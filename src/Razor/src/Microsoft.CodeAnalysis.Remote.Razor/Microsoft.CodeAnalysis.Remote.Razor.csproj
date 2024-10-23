@@ -5,7 +5,7 @@
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the Razor design-time infrastructure.</Description>
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>false</IsShippingPackage>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
 
     <!--
@@ -29,6 +29,8 @@
 
   <ItemGroup>
     <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\TelemetryReporter.cs" Link="Telemetry\TelemetryReporter.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLog.cs" Link="Telemetry\AggregatingTelemetryLog.cs" />
+    <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLogManager.cs" Link="Telemetry\AggregatingTelemetryLogManager.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,6 +57,15 @@
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" />
+  </ItemGroup>
+
+  <ItemGroup Label="String Resources">
+    <EmbeddedResource Update="Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>$(ProjectName).Resources</Namespace>
+    </EmbeddedResource>
+
+    <Using Include="$(ProjectName).Resources" />
   </ItemGroup>
 
 </Project>

@@ -329,6 +329,11 @@ public class RazorIntegrationTestBase
 
     protected CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, params DiagnosticDescription[] expectedDiagnostics)
     {
+        return CompileToAssembly(cSharpResult, diagnostics => diagnostics.Verify(expectedDiagnostics));
+    }
+
+    protected CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, Action<IEnumerable<Diagnostic>> verifyDiagnostics)
+    {
         var syntaxTrees = new[]
         {
             Parse(cSharpResult.Code, cSharpResult.ParseOptions),
@@ -340,7 +345,7 @@ public class RazorIntegrationTestBase
             .GetDiagnostics()
             .Where(d => d.Severity != DiagnosticSeverity.Hidden);
 
-        diagnostics.Verify(expectedDiagnostics);
+        verifyDiagnostics(diagnostics);
 
         if (diagnostics.Any())
         {

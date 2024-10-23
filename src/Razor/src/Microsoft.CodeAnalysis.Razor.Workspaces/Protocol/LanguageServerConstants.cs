@@ -37,6 +37,8 @@ internal static class LanguageServerConstants
 
         public const string ExtractToCodeBehindAction = "ExtractToCodeBehind";
 
+        public const string ExtractToNewComponentAction = "ExtractToNewComponent";
+
         public const string CreateComponentFromTag = "CreateComponentFromTag";
 
         public const string AddUsing = "AddUsing";

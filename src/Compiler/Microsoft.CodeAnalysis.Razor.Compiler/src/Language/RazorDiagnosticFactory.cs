@@ -364,13 +364,13 @@ internal static class RazorDiagnosticFactory
     public static RazorDiagnostic CreateParsing_DirectiveExpectsIdentifierOrExpression(SourceSpan location, string directiveName)
         => RazorDiagnostic.Create(Parsing_DirectiveExpectsIdentifierOrExpression, location, directiveName);
 
-    internal static readonly RazorDiagnosticDescriptor Parsing_DefineAndUndefNotAllowed =
+    internal static readonly RazorDiagnosticDescriptor Parsing_VoidElement =
         new($"{DiagnosticPrefix}1042",
-            Resources.Define_and_undef_cannot_be_used_in_razor_markup,
+            Resources.TagHelpersParseTreeRewriter_VoidElement,
             RazorDiagnosticSeverity.Error);
 
-    public static RazorDiagnostic CreateParsing_DefineAndUndefNotAllowed(SourceSpan location)
-        => RazorDiagnostic.Create(Parsing_DefineAndUndefNotAllowed, location);
+    public static RazorDiagnostic CreateParsing_VoidElement(SourceSpan location, string tagName)
+        => RazorDiagnostic.Create(Parsing_VoidElement, location, tagName);
 
     internal static readonly RazorDiagnosticDescriptor Parsing_PreprocessorDirectivesMustBeAtTheStartOfLine =
         new($"{DiagnosticPrefix}1043",
@@ -387,6 +387,14 @@ internal static class RazorDiagnosticFactory
 
     public static RazorDiagnostic CreateParsing_PossibleMisplacedPreprocessorDirective(SourceSpan location)
         => RazorDiagnostic.Create(Parsing_PossibleMisplacedPreprocessorDirective, location);
+
+    internal static readonly RazorDiagnosticDescriptor Parsing_DefineAndUndefNotAllowed =
+        new($"{DiagnosticPrefix}1045",
+            Resources.Define_and_undef_cannot_be_used_in_razor_markup,
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateParsing_DefineAndUndefNotAllowed(SourceSpan location)
+        => RazorDiagnostic.Create(Parsing_DefineAndUndefNotAllowed, location);
 
     #endregion
 

@@ -47,7 +47,7 @@ internal sealed class HtmlFormatter(
             return [];
         }
 
-        var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         return result.Edits.SelectAsArray(sourceText.GetTextChange);
     }
 
@@ -78,7 +78,7 @@ internal sealed class HtmlFormatter(
             return [];
         }
 
-        var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         return result.Edits.SelectAsArray(sourceText.GetTextChange);
     }
 

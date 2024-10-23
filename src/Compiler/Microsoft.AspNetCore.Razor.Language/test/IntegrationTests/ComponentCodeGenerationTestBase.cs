@@ -1141,6 +1141,70 @@ namespace Test
         Assert.Empty(generated.RazorDiagnostics);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecified_EventCallbackRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public bool Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<bool> Property1Changed { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters Property1="false" />
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,1): warning RZ2012: Component 'ComponentWithEditorRequiredParameters' expects a value for the parameter 'Property1Changed', but a value may not have been provided.
+            Diagnostic("RZ2012").WithLocation(1, 1));
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecified_ExpressionRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using System.Linq.Expressions;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public bool Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<bool> Property1Changed { get; set; }
+
+                [Parameter, EditorRequired]
+                public Expression<Func<bool>> Property1Expression { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters Property1="false" />
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,1): warning RZ2012: Component 'ComponentWithEditorRequiredParameters' expects a value for the parameter 'Property1Changed', but a value may not have been provided.
+            Diagnostic("RZ2012").WithLocation(1, 1),
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,1): warning RZ2012: Component 'ComponentWithEditorRequiredParameters' expects a value for the parameter 'Property1Expression', but a value may not have been provided.
+            Diagnostic("RZ2012").WithLocation(1, 1));
+    }
+
     [IntegrationTestFact]
     public void Component_WithEditorRequiredParameter_ValueSpecified_DifferentCasing()
     {
@@ -1217,6 +1281,72 @@ namespace Test
         Assert.Empty(generated.RazorDiagnostics);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind_EventCallbackRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public string Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<string> Property1Changed { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1="myField" />
+
+            @code {
+                private string myField = "Some Value";
+            }
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify();
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind_ExpressionRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using System.Linq.Expressions;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public string Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<string> Property1Changed { get; set; }
+
+                [Parameter, EditorRequired]
+                public Expression<Func<string>> Property1Expression { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1="myField" />
+
+            @code {
+                private string myField = "Some Value";
+            }
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify();
+    }
+
     [IntegrationTestFact]
     public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind_DifferentCasing()
     {
@@ -1264,6 +1394,74 @@ namespace Test
 
         CompileToAssembly(generated);
         Assert.Empty(generated.RazorDiagnostics);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBindGetSet_EventCallbackRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public string Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<string> Property1Changed { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1:get="myField" @bind-Property1:set="OnFieldChanged" />
+
+            @code {
+                private string myField = "Some Value";
+                private void OnFieldChanged(string value) { }
+            }
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify();
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBindGetSet_ExpressionRequired()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using System.Linq.Expressions;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter, EditorRequired]
+                public string Property1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public EventCallback<string> Property1Changed { get; set; }
+
+                [Parameter, EditorRequired]
+                public Expression<Func<string>> Property1Expression { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1:get="myField" @bind-Property1:set="OnFieldChanged" />
+
+            @code {
+                private string myField = "Some Value";
+                private void OnFieldChanged(string value) { }
+            }
+            """);
+
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify();
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10553")]
@@ -2101,6 +2299,34 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10965")]
+    public void InvalidCode_EmptyTransition()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+        <TestComponent Value="Hello" />
+
+        @
+
+        @code {
+            [Parameter] public int Param { get; set; }
+        }
+        """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, DesignTime?[
+            // x:\dir\subdir\Test\TestComponent.cshtml(3,7): error CS1525: Invalid expression term ';'
+            // __o = ;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 7)
+            ] : [
+            // (24,36): error CS1525: Invalid expression term ')'
+            //             __builder.AddContent(3, 
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(24, 36)
+            ]);
     }
 
     #endregion
@@ -5125,6 +5351,133 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class Col : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            <Col>in markup</Col>
+            @{
+                <Col>in code block</Col>
+                RenderFragment template = @<Col>in template</Col>;
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, verifyDiagnostics: static diagnostics =>
+        {
+            // Malformed C# is generated due to everything after the <Col> tag being considered C#.
+            Assert.Contains(diagnostics, static d => d.Severity == DiagnosticSeverity.Error);
+        });
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName_FullyQualified()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class Col : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            <Test.Col>in markup</Test.Col>
+            @{
+                <Test.Col>in code block</Test.Col>
+                RenderFragment template = @<Test.Col>in template</Test.Col>;
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName_SelfClosing()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class Col : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            <Col />
+            @{
+                <Col />
+                RenderFragment template = @<Col />;
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName_NoMatchingComponent()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            <Col>in markup</Col>
+            @{
+                <Col>in code block</Col>
+                RenderFragment template = @<Col>in template</Col>;
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: !DesignTime);
+        CompileToAssembly(generated, verifyDiagnostics: static diagnostics =>
+        {
+            // Malformed C# is generated due to everything after the <Col> tag being considered C#.
+            Assert.Contains(diagnostics, static d => d.Severity == DiagnosticSeverity.Error);
+        });
+    }
+
     #endregion
 
     #region Directives
@@ -5470,6 +5823,30 @@ namespace AnotherTest
         Assert.Collection(generated.RazorDiagnostics, d => { Assert.Equal("RZ1038", d.Id); });
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10963")]
+    public void InheritsDirective()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            public class BaseComponent : Microsoft.AspNetCore.Components.ComponentBase
+            {
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits BaseComponent
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/7169")]
     public void InheritsDirective_NullableReferenceType()
     {
@@ -5526,9 +5903,9 @@ namespace AnotherTest
             """,
             nullableEnable: false,
             expectedCSharpDiagnostics:
-                // (18,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                // (1,31): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(18, 62));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31));
 
         // Assert
         Assert.Empty(generated.RazorDiagnostics);
@@ -5544,10 +5921,90 @@ namespace AnotherTest
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62)
             ]
             : [
-                // (14,62): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+                // (1,31): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(14, 62)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31)
             ]);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10863")]
+    public void PageDirective_NoForwardSlash()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @page "MyPage"
+
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10863")]
+    public void PageDirective_NoForwardSlash_WithComment()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @page /* comment */ "MyPage"
+
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10863")]
+    public void PageDirective_MissingRoute()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @page
+
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+
+        // Design time writer doesn't correctly emit pragmas for missing tokens, so don't validate them in design time
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: !DesignTime);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10863")]
+    public void PageDirective_MissingRoute_WithComment()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @page /* comment */
+
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+
+        // Design time writer doesn't correctly emit pragmas for missing tokens, so don't validate them in design time
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument, verifyLinePragmas: !DesignTime);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10863")]
+    public void UsingDirective()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @using System.Collections
+
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
     }
 
     #endregion
@@ -8741,6 +9198,29 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void GenericComponent_MissingTypeParameter_SystemInNamespace()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            namespace Test;
+            public class MyComponent<TItem> : ComponentBase;
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @namespace Test.System
+            <MyComponent />
+            """);
+
+        // Assert
+        CompileToAssembly(generated);
+        generated.RazorDiagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(2,1): error RZ10001: The type of component 'MyComponent' cannot be inferred based on the values provided. Consider specifying the type arguments directly using the following attributes: 'TItem'.
+            Diagnostic("RZ10001").WithLocation(2, 1));
     }
 
     [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/10827")]

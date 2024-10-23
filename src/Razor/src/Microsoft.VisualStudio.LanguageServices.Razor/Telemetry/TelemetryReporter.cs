@@ -2,11 +2,17 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Telemetry;
+using System.IO;
+using System.Threading;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.VisualStudio.Telemetry;
+using static Microsoft.VisualStudio.Razor.Telemetry.AggregatingTelemetryLog;
+using TelemetryResult = Microsoft.AspNetCore.Razor.Telemetry.TelemetryResult;
 
 #if DEBUG
 using System.Linq;
@@ -14,29 +20,41 @@ using System.Linq;
 
 namespace Microsoft.VisualStudio.Razor.Telemetry;
 
-internal abstract class TelemetryReporter : ITelemetryReporter
+internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposable
 {
-    protected ImmutableArray<TelemetrySession> TelemetrySessions { get; set; }
+    private const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
+    private const string AspNetCoreNamespace = nameof(Microsoft) + "." + nameof(AspNetCore);
+    private const string MicrosoftVSRazorNamespace = $"{nameof(Microsoft)}.{nameof(VisualStudio)}.{nameof(Razor)}";
 
-    protected TelemetryReporter(ImmutableArray<TelemetrySession> telemetrySessions = default)
+    // Types that will not contribute to fault bucketing. Fully qualified name is
+    // required in order to match correctly.
+    private static readonly FrozenSet<string> s_faultIgnoredTypeNames = new string[] {
+        "Microsoft.AspNetCore.Razor.NullableExtensions"
+    }.ToFrozenSet();
+
+    private TelemetrySessionManager? _manager;
+
+    protected TelemetryReporter(TelemetrySession? telemetrySession = null)
     {
-        // Get the DefaultSession for telemetry. This is set by VS with
-        // TelemetryService.SetDefaultSession and provides the correct
-        // appinsights keys etc
-        TelemetrySessions = telemetrySessions.NullToEmpty();
+        if (telemetrySession is not null)
+        {
+            SetSession(telemetrySession);
+        }
     }
 
-    private static string GetEventName(string name) => "dotnet/razor/" + name;
-    private static string GetPropertyName(string name) => "dotnet.razor." + name;
+    internal static string GetEventName(string name) => "dotnet/razor/" + name;
+    internal static string GetPropertyName(string name) => "dotnet.razor." + name;
 
-    private static TelemetrySeverity ConvertSeverity(Severity severity)
-        => severity switch
-        {
-            Severity.Normal => TelemetrySeverity.Normal,
-            Severity.Low => TelemetrySeverity.Low,
-            Severity.High => TelemetrySeverity.High,
-            _ => throw new InvalidOperationException($"Unknown severity: {severity}")
-        };
+#if DEBUG
+    public virtual bool IsEnabled => true;
+#else
+    public virtual bool IsEnabled => _manager?.Session.IsOptedIn ?? false;
+#endif
+
+    public void Dispose()
+    {
+        _manager?.Dispose();
+    }
 
     public void ReportEvent(string name, Severity severity)
     {
@@ -84,7 +102,7 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         Report(telemetryEvent);
     }
 
-    private static void AddToProperties(IDictionary<string, object?> properties, Property property)
+    internal static void AddToProperties(IDictionary<string, object?> properties, Property property)
     {
         if (IsComplexValue(property.Value))
         {
@@ -163,6 +181,11 @@ internal abstract class TelemetryReporter : ITelemetryReporter
                     return 0;
                 });
 
+            var (moduleName, methodName) = GetModifiedFaultParameters(exception);
+            faultEvent.SetFailureParameters(
+                failureParameter1: moduleName,
+                failureParameter2: methodName);
+
             Report(faultEvent);
         }
         catch (Exception)
@@ -170,53 +193,30 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         }
     }
 
-    private static string GetExceptionDetails(Exception exception)
+    public virtual void ReportMetric(TelemetryInstrumentEvent metricEvent)
     {
-        const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
-        const string AspNetCoreNamespace = nameof(Microsoft) + "." + nameof(AspNetCore);
-
-        // Be resilient to failing here.  If we can't get a suitable name, just fall back to the standard name we
-        // used to report.
         try
         {
-            // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
-            var frames = new StackTrace(exception).GetFrames();
-
-            // On the .NET Framework, GetFrames() can return null even though it's not documented as such.
-            // At least one case here is if the exception's stack trace itself is null.
-            if (frames != null)
-            {
-                foreach (var frame in frames)
-                {
-                    var method = frame?.GetMethod();
-                    var methodName = method?.Name;
-                    if (methodName is null)
-                    {
-                        continue;
-                    }
-
-                    var declaringTypeName = method?.DeclaringType?.FullName;
-                    if (declaringTypeName == null)
-                    {
-                        continue;
-                    }
-
-                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace) &&
-                        !declaringTypeName.StartsWith(AspNetCoreNamespace))
-                    {
-                        continue;
-                    }
-
-                    return declaringTypeName + "." + methodName;
-                }
-            }
+#if !DEBUG
+            _manager?.Session.PostMetricEvent(metricEvent);
+#else
+            // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
+            // before we're ready to send them to the cloud
+            LogTelemetry(metricEvent.Event);
+#endif
         }
-        catch
+        catch (Exception e)
         {
+            // No need to do anything here. We failed to report telemetry
+            // which isn't good, but not catastrophic for a user
+            LogError(e, "Failed logging telemetry event");
         }
+    }
 
-        // If we couldn't get a stack, do this
-        return exception.Message;
+    protected void SetSession(TelemetrySession session)
+    {
+        _manager?.Dispose();
+        _manager = TelemetrySessionManager.Create(this, session);
     }
 
     protected virtual void Report(TelemetryEvent telemetryEvent)
@@ -224,26 +224,9 @@ internal abstract class TelemetryReporter : ITelemetryReporter
         try
         {
 #if !DEBUG
-            foreach (var session in TelemetrySessions)
-            {
-                session.PostEvent(telemetryEvent);
-            }
+            _manager?.Session.PostEvent(telemetryEvent);
 #else
-            // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
-            // before we're ready to send them to the cloud
-            var name = telemetryEvent.Name;
-            var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
-            LogTrace($"Telemetry Event: {name} \n Properties: {propertyString}\n");
-
-            if (telemetryEvent is FaultEvent)
-            {
-                var eventType = telemetryEvent.GetType();
-                var description = eventType.GetProperty("Description", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
-                var exception = eventType.GetProperty("ExceptionObject", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
-                var message = $"Fault Event: {name} \n Exception Info: {exception ?? description} \n Properties: {propertyString}";
-
-                Debug.Fail(message);
-            }
+            LogTelemetry(telemetryEvent);
 #endif
         }
         catch (Exception e)
@@ -296,5 +279,267 @@ internal abstract class TelemetryReporter : ITelemetryReporter
             new("eventscope.method", lspMethodName),
             new("eventscope.languageservername", languageServerName),
             new("eventscope.correlationid", correlationId));
+    }
+
+    public void ReportRequestTiming(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, AspNetCore.Razor.Telemetry.TelemetryResult result)
+    {
+        _manager?.LogRequestTelemetry(
+            name,
+            language,
+            queuedDuration,
+            requestDuration,
+            result);
+    }
+
+#if DEBUG
+    private void LogTelemetry(TelemetryEvent telemetryEvent)
+    {
+        // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
+        // before we're ready to send them to the cloud
+        var name = telemetryEvent.Name;
+        var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
+        LogTrace($"Telemetry Event: {name} \n Properties: {propertyString}\n");
+
+        if (telemetryEvent is FaultEvent)
+        {
+            var eventType = telemetryEvent.GetType();
+            var description = eventType.GetProperty("Description", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
+            var exception = eventType.GetProperty("ExceptionObject", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
+            var message = $"Fault Event: {name} \n Exception Info: {exception ?? description} \n Properties: {propertyString}";
+
+            Debug.Fail(message);
+        }
+    }
+#endif
+
+    /// <summary>
+    /// Returns values that should be set to (failureParameter1, failureParameter2) when reporting a fault.
+    /// Those values represent the blamed stackframe module and method name.
+    /// </summary>
+    internal static (string?, string?) GetModifiedFaultParameters(Exception exception)
+    {
+        var frame = FindFirstRazorStackFrame(exception, static (declaringTypeName, _) =>
+        {
+            if (s_faultIgnoredTypeNames.Contains(declaringTypeName))
+            {
+                return false;
+            }
+
+            return true;
+        });
+
+        var method = frame?.GetMethod();
+        if (method is null)
+        {
+            return (null, null);
+        }
+
+        var moduleName = Path.GetFileNameWithoutExtension(method.Module.Name);
+        return (moduleName, method.Name);
+    }
+
+    private static string GetExceptionDetails(Exception exception)
+    {
+        var frame = FindFirstRazorStackFrame(exception);
+
+        if (frame is null)
+        {
+            return exception.Message;
+        }
+
+        var method = frame.GetMethod();
+
+        // These are checked in FindFirstRazorStackFrame
+        method.AssumeNotNull();
+        method.DeclaringType.AssumeNotNull();
+
+        var declaringTypeName = method.DeclaringType.FullName;
+        var methodName = method.Name;
+
+        return declaringTypeName + "." + methodName;
+    }
+
+    /// <summary>
+    /// Finds the first stack frame in exception stack that originates from razor code based on namespace
+    /// </summary>
+    /// <param name="exception">The exception to get the stack from</param>
+    /// <param name="predicate">Optional predicate to filter by declaringTypeName and methodName</param>
+    /// <returns></returns>
+    private static StackFrame? FindFirstRazorStackFrame(
+        Exception exception,
+        Func<string, string, bool>? predicate = null)
+    {
+        // Be resilient to failing here.  If we can't get a suitable name, just fall back to the standard name we
+        // used to report.
+        try
+        {
+            // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
+            var frames = new StackTrace(exception).GetFrames();
+
+            // On the .NET Framework, GetFrames() can return null even though it's not documented as such.
+            // At least one case here is if the exception's stack trace itself is null.
+            if (frames != null)
+            {
+                foreach (var frame in frames)
+                {
+                    if (frame is null)
+                    {
+                        continue;
+                    }
+
+                    var method = frame.GetMethod();
+                    var methodName = method?.Name;
+                    if (methodName is null)
+                    {
+                        continue;
+                    }
+
+                    var declaringTypeName = method?.DeclaringType?.FullName;
+                    if (declaringTypeName == null)
+                    {
+                        continue;
+                    }
+
+                    if (!IsInOwnedNamespace(declaringTypeName))
+                    {
+                        continue;
+                    }
+
+                    if (predicate is null)
+                    {
+                        return frame;
+                    }
+
+                    if (predicate(declaringTypeName, methodName))
+                    {
+                        return frame;
+                    }
+                }
+            }
+
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static TelemetrySeverity ConvertSeverity(Severity severity)
+        => severity switch
+        {
+            Severity.Normal => TelemetrySeverity.Normal,
+            Severity.Low => TelemetrySeverity.Low,
+            Severity.High => TelemetrySeverity.High,
+            _ => throw new InvalidOperationException($"Unknown severity: {severity}")
+        };
+
+    private static bool IsInOwnedNamespace(string declaringTypeName)
+        => declaringTypeName.StartsWith(CodeAnalysisNamespace) ||
+            declaringTypeName.StartsWith(AspNetCoreNamespace) ||
+            declaringTypeName.StartsWith(MicrosoftVSRazorNamespace);
+
+    private sealed class TelemetrySessionManager : IDisposable
+    {
+        /// <summary>
+        /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
+        /// run alongside other non-mutating requests.
+        /// </summary>
+        private readonly ConcurrentDictionary<(string Method, string? Language), Counter> _requestCounters = new();
+        private readonly ITelemetryReporter _telemetryReporter;
+        private readonly AggregatingTelemetryLogManager _aggregatingManager;
+
+        private TelemetrySessionManager(ITelemetryReporter telemetryReporter, TelemetrySession session, AggregatingTelemetryLogManager aggregatingManager)
+        {
+            _telemetryReporter = telemetryReporter;
+            _aggregatingManager = aggregatingManager;
+            Session = session;
+        }
+
+        public static TelemetrySessionManager Create(TelemetryReporter telemetryReporter, TelemetrySession session)
+            => new(
+                telemetryReporter,
+                session,
+                new AggregatingTelemetryLogManager(telemetryReporter));
+
+        public TelemetrySession Session { get; }
+
+        public void Dispose()
+        {
+            Flush();
+        }
+
+        public void Flush()
+        {
+            _aggregatingManager.Flush();
+            LogRequestCounters();
+        }
+
+        public void LogRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result)
+        {
+            LogAggregated("LSP_TimeInQueue",
+                (int)queuedDuration.TotalMilliseconds,
+                "TimeInQueue",
+                name);
+
+            LogAggregated("LSP_RequestDuration",
+                (int)requestDuration.TotalMilliseconds,
+                "RequestDuration",
+                name);
+
+            _requestCounters.GetOrAdd((name, language), (_) => new Counter()).IncrementCount(result);
+        }
+
+        private void LogRequestCounters()
+        {
+            foreach (var kvp in _requestCounters)
+            {
+                _telemetryReporter.ReportEvent("LSP_RequestCounter",
+                    Severity.Low,
+                    new Property("method", kvp.Key.Method),
+                    new Property("successful", kvp.Value.SucceededCount),
+                    new Property("failed", kvp.Value.FailedCount),
+                    new Property("cancelled", kvp.Value.CancelledCount));
+            }
+
+            _requestCounters.Clear();
+        }
+
+        private void LogAggregated(
+            string name,
+            int value,
+            string metricName,
+            string method)
+        {
+            var aggregatingLog = _aggregatingManager?.GetLog(name);
+            aggregatingLog?.Log(name, value, metricName, method);
+        }
+
+        private sealed class Counter
+        {
+            private int _succeededCount;
+            private int _failedCount;
+            private int _cancelledCount;
+
+            public int SucceededCount => _succeededCount;
+            public int FailedCount => _failedCount;
+            public int CancelledCount => _cancelledCount;
+
+            public void IncrementCount(TelemetryResult result)
+            {
+                switch (result)
+                {
+                    case TelemetryResult.Succeeded:
+                        Interlocked.Increment(ref _succeededCount);
+                        break;
+                    case TelemetryResult.Failed:
+                        Interlocked.Increment(ref _failedCount);
+                        break;
+                    case TelemetryResult.Cancelled:
+                        Interlocked.Increment(ref _cancelledCount);
+                        break;
+                }
+            }
+        }
     }
 }

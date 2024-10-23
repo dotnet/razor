@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -112,10 +113,10 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
         }
     }
 
-    private async Task PublishDiagnosticsAsync(IDocumentSnapshot document, CancellationToken token)
+    private async Task PublishDiagnosticsAsync(IDocumentSnapshot document, CancellationToken cancellationToken)
     {
-        var result = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
-        var csharpDiagnostics = await GetCSharpDiagnosticsAsync(document, token).ConfigureAwait(false);
+        var result = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var csharpDiagnostics = await GetCSharpDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
 
         lock (_publishedDiagnostics)
@@ -187,7 +188,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
                     if (_documentContextFactory.Value.TryCreate(delegatedParams.TextDocument.Uri, projectContext: null, out var documentContext))
                     {
                         return await _translateDiagnosticsService.Value
-                            .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, token)
+                            .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext.Snapshot, cancellationToken)
                             .ConfigureAwait(false);
                     }
                 }

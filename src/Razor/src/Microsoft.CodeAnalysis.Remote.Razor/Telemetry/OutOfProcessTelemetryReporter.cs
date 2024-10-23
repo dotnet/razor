@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Telemetry;
 internal class OutOfProcessTelemetryReporter : TelemetryReporter
 {
     public OutOfProcessTelemetryReporter()
-        : base([TelemetryService.DefaultSession])
+        : base(TelemetryService.DefaultSession)
     {
     }
 }

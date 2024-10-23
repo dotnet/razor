@@ -19,9 +19,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
-using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -104,6 +104,7 @@ internal static class IServiceCollectionExtensions
         services.AddHandlerWithCapabilities<DocumentPullDiagnosticsEndpoint>();
         services.AddSingleton<RazorTranslateDiagnosticsService>();
         services.AddSingleton(sp => new Lazy<RazorTranslateDiagnosticsService>(sp.GetRequiredService<RazorTranslateDiagnosticsService>));
+        services.AddSingleton<IRazorStartupService, WorkspaceDiagnosticsRefresher>();
     }
 
     public static void AddHoverServices(this IServiceCollection services)
@@ -145,6 +146,8 @@ internal static class IServiceCollectionExtensions
         // Razor Code actions
         services.AddSingleton<IRazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
         services.AddSingleton<IRazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, ExtractToComponentCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver ,ExtractToComponentCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
         services.AddSingleton<IRazorCodeActionResolver, CreateComponentCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionResolver, AddUsingsCodeActionResolver>();
@@ -219,13 +222,9 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
         services.AddSingleton<IDocumentProcessedListener, CodeDocumentReferenceHolder>();
 
-        services.AddSingleton<LSPTagHelperTooltipFactory, DefaultLSPTagHelperTooltipFactory>();
-        services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
-
         // Add project snapshot manager
         services.AddSingleton<IProjectEngineFactoryProvider, LspProjectEngineFactoryProvider>();
         services.AddSingleton<IProjectSnapshotManager, LspProjectSnapshotManager>();
-        services.AddSingleton<IProjectCollectionResolver>(sp => (LspProjectSnapshotManager)sp.GetRequiredService<IProjectSnapshotManager>());
     }
 
     public static void AddHandlerWithCapabilities<T>(this IServiceCollection services)

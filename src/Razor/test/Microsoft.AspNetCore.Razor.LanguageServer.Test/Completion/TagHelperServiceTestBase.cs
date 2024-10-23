@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -271,6 +272,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
             builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+            RazorExtensions.Register(builder);
         });
         var fileKind = filePath.EndsWith(".razor", StringComparison.Ordinal) ? FileKinds.Component : FileKinds.Legacy;
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -27,12 +28,13 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 /// </summary>
 internal sealed class CSharpOnTypeFormattingPass(
     IDocumentMappingService documentMappingService,
+    IHostServicesProvider hostServicesProvider,
     ILoggerFactory loggerFactory)
-    : CSharpFormattingPassBase(documentMappingService, isFormatOnType: true)
+    : CSharpFormattingPassBase(documentMappingService, hostServicesProvider, isFormatOnType: true)
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
-    public async override Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+    protected async override Task<ImmutableArray<TextChange>> ExecuteCoreAsync(FormattingContext context, RoslynWorkspaceHelper roslynWorkspaceHelper, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
         // Normalize and re-map the C# edits.
         var codeDocument = context.CodeDocument;
@@ -42,7 +44,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         {
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
-                _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
+                _logger.LogWarning($"Failed to map to projected position for document {context.OriginalSnapshot.FilePath}.");
                 return changes;
             }
 
@@ -51,7 +53,7 @@ internal sealed class CSharpOnTypeFormattingPass(
                 formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
 
             var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                context.CSharpWorkspaceDocument,
+                roslynWorkspaceHelper.CreateCSharpDocument(context.CodeDocument),
                 typedChar: context.TriggerCharacter,
                 projectedIndex,
                 context.Options.ToIndentationOptions(),
@@ -107,7 +109,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var formattedText = ApplyChangesAndTrackChange(originalText, filteredChanges, out _, out var spanAfterFormatting);
         _logger.LogTestOnly($"After C# changes:\r\n{formattedText}");
 
-        var changedContext = await context.WithTextAsync(formattedText).ConfigureAwait(false);
+        var changedContext = await context.WithTextAsync(formattedText, cancellationToken).ConfigureAwait(false);
         var linePositionSpanAfterFormatting = formattedText.GetLinePositionSpan(spanAfterFormatting);
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -117,9 +119,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var cleanedText = formattedText.WithChanges(cleanupChanges);
         _logger.LogTestOnly($"After CleanupDocument:\r\n{cleanedText}");
 
-        changedContext = await changedContext.WithTextAsync(cleanedText).ConfigureAwait(false);
-
-        cancellationToken.ThrowIfCancellationRequested();
+        changedContext = await changedContext.WithTextAsync(cleanedText, cancellationToken).ConfigureAwait(false);
 
         // At this point we should have applied all edits that adds/removes newlines.
         // Let's now ensure the indentation of each of those lines is correct.
@@ -167,7 +167,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         Debug.Assert(cleanedText.Lines.Count > endLineInclusive, "Invalid range. This is unexpected.");
 
-        var indentationChanges = await AdjustIndentationAsync(changedContext, startLine, endLineInclusive, cancellationToken).ConfigureAwait(false);
+        var indentationChanges = await AdjustIndentationAsync(changedContext, startLine, endLineInclusive, roslynWorkspaceHelper.HostWorkspaceServices, cancellationToken).ConfigureAwait(false);
         if (indentationChanges.Length > 0)
         {
             // Apply the edits that modify indentation.

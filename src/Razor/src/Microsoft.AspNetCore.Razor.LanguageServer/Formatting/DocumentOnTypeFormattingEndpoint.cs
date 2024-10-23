@@ -49,13 +49,13 @@ internal class DocumentOnTypeFormattingEndpoint(
     {
         _logger.LogInformation($"Starting OnTypeFormatting request for {request.TextDocument.Uri}.");
 
-        if (!_optionsMonitor.CurrentValue.EnableFormatting)
+        if (!_optionsMonitor.CurrentValue.Formatting.IsEnabled())
         {
             _logger.LogInformation($"Formatting option disabled.");
             return null;
         }
 
-        if (!_optionsMonitor.CurrentValue.FormatOnType)
+        if (!_optionsMonitor.CurrentValue.Formatting.IsOnTypeEnabled())
         {
             _logger.LogInformation($"Formatting on type disabled.");
             return null;
@@ -89,7 +89,8 @@ internal class DocumentOnTypeFormattingEndpoint(
             return null;
         }
 
-        if (_razorFormattingService.TryGetOnTypeFormattingTriggerKind(codeDocument, hostDocumentIndex, request.Character, out var triggerCharacterKind))
+        if (!_razorFormattingService.TryGetOnTypeFormattingTriggerKind(codeDocument, hostDocumentIndex, request.Character, out var triggerCharacterKind) ||
+            triggerCharacterKind == RazorLanguageKind.Razor)
         {
             return null;
         }

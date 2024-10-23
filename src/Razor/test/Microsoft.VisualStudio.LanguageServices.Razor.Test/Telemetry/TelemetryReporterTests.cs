@@ -2,11 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Editor.Razor.Test.Shared;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Telemetry.Metrics;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,7 +23,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void NoArgument()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         reporter.ReportEvent("EventName", Severity.Normal);
         Assert.Collection(reporter.Events,
             e1 =>
@@ -32,7 +37,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void OneArgument()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         reporter.ReportEvent("EventName", Severity.Normal, new Property("P1", false));
         Assert.Collection(reporter.Events,
             e1 =>
@@ -49,7 +54,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void TwoArguments()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         reporter.ReportEvent("EventName", Severity.Normal, new("P1", false), new("P2", "test"));
         Assert.Collection(reporter.Events,
             e1 =>
@@ -66,7 +71,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void ThreeArguments()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         var p3Value = Guid.NewGuid();
         reporter.ReportEvent("EventName",
             Severity.Normal,
@@ -93,7 +98,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void FourArguments()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         var p3Value = Guid.NewGuid();
         reporter.ReportEvent("EventName",
             Severity.Normal,
@@ -123,7 +128,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void Block_NoArguments()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         using (var scope = reporter.BeginBlock("EventName", Severity.Normal))
         {
         }
@@ -142,7 +147,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void Block_OneArgument()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         using (reporter.BeginBlock("EventName", Severity.Normal, new Property("P1", false)))
         {
         }
@@ -162,7 +167,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void Block_TwoArguments()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         using (reporter.BeginBlock("EventName", Severity.Normal, new("P1", false), new("P2", "test")))
         {
         }
@@ -183,7 +188,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void Block_ThreeArguments()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         var p3Value = Guid.NewGuid();
         using (reporter.BeginBlock("EventName",
             Severity.Normal,
@@ -213,7 +218,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void Block_FourArguments()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         var p3Value = Guid.NewGuid();
         using (reporter.BeginBlock("EventName",
             Severity.Normal,
@@ -246,7 +251,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void HandleRIEWithInnerException()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
 
         var ae = new ApplicationException("expectedText");
         var rie = new RemoteInvocationException("a", 0, ae);
@@ -268,7 +273,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void HandleRIEWithNoInnerException()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
 
         var rie = new RemoteInvocationException("a", 0, errorData: null);
 
@@ -289,7 +294,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     [Fact]
     public void TrackLspRequest()
     {
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         var correlationId = Guid.NewGuid();
         using (reporter.TrackLspRequest("MethodName", "ServerName", correlationId))
         {
@@ -329,7 +334,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     public void ReportFault_OperationCanceledExceptionWithoutInnerException_SkipsFaultReport()
     {
         // Arrange
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         var exception = new OperationCanceledException("OCE", innerException: null);
 
         // Act
@@ -343,7 +348,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     public void ReportFault_TaskCanceledExceptionWithoutInnerException_SkipsFaultReport()
     {
         // Arrange
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         var exception = new TaskCanceledException("TCE", innerException: null);
 
         // Act
@@ -358,7 +363,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     {
         // Arrange
         var depth = 3;
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         var innerMostException = new Exception();
         var exception = new OperationCanceledException("Test", innerMostException);
         for (var i = 0; i < depth; i++)
@@ -378,7 +383,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     {
         // Arrange
         var depth = 3;
-        var reporter = new TestTelemetryReporter(LoggerFactory);
+        using var reporter = new TestTelemetryReporter(LoggerFactory);
         var innerMostException = new OperationCanceledException();
         var exception = new OperationCanceledException("Test", innerMostException);
         for (var i = 0; i < depth; i++)
@@ -392,4 +397,122 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
         // Assert
         Assert.Empty(reporter.Events);
     }
+
+    [Fact]
+    public void ReportHistogram()
+    {
+        // Arrange
+        var reporter = new TestTelemetryReporter(LoggerFactory);
+
+        // Act
+        reporter.ReportRequestTiming(
+            Methods.TextDocumentCodeActionName,
+            WellKnownLspServerKinds.RazorLspServer.GetContractName(),
+            TimeSpan.FromMilliseconds(100),
+            TimeSpan.FromMilliseconds(100),
+            AspNetCore.Razor.Telemetry.TelemetryResult.Succeeded);
+
+        reporter.ReportRequestTiming(
+            Methods.TextDocumentCodeActionName,
+            WellKnownLspServerKinds.RazorLspServer.GetContractName(),
+            TimeSpan.FromMilliseconds(200),
+            TimeSpan.FromMilliseconds(200),
+            AspNetCore.Razor.Telemetry.TelemetryResult.Cancelled);
+
+        reporter.ReportRequestTiming(
+            Methods.TextDocumentCodeActionName,
+            WellKnownLspServerKinds.RazorLspServer.GetContractName(),
+            TimeSpan.FromMilliseconds(300),
+            TimeSpan.FromMilliseconds(300),
+            AspNetCore.Razor.Telemetry.TelemetryResult.Failed);
+
+        reporter.Dispose();
+
+        // Assert
+        reporter.AssertMetrics(
+            static evt =>
+            {
+                var histogram = Assert.IsAssignableFrom<IHistogram<long>>(evt.Instrument);
+                Assert.Equal("TimeInQueue", histogram.Name);
+
+                var telemetryEvent = evt.Event;
+                Assert.Equal("dotnet/razor/lsp_timeinqueue", telemetryEvent.Name);
+                Assert.Collection(telemetryEvent.Properties,
+                    static prop =>
+                    {
+                        Assert.Equal("dotnet.razor.method", prop.Key);
+                        Assert.Equal(Methods.TextDocumentCodeActionName, prop.Value);
+                    });
+            },
+            static evt =>
+            {
+                var histogram = Assert.IsAssignableFrom<IHistogram<long>>(evt.Instrument);
+                Assert.Equal("RequestDuration", histogram.Name);
+
+                var telemetryEvent = evt.Event;
+                Assert.Equal("dotnet/razor/lsp_requestduration", telemetryEvent.Name);
+                Assert.Collection(telemetryEvent.Properties,
+                    static prop =>
+                    {
+                        Assert.Equal("dotnet.razor.method", prop.Key);
+                        Assert.Equal(Methods.TextDocumentCodeActionName, prop.Value);
+                    });
+            });
+
+        Assert.Collection(reporter.Events,
+            static evt =>
+            {
+                Assert.Equal("dotnet/razor/lsp_requestcounter", evt.Name);
+                Assert.Collection(evt.Properties,
+                    static prop =>
+                    {
+                        Assert.Equal("dotnet.razor.method", prop.Key);
+                        Assert.Equal(Methods.TextDocumentCodeActionName, prop.Value);
+                    },
+                    static prop =>
+                    {
+                        Assert.Equal("dotnet.razor.successful", prop.Key);
+                        Assert.Equal(1, prop.Value);
+                    },
+                    static prop =>
+                    {
+                        Assert.Equal("dotnet.razor.failed", prop.Key);
+                        Assert.Equal(1, prop.Value);
+                    },
+                    static prop =>
+                    {
+                        Assert.Equal("dotnet.razor.cancelled", prop.Key);
+                        Assert.Equal(1, prop.Value);
+                    });
+            });
+    }
+
+    [Theory, MemberData(nameof(s_throwFunctions))]
+    public void GetModifiedFaultParameters_FiltersCorrectly(Func<object> throwAction)
+    {
+        try
+        {
+            throwAction();
+        }
+        catch (Exception ex)
+        {
+            var (param1, param2) = TestTelemetryReporter.GetModifiedFaultParameters(ex);
+
+            Assert.Equal("Microsoft.VisualStudio.LanguageServices.Razor.Test", param1);
+            Assert.NotNull(param2);
+
+            // Depending on debug/release the stack can contain a constructor or
+            // a call to this method. We expect one or the other and both
+            // are valid
+#if DEBUG
+            Assert.StartsWith("<.cctor>", param2);
+#else 
+            Assert.Equal("GetModifiedFaultParameters_FiltersCorrectly", param2);
+#endif
+        }
+    }
+
+    public static readonly IEnumerable<object[]> s_throwFunctions = [
+        [() => ((object?)null).AssumeNotNull()]
+    ];
 }

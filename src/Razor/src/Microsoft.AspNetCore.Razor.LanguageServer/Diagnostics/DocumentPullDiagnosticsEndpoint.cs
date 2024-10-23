@@ -3,13 +3,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Diagnostics;
@@ -25,6 +30,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
     private readonly IClientConnection _clientConnection;
     private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService;
     private readonly ITelemetryReporter? _telemetryReporter;
+    private ImmutableDictionary<ProjectKey, int> _lastReporedProjectTagHelperCount = ImmutableDictionary<ProjectKey, int>.Empty;
 
     public DocumentPullDiagnosticsEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -72,7 +78,11 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             return null;
         }
 
-        var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
+        var documentSnapshot = documentContext.Snapshot;
+
+        var razorDiagnostics = await GetRazorDiagnosticsAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
+
+        await ReportRZ10012TelemetryAsync(documentContext, razorDiagnostics, cancellationToken).ConfigureAwait(false);
 
         var (csharpDiagnostics, htmlDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, correlationId, cancellationToken).ConfigureAwait(false);
 
@@ -96,7 +106,9 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             {
                 if (report.Diagnostics is not null)
                 {
-                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
+                    var mappedDiagnostics = await _translateDiagnosticsService
+                        .TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentSnapshot, cancellationToken)
+                        .ConfigureAwait(false);
                     report.Diagnostics = mappedDiagnostics;
                 }
 
@@ -110,7 +122,9 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             {
                 if (report.Diagnostics is not null)
                 {
-                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
+                    var mappedDiagnostics = await _translateDiagnosticsService
+                        .TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentSnapshot, cancellationToken)
+                        .ConfigureAwait(false);
                     report.Diagnostics = mappedDiagnostics;
                 }
 
@@ -121,10 +135,10 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         return allDiagnostics.ToArray();
     }
 
-    private static async Task<VSInternalDiagnosticReport[]?> GetRazorDiagnosticsAsync(DocumentContext documentContext, CancellationToken cancellationToken)
+    private static async Task<VSInternalDiagnosticReport[]?> GetRazorDiagnosticsAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
         var csharpDocument = codeDocument.GetCSharpDocument();
         var diagnostics = csharpDocument.Diagnostics;
 
@@ -133,7 +147,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             return null;
         }
 
-        var convertedDiagnostics = RazorDiagnosticConverter.Convert(diagnostics, sourceText, documentContext.Snapshot);
+        var convertedDiagnostics = RazorDiagnosticConverter.Convert(diagnostics, sourceText, documentSnapshot);
 
         return
         [
@@ -159,5 +173,60 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         }
 
         return (delegatedResponse.CSharpDiagnostics, delegatedResponse.HtmlDiagnostics);
+    }
+
+    /// <summary>
+    /// Reports telemetry for RZ10012 "Found markup element with unexpected name" to help track down potential issues
+    /// with taghelpers being discovered (or lack thereof)
+    /// </summary>
+    private async ValueTask ReportRZ10012TelemetryAsync(DocumentContext documentContext, VSInternalDiagnosticReport[]? razorDiagnostics, CancellationToken cancellationToken)
+    {
+        if (razorDiagnostics is null)
+        {
+            return;
+        }
+
+        if (_telemetryReporter is null)
+        {
+            return;
+        }
+
+        var relevantDiagnosticsCount = razorDiagnostics.Sum(CountDiagnostics);
+        if (relevantDiagnosticsCount == 0)
+        {
+            return;
+        }
+
+        var tagHelpers = await documentContext.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelperCount = tagHelpers.Count();
+        var shouldReport = false;
+
+        ImmutableInterlocked.AddOrUpdate(
+            ref _lastReporedProjectTagHelperCount,
+            documentContext.Project.Key,
+            (k) =>
+            {
+                shouldReport = true;
+                return tagHelperCount;
+            },
+            (k, currentValue) =>
+            {
+                shouldReport = currentValue != tagHelperCount;
+                return tagHelperCount;
+            });
+
+        if (shouldReport)
+        {
+            _telemetryReporter.ReportEvent(
+                "RZ10012",
+                Severity.Low,
+                new("tagHelpers", tagHelperCount),
+                new("RZ10012errors", relevantDiagnosticsCount),
+                new("project", documentContext.Project.Key.Id));
+        }
+
+        static int CountDiagnostics(VSInternalDiagnosticReport report)
+            => report.Diagnostics?.Count(d => d.Code == ComponentDiagnosticFactory.UnexpectedMarkupElement.Id)
+            ?? 0;
     }
 }
