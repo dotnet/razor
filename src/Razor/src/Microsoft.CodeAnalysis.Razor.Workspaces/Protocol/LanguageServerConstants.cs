@@ -54,14 +54,5 @@ internal static class LanguageServerConstants
         /// Remaps and formats the resolved code action edit
         /// </summary>
         public const string Default = "Default";
-
-        public static class Languages
-        {
-            public const string CSharp = "CSharp";
-
-            public const string Razor = "Razor";
-
-            public const string Html = "Html";
-        }
     }
 }

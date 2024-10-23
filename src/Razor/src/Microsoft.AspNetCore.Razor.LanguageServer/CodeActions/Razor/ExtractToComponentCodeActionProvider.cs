@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -66,7 +67,7 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         {
             TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToNewComponentAction,
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = actionParams,
         };
 

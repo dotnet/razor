@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -112,7 +113,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory logge
         {
             TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToCodeBehindAction,
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = actionParams,
         };
 

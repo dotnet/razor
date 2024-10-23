@@ -4,6 +4,7 @@
 using System;
 using System.Text.Json;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
@@ -93,7 +94,7 @@ internal static class RazorCodeActionFactory
         {
             TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = @params,
         };
 
@@ -120,7 +121,7 @@ internal static class RazorCodeActionFactory
         {
             TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = @params,
         };
 

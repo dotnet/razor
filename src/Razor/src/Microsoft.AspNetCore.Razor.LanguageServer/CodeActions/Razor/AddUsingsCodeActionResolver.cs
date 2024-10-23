@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -58,7 +59,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         {
             TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.AddUsing,
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = actionParams,
         };
 

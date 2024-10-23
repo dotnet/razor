@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -21,7 +22,7 @@ internal static class CodeActionExtensions
             {
                 TextDocument = textDocument,
                 Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
-                Language = LanguageServerConstants.CodeActions.Languages.Razor,
+                Language = RazorLanguageKind.Razor,
                 Data = razorCodeAction.Edit ?? new WorkspaceEdit(),
             };
 
@@ -48,7 +49,7 @@ internal static class CodeActionExtensions
         this RazorVSInternalCodeAction razorCodeAction,
         RazorCodeActionContext context,
         string action = LanguageServerConstants.CodeActions.Default,
-        string language = LanguageServerConstants.CodeActions.Languages.CSharp,
+        RazorLanguageKind language = RazorLanguageKind.CSharp,
         bool isOnAllowList = true)
     {
         var resolutionParams = new RazorCodeActionResolutionParams()
@@ -80,7 +81,7 @@ internal static class CodeActionExtensions
         this VSInternalCodeAction razorCodeAction,
         RazorCodeActionContext context,
         string action,
-        string language,
+        RazorLanguageKind language,
         bool isOnAllowList)
     {
         var resolutionParams = new RazorCodeActionResolutionParams()

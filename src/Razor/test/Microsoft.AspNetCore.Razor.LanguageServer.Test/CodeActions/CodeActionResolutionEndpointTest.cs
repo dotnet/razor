@@ -36,7 +36,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
@@ -72,7 +72,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
-            Language = LanguageServerConstants.CodeActions.Languages.CSharp,
+            Language = RazorLanguageKind.CSharp,
         };
         var request = new CodeAction()
         {
@@ -106,7 +106,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "TestCSharp",
-            Language = LanguageServerConstants.CodeActions.Languages.CSharp,
+            Language = RazorLanguageKind.CSharp,
         };
         var request = new CodeAction()
         {
@@ -136,7 +136,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
@@ -175,7 +175,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
-            Language = LanguageServerConstants.CodeActions.Languages.CSharp,
+            Language = RazorLanguageKind.CSharp,
         };
         var request = new CodeAction()
         {
@@ -212,7 +212,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
@@ -253,7 +253,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "Test",
-            Language = LanguageServerConstants.CodeActions.Languages.CSharp,
+            Language = RazorLanguageKind.CSharp,
         };
         var request = new CodeAction()
         {
@@ -292,7 +292,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "A",
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = JsonSerializer.SerializeToElement(new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
@@ -324,7 +324,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "B",
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = JsonSerializer.SerializeToElement(new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
@@ -356,7 +356,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "A",
-            Language = LanguageServerConstants.CodeActions.Languages.CSharp,
+            Language = RazorLanguageKind.CSharp,
         };
 
         // Act
@@ -384,7 +384,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "B",
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
         };
 
         // Act
@@ -415,7 +415,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = "D",
-            Language = LanguageServerConstants.CodeActions.Languages.CSharp,
+            Language = RazorLanguageKind.CSharp,
         };
 
         // Act
@@ -441,7 +441,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
             Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Language = RazorLanguageKind.Razor,
             Data = JsonSerializer.SerializeToElement(new WorkspaceEdit())
         };
 

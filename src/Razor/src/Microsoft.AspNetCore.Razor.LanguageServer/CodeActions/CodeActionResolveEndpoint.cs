@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -53,19 +54,19 @@ internal sealed class CodeActionResolveEndpoint(
 
         switch (resolutionParams.Language)
         {
-            case LanguageServerConstants.CodeActions.Languages.Razor:
+            case RazorLanguageKind.Razor:
                 return await ResolveRazorCodeActionAsync(
                     documentContext,
                     request,
                     resolutionParams,
                     cancellationToken).ConfigureAwait(false);
-            case LanguageServerConstants.CodeActions.Languages.CSharp:
+            case RazorLanguageKind.CSharp:
                 return await ResolveCSharpCodeActionAsync(
                     documentContext,
                     request,
                     resolutionParams,
                     cancellationToken).ConfigureAwait(false);
-            case LanguageServerConstants.CodeActions.Languages.Html:
+            case RazorLanguageKind.Html:
                 return await ResolveHtmlCodeActionAsync(
                     documentContext,
                     request,

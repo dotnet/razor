@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -45,7 +46,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         var documentMappingService = StrictMock.Of<IEditMappingService>();
         var provider = new DefaultHtmlCodeActionProvider(documentMappingService);
 
-        ImmutableArray<RazorVSInternalCodeAction> codeActions = [ new RazorVSInternalCodeAction() { Name = "Test" } ];
+        ImmutableArray<RazorVSInternalCodeAction> codeActions = [new RazorVSInternalCodeAction() { Name = "Test" }];
 
         // Act
         var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
@@ -53,7 +54,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         // Assert
         var action = Assert.Single(providedCodeActions);
         Assert.Equal("Test", action.Name);
-        Assert.Equal("Html", ((JsonElement)action.Data!).GetProperty("language").GetString());
+        Assert.Equal(RazorLanguageKind.Html, (RazorLanguageKind)((JsonElement)action.Data!).GetProperty("language").GetUInt32());
     }
 
     [Fact]

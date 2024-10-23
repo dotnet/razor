@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -34,7 +35,7 @@ internal sealed class DefaultHtmlCodeActionProvider(IEditMappingService editMapp
             }
             else
             {
-                results.Add(codeAction.WrapResolvableCodeAction(context, language: LanguageServerConstants.CodeActions.Languages.Html));
+                results.Add(codeAction.WrapResolvableCodeAction(context, language: RazorLanguageKind.Html));
             }
         }
 

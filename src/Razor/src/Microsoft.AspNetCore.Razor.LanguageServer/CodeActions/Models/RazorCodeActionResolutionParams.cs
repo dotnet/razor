@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -15,7 +16,7 @@ internal sealed class RazorCodeActionResolutionParams
     public required string Action { get; set; }
 
     [JsonPropertyName("language")]
-    public required string Language { get; set; }
+    public required RazorLanguageKind Language { get; set; }
 
     [JsonPropertyName("data")]
     public object? Data { get; set; }
