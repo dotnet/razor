@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -22,7 +23,7 @@ internal sealed class CodeActionResolveEndpoint(
     IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
     IEnumerable<CSharpCodeActionResolver> csharpCodeActionResolvers,
     IEnumerable<HtmlCodeActionResolver> htmlCodeActionResolvers,
-    ILoggerFactory loggerFactory) : IRazorDocumentlessRequestHandler<CodeAction, CodeAction>
+    ILoggerFactory loggerFactory) : IRazorRequestHandler<CodeAction, CodeAction>
 {
     private readonly FrozenDictionary<string, IRazorCodeActionResolver> _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);
     private readonly FrozenDictionary<string, BaseDelegatedCodeActionResolver> _csharpCodeActionResolvers = CreateResolverMap<BaseDelegatedCodeActionResolver>(csharpCodeActionResolvers);
@@ -31,19 +32,13 @@ internal sealed class CodeActionResolveEndpoint(
 
     public bool MutatesSolutionState => false;
 
+    public TextDocumentIdentifier GetTextDocumentIdentifier(CodeAction request)
+        => GetRazorCodeActionResolutionParams(request).TextDocument;
+
     public async Task<CodeAction> HandleRequestAsync(CodeAction request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (request.Data is not JsonElement paramsObj)
-        {
-            _logger.LogError($"Invalid CodeAction Received '{request.Title}'.");
-            return request;
-        }
-
-        var resolutionParams = paramsObj.Deserialize<RazorCodeActionResolutionParams>();
-        if (resolutionParams is null)
-        {
-            throw new ArgumentOutOfRangeException($"request.Data should be convertible to {nameof(RazorCodeActionResolutionParams)}");
-        }
+        var resolutionParams = GetRazorCodeActionResolutionParams(request);
+        var documentContext = requestContext.DocumentContext.AssumeNotNull();
 
         var codeActionId = GetCodeActionId(resolutionParams);
         _logger.LogInformation($"Resolving workspace edit for action {codeActionId}.");
@@ -61,16 +56,19 @@ internal sealed class CodeActionResolveEndpoint(
         {
             case LanguageServerConstants.CodeActions.Languages.Razor:
                 return await ResolveRazorCodeActionAsync(
+                    documentContext,
                     request,
                     resolutionParams,
                     cancellationToken).ConfigureAwait(false);
             case LanguageServerConstants.CodeActions.Languages.CSharp:
                 return await ResolveCSharpCodeActionAsync(
+                    documentContext,
                     request,
                     resolutionParams,
                     cancellationToken).ConfigureAwait(false);
             case LanguageServerConstants.CodeActions.Languages.Html:
                 return await ResolveHtmlCodeActionAsync(
+                    documentContext,
                     request,
                     resolutionParams,
                     cancellationToken).ConfigureAwait(false);
@@ -80,8 +78,25 @@ internal sealed class CodeActionResolveEndpoint(
         }
     }
 
+    private static RazorCodeActionResolutionParams GetRazorCodeActionResolutionParams(CodeAction request)
+    {
+        if (request.Data is not JsonElement paramsObj)
+        {
+            throw new InvalidOperationException($"Invalid CodeAction Received '{request.Title}'.");
+        }
+
+        var resolutionParams = paramsObj.Deserialize<RazorCodeActionResolutionParams>();
+        if (resolutionParams is null)
+        {
+            throw new InvalidOperationException($"request.Data should be convertible to {nameof(RazorCodeActionResolutionParams)}");
+        }
+
+        return resolutionParams;
+    }
+
     // Internal for testing
     internal async Task<CodeAction> ResolveRazorCodeActionAsync(
+        DocumentContext documentContext,
         CodeAction codeAction,
         RazorCodeActionResolutionParams resolutionParams,
         CancellationToken cancellationToken)
@@ -99,20 +114,20 @@ internal sealed class CodeActionResolveEndpoint(
             return codeAction;
         }
 
-        var edit = await resolver.ResolveAsync(data, cancellationToken).ConfigureAwait(false);
+        var edit = await resolver.ResolveAsync(documentContext, data, cancellationToken).ConfigureAwait(false);
         codeAction.Edit = edit;
         return codeAction;
     }
 
     // Internal for testing
-    internal Task<CodeAction> ResolveCSharpCodeActionAsync(CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
-        => ResolveDelegatedCodeActionAsync(_csharpCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
+    internal Task<CodeAction> ResolveCSharpCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+        => ResolveDelegatedCodeActionAsync(documentContext, _csharpCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
 
     // Internal for testing
-    internal Task<CodeAction> ResolveHtmlCodeActionAsync(CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
-        => ResolveDelegatedCodeActionAsync(_htmlCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
+    internal Task<CodeAction> ResolveHtmlCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+        => ResolveDelegatedCodeActionAsync(documentContext, _htmlCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
 
-    private async Task<CodeAction> ResolveDelegatedCodeActionAsync(FrozenDictionary<string, BaseDelegatedCodeActionResolver> resolvers, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+    private async Task<CodeAction> ResolveDelegatedCodeActionAsync(DocumentContext documentContext, FrozenDictionary<string, BaseDelegatedCodeActionResolver> resolvers, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
     {
         if (resolutionParams.Data is not JsonElement csharpParamsObj)
         {
@@ -137,7 +152,7 @@ internal sealed class CodeActionResolveEndpoint(
             return codeAction;
         }
 
-        var resolvedCodeAction = await resolver.ResolveAsync(csharpParams, codeAction, cancellationToken).ConfigureAwait(false);
+        var resolvedCodeAction = await resolver.ResolveAsync(documentContext, csharpParams, codeAction, cancellationToken).ConfigureAwait(false);
         return resolvedCodeAction;
     }
 
