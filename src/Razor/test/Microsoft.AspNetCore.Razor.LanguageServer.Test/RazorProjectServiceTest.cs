@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -70,11 +69,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            hostProject.Key,
-            hostProject.FilePath,
-            hostProject.Configuration,
-            hostProject.RootNamespace,
-            hostProject.DisplayName,
+            hostProject,
             projectWorkspaceState,
             documents: []),
             DisposalToken);
@@ -97,15 +92,11 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.DocumentAdded(hostProject.Key, hostDocument, StrictMock.Of<TextLoader>());
         });
 
-        var newDocument = new DocumentSnapshotHandle("file.cshtml", "file.cshtml", FileKinds.Component);
+        var newDocument = new HostDocument("file.cshtml", "file.cshtml", FileKinds.Component);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            hostProject.Key,
-            hostProject.FilePath,
-            hostProject.Configuration,
-            hostProject.RootNamespace,
-            hostProject.DisplayName,
+            hostProject,
             ProjectWorkspaceState.Default,
             [newDocument]),
             DisposalToken);
@@ -130,16 +121,12 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.DocumentAdded(hostProject.Key, hostDocument, StrictMock.Of<TextLoader>());
         });
 
-        var oldDocument = new DocumentSnapshotHandle(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
-        var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
+        var oldDocument = new HostDocument(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
+        var newDocument = new HostDocument("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            hostProject.Key,
-            hostProject.FilePath,
-            hostProject.Configuration,
-            hostProject.RootNamespace,
-            hostProject.DisplayName,
+            hostProject,
             ProjectWorkspaceState.Default,
             [oldDocument, newDocument]),
             DisposalToken);
@@ -167,15 +154,11 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         var project = _projectManager.GetLoadedProject(hostProject.Key);
 
-        var addedDocument = new DocumentSnapshotHandle(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
+        var addedDocument = new HostDocument(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            hostProject.Key,
-            hostProject.FilePath,
-            hostProject.Configuration,
-            hostProject.RootNamespace,
-            hostProject.DisplayName,
+            hostProject,
             ProjectWorkspaceState.Default,
             [addedDocument]),
             DisposalToken);
@@ -197,30 +180,27 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string IntermediateOutputPath = "C:/path/to/obj";
         const string RootNamespace = "TestRootNamespace";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
 
         await _projectService.AddDocumentToMiscProjectAsync(DocumentFilePath, DisposalToken);
 
         var miscProject = _projectManager.GetMiscellaneousProject();
 
-        var project = _projectManager.GetLoadedProject(ownerProjectKey);
+        var project = Assert.IsType<ProjectSnapshot>(_projectManager.GetLoadedProject(ownerProjectKey));
 
-        var addedDocument = new DocumentSnapshotHandle(DocumentFilePath, DocumentFilePath, FileKinds.Legacy);
+        var addedDocument = new HostDocument(DocumentFilePath, DocumentFilePath, FileKinds.Legacy);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            project.Key,
-            project.FilePath,
-            project.Configuration,
-            project.RootNamespace,
-            project.DisplayName,
+            project.HostProject,
             ProjectWorkspaceState.Default,
             [addedDocument]),
             DisposalToken);
 
         // Assert
-        project = _projectManager.GetLoadedProject(ownerProjectKey);
+        project = Assert.IsType<ProjectSnapshot>(_projectManager.GetLoadedProject(ownerProjectKey));
         var projectFilePaths = project.DocumentFilePaths.OrderBy(path => path);
         Assert.Equal(projectFilePaths, [addedDocument.FilePath]);
         miscProject = _projectManager.GetLoadedProject(miscProject.Key);
@@ -246,15 +226,11 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             return project;
         });
 
-        var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
+        var newDocument = new HostDocument("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            hostProject.Key,
-            hostProject.FilePath,
-            hostProject.Configuration,
-            hostProject.RootNamespace,
-            hostProject.DisplayName,
+            hostProject,
             ProjectWorkspaceState.Default,
             [newDocument]),
             DisposalToken);
@@ -280,17 +256,13 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.DocumentAdded(hostProject.Key, document, StrictMock.Of<TextLoader>());
         });
 
-        var newDocument = new DocumentSnapshotHandle(document.FilePath, document.TargetPath, document.FileKind);
+        var newDocument = new HostDocument(document.FilePath, document.TargetPath, document.FileKind);
 
         using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            hostProject.Key,
-            hostProject.FilePath,
-            hostProject.Configuration,
-            hostProject.RootNamespace,
-            hostProject.DisplayName,
+            hostProject,
             ProjectWorkspaceState.Default,
             [newDocument]),
             DisposalToken);
@@ -311,15 +283,11 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.DocumentAdded(hostProject.Key, legacyDocument, StrictMock.Of<TextLoader>());
         });
 
-        var newDocument = new DocumentSnapshotHandle(legacyDocument.FilePath, legacyDocument.TargetPath, FileKinds.Component);
+        var newDocument = new HostDocument(legacyDocument.FilePath, legacyDocument.TargetPath, FileKinds.Component);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            hostProject.Key,
-            hostProject.FilePath,
-            hostProject.Configuration,
-            hostProject.RootNamespace,
-            hostProject.DisplayName,
+            hostProject,
             ProjectWorkspaceState.Default,
             [newDocument]),
             DisposalToken);
@@ -339,20 +307,17 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string IntermediateOutputPath = "C:/path/to/obj";
         const string NewRootNamespace = "NewRootNamespace";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
 
-        var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
+
+        var ownerProject = Assert.IsType<ProjectSnapshot>(_projectManager.GetLoadedProject(ownerProjectKey));
 
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            ownerProject.Key,
-            ownerProject.FilePath,
-            ownerProject.Configuration,
-            NewRootNamespace,
-            ownerProject.DisplayName,
+            ownerProject.HostProject with { RootNamespace = NewRootNamespace},
             ProjectWorkspaceState.Default,
             documents: []),
             DisposalToken);
@@ -372,20 +337,17 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string IntermediateOutputPath = "C:/path/to/obj";
         const string RootNamespace = "TestRootNamespace";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
 
-        var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
+
+        var ownerProject = Assert.IsType<ProjectSnapshot>(_projectManager.GetLoadedProject(ownerProjectKey));
 
         using var listener = _projectManager.ListenToNotifications();
 
         // Act & Assert
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            ownerProject.Key,
-            ownerProject.FilePath,
-            ownerProject.Configuration,
-            ownerProject.RootNamespace,
-            displayName: "",
+            ownerProject.HostProject with { DisplayName = "" },
             ProjectWorkspaceState.Default,
             documents: []),
             DisposalToken);
@@ -401,20 +363,17 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string IntermediateOutputPath = "C:/path/to/obj";
         const string RootNamespace = "TestRootNamespace";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
 
-        var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
+
+        var ownerProject = Assert.IsType<ProjectSnapshot>(_projectManager.GetLoadedProject(ownerProjectKey));
 
         using var listener = _projectManager.ListenToNotifications();
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            ownerProject.Key,
-            ownerProject.FilePath,
-            FallbackRazorConfiguration.MVC_1_1,
-            "TestRootNamespace",
-            displayName: "",
+            ownerProject.HostProject with { Configuration = FallbackRazorConfiguration.MVC_1_1, RootNamespace = "TestRootNamespace", DisplayName = ""},
             ProjectWorkspaceState.Default,
             documents: []),
             DisposalToken);
@@ -434,8 +393,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
         await _projectService.OpenDocumentAsync(DocumentFilePath, s_emptyText, DisposalToken);
 
@@ -465,10 +425,11 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey1 = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
-        var ownerProjectKey2 = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject1 = new HostProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace);
+        var hostProject2 = new HostProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey1 = await _projectService.AddProjectAsync(hostProject1, DisposalToken);
+        var ownerProjectKey2 = await _projectService.AddProjectAsync(hostProject2, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
         await _projectService.OpenDocumentAsync(DocumentFilePath, s_emptyText, DisposalToken);
 
@@ -524,8 +485,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -554,10 +516,11 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey1 = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
-        var ownerProjectKey2 = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject1 = new HostProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace);
+        var hostProject2 = new HostProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey1 = await _projectService.AddProjectAsync(hostProject1, DisposalToken);
+        var ownerProjectKey2 = await _projectService.AddProjectAsync(hostProject2, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
 
         var ownerProject1 = _projectManager.GetLoadedProject(ownerProjectKey1);
@@ -611,8 +574,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
 
         var miscProject = _projectManager.GetMiscellaneousProject();
 
@@ -655,8 +619,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
 
@@ -701,8 +666,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        await _projectService.AddProjectAsync(hostProject, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
 
         // Act
@@ -742,8 +708,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -770,10 +737,11 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey1 = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
-        var ownerProjectKey2 = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject1 = new HostProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace);
+        var hostProject2 = new HostProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey1 = await _projectService.AddProjectAsync(hostProject1, DisposalToken);
+        var ownerProjectKey2 = await _projectService.AddProjectAsync(hostProject2, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
 
         var ownerProject1 = _projectManager.GetLoadedProject(ownerProjectKey1);
@@ -801,8 +769,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
         await _projectService.OpenDocumentAsync(DocumentFilePath, s_emptyText, DisposalToken);
 
@@ -887,8 +856,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
         await _projectService.OpenDocumentAsync(DocumentFilePath, s_emptyText, DisposalToken);
 
@@ -918,10 +888,11 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey1 = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
-        var ownerProjectKey2 = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject1 = new HostProject(ProjectFilePath, IntermediateOutputPath1, RazorConfiguration.Default, RootNamespace);
+        var hostProject2 = new HostProject(ProjectFilePath, IntermediateOutputPath2, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey1 = await _projectService.AddProjectAsync(hostProject1, DisposalToken);
+        var ownerProjectKey2 = await _projectService.AddProjectAsync(hostProject2, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
         await _projectService.OpenDocumentAsync(DocumentFilePath, s_emptyText, DisposalToken);
 
@@ -977,8 +948,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "TestRootNamespace";
         const string DocumentFilePath = "C:/path/to/document.cshtml";
 
-        var ownerProjectKey = await _projectService.GetTestAccessor().AddProjectAsync(
-            ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace, displayName: null, DisposalToken);
+        var hostProject = new HostProject(ProjectFilePath, IntermediateOutputPath, RazorConfiguration.Default, RootNamespace);
+
+        var ownerProjectKey = await _projectService.AddProjectAsync(hostProject, DisposalToken);
         await _projectService.AddDocumentToPotentialProjectsAsync(DocumentFilePath, DisposalToken);
 
         var ownerProject = _projectManager.GetLoadedProject(ownerProjectKey);
@@ -1005,20 +977,22 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         const string RootNamespace = "My.Root.Namespace";
 
         var configuration = new RazorConfiguration(RazorLanguageVersion.Version_1_0, "TestName", Extensions: []);
-        var projectKey = new ProjectKey(IntermediateOutputPath);
+
+        var hostProject = new HostProject(
+            ProjectFilePath,
+            IntermediateOutputPath,
+            configuration,
+            RootNamespace,
+            displayName: "ProjectDisplayName");
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
-            projectKey,
-            ProjectFilePath,
-            configuration,
-            RootNamespace,
-            "ProjectDisplayName",
+            hostProject,
             ProjectWorkspaceState.Default,
             documents: []),
             DisposalToken);
 
-        var project = _projectManager.GetLoadedProject(projectKey);
+        var project = _projectManager.GetLoadedProject(hostProject.Key);
 
         // Assert
         Assert.Equal(ProjectFilePath, project.FilePath);
