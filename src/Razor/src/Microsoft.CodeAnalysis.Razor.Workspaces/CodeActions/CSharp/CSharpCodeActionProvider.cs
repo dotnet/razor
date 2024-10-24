@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal sealed class DefaultCSharpCodeActionProvider(LanguageServerFeatureOptions languageServerFeatureOptions) : ICSharpCodeActionProvider
+internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions languageServerFeatureOptions) : ICSharpCodeActionProvider
 {
     // Internal for testing
     internal static readonly HashSet<string> SupportedDefaultCodeActionNames =

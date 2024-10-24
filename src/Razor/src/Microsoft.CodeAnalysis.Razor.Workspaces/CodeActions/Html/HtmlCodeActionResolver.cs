@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal sealed class DefaultHtmlCodeActionResolver(
+internal sealed class HtmlCodeActionResolver(
     IDelegatedCodeActionResolver delegatedCodeActionResolver,
     IEditMappingService editMappingService) : IHtmlCodeActionResolver
 {
@@ -31,7 +31,7 @@ internal sealed class DefaultHtmlCodeActionResolver(
             return codeAction;
         }
 
-        await DefaultHtmlCodeActionProvider.RemapAndFixHtmlCodeActionEditAsync(_editMappingService, documentContext.Snapshot, resolvedCodeAction, cancellationToken).ConfigureAwait(false);
+        await HtmlCodeActionProvider.RemapAndFixHtmlCodeActionEditAsync(_editMappingService, documentContext.Snapshot, resolvedCodeAction, cancellationToken).ConfigureAwait(false);
 
         return resolvedCodeAction;
     }

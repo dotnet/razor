@@ -1171,7 +1171,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             razorCodeActionProviders: razorProviders ?? [],
             csharpCodeActionProviders:
             [
-                new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
+                new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
                 new TypeAccessibilityCodeActionProvider()
             ],
             htmlCodeActionProviders: [],
@@ -1218,7 +1218,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
         var csharpResolvers = new ICSharpCodeActionResolver[]
         {
-            new DefaultCSharpCodeActionResolver(delegatedCodeActionResolver, formattingService)
+            new CSharpCodeActionResolver(delegatedCodeActionResolver, formattingService)
         };
 
         var htmlResolvers = Array.Empty<IHtmlCodeActionResolver>();

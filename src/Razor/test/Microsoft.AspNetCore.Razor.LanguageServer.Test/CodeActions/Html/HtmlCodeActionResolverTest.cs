@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
     public async Task ResolveAsync_RemapsAndFixesEdits()
@@ -60,7 +60,7 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
             .ReturnsAsync(remappedEdit);
 
         var delegatedCodeActionResolver = new DelegatedCodeActionResolver(CreateLanguageServer(resolvedCodeAction));
-        var resolver = new DefaultHtmlCodeActionResolver(delegatedCodeActionResolver, editMappingServiceMock.Object);
+        var resolver = new HtmlCodeActionResolver(delegatedCodeActionResolver, editMappingServiceMock.Object);
 
         var codeAction = new RazorVSInternalCodeAction()
         {

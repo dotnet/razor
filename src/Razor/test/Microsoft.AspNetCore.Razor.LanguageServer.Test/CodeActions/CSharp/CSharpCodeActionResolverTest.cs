@@ -24,7 +24,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     private static readonly CodeAction s_defaultResolvedCodeAction = new()
     {
@@ -161,7 +161,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
     }
 
     private static void CreateCodeActionResolver(
-        out DefaultCSharpCodeActionResolver csharpCodeActionResolver,
+        out CSharpCodeActionResolver csharpCodeActionResolver,
         out DocumentContext documentContext,
         IClientConnection? clientConnection = null,
         IRazorFormattingService? razorFormattingService = null)
@@ -175,7 +175,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         razorFormattingService ??= CreateRazorFormattingService(documentUri);
 
         var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
-        csharpCodeActionResolver = new DefaultCSharpCodeActionResolver(
+        csharpCodeActionResolver = new CSharpCodeActionResolver(
             delegatedCodeActionResolver,
             razorFormattingService);
 

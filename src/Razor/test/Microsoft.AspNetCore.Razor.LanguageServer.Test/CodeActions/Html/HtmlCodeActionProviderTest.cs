@@ -23,7 +23,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
     public async Task ProvideAsync_WrapsResolvableCodeActions()
@@ -44,7 +44,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var documentMappingService = StrictMock.Of<IEditMappingService>();
-        var provider = new DefaultHtmlCodeActionProvider(documentMappingService);
+        var provider = new HtmlCodeActionProvider(documentMappingService);
 
         ImmutableArray<RazorVSInternalCodeAction> codeActions = [new RazorVSInternalCodeAction() { Name = "Test" }];
 
@@ -94,7 +94,7 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
             .Setup(x => x.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remappedEdit);
 
-        var provider = new DefaultHtmlCodeActionProvider(editMappingServiceMock.Object);
+        var provider = new HtmlCodeActionProvider(editMappingServiceMock.Object);
 
         ImmutableArray<RazorVSInternalCodeAction> codeActions =
         [
