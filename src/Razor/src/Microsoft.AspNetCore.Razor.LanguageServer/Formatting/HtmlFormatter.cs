@@ -81,22 +81,4 @@ internal sealed class HtmlFormatter(
         var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         return result.Edits.SelectAsArray(sourceText.GetTextChange);
     }
-
-    /// <summary>
-    /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
-    /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
-    /// minimal text edits
-    /// </summary>
-    // Internal for testing
-    public static TextEdit[] FixHtmlTextEdits(SourceText htmlSourceText, TextEdit[] edits)
-    {
-        // Avoid computing a minimal diff if we don't need to
-        if (!edits.Any(static e => e.NewText.Contains("~")))
-            return edits;
-
-        var changes = edits.SelectAsArray(htmlSourceText.GetTextChange);
-
-        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
-        return [.. fixedChanges.Select(htmlSourceText.GetTextEdit)];
-    }
 }

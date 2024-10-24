@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -55,7 +56,7 @@ internal sealed class DefaultHtmlCodeActionProvider(IEditMappingService editMapp
 
             foreach (var edit in documentEdits)
             {
-                edit.Edits = HtmlFormatter.FixHtmlTextEdits(htmlSourceText, edit.Edits);
+                edit.Edits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edit.Edits);
             }
 
             codeAction.Edit = new WorkspaceEdit
