@@ -10,16 +10,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -41,14 +43,12 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     private const string CodeBehindTestReplaceNamespace = "$$Replace_Namespace$$";
 
     private GenerateMethodCodeActionResolver[] CreateRazorCodeActionResolvers(
-        IClientConnection clientConnection,
-        IRazorFormattingService razorFormattingService,
-        RazorLSPOptionsMonitor? optionsMonitor = null)
+        IRoslynCodeActionHelpers roslynCodeActionHelpers,
+        IRazorFormattingService razorFormattingService)
             =>
             [
                 new GenerateMethodCodeActionResolver(
-                    optionsMonitor ?? TestRazorLSPOptionsMonitor.Create(),
-                    clientConnection,
+                    roslynCodeActionHelpers,
                     new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
                     razorFormattingService)
             ];
@@ -1038,11 +1038,13 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             Assert.NotNull(codeActionToRun);
 
             var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
+            var roslynCodeActionHelpers = new RoslynCodeActionHelpers(languageServer);
             var changes = await GetEditsAsync(
                 codeActionToRun,
                 requestContext,
                 languageServer,
-                CreateRazorCodeActionResolvers(languageServer, formattingService));
+                optionsMonitor: null,
+                CreateRazorCodeActionResolvers(roslynCodeActionHelpers, formattingService));
 
             var razorEdits = new List<TextChange>();
             var codeBehindEdits = new List<TextChange>();
@@ -1076,7 +1078,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<IClientConnection, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        Func<IRoslynCodeActionHelpers, IRazorFormattingService, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -1089,7 +1091,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<IClientConnection, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        Func<IRoslynCodeActionHelpers, IRazorFormattingService, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -1124,11 +1126,13 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         Assert.NotNull(codeActionToRun);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, optionsMonitor?.CurrentValue);
+        var roslynCodeActionHelpers = new RoslynCodeActionHelpers(languageServer);
         var changes = await GetEditsAsync(
             codeActionToRun,
             requestContext,
             languageServer,
-            codeActionResolversCreator?.Invoke(languageServer, formattingService, optionsMonitor) ?? []);
+            optionsMonitor,
+            codeActionResolversCreator?.Invoke(roslynCodeActionHelpers, formattingService) ?? []);
 
         var edits = new List<TextChange>();
         foreach (var change in changes)
@@ -1160,19 +1164,23 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         IRazorCodeActionProvider[]? razorProviders = null,
         Diagnostic[]? diagnostics = null)
     {
-        var endpoint = new CodeActionEndpoint(
+        var delegatedCodeActionsProvider = new DelegatedCodeActionsProvider(clientConnection, NoOpTelemetryReporter.Instance, LoggerFactory);
+
+        var codeActionsService = new CodeActionsService(
             DocumentMappingService.AssumeNotNull(),
             razorCodeActionProviders: razorProviders ?? [],
             csharpCodeActionProviders:
             [
-                new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
+                new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
                 new TypeAccessibilityCodeActionProvider()
             ],
             htmlCodeActionProviders: [],
-            clientConnection,
-            LanguageServerFeatureOptions.AssumeNotNull(),
-            LoggerFactory,
-            telemetryReporter: null);
+            delegatedCodeActionsProvider,
+            LanguageServerFeatureOptions.AssumeNotNull());
+
+        var endpoint = new CodeActionEndpoint(
+            codeActionsService,
+            NoOpTelemetryReporter.Instance);
 
         // Call GetRegistration, so the endpoint knows we support resolve
         endpoint.ApplyCapabilities(new(), new VSInternalClientCapabilities
@@ -1202,18 +1210,22 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         VSInternalCodeAction codeActionToRun,
         RazorRequestContext requestContext,
         IClientConnection clientConnection,
+        RazorLSPOptionsMonitor? optionsMonitor,
         IRazorCodeActionResolver[] razorResolvers)
     {
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
 
-        var csharpResolvers = new CSharpCodeActionResolver[]
+        var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
+        var csharpResolvers = new ICSharpCodeActionResolver[]
         {
-            new DefaultCSharpCodeActionResolver(clientConnection, formattingService)
+            new CSharpCodeActionResolver(delegatedCodeActionResolver, formattingService)
         };
 
-        var htmlResolvers = Array.Empty<HtmlCodeActionResolver>();
+        var htmlResolvers = Array.Empty<IHtmlCodeActionResolver>();
 
-        var resolveEndpoint = new CodeActionResolveEndpoint(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
+        optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
+        var codeActionResolveService = new CodeActionResolveService(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
+        var resolveEndpoint = new CodeActionResolveEndpoint(codeActionResolveService, optionsMonitor);
 
         var resolveResult = await resolveEndpoint.HandleRequestAsync(codeActionToRun, requestContext, DisposalToken);
 

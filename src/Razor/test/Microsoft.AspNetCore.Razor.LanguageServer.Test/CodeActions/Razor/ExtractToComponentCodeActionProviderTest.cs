@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
@@ -439,8 +439,8 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             request,
             documentSnapshot.Object,
             codeDocument,
-            new SourceLocation(selectionSpan.Start, -1, -1),
-            new SourceLocation(selectionSpan.End, -1, -1),
+            selectionSpan.Start,
+            selectionSpan.End,
             sourceText,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

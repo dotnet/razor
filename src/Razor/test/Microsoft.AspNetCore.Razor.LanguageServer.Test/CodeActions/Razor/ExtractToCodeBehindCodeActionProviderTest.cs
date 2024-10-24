@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
@@ -44,8 +45,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
@@ -75,8 +75,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -105,8 +104,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -135,8 +133,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -170,8 +167,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -211,8 +207,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, supportsFileCreation: true);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -254,8 +249,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, supportsFileCreation: true);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -291,8 +285,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: false);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, supportsFileCreation: false);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -327,8 +320,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -364,8 +356,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = null!
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, relativePath: null);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, relativePath: null);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -376,10 +367,10 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         Assert.Empty(commandOrCodeActionContainer);
     }
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
-        => CreateRazorCodeActionContext(request, location, filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
+    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int absoluteIndex, string filePath, string text, bool supportsFileCreation = true)
+        => CreateRazorCodeActionContext(request, absoluteIndex, filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
+    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int absoluteIndex, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
     {
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
         var options = RazorParserOptions.Create(o =>
@@ -409,8 +400,8 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             request,
             documentSnapshotMock.Object,
             codeDocument,
-            location,
-            location,
+            StartAbsoluteIndex: absoluteIndex,
+            EndAbsoluteIndex: absoluteIndex,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

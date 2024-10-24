@@ -6,10 +6,12 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -35,7 +37,7 @@ public class CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
         });
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.Null(workspaceEdit);
@@ -58,7 +60,7 @@ public class CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
         });
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.Null(workspaceEdit);
@@ -81,7 +83,7 @@ public class CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -112,7 +114,7 @@ public class CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
