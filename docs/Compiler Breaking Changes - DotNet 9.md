@@ -34,7 +34,7 @@ To fix, move the directives to a new line. Only whitespace is allowed before the
 Disabled blocks are now considered completely disabled by the Razor compiler, and no attempt to understand the block is made. When combined with the previous break,
 this means that if an `#else`, `#elif`, or `#endif` was not at the start of a line (modulo whitespace), a larger section of the file will be considered disabled than
 in older versions of the Razor compiler. To help diagnose potential breaks here, the Razor compiler will scan disabled text sections for potential misplaced preprocessor
-directives and report a warning if one is encountered
+directives and report a warning if one is encountered.
 
 ```razor
 @{
