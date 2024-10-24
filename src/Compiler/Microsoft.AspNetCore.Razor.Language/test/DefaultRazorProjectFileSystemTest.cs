@@ -261,7 +261,7 @@ public class DefaultRazorProjectFileSystemTest
     }
 
     // "This test does not makes sense for case sensitive Operating Systems."
-    [OSSkipConditionFact(["OSX", "Linux"])]
+    [ConditionalFact(Is.Windows)]
     public void GetItem_MismatchedCase_ReturnsFileFromDisk()
     {
         // Arrange
