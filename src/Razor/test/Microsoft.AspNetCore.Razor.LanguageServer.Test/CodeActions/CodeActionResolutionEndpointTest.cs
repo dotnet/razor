@@ -25,12 +25,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var codeActionResolveService = new CodeActionResolveService(
             razorCodeActionResolvers: [new MockRazorCodeActionResolver("Test")],
             csharpCodeActionResolvers: [],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
+        var codeActionEndpoint = new CodeActionResolveEndpoint(
+            codeActionResolveService,
+            TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
@@ -60,12 +62,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var codeActionResolveService = new CodeActionResolveService(
             razorCodeActionResolvers: [],
             [new MockCSharpCodeActionResolver("Test")],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
+        var codeActionEndpoint = new CodeActionResolveEndpoint(
+            codeActionResolveService,
+            TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
@@ -91,12 +95,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var codeActionResolveService = new CodeActionResolveService(
             razorCodeActionResolvers: [new MockRazorCodeActionResolver("TestRazor")],
             csharpCodeActionResolvers: [new MockCSharpCodeActionResolver("TestCSharp")],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
+        var codeActionEndpoint = new CodeActionResolveEndpoint(
+            codeActionResolveService,
+            TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
@@ -122,12 +128,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var codeActionResolveService = new CodeActionResolveService(
             razorCodeActionResolvers: [],
             csharpCodeActionResolvers: [],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
+        var codeActionEndpoint = new CodeActionResolveEndpoint(
+            codeActionResolveService,
+            TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
@@ -162,12 +170,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var codeActionResolveService = new CodeActionResolveService(
             razorCodeActionResolvers: [],
             csharpCodeActionResolvers: [],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
+        var codeActionEndpoint = new CodeActionResolveEndpoint(
+            codeActionResolveService,
+            TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
@@ -198,12 +208,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var codeActionResolveService = new CodeActionResolveService(
             razorCodeActionResolvers: [],
             csharpCodeActionResolvers: [new MockCSharpCodeActionResolver("Test")],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
+        var codeActionEndpoint = new CodeActionResolveEndpoint(
+            codeActionResolveService,
+            TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
@@ -238,12 +250,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var codeActionResolveService = new CodeActionResolveService(
             razorCodeActionResolvers: [new MockRazorCodeActionResolver("Test")],
             csharpCodeActionResolvers: [],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
+        var codeActionEndpoint = new CodeActionResolveEndpoint(
+            codeActionResolveService,
+            TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),
@@ -274,14 +288,13 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var service = new CodeActionResolveService(
             razorCodeActionResolvers: [
                 new MockRazorCodeActionResolver("A"),
                 new MockRazorNullCodeActionResolver("B"),
             ],
             csharpCodeActionResolvers: [],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
@@ -296,7 +309,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveRazorCodeActionAsync(documentContext, codeAction, request, new RazorFormattingOptions(), DisposalToken);
+        var resolvedCodeAction = await service.GetTestAccessor().ResolveRazorCodeActionAsync(documentContext, codeAction, request, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -307,14 +320,13 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var service = new CodeActionResolveService(
             razorCodeActionResolvers: [
                 new MockRazorNullCodeActionResolver("A"),
                 new MockRazorCodeActionResolver("B"),
             ],
             csharpCodeActionResolvers: [],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
@@ -329,7 +341,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveRazorCodeActionAsync(documentContext, codeAction, request, new RazorFormattingOptions(), DisposalToken);
+        var resolvedCodeAction = await service.GetTestAccessor().ResolveRazorCodeActionAsync(documentContext, codeAction, request, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -340,14 +352,13 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var service = new CodeActionResolveService(
             razorCodeActionResolvers: [],
             csharpCodeActionResolvers: [
                 new MockCSharpCodeActionResolver("A"),
                 new MockCSharpNullCodeActionResolver("B"),
             ],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
@@ -358,7 +369,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
+        var resolvedCodeAction = await service.GetTestAccessor().ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -369,14 +380,13 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var service = new CodeActionResolveService(
             razorCodeActionResolvers: [],
             csharpCodeActionResolvers: [
                 new MockCSharpNullCodeActionResolver("A"),
                 new MockCSharpCodeActionResolver("B"),
             ],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
@@ -387,7 +397,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
+        var resolvedCodeAction = await service.GetTestAccessor().ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -398,7 +408,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var service = new CodeActionResolveService(
             razorCodeActionResolvers: [
                 new MockRazorNullCodeActionResolver("A"),
                 new MockRazorCodeActionResolver("B"),
@@ -408,7 +418,6 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
                 new MockCSharpCodeActionResolver("D"),
             ],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
         var codeAction = new CodeAction();
         var request = new RazorCodeActionResolutionParams()
@@ -419,7 +428,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         };
 
         // Act
-        var resolvedCodeAction = await codeActionEndpoint.GetTestAccessor().ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
+        var resolvedCodeAction = await service.GetTestAccessor().ResolveCSharpCodeActionAsync(documentContext, codeAction, request, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedCodeAction.Edit);
@@ -430,12 +439,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
     {
         // Arrange
         var documentContext = TestDocumentContext.Create(new Uri("C:/path/to/Page.razor"));
-        var codeActionEndpoint = new CodeActionResolveEndpoint(
+        var codeActionResolveService = new CodeActionResolveService(
             razorCodeActionResolvers: [],
             csharpCodeActionResolvers: [new MockCSharpCodeActionResolver("Test")],
             htmlCodeActionResolvers: [],
-            TestRazorLSPOptionsMonitor.Create(),
             LoggerFactory);
+        var codeActionEndpoint = new CodeActionResolveEndpoint(
+            codeActionResolveService,
+            TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = (VSTextDocumentIdentifier)documentContext.GetTextDocumentIdentifier(),

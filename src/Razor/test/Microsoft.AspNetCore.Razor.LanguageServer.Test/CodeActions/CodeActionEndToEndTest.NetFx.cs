@@ -1224,7 +1224,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var htmlResolvers = Array.Empty<IHtmlCodeActionResolver>();
 
         optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
-        var resolveEndpoint = new CodeActionResolveEndpoint(razorResolvers, csharpResolvers, htmlResolvers, optionsMonitor, LoggerFactory);
+        var codeActionResolveService = new CodeActionResolveService(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
+        var resolveEndpoint = new CodeActionResolveEndpoint(codeActionResolveService, optionsMonitor);
 
         var resolveResult = await resolveEndpoint.HandleRequestAsync(codeActionToRun, requestContext, DisposalToken);
 
