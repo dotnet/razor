@@ -11,16 +11,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
+using LspDiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
 {
@@ -67,7 +72,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         ImmutableArray<RazorVSInternalCodeAction> codeActions)
     {
         var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
-            diagnostic is { Severity: DiagnosticSeverity.Error, Code: { } code } &&
+            diagnostic is { Severity: LspDiagnosticSeverity.Error, Code: { } code } &&
             code.TryGetSecond(out var str) &&
             s_supportedDiagnostics.Any(d => str.Equals(d, StringComparison.OrdinalIgnoreCase)));
 
@@ -256,7 +261,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
     private static RazorVSInternalCodeAction CreateFQNCodeAction(
         RazorCodeActionContext context,
-        Diagnostic fqnDiagnostic,
+        LspDiagnostic fqnDiagnostic,
         RazorVSInternalCodeAction nonFQNCodeAction,
         string fullyQualifiedName)
     {

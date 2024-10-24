@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal sealed record class RazorCodeActionContext(
     VSCodeActionParams Request,

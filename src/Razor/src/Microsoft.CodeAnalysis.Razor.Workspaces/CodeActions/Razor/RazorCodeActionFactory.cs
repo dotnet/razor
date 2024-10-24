@@ -3,11 +3,11 @@
 
 using System;
 using System.Text.Json;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
 internal static class RazorCodeActionFactory
 {

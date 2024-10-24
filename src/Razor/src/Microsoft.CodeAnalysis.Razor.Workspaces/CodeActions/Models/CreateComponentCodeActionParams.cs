@@ -3,7 +3,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+namespace Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 
 internal sealed class CreateComponentCodeActionParams
 {

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal interface IRazorCodeActionResolver : ICodeActionResolver
 {

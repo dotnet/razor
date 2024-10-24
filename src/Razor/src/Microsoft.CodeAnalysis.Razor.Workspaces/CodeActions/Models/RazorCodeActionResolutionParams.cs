@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+namespace Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 
 internal sealed class RazorCodeActionResolutionParams
 {
