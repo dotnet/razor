@@ -32,4 +32,9 @@ internal interface ITelemetryReporter
     /// <param name="requestDuration">How long it took to handle the request</param>
     /// <param name="result">The result of handling the request</param>
     void ReportRequestTiming(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result);
+
+    /// <summary>
+    /// Flushes any current session data being collected
+    /// </summary>
+    void Flush();
 }
