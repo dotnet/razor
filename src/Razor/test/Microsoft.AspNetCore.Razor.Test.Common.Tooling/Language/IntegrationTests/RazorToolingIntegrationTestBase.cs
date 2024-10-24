@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
@@ -303,32 +302,6 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
                 Assembly = diagnostics.Any() ? null : Assembly.Load(peStream.ToArray())
             };
         }
-    }
-
-    protected IComponent CompileToComponent(string cshtmlSource)
-    {
-        var assemblyResult = CompileToAssembly(DefaultFileName, cshtmlSource);
-
-        var componentFullTypeName = $"{DefaultRootNamespace}.{Path.GetFileNameWithoutExtension(DefaultFileName)}";
-        return CompileToComponent(assemblyResult, componentFullTypeName);
-    }
-
-    protected static IComponent CompileToComponent(CompileToCSharpResult cSharpResult, string fullTypeName)
-    {
-        return CompileToComponent(CompileToAssembly(cSharpResult), fullTypeName);
-    }
-
-    protected static IComponent CompileToComponent(CompileToAssemblyResult assemblyResult, string fullTypeName)
-    {
-        var componentType = assemblyResult.Assembly.GetType(fullTypeName);
-        if (componentType is null)
-        {
-            throw new XunitException(
-                $"Failed to find component type '{fullTypeName}'. Found types:" + Environment.NewLine +
-                string.Join(Environment.NewLine, assemblyResult.Assembly.ExportedTypes.Select(t => t.FullName)));
-        }
-
-        return (IComponent)Activator.CreateInstance(componentType);
     }
 
     protected static CSharpSyntaxTree Parse(string text, string path = null)
