@@ -12,39 +12,14 @@
         <target state="translated">Modifications :</target>
         <note />
       </trans-unit>
-      <trans-unit id="Create_Component_FromTag_Title">
-        <source>Create component from tag</source>
-        <target state="translated">Créer un composant à partir de la balise</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_Not_Found">
         <source>Document {0} was not found.</source>
         <target state="translated">Le document {0} est introuvable.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExtractTo_CodeBehind_Title">
-        <source>Extract block to code behind</source>
-        <target state="translated">Extraire le bloc vers le code-behind</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExtractTo_Component_Title">
-        <source>Extract element to new component</source>
-        <target state="translated">Extraire l’élément vers un nouveau composant</target>
-        <note />
-      </trans-unit>
       <trans-unit id="File_Externally_Modified">
         <source>File was externally modified: {0}</source>
         <target state="translated">Le fichier a été modifié en externe : {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Async_Event_Handler_Title">
-        <source>Generate Async Event Handler '{0}'</source>
-        <target state="translated">Générer le gestionnaire d’événements asynchrone « {0} »</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Event_Handler_Title">
-        <source>Generate Event Handler '{0}'</source>
-        <target state="translated">Générer le gestionnaire d’événements '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ReTrigger_Completions_Title">
