@@ -139,6 +139,7 @@ internal static class IServiceCollectionExtensions
 
         services.AddSingleton<IDelegatedCodeActionsProvider, DelegatedCodeActionsProvider>();
         services.AddSingleton<IDelegatedCodeActionResolver, DelegatedCodeActionResolver>();
+        services.AddSingleton<IRoslynCodeActionHelpers, RoslynCodeActionHelpers>();
 
         // CSharp Code actions
         services.AddSingleton<ICSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
@@ -150,7 +151,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
         services.AddSingleton<IRazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionProvider, ExtractToComponentCodeActionProvider>();
-        services.AddSingleton<IRazorCodeActionResolver ,ExtractToComponentCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionResolver, ExtractToComponentCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
         services.AddSingleton<IRazorCodeActionResolver, CreateComponentCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionResolver, AddUsingsCodeActionResolver>();

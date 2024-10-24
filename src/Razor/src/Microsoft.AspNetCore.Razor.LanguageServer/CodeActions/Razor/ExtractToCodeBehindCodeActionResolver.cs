@@ -27,12 +27,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class ExtractToCodeBehindCodeActionResolver(
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IClientConnection clientConnection) : IRazorCodeActionResolver
+    IRoslynCodeActionHelpers roslynCodeActionHelpers) : IRazorCodeActionResolver
 {
     private static readonly Workspace s_workspace = new AdhocWorkspace();
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly IClientConnection _clientConnection = clientConnection;
+    private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
 
@@ -137,19 +137,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
 
         var newFileContent = builder.ToString();
 
-        var parameters = new FormatNewFileParams()
-        {
-            Project = new TextDocumentIdentifier
-            {
-                Uri = new Uri(project.FilePath, UriKind.Absolute)
-            },
-            Document = new TextDocumentIdentifier
-            {
-                Uri = codeBehindUri
-            },
-            Contents = newFileContent
-        };
-        var fixedContent = await _clientConnection.SendRequestAsync<FormatNewFileParams, string?>(CustomMessageNames.RazorFormatNewFileEndpointName, parameters, cancellationToken).ConfigureAwait(false);
+        var fixedContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(project.FilePath, codeBehindUri, newFileContent, cancellationToken).ConfigureAwait(false);
 
         if (fixedContent is null)
         {

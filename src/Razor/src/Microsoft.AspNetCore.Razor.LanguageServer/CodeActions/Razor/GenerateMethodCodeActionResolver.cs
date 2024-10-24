@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -28,12 +29,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 internal sealed class GenerateMethodCodeActionResolver(
     RazorLSPOptionsMonitor razorLSPOptionsMonitor,
-    IClientConnection clientConnection,
+    IRoslynCodeActionHelpers roslynCodeActionHelpers,
     IDocumentMappingService documentMappingService,
     IRazorFormattingService razorFormattingService) : IRazorCodeActionResolver
 {
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
-    private readonly IClientConnection _clientConnection = clientConnection;
+    private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
 
@@ -112,15 +113,7 @@ internal sealed class GenerateMethodCodeActionResolver(
             character: 0,
             $"{formattedMethod}{Environment.NewLine}");
 
-        var delegatedParams = new DelegatedSimplifyMethodParams(
-            new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { Uri = codeBehindUri }, 1),
-            RequiresVirtualDocument: false,
-            edit);
-
-        var result = await _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
-            CustomMessageNames.RazorSimplifyMethodEndpointName,
-            delegatedParams,
-            cancellationToken).ConfigureAwait(false);
+        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(codeBehindUri, edit, requiresVirtualDocument: false, cancellationToken).ConfigureAwait(false);
 
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
@@ -161,11 +154,7 @@ internal sealed class GenerateMethodCodeActionResolver(
                 character: 0,
                 editToSendToRoslyn.NewText);
 
-            var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.GetTextDocumentIdentifierAndVersion(), RequiresVirtualDocument: true, tempTextEdit);
-            var result = await _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
-                CustomMessageNames.RazorSimplifyMethodEndpointName,
-                delegatedParams,
-                cancellationToken).ConfigureAwait(false);
+            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext.Uri, tempTextEdit, requiresVirtualDocument: true, cancellationToken).ConfigureAwait(false);
 
             // Roslyn should have passed back 2 edits. One that contains the simplified method stub and the other that contains the new
             // location for the class end brace since we had asked to insert the method stub at the original class end brace location.
@@ -188,12 +177,7 @@ internal sealed class GenerateMethodCodeActionResolver(
                 .Replace(FormattingUtilities.Indent, string.Empty);
 
             var remappedEdit = VsLspFactory.CreateTextEdit(remappedRange, unformattedMethodSignature);
-
-            var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.GetTextDocumentIdentifierAndVersion(), RequiresVirtualDocument: true, remappedEdit);
-            var result = await _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
-                CustomMessageNames.RazorSimplifyMethodEndpointName,
-                delegatedParams,
-                cancellationToken).ConfigureAwait(false);
+            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext.Uri, remappedEdit, requiresVirtualDocument: true, cancellationToken).ConfigureAwait(false);
 
             if (result is not null)
             {
