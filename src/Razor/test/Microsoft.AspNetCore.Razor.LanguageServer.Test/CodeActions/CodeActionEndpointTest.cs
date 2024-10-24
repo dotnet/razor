@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -591,15 +592,19 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         LanguageServerFeatureOptions? languageServerFeatureOptions = null,
         bool supportsCodeActionResolve = false)
     {
+        var delegatedCodeActionsProvider = new DelegatedCodeActionsProvider(
+            clientConnection ?? StrictMock.Of<IClientConnection>(),
+            NoOpTelemetryReporter.Instance,
+            LoggerFactory);
+
         return new CodeActionEndpoint(
             documentMappingService ?? CreateDocumentMappingService(),
             razorCodeActionProviders.NullToEmpty(),
             csharpCodeActionProviders.NullToEmpty(),
             htmlCodeActionProviders.NullToEmpty(),
-            clientConnection ?? StrictMock.Of<IClientConnection>(),
+            delegatedCodeActionsProvider,
             languageServerFeatureOptions ?? StrictMock.Of<LanguageServerFeatureOptions>(x => x.SupportsFileManipulation == true),
-            LoggerFactory,
-            telemetryReporter: null)
+            NoOpTelemetryReporter.Instance)
         {
             _supportsCodeActionResolve = supportsCodeActionResolve
         };

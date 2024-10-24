@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -1160,6 +1161,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         IRazorCodeActionProvider[]? razorProviders = null,
         Diagnostic[]? diagnostics = null)
     {
+        var delegatedCodeActionsProvider = new DelegatedCodeActionsProvider(clientConnection, NoOpTelemetryReporter.Instance, LoggerFactory);
         var endpoint = new CodeActionEndpoint(
             DocumentMappingService.AssumeNotNull(),
             razorCodeActionProviders: razorProviders ?? [],
@@ -1169,10 +1171,9 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                 new TypeAccessibilityCodeActionProvider()
             ],
             htmlCodeActionProviders: [],
-            clientConnection,
+            delegatedCodeActionsProvider,
             LanguageServerFeatureOptions.AssumeNotNull(),
-            LoggerFactory,
-            telemetryReporter: null);
+            NoOpTelemetryReporter.Instance);
 
         // Call GetRegistration, so the endpoint knows we support resolve
         endpoint.ApplyCapabilities(new(), new VSInternalClientCapabilities

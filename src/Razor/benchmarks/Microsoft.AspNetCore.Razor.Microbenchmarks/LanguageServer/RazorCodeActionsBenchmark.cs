@@ -12,8 +12,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -53,10 +53,9 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
             razorCodeActionProviders: RazorLanguageServerHost.GetRequiredService<IEnumerable<IRazorCodeActionProvider>>(),
             csharpCodeActionProviders: RazorLanguageServerHost.GetRequiredService<IEnumerable<ICSharpCodeActionProvider>>(),
             htmlCodeActionProviders: RazorLanguageServerHost.GetRequiredService<IEnumerable<IHtmlCodeActionProvider>>(),
-            clientConnection: RazorLanguageServerHost.GetRequiredService<IClientConnection>(),
+            delegatedCodeActionsProvider: RazorLanguageServerHost.GetRequiredService<IDelegatedCodeActionsProvider>(),
             languageServerFeatureOptions: RazorLanguageServerHost.GetRequiredService<LanguageServerFeatureOptions>(),
-            loggerFactory: RazorLanguageServerHost.GetRequiredService<ILoggerFactory>(),
-            telemetryReporter: null);
+            telemetryReporter: NoOpTelemetryReporter.Instance);
 
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");

@@ -137,6 +137,7 @@ internal static class IServiceCollectionExtensions
         services.AddHandlerWithCapabilities<CodeActionEndpoint>();
         services.AddHandler<CodeActionResolveEndpoint>();
 
+        services.AddSingleton<IDelegatedCodeActionsProvider, DelegatedCodeActionsProvider>();
         services.AddSingleton<IDelegatedCodeActionResolver, DelegatedCodeActionResolver>();
 
         // CSharp Code actions
