@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 /// </summary>
 internal class DesignTimeHelperResponseRewriter : IDelegatedCSharpCompletionResponseRewriter
 {
-    private static readonly ImmutableHashSet<string> s_designTimeHelpers = new[]
+    private static readonly FrozenSet<string> s_designTimeHelpers = new[]
     {
         "__builder",
         "__o",
@@ -30,7 +30,7 @@ internal class DesignTimeHelperResponseRewriter : IDelegatedCSharpCompletionResp
         "__typeHelper",
         "_Imports",
         "BuildRenderTree"
-    }.ToImmutableHashSet();
+    }.ToFrozenSet();
 
     public async Task<VSInternalCompletionList> RewriteAsync(
         VSInternalCompletionList completionList,

@@ -12,10 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 /// in the host document, otherwise it will be in the corresponding generated document.
 /// </summary>
 internal record struct DocumentPositionInfo(
-
-    [property:JsonPropertyName("languageKind")] RazorLanguageKind LanguageKind,
-
+    [property: JsonPropertyName("languageKind")] RazorLanguageKind LanguageKind,
     [property: JsonPropertyName("position")] Position Position,
-
-    [property:JsonPropertyName("hostDocumentIndex")] int HostDocumentIndex);
+    [property: JsonPropertyName("hostDocumentIndex")] int HostDocumentIndex);
 

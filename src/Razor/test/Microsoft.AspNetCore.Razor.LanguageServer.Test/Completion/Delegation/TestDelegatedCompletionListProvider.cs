@@ -36,8 +36,8 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
     }
 
     public static TestDelegatedCompletionListProvider Create(
-        ILoggerFactory loggerFactory) =>
-        Create(delegatedCompletionList: null, loggerFactory);
+        ILoggerFactory loggerFactory)
+        => Create(delegatedCompletionList: null, loggerFactory);
 
     public static TestDelegatedCompletionListProvider Create(
         CSharpTestLspServer csharpServer,

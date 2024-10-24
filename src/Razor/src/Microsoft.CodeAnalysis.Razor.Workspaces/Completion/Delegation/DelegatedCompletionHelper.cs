@@ -88,13 +88,8 @@ internal static class DelegatedCompletionHelper
     /// <summary>
     /// Modifies C# completion response to be usable by Razor.
     /// </summary>
-    /// <param name="delegatedResponse"></param>
-    /// <param name="absoluteIndex"></param>
-    /// <param name="documentContext"></param>
-    /// <param name="projectedPosition"></param>
-    /// <param name="completionOptions"></param>
-    /// <param name="cancellationToken"></param>
     /// <returns>
+    /// Possibly modified completion response.
     /// </returns>
     public static async ValueTask<VSInternalCompletionList> RewriteCSharpResponseAsync(
         VSInternalCompletionList? delegatedResponse,
@@ -152,12 +147,6 @@ internal static class DelegatedCompletionHelper
     /// <summary>
     /// Returns possibly update document position info and provisional edit (if any)
     /// </summary>
-    /// <param name="documentContext"></param>
-    /// <param name="completionContext"></param>
-    /// <param name="positionInfo">Original position info</param>
-    /// <param name="documentMappingService"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     /// <remarks>
     /// Provisional completion happens when typing something like @DateTime. in a document.
     /// In this case the '.' initially is parsed as belonging to HTML. However, we want to
@@ -170,11 +159,11 @@ internal static class DelegatedCompletionHelper
     public static async Task<CompletionPositionInfo?> TryGetProvisionalCompletionInfoAsync(
         DocumentContext documentContext,
         VSInternalCompletionContext completionContext,
-        DocumentPositionInfo positionInfo,
+        DocumentPositionInfo originalPositionInfo,
         IDocumentMappingService documentMappingService,
         CancellationToken cancellationToken)
     {
-        if (positionInfo.LanguageKind != RazorLanguageKind.Html ||
+        if (originalPositionInfo.LanguageKind != RazorLanguageKind.Html ||
             completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
             completionContext.TriggerCharacter != ".")
         {
@@ -182,14 +171,14 @@ internal static class DelegatedCompletionHelper
             return null;
         }
 
-        if (positionInfo.Position.Character == 0)
+        if (originalPositionInfo.Position.Character == 0)
         {
             // We're at the start of line. Can't have provisional completions here.
             return null;
         }
 
         var previousCharacterPositionInfo = await documentMappingService
-            .GetPositionInfoAsync(documentContext, positionInfo.HostDocumentIndex - 1, cancellationToken)
+            .GetPositionInfoAsync(documentContext, originalPositionInfo.HostDocumentIndex - 1, cancellationToken)
             .ConfigureAwait(false);
 
         if (previousCharacterPositionInfo.LanguageKind != RazorLanguageKind.CSharp)
