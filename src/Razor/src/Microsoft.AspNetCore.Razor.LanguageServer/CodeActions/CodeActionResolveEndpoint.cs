@@ -5,6 +5,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -21,13 +23,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 [RazorLanguageServerEndpoint(Methods.CodeActionResolveName)]
 internal sealed class CodeActionResolveEndpoint(
     IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
-    IEnumerable<CSharpCodeActionResolver> csharpCodeActionResolvers,
-    IEnumerable<HtmlCodeActionResolver> htmlCodeActionResolvers,
+    IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
+    IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
     ILoggerFactory loggerFactory) : IRazorRequestHandler<CodeAction, CodeAction>
 {
     private readonly FrozenDictionary<string, IRazorCodeActionResolver> _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);
-    private readonly FrozenDictionary<string, BaseDelegatedCodeActionResolver> _csharpCodeActionResolvers = CreateResolverMap<BaseDelegatedCodeActionResolver>(csharpCodeActionResolvers);
-    private readonly FrozenDictionary<string, BaseDelegatedCodeActionResolver> _htmlCodeActionResolvers = CreateResolverMap<BaseDelegatedCodeActionResolver>(htmlCodeActionResolvers);
+    private readonly FrozenDictionary<string, ICSharpCodeActionResolver> _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
+    private readonly FrozenDictionary<string, IHtmlCodeActionResolver> _htmlCodeActionResolvers = CreateResolverMap(htmlCodeActionResolvers);
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CodeActionResolveEndpoint>();
 
     public bool MutatesSolutionState => false;
@@ -51,6 +53,8 @@ internal sealed class CodeActionResolveEndpoint(
             request.Edit = (resolutionParams.Data as JsonElement?)?.Deserialize<WorkspaceEdit>();
             return request;
         }
+
+        request.Data = resolutionParams.Data;
 
         switch (resolutionParams.Language)
         {
@@ -118,26 +122,38 @@ internal sealed class CodeActionResolveEndpoint(
         return codeAction;
     }
 
-    private Task<CodeAction> ResolveCSharpCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
-        => ResolveDelegatedCodeActionAsync(documentContext, _csharpCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
-
-    private Task<CodeAction> ResolveHtmlCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
-        => ResolveDelegatedCodeActionAsync(documentContext, _htmlCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
-
-    private async Task<CodeAction> ResolveDelegatedCodeActionAsync(DocumentContext documentContext, FrozenDictionary<string, BaseDelegatedCodeActionResolver> resolvers, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+    private async Task<CodeAction> ResolveCSharpCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
     {
-        codeAction.Data = resolutionParams.Data;
+        if (TryGetResolver(resolutionParams, _csharpCodeActionResolvers, out var resolver))
+        {
+            return await resolver.ResolveAsync(documentContext, codeAction, cancellationToken).ConfigureAwait(false);
+        }
 
-        if (!resolvers.TryGetValue(resolutionParams.Action, out var resolver))
+        return codeAction;
+    }
+
+    private async Task<CodeAction> ResolveHtmlCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+    {
+        if (TryGetResolver(resolutionParams, _htmlCodeActionResolvers, out var resolver))
+        {
+            return await resolver.ResolveAsync(documentContext, codeAction, cancellationToken).ConfigureAwait(false);
+        }
+
+        return codeAction;
+    }
+
+    private bool TryGetResolver<TResolver>(RazorCodeActionResolutionParams resolutionParams, FrozenDictionary<string, TResolver> resolvers, [NotNullWhen(true)] out TResolver? resolver)
+          where TResolver : ICodeActionResolver
+    {
+        if (!resolvers.TryGetValue(resolutionParams.Action, out resolver))
         {
             var codeActionId = GetCodeActionId(resolutionParams);
             _logger.LogWarning($"No resolver registered for {codeActionId}");
             Debug.Fail($"No resolver registered for {codeActionId}.");
-            return codeAction;
+            return false;
         }
 
-        var resolvedCodeAction = await resolver.ResolveAsync(documentContext, codeAction, cancellationToken).ConfigureAwait(false);
-        return resolvedCodeAction;
+        return resolver is not null;
     }
 
     private static FrozenDictionary<string, T> CreateResolverMap<T>(IEnumerable<T> codeActionResolvers)

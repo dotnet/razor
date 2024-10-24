@@ -15,19 +15,20 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class DefaultCSharpCodeActionResolver(
-    IClientConnection clientConnection,
-    IRazorFormattingService razorFormattingService) : CSharpCodeActionResolver(clientConnection)
+    IDelegatedCodeActionResolver delegatedCodeActionResolver,
+    IRazorFormattingService razorFormattingService) : ICSharpCodeActionResolver
 {
+    private readonly IDelegatedCodeActionResolver _delegatedCodeActionResolver = delegatedCodeActionResolver;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
 
-    public override string Action => LanguageServerConstants.CodeActions.Default;
+    public string Action => LanguageServerConstants.CodeActions.Default;
 
-    public async override Task<CodeAction> ResolveAsync(
+    public async Task<CodeAction> ResolveAsync(
         DocumentContext documentContext,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
-        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(documentContext.GetTextDocumentIdentifier(), documentContext.Snapshot.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
+        var resolvedCodeAction = await _delegatedCodeActionResolver.ResolveCodeActionAsync(documentContext.GetTextDocumentIdentifier(), documentContext.Snapshot.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
         if (resolvedCodeAction?.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action

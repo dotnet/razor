@@ -1206,12 +1206,13 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     {
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
 
-        var csharpResolvers = new CSharpCodeActionResolver[]
+        var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
+        var csharpResolvers = new ICSharpCodeActionResolver[]
         {
-            new DefaultCSharpCodeActionResolver(clientConnection, formattingService)
+            new DefaultCSharpCodeActionResolver(delegatedCodeActionResolver, formattingService)
         };
 
-        var htmlResolvers = Array.Empty<HtmlCodeActionResolver>();
+        var htmlResolvers = Array.Empty<IHtmlCodeActionResolver>();
 
         var resolveEndpoint = new CodeActionResolveEndpoint(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
 

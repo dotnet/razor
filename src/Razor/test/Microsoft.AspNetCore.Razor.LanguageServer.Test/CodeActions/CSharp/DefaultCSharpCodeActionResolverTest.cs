@@ -173,8 +173,9 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         clientConnection ??= CreateLanguageServer();
         razorFormattingService ??= CreateRazorFormattingService(documentUri);
 
+        var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
         csharpCodeActionResolver = new DefaultCSharpCodeActionResolver(
-            clientConnection,
+            delegatedCodeActionResolver,
             razorFormattingService);
 
         documentContext = CreateDocumentContext(documentUri, codeDocument);

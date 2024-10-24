@@ -137,11 +137,13 @@ internal static class IServiceCollectionExtensions
         services.AddHandlerWithCapabilities<CodeActionEndpoint>();
         services.AddHandler<CodeActionResolveEndpoint>();
 
+        services.AddSingleton<IDelegatedCodeActionResolver, DelegatedCodeActionResolver>();
+
         // CSharp Code actions
         services.AddSingleton<ICSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
         services.AddSingleton<ICSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
-        services.AddSingleton<CSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
-        services.AddSingleton<CSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
+        services.AddSingleton<ICSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
+        services.AddSingleton<ICSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
 
         // Razor Code actions
         services.AddSingleton<IRazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
@@ -156,7 +158,7 @@ internal static class IServiceCollectionExtensions
 
         // Html Code actions
         services.AddSingleton<IHtmlCodeActionProvider, DefaultHtmlCodeActionProvider>();
-        services.AddSingleton<HtmlCodeActionResolver, DefaultHtmlCodeActionResolver>();
+        services.AddSingleton<IHtmlCodeActionResolver, DefaultHtmlCodeActionResolver>();
     }
 
     public static void AddTextDocumentServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)

@@ -58,7 +58,8 @@ public class DefaultHtmlCodeActionResolverTest(ITestOutputHelper testOutput) : L
             .Setup(x => x.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remappedEdit);
 
-        var resolver = new DefaultHtmlCodeActionResolver(CreateLanguageServer(resolvedCodeAction), editMappingServiceMock.Object);
+        var delegatedCodeActionResolver = new DelegatedCodeActionResolver(CreateLanguageServer(resolvedCodeAction));
+        var resolver = new DefaultHtmlCodeActionResolver(delegatedCodeActionResolver, editMappingServiceMock.Object);
 
         var codeAction = new RazorVSInternalCodeAction()
         {

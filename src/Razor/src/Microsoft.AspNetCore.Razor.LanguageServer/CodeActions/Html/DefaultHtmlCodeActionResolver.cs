@@ -12,19 +12,20 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class DefaultHtmlCodeActionResolver(
-    IClientConnection clientConnection,
-    IEditMappingService editMappingService) : HtmlCodeActionResolver(clientConnection)
+    IDelegatedCodeActionResolver delegatedCodeActionResolver,
+    IEditMappingService editMappingService) : IHtmlCodeActionResolver
 {
+    private readonly IDelegatedCodeActionResolver _delegatedCodeActionResolver = delegatedCodeActionResolver;
     private readonly IEditMappingService _editMappingService = editMappingService;
 
-    public override string Action => LanguageServerConstants.CodeActions.Default;
+    public string Action => LanguageServerConstants.CodeActions.Default;
 
-    public async override Task<CodeAction> ResolveAsync(
+    public async Task<CodeAction> ResolveAsync(
         DocumentContext documentContext,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
-        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(documentContext.GetTextDocumentIdentifier(), documentContext.Snapshot.Version, RazorLanguageKind.Html, codeAction, cancellationToken).ConfigureAwait(false);
+        var resolvedCodeAction = await _delegatedCodeActionResolver.ResolveCodeActionAsync(documentContext.GetTextDocumentIdentifier(), documentContext.Snapshot.Version, RazorLanguageKind.Html, codeAction, cancellationToken).ConfigureAwait(false);
         if (resolvedCodeAction?.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action
