@@ -165,8 +165,8 @@ public class DefaultHtmlCodeActionProviderTest(ITestOutputHelper testOutput) : L
             request,
             documentSnapshotMock.Object,
             codeDocument,
-            absoluteIndex,
-            absoluteIndex,
+            StartAbsoluteIndex: absoluteIndex,
+            EndAbsoluteIndex: absoluteIndex,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);

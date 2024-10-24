@@ -268,7 +268,6 @@ internal static class FormattingUtilities
     /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
     /// minimal text edits
     /// </summary>
-    // Internal for testing
     public static TextEdit[] FixHtmlTextEdits(SourceText htmlSourceText, TextEdit[] edits)
     {
         // Avoid computing a minimal diff if we don't need to

@@ -471,8 +471,8 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             request,
             documentSnapshotMock.Object,
             codeDocument,
-            absoluteIndex,
-            absoluteIndex,
+            StartAbsoluteIndex: absoluteIndex,
+            EndAbsoluteIndex: absoluteIndex,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);

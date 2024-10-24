@@ -468,8 +468,8 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             request,
             documentSnapshotMock.Object,
             codeDocument,
-            absoluteIndex,
-            absoluteIndex,
+            StartAbsoluteIndex: absoluteIndex,
+            EndAbsoluteIndex: absoluteIndex,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

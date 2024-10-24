@@ -370,7 +370,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int absoluteIndex, string filePath, string text, bool supportsFileCreation = true)
         => CreateRazorCodeActionContext(request, absoluteIndex, filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int aboluteIndex, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
+    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int absoluteIndex, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
     {
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
         var options = RazorParserOptions.Create(o =>
@@ -400,8 +400,8 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             request,
             documentSnapshotMock.Object,
             codeDocument,
-            aboluteIndex,
-            aboluteIndex,
+            StartAbsoluteIndex: absoluteIndex,
+            EndAbsoluteIndex: absoluteIndex,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);
