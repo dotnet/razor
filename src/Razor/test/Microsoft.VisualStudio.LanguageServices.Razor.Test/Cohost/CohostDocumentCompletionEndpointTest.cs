@@ -148,9 +148,11 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     [Fact]
     public async Task RazorDirectives()
     {
-        var expectedDirectiveLabels =
-            DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets.Keys
-                .Where(label => label is not ("addTagHelper" or "removeTagHelper" or "tagHelperPrefix" or "model"));
+        var expectedDirectiveLabels = new string[]
+            {
+                "attribute", "implements", "inherits", "inject", "layout", "namespace", "page",
+                "preservewhitespace", "typeparam", "using"
+            };
         var expectedDirectiveSnippetLabels = expectedDirectiveLabels.Select(label => $"{label} directive ...");
         var expectedCSharpLabels = new string[] { "char", "DateTime", "Exception" };
         var expectedLabels = expectedDirectiveLabels
