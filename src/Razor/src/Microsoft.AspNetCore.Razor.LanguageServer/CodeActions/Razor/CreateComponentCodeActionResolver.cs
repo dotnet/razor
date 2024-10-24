@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -24,7 +25,7 @@ internal sealed class CreateComponentCodeActionResolver(LanguageServerFeatureOpt
 
     public string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<CreateComponentCodeActionParams>();
         if (actionParams is null)

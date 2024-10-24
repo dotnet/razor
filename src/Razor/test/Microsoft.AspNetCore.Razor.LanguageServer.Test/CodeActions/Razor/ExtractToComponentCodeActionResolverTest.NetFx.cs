@@ -303,6 +303,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
             codeActionToRun,
             requestContext,
             languageServer,
+            optionsMonitor: null,
             [resolver]
             );
 

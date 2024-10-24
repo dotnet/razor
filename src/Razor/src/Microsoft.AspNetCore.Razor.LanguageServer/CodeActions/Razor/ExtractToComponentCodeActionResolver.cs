@@ -26,7 +26,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponentAction;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         if (data.ValueKind == JsonValueKind.Undefined)
         {

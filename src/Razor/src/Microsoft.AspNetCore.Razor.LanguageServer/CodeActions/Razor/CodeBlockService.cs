@@ -34,12 +34,12 @@ internal static class CodeBlockService
     ///   <see cref="FormattingUtilities.InitialIndent"/><see cref="FormattingUtilities.Indent"/>}
     /// </param>
     /// <param name="options">
-    ///  The <see cref="RazorLSPOptions"/> that contains information about indentation.
+    ///  The <see cref="RazorFormattingOptions"/> that contains information about indentation.
     /// </param>
     /// <returns>
     ///  A <see cref="TextEdit"/> that will place the formatted generated method within a @code block in the file.
     /// </returns>
-    public static TextEdit[] CreateFormattedTextEdit(RazorCodeDocument code, string templateWithMethodSignature, RazorLSPOptions options)
+    public static TextEdit[] CreateFormattedTextEdit(RazorCodeDocument code, string templateWithMethodSignature, RazorFormattingOptions options)
     {
         var csharpCodeBlock = code.GetSyntaxTree().Root.DescendantNodes()
             .Select(RazorSyntaxFacts.TryGetCSharpCodeFromCodeBlock)
@@ -104,7 +104,7 @@ internal static class CodeBlockService
         int openBraceLineIndex,
         int closeBraceLineIndex,
         SourceLocation insertLocation,
-        RazorLSPOptions options,
+        RazorFormattingOptions options,
         string method)
     {
         // The absolute index and character index of the code block's location points to the end of '@code'.

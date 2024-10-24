@@ -28,12 +28,10 @@ using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 internal sealed class GenerateMethodCodeActionResolver(
-    RazorLSPOptionsMonitor razorLSPOptionsMonitor,
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
     IDocumentMappingService documentMappingService,
     IRazorFormattingService razorFormattingService) : IRazorCodeActionResolver
 {
-    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
@@ -50,7 +48,7 @@ internal sealed class GenerateMethodCodeActionResolver(
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<GenerateMethodCodeActionParams>();
         if (actionParams is null)
@@ -73,6 +71,7 @@ internal sealed class GenerateMethodCodeActionResolver(
                 documentContext,
                 razorNamespace: null,
                 razorClassName,
+                options,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -86,6 +85,7 @@ internal sealed class GenerateMethodCodeActionResolver(
                 documentContext,
                 razorNamespace,
                 razorClassName,
+                options,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -102,8 +102,8 @@ internal sealed class GenerateMethodCodeActionResolver(
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodSignature,
-            _razorLSPOptionsMonitor.CurrentValue.TabSize,
-            _razorLSPOptionsMonitor.CurrentValue.InsertSpaces,
+            options.TabSize,
+            options.InsertSpaces,
             @class.SpanStart,
             classLocationLineSpan.StartLinePosition.Character,
             content);
@@ -130,10 +130,11 @@ internal sealed class GenerateMethodCodeActionResolver(
         DocumentContext documentContext,
         string? razorNamespace,
         string? razorClassName,
+        RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
         var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
-        var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, _razorLSPOptionsMonitor.CurrentValue);
+        var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, options);
 
         // If there are 3 edits, this means that there is no existing @code block, so we have an edit for '@code {', the method stub, and '}'.
         // Otherwise, a singular edit means that an @code block does exist and the only edit is adding the method stub.
@@ -183,9 +184,9 @@ internal sealed class GenerateMethodCodeActionResolver(
             {
                 var formattingOptions = new RazorFormattingOptions()
                 {
-                    TabSize = _razorLSPOptionsMonitor.CurrentValue.TabSize,
-                    InsertSpaces = _razorLSPOptionsMonitor.CurrentValue.InsertSpaces,
-                    CodeBlockBraceOnNextLine = _razorLSPOptionsMonitor.CurrentValue.CodeBlockBraceOnNextLine
+                    TabSize = options.TabSize,
+                    InsertSpaces = options.InsertSpaces,
+                    CodeBlockBraceOnNextLine = options.CodeBlockBraceOnNextLine
                 };
 
                 var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(

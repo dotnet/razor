@@ -43,12 +43,10 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
     private GenerateMethodCodeActionResolver[] CreateRazorCodeActionResolvers(
         IRoslynCodeActionHelpers roslynCodeActionHelpers,
-        IRazorFormattingService razorFormattingService,
-        RazorLSPOptionsMonitor? optionsMonitor = null)
+        IRazorFormattingService razorFormattingService)
             =>
             [
                 new GenerateMethodCodeActionResolver(
-                    optionsMonitor ?? TestRazorLSPOptionsMonitor.Create(),
                     roslynCodeActionHelpers,
                     new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
                     razorFormattingService)
@@ -1044,6 +1042,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                 codeActionToRun,
                 requestContext,
                 languageServer,
+                optionsMonitor: null,
                 CreateRazorCodeActionResolvers(roslynCodeActionHelpers, formattingService));
 
             var razorEdits = new List<TextChange>();
@@ -1078,7 +1077,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<IRoslynCodeActionHelpers, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        Func<IRoslynCodeActionHelpers, IRazorFormattingService, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -1091,7 +1090,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<IRoslynCodeActionHelpers, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        Func<IRoslynCodeActionHelpers, IRazorFormattingService, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -1131,7 +1130,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             codeActionToRun,
             requestContext,
             languageServer,
-            codeActionResolversCreator?.Invoke(roslynCodeActionHelpers, formattingService, optionsMonitor) ?? []);
+            optionsMonitor,
+            codeActionResolversCreator?.Invoke(roslynCodeActionHelpers, formattingService) ?? []);
 
         var edits = new List<TextChange>();
         foreach (var change in changes)
@@ -1205,6 +1205,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         VSInternalCodeAction codeActionToRun,
         RazorRequestContext requestContext,
         IClientConnection clientConnection,
+        RazorLSPOptionsMonitor? optionsMonitor,
         IRazorCodeActionResolver[] razorResolvers)
     {
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
@@ -1217,7 +1218,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
         var htmlResolvers = Array.Empty<IHtmlCodeActionResolver>();
 
-        var resolveEndpoint = new CodeActionResolveEndpoint(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
+        optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
+        var resolveEndpoint = new CodeActionResolveEndpoint(razorResolvers, csharpResolvers, htmlResolvers, optionsMonitor, LoggerFactory);
 
         var resolveResult = await resolveEndpoint.HandleRequestAsync(codeActionToRun, requestContext, DisposalToken);
 

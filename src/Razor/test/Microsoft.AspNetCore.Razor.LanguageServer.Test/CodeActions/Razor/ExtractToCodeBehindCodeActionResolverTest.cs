@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -46,7 +47,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(CreateExtractToCodeBehindCodeActionParams(contents, "@code", "Test"));
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.Null(workspaceEdit);
@@ -70,7 +71,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(CreateExtractToCodeBehindCodeActionParams(contents, "@code", "Test"));
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.Null(workspaceEdit);
@@ -98,7 +99,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -163,7 +164,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -236,7 +237,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -319,7 +320,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -404,7 +405,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -477,7 +478,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -542,7 +543,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -609,7 +610,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);
@@ -680,7 +681,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var data = JsonSerializer.SerializeToElement(actionParams);
 
         // Act
-        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, DisposalToken);
+        var workspaceEdit = await resolver.ResolveAsync(documentContext, data, new RazorFormattingOptions(), DisposalToken);
 
         // Assert
         Assert.NotNull(workspaceEdit);

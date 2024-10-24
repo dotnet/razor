@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -25,11 +26,13 @@ internal sealed class CodeActionResolveEndpoint(
     IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
     IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
     IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
+    RazorLSPOptionsMonitor razorLSPOptionsMonitor,
     ILoggerFactory loggerFactory) : IRazorRequestHandler<CodeAction, CodeAction>
 {
     private readonly FrozenDictionary<string, IRazorCodeActionResolver> _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);
     private readonly FrozenDictionary<string, ICSharpCodeActionResolver> _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
     private readonly FrozenDictionary<string, IHtmlCodeActionResolver> _htmlCodeActionResolvers = CreateResolverMap(htmlCodeActionResolvers);
+    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor = razorLSPOptionsMonitor;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CodeActionResolveEndpoint>();
 
     public bool MutatesSolutionState => false;
@@ -54,6 +57,13 @@ internal sealed class CodeActionResolveEndpoint(
             return request;
         }
 
+        var options = new RazorFormattingOptions
+        {
+            TabSize = _razorLSPOptionsMonitor.CurrentValue.TabSize,
+            InsertSpaces = _razorLSPOptionsMonitor.CurrentValue.InsertSpaces,
+            CodeBlockBraceOnNextLine = _razorLSPOptionsMonitor.CurrentValue.CodeBlockBraceOnNextLine
+        };
+
         request.Data = resolutionParams.Data;
 
         switch (resolutionParams.Language)
@@ -63,6 +73,7 @@ internal sealed class CodeActionResolveEndpoint(
                     documentContext,
                     request,
                     resolutionParams,
+                    options,
                     cancellationToken).ConfigureAwait(false);
             case RazorLanguageKind.CSharp:
                 return await ResolveCSharpCodeActionAsync(
@@ -102,6 +113,7 @@ internal sealed class CodeActionResolveEndpoint(
         DocumentContext documentContext,
         CodeAction codeAction,
         RazorCodeActionResolutionParams resolutionParams,
+        RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
         if (!_razorCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
@@ -117,7 +129,7 @@ internal sealed class CodeActionResolveEndpoint(
             return codeAction;
         }
 
-        var edit = await resolver.ResolveAsync(documentContext, data, cancellationToken).ConfigureAwait(false);
+        var edit = await resolver.ResolveAsync(documentContext, data, options, cancellationToken).ConfigureAwait(false);
         codeAction.Edit = edit;
         return codeAction;
     }
@@ -181,8 +193,8 @@ internal sealed class CodeActionResolveEndpoint(
 
     internal readonly struct TestAccessor(CodeActionResolveEndpoint instance)
     {
-        public Task<CodeAction> ResolveRazorCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
-            => instance.ResolveRazorCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);
+        public Task<CodeAction> ResolveRazorCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, RazorFormattingOptions options, CancellationToken cancellationToken)
+            => instance.ResolveRazorCodeActionAsync(documentContext, codeAction, resolutionParams, options, cancellationToken);
 
         public Task<CodeAction> ResolveCSharpCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
             => instance.ResolveCSharpCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);
