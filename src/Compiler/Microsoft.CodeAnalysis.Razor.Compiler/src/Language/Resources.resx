@@ -195,7 +195,7 @@
     <value>The '{0}' directive expects a type name.</value>
   </data>
   <data name="DirectiveMustAppearAtStartOfLine" xml:space="preserve">
-    <value>The '{0}` directive must appear at the start of the line.</value>
+    <value>The '{0}' directive must appear at the start of the line.</value>
   </data>
   <data name="DirectiveTokensMustBeSeparatedByWhitespace" xml:space="preserve">
     <value>The '{0}' directives value(s) must be separated by whitespace.</value>
