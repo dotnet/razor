@@ -1165,7 +1165,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         Diagnostic[]? diagnostics = null)
     {
         var delegatedCodeActionsProvider = new DelegatedCodeActionsProvider(clientConnection, NoOpTelemetryReporter.Instance, LoggerFactory);
-        var endpoint = new CodeActionEndpoint(
+
+        var codeActionsService = new CodeActionsService(
             DocumentMappingService.AssumeNotNull(),
             razorCodeActionProviders: razorProviders ?? [],
             csharpCodeActionProviders:
@@ -1175,7 +1176,10 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             ],
             htmlCodeActionProviders: [],
             delegatedCodeActionsProvider,
-            LanguageServerFeatureOptions.AssumeNotNull(),
+            LanguageServerFeatureOptions.AssumeNotNull());
+
+        var endpoint = new CodeActionEndpoint(
+            codeActionsService,
             NoOpTelemetryReporter.Instance);
 
         // Call GetRegistration, so the endpoint knows we support resolve
