@@ -102,7 +102,14 @@ public class Program
 
         loggerFactory.GetOrCreateLogger("RZLS").LogInformation($"Razor Language Server started successfully.");
 
-        await host.WaitForExitAsync().ConfigureAwait(true);
+        try
+        {
+            await host.WaitForExitAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            devKitTelemetryReporter?.Flush();
+        }
     }
 
     private static async Task<ITelemetryReporter?> TryGetTelemetryReporterAsync(string telemetryLevel, string sessionId, string telemetryExtensionPath)
