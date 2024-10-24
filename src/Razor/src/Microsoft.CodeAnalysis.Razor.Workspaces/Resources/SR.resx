@@ -172,4 +172,13 @@
   <data name="TagHelper_Element_Glyph" xml:space="preserve">
     <value>Razor TagHelper Element Glyph</value>
   </data>
+  <data name="ReTrigger_Completions_Title" xml:space="preserve">
+    <value>"Re-trigger completions..."</value>
+  </data>
+  <data name="Blazor_directive_attributes" xml:space="preserve">
+    <value>Blazor directive attributes</value>
+  </data>
+  <data name="Statement" xml:space="preserve">
+    <value>statement</value>
+  </data>
 </root>
