@@ -10,8 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -21,6 +19,9 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -1164,17 +1165,21 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         Diagnostic[]? diagnostics = null)
     {
         var delegatedCodeActionsProvider = new DelegatedCodeActionsProvider(clientConnection, NoOpTelemetryReporter.Instance, LoggerFactory);
-        var endpoint = new CodeActionEndpoint(
+
+        var codeActionsService = new CodeActionsService(
             DocumentMappingService.AssumeNotNull(),
             razorCodeActionProviders: razorProviders ?? [],
             csharpCodeActionProviders:
             [
-                new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
+                new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
                 new TypeAccessibilityCodeActionProvider()
             ],
             htmlCodeActionProviders: [],
             delegatedCodeActionsProvider,
-            LanguageServerFeatureOptions.AssumeNotNull(),
+            LanguageServerFeatureOptions.AssumeNotNull());
+
+        var endpoint = new CodeActionEndpoint(
+            codeActionsService,
             NoOpTelemetryReporter.Instance);
 
         // Call GetRegistration, so the endpoint knows we support resolve
@@ -1213,13 +1218,14 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
         var csharpResolvers = new ICSharpCodeActionResolver[]
         {
-            new DefaultCSharpCodeActionResolver(delegatedCodeActionResolver, formattingService)
+            new CSharpCodeActionResolver(delegatedCodeActionResolver, formattingService)
         };
 
         var htmlResolvers = Array.Empty<IHtmlCodeActionResolver>();
 
         optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
-        var resolveEndpoint = new CodeActionResolveEndpoint(razorResolvers, csharpResolvers, htmlResolvers, optionsMonitor, LoggerFactory);
+        var codeActionResolveService = new CodeActionResolveService(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
+        var resolveEndpoint = new CodeActionResolveEndpoint(codeActionResolveService, optionsMonitor);
 
         var resolveResult = await resolveEndpoint.HandleRequestAsync(codeActionToRun, requestContext, DisposalToken);
 

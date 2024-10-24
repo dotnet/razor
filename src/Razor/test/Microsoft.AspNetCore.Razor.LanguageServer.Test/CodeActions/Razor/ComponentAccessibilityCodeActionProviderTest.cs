@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
@@ -16,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using LanguageServerSR = Microsoft.AspNetCore.Razor.LanguageServer.Resources.SR;
+using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -148,7 +149,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             },
             e =>
             {
-                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, e.Title);
                 Assert.NotNull(e.Data);
                 Assert.Null(e.Edit);
             });
@@ -195,7 +196,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             },
             e =>
             {
-                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, e.Title);
                 Assert.NotNull(e.Data);
                 Assert.Null(e.Edit);
             });
@@ -238,7 +239,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             },
             e =>
             {
-                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, e.Title);
                 Assert.NotNull(e.Data);
                 Assert.Null(e.Edit);
             });
@@ -285,7 +286,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             },
             e =>
             {
-                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, e.Title);
                 Assert.NotNull(e.Data);
                 Assert.Null(e.Edit);
             });
@@ -317,7 +318,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
 
         // Assert
         var command = Assert.Single(commandOrCodeActionContainer);
-        Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
+        Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
     }
 
@@ -347,7 +348,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
 
         // Assert
         var command = Assert.Single(commandOrCodeActionContainer);
-        Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
+        Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
     }
 
@@ -467,8 +468,8 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             request,
             documentSnapshotMock.Object,
             codeDocument,
-            absoluteIndex,
-            absoluteIndex,
+            StartAbsoluteIndex: absoluteIndex,
+            EndAbsoluteIndex: absoluteIndex,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

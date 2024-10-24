@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -20,6 +19,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -137,14 +138,16 @@ internal static class IServiceCollectionExtensions
         services.AddHandlerWithCapabilities<CodeActionEndpoint>();
         services.AddHandler<CodeActionResolveEndpoint>();
 
+        services.AddSingleton<ICodeActionsService, CodeActionsService>();
+        services.AddSingleton<ICodeActionResolveService, CodeActionResolveService>();
         services.AddSingleton<IDelegatedCodeActionsProvider, DelegatedCodeActionsProvider>();
         services.AddSingleton<IDelegatedCodeActionResolver, DelegatedCodeActionResolver>();
         services.AddSingleton<IRoslynCodeActionHelpers, RoslynCodeActionHelpers>();
 
         // CSharp Code actions
         services.AddSingleton<ICSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
-        services.AddSingleton<ICSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
-        services.AddSingleton<ICSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
+        services.AddSingleton<ICSharpCodeActionProvider, CSharpCodeActionProvider>();
+        services.AddSingleton<ICSharpCodeActionResolver, CSharpCodeActionResolver>();
         services.AddSingleton<ICSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
 
         // Razor Code actions
@@ -159,8 +162,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorCodeActionResolver, GenerateMethodCodeActionResolver>();
 
         // Html Code actions
-        services.AddSingleton<IHtmlCodeActionProvider, DefaultHtmlCodeActionProvider>();
-        services.AddSingleton<IHtmlCodeActionResolver, DefaultHtmlCodeActionResolver>();
+        services.AddSingleton<IHtmlCodeActionProvider, HtmlCodeActionProvider>();
+        services.AddSingleton<IHtmlCodeActionResolver, HtmlCodeActionResolver>();
     }
 
     public static void AddTextDocumentServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
