@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.DirectoryHelper;

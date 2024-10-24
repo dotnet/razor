@@ -8,10 +8,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
 public abstract class TagHelperServiceTestBase : LanguageServerTestBase
 {

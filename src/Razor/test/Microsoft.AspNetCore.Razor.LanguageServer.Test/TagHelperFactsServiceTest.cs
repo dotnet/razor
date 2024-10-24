@@ -7,7 +7,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;

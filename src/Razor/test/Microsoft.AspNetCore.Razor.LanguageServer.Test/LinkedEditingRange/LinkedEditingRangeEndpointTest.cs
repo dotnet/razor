@@ -6,7 +6,7 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.CodeAnalysis.Razor.LinkedEditingRange;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
