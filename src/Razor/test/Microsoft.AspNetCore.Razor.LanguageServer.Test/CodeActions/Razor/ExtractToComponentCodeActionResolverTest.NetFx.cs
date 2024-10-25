@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -16,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -296,14 +296,14 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
         Assert.NotNull(codeActionToRun);
 
         var resolver = new ExtractToComponentCodeActionResolver(
-                    new GenerateMethodResolverDocumentContextFactory(razorFilePath, codeDocument),
-                    TestLanguageServerFeatureOptions.Instance);
+            TestLanguageServerFeatureOptions.Instance);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, null);
         var changes = await GetEditsAsync(
             codeActionToRun,
             requestContext,
             languageServer,
+            optionsMonitor: null,
             [resolver]
             );
 

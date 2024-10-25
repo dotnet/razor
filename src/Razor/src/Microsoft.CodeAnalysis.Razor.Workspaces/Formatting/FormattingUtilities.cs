@@ -2,11 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
@@ -259,5 +261,22 @@ internal static class FormattingUtilities
 
             return builder.DrainToImmutable();
         }
+    }
+
+    /// <summary>
+    /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
+    /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
+    /// minimal text edits
+    /// </summary>
+    public static TextEdit[] FixHtmlTextEdits(SourceText htmlSourceText, TextEdit[] edits)
+    {
+        // Avoid computing a minimal diff if we don't need to
+        if (!edits.Any(static e => e.NewText.Contains("~")))
+            return edits;
+
+        var changes = edits.SelectAsArray(htmlSourceText.GetTextChange);
+
+        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
+        return [.. fixedChanges.Select(htmlSourceText.GetTextEdit)];
     }
 }

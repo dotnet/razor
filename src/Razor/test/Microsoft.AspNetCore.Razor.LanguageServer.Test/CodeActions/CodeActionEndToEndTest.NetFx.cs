@@ -4,27 +4,25 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
@@ -45,17 +43,12 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     private const string CodeBehindTestReplaceNamespace = "$$Replace_Namespace$$";
 
     private GenerateMethodCodeActionResolver[] CreateRazorCodeActionResolvers(
-        string filePath,
-        RazorCodeDocument codeDocument,
-        IClientConnection clientConnection,
-        IRazorFormattingService razorFormattingService,
-        RazorLSPOptionsMonitor? optionsMonitor = null)
+        IRoslynCodeActionHelpers roslynCodeActionHelpers,
+        IRazorFormattingService razorFormattingService)
             =>
             [
                 new GenerateMethodCodeActionResolver(
-                    new GenerateMethodResolverDocumentContextFactory(filePath, codeDocument),
-                    optionsMonitor ?? TestRazorLSPOptionsMonitor.Create(),
-                    clientConnection,
+                    roslynCodeActionHelpers,
                     new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory),
                     razorFormattingService)
             ];
@@ -700,7 +693,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
         var razorFilePath = "file://C:/path/test.razor";
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
+        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath, tagHelpers: CreateTagHelperDescriptors());
         var razorSourceText = codeDocument.Source.Text;
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
@@ -739,7 +732,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
 
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
         var razorFilePath = "file://C:/path/test.razor";
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
+        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath, tagHelpers: CreateTagHelperDescriptors());
         var razorSourceText = codeDocument.Source.Text;
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
@@ -1019,7 +1012,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
 
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath, rootNamespace: "Test");
+        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath, rootNamespace: "Test", tagHelpers: CreateTagHelperDescriptors());
         var razorSourceText = codeDocument.Source.Text;
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
@@ -1045,11 +1038,13 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             Assert.NotNull(codeActionToRun);
 
             var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
+            var roslynCodeActionHelpers = new RoslynCodeActionHelpers(languageServer);
             var changes = await GetEditsAsync(
                 codeActionToRun,
                 requestContext,
                 languageServer,
-                CreateRazorCodeActionResolvers(razorFilePath, codeDocument, languageServer, formattingService));
+                optionsMonitor: null,
+                CreateRazorCodeActionResolvers(roslynCodeActionHelpers, formattingService));
 
             var razorEdits = new List<TextChange>();
             var codeBehindEdits = new List<TextChange>();
@@ -1083,7 +1078,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<string, RazorCodeDocument, IClientConnection, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        Func<IRoslynCodeActionHelpers, IRazorFormattingService, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
@@ -1096,14 +1091,14 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
-        Func<string, RazorCodeDocument, IClientConnection, IRazorFormattingService, RazorLSPOptionsMonitor?, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
+        Func<IRoslynCodeActionHelpers, IRazorFormattingService, IRazorCodeActionResolver[]>? codeActionResolversCreator = null,
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
 
         var razorFilePath = "C:/path/test.razor";
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
+        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath, tagHelpers: CreateTagHelperDescriptors());
         var sourceText = codeDocument.Source.Text;
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
@@ -1131,11 +1126,13 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         Assert.NotNull(codeActionToRun);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, optionsMonitor?.CurrentValue);
+        var roslynCodeActionHelpers = new RoslynCodeActionHelpers(languageServer);
         var changes = await GetEditsAsync(
             codeActionToRun,
             requestContext,
             languageServer,
-            codeActionResolversCreator?.Invoke(razorFilePath, codeDocument, languageServer, formattingService, optionsMonitor) ?? []);
+            optionsMonitor,
+            codeActionResolversCreator?.Invoke(roslynCodeActionHelpers, formattingService) ?? []);
 
         var edits = new List<TextChange>();
         foreach (var change in changes)
@@ -1167,19 +1164,23 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         IRazorCodeActionProvider[]? razorProviders = null,
         Diagnostic[]? diagnostics = null)
     {
-        var endpoint = new CodeActionEndpoint(
+        var delegatedCodeActionsProvider = new DelegatedCodeActionsProvider(clientConnection, NoOpTelemetryReporter.Instance, LoggerFactory);
+
+        var codeActionsService = new CodeActionsService(
             DocumentMappingService.AssumeNotNull(),
             razorCodeActionProviders: razorProviders ?? [],
             csharpCodeActionProviders:
             [
-                new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
+                new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance),
                 new TypeAccessibilityCodeActionProvider()
             ],
             htmlCodeActionProviders: [],
-            clientConnection,
-            LanguageServerFeatureOptions.AssumeNotNull(),
-            LoggerFactory,
-            telemetryReporter: null);
+            delegatedCodeActionsProvider,
+            LanguageServerFeatureOptions.AssumeNotNull());
+
+        var endpoint = new CodeActionEndpoint(
+            codeActionsService,
+            NoOpTelemetryReporter.Instance);
 
         // Call GetRegistration, so the endpoint knows we support resolve
         endpoint.ApplyCapabilities(new(), new VSInternalClientCapabilities
@@ -1209,18 +1210,22 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         VSInternalCodeAction codeActionToRun,
         RazorRequestContext requestContext,
         IClientConnection clientConnection,
+        RazorLSPOptionsMonitor? optionsMonitor,
         IRazorCodeActionResolver[] razorResolvers)
     {
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory);
 
-        var csharpResolvers = new CSharpCodeActionResolver[]
+        var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
+        var csharpResolvers = new ICSharpCodeActionResolver[]
         {
-            new DefaultCSharpCodeActionResolver(DocumentContextFactory.AssumeNotNull(), clientConnection, formattingService)
+            new CSharpCodeActionResolver(delegatedCodeActionResolver, formattingService)
         };
 
-        var htmlResolvers = Array.Empty<HtmlCodeActionResolver>();
+        var htmlResolvers = Array.Empty<IHtmlCodeActionResolver>();
 
-        var resolveEndpoint = new CodeActionResolveEndpoint(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
+        optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
+        var codeActionResolveService = new CodeActionResolveService(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
+        var resolveEndpoint = new CodeActionResolveEndpoint(codeActionResolveService, optionsMonitor);
 
         var resolveResult = await resolveEndpoint.HandleRequestAsync(codeActionToRun, requestContext, DisposalToken);
 
@@ -1232,74 +1237,38 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         return documentEdits;
     }
 
-    internal class GenerateMethodResolverDocumentContextFactory : TestDocumentContextFactory
+    private static ImmutableArray<TagHelperDescriptor> CreateTagHelperDescriptors()
     {
-        private readonly List<TagHelperDescriptor> _tagHelperDescriptors;
+        return BuildTagHelpers().ToImmutableArray();
 
-        public GenerateMethodResolverDocumentContextFactory
-            (string filePath,
-            RazorCodeDocument codeDocument,
-            TagHelperDescriptor[]? tagHelpers = null)
-            : base(filePath, codeDocument)
+        static IEnumerable<TagHelperDescriptor> BuildTagHelpers()
         {
-            _tagHelperDescriptors = CreateTagHelperDescriptors();
-            if (tagHelpers is not null)
-            {
-                _tagHelperDescriptors.AddRange(tagHelpers);
-            }
-        }
+            var builder = TagHelperDescriptorBuilder.Create("oncontextmenu", "Microsoft.AspNetCore.Components");
+            builder.SetMetadata(
+                new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+            yield return builder.Build();
 
-        public override bool TryCreate(
-            Uri documentUri,
-            VSProjectContext? projectContext,
-            [NotNullWhen(true)] out DocumentContext? context)
-        {
-            if (FilePath is null || CodeDocument is null)
-            {
-                context = null;
-                return false;
-            }
+            builder = TagHelperDescriptorBuilder.Create("onclick", "Microsoft.AspNetCore.Components");
+            builder.SetMetadata(
+                new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
 
-            var projectWorkspaceState = ProjectWorkspaceState.Create(_tagHelperDescriptors.ToImmutableArray());
-            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument, projectWorkspaceState);
+            yield return builder.Build();
 
-            context = CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot);
-            return true;
-        }
+            builder = TagHelperDescriptorBuilder.Create("oncopy", "Microsoft.AspNetCore.Components");
+            builder.SetMetadata(
+                new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"),
+                new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
 
-        private static List<TagHelperDescriptor> CreateTagHelperDescriptors()
-        {
-            return BuildTagHelpers().ToList();
+            yield return builder.Build();
 
-            static IEnumerable<TagHelperDescriptor> BuildTagHelpers()
-            {
-                var builder = TagHelperDescriptorBuilder.Create("oncontextmenu", "Microsoft.AspNetCore.Components");
-                builder.SetMetadata(
-                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
-                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
-                yield return builder.Build();
+            builder = TagHelperDescriptorBuilder.Create("ref", "Microsoft.AspNetCore.Components");
+            builder.SetMetadata(
+                new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind),
+                new KeyValuePair<string, string>(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString));
 
-                builder = TagHelperDescriptorBuilder.Create("onclick", "Microsoft.AspNetCore.Components");
-                builder.SetMetadata(
-                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
-                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
-
-                yield return builder.Build();
-
-                builder = TagHelperDescriptorBuilder.Create("oncopy", "Microsoft.AspNetCore.Components");
-                builder.SetMetadata(
-                    new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"),
-                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
-
-                yield return builder.Build();
-
-                builder = TagHelperDescriptorBuilder.Create("ref", "Microsoft.AspNetCore.Components");
-                builder.SetMetadata(
-                    new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind),
-                    new KeyValuePair<string, string>(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString));
-
-                yield return builder.Build();
-            }
+            yield return builder.Build();
         }
     }
 }
