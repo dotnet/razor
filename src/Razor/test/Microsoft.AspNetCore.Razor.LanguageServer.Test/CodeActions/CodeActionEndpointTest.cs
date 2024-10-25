@@ -14,11 +14,13 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -623,7 +625,10 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
     private static RazorCodeDocument CreateCodeDocument(string text)
     {
         var sourceDocument = TestRazorSourceDocument.Create(text);
-        var projectEngine = RazorProjectEngine.Create(builder => { });
+        var projectEngine = RazorProjectEngine.Create(builder =>
+        {
+            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+        });
 
         return projectEngine.ProcessDesignTime(sourceDocument, "mvc", importSources: [], tagHelpers: []);
     }

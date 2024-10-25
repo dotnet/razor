@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
@@ -48,7 +49,10 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public VersionStamp Version => RealSnapshot.Version;
 
     public RazorProjectEngine GetProjectEngine()
-        => RazorProjectEngine.Create(Configuration, RazorProjectFileSystem.Create("C:/"));
+        => RazorProjectEngine.Create(
+            Configuration,
+            RazorProjectFileSystem.Create("C:/"),
+            b => b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default)));
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
         => RealSnapshot.GetTagHelpersAsync(cancellationToken);
