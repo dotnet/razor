@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -134,4 +136,52 @@ internal static class RazorSyntaxFacts
 
     public static bool IsInCodeBlock(RazorSyntaxNode n)
         => n.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is RazorDirectiveSyntax { DirectiveDescriptor.Directive: "code" }) is not null;
+
+    internal static string? TryGetNamespaceFromDirective(RazorDirectiveSyntax directiveNode)
+    {
+        foreach (var child in directiveNode.DescendantNodes())
+        {
+            if (child.GetChunkGenerator() is AddImportChunkGenerator { IsStatic: false } usingStatement)
+            {
+                return usingStatement.ParsedNamespace;
+            }
+        }
+
+        return null;
+    }
+
+    internal static bool IsInUsingDirective(RazorSyntaxNode node)
+    {
+        var directives = node
+            .AncestorsAndSelf()
+            .OfType<RazorDirectiveSyntax>();
+
+        foreach (var directive in directives)
+        {
+            if (TryGetNamespaceFromDirective(directive) is not null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    internal static bool AreNextToEachother(RazorDirectiveSyntax firstNode, RazorDirectiveSyntax secondNode, SourceText text)
+    {
+        var index = firstNode.Span.End;
+        var end = secondNode.Span.Start - 1;
+        var c = text[index];
+        while (char.IsWhiteSpace(c) || c == '\n')
+        {
+            if (index == end)
+            {
+                return true;
+            }
+
+            c = text[++index];
+        }
+
+        return false;
+    }
 }

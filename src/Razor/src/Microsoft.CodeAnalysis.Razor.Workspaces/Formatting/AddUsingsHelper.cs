@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -44,8 +45,10 @@ internal static class AddUsingsHelper
         // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
         // to the Razor document.
 
-        var oldUsings = await FindUsingDirectiveStringsAsync(originalCSharpText, cancellationToken).ConfigureAwait(false);
-        var newUsings = await FindUsingDirectiveStringsAsync(changedCSharpText, cancellationToken).ConfigureAwait(false);
+        var originalCSharpSyntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText);
+        var changedCSharpSyntaxTree = originalCSharpSyntaxTree.WithChangedText(changedCSharpText);
+        var oldUsings = await FindUsingDirectiveStringsAsync(originalCSharpSyntaxTree, cancellationToken).ConfigureAwait(false);
+        var newUsings = await FindUsingDirectiveStringsAsync(changedCSharpSyntaxTree, cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<TextEdit>();
         foreach (var usingStatement in newUsings.Except(oldUsings))
@@ -137,9 +140,8 @@ internal static class AddUsingsHelper
         };
     }
 
-    private static async Task<IEnumerable<string>> FindUsingDirectiveStringsAsync(SourceText originalCSharpText, CancellationToken cancellationToken)
+    public static async Task<ImmutableArray<string>> FindUsingDirectiveStringsAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText, cancellationToken: cancellationToken);
         var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         // We descend any compilation unit (ie, the file) or and namespaces because the compiler puts all usings inside
@@ -153,7 +155,7 @@ internal static class AddUsingsHelper
             // we should still work in C# v26
             .Select(u => u.ToString()["using ".Length..^1]);
 
-        return usings;
+        return usings.ToImmutableArray();
     }
 
     private static TextDocumentEdit GenerateSingleUsingEditsInterpolated(

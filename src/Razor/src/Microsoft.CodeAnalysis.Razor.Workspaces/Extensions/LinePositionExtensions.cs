@@ -24,4 +24,7 @@ internal static class LinePositionExtensions
 
     public static LinePosition WithCharacter(this LinePosition linePosition, Func<int, int> computeNewCharacter)
         => new(linePosition.Line, computeNewCharacter(linePosition.Character));
+
+    public static int ToAbsolutePosition(this LinePosition linePosition, SourceText text)
+        => text.Lines[linePosition.Line - 1].Start + linePosition.Character;
 }

@@ -33,9 +33,9 @@ internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot document
 
     public IRazorDocumentExcerptServiceImplementation GetExcerptService()
         => _excerptService ?? InterlockedOperations.Initialize(ref _excerptService,
-            new RazorDocumentExcerptService(_documentSnapshot, GetMappingService()));
+            new RazorDocumentExcerptService(_documentSnapshot, GetSpanMappingService()));
 
-    public IRazorSpanMappingService GetMappingService()
+    public IRazorSpanMappingService GetSpanMappingService()
         => _mappingService ?? InterlockedOperations.Initialize(ref _mappingService,
             new RazorSpanMappingService(_documentSnapshot));
 
@@ -47,4 +47,10 @@ internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot document
         // opt out of those features.
         return null!;
     }
+
+    /// <summary>
+    /// IRazorMapping service is intended to map spans and edits from roslyn to razor files. This service is not supported in this context.
+    /// </summary>
+    public IRazorMappingService? GetMappingService()
+        => null;
 }
