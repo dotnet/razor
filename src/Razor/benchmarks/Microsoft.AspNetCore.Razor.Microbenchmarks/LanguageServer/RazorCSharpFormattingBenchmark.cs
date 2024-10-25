@@ -48,9 +48,9 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
     {
         EnsureServicesInitialized();
 
-        var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
+        var projectRoot = Path.Combine(Helpers.GetTestAppsPath(), "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
-        _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
+        _filePath = Path.Combine(projectRoot, "Components", "Pages", "Generated.razor");
 
         WriteSampleFormattingFile(_filePath, InputType == InputType.Preformatted, Blocks);
 

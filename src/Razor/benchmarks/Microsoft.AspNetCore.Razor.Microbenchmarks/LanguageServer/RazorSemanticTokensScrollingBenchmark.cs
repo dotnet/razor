@@ -41,10 +41,10 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
     {
         EnsureServicesInitialized();
 
-        var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
+        var projectRoot = Path.Combine(Helpers.GetTestAppsPath(), "ComponentApp");
         ProjectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         PagesDirectory = Path.Combine(projectRoot, "Components", "Pages");
-        var filePath = Path.Combine(PagesDirectory, $"FormattingTest.razor");
+        var filePath = Path.Combine(PagesDirectory, "FormattingTest.razor");
         TargetPath = "/Components/Pages/FormattingTest.razor";
 
         var documentUri = new Uri(filePath);
