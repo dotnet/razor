@@ -58,7 +58,7 @@ internal sealed class CodeActionEndpoint(
         }
 
         var correlationId = Guid.NewGuid();
-        using var __ = _telemetryReporter.TrackLspRequest(LspEndpointName, LanguageServerConstants.RazorLanguageServerName, TimeSpan.FromMilliseconds(TelemetryThresholds.CodeActionRazorTelemetryThresholdMS), correlationId);
+        using var __ = _telemetryReporter.TrackLspRequest(LspEndpointName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.CodeActionRazorTelemetryThreshold, correlationId);
         cancellationToken.ThrowIfCancellationRequested();
 
         return await _codeActionsService.GetCodeActionsAsync(request, documentContext, _supportsCodeActionResolve, correlationId, cancellationToken).ConfigureAwait(false);

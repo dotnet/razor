@@ -78,7 +78,7 @@ internal class RazorCompletionEndpoint(
         }
 
         var correlationId = Guid.NewGuid();
-        using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentCompletionName, LanguageServerConstants.RazorLanguageServerName, TimeSpan.FromMilliseconds(TelemetryThresholds.CompletionRazorTelemetryThresholdMS), correlationId);
+        using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentCompletionName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.CompletionRazorTelemetryThreshold, correlationId);
         var completionList = await _completionListProvider.GetCompletionListAsync(
             hostDocumentIndex,
             completionContext,

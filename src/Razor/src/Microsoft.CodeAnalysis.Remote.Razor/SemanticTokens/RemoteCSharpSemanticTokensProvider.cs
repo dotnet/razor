@@ -29,7 +29,7 @@ internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathServi
     {
         using var _ = _telemetryReporter.TrackLspRequest(nameof(SemanticTokensRange.GetSemanticTokensAsync),
             Constants.ExternalAccessServerName,
-            TimeSpan.FromMilliseconds(TelemetryThresholds.SemanticTokensRazorTelemetryThresholdMS),
+            TelemetryThresholds.SemanticTokensRazorTelemetryThreshold,
             correlationId);
 
         // We have a razor document, lets find the generated C# document

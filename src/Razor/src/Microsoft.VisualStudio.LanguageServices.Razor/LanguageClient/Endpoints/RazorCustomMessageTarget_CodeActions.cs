@@ -57,7 +57,7 @@ internal partial class RazorCustomMessageTarget
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
         var lspMethodName = Methods.TextDocumentCodeActionName;
-        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, TimeSpan.FromMilliseconds(TelemetryThresholds.CodeActionSubLSPTelemetryThresholdMS), codeActionParams.CorrelationId);
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, TelemetryThresholds.CodeActionSubLSPTelemetryThreshold, codeActionParams.CorrelationId);
         var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSCodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
             textBuffer,
             lspMethodName,

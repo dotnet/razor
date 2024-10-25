@@ -80,7 +80,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
         var colorBackground = _clientSettingsManager.GetClientSettings().AdvancedSettings.ColorBackground;
 
         var correlationId = Guid.NewGuid();
-        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, RazorLSPConstants.CohostLanguageServerName, TimeSpan.FromMilliseconds(TelemetryThresholds.SemanticTokensRazorTelemetryThresholdMS), correlationId);
+        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, RazorLSPConstants.CohostLanguageServerName, TelemetryThresholds.SemanticTokensRazorTelemetryThreshold, correlationId);
 
         var tokens = await _remoteServiceInvoker.TryInvokeAsync<IRemoteSemanticTokensService, int[]?>(
             razorDocument.Project.Solution,

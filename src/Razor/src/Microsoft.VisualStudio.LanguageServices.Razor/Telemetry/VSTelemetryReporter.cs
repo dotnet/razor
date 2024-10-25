@@ -21,7 +21,7 @@ internal class VSTelemetryReporter(ILoggerFactory loggerFactory) : TelemetryRepo
         Flush();
     }
 
-    protected override bool HandleException(Exception exception, string? message, params object?[] @params)
+    protected override bool HandleException(Exception exception, string? message, params ReadOnlySpan<object?> @params)
     {
         if (exception is RemoteInvocationException remoteInvocationException)
         {
@@ -34,7 +34,7 @@ internal class VSTelemetryReporter(ILoggerFactory loggerFactory) : TelemetryRepo
         return false;
     }
 
-    private bool ReportRemoteInvocationException(RemoteInvocationException remoteInvocationException, object?[] @params)
+    private bool ReportRemoteInvocationException(RemoteInvocationException remoteInvocationException, ReadOnlySpan<object?> @params)
     {
         if (remoteInvocationException.InnerException is Exception innerException)
         {

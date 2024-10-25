@@ -122,7 +122,7 @@ internal partial class RazorCustomMessageTarget
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var lspMethodName = Methods.TextDocumentCompletion.Name;
             ReinvocationResponse<VSInternalCompletionList?>? response;
-            using (_telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, TimeSpan.FromMilliseconds(TelemetryThresholds.CompletionSubLSPTelemetryThresholdMS), request.CorrelationId))
+            using (_telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, TelemetryThresholds.CompletionSubLSPTelemetryThreshold, request.CorrelationId))
             {
                 response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, VSInternalCompletionList?>(
                     textBuffer,

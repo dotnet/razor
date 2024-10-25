@@ -79,7 +79,7 @@ internal partial class RazorCustomMessageTarget
         };
 
         var lspMethodName = VSInternalMethods.DocumentPullDiagnosticName;
-        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, delegatedLanguageServerName,        TimeSpan.FromMilliseconds(TelemetryThresholds.DiagnosticsSubLSPTelemetryThresholdMS), correlationId);
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, delegatedLanguageServerName, TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correlationId);
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
             virtualDocument.Snapshot.TextBuffer,
             lspMethodName,
