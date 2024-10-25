@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Telemetry;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -84,7 +86,7 @@ internal partial class RazorCustomMessageTarget
         var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
 
         SemanticTokens? response;
-        using (var disposable = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId))
+        using (var disposable = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, TimeSpan.FromMilliseconds(TelemetryThresholds.SemanticTokensSubLSPTelemetryThresholdMS), semanticTokensParams.CorrelationId))
         {
             try
             {

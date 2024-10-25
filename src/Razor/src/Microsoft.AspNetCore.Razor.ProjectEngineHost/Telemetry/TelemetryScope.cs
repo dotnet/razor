@@ -16,6 +16,7 @@ internal sealed class TelemetryScope : IDisposable
     private readonly Severity _severity;
     private readonly Property[] _properties;
     private readonly Stopwatch _stopwatch;
+    private readonly TimeSpan _minTimeToReport;
     private bool _disposed;
 
     private TelemetryScope()
@@ -32,6 +33,7 @@ internal sealed class TelemetryScope : IDisposable
     private TelemetryScope(
         ITelemetryReporter reporter,
         string name,
+        TimeSpan minTimeToReport,
         Severity severity,
         Property[] properties)
     {
@@ -45,6 +47,7 @@ internal sealed class TelemetryScope : IDisposable
         _properties = properties;
 
         _stopwatch = StopwatchPool.Default.Get();
+        _minTimeToReport = minTimeToReport;
         _stopwatch.Restart();
     }
 
@@ -59,10 +62,14 @@ internal sealed class TelemetryScope : IDisposable
 
         _stopwatch.Stop();
 
-        // We know that we were created with an array of at least length one.
-        _properties[^1] = new("eventscope.ellapsedms", _stopwatch.ElapsedMilliseconds);
+        var elapsed = _stopwatch.Elapsed;
+        if (elapsed >= _minTimeToReport)
+        {
+            // We know that we were created with an array of at least length one.
+            _properties[^1] = new("eventscope.ellapsedms", _stopwatch.ElapsedMilliseconds);
 
-        _reporter.ReportEvent(_name, _severity, _properties);
+            _reporter.ReportEvent(_name, _severity, _properties);
+        }
 
         StopwatchPool.Default.Return(_stopwatch);
     }
@@ -71,7 +78,7 @@ internal sealed class TelemetryScope : IDisposable
     {
         var array = new Property[1];
 
-        return new(reporter, name, severity, array);
+        return new(reporter, name, TimeSpan.Zero, severity, array);
     }
 
     public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, Property property)
@@ -79,7 +86,7 @@ internal sealed class TelemetryScope : IDisposable
         var array = new Property[2];
         array[0] = property;
 
-        return new(reporter, name, severity, array);
+        return new(reporter, name, TimeSpan.Zero, severity, array);
     }
 
     public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, Property property1, Property property2)
@@ -88,7 +95,7 @@ internal sealed class TelemetryScope : IDisposable
         array[0] = property1;
         array[1] = property2;
 
-        return new(reporter, name, severity, array);
+        return new(reporter, name, TimeSpan.Zero, severity,  array);
     }
 
     public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, Property property1, Property property2, Property property3)
@@ -98,15 +105,15 @@ internal sealed class TelemetryScope : IDisposable
         array[1] = property2;
         array[2] = property3;
 
-        return new(reporter, name, severity, array);
+        return new(reporter, name, TimeSpan.Zero, severity, array);
     }
 
-    public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, Property[] properties)
+    public static TelemetryScope Create(ITelemetryReporter reporter, string name, Severity severity, TimeSpan minTimeToReport, Property[] properties)
     {
         var array = new Property[properties.Length + 1];
 
         Array.Copy(properties, array, properties.Length);
 
-        return new(reporter, name, severity, array);
+        return new(reporter, name, minTimeToReport, severity, array);
     }
 }

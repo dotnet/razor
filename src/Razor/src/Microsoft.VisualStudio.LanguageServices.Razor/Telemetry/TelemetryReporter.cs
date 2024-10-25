@@ -260,22 +260,18 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
     public TelemetryScope BeginBlock(string name, Severity severity, Property property1, Property property2, Property property3)
         => TelemetryScope.Create(this, name, severity, property1, property2, property3);
 
-    public TelemetryScope BeginBlock(string name, Severity severity, params Property[] properties)
-        => TelemetryScope.Create(this, name, severity, properties);
+    public TelemetryScope BeginBlock(string name, Severity severity, TimeSpan minTimeToReport, params Property[] properties)
+        => TelemetryScope.Create(this, name, severity, minTimeToReport, properties);
 
-    public TelemetryScope TrackLspRequest(string lspMethodName, string languageServerName, Guid correlationId)
+    public TelemetryScope TrackLspRequest(string lspMethodName, string languageServerName, TimeSpan minTimeToReport, Guid correlationId)
     {
         if (correlationId == Guid.Empty)
         {
             return TelemetryScope.Null;
         }
 
-        ReportEvent("BeginLspRequest", Severity.Normal,
-            new("eventscope.method", lspMethodName),
-            new("eventscope.languageservername", languageServerName),
-            new("eventscope.correlationid", correlationId));
-
         return BeginBlock("TrackLspRequest", Severity.Normal,
+            minTimeToReport,
             new("eventscope.method", lspMethodName),
             new("eventscope.languageservername", languageServerName),
             new("eventscope.correlationid", correlationId));
