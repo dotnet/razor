@@ -102,9 +102,10 @@ internal static partial class ObjectReaders
     public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonDataReader reader)
     {
         var tagHelpers = reader.ReadImmutableArrayOrEmpty(nameof(ProjectWorkspaceState.TagHelpers), static r => ReadTagHelper(r, useCache: true));
+        var useRoslynTokenizer = reader.ReadBooleanOrFalse(nameof(ProjectWorkspaceState.UseRoslynTokenizer));
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32OrZero(nameof(ProjectWorkspaceState.CSharpLanguageVersion));
 
-        return ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
+        return ProjectWorkspaceState.Create(tagHelpers, useRoslynTokenizer, csharpLanguageVersion);
     }
 
     public static TagHelperDescriptor ReadTagHelper(JsonDataReader reader, bool useCache)

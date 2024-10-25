@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -279,9 +280,9 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
         try
         {
-            var csharpLanguageVersion = workspaceProject.ParseOptions is CSharpParseOptions csharpParseOptions
-                ? csharpParseOptions.LanguageVersion
-                : LanguageVersion.Default;
+            var csharpParseOptions = workspaceProject.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
+            var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
+            var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
 
             using var _ = StopwatchPool.GetPooledObject(out var watch);
 
@@ -305,7 +306,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 Project: {projectSnapshot.FilePath}
                 """);
 
-            return ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
+            return ProjectWorkspaceState.Create(tagHelpers, useRoslynTokenizer, csharpLanguageVersion);
         }
         catch (OperationCanceledException)
         {

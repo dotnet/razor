@@ -12,30 +12,34 @@ namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 internal sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 {
-    public static readonly ProjectWorkspaceState Default = new(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.Default);
+    public static readonly ProjectWorkspaceState Default = new(ImmutableArray<TagHelperDescriptor>.Empty, useRoslynTokenizer: false, LanguageVersion.Default);
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
     public LanguageVersion CSharpLanguageVersion { get; }
+    public bool UseRoslynTokenizer { get; }
 
     private ProjectWorkspaceState(
         ImmutableArray<TagHelperDescriptor> tagHelpers,
+        bool useRoslynTokenizer,
         LanguageVersion csharpLanguageVersion)
     {
         TagHelpers = tagHelpers;
         CSharpLanguageVersion = csharpLanguageVersion;
+        UseRoslynTokenizer = useRoslynTokenizer;
     }
 
     public static ProjectWorkspaceState Create(
         ImmutableArray<TagHelperDescriptor> tagHelpers,
+        bool useRoslynTokenizer,
         LanguageVersion csharpLanguageVersion = LanguageVersion.Default)
         => tagHelpers.IsEmpty && csharpLanguageVersion == LanguageVersion.Default
             ? Default
-            : new(tagHelpers, csharpLanguageVersion);
+            : new(tagHelpers, useRoslynTokenizer, csharpLanguageVersion);
 
-    public static ProjectWorkspaceState Create(LanguageVersion csharpLanguageVersion)
+    public static ProjectWorkspaceState Create(LanguageVersion csharpLanguageVersion, bool useRoslynTokenizer)
         => csharpLanguageVersion == LanguageVersion.Default
             ? Default
-            : new(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion);
+            : new(ImmutableArray<TagHelperDescriptor>.Empty, useRoslynTokenizer, csharpLanguageVersion);
 
     public override bool Equals(object? obj)
         => obj is ProjectWorkspaceState other && Equals(other);
@@ -43,7 +47,8 @@ internal sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
     public bool Equals(ProjectWorkspaceState? other)
         => other is not null &&
            TagHelpers.SequenceEqual(other.TagHelpers) &&
-           CSharpLanguageVersion == other.CSharpLanguageVersion;
+           CSharpLanguageVersion == other.CSharpLanguageVersion &&
+           UseRoslynTokenizer == other.UseRoslynTokenizer;
 
     public override int GetHashCode()
     {
@@ -51,6 +56,7 @@ internal sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 
         hash.Add(TagHelpers);
         hash.Add(CSharpLanguageVersion);
+        hash.Add(UseRoslynTokenizer);
 
         return hash.CombinedHash;
     }

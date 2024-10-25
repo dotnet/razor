@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -209,6 +210,7 @@ internal class ProjectState
                     builder.SetRootNamespace(HostProject.RootNamespace);
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
+                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: ProjectWorkspaceState.UseRoslynTokenizer, CSharpParseOptions.Default));
                 });
             }
         }
