@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Setting_FormattingOnPasteDescription">
         <source>If true, formatting will be enabled when pasting content</source>
-        <target state="new">If true, formatting will be enabled when pasting content</target>
+        <target state="translated">Si la valeur est true, la mise en forme sera activée lors du collage du contenu</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_FormattingOnPasteDisplayName">
         <source>Format on paste</source>
-        <target state="new">Format on paste</target>
+        <target state="translated">Mettre en forme lors du collage</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">

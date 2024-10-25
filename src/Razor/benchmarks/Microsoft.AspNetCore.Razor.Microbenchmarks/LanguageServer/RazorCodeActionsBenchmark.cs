@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -12,11 +11,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -49,14 +47,8 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
     public async Task SetupAsync()
     {
         CodeActionEndpoint = new CodeActionEndpoint(
-            documentMappingService: RazorLanguageServerHost.GetRequiredService<IDocumentMappingService>(),
-            razorCodeActionProviders: RazorLanguageServerHost.GetRequiredService<IEnumerable<IRazorCodeActionProvider>>(),
-            csharpCodeActionProviders: RazorLanguageServerHost.GetRequiredService<IEnumerable<ICSharpCodeActionProvider>>(),
-            htmlCodeActionProviders: RazorLanguageServerHost.GetRequiredService<IEnumerable<IHtmlCodeActionProvider>>(),
-            clientConnection: RazorLanguageServerHost.GetRequiredService<IClientConnection>(),
-            languageServerFeatureOptions: RazorLanguageServerHost.GetRequiredService<LanguageServerFeatureOptions>(),
-            loggerFactory: RazorLanguageServerHost.GetRequiredService<ILoggerFactory>(),
-            telemetryReporter: null);
+            codeActionsService: RazorLanguageServerHost.GetRequiredService<ICodeActionsService>(),
+            telemetryReporter: NoOpTelemetryReporter.Instance);
 
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");

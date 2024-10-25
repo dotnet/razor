@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -96,7 +98,11 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         fileKind ??= FileKinds.Component;
         tagHelpers = tagHelpers.NullToEmpty();
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
-        var projectEngine = RazorProjectEngine.Create(builder => builder.SetRootNamespace("Test"));
+        var projectEngine = RazorProjectEngine.Create(builder =>
+        {
+            builder.SetRootNamespace("Test");
+            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+        });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
 
         var documentSnapshot = new StrictMock<IDocumentSnapshot>();

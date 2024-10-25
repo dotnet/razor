@@ -7,6 +7,11 @@
         <target state="translated">值不能为 null 或空字符串。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_Component_FromTag_Title">
+        <source>Create component from tag</source>
+        <target state="new">Create component from tag</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
         <target state="new">Blazor directive attributes</target>
@@ -44,6 +49,16 @@
         <target state="translated">于 {0} 编辑，删除非空格内容“{1}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_CodeBehind_Title">
+        <source>Extract block to code behind</source>
+        <target state="new">Extract block to code behind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Component_Title">
+        <source>Extract element to new component</source>
+        <target state="new">Extract element to new component</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">正在放弃格式操作，因为它会引入或删除其他诊断之一。</target>
@@ -52,6 +67,16 @@
       <trans-unit id="Format_operation_changed_nonwhitespace">
         <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
         <target state="translated">正在放弃格式操作，因为它会添加或删除非空格内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Async_Event_Handler_Title">
+        <source>Generate Async Event Handler '{0}'</source>
+        <target state="new">Generate Async Event Handler '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Handler_Title">
+        <source>Generate Event Handler '{0}'</source>
+        <target state="new">Generate Event Handler '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_Offset">

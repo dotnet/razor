@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -24,6 +25,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Roslyn.Test.Utilities;
@@ -60,7 +62,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: true);
         await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, forceRuntimeCodeGeneration: false);
 
-        // some tests are failing, skip for now, tracked by https://github.com/dotnet/razor/issues/10836 
+        // some tests are failing, skip for now, tracked by https://github.com/dotnet/razor/issues/10836
         if (!skipFlipLineEndingTest)
         {
             // flip the line endings of the stings (LF to CRLF and vice versa) and run again
@@ -295,6 +297,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             {
                 builder.SetRootNamespace(inGlobalNamespace ? string.Empty : "Test");
                 builder.Features.Add(new DefaultTypeNameFeature());
+                builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
                 RazorExtensions.Register(builder);
             });
 

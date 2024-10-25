@@ -7,6 +7,11 @@
         <target state="translated">Wartość nie może być wartością null ani pustym ciągiem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_Component_FromTag_Title">
+        <source>Create component from tag</source>
+        <target state="new">Create component from tag</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
         <target state="new">Blazor directive attributes</target>
@@ -44,6 +49,16 @@
         <target state="translated">Edycja na stronie {0} usuwa zawartość bez białych znaków „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_CodeBehind_Title">
+        <source>Extract block to code behind</source>
+        <target state="new">Extract block to code behind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Component_Title">
+        <source>Extract element to new component</source>
+        <target state="new">Extract element to new component</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">Operacja formatowania jest porzucana, ponieważ spowodowałaby wprowadzenie lub usunięcie jednej z większej liczby diagnostyki.</target>
@@ -52,6 +67,16 @@
       <trans-unit id="Format_operation_changed_nonwhitespace">
         <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
         <target state="translated">Operacja formatowania jest porzucana, ponieważ doda lub usunie zawartość bez białych znaków.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Async_Event_Handler_Title">
+        <source>Generate Async Event Handler '{0}'</source>
+        <target state="new">Generate Async Event Handler '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Handler_Title">
+        <source>Generate Event Handler '{0}'</source>
+        <target state="new">Generate Event Handler '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_Offset">
