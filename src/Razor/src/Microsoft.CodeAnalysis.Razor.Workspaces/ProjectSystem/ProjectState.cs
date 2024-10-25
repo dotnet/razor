@@ -151,14 +151,15 @@ internal class ProjectState
         else
         {
             ProjectWorkspaceStateVersion = Version;
-        }
 
-        if ((difference & ClearProjectWorkspaceStateVersionMask) != 0 &&
-            CSharpLanguageVersion != older.CSharpLanguageVersion)
-        {
-            // C# language version changed. This impacts the ProjectEngine, reset it.
-            _projectEngine = null;
-            ConfigurationVersion = Version;
+            // CSharpLanguageVersion and UseRoslynTokenizer are part of the ProjectWorkspaceState, but they affect the project engine
+            // so we check for those specifically changing, and clear that.
+            if (CSharpLanguageVersion != older.CSharpLanguageVersion ||
+                ProjectWorkspaceState.UseRoslynTokenizer != older.ProjectWorkspaceState.UseRoslynTokenizer)
+            {
+                _projectEngine = null;
+                ConfigurationVersion = Version;
+            }
         }
     }
 
