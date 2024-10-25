@@ -20,7 +20,7 @@ using System.Linq;
 
 namespace Microsoft.VisualStudio.Razor.Telemetry;
 
-internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposable
+internal abstract partial class TelemetryReporter : ITelemetryReporter
 {
     private const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
     private const string AspNetCoreNamespace = nameof(Microsoft) + "." + nameof(AspNetCore);
@@ -51,9 +51,9 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
     public virtual bool IsEnabled => _manager?.Session.IsOptedIn ?? false;
 #endif
 
-    public void Dispose()
+    public void Flush()
     {
-        _manager?.Dispose();
+        _manager?.Flush();
     }
 
     public void ReportEvent(string name, Severity severity)
@@ -215,7 +215,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
 
     protected void SetSession(TelemetrySession session)
     {
-        _manager?.Dispose();
+        _manager?.Flush();
         _manager = TelemetrySessionManager.Create(this, session);
     }
 
@@ -439,7 +439,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
             declaringTypeName.StartsWith(AspNetCoreNamespace) ||
             declaringTypeName.StartsWith(MicrosoftVSRazorNamespace);
 
-    private sealed class TelemetrySessionManager : IDisposable
+    private sealed class TelemetrySessionManager
     {
         /// <summary>
         /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
@@ -463,11 +463,6 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
                 new AggregatingTelemetryLogManager(telemetryReporter));
 
         public TelemetrySession Session { get; }
-
-        public void Dispose()
-        {
-            Flush();
-        }
 
         public void Flush()
         {
