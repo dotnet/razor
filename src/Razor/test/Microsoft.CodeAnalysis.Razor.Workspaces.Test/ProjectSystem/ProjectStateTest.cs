@@ -654,7 +654,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalTagHelpers = original.TagHelpers;
         var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
-        var changed = ProjectWorkspaceState.Create(_projectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
+        var changed = ProjectWorkspaceState.Create(_projectWorkspaceState.TagHelpers, useRoslynTokenizer: false, LanguageVersion.CSharp6);
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);
@@ -727,7 +727,7 @@ public class ProjectStateTest : WorkspaceTestBase
         _ = original.TagHelpers;
         _ = original.ProjectWorkspaceStateVersion;
 
-        var changed = ProjectWorkspaceState.Create(original.TagHelpers, original.CSharpLanguageVersion);
+        var changed = ProjectWorkspaceState.Create(original.TagHelpers, original.ProjectWorkspaceState.UseRoslynTokenizer, original.CSharpLanguageVersion);
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);

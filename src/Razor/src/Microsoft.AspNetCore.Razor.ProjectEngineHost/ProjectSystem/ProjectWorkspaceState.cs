@@ -30,13 +30,13 @@ internal sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 
     public static ProjectWorkspaceState Create(
         ImmutableArray<TagHelperDescriptor> tagHelpers,
-        bool useRoslynTokenizer,
+        bool useRoslynTokenizer = false,
         LanguageVersion csharpLanguageVersion = LanguageVersion.Default)
         => tagHelpers.IsEmpty && csharpLanguageVersion == LanguageVersion.Default
             ? Default
             : new(tagHelpers, useRoslynTokenizer, csharpLanguageVersion);
 
-    public static ProjectWorkspaceState Create(LanguageVersion csharpLanguageVersion, bool useRoslynTokenizer)
+    public static ProjectWorkspaceState Create(LanguageVersion csharpLanguageVersion, bool useRoslynTokenizer = false)
         => csharpLanguageVersion == LanguageVersion.Default
             ? Default
             : new(ImmutableArray<TagHelperDescriptor>.Empty, useRoslynTokenizer, csharpLanguageVersion);
