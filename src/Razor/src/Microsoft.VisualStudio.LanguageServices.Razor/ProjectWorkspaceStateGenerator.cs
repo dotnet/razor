@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -139,9 +140,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 return;
             }
 
-            var workspaceState = await GetProjectWorkspaceStateAsync(workspaceProject, projectSnapshot, cancellationToken);
-
-            if (workspaceState is null)
+            if (await GetProjectWorkspaceStateAndConfigurationAsync(workspaceProject, projectSnapshot, cancellationToken) is not var (workspaceState, configuration))
             {
                 _logger.LogTrace($"Didn't receive {nameof(ProjectWorkspaceState)} for '{projectKey}'");
                 return;
@@ -154,11 +153,15 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
             _logger.LogTrace($"Received {nameof(ProjectWorkspaceState)} with {workspaceState.TagHelpers.Length} tag helper(s) for '{projectKey}'");
 
+            // We got a possibly changed configuration, but need a host project to update. Fortunately everything will no-op if this
+            // is unchanged
+            var hostProject = new HostProject(projectSnapshot.FilePath, projectSnapshot.IntermediateOutputPath, configuration, projectSnapshot.RootNamespace, projectSnapshot.DisplayName);
+
             await _projectManager
                 .UpdateAsync(
                     static (updater, state) =>
                     {
-                        var (projectKey, workspaceState, logger, cancellationToken) = state;
+                        var (projectKey, workspaceState, hostProject, logger, cancellationToken) = state;
 
                         if (cancellationToken.IsCancellationRequested)
                         {
@@ -166,9 +169,10 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                         }
 
                         logger.LogTrace($"Updating project with {workspaceState.TagHelpers.Length} tag helper(s) for '{projectKey}'");
+                        updater.ProjectConfigurationChanged(hostProject);
                         updater.ProjectWorkspaceStateChanged(projectKey, workspaceState);
                     },
-                    state: (projectKey, workspaceState, _logger, cancellationToken),
+                    state: (projectKey, workspaceState, hostProject, _logger, cancellationToken),
                     cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -257,7 +261,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
     ///  Attempts to produce a <see cref="ProjectWorkspaceState"/> from the provide <see cref="Project"/> and <see cref="IProjectSnapshot"/>.
     ///  Returns <see langword="null"/> if an error is encountered.
     /// </summary>
-    private async Task<ProjectWorkspaceState?> GetProjectWorkspaceStateAsync(
+    private async Task<(ProjectWorkspaceState, RazorConfiguration)?> GetProjectWorkspaceStateAndConfigurationAsync(
         Project? workspaceProject,
         IProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
@@ -266,7 +270,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         // we just a default ProjectWorkspaceState.
         if (workspaceProject is null)
         {
-            return ProjectWorkspaceState.Default;
+            return (ProjectWorkspaceState.Default, RazorConfiguration.Default);
         }
 
         _logger.LogTrace($"Starting tag helper discovery for {projectSnapshot.FilePath}");
@@ -283,6 +287,10 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
             var csharpParseOptions = workspaceProject.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
             var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
             var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
+
+            var compilation = await workspaceProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var suppressAddComponentParameter = compilation is not null && !compilation.HasAddComponentParameter();
+            var configuration = projectSnapshot.Configuration with { SuppressAddComponentParameter = suppressAddComponentParameter };
 
             using var _ = StopwatchPool.GetPooledObject(out var watch);
 
@@ -306,7 +314,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 Project: {projectSnapshot.FilePath}
                 """);
 
-            return ProjectWorkspaceState.Create(tagHelpers, useRoslynTokenizer, csharpLanguageVersion);
+            return (ProjectWorkspaceState.Create(tagHelpers, useRoslynTokenizer, csharpLanguageVersion), configuration);
         }
         catch (OperationCanceledException)
         {
