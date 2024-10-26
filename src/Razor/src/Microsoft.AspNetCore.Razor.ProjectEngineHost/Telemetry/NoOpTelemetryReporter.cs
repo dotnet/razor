@@ -9,7 +9,7 @@ internal class NoOpTelemetryReporter : ITelemetryReporter
 {
     public static readonly NoOpTelemetryReporter Instance = new();
 
-    private NoOpTelemetryReporter()
+    protected NoOpTelemetryReporter()
     {
     }
 

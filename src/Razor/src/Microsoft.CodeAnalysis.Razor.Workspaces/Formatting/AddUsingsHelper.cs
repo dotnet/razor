@@ -137,7 +137,7 @@ internal static class AddUsingsHelper
         };
     }
 
-    private static async Task<IEnumerable<string>> FindUsingDirectiveStringsAsync(SourceText originalCSharpText, CancellationToken cancellationToken)
+    public static async Task<IEnumerable<string>> FindUsingDirectiveStringsAsync(SourceText originalCSharpText, CancellationToken cancellationToken)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText, cancellationToken: cancellationToken);
         var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
