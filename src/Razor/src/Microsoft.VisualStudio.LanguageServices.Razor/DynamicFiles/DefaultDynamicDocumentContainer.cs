@@ -33,9 +33,9 @@ internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot document
 
     public IRazorDocumentExcerptServiceImplementation GetExcerptService()
         => _excerptService ?? InterlockedOperations.Initialize(ref _excerptService,
-            new RazorDocumentExcerptService(_documentSnapshot, GetMappingService()));
+            new RazorDocumentExcerptService(_documentSnapshot, GetSpanMappingService()));
 
-    public IRazorSpanMappingService GetMappingService()
+    public IRazorSpanMappingService GetSpanMappingService()
         => _mappingService ?? InterlockedOperations.Initialize(ref _mappingService,
             new RazorSpanMappingService(_documentSnapshot));
 

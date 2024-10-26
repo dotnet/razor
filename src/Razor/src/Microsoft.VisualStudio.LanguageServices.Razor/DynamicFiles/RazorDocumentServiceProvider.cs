@@ -38,7 +38,7 @@ internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentC
             {
                 lock (_lock)
                 {
-                    _spanMappingService ??= _documentContainer.GetMappingService();
+                    _spanMappingService ??= _documentContainer.GetSpanMappingService();
                 }
             }
 

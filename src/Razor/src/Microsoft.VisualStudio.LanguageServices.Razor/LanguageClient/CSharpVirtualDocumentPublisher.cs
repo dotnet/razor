@@ -92,9 +92,9 @@ internal class CSharpVirtualDocumentPublisher : LSPDocumentChangeListener
 
         public IRazorDocumentExcerptServiceImplementation GetExcerptService()
             => _excerptService ?? InterlockedOperations.Initialize(ref _excerptService,
-                new CSharpDocumentExcerptService(GetMappingService(), _documentSnapshot));
+                new CSharpDocumentExcerptService(GetSpanMappingService(), _documentSnapshot));
 
-        public IRazorSpanMappingService GetMappingService()
+        public IRazorSpanMappingService GetSpanMappingService()
             => _mappingService ?? InterlockedOperations.Initialize(ref _mappingService,
                 new RazorLSPSpanMappingService(_lspDocumentMappingProvider, _documentSnapshot, _textSnapshot));
 

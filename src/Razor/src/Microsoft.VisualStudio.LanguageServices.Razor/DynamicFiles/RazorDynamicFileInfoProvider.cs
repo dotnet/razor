@@ -489,7 +489,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         public IRazorDocumentExcerptServiceImplementation? GetExcerptService() => _documentExcerptService;
 
-        public IRazorSpanMappingService? GetMappingService() => _spanMappingService;
+        public IRazorSpanMappingService? GetSpanMappingService() => _spanMappingService;
 
         public TextLoader GetTextLoader(string filePath) => _textLoader;
     }
