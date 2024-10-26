@@ -35,7 +35,9 @@ public class MetadataCollectionTests
         }
 
         var collection1 = MetadataCollection.Create(pairs.ToArray());
-        var collection2 = MetadataCollection.Create(pairs.ToArray().Reverse().ToArray());
+
+        var reversed = Enumerable.Reverse(pairs.ToArray());
+        var collection2 = MetadataCollection.Create(reversed.ToArray());
 
         Assert.Equal(collection1, collection2);
 
