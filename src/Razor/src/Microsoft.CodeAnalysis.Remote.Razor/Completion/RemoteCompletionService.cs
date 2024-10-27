@@ -188,11 +188,13 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         if (JsonSerializer.Deserialize<RoslynCompletionContext>(JsonSerializer.SerializeToDocument(completionContext), options) is not { } roslynCompletionContext)
         {
+            Debug.Fail("Unable to convert VS to Roslyn LSP completion context");
             return null;
         }
 
         if (JsonSerializer.Deserialize<RoslynCompletionSetting>(JsonSerializer.SerializeToDocument(clientCapabilities.TextDocument?.Completion), options) is not { } roslynCompletionSetting)
         {
+            Debug.Fail("Unable to convert VS to Roslyn LSP completion setting");
             return null;
         }
 
