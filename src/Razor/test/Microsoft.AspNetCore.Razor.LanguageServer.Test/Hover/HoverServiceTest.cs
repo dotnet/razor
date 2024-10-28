@@ -50,7 +50,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -76,7 +76,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -102,7 +102,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -126,7 +126,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -150,7 +150,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -175,7 +175,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -200,7 +200,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -220,7 +220,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -240,7 +240,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -260,7 +260,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -289,7 +289,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -313,7 +313,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -337,7 +337,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -362,7 +362,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseMarkdown, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -383,7 +383,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UsePlainText, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -409,7 +409,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UsePlainText, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -434,7 +434,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, code.Position, UsePlainText, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -461,7 +461,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, code.Position, UsePlainText, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -489,7 +489,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, code.Position, UsePlainText, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -514,7 +514,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, code.Position, UsePlainText, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -540,7 +540,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UsePlainText, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -567,7 +567,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UsePlainText, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -588,7 +588,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UsePlainText, DisposalToken);
+        var hover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -608,7 +608,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var vsHover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseVisualStudio, DisposalToken);
+        var vsHover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, DisposalToken);
 
         // Assert
         Assert.NotNull(vsHover);
@@ -648,7 +648,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var serviceAccessor = service.GetTestAccessor();
 
         // Act
-        var vsHover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, UseVisualStudio, DisposalToken);
+        var vsHover = await serviceAccessor.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, DisposalToken);
 
         // Assert
         Assert.NotNull(vsHover);

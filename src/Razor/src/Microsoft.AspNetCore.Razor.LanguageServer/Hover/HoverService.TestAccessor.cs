@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Hover;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
@@ -17,13 +16,12 @@ internal sealed partial class HoverService
 
     internal sealed class TestAccessor(HoverService instance)
     {
-        public Task<VSInternalHover?> GetHoverInfoAsync(
-            string documentFilePath,
+        public Task<VSInternalHover?> GetHoverAsync(
             RazorCodeDocument codeDocument,
+            string documentFilePath,
             int absoluteIndex,
             HoverDisplayOptions options,
             CancellationToken cancellationToken)
-            => HoverService.GetHoverInfoAsync(
-                documentFilePath, codeDocument, absoluteIndex, options, instance._projectManager.GetQueryOperations(), cancellationToken);
+            => HoverFactory.GetHoverAsync(codeDocument, documentFilePath, absoluteIndex, options, instance._projectManager.GetQueryOperations(), cancellationToken);
     }
 }
