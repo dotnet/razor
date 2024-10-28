@@ -116,8 +116,6 @@ internal static class TestMocks
             .Returns(hostProject.RootNamespace);
         mock.SetupGet(x => x.DisplayName)
             .Returns(hostProject.DisplayName);
-        mock.SetupGet(x => x.CSharpLanguageVersion)
-            .Returns(hostProject.Configuration.CSharpLanguageVersion);
 
         if (projectWorkspaceState is not null)
         {

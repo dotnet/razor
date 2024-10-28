@@ -166,8 +166,6 @@ internal class ProjectState
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 
-    public LanguageVersion CSharpLanguageVersion => HostProject.Configuration.CSharpLanguageVersion;
-
     /// <summary>
     /// Gets the version of this project, INCLUDING content changes. The <see cref="Version"/> is
     /// incremented for each new <see cref="ProjectState"/> instance created.
@@ -200,7 +198,7 @@ internal class ProjectState
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
                     builder.SetRootNamespace(HostProject.RootNamespace);
-                    builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                    builder.SetCSharpLanguageVersion(configuration.CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
                     builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: configuration.UseRoslynTokenizer, CSharpParseOptions.Default));
                 });
