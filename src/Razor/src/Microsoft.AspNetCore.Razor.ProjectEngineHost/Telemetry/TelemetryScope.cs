@@ -4,12 +4,10 @@
 using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
-[NonCopyable]
-internal struct TelemetryScope : IDisposable
+internal sealed class TelemetryScope : IDisposable
 {
     public static readonly TelemetryScope Null = new();
 
@@ -21,9 +19,9 @@ internal struct TelemetryScope : IDisposable
     private readonly TimeSpan _minTimeToReport;
     private bool _disposed;
 
-    public TelemetryScope()
+    private TelemetryScope()
     {
-        // This constructor should be called only to initialize the Null instance
+        // This constructor is only called to initialize the Null instance
         // above. Rather than make _name, _properties, and _stopwatch
         // nullable, we use a ! to initialize them to null for this case only.
         _reporter = null;
