@@ -19,11 +19,7 @@ public sealed record class RazorConfiguration(
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
         ConfigurationName: "unnamed",
-        Extensions: [],
-        UseConsolidatedMvcViews: true,
-        SuppressAddComponentParameter: false,
-        LanguageServerFlags: null,
-        UseRoslynTokenizer: false);
+        Extensions: []);
 
     public bool Equals(RazorConfiguration? other)
         => other is not null &&
