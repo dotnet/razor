@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 
-internal class RazorMapToDocumentEditsParams
+internal sealed record class RazorMapToDocumentEditsParams
 {
     [JsonPropertyName("kind")]
     public RazorLanguageKind Kind { get; init; }
