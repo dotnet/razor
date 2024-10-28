@@ -4,7 +4,7 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
+namespace Microsoft.CodeAnalysis.Razor.Hover;
 
 internal readonly record struct HoverDisplayOptions(MarkupKind MarkupKind, bool SupportsVisualStudioExtensions)
 {
