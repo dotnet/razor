@@ -54,7 +54,13 @@ internal sealed partial class HoverService(
         var options = HoverDisplayOptions.From(_clientCapabilitiesService.ClientCapabilities);
 
         return await GetHoverInfoAsync(
-            documentContext.FilePath, codeDocument, positionInfo.HostDocumentIndex, options, cancellationToken).ConfigureAwait(false);
+            documentContext.FilePath,
+            codeDocument,
+            positionInfo.HostDocumentIndex,
+            options,
+            _projectManager.GetQueryOperations(),
+            cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public async Task<VSInternalHover?> TranslateDelegatedResponseAsync(VSInternalHover? response, DocumentContext documentContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
@@ -94,11 +100,12 @@ internal sealed partial class HoverService(
         return response;
     }
 
-    private async Task<VSInternalHover?> GetHoverInfoAsync(
+    private static async Task<VSInternalHover?> GetHoverInfoAsync(
         string documentFilePath,
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         HoverDisplayOptions options,
+        ISolutionQueryOperations solutionQueryOperations,
         CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
@@ -164,7 +171,8 @@ internal sealed partial class HoverService(
 
                 var span = containingTagNameToken.GetLinePositionSpan(codeDocument.Source);
 
-                return await ElementInfoToHoverAsync(documentFilePath, binding.Descriptors, span, options, cancellationToken).ConfigureAwait(false);
+                return await ElementInfoToHoverAsync(
+                    documentFilePath, binding.Descriptors, span, options, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -296,11 +304,12 @@ internal sealed partial class HoverService(
         }
     }
 
-    private async Task<VSInternalHover?> ElementInfoToHoverAsync(
+    private static async Task<VSInternalHover?> ElementInfoToHoverAsync(
         string documentFilePath,
         IEnumerable<TagHelperDescriptor> descriptors,
         LinePositionSpan span,
         HoverDisplayOptions options,
+        ISolutionQueryOperations solutionQueryOperations,
         CancellationToken cancellationToken)
     {
         var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
@@ -309,7 +318,7 @@ internal sealed partial class HoverService(
         if (options.SupportsVisualStudioExtensions)
         {
             var classifiedTextElement = await ClassifiedTagHelperTooltipFactory
-                .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), cancellationToken)
+                .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, solutionQueryOperations, cancellationToken)
                 .ConfigureAwait(false);
 
             if (classifiedTextElement is not null)
@@ -326,7 +335,7 @@ internal sealed partial class HoverService(
         }
 
         var vsMarkupContent = await MarkupTagHelperTooltipFactory
-            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), options.MarkupKind, cancellationToken)
+            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, solutionQueryOperations, options.MarkupKind, cancellationToken)
             .ConfigureAwait(false);
 
         if (vsMarkupContent is null)

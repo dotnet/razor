@@ -4,6 +4,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
@@ -20,6 +22,7 @@ internal sealed partial class HoverService
             int absoluteIndex,
             HoverDisplayOptions options,
             CancellationToken cancellationToken)
-            => instance.GetHoverInfoAsync(documentFilePath, codeDocument, absoluteIndex, options, cancellationToken);
+            => HoverService.GetHoverInfoAsync(
+                documentFilePath, codeDocument, absoluteIndex, options, instance._projectManager.GetQueryOperations(), cancellationToken);
     }
 }
