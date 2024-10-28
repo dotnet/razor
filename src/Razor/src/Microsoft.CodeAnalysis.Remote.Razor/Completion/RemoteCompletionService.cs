@@ -60,7 +60,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         var positionInfo = GetPositionInfo(codeDocument, index);
 
-        if(positionInfo.LanguageKind != RazorLanguageKind.Razor
+        if (positionInfo.LanguageKind != RazorLanguageKind.Razor
            && await DelegatedCompletionHelper.TryGetProvisionalCompletionInfoAsync(
                 remoteDocumentContext,
                 completionContext,
@@ -68,7 +68,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 DocumentMappingService,
                 cancellationToken)
                 .ConfigureAwait(false) is { } provisionalCompletionInfo)
-                
+
         {
             return new CompletionPositionInfo(
                 provisionalCompletionInfo.ProvisionalTextEdit,

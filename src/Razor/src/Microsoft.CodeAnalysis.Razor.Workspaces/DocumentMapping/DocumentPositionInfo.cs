@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 /// Represents a position in a document. If <see cref="LanguageKind"/> is Razor then the position will be
 /// in the host document, otherwise it will be in the corresponding generated document.
 /// </summary>
-internal record struct DocumentPositionInfo(
+internal readonly record struct DocumentPositionInfo(
     [property: JsonPropertyName("languageKind")] RazorLanguageKind LanguageKind,
     [property: JsonPropertyName("position")] Position Position,
     [property: JsonPropertyName("hostDocumentIndex")] int HostDocumentIndex);

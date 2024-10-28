@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 internal static class CompletionTriggerAndCommitCharacters
 {
     public static FrozenSet<string> RazorTriggerCharacters { get; } = new[] { "@", "<", ":", " " }.ToFrozenSet();
+    /// <summary>
+    /// Tigger characters that can trigger both Razor and Delegation completion (e.g."@" triggers Razor directives and C#)
+    /// </summary>
     public static FrozenSet<string> RazorDelegationTriggerCharacters { get; } = new[] { "@" }.ToFrozenSet();
     public static FrozenSet<string> CSharpTriggerCharacters { get; } = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" }.ToFrozenSet();
     public static FrozenSet<string> HtmlTriggerCharacters { get; } = new[] { ":", "@", "#", ".", "!", "*", ",", "(", "[", "-", "<", "&", "\\", "/", "'", "\"", "=", ":", " ", "`" }.ToFrozenSet();
