@@ -30,16 +30,16 @@ internal sealed class RazorLSPMappingService(
     private readonly LSPDocumentSnapshot _documentSnapshot = documentSnapshot;
     private readonly ITextSnapshot _textSnapshot = textSnapshot;
 
-    public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
+    public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
         Document document,
         IEnumerable<TextSpan> spans,
         CancellationToken cancellationToken)
     {
-        return await MapSpansAsync(
+        return MapSpansAsync(
             spans,
             _textSnapshot.AsText(),
             _documentSnapshot.Snapshot.AsText(),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     public async Task<ImmutableArray<RazorMappedEditoResult>> MapTextChangesAsync(
@@ -128,7 +128,7 @@ internal sealed class RazorLSPMappingService(
             SourceText sourceTextRazor)
         {
             var result = await instance.MapSpansAsync(spans, sourceTextGenerated, sourceTextRazor, cancellationToken: default).ConfigureAwait(false);
-            return result.Select(mappedResult => (mappedResult.FilePath, mappedResult.LinePositionSpan, mappedResult.Span));
+            return result.Select(static mappedResult => (mappedResult.FilePath, mappedResult.LinePositionSpan, mappedResult.Span));
         }
     }
 }

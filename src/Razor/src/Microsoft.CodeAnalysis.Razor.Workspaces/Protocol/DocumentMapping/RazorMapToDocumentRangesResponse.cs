@@ -16,7 +16,7 @@ internal class RazorMapToDocumentRangesResponse
     public int? HostDocumentVersion { get; init; }
 }
 
-internal class RazorMapToDocumentEditsResponse
+internal sealed record class RazorMapToDocumentEditsResponse
 {
     [JsonPropertyName("edits")]
     public required TextChange[] Edits { get; init; }

@@ -177,9 +177,9 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
 
             var edit = AddUsingsHelper.CreateAddUsingWorkspaceEdit(addedUsing, additionalEdit: null, codeDocument, versionedIdentifier);
             var sourceText = codeDocument.Source.Text;
-            if (edit.DocumentChanges is { First.Length: > 0 })
+            if (edit.DocumentChanges is { First.Length: > 0 } documentChanges)
             {
-                var textEdits = edit.DocumentChanges.Value.First.SelectMany(change => change.Edits);
+                var textEdits = documentChanges.SelectMany(static change => change.Edits);
                 var textChanges = textEdits.Select(e => new TextChange(sourceText.GetTextSpan(e.Range), e.NewText));
                 builder.AddRange(textChanges);
             }
@@ -188,16 +188,25 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
 
     /// <summary>
     /// Go through edits and make sure a few things are true:
-    /// 1. No edit is added twice. This can happen if a rename happens
-    /// 2. No edit overlaps with another edit. If they do throw to capture logs but choose the first edit to at least not completely fail. It's possible this will need to be tweaked later.
+    ///
+    /// <list type="number">
+    /// <item>
+    ///  No edit is added twice. This can happen if a rename happens.
+    /// </item>
+    /// <item>
+    ///  No edit overlaps with another edit. If they do throw to capture logs but choose the first
+    ///  edit to at least not completely fail. It's possible this will need to be tweaked later.
+    /// </item>
+    /// </list>
     /// </summary>
+
     private TextChange[] NormalizeEdits(ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
         using var normalizedEdits = new PooledArrayBuilder<TextChange>(changes.Length);
 
         // Ensure that the changes are sorted by start position otherwise
         // the normalization logic will not work.
-        Debug.Assert(changes.SequenceEqual(changes.OrderBy(c => c.Span.Start)));
+        Debug.Assert(changes.SequenceEqual(changes.OrderBy(static c => c.Span.Start)));
 
         var droppedEdits = 0;
         for (var i = 0; i < changes.Length; i++)
