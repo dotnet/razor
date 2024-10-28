@@ -38,6 +38,7 @@ internal static class ObjectWriters
         writer.WriteIfNotFalse(nameof(value.SuppressAddComponentParameter), value.SuppressAddComponentParameter);
         writer.WriteIfNotTrue(nameof(value.UseConsolidatedMvcViews), value.UseConsolidatedMvcViews);
         writer.WriteIfNotFalse(nameof(value.UseRoslynTokenizer), value.UseRoslynTokenizer);
+        writer.WriteIfNotZero(nameof(value.CSharpLanguageVersion), (int)value.CSharpLanguageVersion);
 
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
     }

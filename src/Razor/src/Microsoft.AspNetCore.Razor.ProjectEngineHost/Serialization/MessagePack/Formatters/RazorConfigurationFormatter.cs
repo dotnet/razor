@@ -4,6 +4,7 @@
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
@@ -13,7 +14,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
 
     // The count of properties in RazorConfiguration that are serialized. The number of Extensions will be added
     // to this, for the final serialized value count.
-    private const int SerializedPropertyCount = 5;
+    private const int SerializedPropertyCount = 6;
 
     private RazorConfigurationFormatter()
     {
@@ -29,6 +30,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         var suppressAddComponentParameter = reader.ReadBoolean();
         var useConsolidatedMvcViews = reader.ReadBoolean();
         var useRoslynTokenizer = reader.ReadBoolean();
+        var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
 
         count -= SerializedPropertyCount;
 
@@ -52,7 +54,8 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             extensions,
             UseConsolidatedMvcViews: useConsolidatedMvcViews,
             SuppressAddComponentParameter: suppressAddComponentParameter,
-            UseRoslynTokenizer: useRoslynTokenizer);
+            UseRoslynTokenizer: useRoslynTokenizer,
+            CSharpLanguageVersion: csharpLanguageVersion);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
@@ -77,6 +80,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         writer.Write(value.SuppressAddComponentParameter);
         writer.Write(value.UseConsolidatedMvcViews);
         writer.Write(value.UseRoslynTokenizer);
+        writer.Write((int)value.CSharpLanguageVersion);
 
         count -= SerializedPropertyCount;
 

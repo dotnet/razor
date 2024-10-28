@@ -152,14 +152,6 @@ internal class ProjectState
         {
             ProjectWorkspaceStateVersion = Version;
         }
-
-        if ((difference & ClearProjectWorkspaceStateVersionMask) != 0 &&
-            CSharpLanguageVersion != older.CSharpLanguageVersion)
-        {
-            // C# language version changed. This impacts the ProjectEngine, reset it.
-            _projectEngine = null;
-            ConfigurationVersion = Version;
-        }
     }
 
     // Internal set for testing.
@@ -174,7 +166,7 @@ internal class ProjectState
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 
-    public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState.CSharpLanguageVersion;
+    public LanguageVersion CSharpLanguageVersion => HostProject.Configuration.CSharpLanguageVersion;
 
     /// <summary>
     /// Gets the version of this project, INCLUDING content changes. The <see cref="Version"/> is

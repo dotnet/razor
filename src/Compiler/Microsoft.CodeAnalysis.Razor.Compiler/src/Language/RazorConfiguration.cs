@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -14,7 +15,8 @@ public sealed record class RazorConfiguration(
     bool UseConsolidatedMvcViews = true,
     bool SuppressAddComponentParameter = false,
     LanguageServerFlags? LanguageServerFlags = null,
-    bool UseRoslynTokenizer = false)
+    bool UseRoslynTokenizer = false,
+    LanguageVersion CSharpLanguageVersion = LanguageVersion.Default)
 {
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
@@ -29,6 +31,7 @@ public sealed record class RazorConfiguration(
            LanguageServerFlags == other.LanguageServerFlags &&
            UseConsolidatedMvcViews == other.UseConsolidatedMvcViews &&
            UseRoslynTokenizer == other.UseRoslynTokenizer &&
+           CSharpLanguageVersion == other.CSharpLanguageVersion &&
            Extensions.SequenceEqual(other.Extensions);
 
     public override int GetHashCode()
@@ -41,6 +44,7 @@ public sealed record class RazorConfiguration(
         hash.Add(UseConsolidatedMvcViews);
         hash.Add(LanguageServerFlags);
         hash.Add(UseRoslynTokenizer);
+        hash.Add(CSharpLanguageVersion);
         return hash;
     }
 }
