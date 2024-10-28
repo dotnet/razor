@@ -18,8 +18,8 @@ internal sealed partial class HoverService
             string documentFilePath,
             RazorCodeDocument codeDocument,
             int absoluteIndex,
-            VSInternalClientCapabilities clientCapabilities,
+            HoverDisplayOptions options,
             CancellationToken cancellationToken)
-            => instance.GetHoverInfoAsync(documentFilePath, codeDocument, absoluteIndex, clientCapabilities, cancellationToken);
+            => instance.GetHoverInfoAsync(documentFilePath, codeDocument, absoluteIndex, options, cancellationToken);
     }
 }

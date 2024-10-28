@@ -52,8 +52,10 @@ internal sealed partial class HoverService(
             return null;
         }
 
+        var options = HoverDisplayOptions.From(_clientCapabilitiesService.ClientCapabilities);
+
         return await GetHoverInfoAsync(
-            documentContext.FilePath, codeDocument, positionInfo.HostDocumentIndex, _clientCapabilitiesService.ClientCapabilities, cancellationToken).ConfigureAwait(false);
+            documentContext.FilePath, codeDocument, positionInfo.HostDocumentIndex, options, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<VSInternalHover?> TranslateDelegatedResponseAsync(VSInternalHover? response, DocumentContext documentContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
@@ -97,7 +99,7 @@ internal sealed partial class HoverService(
         string documentFilePath,
         RazorCodeDocument codeDocument,
         int absoluteIndex,
-        VSInternalClientCapabilities clientCapabilities,
+        HoverDisplayOptions options,
         CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
@@ -163,8 +165,7 @@ internal sealed partial class HoverService(
 
                 var range = containingTagNameToken.GetRange(codeDocument.Source);
 
-                var result = await ElementInfoToHoverAsync(documentFilePath, binding.Descriptors, range, clientCapabilities, cancellationToken).ConfigureAwait(false);
-                return result;
+                return await ElementInfoToHoverAsync(documentFilePath, binding.Descriptors, range, options, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -239,16 +240,18 @@ internal sealed partial class HoverService(
                         break;
                 }
 
-                var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, range, attributeName, clientCapabilities);
-
-                return attributeHoverModel;
+                return AttributeInfoToHover(tagHelperAttributes, attributeName, range, options);
             }
         }
 
         return null;
     }
 
-    private VSInternalHover? AttributeInfoToHover(ImmutableArray<BoundAttributeDescriptor> boundAttributes, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
+    private static VSInternalHover? AttributeInfoToHover(
+        ImmutableArray<BoundAttributeDescriptor> boundAttributes,
+        string attributeName,
+        Range range,
+        HoverDisplayOptions options)
     {
         var descriptionInfos = boundAttributes.SelectAsArray(boundAttribute =>
         {
@@ -258,8 +261,8 @@ internal sealed partial class HoverService(
 
         var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
 
-        var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
-        if (isVSClient && ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement? classifiedTextElement))
+        if (options.SupportsVisualStudioExtensions &&
+            ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement? classifiedTextElement))
         {
             var vsHover = new VSInternalHover
             {
@@ -272,9 +275,7 @@ internal sealed partial class HoverService(
         }
         else
         {
-            var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
-
-            if (!MarkupTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
+            if (!MarkupTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, options.MarkupKind, out var vsMarkupContent))
             {
                 return null;
             }
@@ -295,13 +296,17 @@ internal sealed partial class HoverService(
         }
     }
 
-    private async Task<VSInternalHover?> ElementInfoToHoverAsync(string documentFilePath, IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+    private async Task<VSInternalHover?> ElementInfoToHoverAsync(
+        string documentFilePath,
+        IEnumerable<TagHelperDescriptor> descriptors,
+        Range range,
+        HoverDisplayOptions options,
+        CancellationToken cancellationToken)
     {
         var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
-        var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
-        if (isVSClient)
+        if (options.SupportsVisualStudioExtensions)
         {
             var classifiedTextElement = await ClassifiedTagHelperTooltipFactory
                 .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), cancellationToken)
@@ -320,10 +325,8 @@ internal sealed partial class HoverService(
             }
         }
 
-        var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
-
         var vsMarkupContent = await MarkupTagHelperTooltipFactory
-            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), hoverContentFormat, cancellationToken)
+            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, _projectManager.GetQueryOperations(), options.MarkupKind, cancellationToken)
             .ConfigureAwait(false);
 
         if (vsMarkupContent is null)
@@ -344,12 +347,5 @@ internal sealed partial class HoverService(
         };
 
         return hover;
-    }
-
-    private static MarkupKind GetHoverContentFormat(ClientCapabilities clientCapabilities)
-    {
-        var hoverContentFormat = clientCapabilities.TextDocument?.Hover?.ContentFormat;
-        var hoverKind = hoverContentFormat?.Contains(MarkupKind.Markdown) == true ? MarkupKind.Markdown : MarkupKind.PlainText;
-        return hoverKind;
     }
 }
