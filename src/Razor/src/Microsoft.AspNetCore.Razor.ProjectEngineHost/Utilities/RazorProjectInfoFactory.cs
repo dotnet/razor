@@ -92,7 +92,7 @@ internal static class RazorProjectInfoFactory
 
         var tagHelpers = await project.GetTagHelpersAsync(engine, NoOpTelemetryReporter.Instance, cancellationToken).ConfigureAwait(false);
 
-        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, useRoslynTokenizer, csharpLanguageVersion);
+        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
 
         return new RazorProjectInfo(
             projectKey: new ProjectKey(intermediateOutputPath),

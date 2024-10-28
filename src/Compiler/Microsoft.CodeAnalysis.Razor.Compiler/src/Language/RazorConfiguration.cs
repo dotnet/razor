@@ -13,7 +13,8 @@ public sealed record class RazorConfiguration(
     ImmutableArray<RazorExtension> Extensions,
     bool UseConsolidatedMvcViews = true,
     bool SuppressAddComponentParameter = false,
-    LanguageServerFlags? LanguageServerFlags = null)
+    LanguageServerFlags? LanguageServerFlags = null,
+    bool UseRoslynTokenizer = false)
 {
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
@@ -21,7 +22,8 @@ public sealed record class RazorConfiguration(
         Extensions: [],
         UseConsolidatedMvcViews: true,
         SuppressAddComponentParameter: false,
-        LanguageServerFlags: null);
+        LanguageServerFlags: null,
+        UseRoslynTokenizer: false);
 
     public bool Equals(RazorConfiguration? other)
         => other is not null &&
@@ -30,6 +32,7 @@ public sealed record class RazorConfiguration(
            SuppressAddComponentParameter == other.SuppressAddComponentParameter &&
            LanguageServerFlags == other.LanguageServerFlags &&
            UseConsolidatedMvcViews == other.UseConsolidatedMvcViews &&
+           UseRoslynTokenizer == other.UseRoslynTokenizer &&
            Extensions.SequenceEqual(other.Extensions);
 
     public override int GetHashCode()
@@ -41,6 +44,7 @@ public sealed record class RazorConfiguration(
         hash.Add(SuppressAddComponentParameter);
         hash.Add(UseConsolidatedMvcViews);
         hash.Add(LanguageServerFlags);
+        hash.Add(UseRoslynTokenizer);
         return hash;
     }
 }

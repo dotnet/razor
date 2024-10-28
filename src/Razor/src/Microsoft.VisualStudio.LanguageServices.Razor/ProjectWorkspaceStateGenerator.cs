@@ -290,7 +290,11 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
             var compilation = await workspaceProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var suppressAddComponentParameter = compilation is not null && !compilation.HasAddComponentParameter();
-            var configuration = projectSnapshot.Configuration with { SuppressAddComponentParameter = suppressAddComponentParameter };
+            var configuration = projectSnapshot.Configuration with
+            {
+                SuppressAddComponentParameter = suppressAddComponentParameter,
+                UseRoslynTokenizer = useRoslynTokenizer,
+            };
 
             using var _ = StopwatchPool.GetPooledObject(out var watch);
 
@@ -314,7 +318,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 Project: {projectSnapshot.FilePath}
                 """);
 
-            return (ProjectWorkspaceState.Create(tagHelpers, useRoslynTokenizer, csharpLanguageVersion), configuration);
+            return (ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion), configuration);
         }
         catch (OperationCanceledException)
         {

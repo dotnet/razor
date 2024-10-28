@@ -22,7 +22,7 @@ internal sealed class ProjectWorkspaceStateFormatter : ValueFormatter<ProjectWor
 
     public override ProjectWorkspaceState Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        reader.ReadArrayHeaderAndVerify(4);
+        reader.ReadArrayHeaderAndVerify(3);
 
         var checksums = reader.Deserialize<ImmutableArray<Checksum>>(options);
 
@@ -47,21 +47,19 @@ internal sealed class ProjectWorkspaceStateFormatter : ValueFormatter<ProjectWor
         }
 
         var tagHelpers = builder.DrainToImmutable();
-        var useRoslynTokenizer = reader.ReadBoolean();
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
 
-        return ProjectWorkspaceState.Create(tagHelpers, useRoslynTokenizer, csharpLanguageVersion);
+        return ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
     }
 
     public override void Serialize(ref MessagePackWriter writer, ProjectWorkspaceState value, SerializerCachingOptions options)
     {
-        writer.WriteArrayHeader(4);
+        writer.WriteArrayHeader(3);
 
         var checksums = value.TagHelpers.SelectAsArray(x => x.Checksum);
 
         writer.Serialize(checksums, options);
         writer.Serialize(value.TagHelpers, options);
-        writer.Write(value.UseRoslynTokenizer);
         writer.Write((int)value.CSharpLanguageVersion);
     }
 }

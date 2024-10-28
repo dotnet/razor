@@ -5,6 +5,7 @@
   "Configuration": {
     "ConfigurationName": "MVC-3.0",
     "LanguageVersion": "3.0",
+    "UseRoslynTokenizer": true,
     "Extensions": [ "MVC-3.0" ]
   },
   "ProjectWorkspaceState": {
@@ -16126,7 +16127,6 @@
         }
       }
     ],
-    "UseRoslynTokenizer": false,
     "CSharpLanguageVersion": 800
   },
   "RootNamespace": "blazorserver",
