@@ -20,11 +20,11 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(IRazorStartupService))]
-internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisposable
+internal partial class RoslynProjectChangeDetector : IRazorStartupService, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
 
-    private readonly IProjectWorkspaceStateGenerator _generator;
+    private readonly IRoslynProjectChangeProcessor _generator;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _options;
     private readonly CodeAnalysis.Workspace _workspace;
@@ -35,8 +35,8 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
     private WorkspaceChangedListener? _workspaceChangedListener;
 
     [ImportingConstructor]
-    public WorkspaceProjectStateChangeDetector(
-        IProjectWorkspaceStateGenerator generator,
+    public RoslynProjectChangeDetector(
+        IRoslynProjectChangeProcessor generator,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider)
@@ -44,8 +44,8 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
     {
     }
 
-    public WorkspaceProjectStateChangeDetector(
-        IProjectWorkspaceStateGenerator generator,
+    public RoslynProjectChangeDetector(
+        IRoslynProjectChangeProcessor generator,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider,
@@ -414,7 +414,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
 
     internal TestAccessor GetTestAccessor() => new(this);
 
-    internal sealed class TestAccessor(WorkspaceProjectStateChangeDetector instance)
+    internal sealed class TestAccessor(RoslynProjectChangeDetector instance)
     {
         public void CancelExistingWork()
         {

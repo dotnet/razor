@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor;
 
-public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
+public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
 {
     private readonly TestTagHelperResolver _tagHelperResolver;
     private readonly Project _workspaceProject;
@@ -26,7 +26,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
     private readonly TestProjectSnapshotManager _projectManager;
 
-    public ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput)
+    public RoslynProjectChangeProcessorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _tagHelperResolver = new TestTagHelperResolver(
@@ -53,7 +53,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public void Dispose_MakesUpdateNoop()
     {
         // Arrange
-        using var generator = new ProjectWorkspaceStateGenerator(
+        using var generator = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();
@@ -72,7 +72,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public void Update_StartsUpdateTask()
     {
         // Arrange
-        using var generator = new ProjectWorkspaceStateGenerator(
+        using var generator = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();
@@ -90,7 +90,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public void Update_SoftCancelsIncompleteTaskForSameProject()
     {
         // Arrange
-        using var generator = new ProjectWorkspaceStateGenerator(
+        using var generator = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();
@@ -111,7 +111,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
     {
         // Arrange
-        using var generator = new ProjectWorkspaceStateGenerator(
+        using var generator = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();
@@ -139,7 +139,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
     {
         // Arrange
-        using var generator = new ProjectWorkspaceStateGenerator(
+        using var generator = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var generatorAccessor = generator.GetTestAccessor();

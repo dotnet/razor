@@ -89,7 +89,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         using (var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
             serviceProvider,
             projectManager,
-            StrictMock.Of<IProjectWorkspaceStateGenerator>(),
+            StrictMock.Of<IRoslynProjectChangeProcessor>(),
             _workspaceProvider,
             JoinableTaskContext))
         {
@@ -128,7 +128,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         using var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
             serviceProvider,
             projectManager,
-            StrictMock.Of<IProjectWorkspaceStateGenerator>(),
+            StrictMock.Of<IRoslynProjectChangeProcessor>(),
             _workspaceProvider,
             JoinableTaskContext);
 
@@ -158,7 +158,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         });
 
         var serviceProvider = VsMocks.CreateServiceProvider();
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
+        var workspaceStateGenerator = new TestRoslynProjectChangeProcessor();
 
         var vsHierarchyMock = new StrictMock<IVsHierarchy>();
         var vsProjectMock = vsHierarchyMock.As<IVsProject>();
@@ -211,7 +211,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         });
 
         var serviceProvider = VsMocks.CreateServiceProvider();
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
+        var workspaceStateGenerator = new TestRoslynProjectChangeProcessor();
 
         using var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
             serviceProvider,
@@ -262,7 +262,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
                 new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path"));
         });
 
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
+        var workspaceStateGenerator = new TestRoslynProjectChangeProcessor();
 
         using var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
             serviceProvider,
@@ -298,7 +298,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
 
         var projectManager = CreateProjectSnapshotManager();
 
-        var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
+        var workspaceStateGenerator = new TestRoslynProjectChangeProcessor();
 
         using var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
             serviceProvider,

@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
-public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTestBase
+public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
 {
     private readonly HostProject _hostProjectOne;
     private readonly HostProject _hostProjectTwo;
@@ -36,7 +36,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     private readonly DocumentId _backgroundVirtualCSharpDocumentId;
     private readonly DocumentId _partialComponentClassDocumentId;
 
-    public WorkspaceProjectStateChangeDetectorTest(ITestOutputHelper testOutput)
+    public RoslynProjectChangeDetectorTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _emptySolution = Workspace.CurrentSolution;
@@ -122,7 +122,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task SolutionClosing_StopsActiveWork()
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -164,7 +164,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_DocumentEvents_EnqueuesUpdatesForDependentProjects(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -205,7 +205,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_ProjectEvents_EnqueuesUpdatesForDependentProjects(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -248,7 +248,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_SolutionEvents_EnqueuesUpdatesForProjectsInSolution(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -282,7 +282,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_SolutionEvents_EnqueuesStateClear_EnqueuesSolutionProjectUpdates(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -322,7 +322,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_ProjectChangeEvents_UpdatesProjectState_AfterDelay(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -358,7 +358,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_DocumentChanged_BackgroundVirtualCS_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -390,7 +390,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_DocumentChanged_CSHTML_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -422,7 +422,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_DocumentChanged_Razor_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -454,7 +454,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_DocumentChanged_PartialComponent_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -504,7 +504,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_ProjectRemovedEvent_QueuesProjectStateRemoval()
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -532,7 +532,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
     public async Task WorkspaceChanged_ProjectAddedEvent_AddsProject()
     {
         // Arrange
-        var generator = new TestProjectWorkspaceStateGenerator();
+        var generator = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
         using var detector = CreateDetector(generator, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
@@ -576,7 +576,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = RoslynProjectChangeDetector.IsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);
@@ -605,7 +605,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = RoslynProjectChangeDetector.IsPartialComponentClass(document);
 
         // Assert
         Assert.True(result);
@@ -630,7 +630,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         Assert.NotNull(document);
 
         // Act
-        var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = RoslynProjectChangeDetector.IsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);
@@ -657,7 +657,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         await document.GetSyntaxRootAsync();
 
         // Act
-        var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = RoslynProjectChangeDetector.IsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);
@@ -680,7 +680,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = RoslynProjectChangeDetector.IsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);
@@ -713,7 +713,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = RoslynProjectChangeDetector.IsPartialComponentClass(document);
 
         // Assert
         Assert.True(result);
@@ -745,12 +745,12 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = RoslynProjectChangeDetector.IsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);
     }
 
-    private WorkspaceProjectStateChangeDetector CreateDetector(IProjectWorkspaceStateGenerator generator, IProjectSnapshotManager projectManager)
+    private RoslynProjectChangeDetector CreateDetector(IRoslynProjectChangeProcessor generator, IProjectSnapshotManager projectManager)
         => new(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, TimeSpan.FromMilliseconds(10));
 }

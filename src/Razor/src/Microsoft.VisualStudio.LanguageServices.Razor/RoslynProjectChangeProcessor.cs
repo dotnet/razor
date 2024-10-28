@@ -19,21 +19,21 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Razor;
 
-[Export(typeof(IProjectWorkspaceStateGenerator))]
+[Export(typeof(IRoslynProjectChangeProcessor))]
 [method: ImportingConstructor]
-internal sealed partial class ProjectWorkspaceStateGenerator(
+internal sealed partial class RoslynProjectChangeProcessor(
     IProjectSnapshotManager projectManager,
     ITagHelperResolver tagHelperResolver,
     ILoggerFactory loggerFactory,
     ITelemetryReporter telemetryReporter)
-    : IProjectWorkspaceStateGenerator, IDisposable
+    : IRoslynProjectChangeProcessor, IDisposable
 {
     // SemaphoreSlim is banned. See https://github.com/dotnet/razor/issues/10390 for more info.
 #pragma warning disable RS0030 // Do not use banned APIs
 
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly ITagHelperResolver _tagHelperResolver = tagHelperResolver;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ProjectWorkspaceStateGenerator>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RoslynProjectChangeProcessor>();
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1);

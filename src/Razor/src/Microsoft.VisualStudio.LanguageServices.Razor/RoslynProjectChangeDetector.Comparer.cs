@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor;
 
-internal partial class WorkspaceProjectStateChangeDetector
+internal partial class RoslynProjectChangeDetector
 {
     private sealed class Comparer : IEqualityComparer<(Project?, IProjectSnapshot)>
     {
