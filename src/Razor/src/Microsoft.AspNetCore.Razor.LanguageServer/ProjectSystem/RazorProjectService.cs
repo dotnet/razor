@@ -371,13 +371,11 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
                 updater.ProjectWorkspaceStateChanged(project.Key, projectWorkspaceState);
 
-                var currentConfiguration = project.Configuration;
                 var currentRootNamespace = project.RootNamespace;
-                if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
-                    currentRootNamespace == rootNamespace &&
-                    currentConfiguration.SuppressAddComponentParameter == configuration?.SuppressAddComponentParameter)
+                if (project.Configuration == configuration &&
+                    currentRootNamespace == rootNamespace)
                 {
-                    _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.");
+                    _logger.LogTrace($"Skipping configuration update for '{project.Key}' as the configuration and root namespace are unchanged.");
                     return;
                 }
 
@@ -386,14 +384,9 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     configuration = FallbackRazorConfiguration.Latest;
                     _logger.LogInformation($"Updating project '{project.Key}' to use the latest configuration ('{configuration.ConfigurationName}')'.");
                 }
-                else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
+                else
                 {
-                    _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.");
-                }
-
-                if (currentRootNamespace != rootNamespace)
-                {
-                    _logger.LogInformation($"Updating project '{project.Key}''s root namespace to '{rootNamespace}'.");
+                    _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}', namespace '{rootNamespace}', with language version '{configuration.LanguageVersion}'.");
                 }
 
                 var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
