@@ -374,7 +374,8 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 var currentConfiguration = project.Configuration;
                 var currentRootNamespace = project.RootNamespace;
                 if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
-                    currentRootNamespace == rootNamespace)
+                    currentRootNamespace == rootNamespace &&
+                    currentConfiguration.SuppressAddComponentParameter == configuration?.SuppressAddComponentParameter)
                 {
                     _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.");
                     return;
