@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
-        <target state="new">Create component from tag</target>
+        <target state="translated">Создание компонента из тега</target>
         <note />
       </trans-unit>
       <trans-unit id="Diagnostics_after">
@@ -46,12 +46,12 @@
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
-        <target state="new">Extract block to code behind</target>
+        <target state="translated">Извлечь блок в код программной части</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_Component_Title">
         <source>Extract element to new component</source>
-        <target state="new">Extract element to new component</target>
+        <target state="translated">Извлечь элемент в новый компонент</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
@@ -66,12 +66,12 @@
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
         <source>Generate Async Event Handler '{0}'</source>
-        <target state="new">Generate Async Event Handler '{0}'</target>
+        <target state="translated">Создать обработчик асинхронных событий "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Event_Handler_Title">
         <source>Generate Event Handler '{0}'</source>
-        <target state="new">Generate Event Handler '{0}'</target>
+        <target state="translated">Создать обработчик событий "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_Offset">
