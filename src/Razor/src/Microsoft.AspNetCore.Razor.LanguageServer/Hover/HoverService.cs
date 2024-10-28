@@ -165,15 +165,13 @@ internal sealed partial class HoverService(
                 // Hovered over a HTML tag name but the binding matches an attribute
                 return null;
             }
-            else
-            {
-                Debug.Assert(binding.Descriptors.Any());
 
-                var span = containingTagNameToken.GetLinePositionSpan(codeDocument.Source);
+            Debug.Assert(binding.Descriptors.Any());
 
-                return await ElementInfoToHoverAsync(
-                    documentFilePath, binding.Descriptors, span, options, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
-            }
+            var span = containingTagNameToken.GetLinePositionSpan(codeDocument.Source);
+
+            return await ElementInfoToHoverAsync(
+                documentFilePath, binding.Descriptors, span, options, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
@@ -200,56 +198,54 @@ internal sealed partial class HoverService(
                 // No matching TagHelpers, it's just HTML
                 return null;
             }
-            else
+
+            Debug.Assert(binding.Descriptors.Any());
+            var tagHelperAttributes = TagHelperFacts.GetBoundTagHelperAttributes(
+                tagHelperDocumentContext,
+                selectedAttributeName.AssumeNotNull(),
+                binding);
+
+            // Grab the first attribute that we find that intersects with this location. That way if there are multiple attributes side-by-side aka hovering over:
+            //      <input checked| minimized />
+            // Then we take the left most attribute (attributes are returned in source order).
+            var attribute = attributes.First(a => a.Span.IntersectsWith(absoluteIndex));
+            if (attribute is MarkupTagHelperAttributeSyntax thAttributeSyntax)
             {
-                Debug.Assert(binding.Descriptors.Any());
-                var tagHelperAttributes = TagHelperFacts.GetBoundTagHelperAttributes(
-                    tagHelperDocumentContext,
-                    selectedAttributeName.AssumeNotNull(),
-                    binding);
-
-                // Grab the first attribute that we find that intersects with this location. That way if there are multiple attributes side-by-side aka hovering over:
-                //      <input checked| minimized />
-                // Then we take the left most attribute (attributes are returned in source order).
-                var attribute = attributes.First(a => a.Span.IntersectsWith(absoluteIndex));
-                if (attribute is MarkupTagHelperAttributeSyntax thAttributeSyntax)
-                {
-                    attribute = thAttributeSyntax.Name;
-                }
-                else if (attribute is MarkupMinimizedTagHelperAttributeSyntax thMinimizedAttribute)
-                {
-                    attribute = thMinimizedAttribute.Name;
-                }
-                else if (attribute is MarkupTagHelperDirectiveAttributeSyntax directiveAttribute)
-                {
-                    attribute = directiveAttribute.Name;
-                }
-                else if (attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax miniDirectiveAttribute)
-                {
-                    attribute = miniDirectiveAttribute;
-                }
-
-                var attributeName = attribute.GetContent();
-                var span = attribute.GetLinePositionSpan(codeDocument.Source);
-
-                // Include the @ in the range
-                switch (attribute.Parent.Kind)
-                {
-                    case SyntaxKind.MarkupTagHelperDirectiveAttribute:
-                        var directiveAttribute = (MarkupTagHelperDirectiveAttributeSyntax)attribute.Parent;
-                        span = span.WithStart(start => start.WithCharacter(ch => ch - directiveAttribute.Transition.FullWidth));
-                        attributeName = "@" + attributeName;
-                        break;
-
-                    case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                        var minimizedAttribute = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)containingTag;
-                        span = span.WithStart(start => start.WithCharacter(ch => ch - minimizedAttribute.Transition.FullWidth));
-                        attributeName = "@" + attributeName;
-                        break;
-                }
-
-                return AttributeInfoToHover(tagHelperAttributes, attributeName, span, options);
+                attribute = thAttributeSyntax.Name;
             }
+            else if (attribute is MarkupMinimizedTagHelperAttributeSyntax thMinimizedAttribute)
+            {
+                attribute = thMinimizedAttribute.Name;
+            }
+            else if (attribute is MarkupTagHelperDirectiveAttributeSyntax directiveAttribute)
+            {
+                attribute = directiveAttribute.Name;
+            }
+            else if (attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax miniDirectiveAttribute)
+            {
+                attribute = miniDirectiveAttribute;
+            }
+
+            var attributeName = attribute.GetContent();
+            var span = attribute.GetLinePositionSpan(codeDocument.Source);
+
+            // Include the @ in the range
+            switch (attribute.Parent.Kind)
+            {
+                case SyntaxKind.MarkupTagHelperDirectiveAttribute:
+                    var directiveAttribute = (MarkupTagHelperDirectiveAttributeSyntax)attribute.Parent;
+                    span = span.WithStart(start => start.WithCharacter(ch => ch - directiveAttribute.Transition.FullWidth));
+                    attributeName = "@" + attributeName;
+                    break;
+
+                case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
+                    var minimizedAttribute = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)containingTag;
+                    span = span.WithStart(start => start.WithCharacter(ch => ch - minimizedAttribute.Transition.FullWidth));
+                    attributeName = "@" + attributeName;
+                    break;
+            }
+
+            return AttributeInfoToHover(tagHelperAttributes, attributeName, span, options);
         }
 
         return null;
@@ -306,7 +302,7 @@ internal sealed partial class HoverService(
 
     private static async Task<VSInternalHover?> ElementInfoToHoverAsync(
         string documentFilePath,
-        IEnumerable<TagHelperDescriptor> descriptors,
+        ImmutableArray<TagHelperDescriptor> descriptors,
         LinePositionSpan span,
         HoverDisplayOptions options,
         ISolutionQueryOperations solutionQueryOperations,
