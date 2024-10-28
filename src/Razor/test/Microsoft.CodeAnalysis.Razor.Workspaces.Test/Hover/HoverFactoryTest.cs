@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,6 +22,15 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
     private static HoverDisplayOptions UsePlainText => new(MarkupKind.PlainText, SupportsVisualStudioExtensions: false);
 
     private static HoverDisplayOptions UseVisualStudio => new(MarkupKind.Markdown, SupportsVisualStudioExtensions: true);
+
+    private static ISolutionQueryOperations CreateSolutionQueryOperations()
+    {
+        var mock = new StrictMock<ISolutionQueryOperations>();
+        mock.Setup(x => x.GetProjectsContainingDocument(It.IsAny<string>()))
+            .Returns([]);
+
+        return mock.Object;
+    }
 
     [Fact]
     public async Task GetHoverAsync_TagHelper_Element()
@@ -34,7 +44,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -58,7 +68,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -82,7 +92,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -104,7 +114,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -126,7 +136,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -149,7 +159,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -172,7 +182,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -190,7 +200,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -208,7 +218,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -226,7 +236,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -253,7 +263,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, "text.razor", SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -275,7 +285,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -297,7 +307,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -320,7 +330,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -338,7 +348,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -361,7 +371,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -383,7 +393,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -407,7 +417,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -432,7 +442,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -454,7 +464,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -477,7 +487,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -501,7 +511,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -519,7 +529,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -537,7 +547,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var vsHover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var vsHover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(vsHover);
@@ -574,7 +584,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var vsHover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, StrictMock.Of<ISolutionQueryOperations>(), DisposalToken);
+        var vsHover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(vsHover);
