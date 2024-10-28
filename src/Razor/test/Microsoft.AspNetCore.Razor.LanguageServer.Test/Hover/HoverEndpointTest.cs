@@ -26,7 +26,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover;
 
-public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
+public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
     [Fact]
     public async Task Handle_Hover_SingleServer_CallsDelegatedLanguageServer()
@@ -199,10 +199,19 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
         var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
-        var service = GetHoverService(documentMappingService);
+        var projectManager = CreateProjectSnapshotManager();
+
+        var clientCapabilities = new VSInternalClientCapabilities()
+        {
+            TextDocument = new() { Hover = new() { ContentFormat = [MarkupKind.PlainText, MarkupKind.Markdown] } },
+            SupportsVisualStudioExtensions = true
+        };
+
+        var clientCapabilitiesService = new TestClientCapabilitiesService(clientCapabilities);
 
         var endpoint = new HoverEndpoint(
-            service,
+            projectManager,
+            clientCapabilitiesService,
             languageServerFeatureOptions,
             documentMappingService,
             languageServer,
@@ -221,7 +230,7 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
     }
 
-    private (DocumentContext, Position) CreateDefaultDocumentContext()
+    private static (DocumentContext, Position) CreateDefaultDocumentContext()
     {
         TestCode code = """
             @addTagHelper *, TestAssembly
@@ -278,20 +287,6 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         clientConnection ??= StrictMock.Of<IClientConnection>();
 
-        var service = GetHoverService();
-
-        var endpoint = new HoverEndpoint(
-            service,
-            languageServerFeatureOptions,
-            documentMappingService,
-            clientConnection,
-            LoggerFactory);
-
-        return endpoint;
-    }
-
-    private HoverService GetHoverService(IDocumentMappingService? mappingService = null)
-    {
         var projectManager = CreateProjectSnapshotManager();
 
         var clientCapabilities = new VSInternalClientCapabilities()
@@ -302,9 +297,15 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var clientCapabilitiesService = new TestClientCapabilitiesService(clientCapabilities);
 
-        mappingService ??= StrictMock.Of<IDocumentMappingService>();
+        var endpoint = new HoverEndpoint(
+            projectManager,
+            clientCapabilitiesService,
+            languageServerFeatureOptions,
+            documentMappingService,
+            clientConnection,
+            LoggerFactory);
 
-        return new HoverService(projectManager, mappingService, clientCapabilitiesService);
+        return endpoint;
     }
 
     private class HoverLanguageServer : IClientConnection
