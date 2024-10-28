@@ -141,7 +141,14 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
 
             // Act
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key, ProjectWorkspaceState.Default);
+            var changed = _hostProject1 with
+            {
+                Configuration = _hostProject1.Configuration with
+                {
+                    CSharpLanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8
+                }
+            };
+            updater.ProjectConfigurationChanged(changed);
         });
 
         // Assert
@@ -164,7 +171,14 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.DocumentOpened(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
             // Act
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key, ProjectWorkspaceState.Default);
+            var changed = _hostProject1 with
+            {
+                Configuration = _hostProject1.Configuration with
+                {
+                    CSharpLanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8
+                }
+            };
+            updater.ProjectConfigurationChanged(changed);
         });
 
         // Assert

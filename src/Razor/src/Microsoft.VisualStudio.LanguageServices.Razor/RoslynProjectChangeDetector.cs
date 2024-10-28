@@ -24,7 +24,7 @@ internal partial class RoslynProjectChangeDetector : IRazorStartupService, IDisp
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
 
-    private readonly IRoslynProjectChangeProcessor _generator;
+    private readonly IRoslynProjectChangeProcessor _processor;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _options;
     private readonly CodeAnalysis.Workspace _workspace;
@@ -36,22 +36,22 @@ internal partial class RoslynProjectChangeDetector : IRazorStartupService, IDisp
 
     [ImportingConstructor]
     public RoslynProjectChangeDetector(
-        IRoslynProjectChangeProcessor generator,
+        IRoslynProjectChangeProcessor processor,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider)
-        : this(generator, projectManager, options, workspaceProvider, s_delay)
+        : this(processor, projectManager, options, workspaceProvider, s_delay)
     {
     }
 
     public RoslynProjectChangeDetector(
-        IRoslynProjectChangeProcessor generator,
+        IRoslynProjectChangeProcessor processor,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider,
         TimeSpan delay)
     {
-        _generator = generator;
+        _processor = processor;
         _projectManager = projectManager;
         _options = options;
 
@@ -94,7 +94,7 @@ internal partial class RoslynProjectChangeDetector : IRazorStartupService, IDisp
                 return default;
             }
 
-            _generator.EnqueueUpdate(project, projectSnapshot);
+            _processor.EnqueueUpdate(project, projectSnapshot);
         }
 
         return default;

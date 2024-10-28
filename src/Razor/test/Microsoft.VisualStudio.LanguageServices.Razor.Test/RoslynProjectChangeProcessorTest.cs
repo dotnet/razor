@@ -53,36 +53,36 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     public void Dispose_MakesUpdateNoop()
     {
         // Arrange
-        using var generator = new RoslynProjectChangeProcessor(
+        using var processor = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var processorAccessor = processor.GetTestAccessor();
+        processorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
-        generator.Dispose();
+        processor.Dispose();
 
-        generator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
+        processor.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         // Assert
-        Assert.Empty(generatorAccessor.GetUpdates());
+        Assert.Empty(processorAccessor.GetUpdates());
     }
 
     [UIFact]
     public void Update_StartsUpdateTask()
     {
         // Arrange
-        using var generator = new RoslynProjectChangeProcessor(
+        using var processor = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var processorAccessor = processor.GetTestAccessor();
+        processorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
-        generator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
+        processor.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         // Assert
-        var update = Assert.Single(generatorAccessor.GetUpdates());
+        var update = Assert.Single(processorAccessor.GetUpdates());
         Assert.False(update.IsCompleted);
     }
 
@@ -90,18 +90,18 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     public void Update_SoftCancelsIncompleteTaskForSameProject()
     {
         // Arrange
-        using var generator = new RoslynProjectChangeProcessor(
+        using var processor = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var processorAccessor = processor.GetTestAccessor();
+        processorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-        generator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
+        processor.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
-        var initialUpdate = Assert.Single(generatorAccessor.GetUpdates());
+        var initialUpdate = Assert.Single(processorAccessor.GetUpdates());
 
         // Act
-        generator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
+        processor.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         // Assert
         Assert.True(initialUpdate.IsCancellationRequested);
@@ -111,11 +111,11 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
     {
         // Arrange
-        using var generator = new RoslynProjectChangeProcessor(
+        using var processor = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+        var processorAccessor = processor.GetTestAccessor();
+        processorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -124,10 +124,10 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
         });
 
         // Act
-        generator.EnqueueUpdate(workspaceProject: null, _projectSnapshot);
+        processor.EnqueueUpdate(workspaceProject: null, _projectSnapshot);
 
         // Jump off the UI thread so the background work can complete.
-        await Task.Run(() => generatorAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
+        await Task.Run(() => processorAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
         // Assert
         var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);
@@ -139,11 +139,11 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
     {
         // Arrange
-        using var generator = new RoslynProjectChangeProcessor(
+        using var processor = new RoslynProjectChangeProcessor(
             _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+        var processorAccessor = processor.GetTestAccessor();
+        processorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -151,10 +151,10 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
         });
 
         // Act
-        generator.EnqueueUpdate(_workspaceProject, _projectSnapshot);
+        processor.EnqueueUpdate(_workspaceProject, _projectSnapshot);
 
         // Jump off the UI thread so the background work can complete.
-        await Task.Run(() => generatorAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
+        await Task.Run(() => processorAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
         // Assert
         var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);

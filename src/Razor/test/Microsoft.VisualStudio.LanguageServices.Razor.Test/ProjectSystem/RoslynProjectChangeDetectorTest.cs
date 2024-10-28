@@ -122,9 +122,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task SolutionClosing_StopsActiveWork()
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         var workspaceChangedTask = detectorAccessor.ListenForWorkspaceChangesAsync(
@@ -141,7 +141,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         await workspaceChangedTask;
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
-        generator.Clear();
+        processor.Clear();
 
         // Act
         await projectManager.UpdateAsync(updater =>
@@ -154,7 +154,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
 
         // Assert
 
-        Assert.Empty(generator.Updates);
+        Assert.Empty(processor.Updates);
     }
 
     [UITheory]
@@ -164,9 +164,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_DocumentEvents_EnqueuesUpdatesForDependentProjects(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -192,10 +192,10 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        Assert.Equal(3, generator.Updates.Count);
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberOne.ToProjectKey());
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberTwo.ToProjectKey());
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberThree.ToProjectKey());
+        Assert.Equal(3, processor.Updates.Count);
+        Assert.Contains(processor.Updates, u => u.ProjectSnapshot.Key == _projectNumberOne.ToProjectKey());
+        Assert.Contains(processor.Updates, u => u.ProjectSnapshot.Key == _projectNumberTwo.ToProjectKey());
+        Assert.Contains(processor.Updates, u => u.ProjectSnapshot.Key == _projectNumberThree.ToProjectKey());
     }
 
     [UITheory]
@@ -205,9 +205,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_ProjectEvents_EnqueuesUpdatesForDependentProjects(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -233,10 +233,10 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        Assert.Equal(3, generator.Updates.Count);
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberOne.ToProjectKey());
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberTwo.ToProjectKey());
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberThree.ToProjectKey());
+        Assert.Equal(3, processor.Updates.Count);
+        Assert.Contains(processor.Updates, u => u.ProjectSnapshot.Key == _projectNumberOne.ToProjectKey());
+        Assert.Contains(processor.Updates, u => u.ProjectSnapshot.Key == _projectNumberTwo.ToProjectKey());
+        Assert.Contains(processor.Updates, u => u.ProjectSnapshot.Key == _projectNumberThree.ToProjectKey());
     }
 
     [UITheory]
@@ -248,9 +248,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_SolutionEvents_EnqueuesUpdatesForProjectsInSolution(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -268,7 +268,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
 
         // Assert
         Assert.Collection(
-            generator.Updates,
+            processor.Updates,
             p => Assert.Equal(_projectNumberOne.Id, p.WorkspaceProject?.Id),
             p => Assert.Equal(_projectNumberTwo.Id, p.WorkspaceProject?.Id));
     }
@@ -282,9 +282,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_SolutionEvents_EnqueuesStateClear_EnqueuesSolutionProjectUpdates(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -309,7 +309,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
 
         // Assert
         Assert.Collection(
-            generator.Updates,
+            processor.Updates,
             p => Assert.Equal(_projectNumberThree.Id, p.WorkspaceProject?.Id),
             p => Assert.Null(p.WorkspaceProject),
             p => Assert.Equal(_projectNumberOne.Id, p.WorkspaceProject?.Id),
@@ -322,9 +322,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_ProjectChangeEvents_UpdatesProjectState_AfterDelay(WorkspaceChangeKind kind)
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -334,7 +334,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
 
         // Stop any existing work and clear out any updates that we might have received.
         detectorAccessor.CancelExistingWork();
-        generator.Clear();
+        processor.Clear();
 
         // Create a listener for the workspace change we're about to send.
         var listenerTask = detectorAccessor.ListenForWorkspaceChangesAsync(kind);
@@ -349,7 +349,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        var update = Assert.Single(generator.Updates);
+        var update = Assert.Single(processor.Updates);
         Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
         Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
     }
@@ -358,9 +358,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_DocumentChanged_BackgroundVirtualCS_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
@@ -370,7 +370,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_hostProjectOne);
         });
 
-        generator.Clear();
+        processor.Clear();
 
         var solution = _solutionWithTwoProjects.WithDocumentText(_backgroundVirtualCSharpDocumentId, SourceText.From("public class Foo{}"));
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged, oldSolution: _solutionWithTwoProjects, newSolution: solution, projectId: _projectNumberOne.Id, _backgroundVirtualCSharpDocumentId);
@@ -381,7 +381,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        var update = Assert.Single(generator.Updates);
+        var update = Assert.Single(processor.Updates);
         Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
         Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
     }
@@ -390,9 +390,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_DocumentChanged_CSHTML_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
@@ -402,7 +402,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_hostProjectOne);
         });
 
-        generator.Clear();
+        processor.Clear();
 
         var solution = _solutionWithTwoProjects.WithDocumentText(_cshtmlDocumentId, SourceText.From("Hello World"));
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged, oldSolution: _solutionWithTwoProjects, newSolution: solution, projectId: _projectNumberOne.Id, _cshtmlDocumentId);
@@ -413,7 +413,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        var update = Assert.Single(generator.Updates);
+        var update = Assert.Single(processor.Updates);
         Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
         Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
     }
@@ -422,9 +422,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_DocumentChanged_Razor_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
@@ -434,7 +434,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_hostProjectOne);
         });
 
-        generator.Clear();
+        processor.Clear();
 
         var solution = _solutionWithTwoProjects.WithDocumentText(_razorDocumentId, SourceText.From("Hello World"));
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged, oldSolution: _solutionWithTwoProjects, newSolution: solution, projectId: _projectNumberOne.Id, _razorDocumentId);
@@ -445,7 +445,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        var update = Assert.Single(generator.Updates);
+        var update = Assert.Single(processor.Updates);
         Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
         Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
     }
@@ -454,9 +454,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_DocumentChanged_PartialComponent_UpdatesProjectState_AfterDelay()
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         Workspace.TryApplyChanges(_solutionWithTwoProjects);
@@ -467,7 +467,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         });
 
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
-        generator.Clear();
+        processor.Clear();
 
         var sourceText = SourceText.From($$"""
             public partial class TestComponent : {{ComponentsApi.IComponent.MetadataName}} {}
@@ -495,7 +495,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
 
         // Assert
-        var update = Assert.Single(generator.Updates);
+        var update = Assert.Single(processor.Updates);
         Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
         Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
     }
@@ -504,9 +504,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_ProjectRemovedEvent_QueuesProjectStateRemoval()
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -524,7 +524,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
 
         // Assert
         Assert.Single(
-            generator.Updates,
+            processor.Updates,
             p => p.WorkspaceProject is null);
     }
 
@@ -532,9 +532,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
     public async Task WorkspaceChanged_ProjectAddedEvent_AddsProject()
     {
         // Arrange
-        var generator = new TestRoslynProjectChangeProcessor();
+        var processor = new TestRoslynProjectChangeProcessor();
         var projectManager = CreateProjectSnapshotManager();
-        using var detector = CreateDetector(generator, projectManager);
+        using var detector = CreateDetector(processor, projectManager);
         var detectorAccessor = detector.GetTestAccessor();
 
         await projectManager.UpdateAsync(updater =>
@@ -553,7 +553,7 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
 
         // Assert
         Assert.Single(
-            generator.Updates,
+            processor.Updates,
             p => p.WorkspaceProject?.Id == _projectNumberThree.Id);
     }
 
@@ -751,6 +751,6 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         Assert.False(result);
     }
 
-    private RoslynProjectChangeDetector CreateDetector(IRoslynProjectChangeProcessor generator, IProjectSnapshotManager projectManager)
-        => new(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, TimeSpan.FromMilliseconds(10));
+    private RoslynProjectChangeDetector CreateDetector(IRoslynProjectChangeProcessor processor, IProjectSnapshotManager projectManager)
+        => new(processor, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, TimeSpan.FromMilliseconds(10));
 }

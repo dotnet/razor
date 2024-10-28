@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor;
@@ -23,14 +22,14 @@ internal partial class RoslynProjectChangeDetector
             var (_, snapshotX) = x;
             var (_, snapshotY) = y;
 
-            return FilePathComparer.Instance.Equals(snapshotX.Key.Id, snapshotY.Key.Id);
+            return snapshotX.Key.Equals(snapshotY.Key);
         }
 
         public int GetHashCode((Project?, IProjectSnapshot) obj)
         {
             var (_, snapshot) = obj;
 
-            return FilePathComparer.Instance.GetHashCode(snapshot.Key.Id);
+            return snapshot.Key.GetHashCode();
         }
     }
 }
