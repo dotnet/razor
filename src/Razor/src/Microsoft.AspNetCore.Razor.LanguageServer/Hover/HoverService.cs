@@ -17,11 +17,10 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
-using MarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
@@ -163,9 +162,9 @@ internal sealed partial class HoverService(
             {
                 Debug.Assert(binding.Descriptors.Any());
 
-                var range = containingTagNameToken.GetRange(codeDocument.Source);
+                var span = containingTagNameToken.GetLinePositionSpan(codeDocument.Source);
 
-                return await ElementInfoToHoverAsync(documentFilePath, binding.Descriptors, range, options, cancellationToken).ConfigureAwait(false);
+                return await ElementInfoToHoverAsync(documentFilePath, binding.Descriptors, span, options, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -223,24 +222,25 @@ internal sealed partial class HoverService(
                 }
 
                 var attributeName = attribute.GetContent();
-                var range = attribute.GetRange(codeDocument.Source);
+                var span = attribute.GetLinePositionSpan(codeDocument.Source);
 
                 // Include the @ in the range
                 switch (attribute.Parent.Kind)
                 {
                     case SyntaxKind.MarkupTagHelperDirectiveAttribute:
                         var directiveAttribute = (MarkupTagHelperDirectiveAttributeSyntax)attribute.Parent;
-                        range.Start.Character -= directiveAttribute.Transition.FullWidth;
+                        span = span.WithStart(start => start.WithCharacter(ch => ch - directiveAttribute.Transition.FullWidth));
                         attributeName = "@" + attributeName;
                         break;
+
                     case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
                         var minimizedAttribute = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)containingTag;
-                        range.Start.Character -= minimizedAttribute.Transition.FullWidth;
+                        span = span.WithStart(start => start.WithCharacter(ch => ch - minimizedAttribute.Transition.FullWidth));
                         attributeName = "@" + attributeName;
                         break;
                 }
 
-                return AttributeInfoToHover(tagHelperAttributes, attributeName, range, options);
+                return AttributeInfoToHover(tagHelperAttributes, attributeName, span, options);
             }
         }
 
@@ -250,7 +250,7 @@ internal sealed partial class HoverService(
     private static VSInternalHover? AttributeInfoToHover(
         ImmutableArray<BoundAttributeDescriptor> boundAttributes,
         string attributeName,
-        Range range,
+        LinePositionSpan span,
         HoverDisplayOptions options)
     {
         var descriptionInfos = boundAttributes.SelectAsArray(boundAttribute =>
@@ -267,7 +267,7 @@ internal sealed partial class HoverService(
             var vsHover = new VSInternalHover
             {
                 Contents = Array.Empty<SumType<string, MarkedString>>(),
-                Range = range,
+                Range = span.ToRange(),
                 RawContent = classifiedTextElement,
             };
 
@@ -289,7 +289,7 @@ internal sealed partial class HoverService(
             var hover = new VSInternalHover
             {
                 Contents = markupContent,
-                Range = range,
+                Range = span.ToRange(),
             };
 
             return hover;
@@ -299,7 +299,7 @@ internal sealed partial class HoverService(
     private async Task<VSInternalHover?> ElementInfoToHoverAsync(
         string documentFilePath,
         IEnumerable<TagHelperDescriptor> descriptors,
-        Range range,
+        LinePositionSpan span,
         HoverDisplayOptions options,
         CancellationToken cancellationToken)
     {
@@ -317,7 +317,7 @@ internal sealed partial class HoverService(
                 var vsHover = new VSInternalHover
                 {
                     Contents = Array.Empty<SumType<string, MarkedString>>(),
-                    Range = range,
+                    Range = span.ToRange(),
                     RawContent = classifiedTextElement,
                 };
 
@@ -343,7 +343,7 @@ internal sealed partial class HoverService(
         var hover = new VSInternalHover
         {
             Contents = markupContent,
-            Range = range
+            Range = span.ToRange()
         };
 
         return hover;
