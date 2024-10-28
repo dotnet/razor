@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
@@ -66,7 +65,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.ProjectAdded(hostProject);
         });
 
-        var projectWorkspaceState = ProjectWorkspaceState.Create(LanguageVersion.LatestMajor);
+        var projectWorkspaceState = ProjectWorkspaceState.Create([new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TagHelper", "TagHelperAssembly").Build()]);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(

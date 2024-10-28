@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -142,8 +141,14 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
 
             // Act
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key,
-                ProjectWorkspaceState.Create(LanguageVersion.CSharp8));
+            var changed = _hostProject1 with
+            {
+                Configuration = _hostProject1.Configuration with
+                {
+                    CSharpLanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8
+                }
+            };
+            updater.ProjectConfigurationChanged(changed);
         });
 
         // Assert
@@ -166,8 +171,14 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.DocumentOpened(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
             // Act
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key,
-                ProjectWorkspaceState.Create(LanguageVersion.CSharp8));
+            var changed = _hostProject1 with
+            {
+                Configuration = _hostProject1.Configuration with
+                {
+                    CSharpLanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8
+                }
+            };
+            updater.ProjectConfigurationChanged(changed);
         });
 
         // Assert
