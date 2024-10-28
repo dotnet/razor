@@ -17,9 +17,9 @@ internal sealed partial class HoverService
         public Task<VSInternalHover?> GetHoverInfoAsync(
             string documentFilePath,
             RazorCodeDocument codeDocument,
-            SourceLocation location,
+            int absoluteIndex,
             VSInternalClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
-            => instance.GetHoverInfoAsync(documentFilePath, codeDocument, location, clientCapabilities, cancellationToken);
+            => instance.GetHoverInfoAsync(documentFilePath, codeDocument, absoluteIndex, clientCapabilities, cancellationToken);
     }
 }

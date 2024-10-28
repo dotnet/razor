@@ -34,7 +34,7 @@ internal sealed partial class HoverService(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
 
-    public async Task<VSInternalHover?> GetRazorHoverInfoAsync(DocumentContext documentContext, DocumentPositionInfo positionInfo, Position position, CancellationToken cancellationToken)
+    public async Task<VSInternalHover?> GetRazorHoverInfoAsync(DocumentContext documentContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         // HTML can still sometimes be handled by razor. For example hovering over
         // a component tag like <Counter /> will still be in an html context
@@ -52,8 +52,8 @@ internal sealed partial class HoverService(
             return null;
         }
 
-        var location = new SourceLocation(positionInfo.HostDocumentIndex, position.Line, position.Character);
-        return await GetHoverInfoAsync(documentContext.FilePath, codeDocument, location, _clientCapabilitiesService.ClientCapabilities, cancellationToken).ConfigureAwait(false);
+        return await GetHoverInfoAsync(
+            documentContext.FilePath, codeDocument, positionInfo.HostDocumentIndex, _clientCapabilitiesService.ClientCapabilities, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<VSInternalHover?> TranslateDelegatedResponseAsync(VSInternalHover? response, DocumentContext documentContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
@@ -96,13 +96,13 @@ internal sealed partial class HoverService(
     private async Task<VSInternalHover?> GetHoverInfoAsync(
         string documentFilePath,
         RazorCodeDocument codeDocument,
-        SourceLocation location,
+        int absoluteIndex,
         VSInternalClientCapabilities clientCapabilities,
         CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
 
-        var owner = syntaxTree.Root.FindInnermostNode(location.AbsoluteIndex);
+        var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
@@ -126,7 +126,7 @@ internal sealed partial class HoverService(
         var ownerStart = owner.SpanStart;
 
         if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
-            containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
+            containingTagNameToken.Span.IntersectsWith(absoluteIndex))
         {
             if (owner is MarkupStartTagSyntax or MarkupEndTagSyntax &&
                 containingTagNameToken.Content.Equals(SyntaxConstants.TextTagName, StringComparison.OrdinalIgnoreCase))
@@ -169,7 +169,7 @@ internal sealed partial class HoverService(
         }
 
         if (HtmlFacts.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
-            selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true)
+            selectedAttributeNameLocation?.IntersectsWith(absoluteIndex) == true)
         {
             // When finding parents for attributes, we make sure to find the parent of the containing tag, otherwise these methods
             // would return the parent of the attribute, which is not helpful, as its just going to be the containing element
@@ -203,7 +203,7 @@ internal sealed partial class HoverService(
                 // Grab the first attribute that we find that intersects with this location. That way if there are multiple attributes side-by-side aka hovering over:
                 //      <input checked| minimized />
                 // Then we take the left most attribute (attributes are returned in source order).
-                var attribute = attributes.First(a => a.Span.IntersectsWith(location.AbsoluteIndex));
+                var attribute = attributes.First(a => a.Span.IntersectsWith(absoluteIndex));
                 if (attribute is MarkupTagHelperAttributeSyntax thAttributeSyntax)
                 {
                     attribute = thAttributeSyntax.Name;

@@ -64,11 +64,7 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
             return SpecializedTasks.Null<VSInternalHover>();
         }
 
-        return _hoverService.GetRazorHoverInfoAsync(
-                documentContext,
-                positionInfo,
-                request.Position,
-                cancellationToken);
+        return _hoverService.GetRazorHoverInfoAsync(documentContext, positionInfo, cancellationToken);
     }
 
     protected override Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)

@@ -60,10 +60,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -87,10 +86,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -114,10 +112,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -139,10 +136,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -164,10 +160,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -190,11 +185,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var edgeLocation = code.Position;
-        var location = new SourceLocation(edgeLocation, lineIndex: 0, edgeLocation);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -217,10 +210,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -238,10 +230,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -259,10 +250,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -280,10 +270,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -310,10 +299,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, "text.razor", DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -335,10 +323,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -360,10 +347,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -386,10 +372,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreateMarkDownCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreateMarkDownCapabilities(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -408,10 +393,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreatePlainTextCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -435,10 +419,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreatePlainTextCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -461,10 +444,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, location, CreatePlainTextCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, code.Position, CreatePlainTextCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -489,10 +471,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, location, CreatePlainTextCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, code.Position, CreatePlainTextCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -518,10 +499,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, location, CreatePlainTextCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, code.Position, CreatePlainTextCapabilities(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -544,10 +524,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, location, CreatePlainTextCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.razor", codeDocument, code.Position, CreatePlainTextCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -571,10 +550,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreatePlainTextCapabilities(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -599,10 +577,9 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
 
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreatePlainTextCapabilities(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -622,10 +599,8 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
 
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
-
         // Act
-        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, CreatePlainTextCapabilities(), DisposalToken);
+        var hover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, CreatePlainTextCapabilities(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -643,12 +618,11 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
         var codeDocument = CreateCodeDocument(code.Text, isRazorFile: false, DefaultTagHelpers);
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
         var clientCapabilities = CreateMarkDownCapabilities();
         clientCapabilities.SupportsVisualStudioExtensions = true;
 
         // Act
-        var vsHover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, clientCapabilities, DisposalToken);
+        var vsHover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, clientCapabilities, DisposalToken);
 
         // Assert
         Assert.NotNull(vsHover);
@@ -686,12 +660,11 @@ public class HoverServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTe
 
         var service = GetHoverService();
         var serviceAccessor = service.GetTestAccessor();
-        var location = new SourceLocation(code.Position, lineIndex: -1, characterIndex: -1);
         var clientCapabilities = CreateMarkDownCapabilities();
         clientCapabilities.SupportsVisualStudioExtensions = true;
 
         // Act
-        var vsHover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, location, clientCapabilities, DisposalToken);
+        var vsHover = await serviceAccessor.GetHoverInfoAsync("file.cshtml", codeDocument, code.Position, clientCapabilities, DisposalToken);
 
         // Assert
         Assert.NotNull(vsHover);
