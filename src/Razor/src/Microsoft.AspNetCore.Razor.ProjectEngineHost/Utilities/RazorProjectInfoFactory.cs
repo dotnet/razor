@@ -57,9 +57,9 @@ internal static class RazorProjectInfoFactory
             return null;
         }
 
-        var cSharpParseOptions = project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
-        var csharpLanguageVersion = cSharpParseOptions.LanguageVersion;
-        var useRoslynTokenizer = cSharpParseOptions.UseRoslynTokenizer();
+        var csharpParseOptions = project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
+        var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
+        var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
 
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (compilation is null)
@@ -80,7 +80,7 @@ internal static class RazorProjectInfoFactory
 
             builder.SetCSharpLanguageVersion(csharpLanguageVersion);
             builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too!
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, cSharpParseOptions));
+            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, csharpParseOptions));
         };
 
         var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration);

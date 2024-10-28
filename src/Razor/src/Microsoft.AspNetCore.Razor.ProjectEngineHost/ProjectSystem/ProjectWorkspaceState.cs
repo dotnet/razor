@@ -46,9 +46,9 @@ internal sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 
     public bool Equals(ProjectWorkspaceState? other)
         => other is not null &&
-           TagHelpers.SequenceEqual(other.TagHelpers) &&
            CSharpLanguageVersion == other.CSharpLanguageVersion &&
-           UseRoslynTokenizer == other.UseRoslynTokenizer;
+           UseRoslynTokenizer == other.UseRoslynTokenizer &&
+           TagHelpers.SequenceEqual(other.TagHelpers);
 
     public override int GetHashCode()
     {
