@@ -65,7 +65,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             updater.ProjectAdded(hostProject);
         });
 
-        var projectWorkspaceState = ProjectWorkspaceState.Default;
+        var projectWorkspaceState = ProjectWorkspaceState.Create([new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TagHelper", "TagHelperAssembly").Build()]);
 
         // Act
         await _projectInfoListener.UpdatedAsync(new RazorProjectInfo(
