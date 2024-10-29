@@ -58,10 +58,10 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
                 rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
                 configure: builder =>
                 {
-                    builder.SetRootNamespace(RootNamespace);
-                    builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                    builder.SetRootNamespace(configuration.RootNamespace);
+                    builder.SetCSharpLanguageVersion(configuration.CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
-                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: csharpParseOptions.UseRoslynTokenizer(), csharpParseOptions));
+                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: configuration.UseRoslynTokenizer, csharpParseOptions));
                 });
         },
         joinableTaskFactory: null);
@@ -83,8 +83,6 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     public string DisplayName => _project.Name;
 
     public VersionStamp Version => _project.Version;
-
-    public LanguageVersion CSharpLanguageVersion => ((CSharpParseOptions)_project.ParseOptions.AssumeNotNull()).LanguageVersion;
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
     {
@@ -218,11 +216,18 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
         var suppressAddComponentParameter = compilation is not null && !compilation.HasAddComponentParameter();
 
+        var csharpParseOptions = _project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
+        var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
+        var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
+
         return new(
             razorLanguageVersion,
             configurationName,
             Extensions: [],
             UseConsolidatedMvcViews: true,
-            suppressAddComponentParameter);
+            suppressAddComponentParameter,
+            CSharpLanguageVersion: csharpLanguageVersion,
+            UseRoslynTokenizer: useRoslynTokenizer,
+            RootNamespace: _project.DefaultNamespace);
     }
 }
