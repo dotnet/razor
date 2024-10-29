@@ -58,7 +58,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
                 rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
                 configure: builder =>
                 {
-                    builder.SetRootNamespace(configuration.RootNamespace);
+                    builder.SetRootNamespace(configuration.RootNamespace ?? "ASP");
                     builder.SetCSharpLanguageVersion(configuration.CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
                     builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: configuration.UseRoslynTokenizer, csharpParseOptions));

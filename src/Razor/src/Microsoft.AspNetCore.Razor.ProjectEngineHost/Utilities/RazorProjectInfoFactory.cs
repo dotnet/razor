@@ -56,30 +56,20 @@ internal static class RazorProjectInfoFactory
             return null;
         }
 
-        var csharpParseOptions = project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
-        var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
-        var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
-
-        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-        if (compilation is null)
+        var (configuration, csharpParseOptions) = await ComputeRazorConfigurationOptionsAsync(project, cancellationToken).ConfigureAwait(false);
+        if (configuration is null)
         {
             return null;
         }
 
-        var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-        var configuration = ComputeRazorConfigurationOptions(options, compilation, out var defaultNamespace);
         var fileSystem = RazorProjectFileSystem.Create(projectPath);
 
         var defaultConfigure = (RazorProjectEngineBuilder builder) =>
         {
-            if (defaultNamespace is not null)
-            {
-                builder.SetRootNamespace(defaultNamespace);
-            }
-
-            builder.SetCSharpLanguageVersion(csharpLanguageVersion);
+            builder.SetRootNamespace(configuration.RootNamespace ?? "ASP");
+            builder.SetCSharpLanguageVersion(configuration.CSharpLanguageVersion);
             builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too!
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, csharpParseOptions));
+            builder.Features.Add(new ConfigureRazorParserOptions(configuration.UseRoslynTokenizer, csharpParseOptions));
         };
 
         var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration);
@@ -102,10 +92,20 @@ internal static class RazorProjectInfoFactory
             documents: documents);
     }
 
-    private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation, out string defaultNamespace)
+    private static async Task<(RazorConfiguration?, CSharpParseOptions)> ComputeRazorConfigurationOptionsAsync(Project project, CancellationToken cancellationToken)
     {
         // See RazorSourceGenerator.RazorProviders.cs
+        var csharpParseOptions = project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
+        var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
+        var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
 
+        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        if (compilation is null)
+        {
+            return (null, csharpParseOptions);
+        }
+
+        var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
         var globalOptions = options.GlobalOptions;
 
         globalOptions.TryGetValue("build_property.RazorConfiguration", out var configurationName);
@@ -113,7 +113,7 @@ internal static class RazorProjectInfoFactory
         configurationName ??= "MVC-3.0"; // TODO: Source generator uses "default" here??
 
         globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
-        defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
+        var defaultNamespace = rootNamespace ?? project.DefaultNamespace;
 
         if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
             !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
@@ -129,9 +129,11 @@ internal static class RazorProjectInfoFactory
             Extensions: [],
             UseConsolidatedMvcViews: true,
             suppressAddComponentParameter,
-            RootNamespace: defaultNamespace);
+            RootNamespace: defaultNamespace,
+            UseRoslynTokenizer: useRoslynTokenizer,
+            CSharpLanguageVersion: csharpLanguageVersion);
 
-        return razorConfiguration;
+        return (razorConfiguration, csharpParseOptions);
     }
 
     internal static ImmutableArray<DocumentSnapshotHandle> GetDocuments(Project project, string projectPath)

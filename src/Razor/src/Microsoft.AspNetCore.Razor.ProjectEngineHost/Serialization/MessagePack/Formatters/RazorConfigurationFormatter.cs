@@ -31,7 +31,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         var useConsolidatedMvcViews = reader.ReadBoolean();
         var useRoslynTokenizer = reader.ReadBoolean();
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
-        var rootNamespace = reader.ReadString();
+        var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options);
 
         count -= SerializedPropertyCount;
 
@@ -83,7 +83,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         writer.Write(value.UseConsolidatedMvcViews);
         writer.Write(value.UseRoslynTokenizer);
         writer.Write((int)value.CSharpLanguageVersion);
-        writer.Write(value.RootNamespace);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.RootNamespace, options);
 
         count -= SerializedPropertyCount;
 

@@ -197,7 +197,7 @@ internal class ProjectState
 
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
-                    builder.SetRootNamespace(HostProject.Configuration.RootNamespace);
+                    builder.SetRootNamespace(configuration.RootNamespace);
                     builder.SetCSharpLanguageVersion(configuration.CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
                     builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: configuration.UseRoslynTokenizer, CSharpParseOptions.Default));
@@ -345,7 +345,7 @@ internal class ProjectState
             throw new ArgumentNullException(nameof(hostProject));
         }
 
-        if (HostProject.Configuration.Equals(hostProject.Configuration))
+        if (HostProject.Configuration == hostProject.Configuration)
         {
             return this;
         }
