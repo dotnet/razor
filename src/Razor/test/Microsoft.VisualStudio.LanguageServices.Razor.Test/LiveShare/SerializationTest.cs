@@ -53,7 +53,7 @@ public class SerializationTest(ITestOutputHelper testOutput) : ToolingTestBase(t
 
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
         var expectedConfiguration = RazorConfiguration.Default with { RootNamespace = "project" };
-        var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), new Uri("vsls://some/path/obj"), RazorConfiguration.Default, projectWorkspaceState);
+        var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), new Uri("vsls://some/path/obj"), expectedConfiguration, projectWorkspaceState);
 
         var json = JsonConvert.SerializeObject(handle, ProjectSnapshotHandleProxyJsonConverter.Instance);
         Assert.NotNull(json);
