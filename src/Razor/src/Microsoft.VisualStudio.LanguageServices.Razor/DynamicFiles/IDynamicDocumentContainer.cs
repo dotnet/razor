@@ -17,6 +17,7 @@ internal interface IDynamicDocumentContainer
     TextLoader GetTextLoader(string filePath);
 
     IRazorSpanMappingService? GetSpanMappingService();
+    IRazorMappingService? GetMappingService();
     IRazorDocumentExcerptServiceImplementation? GetExcerptService();
     IRazorDocumentPropertiesService GetDocumentPropertiesService();
 }

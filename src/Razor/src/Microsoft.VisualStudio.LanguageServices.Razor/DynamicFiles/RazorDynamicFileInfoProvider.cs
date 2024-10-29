@@ -492,6 +492,8 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         public IRazorSpanMappingService? GetSpanMappingService() => _spanMappingService;
 
         public TextLoader GetTextLoader(string filePath) => _textLoader;
+
+        public IRazorMappingService? GetMappingService() => null;
     }
 
     public class TestAccessor

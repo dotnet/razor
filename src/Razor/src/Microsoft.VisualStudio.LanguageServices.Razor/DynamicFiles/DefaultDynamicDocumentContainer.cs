@@ -47,4 +47,10 @@ internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot document
         // opt out of those features.
         return null!;
     }
+
+    /// <summary>
+    /// IRazorMapping service is intended to map spans and edits from roslyn to razor files. This service is not supported in this context.
+    /// </summary>
+    public IRazorMappingService? GetMappingService()
+        => null;
 }
