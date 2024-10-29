@@ -233,8 +233,10 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
             updater.ProjectAdded(new(
                 filePath: "C:/path/to/project.csproj",
                 intermediateOutputPath: "C:/path/to/obj",
-                configuration: RazorConfiguration.Default,
-                rootNamespace: "project"));
+                configuration: RazorConfiguration.Default with
+                {
+                    RootNamespace = "project"
+                }));
         });
 
         var componentSearchEngine = new RazorComponentSearchEngine(LoggerFactory);

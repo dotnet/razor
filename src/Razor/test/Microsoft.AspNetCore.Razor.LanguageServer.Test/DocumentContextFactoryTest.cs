@@ -93,7 +93,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 
-        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
+        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default);
         var hostDocument = new HostDocument(filePath, "file.cshtml");
 
         await _projectManager.UpdateAsync(updater =>

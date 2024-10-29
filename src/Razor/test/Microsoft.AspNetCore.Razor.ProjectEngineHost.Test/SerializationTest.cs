@@ -36,7 +36,6 @@ public class SerializationTest : ToolingTestBase
             new ProjectKey("/path/to/obj/"),
             "/path/to/project.csproj",
             _configuration,
-            rootNamespace: "TestProject",
             displayName: "project",
             _projectWorkspaceState,
             documents: []);
@@ -69,7 +68,6 @@ public class SerializationTest : ToolingTestBase
             new ProjectKey("/path/to/obj/"),
             "/path/to/project.csproj",
             _configuration,
-            rootNamespace: "TestProject",
             displayName: "project",
             _projectWorkspaceState,
             documents: []);
@@ -103,8 +101,10 @@ public class SerializationTest : ToolingTestBase
         var projectInfo = new RazorProjectInfo(
             new ProjectKey("/path/to/obj/"),
             "/path/to/project.csproj",
-            _configuration,
-            rootNamespace: "TestProject",
+            _configuration with
+            {
+                RootNamespace = "TestProject"
+            },
             displayName: "project",
             _projectWorkspaceState,
             documents: [legacyDocument, componentDocument]);
@@ -119,7 +119,6 @@ public class SerializationTest : ToolingTestBase
         // Assert
         Assert.Equal(projectInfo.FilePath, deserializedProjectInfo.FilePath);
         Assert.Equal(projectInfo.Configuration, deserializedProjectInfo.Configuration);
-        Assert.Equal(projectInfo.RootNamespace, deserializedProjectInfo.RootNamespace);
         Assert.Equal(projectInfo.ProjectWorkspaceState, deserializedProjectInfo.ProjectWorkspaceState);
         Assert.Collection(projectInfo.Documents.OrderBy(doc => doc.FilePath),
             document =>

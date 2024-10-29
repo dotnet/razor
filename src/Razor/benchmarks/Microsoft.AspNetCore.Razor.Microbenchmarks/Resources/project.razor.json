@@ -1,5 +1,5 @@
 {
-  "__Version": 7,
+  "__Version": 8,
   "ProjectKey": "C:\\Users\\admin\\location\\blazorserver\\obj\\Debug\\net7.0\\",
   "FilePath": "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj",
   "Configuration": {
@@ -7,6 +7,7 @@
     "LanguageVersion": "3.0",
     "UseRoslynTokenizer": true,
     "CSharpLanguageVersion": 800,
+    "RootNamespace": "blazorserver",
     "Extensions": [ "MVC-3.0" ]
   },
   "ProjectWorkspaceState": {
@@ -16129,7 +16130,6 @@
       }
     ]
   },
-  "RootNamespace": "blazorserver",
   "Documents": [
     {
       "FilePath": "C:\\Users\\admin\\location\\blazorserver\\Shared\\MainLayout.razor",

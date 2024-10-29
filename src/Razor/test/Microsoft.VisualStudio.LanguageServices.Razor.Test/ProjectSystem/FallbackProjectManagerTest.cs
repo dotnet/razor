@@ -50,8 +50,10 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
     {
         var hostProject = SomeProject with
         {
-            Configuration = RazorConfiguration.Default,
-            RootNamespace = "RootNamespace",
+            Configuration = RazorConfiguration.Default with
+            {
+                RootNamespace = "RootNamespace",
+            },
             DisplayName = "DisplayName"
         };
 
@@ -136,8 +138,10 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         var hostProject = SomeProject with
         {
-            Configuration = RazorConfiguration.Default,
-            RootNamespace = "RootNamespace",
+            Configuration = RazorConfiguration.Default with
+            {
+                RootNamespace = "RootNamespace"
+            },
             DisplayName = "DisplayName"
         };
 

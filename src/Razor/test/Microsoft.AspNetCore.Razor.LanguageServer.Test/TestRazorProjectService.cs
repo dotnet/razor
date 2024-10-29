@@ -53,7 +53,7 @@ internal class TestRazorProjectService(
                 .Select(d => new DocumentSnapshotHandle(d, d, FileKinds.GetFileKindFromFilePath(d)))
                 .ToImmutableArray();
 
-            await ((IRazorProjectInfoListener)this).UpdatedAsync(new RazorProjectInfo(projectSnapshot.Key, projectSnapshot.FilePath, projectSnapshot.Configuration, projectSnapshot.RootNamespace, projectSnapshot.DisplayName, projectSnapshot.ProjectWorkspaceState,
+            await ((IRazorProjectInfoListener)this).UpdatedAsync(new RazorProjectInfo(projectSnapshot.Key, projectSnapshot.FilePath, projectSnapshot.Configuration, projectSnapshot.DisplayName, projectSnapshot.ProjectWorkspaceState,
                 documents), cancellationToken).ConfigureAwait(false);
         }
     }

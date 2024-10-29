@@ -25,8 +25,7 @@ public class SerializationTest(ITestOutputHelper testOutput) : ToolingTestBase(t
 
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
         var expectedConfiguration = RazorConfiguration.Default;
-        var expectedRootNamespace = "project";
-        var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), new Uri("vsls://some/path/obj"), RazorConfiguration.Default, expectedRootNamespace, projectWorkspaceState);
+        var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), new Uri("vsls://some/path/obj"), RazorConfiguration.Default, projectWorkspaceState);
 
         var json = JsonConvert.SerializeObject(handle, ProjectSnapshotHandleProxyJsonConverter.Instance);
         Assert.NotNull(json);
@@ -41,6 +40,34 @@ public class SerializationTest(ITestOutputHelper testOutput) : ToolingTestBase(t
         Assert.Equal(expectedConfiguration.ConfigurationName, deserializedHandle.Configuration.ConfigurationName);
         Assert.Equal(expectedConfiguration.Extensions.Length, deserializedHandle.Configuration.Extensions.Length);
         Assert.Equal(expectedConfiguration.LanguageVersion, deserializedHandle.Configuration.LanguageVersion);
-        Assert.Equal(expectedRootNamespace, deserializedHandle.RootNamespace);
+        Assert.Equal(expectedConfiguration.RootNamespace, deserializedHandle.Configuration.RootNamespace);
+    }
+
+    [Fact]
+    public void ProjectSnapshotHandleProxy_WithNamespace_RoundTripsProperly()
+    {
+        // Arrange
+        var tagHelpers = ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build(),
+            TagHelperDescriptorBuilder.Create("TestTagHelper2", "TestAssembly2").Build());
+
+        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
+        var expectedConfiguration = RazorConfiguration.Default with { RootNamespace = "project" };
+        var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), new Uri("vsls://some/path/obj"), RazorConfiguration.Default, projectWorkspaceState);
+
+        var json = JsonConvert.SerializeObject(handle, ProjectSnapshotHandleProxyJsonConverter.Instance);
+        Assert.NotNull(json);
+
+        // Act
+        var deserializedHandle = JsonConvert.DeserializeObject<ProjectSnapshotHandleProxy>(json, ProjectSnapshotHandleProxyJsonConverter.Instance);
+        Assert.NotNull(deserializedHandle);
+
+        // Assert
+        Assert.Equal("vsls://some/path/project.csproj", deserializedHandle.FilePath.ToString());
+        Assert.Equal(projectWorkspaceState, deserializedHandle.ProjectWorkspaceState);
+        Assert.Equal(expectedConfiguration.ConfigurationName, deserializedHandle.Configuration.ConfigurationName);
+        Assert.Equal(expectedConfiguration.Extensions.Length, deserializedHandle.Configuration.Extensions.Length);
+        Assert.Equal(expectedConfiguration.LanguageVersion, deserializedHandle.Configuration.LanguageVersion);
+        Assert.Equal(expectedConfiguration.RootNamespace, deserializedHandle.Configuration.RootNamespace);
     }
 }

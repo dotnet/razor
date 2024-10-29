@@ -61,7 +61,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
     protected override async Task InitializeAsync()
     {
         var testProjectManager = CreateProjectSnapshotManager();
-        var hostProject = new HostProject("C:/project/project.csproj", "C:/project/obj", RazorConfiguration.Default, "TestRootNamespace");
+        var hostProject = new HostProject("C:/project/project.csproj", "C:/project/obj", RazorConfiguration.Default);
         var sourceText = SourceText.From(string.Empty);
         var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default);
         var openedHostDocument = new HostDocument("C:/project/open_document.cshtml", "C:/project/open_document.cshtml");

@@ -71,7 +71,8 @@ public class StreamExtensionTests
         var configuration = new RazorConfiguration(
             RazorLanguageVersion.Latest,
             "TestConfiguration",
-            ImmutableArray<RazorExtension>.Empty);
+            ImmutableArray<RazorExtension>.Empty,
+            RootNamespace: "TestNamespace");
 
         var tagHelper = TagHelperDescriptorBuilder.Create("TypeName", "AssemblyName")
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tag-name"))
@@ -83,7 +84,6 @@ public class StreamExtensionTests
             new ProjectKey("TestProject"),
             @"C:\test\test.csproj",
             configuration,
-            "TestNamespace",
             "Test",
             projectWorkspaceState,
             [new DocumentSnapshotHandle(@"C:\test\document.razor", @"document.razor", FileKinds.Component)]);

@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
@@ -162,7 +161,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                 assemblyName: projectName,
                 LanguageNames.CSharp,
                 documentFilePath)
-            .WithDefaultNamespace(TestProjectData.SomeProject.RootNamespace)
+            .WithDefaultNamespace(TestProjectData.SomeProject.Configuration.RootNamespace)
             .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference));
 
         var solution = workspace.CurrentSolution.AddProject(projectInfo);

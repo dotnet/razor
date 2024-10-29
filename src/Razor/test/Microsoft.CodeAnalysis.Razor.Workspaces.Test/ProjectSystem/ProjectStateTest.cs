@@ -572,7 +572,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var original = ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, _projectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
-        var hostProjectWithRootNamespaceChange = original.HostProject with { RootNamespace = "ChangedRootNamespace" };
+        var hostProjectWithRootNamespaceChange = original.HostProject with { Configuration = original.HostProject.Configuration with { RootNamespace = "ChangedRootNamespace" } };
 
         // Force init
         _ = original.TagHelpers;
