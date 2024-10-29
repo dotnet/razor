@@ -86,11 +86,10 @@ internal static partial class ObjectReaders
     {
         var projectIdString = reader.ReadNonNullString(nameof(ProjectSnapshotHandle.ProjectId));
         var configuration = reader.ReadObjectOrNull(nameof(ProjectSnapshotHandle.Configuration), ReadConfigurationFromProperties) ?? RazorConfiguration.Default;
-        var rootNamespace = reader.ReadStringOrNull(nameof(ProjectSnapshotHandle.RootNamespace));
 
         var projectId = ProjectId.CreateFromSerialized(Guid.Parse(projectIdString));
 
-        return new(projectId, configuration, rootNamespace);
+        return new(projectId, configuration);
     }
 
     public static DocumentSnapshotHandle ReadDocumentSnapshotHandleFromProperties(JsonDataReader reader)

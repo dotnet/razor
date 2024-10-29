@@ -30,8 +30,7 @@ public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput
             projectId,
             new(RazorLanguageVersion.Version_1_1,
                 "Test",
-                [new("Test-Extension1"), new("Test-Extension2")]),
-            "Test");
+                [new("Test-Extension1"), new("Test-Extension2")]));
 
         // Act
         var bytes = MessagePackConvert.Serialize(expectedSnapshot, s_options);
@@ -48,7 +47,7 @@ public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput
             e => Assert.Equal("Test-Extension1", e.ExtensionName),
             e => Assert.Equal("Test-Extension2", e.ExtensionName));
         Assert.Equal(expectedSnapshot.Configuration.LanguageVersion, actualSnapshot.Configuration.LanguageVersion);
-        Assert.Equal(expectedSnapshot.RootNamespace, actualSnapshot.RootNamespace);
+        Assert.Equal(expectedSnapshot.Configuration.RootNamespace, actualSnapshot.Configuration.RootNamespace);
     }
 
     [Fact]
@@ -56,7 +55,7 @@ public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput
     {
         // Arrange
         var projectId = ProjectId.CreateNewId();
-        var expectedSnapshot = new ProjectSnapshotHandle(projectId, RazorConfiguration.Default, null);
+        var expectedSnapshot = new ProjectSnapshotHandle(projectId, RazorConfiguration.Default);
 
         // Act
         var bytes = MessagePackConvert.Serialize(expectedSnapshot, s_options);
@@ -66,6 +65,5 @@ public class ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput
         Assert.NotNull(actualSnapshot);
         Assert.Equal(expectedSnapshot.ProjectId, actualSnapshot.ProjectId);
         Assert.NotNull(actualSnapshot.Configuration);
-        Assert.Null(actualSnapshot.RootNamespace);
     }
 }
