@@ -39,6 +39,7 @@ internal static class ObjectWriters
         writer.WriteIfNotTrue(nameof(value.UseConsolidatedMvcViews), value.UseConsolidatedMvcViews);
         writer.WriteIfNotFalse(nameof(value.UseRoslynTokenizer), value.UseRoslynTokenizer);
         writer.WriteIfNotZero(nameof(value.CSharpLanguageVersion), (int)value.CSharpLanguageVersion);
+        writer.WriteIfNotNull(nameof(value.RootNamespace), value.RootNamespace);
 
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
     }
@@ -244,7 +245,6 @@ internal static class ObjectWriters
         writer.Write(nameof(value.FilePath), value.FilePath);
         writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);
         writer.WriteObject(nameof(value.ProjectWorkspaceState), value.ProjectWorkspaceState, WriteProperties);
-        writer.Write(nameof(value.RootNamespace), value.RootNamespace);
         writer.WriteArray(nameof(value.Documents), value.Documents, Write);
     }
 

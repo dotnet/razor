@@ -97,7 +97,6 @@ internal static class RazorProjectInfoFactory
             projectKey: new ProjectKey(intermediateOutputPath),
             filePath: project.FilePath!,
             configuration: configuration,
-            rootNamespace: defaultNamespace,
             displayName: project.Name,
             projectWorkspaceState: projectWorkspaceState,
             documents: documents);
@@ -114,6 +113,7 @@ internal static class RazorProjectInfoFactory
         configurationName ??= "MVC-3.0"; // TODO: Source generator uses "default" here??
 
         globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
+        defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
 
         if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
             !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
@@ -128,9 +128,8 @@ internal static class RazorProjectInfoFactory
             configurationName,
             Extensions: [],
             UseConsolidatedMvcViews: true,
-            suppressAddComponentParameter);
-
-        defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
+            suppressAddComponentParameter,
+            RootNamespace: defaultNamespace);
 
         return razorConfiguration;
     }

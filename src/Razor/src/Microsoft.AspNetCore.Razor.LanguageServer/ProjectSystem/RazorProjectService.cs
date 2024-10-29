@@ -85,7 +85,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 projectInfo.ProjectKey,
                 projectInfo.FilePath,
                 projectInfo.Configuration,
-                projectInfo.RootNamespace,
                 projectInfo.DisplayName,
                 projectInfo.ProjectWorkspaceState,
                 projectInfo.Documents,
@@ -114,7 +113,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             projectInfo.ProjectKey,
             projectInfo.FilePath,
             projectInfo.Configuration,
-            projectInfo.RootNamespace,
             projectInfo.DisplayName,
             projectInfo.ProjectWorkspaceState,
             projectInfo.Documents,
@@ -133,7 +131,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             projectKey,
             filePath: null,
             configuration: null,
-            rootNamespace: null,
             displayName: "",
             ProjectWorkspaceState.Default,
             documents: [],
@@ -313,11 +310,11 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         }
     }
 
-    private ProjectKey AddProjectCore(ProjectSnapshotManager.Updater updater, string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace, string? displayName)
+    private ProjectKey AddProjectCore(ProjectSnapshotManager.Updater updater, string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? displayName)
     {
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
         var hostProject = new HostProject(
-            normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
+            normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, displayName);
 
         // ProjectAdded will no-op if the project already exists
         updater.ProjectAdded(hostProject);
@@ -331,7 +328,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         ProjectKey projectKey,
         string? filePath,
         RazorConfiguration? configuration,
-        string? rootNamespace,
         string? displayName,
         ProjectWorkspaceState projectWorkspaceState,
         ImmutableArray<DocumentSnapshotHandle> documents,
@@ -356,7 +352,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     // the intermediate output path from the id
                     var intermediateOutputPath = projectKey.Id;
 
-                    var newKey = AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName);
+                    var newKey = AddProjectCore(updater, filePath, intermediateOutputPath, configuration, displayName);
                     Debug.Assert(newKey == projectKey);
 
                     project = _projectManager.GetLoadedProject(projectKey);
@@ -371,9 +367,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
                 updater.ProjectWorkspaceStateChanged(project.Key, projectWorkspaceState);
 
-                var currentRootNamespace = project.RootNamespace;
-                if (project.Configuration == configuration &&
-                    currentRootNamespace == rootNamespace)
+                if (project.Configuration == configuration)
                 {
                     _logger.LogTrace($"Skipping configuration update for '{project.Key}' as the configuration and root namespace are unchanged.");
                     return;
@@ -386,10 +380,10 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 }
                 else
                 {
-                    _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}', namespace '{rootNamespace}', with language version '{configuration.LanguageVersion}'.");
+                    _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.");
                 }
 
-                var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
+                var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, displayName);
                 updater.ProjectConfigurationChanged(hostProject);
             },
             cancellationToken);

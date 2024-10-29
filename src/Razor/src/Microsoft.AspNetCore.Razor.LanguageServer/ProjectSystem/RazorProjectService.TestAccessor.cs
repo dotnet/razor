@@ -23,7 +23,6 @@ internal partial class RazorProjectService
             string filePath,
             string intermediateOutputPath,
             RazorConfiguration? configuration,
-            string? rootNamespace,
             string? displayName,
             CancellationToken cancellationToken)
         {
@@ -33,7 +32,7 @@ internal partial class RazorProjectService
 
             return await instance._projectManager
                 .UpdateAsync(
-                    updater => service.AddProjectCore(updater, filePath, intermediateOutputPath, configuration, rootNamespace, displayName),
+                    updater => service.AddProjectCore(updater, filePath, intermediateOutputPath, configuration, displayName),
                     cancellationToken)
                 .ConfigureAwait(false);
         }

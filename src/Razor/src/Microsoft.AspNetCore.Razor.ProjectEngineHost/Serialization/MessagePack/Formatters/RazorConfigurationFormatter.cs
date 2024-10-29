@@ -14,7 +14,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
 
     // The count of properties in RazorConfiguration that are serialized. The number of Extensions will be added
     // to this, for the final serialized value count.
-    private const int SerializedPropertyCount = 6;
+    private const int SerializedPropertyCount = 7;
 
     private RazorConfigurationFormatter()
     {
@@ -31,6 +31,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         var useConsolidatedMvcViews = reader.ReadBoolean();
         var useRoslynTokenizer = reader.ReadBoolean();
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
+        var rootNamespace = reader.ReadString();
 
         count -= SerializedPropertyCount;
 
@@ -55,7 +56,8 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             UseConsolidatedMvcViews: useConsolidatedMvcViews,
             SuppressAddComponentParameter: suppressAddComponentParameter,
             UseRoslynTokenizer: useRoslynTokenizer,
-            CSharpLanguageVersion: csharpLanguageVersion);
+            CSharpLanguageVersion: csharpLanguageVersion,
+            RootNamespace: rootNamespace);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
@@ -81,6 +83,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         writer.Write(value.UseConsolidatedMvcViews);
         writer.Write(value.UseRoslynTokenizer);
         writer.Write((int)value.CSharpLanguageVersion);
+        writer.Write(value.RootNamespace);
 
         count -= SerializedPropertyCount;
 

@@ -155,7 +155,7 @@ internal sealed partial class RoslynProjectChangeProcessor(
 
             // We got a possibly changed configuration, but need a host project to update. Fortunately everything will no-op if this
             // is unchanged
-            var hostProject = new HostProject(projectSnapshot.FilePath, projectSnapshot.IntermediateOutputPath, configuration, projectSnapshot.RootNamespace, projectSnapshot.DisplayName);
+            var hostProject = new HostProject(projectSnapshot.FilePath, projectSnapshot.IntermediateOutputPath, configuration, projectSnapshot.DisplayName);
 
             await _projectManager
                 .UpdateAsync(
