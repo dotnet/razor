@@ -297,9 +297,91 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
         """,
         """
         @page "/counter"
-
-
         @using Renamed
+
+
+
+        @code {
+            public int NewCounter { get; set; } 
+        }
+        """);
+
+    [Fact]
+    public Task AddUsing_AfterSystem()
+        => TestAsync(
+        """
+        {|mapUsing:using System;|}
+        {|mapUsing2:using System.Collections.Generic;|}
+        class MyComponent : ComponentBase
+        {
+            {|map1:public int Counter { get; set; }|}
+        }
+        """,
+        """
+        @page "/counter"
+        {|mapUsing:@using System|}
+        {|mapUsing2:@using System.Collections.Generic|}
+
+        @code {
+            {|map1:public int Counter { get; set; }|} 
+        }
+        """,
+        """
+        using OtherNamespace;
+        using System;
+
+        class MyComponent : ComponentBase
+        {
+            public int NewCounter { get; set; }
+        }
+        """,
+        """
+        @page "/counter"
+        @using System
+
+        @using OtherNamespace
+
+        @code {
+            public int NewCounter { get; set; } 
+        }
+        """);
+
+    [Fact]
+    public Task AddUsing_OrdersSystemCorrectly()
+    => TestAsync(
+    """
+        {|mapUsing:using System;|}
+        {|mapUsing2:using MyNamespace;|}
+        class MyComponent : ComponentBase
+        {
+            {|map1:public int Counter { get; set; }|}
+        }
+        """,
+    """
+        @page "/counter"
+        {|mapUsing:@using System|}
+        {|mapUsing2:@using MyNamespace|}
+
+        @code {
+            {|map1:public int Counter { get; set; }|} 
+        }
+        """,
+    """
+        using OtherNamespace;
+        using System;
+        using System.Collections.Generic;
+
+        class MyComponent : ComponentBase
+        {
+            public int NewCounter { get; set; }
+        }
+        """,
+    """
+        @page "/counter"
+        @using System
+        @using System.Collections.Generic
+
+        @using OtherNamespace
 
         @code {
             public int NewCounter { get; set; } 

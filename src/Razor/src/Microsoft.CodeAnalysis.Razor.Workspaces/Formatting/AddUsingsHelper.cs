@@ -129,6 +129,7 @@ internal static class AddUsingsHelper
             {
                 if (remainingSystemUsings.Length == 0)
                 {
+                    insertAbsolutePosition += usingDirective.Node.Span.Length;
                     continue;
                 }
 

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -207,23 +206,7 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
             cancellationToken.ThrowIfCancellationRequested();
             if (remaining is [var edit, var nextEdit, ..])
             {
-                if (edit.Span.Contains(nextEdit.Span))
-                {
-                    // Add the edit that is contained in the other edit
-                    // and skip the next edit.
-                    normalizedEdits.Add(edit);
-                    remaining = remaining[1..];
-                    droppedEdits++;
-                }
-                else if (nextEdit.Span.Contains(edit.Span))
-                {
-                    // Add the edit that is contained in the other edit
-                    // and skip the next edit.
-                    normalizedEdits.Add(nextEdit);
-                    remaining = remaining[1..];
-                    droppedEdits++;
-                }
-                else if (edit.Span == nextEdit.Span)
+                if (edit.Span == nextEdit.Span)
                 {
                     normalizedEdits.Add(nextEdit);
                     remaining = remaining[1..];
@@ -233,6 +216,43 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
                         droppedEdits++;
                     }
                 }
+                else if (edit.Span.Contains(nextEdit.Span))
+                {
+                    // Cases where there was a removal and addition on the same
+                    // line err to taking the addition. This can happen in the
+                    // case of a namespace rename
+                    if (edit.Span.Start == nextEdit.Span.Start)
+                    {
+                        if (string.IsNullOrEmpty(edit.NewText) && !string.IsNullOrEmpty(nextEdit.NewText))
+                        {
+                            // Don't count this as a dropped edit, it is expected
+                            // in the case of a rename
+                            normalizedEdits.Add(new TextChange(edit.Span, nextEdit.NewText));
+                            remaining = remaining[1..];
+                        }
+                        else
+                        {
+                            normalizedEdits.Add(edit);
+                            remaining = remaining[1..];
+                            droppedEdits++;
+                        }
+                    }
+                    else
+                    {
+                        normalizedEdits.Add(edit);
+
+                        remaining = remaining[1..];
+                        droppedEdits++;
+                    }
+                }
+                else if (nextEdit.Span.Contains(edit.Span))
+                {
+                    // Add the edit that is contained in the other edit
+                    // and skip the next edit.
+                    normalizedEdits.Add(nextEdit);
+                    remaining = remaining[1..];
+                    droppedEdits++;
+                }
                 else
                 {
                     normalizedEdits.Add(edit);
@@ -240,7 +260,7 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
             }
             else
             {
-                 normalizedEdits.Add(remaining[0]);
+                normalizedEdits.Add(remaining[0]);
             }
 
             remaining = remaining[1..];
