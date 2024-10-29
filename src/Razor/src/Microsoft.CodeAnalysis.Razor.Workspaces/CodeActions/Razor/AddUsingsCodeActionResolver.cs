@@ -35,8 +35,25 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
             return null;
         }
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = documentContext.Uri };
-        return AddUsingsHelper.CreateAddUsingWorkspaceEdit(actionParams.Namespace, actionParams.AdditionalEdit, codeDocument, codeDocumentIdentifier);
+        var edits = AddUsingsHelper.GenerateUsingsEdits(codeDocument, [actionParams.Namespace]);
+        var textDocumentEdit = new TextDocumentEdit()
+        {
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = documentContext.Uri },
+            Edits = edits
+        };
+
+        if (actionParams.AdditionalEdit is not null)
+        {
+            return new WorkspaceEdit()
+            {
+                DocumentChanges = new TextDocumentEdit[] { actionParams.AdditionalEdit, textDocumentEdit }
+            };
+        }
+
+        return new WorkspaceEdit()
+        {
+            DocumentChanges = new TextDocumentEdit[] { textDocumentEdit }
+        };
     }
 
     internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)

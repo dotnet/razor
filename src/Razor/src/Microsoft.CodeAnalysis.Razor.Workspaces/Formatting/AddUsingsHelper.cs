@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -44,20 +46,14 @@ internal static class AddUsingsHelper
         // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
         // to the Razor document.
 
-        var oldUsings = await FindUsingDirectiveStringsAsync(originalCSharpText, cancellationToken).ConfigureAwait(false);
-        var newUsings = await FindUsingDirectiveStringsAsync(changedCSharpText, cancellationToken).ConfigureAwait(false);
+        var originalSyntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText, cancellationToken: cancellationToken);
+        var changedSyntaxTree = originalSyntaxTree.WithChangedText(changedCSharpText);
+        var oldUsings = await FindUsingDirectiveStringsAsync(originalSyntaxTree, cancellationToken).ConfigureAwait(false);
+        var newUsings = await FindUsingDirectiveStringsAsync(changedSyntaxTree, cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<TextEdit>();
-        foreach (var usingStatement in newUsings.Except(oldUsings))
-        {
-            // This identifier will be eventually thrown away.
-            Debug.Assert(codeDocument.Source.FilePath != null);
-            var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath, UriKind.Relative) };
-            var workspaceEdit = CreateAddUsingWorkspaceEdit(usingStatement, additionalEdit: null, codeDocument, codeDocumentIdentifier: identifier);
-            edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
-        }
-
-        return edits.ToArray();
+        var addedUsings = Delta.Compute(oldUsings, newUsings);
+        return GenerateUsingsEdits(codeDocument, newUsings);
     }
 
     /// <summary>
@@ -90,56 +86,8 @@ internal static class AddUsingsHelper
         return true;
     }
 
-    public static WorkspaceEdit CreateAddUsingWorkspaceEdit(string @namespace, TextDocumentEdit? additionalEdit, RazorCodeDocument codeDocument, OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier)
+    public static async Task<ImmutableArray<string>> FindUsingDirectiveStringsAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
     {
-        /* The heuristic is as follows:
-         *
-         * - If no @using, @namespace, or @page directives are present, insert the statements at the top of the
-         *   file in alphabetical order.
-         * - If a @namespace or @page are present, the statements are inserted after the last line-wise in
-         *   alphabetical order.
-         * - If @using directives are present and alphabetized with System directives at the top, the statements
-         *   will be placed in the correct locations according to that ordering.
-         * - Otherwise it's kind of undefined; it's only geared to insert based on alphabetization.
-         *
-         * This is generally sufficient for our current situation (inserting a single @using statement to include a
-         * component), however it has holes if we eventually use it for other purposes. If we want to deal with
-         * that now I can come up with a more sophisticated heuristic (something along the lines of checking if
-         * there's already an ordering, etc.).
-         */
-        using var documentChanges = new PooledArrayBuilder<TextDocumentEdit>();
-
-        // Need to add the additional edit first, as the actual usings go at the top of the file, and would
-        // change the ranges needed in the additional edit if they went in first
-        if (additionalEdit is not null)
-        {
-            documentChanges.Add(additionalEdit);
-        }
-
-        using var usingDirectives = new PooledArrayBuilder<RazorUsingDirective>();
-        CollectUsingDirectives(codeDocument, ref usingDirectives.AsRef());
-        if (usingDirectives.Count > 0)
-        {
-            // Interpolate based on existing @using statements
-            var edits = GenerateSingleUsingEditsInterpolated(codeDocument, codeDocumentIdentifier, @namespace, in usingDirectives);
-            documentChanges.Add(edits);
-        }
-        else
-        {
-            // Just throw them at the top
-            var edits = GenerateSingleUsingEditsAtTop(codeDocument, codeDocumentIdentifier, @namespace);
-            documentChanges.Add(edits);
-        }
-
-        return new WorkspaceEdit()
-        {
-            DocumentChanges = documentChanges.ToArray(),
-        };
-    }
-
-    public static async Task<IEnumerable<string>> FindUsingDirectiveStringsAsync(SourceText originalCSharpText, CancellationToken cancellationToken)
-    {
-        var syntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText, cancellationToken: cancellationToken);
         var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         // We descend any compilation unit (ie, the file) or and namespaces because the compiler puts all usings inside
@@ -153,80 +101,138 @@ internal static class AddUsingsHelper
             // we should still work in C# v26
             .Select(u => u.ToString()["using ".Length..^1]);
 
-        return usings;
+        return usings.ToImmutableArray();
     }
 
-    private static TextDocumentEdit GenerateSingleUsingEditsInterpolated(
+    public static TextEdit[] GenerateUsingsEdits(
         RazorCodeDocument codeDocument,
-        OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
-        string newUsingNamespace,
-        ref readonly PooledArrayBuilder<RazorUsingDirective> existingUsingDirectives)
+        ImmutableArray<string> newUsingNamespaces)
     {
-        Debug.Assert(existingUsingDirectives.Count > 0);
+        var systemUsings = newUsingNamespaces.Where(ns => ns.StartsWith("System", StringComparison.Ordinal)).OrderByAsArray(s => s, StringComparer.Ordinal);
+        var otherUsings = Delta.Compute(systemUsings, newUsingNamespaces).Sort(StringComparer.Ordinal);
+
+        var remainingSystemUsings = systemUsings.AsSpan();
+        var remainingOtherUsings = otherUsings.AsSpan();
+
+        // Tracks where the using should be inserted by absolute path in the document. Should always
+        // be incremented when a new using is added.
+        var insertAbsolutePosition = 0;
 
         using var edits = new PooledArrayBuilder<TextEdit>();
-        var newText = $"@using {newUsingNamespace}{Environment.NewLine}";
 
-        foreach (var usingDirective in existingUsingDirectives)
+        foreach (var usingDirective in CollectUsingDirectives(codeDocument))
         {
-            // Skip System directives; if they're at the top we don't want to insert before them
             var usingDirectiveNamespace = usingDirective.Statement.ParsedNamespace;
+
+            // Group system usings together
             if (usingDirectiveNamespace.StartsWith("System", StringComparison.Ordinal))
             {
-                continue;
+                if (remainingSystemUsings.Length == 0)
+                {
+                    continue;
+                }
+
+                if (string.CompareOrdinal(usingDirectiveNamespace, remainingSystemUsings[0]) < 0)
+                {
+                    insertAbsolutePosition += AddUsingsAfter(usingDirective.Node.Span.End, remainingSystemUsings[0]);
+                    remainingSystemUsings = remainingSystemUsings[1..];
+                    continue;
+                }
             }
 
-            if (string.CompareOrdinal(newUsingNamespace, usingDirectiveNamespace) < 0)
+            // No more existing system usings, add the remaining system usings
+            insertAbsolutePosition += AddAllUsingsAfter(insertAbsolutePosition, remainingSystemUsings);
+            remainingSystemUsings = Span<string>.Empty;
+
+            if (remainingOtherUsings.Length == 0)
             {
-                var usingDirectiveLineIndex = codeDocument.Source.Text.GetLinePosition(usingDirective.Node.Span.Start).Line;
-                var edit = VsLspFactory.CreateTextEdit(line: usingDirectiveLineIndex, character: 0, newText);
-                edits.Add(edit);
                 break;
             }
+
+            if (string.CompareOrdinal(usingDirectiveNamespace, remainingOtherUsings[0]) < 0)
+            {
+                insertAbsolutePosition += AddUsingsAfter(usingDirective.Node.Span.End, remainingOtherUsings[0]);
+                remainingOtherUsings = remainingOtherUsings[1..];
+            }
         }
 
-        // If we haven't actually found a place to insert the using directive, do so at the end
-        if (edits.Count == 0)
+        // Add remaining usings with system usings being first
+        Debug.Assert(insertAbsolutePosition == 0 || remainingSystemUsings.IsEmpty, "System usings should have been added before other usings.");
+        insertAbsolutePosition += AddAllUsingsAfter(insertAbsolutePosition, remainingSystemUsings);
+        insertAbsolutePosition += AddAllUsingsAfter(insertAbsolutePosition, remainingOtherUsings);
+
+        return edits.ToArray();
+
+        int AddUsingsAfter(int absolutePosition, string newNamespace)
         {
-            var endIndex = existingUsingDirectives[^1].Node.Span.End;
-            var lineIndex = GetLineIndexOrEnd(codeDocument, endIndex - 1) + 1;
-            var edit = VsLspFactory.CreateTextEdit(line: lineIndex, character: 0, newText);
+            var linePosition = GetUsingInsertionPosition(codeDocument, absolutePosition);
+            var newText = GenerateUsingDirectiveText(newNamespace);
+            var edit = VsLspFactory.CreateTextEdit(line: linePosition.Line, character: linePosition.Character, newText);
             edits.Add(edit);
+
+            return newText.Length;
         }
 
-        return new TextDocumentEdit()
+        int AddAllUsingsAfter(int absolutePosition, ReadOnlySpan<string> newNamspaces)
         {
-            TextDocument = codeDocumentIdentifier,
-            Edits = edits.ToArray()
-        };
+            if (newNamspaces.IsEmpty)
+            {
+                return 0;
+            }
+
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
+            foreach (var newNamespace in newNamspaces)
+            {
+                builder.Append(GenerateUsingDirectiveText(newNamespace));
+            }
+
+            var linePosition = GetUsingInsertionPosition(codeDocument, absolutePosition);
+            var edit = VsLspFactory.CreateTextEdit(line: linePosition.Line, character: linePosition.Character, builder.ToString());
+            edits.Add(edit);
+
+            return builder.Length;
+        }
     }
 
-    private static TextDocumentEdit GenerateSingleUsingEditsAtTop(
-        RazorCodeDocument codeDocument,
-        OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
-        string newUsingNamespace)
+    private static LinePosition GetUsingInsertionPosition(RazorCodeDocument codeDocument, int absolutePosition)
     {
-        var insertPosition = (0, 0);
-
-        // If we don't have usings, insert after the last namespace or page directive, which ever comes later
-        var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
-        var lastNamespaceOrPageDirective = syntaxTreeRoot
-            .DescendantNodes()
-            .LastOrDefault(IsNamespaceOrPageDirective);
-
-        if (lastNamespaceOrPageDirective != null)
+        if (absolutePosition == 0)
         {
-            var lineIndex = GetLineIndexOrEnd(codeDocument, lastNamespaceOrPageDirective.Span.End - 1) + 1;
-            insertPosition = (lineIndex, 0);
+            var lastNamespaceOrPageDirective = codeDocument
+                .GetSyntaxTree()
+                .Root
+                .DescendantNodes()
+                .LastOrDefault(IsNamespaceOrPageDirective);
+
+            if (lastNamespaceOrPageDirective is not null)
+            {
+                var lineIndex = GetLineIndexOrEnd(codeDocument, lastNamespaceOrPageDirective.Span.End - 1);
+                return new LinePosition(lineIndex + 1, 0);
+            }
+
+            return LinePosition.Zero;
         }
 
-        // Insert all usings at the given point
-        return new TextDocumentEdit
+        var line = codeDocument.Source.Text.Lines.GetLineFromPosition(absolutePosition);
+        return new LinePosition(
+            line.LineNumber + 1,
+            0);
+
+        static bool IsNamespaceOrPageDirective(RazorSyntaxNode node)
         {
-            TextDocument = codeDocumentIdentifier,
-            Edits = [VsLspFactory.CreateTextEdit(insertPosition, newText: $"@using {newUsingNamespace}{Environment.NewLine}")]
-        };
+            if (node is RazorDirectiveSyntax directiveNode)
+            {
+                return directiveNode.DirectiveDescriptor == ComponentPageDirective.Directive ||
+                    directiveNode.DirectiveDescriptor == NamespaceDirective.Directive ||
+                    directiveNode.DirectiveDescriptor == PageDirective.Directive;
+            }
+
+            return false;
+        }
     }
+
+    private static string GenerateUsingDirectiveText(string newUsingNamespace)
+        => $"@using {newUsingNamespace}{Environment.NewLine}";
 
     private static int GetLineIndexOrEnd(RazorCodeDocument codeDocument, int endIndex)
     {
@@ -240,8 +246,10 @@ internal static class AddUsingsHelper
         }
     }
 
-    private static void CollectUsingDirectives(RazorCodeDocument codeDocument, ref PooledArrayBuilder<RazorUsingDirective> directives)
+    private static ImmutableArray<RazorUsingDirective> CollectUsingDirectives(RazorCodeDocument codeDocument)
     {
+        using var usingDirectives = new PooledArrayBuilder<RazorUsingDirective>();
+
         var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
         foreach (var node in syntaxTreeRoot.DescendantNodes())
         {
@@ -251,22 +259,12 @@ internal static class AddUsingsHelper
                 {
                     if (child.GetChunkGenerator() is AddImportChunkGenerator { IsStatic: false } usingStatement)
                     {
-                        directives.Add(new RazorUsingDirective(directiveNode, usingStatement));
+                        usingDirectives.Add(new RazorUsingDirective(directiveNode, usingStatement));
                     }
                 }
             }
         }
-    }
 
-    private static bool IsNamespaceOrPageDirective(RazorSyntaxNode node)
-    {
-        if (node is RazorDirectiveSyntax directiveNode)
-        {
-            return directiveNode.DirectiveDescriptor == ComponentPageDirective.Directive ||
-                directiveNode.DirectiveDescriptor == NamespaceDirective.Directive ||
-                directiveNode.DirectiveDescriptor == PageDirective.Directive;
-        }
-
-        return false;
+        return usingDirectives.ToImmutable();
     }
 }

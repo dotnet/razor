@@ -10,4 +10,7 @@ internal static class LinePositionExtensions
 
     public static LinePositionSpan ToZeroWidthSpan(this LinePosition linePosition)
         => new(linePosition, linePosition);
+
+    public static int ToAbsolutePosition(this LinePosition linePosition, SourceText text)
+        => text.Lines[linePosition.Line - 1].Start + linePosition.Character;
 }

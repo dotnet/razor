@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -64,38 +65,34 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (codeDocument is null || codeDocument.IsUnsupported())
+        if (codeDocument.IsUnsupported())
         {
             return null;
         }
 
         using var builder = new PooledArrayBuilder<TextChange>();
 
-        var razorSourceText = codeDocument.Source.Text;
-        var csharpDocument = codeDocument.GetCSharpDocument();
-
-        var originalText = csharpDocument.GetGeneratedSourceText();
         var edits = request.TextEdits;
+        var razorSourceText = codeDocument.Source.Text;
+        var originalSyntaxTree = await documentContext.Snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var newText = codeDocument.GetCSharpSourceText().WithChanges(edits);
+        var newSyntaxTree = originalSyntaxTree.WithChangedText(newText);
 
         AddDirectlyMappedChanges(edits, codeDocument, ref builder.AsRef(), cancellationToken);
 
-        var newText = originalText.WithChanges(edits);
-
         var oldUsings = await AddUsingsHelper.FindUsingDirectiveStringsAsync(
-            originalText,
+            originalSyntaxTree,
             cancellationToken).ConfigureAwait(false);
 
         var newUsings = await AddUsingsHelper.FindUsingDirectiveStringsAsync(
-            newText,
+            newSyntaxTree,
             cancellationToken).ConfigureAwait(false);
 
-        var removedUsings = oldUsings.Except(newUsings).ToHashSet();
-        var addedUsings = newUsings.Except(oldUsings).ToArray();
+        var addedUsings = Delta.Compute(oldUsings, newUsings);
+        var removedUsings = Delta.Compute(newUsings, oldUsings);
 
         AddRemovedNamespaceEdits(removedUsings, codeDocument, ref builder.AsRef(), cancellationToken);
-
-        var versionedIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = documentContext.Uri, Version = documentContext.Snapshot.Version };
-        AddNewNamespaceEdits(addedUsings, codeDocument, versionedIdentifier, ref builder.AsRef(), cancellationToken);
+        AddNewNamespaceEdits(addedUsings, codeDocument, ref builder.AsRef(), cancellationToken);
 
         return new RazorMapToDocumentEditsResponse()
         {
@@ -143,9 +140,8 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
         }
     }
 
-    void AddRemovedNamespaceEdits(HashSet<string> removedUsings, RazorCodeDocument codeDocument, ref PooledArrayBuilder<TextChange> builder, CancellationToken cancellationToken)
+    private static void AddRemovedNamespaceEdits(ImmutableArray<string> removedUsings, RazorCodeDocument codeDocument, ref PooledArrayBuilder<TextChange> builder, CancellationToken cancellationToken)
     {
-
         var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
         foreach (var node in syntaxTreeRoot.DescendantNodes())
         {
@@ -169,20 +165,16 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
         }
     }
 
-    void AddNewNamespaceEdits(string[] addedUsings, RazorCodeDocument codeDocument, OptionalVersionedTextDocumentIdentifier versionedIdentifier, ref PooledArrayBuilder<TextChange> builder, CancellationToken cancellationToken)
+    private static void AddNewNamespaceEdits(ImmutableArray<string> addedUsings, RazorCodeDocument codeDocument, ref PooledArrayBuilder<TextChange> builder, CancellationToken cancellationToken)
     {
-        foreach (var addedUsing in addedUsings)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
 
-            var edit = AddUsingsHelper.CreateAddUsingWorkspaceEdit(addedUsing, additionalEdit: null, codeDocument, versionedIdentifier);
+        var edits = AddUsingsHelper.GenerateUsingsEdits(codeDocument, addedUsings);
+        if (edits.Length > 0)
+        {
             var sourceText = codeDocument.Source.Text;
-            if (edit.DocumentChanges is { First.Length: > 0 } documentChanges)
-            {
-                var textEdits = documentChanges.SelectMany(static change => change.Edits);
-                var textChanges = textEdits.Select(e => new TextChange(sourceText.GetTextSpan(e.Range), e.NewText));
-                builder.AddRange(textChanges);
-            }
+            var textChanges = edits.Select(e => new TextChange(sourceText.GetTextSpan(e.Range), e.NewText));
+            builder.AddRange(textChanges);
         }
     }
 
@@ -202,33 +194,25 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
 
     private TextChange[] NormalizeEdits(ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
-        using var normalizedEdits = new PooledArrayBuilder<TextChange>(changes.Length);
-
         // Ensure that the changes are sorted by start position otherwise
         // the normalization logic will not work.
         Debug.Assert(changes.SequenceEqual(changes.OrderBy(static c => c.Span.Start)));
 
+        using var normalizedEdits = new PooledArrayBuilder<TextChange>(changes.Length);
+        var remaining = changes.AsSpan();
+
         var droppedEdits = 0;
-        for (var i = 0; i < changes.Length; i++)
+        while (remaining is not [])
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (i == changes.Length - 1)
-            {
-                normalizedEdits.Add(changes[i]);
-                break;
-            }
-
-            var edit = changes[i];
-            var nextEdit = changes[i + 1];
-
-            if (edit.Span.OverlapsWith(nextEdit.Span))
+            if (remaining is [var edit, var nextEdit, ..])
             {
                 if (edit.Span.Contains(nextEdit.Span))
                 {
                     // Add the edit that is contained in the other edit
                     // and skip the next edit.
                     normalizedEdits.Add(edit);
-                    i++;
+                    remaining = remaining[1..];
                     droppedEdits++;
                 }
                 else if (nextEdit.Span.Contains(edit.Span))
@@ -236,24 +220,30 @@ internal class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentM
                     // Add the edit that is contained in the other edit
                     // and skip the next edit.
                     normalizedEdits.Add(nextEdit);
-                    i++;
+                    remaining = remaining[1..];
                     droppedEdits++;
                 }
                 else if (edit.Span == nextEdit.Span)
                 {
                     normalizedEdits.Add(nextEdit);
-                    i++;
+                    remaining = remaining[1..];
 
                     if (edit.NewText != nextEdit.NewText)
                     {
                         droppedEdits++;
                     }
                 }
+                else
+                {
+                    normalizedEdits.Add(edit);
+                }
             }
             else
             {
-                normalizedEdits.Add(edit);
+                 normalizedEdits.Add(remaining[0]);
             }
+
+            remaining = remaining[1..];
         }
 
         if (droppedEdits > 0)
