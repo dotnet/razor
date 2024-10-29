@@ -35,9 +35,8 @@ public class MetadataCollectionTests
         }
 
         var collection1 = MetadataCollection.Create(pairs.ToArray());
-        // force conversion to IEnumerable so Linq Reverse method gets called instead of the new System.MemoryExtensions.Reverse
-        var enumerableCollection = (IEnumerable<KeyValuePair<string, string?>>)pairs;
-        var collection2 = MetadataCollection.Create(enumerableCollection.Reverse().ToArray());
+        var reversed = Enumerable.Reverse(pairs.ToArray());
+        var collection2 = MetadataCollection.Create(reversed.ToArray());
 
         Assert.Equal(collection1, collection2);
 
