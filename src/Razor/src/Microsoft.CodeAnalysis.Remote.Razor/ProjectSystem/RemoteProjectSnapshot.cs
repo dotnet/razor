@@ -78,8 +78,6 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public string IntermediateOutputPath => FilePathNormalizer.GetNormalizedDirectoryName(_project.CompilationOutputInfo.AssemblyPath);
 
-    public string? RootNamespace => _project.DefaultNamespace ?? "ASP";
-
     public string DisplayName => _project.Name;
 
     public VersionStamp Version => _project.Version;

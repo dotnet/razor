@@ -349,9 +349,9 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         var notification = Assert.Single(listener);
         Assert.NotNull(notification.Older);
-        Assert.Null(notification.Older.RootNamespace);
+        Assert.Null(notification.Older.Configuration.RootNamespace);
         Assert.NotNull(notification.Newer);
-        Assert.Equal(NewRootNamespace, notification.Newer.RootNamespace);
+        Assert.Equal(NewRootNamespace, notification.Newer.Configuration.RootNamespace);
     }
 
     [Fact]
@@ -995,7 +995,6 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         // Assert
         Assert.Equal(ProjectFilePath, project.FilePath);
         Assert.Same(configuration, project.Configuration);
-        Assert.Equal(RootNamespace, project.RootNamespace);
     }
 
     private static TextLoader CreateTextLoader(SourceText text)

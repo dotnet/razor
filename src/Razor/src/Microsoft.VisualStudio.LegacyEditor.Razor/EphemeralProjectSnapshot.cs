@@ -43,8 +43,6 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
 
     public string IntermediateOutputPath { get; }
 
-    public string? RootNamespace { get; }
-
     public string DisplayName { get; }
 
     public VersionStamp Version => VersionStamp.Default;
