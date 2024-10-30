@@ -60,6 +60,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             UsePreciseSemanticTokenRanges = false,
             UseRazorCohostServer = true,
             ReturnCodeActionAndRenamePathsWithPrefixedSlash = false,
+            ForceRuntimeCodeGeneration = false
         };
         UpdateClientInitializationOptions(c => c);
 

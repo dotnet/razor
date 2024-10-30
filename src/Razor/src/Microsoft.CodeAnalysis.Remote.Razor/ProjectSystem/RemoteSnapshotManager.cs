@@ -11,10 +11,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 [Shared]
 [Export(typeof(RemoteSnapshotManager))]
 [method: ImportingConstructor]
-internal sealed class RemoteSnapshotManager(IFilePathService filePathService, ITelemetryReporter telemetryReporter)
+internal sealed class RemoteSnapshotManager(LanguageServerFeatureOptions languageServerFeatureOptions, IFilePathService filePathService, ITelemetryReporter telemetryReporter)
 {
     private static readonly ConditionalWeakTable<Solution, RemoteSolutionSnapshot> s_solutionToSnapshotMap = new();
 
+    public LanguageServerFeatureOptions LanguageServerFeatureOptions { get; } = languageServerFeatureOptions;
     public IFilePathService FilePathService { get; } = filePathService;
     public ITelemetryReporter TelemetryReporter { get; } = telemetryReporter;
 
