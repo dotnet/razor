@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor;
@@ -49,8 +48,6 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
     public string DisplayName { get; }
 
     public VersionStamp Version => VersionStamp.Default;
-
-    public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState.CSharpLanguageVersion;
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => new(ProjectWorkspaceState.TagHelpers);
 

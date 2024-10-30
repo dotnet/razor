@@ -47,7 +47,10 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
             .ConfigureAwait(false);
 
         var csharpSymbols = await ExternalHandlers.DocumentSymbols.GetDocumentSymbolsAsync(
-            generatedDocument, useHierarchicalSymbols, supportsVSExtensions, cancellationToken).ConfigureAwait(false);
+            generatedDocument,
+            useHierarchicalSymbols,
+            supportsVSExtensions,
+            cancellationToken).ConfigureAwait(false);
 
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetCSharpDocument();
