@@ -35,7 +35,6 @@ public class MetadataCollectionTests
         }
 
         var collection1 = MetadataCollection.Create(pairs.ToArray());
-
         var reversed = Enumerable.Reverse(pairs.ToArray());
         var collection2 = MetadataCollection.Create(reversed.ToArray());
 
