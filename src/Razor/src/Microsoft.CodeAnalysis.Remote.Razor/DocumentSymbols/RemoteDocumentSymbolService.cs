@@ -24,21 +24,30 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
 
     private readonly IDocumentSymbolService _documentSymbolService = args.ExportProvider.GetExportedValue<IDocumentSymbolService>();
 
-    public ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, bool useHierarchicalSymbols, CancellationToken cancellationToken)
+    public ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(
+        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableDocumentId razorDocumentId,
+        bool useHierarchicalSymbols,
+        bool supportsVSExtensions,
+        CancellationToken cancellationToken)
        => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetDocumentSymbolsAsync(context, useHierarchicalSymbols, cancellationToken),
+            context => GetDocumentSymbolsAsync(context, useHierarchicalSymbols, supportsVSExtensions, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(RemoteDocumentContext context, bool useHierarchicalSymbols, CancellationToken cancellationToken)
+    private async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(
+        RemoteDocumentContext context,
+        bool useHierarchicalSymbols,
+        bool supportsVSExtensions,
+        CancellationToken cancellationToken)
     {
         var generatedDocument = await context.Snapshot
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
         var csharpSymbols = await ExternalHandlers.DocumentSymbols.GetDocumentSymbolsAsync(
-            generatedDocument, useHierarchicalSymbols, supportsVSExtensions: true, cancellationToken).ConfigureAwait(false);
+            generatedDocument, useHierarchicalSymbols, supportsVSExtensions, cancellationToken).ConfigureAwait(false);
 
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetCSharpDocument();

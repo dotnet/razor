@@ -17,7 +17,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
 {
     [Theory]
     [CombinatorialData]
-    public Task DocumentSymbols_CSharpClassWithMethods(bool hierarchical)
+    public Task DocumentSymbols_CSharpClassWithMethods(bool hierarchical, bool supportsVSExtensions)
         => VerifyDocumentSymbolsAsync(
             """
             @functions {
@@ -40,11 +40,11 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
                 }
             }
             
-            """, hierarchical);
+            """, hierarchical, supportsVSExtensions);
 
     [Theory]
     [CombinatorialData]
-    public Task DocumentSymbols_CSharpMethods(bool hierarchical)
+    public Task DocumentSymbols_CSharpMethods(bool hierarchical, bool supportsVSExtensions)
         => VerifyDocumentSymbolsAsync(
             """
             @functions {
@@ -64,16 +64,16 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
                 }
             }
             
-            """, hierarchical);
+            """, hierarchical, supportsVSExtensions);
 
-    private async Task VerifyDocumentSymbolsAsync(string input, bool hierarchical = false)
+    private async Task VerifyDocumentSymbolsAsync(string input, bool hierarchical, bool supportsVSExtensions)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spansDict);
         var document = await CreateProjectAndRazorDocumentAsync(input);
 
         var endpoint = new CohostDocumentSymbolEndpoint(RemoteServiceInvoker);
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, hierarchical, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, hierarchical, supportsVSExtensions, DisposalToken);
 
         if (hierarchical)
         {

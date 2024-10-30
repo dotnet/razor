@@ -25,6 +25,7 @@ internal class CohostDocumentSymbolEndpoint(IRemoteServiceInvoker remoteServiceI
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private bool _useHierarchicalSymbols;
+    private bool _supportsVSExtensions;
 
     protected override bool MutatesSolutionState => false;
 
@@ -35,6 +36,7 @@ internal class CohostDocumentSymbolEndpoint(IRemoteServiceInvoker remoteServiceI
         if (clientCapabilities.TextDocument?.DocumentSymbol?.DynamicRegistration == true)
         {
             _useHierarchicalSymbols = clientCapabilities.TextDocument.DocumentSymbol.HierarchicalDocumentSymbolSupport;
+            _supportsVSExtensions = clientCapabilities.SupportsVisualStudioExtensions;
 
             return [new Registration
             {
@@ -53,16 +55,16 @@ internal class CohostDocumentSymbolEndpoint(IRemoteServiceInvoker remoteServiceI
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected override Task<SumType<DocumentSymbol[], SymbolInformation[]>?> HandleRequestAsync(DocumentSymbolParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-        => HandleRequestAsync(context.TextDocument.AssumeNotNull(), _useHierarchicalSymbols, cancellationToken);
+        => HandleRequestAsync(context.TextDocument.AssumeNotNull(), _useHierarchicalSymbols, _supportsVSExtensions, cancellationToken);
 
-    private async Task<SumType<DocumentSymbol[], SymbolInformation[]>?> HandleRequestAsync(TextDocument razorDocument, bool useHierarchicalSymbols, CancellationToken cancellationToken)
+    private async Task<SumType<DocumentSymbol[], SymbolInformation[]>?> HandleRequestAsync(TextDocument razorDocument, bool useHierarchicalSymbols, bool supportsVSExtensions, CancellationToken cancellationToken)
     {
         // Normally we could remove the await here, but in this case it neatly converts from ValueTask to Task for us,
         // and more importantly this method is essentially a public API entry point (via LSP) so having it appear in
         // call stacks is desirable
         return await _remoteServiceInvoker.TryInvokeAsync<IRemoteDocumentSymbolService, SumType<DocumentSymbol[], SymbolInformation[]>?>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetDocumentSymbolsAsync(solutionInfo, razorDocument.Id, useHierarchicalSymbols, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetDocumentSymbolsAsync(solutionInfo, razorDocument.Id, useHierarchicalSymbols, supportsVSExtensions, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -70,7 +72,7 @@ internal class CohostDocumentSymbolEndpoint(IRemoteServiceInvoker remoteServiceI
 
     internal readonly struct TestAccessor(CohostDocumentSymbolEndpoint instance)
     {
-        public Task<SumType<DocumentSymbol[], SymbolInformation[]>?> HandleRequestAsync(TextDocument razorDocument, bool useHierarchicalSymbols, CancellationToken cancellationToken)
-            => instance.HandleRequestAsync(razorDocument, useHierarchicalSymbols, cancellationToken);
+        public Task<SumType<DocumentSymbol[], SymbolInformation[]>?> HandleRequestAsync(TextDocument razorDocument, bool useHierarchicalSymbols, bool supportsVSExtensions, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(razorDocument, useHierarchicalSymbols, supportsVSExtensions, cancellationToken);
     }
 }
