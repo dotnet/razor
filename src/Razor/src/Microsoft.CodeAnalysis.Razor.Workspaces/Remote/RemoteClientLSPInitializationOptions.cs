@@ -13,4 +13,7 @@ internal struct RemoteClientLSPInitializationOptions
 
     [DataMember(Order = 1)]
     internal required string[] TokenModifiers;
+
+    [DataMember(Order = 2)]
+    internal required bool SupportsVSExtensions;
 }

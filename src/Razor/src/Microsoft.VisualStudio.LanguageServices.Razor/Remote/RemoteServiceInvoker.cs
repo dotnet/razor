@@ -154,8 +154,10 @@ internal sealed class RemoteServiceInvoker(
             {
                 if (_isLSPInitializedTask is null)
                 {
+                    var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
                     var initParams = new RemoteClientLSPInitializationOptions
                     {
+                        SupportsVSExtensions = clientCapabilities.SupportsVisualStudioExtensions,
                         TokenTypes = _semanticTokensLegendService.TokenTypes.All,
                         TokenModifiers = _semanticTokensLegendService.TokenModifiers.All,
                     };

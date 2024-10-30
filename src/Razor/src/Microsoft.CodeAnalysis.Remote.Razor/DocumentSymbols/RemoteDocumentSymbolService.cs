@@ -23,6 +23,7 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
     }
 
     private readonly IDocumentSymbolService _documentSymbolService = args.ExportProvider.GetExportedValue<IDocumentSymbolService>();
+    private readonly RemoteClientCapabilities _remoteClientCapabilities = args.ExportProvider.GetExportedValue<RemoteClientCapabilities>();
 
     public ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, bool useHierarchicalSymbols, CancellationToken cancellationToken)
        => RunServiceAsync(
@@ -40,8 +41,7 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
         var csharpSymbols = await ExternalHandlers.DocumentSymbols.GetDocumentSymbolsAsync(
             generatedDocument,
             useHierarchicalSymbols,
-            // TODO: use correct value from client capabilities when https://github.com/dotnet/razor/issues/11102
-            supportsVSExtensions: true,
+            supportsVSExtensions: _remoteClientCapabilities.SupportsVisualStudioExtensions,
             cancellationToken).ConfigureAwait(false);
 
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
