@@ -18,26 +18,17 @@ using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : IRazorRequestHandler<TRequest, TResponse?>
-   where TRequest : ITextDocumentPositionParams
+internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse>(
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IDocumentMappingService documentMappingService,
+    IClientConnection clientConnection,
+    ILogger logger)
+    : IRazorRequestHandler<TRequest, TResponse?> where TRequest : ITextDocumentPositionParams
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    protected readonly IDocumentMappingService DocumentMappingService;
-    private readonly IClientConnection _clientConnection;
-    protected readonly ILogger Logger;
-
-    protected AbstractRazorDelegatingEndpoint(
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        IDocumentMappingService documentMappingService,
-        IClientConnection clientConnection,
-        ILogger logger)
-    {
-        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        DocumentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-        _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-
-        Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    protected readonly IDocumentMappingService DocumentMappingService = documentMappingService;
+    private readonly IClientConnection _clientConnection = clientConnection;
+    protected readonly ILogger Logger = logger;
 
     /// <summary>
     /// The strategy to use to project the incoming caret position onto the generated C#/Html document
