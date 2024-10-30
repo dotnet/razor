@@ -29,21 +29,16 @@ internal class RazorFormattingService : IRazorFormattingService
     private static readonly FrozenSet<string> s_csharpTriggerCharacterSet = FrozenSet.ToFrozenSet(["}", ";"], StringComparer.Ordinal);
     private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
 
-    private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
-
     private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
     private readonly ImmutableArray<IFormattingPass> _validationPasses;
     private readonly CSharpOnTypeFormattingPass _csharpOnTypeFormattingPass;
     private readonly HtmlOnTypeFormattingPass _htmlOnTypeFormattingPass;
 
     public RazorFormattingService(
-        IFormattingCodeDocumentProvider codeDocumentProvider,
         IDocumentMappingService documentMappingService,
         IHostServicesProvider hostServicesProvider,
         ILoggerFactory loggerFactory)
     {
-        _codeDocumentProvider = codeDocumentProvider;
-
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
         _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, hostServicesProvider, loggerFactory);
         _validationPasses =
@@ -67,9 +62,7 @@ internal class RazorFormattingService : IRazorFormattingService
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await _codeDocumentProvider
-            .GetCodeDocumentAsync(documentContext.Snapshot, cancellationToken)
-            .ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: true, cancellationToken).ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -100,8 +93,7 @@ internal class RazorFormattingService : IRazorFormattingService
         var context = FormattingContext.Create(
             documentSnapshot,
             codeDocument,
-            options,
-            _codeDocumentProvider);
+            options);
         var originalText = context.SourceText;
 
         var result = htmlChanges;
@@ -252,7 +244,6 @@ internal class RazorFormattingService : IRazorFormattingService
             documentSnapshot,
             codeDocument,
             options,
-            _codeDocumentProvider,
             automaticallyAddUsings: automaticallyAddUsings,
             hostDocumentIndex,
             triggerCharacter);
