@@ -12,6 +12,8 @@ For a new copy of the project, run:
 git clone https://github.com/dotnet/razor.git
 ```
 
+> On a windows based machine, you might to allow for [long paths](https://stackoverflow.com/questions/22575662/filename-too-long-in-git-for-windows): `git config --global core.longpaths true` in order to clone/build the repo, successfully.
+
 ## Install pre-requisites
 
 ### Windows
