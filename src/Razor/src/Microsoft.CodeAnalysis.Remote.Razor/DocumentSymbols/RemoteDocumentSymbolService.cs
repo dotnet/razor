@@ -37,7 +37,12 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var csharpSymbols = await ExternalHandlers.DocumentSymbols.GetDocumentSymbolsAsync(generatedDocument, useHierarchicalSymbols, cancellationToken).ConfigureAwait(false);
+        var csharpSymbols = await ExternalHandlers.DocumentSymbols.GetDocumentSymbolsAsync(
+            generatedDocument,
+            useHierarchicalSymbols,
+            // TODO: use correct value from client capabilities when https://github.com/dotnet/razor/issues/11102
+            supportsVSExtensions: true,
+            cancellationToken).ConfigureAwait(false);
 
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetCSharpDocument();
