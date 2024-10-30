@@ -57,7 +57,7 @@ Before opening the `Razor.sln` file in Visual Studio or VS Code, you need to per
 
 2. Use the
    ```ps1
-   .\startvs.cmd Razor.sln
+   .\startvs.cmd
    ```
    script to open Visual Studio with the Razor solution. This script first sets the required
    environment variables. In addition, the following switches can be specified:
