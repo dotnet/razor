@@ -45,7 +45,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
                 _logger.LogWarning($"Failed to map to projected position for document {context.OriginalSnapshot.FilePath}.");
-                return changes;
+                return [];
             }
 
             // Ask C# for formatting changes.
@@ -64,7 +64,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation($"Received no results.");
-                return changes;
+                return [];
             }
 
             changes = formattingChanges;
@@ -80,10 +80,10 @@ internal sealed class CSharpOnTypeFormattingPass(
             var startPos = edit.Span.Start;
             var endPos = edit.Span.End;
             var count = csharpText.Length;
-            if (startPos >= count || endPos >= count)
+            if (startPos > count || endPos > count)
             {
                 _logger.LogWarning($"Got a bad edit that couldn't be applied. Edit is {startPos}-{endPos} but there are only {count} characters in C#.");
-                return changes;
+                return [];
             }
         }
 
