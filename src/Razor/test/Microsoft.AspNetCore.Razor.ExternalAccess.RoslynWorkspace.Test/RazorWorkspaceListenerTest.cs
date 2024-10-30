@@ -225,6 +225,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
             "TestProject",
             LanguageNames.CSharp);
 
+        projectInfo = projectInfo.WithDefaultNamespace("TestNamespace");
         projectInfo = projectInfo.WithCompilationOutputInfo(projectInfo.CompilationOutputInfo.WithAssemblyPath(@"C:\test\out\test.dll"));
         projectInfo = projectInfo.WithFilePath(@"C:\test\test.csproj");
         projectInfo = projectInfo.WithAdditionalDocuments([DocumentInfo.Create(DocumentId.CreateNewId(projectInfo.Id), @"Page.razor", filePath: @"C:\test\Page.razor")]);
@@ -242,7 +243,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         Assert.NotNull(deserializedProjectInfo);
         Assert.Single(deserializedProjectInfo.Documents);
         Assert.Equal("TestProject", deserializedProjectInfo.DisplayName);
-        Assert.Equal("ASP", deserializedProjectInfo.Configuration.RootNamespace);
+        Assert.Equal("TestNamespace", deserializedProjectInfo.Configuration.RootNamespace);
         Assert.Equal(@"C:/test/out/", deserializedProjectInfo.ProjectKey.Id);
         Assert.Equal(@"C:\test\test.csproj", deserializedProjectInfo.FilePath);
 
