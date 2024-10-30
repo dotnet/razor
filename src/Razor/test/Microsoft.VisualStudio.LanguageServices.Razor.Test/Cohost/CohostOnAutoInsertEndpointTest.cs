@@ -120,17 +120,36 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             formatOnType: false);
     }
 
-    [Fact]
-    public async Task CSharp_OnEnter()
+    [Theory]
+    [CombinatorialData]
+    public async Task CSharp_OnEnter(bool fuse)
     {
         await VerifyOnAutoInsertAsync(
             input: """
+                Hello
+                <div>
+                    Hello
+                    <p>Hello</p>
+                    <p class="@DateTime.Now.DayOfWeek">Hello</p>
+                </div>
+
+                Hello
+
                 @code {
                     void TestMethod() {
                 $$}
                 }
                 """,
             output: """
+                Hello
+                <div>
+                    Hello
+                    <p>Hello</p>
+                    <p class="@DateTime.Now.DayOfWeek">Hello</p>
+                </div>
+
+                Hello
+                
                 @code {
                     void TestMethod()
                     {
@@ -138,7 +157,8 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            triggerCharacter: "\n");
+            triggerCharacter: "\n",
+            fuse: fuse);
     }
 
     [Fact]
@@ -194,8 +214,11 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         bool insertSpaces = true,
         int tabSize = 4,
         bool formatOnType = true,
-        bool autoClosingTags = true)
-    {     
+        bool autoClosingTags = true,
+        bool fuse = false)
+    {
+        UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = fuse });
+
         var document = await CreateProjectAndRazorDocumentAsync(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
