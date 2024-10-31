@@ -132,7 +132,7 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
         // Assert
         var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);
         Assert.NotNull(newProjectSnapshot);
-        Assert.Empty(await newProjectSnapshot.GetTagHelpersAsync(CancellationToken.None));
+        Assert.Empty(await newProjectSnapshot.GetTagHelpersAsync(DisposalToken));
     }
 
     [UIFact]
@@ -159,6 +159,6 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
         // Assert
         var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);
         Assert.NotNull(newProjectSnapshot);
-        Assert.Equal<TagHelperDescriptor>(_tagHelperResolver.TagHelpers, await newProjectSnapshot.GetTagHelpersAsync(CancellationToken.None));
+        Assert.Equal<TagHelperDescriptor>(_tagHelperResolver.TagHelpers, await newProjectSnapshot.GetTagHelpersAsync(DisposalToken));
     }
 }

@@ -64,7 +64,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
                 "testMethod",
                 It.IsAny<JToken>(),
                 "testLanguage",
-                CancellationToken.None))
+                DisposalToken))
             .ReturnsAsync(value: null);
         var token = JToken.Parse("{}");
         var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
@@ -94,7 +94,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
                 "testMethod",
                 It.IsAny<JToken>(),
                 "testLanguage",
-                CancellationToken.None))
+                DisposalToken))
             .ReturnsAsync(expected);
         var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
 

@@ -71,7 +71,7 @@ World", cleanedSummary);
         var elementDescription = AggregateBoundElementDescription.Empty;
 
         // Act
-        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, CancellationToken.None);
+        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, DisposalToken);
 
         // Assert
         Assert.Null(markdown);
@@ -88,7 +88,7 @@ World", cleanedSummary);
         };
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
         // Act
-        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, CancellationToken.None);
+        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, DisposalToken);
 
         // Assert
         Assert.NotNull(markdown);
@@ -110,7 +110,7 @@ Uses `List<System.String>`s", markdown.Value);
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.PlainText, CancellationToken.None);
+        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.PlainText, DisposalToken);
 
         // Assert
         Assert.NotNull(markdown);
@@ -158,7 +158,7 @@ Uses `List<System.String>`s", markdown.Value);
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, CancellationToken.None);
+        var markdown = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), MarkupKind.Markdown, DisposalToken);
 
         // Assert
         Assert.NotNull(markdown);
