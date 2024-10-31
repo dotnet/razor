@@ -66,14 +66,29 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         bool forceDesignTimeGeneratedOutput,
         CancellationToken cancellationToken)
     {
+        // We don't cache if we're forcing, as that would break everything else
+        if (forceDesignTimeGeneratedOutput)
+        {
+            return new ValueTask<RazorCodeDocument>(GetRazorCodeDocumentAsync(forceRuntimeCodeGeneration: false, cancellationToken));
+        }
+
+        var forceRuntimeCodeGeneration = ProjectSnapshot.SolutionSnapshot.SnapshotManager.LanguageServerFeatureOptions.ForceRuntimeCodeGeneration;
+
         // TODO: We don't need to worry about locking if we get called from the didOpen/didChange LSP requests, as CLaSP
         //       takes care of that for us, and blocks requests until those are complete. If that doesn't end up happening,
         //       then a locking mechanism here would prevent concurrent compilations.
         return TryGetGeneratedOutput(out var codeDocument)
             ? new(codeDocument)
-            : new(GetGeneratedOutputCoreAsync(cancellationToken));
+            : new(GetGeneratedOutputCoreAsync(forceRuntimeCodeGeneration, cancellationToken));
 
-        async Task<RazorCodeDocument> GetGeneratedOutputCoreAsync(CancellationToken cancellationToken)
+        async Task<RazorCodeDocument> GetGeneratedOutputCoreAsync(bool forceRuntimeCodeGeneration, CancellationToken cancellationToken)
+        {
+            codeDocument = await GetRazorCodeDocumentAsync(forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
+
+            return _codeDocument ??= InterlockedOperations.Initialize(ref _codeDocument, codeDocument);
+        }
+
+        async Task<RazorCodeDocument> GetRazorCodeDocumentAsync(bool forceRuntimeCodeGeneration, CancellationToken cancellationToken)
         {
             // The non-cohosted DocumentSnapshot implementation uses DocumentState to get the generated output, and we could do that too
             // but most of that code is optimized around caching pre-computed results when things change that don't affect the compilation.
@@ -87,14 +102,9 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
             var tagHelpers = await ProjectSnapshot.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
             var imports = await DocumentState.GetImportsAsync(this, projectEngine, cancellationToken).ConfigureAwait(false);
 
-            // TODO: Get the configuration for forceRuntimeCodeGeneration
-            // var forceRuntimeCodeGeneration = _projectSnapshot.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
-
-            codeDocument = await DocumentState
-                .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false, cancellationToken)
+            return await DocumentState
+                .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: forceRuntimeCodeGeneration, cancellationToken)
                 .ConfigureAwait(false);
-
-            return _codeDocument ??= InterlockedOperations.Initialize(ref _codeDocument, codeDocument);
         }
     }
 
