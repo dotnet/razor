@@ -65,7 +65,7 @@ public class CSharpCodeActionProviderTest : LanguageServerTestBase
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
@@ -95,7 +95,7 @@ public class CSharpCodeActionProviderTest : LanguageServerTestBase
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Empty(providedCodeActions);
@@ -122,7 +122,7 @@ public class CSharpCodeActionProviderTest : LanguageServerTestBase
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
@@ -154,7 +154,7 @@ $$Path;
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
@@ -187,7 +187,7 @@ $$Path;
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
@@ -226,7 +226,7 @@ $$Path;
         ];
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, codeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
 
         // Assert
         Assert.Empty(providedCodeActions);
@@ -263,7 +263,7 @@ $$Path;
         ];
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, codeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
 
         // Assert
         Assert.NotEmpty(providedCodeActions);
@@ -298,7 +298,7 @@ $$Path;
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedImplicitExpressionCodeActions.Length, providedCodeActions.Length);

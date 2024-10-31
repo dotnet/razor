@@ -446,7 +446,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
     {
         // Arrange
         var options = TestRazorLSPOptionsMonitor.Create();
-        await options.UpdateAsync(options.CurrentValue with { CommitElementsWithSpace = false }, CancellationToken.None);
+        await options.UpdateAsync(options.CurrentValue with { CommitElementsWithSpace = false }, DisposalToken);
         var service = new TagHelperCompletionProvider(CreateTagHelperCompletionService(), options);
 
         var context = CreateRazorCompletionContext(

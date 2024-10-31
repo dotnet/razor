@@ -48,7 +48,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -74,7 +74,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Equal(expectedRange, response!.Range);
@@ -100,7 +100,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Equal(expectedRange, response!.Range);
@@ -126,7 +126,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Equal(expectedRange, response!.Range);
@@ -152,7 +152,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Equal(expectedRange, response!.Range);
@@ -178,7 +178,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -203,7 +203,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -231,7 +231,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -259,7 +259,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);

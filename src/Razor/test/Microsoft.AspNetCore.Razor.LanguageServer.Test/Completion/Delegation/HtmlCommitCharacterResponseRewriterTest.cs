@@ -69,7 +69,7 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
         var delegatedCompletionList = GenerateCompletionList(useDefaultCommitCharacters: true, useVSTypes, "Element1", "Element2");
 
         var options = TestRazorLSPOptionsMonitor.Create();
-        await options.UpdateAsync(options.CurrentValue with { CommitElementsWithSpace = false }, CancellationToken.None);
+        await options.UpdateAsync(options.CurrentValue with { CommitElementsWithSpace = false }, DisposalToken);
         var rewriter = new HtmlCommitCharacterResponseRewriter(options);
 
         // Act
@@ -112,7 +112,7 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
         var delegatedCompletionList = GenerateCompletionList(useDefaultCommitCharacters: false, useVSTypes, "Element1", "Element2");
 
         var options = TestRazorLSPOptionsMonitor.Create();
-        await options.UpdateAsync(options.CurrentValue with { CommitElementsWithSpace = false }, CancellationToken.None);
+        await options.UpdateAsync(options.CurrentValue with { CommitElementsWithSpace = false }, DisposalToken);
         var rewriter = new HtmlCommitCharacterResponseRewriter(options);
 
         // Act

@@ -1006,7 +1006,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create(
             configurationSyncService.Object);
 
-        await optionsMonitor.UpdateAsync(CancellationToken.None);
+        await optionsMonitor.UpdateAsync(DisposalToken);
 
         var featureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
             options.DelegateToCSharpOnDiagnosticPublish == true &&

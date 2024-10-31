@@ -219,7 +219,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(commandOrCodeActionContainer);
@@ -255,7 +255,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(commandOrCodeActionContainer);
@@ -281,7 +281,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(commandOrCodeActionContainer);
@@ -318,7 +318,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(commandOrCodeActionContainer);
@@ -350,7 +350,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(commandOrCodeActionContainer);
@@ -392,7 +392,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(commandOrCodeActionContainer);
@@ -435,7 +435,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
+        var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(commandOrCodeActionContainer);
