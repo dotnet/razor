@@ -119,8 +119,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         // Add the logger as a service in case anything in CLaSP pulls it out to do logging
         services.AddSingleton<ILspLogger>(Logger);
 
-        services.AddSingleton<IFormattingCodeDocumentProvider, LspFormattingCodeDocumentProvider>();
-
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);
 

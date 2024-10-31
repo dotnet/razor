@@ -24,4 +24,7 @@ internal struct RemoteClientInitializationOptions
 
     [JsonPropertyName("returnCodeActionAndRenamePathsWithPrefixedSlash")]
     public required bool ReturnCodeActionAndRenamePathsWithPrefixedSlash { get; set; }
+
+    [JsonPropertyName("forceRuntimeCodeGeneration")]
+    public required bool ForceRuntimeCodeGeneration { get; set; }
 }
