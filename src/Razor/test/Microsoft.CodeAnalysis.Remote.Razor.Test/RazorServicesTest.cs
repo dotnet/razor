@@ -45,6 +45,13 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
     {
         Assert.True(typeof(IRemoteJsonService).IsAssignableFrom(serviceType));
 
+        if (serviceType == typeof(IRemoteClientInitializationService))
+        {
+            // IRemoteClientInitializationService is a special init service that doesn't follow naming or parameter type
+            // conventions of other remote JSON services
+            return;
+        }
+
         var found = false;
         foreach (var method in serviceType.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
         {
