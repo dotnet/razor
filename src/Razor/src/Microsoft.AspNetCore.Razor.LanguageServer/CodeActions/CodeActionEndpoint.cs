@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -32,16 +33,7 @@ internal sealed class CodeActionEndpoint(
     {
         _supportsCodeActionResolve = clientCapabilities.TextDocument?.CodeAction?.ResolveSupport is not null;
 
-        serverCapabilities.CodeActionProvider = new CodeActionOptions
-        {
-            CodeActionKinds =
-            [
-                CodeActionKind.RefactorExtract,
-                CodeActionKind.QuickFix,
-                CodeActionKind.Refactor
-            ],
-            ResolveProvider = true,
-        };
+        serverCapabilities.EnableCodeActions();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSCodeActionParams request)
