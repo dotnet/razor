@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using LspHover = Microsoft.VisualStudio.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
@@ -27,7 +28,7 @@ internal sealed class HoverEndpoint(
     IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)
-    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, VSInternalHover?>(
+    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, LspHover?>(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
@@ -61,7 +62,7 @@ internal sealed class HoverEndpoint(
             positionInfo.LanguageKind));
     }
 
-    protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    protected override async Task<LspHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
@@ -97,7 +98,7 @@ internal sealed class HoverEndpoint(
             .ConfigureAwait(false);
     }
 
-    protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    protected override async Task<LspHover?> HandleDelegatedResponseAsync(LspHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)

@@ -547,16 +547,17 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var vsHover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
-        Assert.NotNull(vsHover);
-        Assert.NotNull(vsHover.Contents);
-        Assert.False(vsHover.Contents.Value.TryGetFourth(out var _));
-        Assert.True(vsHover.Contents.Value.TryGetThird(out var _) && !vsHover.Contents.Value.Third.Any());
+        Assert.NotNull(hover);
+        Assert.NotNull(hover.Contents);
+        Assert.False(hover.Contents.Value.TryGetFourth(out var _));
+        Assert.True(hover.Contents.Value.TryGetThird(out var _) && !hover.Contents.Value.Third.Any());
         var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 1, length: 5);
-        Assert.Equal(expectedRange, vsHover.Range);
+        Assert.Equal(expectedRange, hover.Range);
 
+        var vsHover = Assert.IsType<VSInternalHover>(hover);
         Assert.NotNull(vsHover.RawContent);
         var container = (ContainerElement)vsHover.RawContent;
         var containerElements = container.Elements.ToList();
@@ -584,16 +585,17 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var vsHover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
-        Assert.NotNull(vsHover);
-        Assert.NotNull(vsHover.Contents);
-        Assert.False(vsHover.Contents.Value.TryGetFourth(out _));
-        Assert.True(vsHover.Contents.Value.TryGetThird(out var markedStrings) && !markedStrings.Any());
+        Assert.NotNull(hover);
+        Assert.NotNull(hover.Contents);
+        Assert.False(hover.Contents.Value.TryGetFourth(out _));
+        Assert.True(hover.Contents.Value.TryGetThird(out var markedStrings) && !markedStrings.Any());
         var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 7, length: 8);
-        Assert.Equal(expectedRange, vsHover.Range);
+        Assert.Equal(expectedRange, hover.Range);
 
+        var vsHover = Assert.IsType<VSInternalHover>(hover);
         Assert.NotNull(vsHover.RawContent);
         var container = (ContainerElement)vsHover.RawContent;
         var containerElements = container.Elements.ToList();
