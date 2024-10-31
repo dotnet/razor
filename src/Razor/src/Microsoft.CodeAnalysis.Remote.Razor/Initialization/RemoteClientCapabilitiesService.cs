@@ -6,5 +6,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-[Export(typeof(RemoteClientCapabilitiesService)), Shared]
+[Shared]
+[Export(typeof(IClientCapabilitiesService))]
+[Export(typeof(RemoteClientCapabilitiesService))]
 internal sealed class RemoteClientCapabilitiesService : ClientCapabilitiesServiceBase;
