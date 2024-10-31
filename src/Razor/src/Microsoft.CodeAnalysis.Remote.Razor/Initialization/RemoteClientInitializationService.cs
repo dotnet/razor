@@ -16,7 +16,7 @@ internal sealed class RemoteClientInitializationService(in ServiceArgs args) : R
             => new RemoteClientInitializationService(in args);
     }
 
-    private readonly RemoteClientCapabilities _remoteClientCapabilities = args.ExportProvider.GetExportedValue<RemoteClientCapabilities>();
+    private readonly RemoteClientCapabilitiesService _remoteClientCapabilitiesService = args.ExportProvider.GetExportedValue<RemoteClientCapabilitiesService>();
     private readonly RemoteLanguageServerFeatureOptions _remoteLanguageServerFeatureOptions = args.ExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
     private readonly RemoteSemanticTokensLegendService _remoteSemanticTokensLegendService = args.ExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
 
@@ -32,7 +32,7 @@ internal sealed class RemoteClientInitializationService(in ServiceArgs args) : R
         => RunServiceAsync(ct =>
             {
                 _remoteSemanticTokensLegendService.SetLegend(options.TokenTypes, options.TokenModifiers);
-                _remoteClientCapabilities.SupportsVisualStudioExtensions = options.SupportsVSExtensions;
+                _remoteClientCapabilitiesService.SetCapabilities(options.ClientCapabilities);
                 return default;
             },
             cancellationToken);
