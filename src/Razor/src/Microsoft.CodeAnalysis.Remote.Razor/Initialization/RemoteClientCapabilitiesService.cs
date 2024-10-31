@@ -9,4 +9,4 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 [Shared]
 [Export(typeof(IClientCapabilitiesService))]
 [Export(typeof(RemoteClientCapabilitiesService))]
-internal sealed class RemoteClientCapabilitiesService : ClientCapabilitiesServiceBase;
+internal sealed class RemoteClientCapabilitiesService : AbstractClientCapabilitiesService;

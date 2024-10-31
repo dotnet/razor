@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
-internal abstract class ClientCapabilitiesServiceBase : IClientCapabilitiesService
+internal abstract class AbstractClientCapabilitiesService : IClientCapabilitiesService
 {
     private VSInternalClientCapabilities? _clientCapabilities;
 

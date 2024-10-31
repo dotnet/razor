@@ -8,4 +8,4 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 [Export(typeof(RazorCohostClientCapabilitiesService))]
 [Export(typeof(IClientCapabilitiesService))]
-internal sealed class RazorCohostClientCapabilitiesService : ClientCapabilitiesServiceBase;
+internal sealed class RazorCohostClientCapabilitiesService : AbstractClientCapabilitiesService;
