@@ -68,7 +68,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -477,7 +477,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         if (resultSpan.IsEmpty)

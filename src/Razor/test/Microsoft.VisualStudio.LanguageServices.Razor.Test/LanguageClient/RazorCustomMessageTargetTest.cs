@@ -75,7 +75,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         };
 
         // Act & Assert
-        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
+        await target.UpdateCSharpBufferCoreAsync(request, DisposalToken);
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         };
 
         // Act
-        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
+        await target.UpdateCSharpBufferCoreAsync(request, DisposalToken);
 
         // Assert
         documentManager.VerifyAll();
@@ -172,7 +172,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         };
 
         // Act
-        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
+        await target.UpdateCSharpBufferCoreAsync(request, DisposalToken);
 
         // Assert
         documentManager.VerifyAll();

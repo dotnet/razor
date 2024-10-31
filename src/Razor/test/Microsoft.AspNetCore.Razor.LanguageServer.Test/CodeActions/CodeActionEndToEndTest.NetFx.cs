@@ -795,7 +795,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             CodeBlockBraceOnNextLine: false,
             CommitElementsWithSpace: true);
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
-        await optionsMonitor.UpdateAsync(razorLSPOptions, CancellationToken.None);
+        await optionsMonitor.UpdateAsync(razorLSPOptions, DisposalToken);
 
         await ValidateCodeActionAsync(input,
             expected,
