@@ -62,7 +62,7 @@ public class GenericInterceptionMiddleLayer_NewtonSoftJsonTest : ToolingTestBase
                 "testMethod",
                 It.IsAny<JToken>(),
                 "testLanguage",
-                DisposalToken))
+                CancellationToken.None))
             .ReturnsAsync(value: null);
         var token = JToken.Parse("{}");
         var sut = new GenericInterceptionMiddleLayer<JToken>(fakeInterceptorManager, "testLanguage");
@@ -92,7 +92,7 @@ public class GenericInterceptionMiddleLayer_NewtonSoftJsonTest : ToolingTestBase
                 "testMethod",
                 It.IsAny<JToken>(),
                 "testLanguage",
-                DisposalToken))
+                CancellationToken.None))
             .ReturnsAsync(expected);
         var sut = new GenericInterceptionMiddleLayer<JToken>(fakeInterceptorManager, "testLanguage");
 

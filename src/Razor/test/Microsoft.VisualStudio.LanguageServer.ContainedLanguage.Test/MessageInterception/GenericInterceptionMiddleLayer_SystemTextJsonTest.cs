@@ -62,7 +62,7 @@ public class GenericInterceptionMiddleLayer_SystemTextJsonTest : ToolingTestBase
                 "testMethod",
                 It.IsAny<JsonElement>(),
                 "testLanguage",
-                DisposalToken))
+                CancellationToken.None))
             .ReturnsAsync(value: default);
         var token = JsonDocument.Parse("{}").RootElement;
         var sut = new GenericInterceptionMiddleLayer<JsonElement>(fakeInterceptorManager, "testLanguage");
@@ -92,7 +92,7 @@ public class GenericInterceptionMiddleLayer_SystemTextJsonTest : ToolingTestBase
                 "testMethod",
                 It.IsAny<JsonElement>(),
                 "testLanguage",
-                DisposalToken))
+                CancellationToken.None))
             .ReturnsAsync(expected);
         var sut = new GenericInterceptionMiddleLayer<JsonElement>(fakeInterceptorManager, "testLanguage");
 
