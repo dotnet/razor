@@ -27,7 +27,6 @@ internal static class HoverFactory
 {
     public static Task<LspHover?> GetHoverAsync(
         RazorCodeDocument codeDocument,
-        string documentFilePath,
         int absoluteIndex,
         HoverDisplayOptions options,
         ISolutionQueryOperations solutionQueryOperations,
@@ -96,7 +95,7 @@ internal static class HoverFactory
             var span = containingTagNameToken.GetLinePositionSpan(codeDocument.Source);
 
             return ElementInfoToHoverAsync(
-                documentFilePath, binding.Descriptors, span, options, solutionQueryOperations, cancellationToken);
+                codeDocument.Source.FilePath, binding.Descriptors, span, options, solutionQueryOperations, cancellationToken);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
@@ -218,7 +217,7 @@ internal static class HoverFactory
     }
 
     private static async Task<LspHover?> ElementInfoToHoverAsync(
-        string documentFilePath,
+        string? documentFilePath,
         ImmutableArray<TagHelperDescriptor> descriptors,
         LinePositionSpan span,
         HoverDisplayOptions options,

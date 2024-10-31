@@ -90,7 +90,6 @@ internal sealed class HoverEndpoint(
 
         return await HoverFactory.GetHoverAsync(
             codeDocument,
-            documentContext.FilePath,
             positionInfo.HostDocumentIndex,
             options,
             _projectManager.GetQueryOperations(),

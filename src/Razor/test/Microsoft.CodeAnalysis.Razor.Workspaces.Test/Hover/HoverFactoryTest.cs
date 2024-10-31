@@ -44,7 +44,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -68,7 +68,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -92,7 +92,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -114,7 +114,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -136,7 +136,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -159,7 +159,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -182,7 +182,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -200,7 +200,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -218,7 +218,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -236,7 +236,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -263,7 +263,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, "text.razor", SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -285,7 +285,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -307,7 +307,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -330,7 +330,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -348,7 +348,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -371,7 +371,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -393,7 +393,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -417,7 +417,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -442,7 +442,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -464,7 +464,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.razor", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -487,7 +487,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -511,7 +511,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -529,7 +529,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -547,7 +547,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -585,7 +585,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, "file.cshtml", code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseVisualStudio, CreateSolutionQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
