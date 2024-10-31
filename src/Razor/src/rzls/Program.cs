@@ -141,7 +141,7 @@ public class Program
         return null;
     }
 
-    private record struct TelemetryContext(IDisposable ExportProvider, ITelemetryReporter TelemetryReporter) : IDisposable
+    private readonly record struct TelemetryContext(IDisposable ExportProvider, ITelemetryReporter TelemetryReporter) : IDisposable
     {
         public void Dispose()
         {
