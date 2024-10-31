@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
-        <target state="new">Create component from tag</target>
+        <target state="translated">從標籤建立元件</target>
         <note />
       </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
@@ -51,12 +51,12 @@
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
-        <target state="new">Extract block to code behind</target>
+        <target state="translated">擷取區塊以在後方編碼</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_Component_Title">
         <source>Extract element to new component</source>
-        <target state="new">Extract element to new component</target>
+        <target state="translated">將元素擷取至新元件</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
@@ -71,12 +71,12 @@
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
         <source>Generate Async Event Handler '{0}'</source>
-        <target state="new">Generate Async Event Handler '{0}'</target>
+        <target state="translated">產生非同步事件處理常式 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Event_Handler_Title">
         <source>Generate Event Handler '{0}'</source>
-        <target state="new">Generate Event Handler '{0}'</target>
+        <target state="translated">產生事件處理常式 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_Offset">

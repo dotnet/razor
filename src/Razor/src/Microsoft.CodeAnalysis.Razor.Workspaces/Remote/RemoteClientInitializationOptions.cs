@@ -25,4 +25,7 @@ internal struct RemoteClientInitializationOptions
 
     [DataMember(Order = 5)]
     internal required bool ReturnCodeActionAndRenamePathsWithPrefixedSlash;
+
+    [DataMember(Order = 6)]
+    internal required bool ForceRuntimeCodeGeneration;
 }

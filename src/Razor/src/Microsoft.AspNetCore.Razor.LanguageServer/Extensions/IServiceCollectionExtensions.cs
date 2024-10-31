@@ -108,8 +108,6 @@ internal static class IServiceCollectionExtensions
     public static void AddHoverServices(this IServiceCollection services)
     {
         services.AddHandlerWithCapabilities<HoverEndpoint>();
-
-        services.AddSingleton<IHoverService, HoverService>();
     }
 
     public static void AddSemanticTokensServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
