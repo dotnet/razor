@@ -51,7 +51,7 @@ internal sealed class RemoteServiceInvoker(
     {
         var client = typeof(IRemoteJsonService).IsAssignableFrom(typeof(TService))
             ? await TryGetJsonClientAsync(cancellationToken).ConfigureAwait(false)
-            : await TryGetClientAsync(doInit: true, cancellationToken).ConfigureAwait(false);
+            : await TryGetClientAsync(cancellationToken).ConfigureAwait(false);
         if (client is null)
         {
             _logger.LogError($"Couldn't get remote client for {typeof(TService).Name} service");
@@ -79,9 +79,11 @@ internal sealed class RemoteServiceInvoker(
         }
     }
 
-    private async Task<RazorRemoteHostClient?> TryGetClientAsync(bool doInit, CancellationToken cancellationToken)
+    private async Task<RazorRemoteHostClient?> TryGetClientAsync(CancellationToken cancellationToken)
     {
-        if (!_fullyInitialized && doInit)
+        // Even if we're getting a service that wants to use MessagePack, we still have to initialize the OOP client
+        // so we get the JSON client too and use it to call initialization service
+        if (!_fullyInitialized)
         {
             _ = await TryGetJsonClientAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -99,13 +101,6 @@ internal sealed class RemoteServiceInvoker(
 
     private async Task<RazorRemoteHostClient?> TryGetJsonClientAsync(CancellationToken cancellationToken)
     {
-        // Even if we're getting a service that wants to use Json, we still have to initialize the OOP client
-        // so we get the regular (MessagePack) client too.
-        if (!_fullyInitialized)
-        {
-            _ = await TryGetClientAsync(doInit: false, cancellationToken).ConfigureAwait(false);
-        }
-
         var workspace = _workspaceProvider.GetWorkspace();
 
         var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(
