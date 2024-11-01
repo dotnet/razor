@@ -127,12 +127,14 @@ internal sealed class CodeActionsService(
             endLocation = startLocation;
         }
 
+        var languageKind = codeDocument.GetLanguageKind(startLocation, rightAssociative: false);
         var context = new RazorCodeActionContext(
             request,
             documentSnapshot,
             codeDocument,
             startLocation,
             endLocation,
+            languageKind,
             sourceText,
             _languageServerFeatureOptions.SupportsFileManipulation,
             supportsCodeActionResolve);
@@ -142,22 +144,20 @@ internal sealed class CodeActionsService(
 
     private async Task<ImmutableArray<RazorVSInternalCodeAction>> GetDelegatedCodeActionsAsync(RazorCodeActionContext context, Guid correlationId, CancellationToken cancellationToken)
     {
-        var languageKind = context.CodeDocument.GetLanguageKind(context.StartAbsoluteIndex, rightAssociative: false);
-
         // No point delegating if we're in a Razor context
-        if (languageKind == RazorLanguageKind.Razor)
+        if (context.LanguageKind == RazorLanguageKind.Razor)
         {
             return [];
         }
 
-        var codeActions = await GetCodeActionsFromLanguageServerAsync(languageKind, context, correlationId, cancellationToken).ConfigureAwait(false);
+        var codeActions = await GetCodeActionsFromLanguageServerAsync(context.LanguageKind, context, correlationId, cancellationToken).ConfigureAwait(false);
         if (codeActions is not [_, ..])
         {
             return [];
         }
 
         IEnumerable<ICodeActionProvider> providers;
-        if (languageKind == RazorLanguageKind.CSharp)
+        if (context.LanguageKind == RazorLanguageKind.CSharp)
         {
             codeActions = ExtractCSharpCodeActionNamesFromData(codeActions);
             providers = _csharpCodeActionProviders;
