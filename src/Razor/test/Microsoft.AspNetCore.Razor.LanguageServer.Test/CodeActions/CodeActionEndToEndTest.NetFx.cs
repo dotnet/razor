@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -1175,11 +1174,11 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                 new TypeAccessibilityCodeActionProvider()
             ],
             htmlCodeActionProviders: [],
-            delegatedCodeActionsProvider,
             LanguageServerFeatureOptions.AssumeNotNull());
 
         var endpoint = new CodeActionEndpoint(
             codeActionsService,
+            delegatedCodeActionsProvider,
             NoOpTelemetryReporter.Instance);
 
         // Call GetRegistration, so the endpoint knows we support resolve
@@ -1218,14 +1217,14 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
         var csharpResolvers = new ICSharpCodeActionResolver[]
         {
-            new CSharpCodeActionResolver(delegatedCodeActionResolver, formattingService)
+            new CSharpCodeActionResolver(formattingService)
         };
 
         var htmlResolvers = Array.Empty<IHtmlCodeActionResolver>();
 
         optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
         var codeActionResolveService = new CodeActionResolveService(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
-        var resolveEndpoint = new CodeActionResolveEndpoint(codeActionResolveService, optionsMonitor);
+        var resolveEndpoint = new CodeActionResolveEndpoint(codeActionResolveService, delegatedCodeActionResolver, optionsMonitor);
 
         var resolveResult = await resolveEndpoint.HandleRequestAsync(codeActionToRun, requestContext, DisposalToken);
 

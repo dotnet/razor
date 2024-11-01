@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal interface IDelegatedCodeActionsProvider
 {

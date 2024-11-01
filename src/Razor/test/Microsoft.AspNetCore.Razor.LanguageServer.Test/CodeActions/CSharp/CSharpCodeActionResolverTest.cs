@@ -9,13 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -44,11 +41,6 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
     private static readonly TextEdit s_defaultFormattedEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "Remapped & Formatted Edit");
     private static readonly TextChange s_defaultFormattedChange = new TextChange(new TextSpan(0, 0), s_defaultFormattedEdit.NewText);
 
-    private static readonly CodeAction s_defaultUnresolvedCodeAction = new CodeAction()
-    {
-        Title = "Unresolved Code Action"
-    };
-
     [Fact]
     public async Task ResolveAsync_ReturnsResolvedCodeAction()
     {
@@ -56,7 +48,7 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
         CreateCodeActionResolver(out var csharpCodeActionResolver, out var documentContext);
 
         // Act
-        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, s_defaultUnresolvedCodeAction, DisposalToken);
+        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, s_defaultResolvedCodeAction, DisposalToken);
 
         // Assert
         Assert.Equal(s_defaultResolvedCodeAction.Title, returnedCodeAction.Title);
@@ -74,7 +66,7 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
     public async Task ResolveAsync_NoDocumentChanges_ReturnsOriginalCodeAction()
     {
         // Arrange
-        var resolvedCodeAction = new CodeAction()
+        var codeAction = new CodeAction()
         {
             Title = "ResolvedCodeAction",
             Data = JsonSerializer.SerializeToElement(new object()),
@@ -84,24 +76,22 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
             }
         };
 
-        var languageServer = CreateLanguageServer(resolvedCodeAction);
-
-        CreateCodeActionResolver(out var csharpCodeActionResolver, out var documentContext, clientConnection: languageServer);
+        CreateCodeActionResolver(out var csharpCodeActionResolver, out var documentContext);
 
         // Act
-        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, s_defaultUnresolvedCodeAction, DisposalToken);
+        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, codeAction, DisposalToken);
 
         // Assert
-        Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+        Assert.Same(codeAction, returnedCodeAction);
     }
 
     [Fact]
     public async Task ResolveAsync_MultipleDocumentChanges_ReturnsOriginalCodeAction()
     {
         // Arrange
-        var resolvedCodeAction = new CodeAction()
+        var codeAction = new CodeAction()
         {
-            Title = "ResolvedCodeAction",
+            Title = "CodeAction",
             Data = JsonSerializer.SerializeToElement(new object()),
             Edit = new WorkspaceEdit()
             {
@@ -119,22 +109,20 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
             }
         };
 
-        var languageServer = CreateLanguageServer(resolvedCodeAction);
-
-        CreateCodeActionResolver(out var csharpCodeActionResolver, out var documentContext, clientConnection: languageServer);
+        CreateCodeActionResolver(out var csharpCodeActionResolver, out var documentContext);
 
         // Act
-        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, s_defaultUnresolvedCodeAction, DisposalToken);
+        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, codeAction, DisposalToken);
 
         // Assert
-        Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+        Assert.Same(codeAction, returnedCodeAction);
     }
 
     [Fact]
     public async Task ResolveAsync_NonTextDocumentEdit_ReturnsOriginalCodeAction()
     {
         // Arrange
-        var resolvedCodeAction = new CodeAction()
+        var codeAction = new CodeAction()
         {
             Title = "ResolvedCodeAction",
             Data = JsonSerializer.SerializeToElement(new object()),
@@ -149,21 +137,18 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
             }
         };
 
-        var languageServer = CreateLanguageServer(resolvedCodeAction);
-
-        CreateCodeActionResolver(out var csharpCodeActionResolver, out var documentContext, clientConnection: languageServer);
+        CreateCodeActionResolver(out var csharpCodeActionResolver, out var documentContext);
 
         // Act
-        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, s_defaultUnresolvedCodeAction, DisposalToken);
+        var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(documentContext, codeAction, DisposalToken);
 
         // Assert
-        Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+        Assert.Same(codeAction, returnedCodeAction);
     }
 
     private static void CreateCodeActionResolver(
         out CSharpCodeActionResolver csharpCodeActionResolver,
         out DocumentContext documentContext,
-        IClientConnection? clientConnection = null,
         IRazorFormattingService? razorFormattingService = null)
     {
         var documentPath = "c:/Test.razor";
@@ -171,12 +156,9 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
         var contents = string.Empty;
         var codeDocument = CreateCodeDocument(contents, documentPath);
 
-        clientConnection ??= CreateLanguageServer();
         razorFormattingService ??= CreateRazorFormattingService(documentUri);
 
-        var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
         csharpCodeActionResolver = new CSharpCodeActionResolver(
-            delegatedCodeActionResolver,
             razorFormattingService);
 
         documentContext = CreateDocumentContext(documentUri, codeDocument);
@@ -191,18 +173,6 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
                             It.IsAny<RazorFormattingOptions>(),
                             It.IsAny<CancellationToken>()) == Task.FromResult<TextChange?>(s_defaultFormattedChange), MockBehavior.Strict);
         return razorFormattingService;
-    }
-
-    private static IClientConnection CreateLanguageServer(CodeAction? resolvedCodeAction = null)
-    {
-        var response = resolvedCodeAction ?? s_defaultResolvedCodeAction;
-
-        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
-        clientConnection
-            .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(CustomMessageNames.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(response);
-
-        return clientConnection.Object;
     }
 
     private static RazorCodeDocument CreateCodeDocument(string text, string documentPath)

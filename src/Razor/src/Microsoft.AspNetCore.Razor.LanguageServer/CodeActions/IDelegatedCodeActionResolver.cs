@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal interface IDelegatedCodeActionResolver
 {

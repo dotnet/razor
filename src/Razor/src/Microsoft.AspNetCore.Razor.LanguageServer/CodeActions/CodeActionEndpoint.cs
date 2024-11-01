@@ -4,9 +4,14 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Telemetry;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,15 +21,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 [RazorLanguageServerEndpoint(LspEndpointName)]
 internal sealed class CodeActionEndpoint(
     ICodeActionsService codeActionsService,
+    IDelegatedCodeActionsProvider delegatedCodeActionProvider,
     ITelemetryReporter telemetryReporter)
     : IRazorRequestHandler<VSCodeActionParams, SumType<Command, CodeAction>[]?>, ICapabilitiesProvider
 {
     private const string LspEndpointName = Methods.TextDocumentCodeActionName;
 
     private readonly ICodeActionsService _codeActionsService = codeActionsService;
+    private readonly IDelegatedCodeActionsProvider _delegatedCodeActionProvider = delegatedCodeActionProvider;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
-    internal bool _supportsCodeActionResolve = false;
+    private bool _supportsCodeActionResolve = false;
 
     public bool MutatesSolutionState { get; } = false;
 
@@ -32,16 +39,7 @@ internal sealed class CodeActionEndpoint(
     {
         _supportsCodeActionResolve = clientCapabilities.TextDocument?.CodeAction?.ResolveSupport is not null;
 
-        serverCapabilities.CodeActionProvider = new CodeActionOptions
-        {
-            CodeActionKinds =
-            [
-                CodeActionKind.RefactorExtract,
-                CodeActionKind.QuickFix,
-                CodeActionKind.Refactor
-            ],
-            ResolveProvider = true,
-        };
+        serverCapabilities.EnableCodeActions();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSCodeActionParams request)
@@ -61,6 +59,53 @@ internal sealed class CodeActionEndpoint(
         using var __ = _telemetryReporter.TrackLspRequest(LspEndpointName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.CodeActionRazorTelemetryThreshold, correlationId);
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await _codeActionsService.GetCodeActionsAsync(request, documentContext, _supportsCodeActionResolve, correlationId, cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        if (!codeDocument.Source.Text.TryGetAbsoluteIndex(request.Range.Start, out var absoluteIndex))
+        {
+            return null;
+        }
+
+        var languageKind = codeDocument.GetLanguageKind(absoluteIndex, rightAssociative: false);
+        var documentSnapshot = documentContext.Snapshot;
+
+        var delegatedCodeActions = languageKind switch
+        {
+            RazorLanguageKind.Html => await GetHtmlCodeActionsAsync(documentSnapshot, request, correlationId, cancellationToken).ConfigureAwait(false),
+            RazorLanguageKind.CSharp => await GetCSharpCodeActionsAsync(documentSnapshot, request, correlationId, cancellationToken).ConfigureAwait(false),
+            _ => []
+        };
+
+        return await _codeActionsService.GetCodeActionsAsync(request, documentSnapshot, delegatedCodeActions, _supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<RazorVSInternalCodeAction[]> GetHtmlCodeActionsAsync(IDocumentSnapshot documentSnapshot, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
+    {
+        var htmlCodeActions = await _delegatedCodeActionProvider.GetDelegatedCodeActionsAsync(RazorLanguageKind.Html, request, documentSnapshot.Version, correlationId, cancellationToken).ConfigureAwait(false);
+        return htmlCodeActions ?? [];
+    }
+
+    private async Task<RazorVSInternalCodeAction[]> GetCSharpCodeActionsAsync(IDocumentSnapshot documentSnapshot, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
+    {
+        var csharpRequest = await _codeActionsService.GetCSharpCodeActionsRequestAsync(documentSnapshot, request, cancellationToken).ConfigureAwait(false);
+        if (csharpRequest is null)
+        {
+            return [];
+        }
+
+        var csharpCodeActions = await _delegatedCodeActionProvider.GetDelegatedCodeActionsAsync(RazorLanguageKind.CSharp, csharpRequest, documentSnapshot.Version, correlationId, cancellationToken).ConfigureAwait(false);
+        return csharpCodeActions ?? [];
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CodeActionEndpoint instance)
+    {
+        public void SetSupportsCodeActionResolve(bool value)
+        {
+            instance._supportsCodeActionResolve = value;
+        }
+
+        public Task<RazorVSInternalCodeAction[]> GetCSharpCodeActionsAsync(IDocumentSnapshot documentSnapshot, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
+            => instance.GetCSharpCodeActionsAsync(documentSnapshot, request, correlationId, cancellationToken);
     }
 }

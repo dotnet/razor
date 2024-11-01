@@ -5,6 +5,7 @@ using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
@@ -32,6 +33,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             codeActionResolveService,
+            StrictMock.Of<IDelegatedCodeActionResolver>(),
             TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
@@ -69,6 +71,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             codeActionResolveService,
+            new NoOpDelegatedCodeActionResolver(),
             TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
@@ -102,6 +105,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             codeActionResolveService,
+            new NoOpDelegatedCodeActionResolver(),
             TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
@@ -135,6 +139,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             codeActionResolveService,
+            StrictMock.Of<IDelegatedCodeActionResolver>(),
             TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
@@ -177,6 +182,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             codeActionResolveService,
+            StrictMock.Of<IDelegatedCodeActionResolver>(),
             TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
@@ -215,6 +221,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             codeActionResolveService,
+            StrictMock.Of<IDelegatedCodeActionResolver>(),
             TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
@@ -257,6 +264,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             codeActionResolveService,
+            StrictMock.Of<IDelegatedCodeActionResolver>(),
             TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
@@ -446,6 +454,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             LoggerFactory);
         var codeActionEndpoint = new CodeActionResolveEndpoint(
             codeActionResolveService,
+            StrictMock.Of<IDelegatedCodeActionResolver>(),
             TestRazorLSPOptionsMonitor.Create());
         var requestParams = new RazorCodeActionResolutionParams()
         {
@@ -467,6 +476,14 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
 
         // Assert
         Assert.NotNull(razorCodeAction.Edit);
+    }
+
+    private class NoOpDelegatedCodeActionResolver : IDelegatedCodeActionResolver
+    {
+        public Task<CodeAction?> ResolveCodeActionAsync(TextDocumentIdentifier razorFileIdentifier, int hostDocumentVersion, RazorLanguageKind languageKind, CodeAction codeAction, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<CodeAction?>(codeAction);
+        }
     }
 
     private class MockRazorCodeActionResolver : IRazorCodeActionResolver

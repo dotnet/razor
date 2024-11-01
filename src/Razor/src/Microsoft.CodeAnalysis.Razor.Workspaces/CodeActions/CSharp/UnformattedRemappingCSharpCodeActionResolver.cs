@@ -16,11 +16,8 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 /// <summary>
 /// Resolves and remaps the code action, without running formatting passes.
 /// </summary>
-internal sealed class UnformattedRemappingCSharpCodeActionResolver(
-    IDelegatedCodeActionResolver delegatedCodeActionResolver,
-    IDocumentMappingService documentMappingService) : ICSharpCodeActionResolver
+internal sealed class UnformattedRemappingCSharpCodeActionResolver(IDocumentMappingService documentMappingService) : ICSharpCodeActionResolver
 {
-    private readonly IDelegatedCodeActionResolver _delegatedCodeActionResolver = delegatedCodeActionResolver;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
     public string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
@@ -32,21 +29,20 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var resolvedCodeAction = await _delegatedCodeActionResolver.ResolveCodeActionAsync(documentContext.GetTextDocumentIdentifier(), documentContext.Snapshot.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
-        if (resolvedCodeAction?.Edit?.DocumentChanges is null)
+        if (codeAction.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action
             return codeAction;
         }
 
-        if (resolvedCodeAction.Edit.DocumentChanges.Value.Count() != 1)
+        if (codeAction.Edit.DocumentChanges.Value.Count() != 1)
         {
             // We don't yet support multi-document code actions, return original code action
             Debug.Fail($"Encountered an unsupported multi-document code action edit with ${codeAction.Title}.");
             return codeAction;
         }
 
-        var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
+        var documentChanged = codeAction.Edit.DocumentChanges.Value.First();
         if (!documentChanged.TryGetFirst(out var textDocumentEdit))
         {
             // Only Text Document Edit changes are supported currently, return original code action
@@ -78,7 +74,7 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver(
         {
             Uri = documentContext.Uri,
         };
-        resolvedCodeAction.Edit = new WorkspaceEdit()
+        codeAction.Edit = new WorkspaceEdit()
         {
             DocumentChanges = new[] {
                 new TextDocumentEdit()
@@ -89,6 +85,6 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver(
             },
         };
 
-        return resolvedCodeAction;
+        return codeAction;
     }
 }

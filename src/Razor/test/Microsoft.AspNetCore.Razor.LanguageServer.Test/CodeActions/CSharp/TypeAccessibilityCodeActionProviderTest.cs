@@ -476,6 +476,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             codeDocument,
             StartAbsoluteIndex: absoluteIndex,
             EndAbsoluteIndex: absoluteIndex,
+            RazorLanguageKind.Razor,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);
