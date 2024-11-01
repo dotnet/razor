@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal sealed class CodeActionsService(
+internal class CodeActionsService(
     IDocumentMappingService documentMappingService,
     IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
     IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,

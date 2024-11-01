@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
+internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
 {
     private static readonly IEnumerable<string> s_supportedDiagnostics = new[]
     {

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal sealed class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
+internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 {
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {

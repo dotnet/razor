@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActionProvider
+internal class ComponentAccessibilityCodeActionProvider : IRazorCodeActionProvider
 {
     public async Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
