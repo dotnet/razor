@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
@@ -37,7 +36,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private protected TestRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected RemoteLanguageServerFeatureOptions FeatureOptions => OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
-    private protected RemoteClientCapabilitiesService ClientCapabilities => OOPExportProvider.GetExportedValue<RemoteClientCapabilitiesService>();
+    private protected RemoteClientCapabilitiesService ClientCapabilitiesService => OOPExportProvider.GetExportedValue<RemoteClientCapabilitiesService>();
     private protected RemoteSemanticTokensLegendService SemanticTokensLegendService => OOPExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
 
     /// <summary>
@@ -65,7 +64,9 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             UsePreciseSemanticTokenRanges = false,
             UseRazorCohostServer = true,
             ReturnCodeActionAndRenamePathsWithPrefixedSlash = false,
-            ForceRuntimeCodeGeneration = false
+            ForceRuntimeCodeGeneration = false,
+            SupportsFileManipulation = true,
+            ShowAllCSharpCodeActions = false,
         };
         UpdateClientInitializationOptions(c => c);
 
@@ -92,7 +93,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private protected void UpdateClientLSPInitializationOptions(Func<RemoteClientLSPInitializationOptions, RemoteClientLSPInitializationOptions> mutation)
     {
         _clientLSPInitializationOptions = mutation(_clientLSPInitializationOptions);
-        ClientCapabilities.SetCapabilities(_clientLSPInitializationOptions.ClientCapabilities);
+        ClientCapabilitiesService.SetCapabilities(_clientLSPInitializationOptions.ClientCapabilities);
         SemanticTokensLegendService.SetLegend(_clientLSPInitializationOptions.TokenTypes, _clientLSPInitializationOptions.TokenModifiers);
     }
 

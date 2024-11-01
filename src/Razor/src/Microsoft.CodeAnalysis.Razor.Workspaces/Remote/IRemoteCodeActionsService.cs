@@ -4,11 +4,24 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Roslyn.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteCodeActionsService : IRemoteJsonService
 {
-    ValueTask<CodeAction[]> GetCodeActionsAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, CodeActionParams request, CancellationToken cancellationToken);
+    ValueTask<CodeActionRequestInfo> GetCodeActionRequestInfoAsync(
+        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableDocumentId razorDocumentId,
+        VSCodeActionParams request,
+        CancellationToken cancellationToken);
+
+    ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(
+        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableDocumentId razorDocumentId,
+        VSCodeActionParams request,
+        RazorVSInternalCodeAction[] delegatedCodeActions,
+        CancellationToken cancellationToken);
 }
