@@ -76,7 +76,7 @@ internal sealed class CodeActionResolveService(
         }
     }
 
-    public RazorCodeActionResolutionParams GetRazorCodeActionResolutionParams(CodeAction request)
+    public static RazorCodeActionResolutionParams GetRazorCodeActionResolutionParams(CodeAction request)
     {
         if (request.Data is not JsonElement paramsObj)
         {

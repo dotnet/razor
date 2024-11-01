@@ -21,7 +21,7 @@ internal sealed class CodeActionResolveEndpoint(
     public bool MutatesSolutionState => false;
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(CodeAction request)
-        => _codeActionResolveService.GetRazorCodeActionResolutionParams(request).TextDocument;
+        => CodeActionResolveService.GetRazorCodeActionResolutionParams(request).TextDocument;
 
     public async Task<CodeAction> HandleRequestAsync(CodeAction request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
