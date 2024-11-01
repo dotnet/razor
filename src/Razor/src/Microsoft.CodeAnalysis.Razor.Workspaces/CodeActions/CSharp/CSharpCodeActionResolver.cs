@@ -12,11 +12,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal sealed class CSharpCodeActionResolver(
-    IDelegatedCodeActionResolver delegatedCodeActionResolver,
-    IRazorFormattingService razorFormattingService) : ICSharpCodeActionResolver
+internal sealed class CSharpCodeActionResolver(IRazorFormattingService razorFormattingService) : ICSharpCodeActionResolver
 {
-    private readonly IDelegatedCodeActionResolver _delegatedCodeActionResolver = delegatedCodeActionResolver;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
 
     public string Action => LanguageServerConstants.CodeActions.Default;
@@ -26,14 +23,13 @@ internal sealed class CSharpCodeActionResolver(
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
-        var resolvedCodeAction = await _delegatedCodeActionResolver.ResolveCodeActionAsync(documentContext.GetTextDocumentIdentifier(), documentContext.Snapshot.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
-        if (resolvedCodeAction?.Edit?.DocumentChanges is null)
+        if (codeAction.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action
             return codeAction;
         }
 
-        if (resolvedCodeAction.Edit.DocumentChanges.Value.Count() != 1)
+        if (codeAction.Edit.DocumentChanges.Value.Count() != 1)
         {
             // We don't yet support multi-document code actions, return original code action
             return codeAction;
@@ -41,7 +37,7 @@ internal sealed class CSharpCodeActionResolver(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
+        var documentChanged = codeAction.Edit.DocumentChanges.Value.First();
         if (!documentChanged.TryGetFirst(out var textDocumentEdit))
         {
             // Only Text Document Edit changes are supported currently, return original code action
@@ -68,7 +64,7 @@ internal sealed class CSharpCodeActionResolver(
         {
             Uri = documentContext.Uri
         };
-        resolvedCodeAction.Edit = new WorkspaceEdit()
+        codeAction.Edit = new WorkspaceEdit()
         {
             DocumentChanges = new TextDocumentEdit[] {
                 new TextDocumentEdit()
@@ -79,6 +75,6 @@ internal sealed class CSharpCodeActionResolver(
             }
         };
 
-        return resolvedCodeAction;
+        return codeAction;
     }
 }

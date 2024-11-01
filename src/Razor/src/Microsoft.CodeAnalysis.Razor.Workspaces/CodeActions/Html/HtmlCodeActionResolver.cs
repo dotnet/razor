@@ -10,11 +10,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal sealed class HtmlCodeActionResolver(
-    IDelegatedCodeActionResolver delegatedCodeActionResolver,
-    IEditMappingService editMappingService) : IHtmlCodeActionResolver
+internal sealed class HtmlCodeActionResolver(IEditMappingService editMappingService) : IHtmlCodeActionResolver
 {
-    private readonly IDelegatedCodeActionResolver _delegatedCodeActionResolver = delegatedCodeActionResolver;
     private readonly IEditMappingService _editMappingService = editMappingService;
 
     public string Action => LanguageServerConstants.CodeActions.Default;
@@ -24,15 +21,8 @@ internal sealed class HtmlCodeActionResolver(
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
-        var resolvedCodeAction = await _delegatedCodeActionResolver.ResolveCodeActionAsync(documentContext.GetTextDocumentIdentifier(), documentContext.Snapshot.Version, RazorLanguageKind.Html, codeAction, cancellationToken).ConfigureAwait(false);
-        if (resolvedCodeAction?.Edit?.DocumentChanges is null)
-        {
-            // Unable to resolve code action with server, return original code action
-            return codeAction;
-        }
+        await HtmlCodeActionProvider.RemapAndFixHtmlCodeActionEditAsync(_editMappingService, documentContext.Snapshot, codeAction, cancellationToken).ConfigureAwait(false);
 
-        await HtmlCodeActionProvider.RemapAndFixHtmlCodeActionEditAsync(_editMappingService, documentContext.Snapshot, resolvedCodeAction, cancellationToken).ConfigureAwait(false);
-
-        return resolvedCodeAction;
+        return codeAction;
     }
 }

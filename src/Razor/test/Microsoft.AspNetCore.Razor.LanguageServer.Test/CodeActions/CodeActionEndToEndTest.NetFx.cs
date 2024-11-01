@@ -1217,14 +1217,14 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var delegatedCodeActionResolver = new DelegatedCodeActionResolver(clientConnection);
         var csharpResolvers = new ICSharpCodeActionResolver[]
         {
-            new CSharpCodeActionResolver(delegatedCodeActionResolver, formattingService)
+            new CSharpCodeActionResolver(formattingService)
         };
 
         var htmlResolvers = Array.Empty<IHtmlCodeActionResolver>();
 
         optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
         var codeActionResolveService = new CodeActionResolveService(razorResolvers, csharpResolvers, htmlResolvers, LoggerFactory);
-        var resolveEndpoint = new CodeActionResolveEndpoint(codeActionResolveService, optionsMonitor);
+        var resolveEndpoint = new CodeActionResolveEndpoint(codeActionResolveService, delegatedCodeActionResolver, optionsMonitor);
 
         var resolveResult = await resolveEndpoint.HandleRequestAsync(codeActionToRun, requestContext, DisposalToken);
 

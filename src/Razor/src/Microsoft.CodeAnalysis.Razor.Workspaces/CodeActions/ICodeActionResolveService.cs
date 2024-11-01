@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal interface ICodeActionResolveService
 {
-    Task<CodeAction> ResolveCodeActionAsync(DocumentContext documentContext, CodeAction request, RazorFormattingOptions options, CancellationToken cancellationToken);
+    Task<CodeAction> ResolveCodeActionAsync(DocumentContext documentContext, CodeAction request, CodeAction? resolvedDelegatedCodeAction, RazorFormattingOptions options, CancellationToken cancellationToken);
 }
