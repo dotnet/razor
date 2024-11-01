@@ -58,8 +58,4 @@ internal class NoOpTelemetryReporter : ITelemetryReporter
     public void ReportRequestTiming(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result)
     {
     }
-
-    public void Flush()
-    {
-    }
 }
