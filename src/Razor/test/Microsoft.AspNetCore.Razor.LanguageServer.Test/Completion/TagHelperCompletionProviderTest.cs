@@ -442,7 +442,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
     }
 
     [Fact]
-    public async Task GetCompletionAt_InBody_WithoutSpace_ReturnsCompletions()
+    public void GetCompletionAt_InBody_WithoutSpace_ReturnsCompletions()
     {
         // Arrange
         var options = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: false);
