@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using LspHover = Microsoft.VisualStudio.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover;
 
@@ -36,11 +37,11 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
             options.SingleServerSupport == true &&
             options.UseRazorCohostServer == false);
 
-        var delegatedHover = new VSInternalHover();
+        var delegatedHover = new LspHover();
 
         var clientConnection = TestMocks.CreateClientConnection(builder =>
         {
-            builder.SetupSendRequest<IDelegatedParams, VSInternalHover>(CustomMessageNames.RazorHoverEndpointName, response: delegatedHover);
+            builder.SetupSendRequest<IDelegatedParams, LspHover>(CustomMessageNames.RazorHoverEndpointName, response: delegatedHover);
         });
 
         var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
@@ -227,7 +228,11 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         var documentContext = CreateDocumentContext(razorFileUri, codeDocument);
         var requestContext = CreateRazorRequestContext(documentContext: documentContext);
 
-        return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+        var hover = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+
+        // Note: This should always be a VSInternalHover because
+        // VSInternalClientCapabilities.SupportsVisualStudioExtensions is set to true above.
+        return Assert.IsType<VSInternalHover>(hover);
     }
 
     private static (DocumentContext, Position) CreateDefaultDocumentContext()
