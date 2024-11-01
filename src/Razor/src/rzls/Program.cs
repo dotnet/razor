@@ -145,6 +145,8 @@ public class Program
     {
         public void Dispose()
         {
+            // No need to explicitly dispose of the telemetry reporter. The lifetime
+            // is managed by the ExportProvider and will be disposed with it.
             ExportProvider.Dispose();
         }
     }
