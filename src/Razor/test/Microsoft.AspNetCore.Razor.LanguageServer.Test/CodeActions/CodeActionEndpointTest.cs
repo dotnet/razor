@@ -603,12 +603,10 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
             clientConnection,
             languageServerFeatureOptions);
 
-        return new CodeActionEndpoint(
-            codeActionsService,
-            NoOpTelemetryReporter.Instance)
-        {
-            _supportsCodeActionResolve = supportsCodeActionResolve
-        };
+        var endpoint = new CodeActionEndpoint(codeActionsService, NoOpTelemetryReporter.Instance);
+        endpoint.GetTestAccessor().SetSupportsCodeActionResolve(supportsCodeActionResolve);
+
+        return endpoint;
     }
 
     private CodeActionsService CreateService(

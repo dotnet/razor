@@ -25,7 +25,7 @@ internal sealed class CodeActionEndpoint(
     private readonly ICodeActionsService _codeActionsService = codeActionsService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
-    internal bool _supportsCodeActionResolve = false;
+    private bool _supportsCodeActionResolve = false;
 
     public bool MutatesSolutionState { get; } = false;
 
@@ -54,5 +54,15 @@ internal sealed class CodeActionEndpoint(
         cancellationToken.ThrowIfCancellationRequested();
 
         return await _codeActionsService.GetCodeActionsAsync(request, documentContext, _supportsCodeActionResolve, correlationId, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CodeActionEndpoint instance)
+    {
+        public void SetSupportsCodeActionResolve(bool value)
+        {
+            instance._supportsCodeActionResolve = value;
+        }
     }
 }
