@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -37,6 +38,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private protected IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected RemoteLanguageServerFeatureOptions FeatureOptions => OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
     private protected RemoteClientCapabilitiesService ClientCapabilities => OOPExportProvider.GetExportedValue<RemoteClientCapabilitiesService>();
+    private protected RemoteSemanticTokensLegendService SemanticTokensLegendService => OOPExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
 
     /// <summary>
     /// The export provider for Razor OOP services (not Roslyn)
@@ -91,6 +93,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     {
         _clientLSPInitializationOptions = mutation(_clientLSPInitializationOptions);
         ClientCapabilities.SetCapabilities(_clientLSPInitializationOptions.ClientCapabilities);
+        SemanticTokensLegendService.SetLegend(_clientLSPInitializationOptions.TokenTypes, _clientLSPInitializationOptions.TokenModifiers);
     }
 
     protected Task<TextDocument> CreateProjectAndRazorDocumentAsync(
