@@ -116,6 +116,28 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
              expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
+    [Fact]
+    public async Task CSharpOverrideMethods()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <div></div>
+
+                @code{ public override $$ }
+
+                The end.
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Explicit,
+                 TriggerCharacter = null,
+                 TriggerKind = RoslynCompletionTriggerKind.Invoked
+             },
+             expectedItemLabels: ["Equals(object? obj)", "GetHashCode()", "SetParametersAsync(ParameterView parameters)", "ToString()"]);
+    }
+
     // Tests MarkupTransitionCompletionItemProvider
     [Fact]
     public async Task CSharpMarkupTransitionAndTagHelpersInCodeBlock()
