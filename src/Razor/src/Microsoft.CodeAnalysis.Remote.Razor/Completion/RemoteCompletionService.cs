@@ -31,6 +31,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     private readonly RazorCompletionListProvider _razorCompletionListProvider = args.ExportProvider.GetExportedValue<RazorCompletionListProvider>();
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
@@ -87,7 +88,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         JsonSerializableDocumentId documentId,
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
         HashSet<string> existingHtmlCompletions,
         CancellationToken cancellationToken)
@@ -98,7 +98,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 context,
                 positionInfo,
                 completionContext,
-                clientCapabilities,
                 razorCompletionOptions,
                 existingHtmlCompletions,
                 cancellationToken),
@@ -108,7 +107,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         RemoteDocumentContext remoteDocumentContext,
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
         HashSet<string> existingDelegatedCompletions,
         CancellationToken cancellationToken)
@@ -125,7 +123,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                     mappedPosition,
                     positionInfo.ProvisionalTextEdit,
                     completionContext,
-                    clientCapabilities,
                     razorCompletionOptions,
                     cancellationToken)
                     .ConfigureAwait(false);
@@ -142,7 +139,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 documentPositionInfo.HostDocumentIndex,
                 completionContext,
                 remoteDocumentContext,
-                clientCapabilities,
+                _clientCapabilitiesService.ClientCapabilities,
                 existingCompletions: existingDelegatedCompletions,
                 razorCompletionOptions,
                 cancellationToken)
@@ -165,7 +162,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         Position mappedPosition,
         TextEdit? provisionalTextEdit,
         CompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
         CancellationToken cancellationToken)
     {
@@ -192,6 +188,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return null;
         }
 
+        var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
         if (JsonSerializer.Deserialize<RoslynCompletionSetting>(JsonSerializer.SerializeToDocument(clientCapabilities.TextDocument?.Completion), options) is not { } roslynCompletionSetting)
         {
             Debug.Fail("Unable to convert VS to Roslyn LSP completion setting");

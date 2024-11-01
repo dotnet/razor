@@ -26,7 +26,6 @@ internal interface IRemoteCompletionService : IRemoteJsonService
         JsonSerializableDocumentId documentId,
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
         RazorCompletionOptions razorCompletionOptions,
         HashSet<string> existingHtmlCompletions,
         CancellationToken cancellationToken);

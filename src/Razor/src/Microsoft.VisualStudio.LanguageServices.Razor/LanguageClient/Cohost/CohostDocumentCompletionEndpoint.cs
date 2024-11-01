@@ -51,16 +51,12 @@ internal sealed class CohostDocumentCompletionEndpoint(
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
 
-    private VSInternalClientCapabilities? _clientCapabilities;
-
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
 
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
     {
-        _clientCapabilities = clientCapabilities;
-
         if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
         {
             return [new Registration()
@@ -159,7 +155,6 @@ internal sealed class CohostDocumentCompletionEndpoint(
                         razorDocument.Id,
                         completionPositionInfo,
                         completionContext,
-                        _clientCapabilities.AssumeNotNull(),
                         razorCompletionOptions,
                         existingHtmlCompletions,
                         cancellationToken),
@@ -288,10 +283,5 @@ internal sealed class CohostDocumentCompletionEndpoint(
             TextDocument razorDocument,
             CancellationToken cancellationToken)
                 => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
-
-        public void SetClientCapabilities(VSInternalClientCapabilities clientCapabilities)
-        {
-            instance._clientCapabilities = clientCapabilities;
-        }
     }
 }

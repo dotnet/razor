@@ -440,28 +440,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             var snippetInfos = snippetLabels.Select(label => new SnippetInfo(label, label, label, string.Empty, SnippetLanguage.Html)).ToImmutableArray();
             snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
         }
-
-        var completionSetting = new CompletionSetting
-        {
-            CompletionItem = new CompletionItemSetting(),
-            CompletionItemKind = new CompletionItemKindSetting()
-            {
-                ValueSet = (CompletionItemKind[])Enum.GetValues(typeof(CompletionItemKind)),
-            },
-            CompletionListSetting = new CompletionListSetting()
-            {
-                ItemDefaults = ["commitCharacters", "editRange", "insertTextFormat"]
-            },
-            ContextSupport = false,
-            InsertTextMode = InsertTextMode.AsIs,
-        };
-        var clientCapabilities = new VSInternalClientCapabilities
-        {
-            TextDocument = new TextDocumentClientCapabilities
-            {
-                Completion = completionSetting
-            }
-        };
+;
         var endpoint = new CohostDocumentCompletionEndpoint(
             RemoteServiceInvoker,
             clientSettingsManager,
@@ -469,7 +448,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             snippetCompletionItemProvider,
             requestInvoker,
             LoggerFactory);
-        endpoint.GetTestAccessor().SetClientCapabilities(clientCapabilities);
 
         var request = new RoslynCompletionParams()
         {
