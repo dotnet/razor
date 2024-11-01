@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -22,7 +21,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -460,7 +458,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var documentPath = new Uri("C:/path/to/Page.razor");
         var codeDocument = CreateCodeDocument("@code {}");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var codeActionService = CreateService(razorCodeActionProviders: [CreateRazorCodeActionProvider()]);
+        var (_, codeActionService) = CreateEndpointAndService(razorCodeActionProviders: [CreateRazorCodeActionProvider()]);
 
         var initialRange = VsLspFactory.CreateZeroWidthRange(0, 1);
         var selectionRange = VsLspFactory.CreateZeroWidthRange(0, 5);
@@ -475,7 +473,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         };
 
         // Act
-        var razorCodeActionContext = await codeActionService.GetTestAccessor().GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, supportsCodeActionResolve: false, DisposalToken);
+        var razorCodeActionContext = await codeActionService.GetTestAccessor().GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, supportsCodeActionResolve: true, DisposalToken);
 
         // Assert
         Assert.NotNull(razorCodeActionContext);
@@ -489,7 +487,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var documentPath = new Uri("C:/path/to/Page.razor");
         var codeDocument = CreateCodeDocument("@code {}");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var codeActionService = CreateService(razorCodeActionProviders: [CreateRazorCodeActionProvider()]);
+        var (_, codeActionService) = CreateEndpointAndService(razorCodeActionProviders: [CreateRazorCodeActionProvider()]);
 
         var initialRange = VsLspFactory.CreateZeroWidthRange(0, 1);
         var request = new VSCodeActionParams()
@@ -503,7 +501,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         };
 
         // Act
-        var razorCodeActionContext = await codeActionService.GetTestAccessor().GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, supportsCodeActionResolve: false, DisposalToken);
+        var razorCodeActionContext = await codeActionService.GetTestAccessor().GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, supportsCodeActionResolve: true, DisposalToken);
 
         // Assert
         Assert.NotNull(razorCodeActionContext);
@@ -518,7 +516,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var codeDocument = CreateCodeDocument("@code {}");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-        var codeActionService = CreateService(csharpCodeActionProviders: [CreateCSharpCodeActionProvider()]);
+        var (endpoint, _) = CreateEndpointAndService(csharpCodeActionProviders: [CreateCSharpCodeActionProvider()]);
 
         var initialRange = VsLspFactory.CreateZeroWidthRange(0, 1);
         var request = new VSCodeActionParams()
@@ -528,15 +526,11 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
             Context = new VSInternalCodeActionContext()
         };
 
-        var context = await codeActionService.GetTestAccessor().GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, supportsCodeActionResolve: false, DisposalToken);
-        Assert.NotNull(context);
-
         // Act
-        var results = await codeActionService.GetTestAccessor().GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, context, Guid.Empty, cancellationToken: default);
+        var results = await endpoint.GetTestAccessor().GetCSharpCodeActionsAsync(documentContext.Snapshot, request, Guid.Empty, DisposalToken);
 
         // Assert
         Assert.Empty(results);
-        Assert.Equal(initialRange, context.Request.Range);
     }
 
     [Fact]
@@ -548,7 +542,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var projectedRange = VsLspFactory.CreateZeroWidthRange(15, 2);
 
-        var codeActionService = CreateService(
+        var (endpoint, _) = CreateEndpointAndService(
             documentMappingService: CreateDocumentMappingService(projectedRange.ToLinePositionSpan()),
             csharpCodeActionProviders: [CreateCSharpCodeActionProvider()],
             clientConnection: TestClientConnection.Instance);
@@ -564,11 +558,8 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
             }
         };
 
-        var context = await codeActionService.GetTestAccessor().GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, supportsCodeActionResolve: false, DisposalToken);
-        Assert.NotNull(context);
-
         // Act
-        var results = await codeActionService.GetTestAccessor().GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, context, Guid.Empty, cancellationToken: DisposalToken);
+        var results = await endpoint.GetTestAccessor().GetCSharpCodeActionsAsync(documentContext.Snapshot, request, Guid.Empty, DisposalToken);
 
         // Assert
         var result = Assert.Single(results);
@@ -595,40 +586,43 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
         LanguageServerFeatureOptions? languageServerFeatureOptions = null,
         bool supportsCodeActionResolve = false)
     {
-        var codeActionsService = CreateService(
+        var (endpoint, _) = CreateEndpointAndService(
             documentMappingService,
             razorCodeActionProviders,
             csharpCodeActionProviders,
             htmlCodeActionProviders,
             clientConnection,
-            languageServerFeatureOptions);
-
-        var endpoint = new CodeActionEndpoint(codeActionsService, NoOpTelemetryReporter.Instance);
-        endpoint.GetTestAccessor().SetSupportsCodeActionResolve(supportsCodeActionResolve);
+            languageServerFeatureOptions,
+            supportsCodeActionResolve);
 
         return endpoint;
     }
 
-    private CodeActionsService CreateService(
-       IDocumentMappingService? documentMappingService = null,
+    private (CodeActionEndpoint, CodeActionsService) CreateEndpointAndService(
+        IDocumentMappingService? documentMappingService = null,
         ImmutableArray<IRazorCodeActionProvider> razorCodeActionProviders = default,
         ImmutableArray<ICSharpCodeActionProvider> csharpCodeActionProviders = default,
         ImmutableArray<IHtmlCodeActionProvider> htmlCodeActionProviders = default,
         IClientConnection? clientConnection = null,
-        LanguageServerFeatureOptions? languageServerFeatureOptions = null)
+        LanguageServerFeatureOptions? languageServerFeatureOptions = null,
+        bool supportsCodeActionResolve = false)
     {
-        var delegatedCodeActionsProvider = new DelegatedCodeActionsProvider(
-            clientConnection ?? StrictMock.Of<IClientConnection>(),
-            NoOpTelemetryReporter.Instance,
-            LoggerFactory);
-
-        return new CodeActionsService(
+        var service = new CodeActionsService(
             documentMappingService ?? CreateDocumentMappingService(),
             razorCodeActionProviders.NullToEmpty(),
             csharpCodeActionProviders.NullToEmpty(),
             htmlCodeActionProviders.NullToEmpty(),
-            delegatedCodeActionsProvider,
             languageServerFeatureOptions ?? StrictMock.Of<LanguageServerFeatureOptions>(x => x.SupportsFileManipulation == true));
+
+        var delegatedCodeActionService = new DelegatedCodeActionsProvider(
+            clientConnection ?? StrictMock.Of<IClientConnection>(),
+            NoOpTelemetryReporter.Instance,
+            LoggerFactory);
+
+        var endpoint = new CodeActionEndpoint(service, delegatedCodeActionService, NoOpTelemetryReporter.Instance);
+        endpoint.GetTestAccessor().SetSupportsCodeActionResolve(supportsCodeActionResolve);
+
+        return (endpoint, service);
     }
 
     private static IDocumentMappingService CreateDocumentMappingService(LinePositionSpan? projectedRange = null)
@@ -649,10 +643,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
     private static RazorCodeDocument CreateCodeDocument(string text)
     {
         var sourceDocument = TestRazorSourceDocument.Create(text);
-        var projectEngine = RazorProjectEngine.Create(builder =>
-        {
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
-        });
+        var projectEngine = RazorProjectEngine.Create(builder => { });
 
         return projectEngine.ProcessDesignTime(sourceDocument, "mvc", importSources: [], tagHelpers: []);
     }
@@ -706,7 +697,7 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
     {
         public static readonly IClientConnection Instance = new TestClientConnection();
 
-        private static readonly string[] s_customTags = ["CodeActionName"];
+        private static readonly string[] s_customTags = ["AddNew"];
 
         private TestClientConnection()
         {

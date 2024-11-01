@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -1175,11 +1174,11 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                 new TypeAccessibilityCodeActionProvider()
             ],
             htmlCodeActionProviders: [],
-            delegatedCodeActionsProvider,
             LanguageServerFeatureOptions.AssumeNotNull());
 
         var endpoint = new CodeActionEndpoint(
             codeActionsService,
+            delegatedCodeActionsProvider,
             NoOpTelemetryReporter.Instance);
 
         // Call GetRegistration, so the endpoint knows we support resolve
