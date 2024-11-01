@@ -402,6 +402,40 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             }|}
             """);
 
+    [Fact]
+    public Task Handle_MultipointSelection_SurroundingH1()
+        => TestAsync("""
+            @page "/"
+
+            <PageTitle>Home</PageTitle>
+
+            {|result:{|selection:<h1>Hello</h1>|}|}
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_TextOnly()
+        => TestAsync("""
+            @page "/"
+
+            <PageTitle>Home</PageTitle>
+            <h1>Hello</h1>
+
+            {|result:{|selection:Welcome to your new app|}|}
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_TextOnly2()
+    => TestAsync("""
+        @page "/"
+
+        <PageTitle>Home</PageTitle>
+        <h1>Hello</h1>
+
+        Welcome to {|result:{|selection:your new app|}|}
+        """);
+
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
         TextSpan selectionSpan,

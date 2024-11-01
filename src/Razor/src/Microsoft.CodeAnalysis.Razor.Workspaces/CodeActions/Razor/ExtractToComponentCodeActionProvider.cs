@@ -56,7 +56,7 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var actionParams = CreateActionParams(startNode, endNode, @namespace);
+        var actionParams = CreateActionParams(startNode, endNode, @namespace, context);
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
@@ -78,16 +78,24 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             return (null, null);
         }
 
-        var startElementNode = owner.FirstAncestorOrSelf<SyntaxNode>(IsBlockNode);
-
+        var startElementNode = GetBlockOrTextNode(owner);
         if (startElementNode is null || LocationInvalid(context.StartAbsoluteIndex, startElementNode))
         {
             return (null, null);
         }
 
-        var endElementNode = context.StartAbsoluteIndex == context.EndAbsoluteIndex
-            ? startElementNode
-            : GetEndElementNode(context, syntaxTree);
+        var hasSelection = context.StartAbsoluteIndex != context.EndAbsoluteIndex;
+
+        // In cases where the start element is just a text literal and there
+        // is no user selection avoid extracting the whole text literal.
+        if (startElementNode is MarkupTextLiteralSyntax && !hasSelection)
+        {
+            return (null, null);
+        }
+
+        var endElementNode = hasSelection
+            ? GetEndElementNode(context, syntaxTree)
+            : startElementNode;
 
         return (startElementNode, endElementNode);
 
@@ -114,14 +122,38 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         }
 
         // Correct selection to include the current node if the selection ends immediately after a closing tag.
-        if (endOwner is MarkupTextLiteralSyntax
-            && endOwner.ContainsOnlyWhitespace()
+        if (endOwner is MarkupTextLiteralSyntax markupTextLiteral
+            && SelectionShouldBePrevious(markupTextLiteral, context.EndAbsoluteIndex)
             && endOwner.TryGetPreviousSibling(out var previousSibling))
         {
             endOwner = previousSibling;
         }
 
-        return endOwner.FirstAncestorOrSelf<SyntaxNode>(IsBlockNode);
+        return GetBlockOrTextNode(endOwner);
+
+        static bool SelectionShouldBePrevious(MarkupTextLiteralSyntax markupTextLiteral, int absoluteIndex)
+            => markupTextLiteral.Span.Start == absoluteIndex
+                || markupTextLiteral.ContainsOnlyWhitespace();
+    }
+
+    private static SyntaxNode? GetBlockOrTextNode(SyntaxNode node)
+    {
+        var blockNode = node.FirstAncestorOrSelf<SyntaxNode>(IsBlockNode);
+        if (blockNode is not null)
+        {
+            return blockNode;
+        }
+
+        // Account for cases where a text literal is not contained
+        // within a block node. For example:
+        // <h1> Example </h1>
+        // [|This is not in a block but is a valid selection|]
+        if (node is MarkupTextLiteralSyntax markupTextLiteral)
+        {
+            return markupTextLiteral;
+        }
+
+        return null;
     }
 
     private static bool IsBlockNode(SyntaxNode node)
@@ -133,11 +165,23 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
     private static ExtractToComponentCodeActionParams CreateActionParams(
         SyntaxNode startNode,
         SyntaxNode endNode,
-        string @namespace)
+        string @namespace,
+        RazorCodeActionContext context)
     {
+        
         var selectionSpan = AreSiblings(startNode, endNode)
             ? TextSpan.FromBounds(startNode.Span.Start, endNode.Span.End)
             : GetEncompassingTextSpan(startNode, endNode);
+
+        if (startNode is MarkupTextLiteralSyntax)
+        {
+            selectionSpan = TextSpan.FromBounds(context.StartAbsoluteIndex, selectionSpan.End);
+        }
+
+        if (endNode is MarkupTextLiteralSyntax)
+        {
+            selectionSpan = TextSpan.FromBounds(selectionSpan.Start, context.EndAbsoluteIndex);
+        }
 
         return new ExtractToComponentCodeActionParams
         {
