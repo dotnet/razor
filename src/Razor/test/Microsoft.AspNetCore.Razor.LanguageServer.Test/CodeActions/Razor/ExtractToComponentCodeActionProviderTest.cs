@@ -427,14 +427,42 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
     [Fact]
     public Task Handle_MultipointSelection_TextOnly2()
-    => TestAsync("""
-        @page "/"
+        => TestAsync("""
+            @page "/"
 
-        <PageTitle>Home</PageTitle>
-        <h1>Hello</h1>
+            <PageTitle>Home</PageTitle>
+            <h1>Hello</h1>
 
-        Welcome to {|result:{|selection:your new app|}|}
-        """);
+            Welcome to {|result:{|selection:your new app|}|}
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_TextInNested()
+        => TestAsync("""
+            {|result:<div>
+                <div>
+                    <p>
+                        Hello {|selection:there!
+                    </p>
+                </div>
+            </div>
+
+            Welcome to your|}|} new app
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_TextInNested2()
+        => TestAsync("""
+            Welcome to your{|result:{|selection: new app
+
+            <div>
+                <div>
+                    <p>
+                        Hello |}there!
+                    </p>
+                </div>
+            </div>|}
+            """);
 
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,

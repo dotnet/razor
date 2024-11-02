@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -56,7 +57,18 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var actionParams = CreateActionParams(startNode, endNode, @namespace, context);
+        var span = TryGetSpanFromNodes(startNode, endNode, context);
+        if (span is null)
+        {
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
+        }
+
+        var actionParams = new ExtractToComponentCodeActionParams
+        {
+            Start = span.Value.Start,
+            End = span.Value.End,
+            Namespace = @namespace
+        };
 
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
@@ -78,39 +90,25 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             return (null, null);
         }
 
-        var startElementNode = GetBlockOrTextNode(owner);
-        if (startElementNode is null || LocationInvalid(context.StartAbsoluteIndex, startElementNode))
-        {
-            return (null, null);
-        }
-
-        var hasSelection = context.StartAbsoluteIndex != context.EndAbsoluteIndex;
-
         // In cases where the start element is just a text literal and there
-        // is no user selection avoid extracting the whole text literal.
-        if (startElementNode is MarkupTextLiteralSyntax && !hasSelection)
+        // is no user selection avoid extracting the whole text literal.or
+        // the parent element.
+        if (owner is MarkupTextLiteralSyntax && !context.HasSelection)
         {
             return (null, null);
         }
 
-        var endElementNode = hasSelection
+        var startElementNode = GetBlockOrTextNode(owner);
+        if (startElementNode is null)
+        {
+            return (null, null);
+        }
+
+        var endElementNode = context.HasSelection
             ? GetEndElementNode(context, syntaxTree)
             : startElementNode;
 
         return (startElementNode, endElementNode);
-
-        static bool LocationInvalid(int location, SyntaxNode node)
-        {
-            // Make sure to test for cases where selection
-            // is inside of a markup tag such as <p>hello$ there</p>
-            if (node is MarkupElementSyntax markupElement)
-            {
-                return location > markupElement.StartTag.Span.End &&
-                        location < markupElement.EndTag.SpanStart;
-            }
-
-            return !node.Span.Contains(location);
-        }
     }
 
     private static SyntaxNode? GetEndElementNode(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
@@ -156,42 +154,43 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         return null;
     }
 
-    private static bool IsBlockNode(SyntaxNode node)
-        => node.Kind is
-                SyntaxKind.MarkupElement or
-                SyntaxKind.MarkupTagHelperElement or
-                SyntaxKind.CSharpCodeBlock;
-
-    private static ExtractToComponentCodeActionParams CreateActionParams(
-        SyntaxNode startNode,
-        SyntaxNode endNode,
-        string @namespace,
-        RazorCodeActionContext context)
+    private TextSpan? TryGetSpanFromNodes(SyntaxNode startNode, SyntaxNode endNode, RazorCodeActionContext context)
     {
-        
-        var selectionSpan = AreSiblings(startNode, endNode)
+        // First get a decent span to work with. If the two nodes chosen
+        // are siblings (even with elements in between) then their start/end
+        // work fine. However, if the two nodes are not siblings then
+        // some work has to be done. See GetEncompassingTextSpan for the
+        // information on the heuristic for choosing a span in that case.
+        var initialSpan = AreSiblings(startNode, endNode)
             ? TextSpan.FromBounds(startNode.Span.Start, endNode.Span.End)
             : GetEncompassingTextSpan(startNode, endNode);
 
-        if (startNode is MarkupTextLiteralSyntax)
+        if (initialSpan is null)
+        {
+            return null;
+        }
+
+        var selectionSpan = initialSpan.Value;
+
+        // Now that a span is chosen there is still a chance the user intended only
+        // part of text to be chosen. If the start or end node are text AND the selection span
+        // is inside those nodes modify the selection to be the users initial point. That makes sure
+        // all the text isn't included and only the user selected text is.
+        // NOTE: Intersects with is important because we want to include the end position when comparing.
+        if (startNode is MarkupTextLiteralSyntax && startNode.Span.IntersectsWith(selectionSpan.Start))
         {
             selectionSpan = TextSpan.FromBounds(context.StartAbsoluteIndex, selectionSpan.End);
         }
 
-        if (endNode is MarkupTextLiteralSyntax)
+        if (endNode is MarkupTextLiteralSyntax && endNode.Span.IntersectsWith(selectionSpan.End))
         {
             selectionSpan = TextSpan.FromBounds(selectionSpan.Start, context.EndAbsoluteIndex);
         }
 
-        return new ExtractToComponentCodeActionParams
-        {
-            Start = selectionSpan.Start,
-            End = selectionSpan.End,
-            Namespace = @namespace
-        };
+        return selectionSpan;
     }
 
-    private static TextSpan GetEncompassingTextSpan(SyntaxNode startNode, SyntaxNode endNode)
+    private static TextSpan? GetEncompassingTextSpan(SyntaxNode startNode, SyntaxNode endNode)
     {
         // Find a valid node that encompasses both the start and the end to
         // become the selection.
@@ -199,9 +198,10 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             ? endNode
             : startNode;
 
-        while (commonAncestor is MarkupElementSyntax or
-                MarkupTagHelperAttributeSyntax or
-                MarkupBlockSyntax)
+        // IsBlockOrMarkupBlockNode because the common ancestor could be a MarkupBlock
+        // even if that's an invalid start/end node.
+        commonAncestor = commonAncestor.FirstAncestorOrSelf<SyntaxNode>(IsBlockOrMarkupBlockNode);
+        while (commonAncestor is not null && IsBlockOrMarkupBlockNode(commonAncestor))
         {
             if (commonAncestor.Span.Contains(startNode.Span) &&
                 commonAncestor.Span.Contains(endNode.Span))
@@ -210,6 +210,11 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             }
 
             commonAncestor = commonAncestor.Parent;
+        }
+
+        if (commonAncestor is null)
+        {
+            return null;
         }
 
         // If walking up the tree was required then make sure to reduce
@@ -229,7 +234,7 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             commonAncestor != endNode)
         {
             SyntaxNode? modifiedStart = null, modifiedEnd = null;
-            foreach (var child in commonAncestor.ChildNodes().Where(static node => node.Kind == SyntaxKind.MarkupElement))
+            foreach (var child in commonAncestor.ChildNodes())
             {
                 if (child.Span.Contains(startNode.Span))
                 {
@@ -246,6 +251,8 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
                 }
             }
 
+            // There's a start and end node that are siblings and will work for start/end
+            // of extraction into the new component.
             if (modifiedStart is not null && modifiedEnd is not null)
             {
                 return TextSpan.FromBounds(modifiedStart.Span.Start, modifiedEnd.Span.End);
@@ -277,4 +284,14 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
         // and causing compiler errors. Avoid offering this refactoring if we can't accurately get a
         // good namespace to extract to
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
+
+    private static bool IsBlockNode(SyntaxNode node)
+        => node.Kind is
+                SyntaxKind.MarkupElement or
+                SyntaxKind.MarkupTagHelperElement or
+                SyntaxKind.CSharpCodeBlock;
+
+    private static bool IsBlockOrMarkupBlockNode(SyntaxNode node)
+        => IsBlockNode(node)
+        || node.Kind == SyntaxKind.MarkupBlock;
 }
