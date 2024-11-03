@@ -5,15 +5,13 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class RazorCompletionItemResolver(IProjectSnapshotManager projectManager) : CompletionItemResolver
 {
