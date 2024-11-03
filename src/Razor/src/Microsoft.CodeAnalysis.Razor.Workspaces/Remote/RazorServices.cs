@@ -24,6 +24,7 @@ internal static class RazorServices
             (typeof(IRemoteAutoInsertService), null),
             (typeof(IRemoteFormattingService), null),
             (typeof(IRemoteSpellCheckService), null),
+            (typeof(IRemoteCompilationInfoService), null),
         ];
 
     // Internal for testing

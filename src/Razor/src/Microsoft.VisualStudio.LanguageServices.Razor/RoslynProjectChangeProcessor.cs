@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.Razor;
 internal sealed partial class RoslynProjectChangeProcessor(
     IProjectSnapshotManager projectManager,
     ITagHelperResolver tagHelperResolver,
+    ICompilationInfoProvider compilationInfoProvider,
     ILoggerFactory loggerFactory,
     ITelemetryReporter telemetryReporter)
     : IRoslynProjectChangeProcessor, IDisposable
@@ -33,6 +34,7 @@ internal sealed partial class RoslynProjectChangeProcessor(
 
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly ITagHelperResolver _tagHelperResolver = tagHelperResolver;
+    private readonly ICompilationInfoProvider _compilationInfoProvider = compilationInfoProvider;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RoslynProjectChangeProcessor>();
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
@@ -288,11 +290,11 @@ internal sealed partial class RoslynProjectChangeProcessor(
             var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
             var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
 
-            var compilation = await workspaceProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var suppressAddComponentParameter = compilation is not null && !compilation.HasAddComponentParameter();
+            var compilationInfo = await _compilationInfoProvider.GetCompilationInfoAsync(workspaceProject, cancellationToken).ConfigureAwait(false);
+
             var configuration = projectSnapshot.Configuration with
             {
-                SuppressAddComponentParameter = suppressAddComponentParameter,
+                SuppressAddComponentParameter = !compilationInfo.HasAddComponentParameter,
                 UseRoslynTokenizer = useRoslynTokenizer,
                 CSharpLanguageVersion = csharpLanguageVersion
             };
