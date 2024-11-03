@@ -55,16 +55,16 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var span = TryGetSpanFromNodes(startNode, endNode, context);
-        if (span is null)
+        var possibleSpan = TryGetSpanFromNodes(startNode, endNode, context);
+        if (possibleSpan is not { } span)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var actionParams = new ExtractToComponentCodeActionParams
         {
-            Start = span.Value.Start,
-            End = span.Value.End,
+            Start = span.Start,
+            End = span.End,
             Namespace = @namespace
         };
 
@@ -163,12 +163,10 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
             ? TextSpan.FromBounds(startNode.Span.Start, endNode.Span.End)
             : GetEncompassingTextSpan(startNode, endNode);
 
-        if (initialSpan is null)
+        if (initialSpan is not { } selectionSpan)
         {
             return null;
         }
-
-        var selectionSpan = initialSpan.Value;
 
         // Now that a span is chosen there is still a chance the user intended only
         // part of text to be chosen. If the start or end node are text AND the selection span
@@ -291,5 +289,5 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
 
     private static bool IsBlockOrMarkupBlockNode(SyntaxNode node)
         => IsBlockNode(node)
-        || node.Kind == SyntaxKind.MarkupBlock;
+            || node.Kind == SyntaxKind.MarkupBlock;
 }
