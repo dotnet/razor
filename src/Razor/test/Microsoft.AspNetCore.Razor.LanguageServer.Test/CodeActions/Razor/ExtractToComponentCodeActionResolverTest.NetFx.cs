@@ -25,7 +25,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutput) : CodeActionEndToEndTest(testOutput)
+public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutput) : CodeActionEndToEndTestBase(testOutput)
 {
     private const string ExtractToComponentTitle = "Extract element to new component";
 
