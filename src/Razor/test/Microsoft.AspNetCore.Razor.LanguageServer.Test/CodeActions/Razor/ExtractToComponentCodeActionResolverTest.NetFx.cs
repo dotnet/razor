@@ -259,6 +259,31 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
             expectedRazorComponent);
     }
 
+    [Fact]
+    public async Task Handle_TextOnlySelection()
+    {
+        var input = """
+            <h1> Hello </h1>
+
+            Welcome to [|your new app|]
+            """;
+
+        var expectedRazorComponent = """
+            your new app
+            """;
+
+        var expectedOriginalDocument = """
+            <h1> Hello </h1>
+
+            Welcome to <Component />
+            """;
+
+        await TestAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent);
+    }
+
     private async Task TestAsync(
         string input,
         string expectedOriginalDocument,
