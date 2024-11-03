@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal abstract class CompletionItemResolver
 {
