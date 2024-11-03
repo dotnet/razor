@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -240,7 +241,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         var input = """
             @functions
             {
-                private string _x = $@"h[||]ello world";
+                [|private string _x = $@"hel{|selection:|}lo world";|]
             }
             """;
 
@@ -999,19 +1000,23 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     #endregion
 
     private async Task ValidateCodeBehindFileAsync(
-        string input,
+        TestCode input,
         string initialCodeBehindContent,
         string expectedRazorContent,
         string expectedCodeBehindContent,
         string codeAction,
         int childActionIndex = 0)
     {
+        var textSpan = input.Span;
+        TextSpan? selectionRange = input.TryGetNamedSpans("selection", out var spans)
+            ? spans.Single()
+            : null;
+
         var razorFilePath = FilePathNormalizer.Normalize($"{Path.GetTempPath()}test.razor");
         var codeBehindFilePath = FilePathNormalizer.Normalize($"{Path.GetTempPath()}test.razor.cs");
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
 
-        TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath, rootNamespace: "Test", tagHelpers: CreateTagHelperDescriptors());
+        var codeDocument = CreateCodeDocument(input.Text, filePath: razorFilePath, rootNamespace: "Test", tagHelpers: CreateTagHelperDescriptors());
         var razorSourceText = codeDocument.Source.Text;
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
@@ -1031,7 +1036,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
                 requestContext,
                 languageServer,
                 razorProviders: [new GenerateMethodCodeActionProvider()],
-                diagnostics);
+                diagnostics,
+                selectionRange: selectionRange);
 
             var codeActionToRun = GetCodeActionToRun(codeAction, childActionIndex, result);
             Assert.NotNull(codeActionToRun);
@@ -1073,7 +1079,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     }
 
     private Task ValidateCodeActionAsync(
-        string input,
+        TestCode input,
         string codeAction,
         int childActionIndex = 0,
         IRazorCodeActionProvider[]? razorCodeActionProviders = null,
@@ -1085,7 +1091,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
     }
 
     private async Task ValidateCodeActionAsync(
-        string input,
+        TestCode input,
         string? expected,
         string codeAction,
         int childActionIndex = 0,
@@ -1094,10 +1100,13 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         RazorLSPOptionsMonitor? optionsMonitor = null,
         Diagnostic[]? diagnostics = null)
     {
-        TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
+        var textSpan = input.Span;
+        TextSpan? selectionRange = input.TryGetNamedSpans("selection", out var spans)
+            ? spans.Single()
+            : null;
 
         var razorFilePath = "C:/path/test.razor";
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath, tagHelpers: CreateTagHelperDescriptors());
+        var codeDocument = CreateCodeDocument(input.Text, filePath: razorFilePath, tagHelpers: CreateTagHelperDescriptors());
         var sourceText = codeDocument.Source.Text;
         var uri = new Uri(razorFilePath);
         var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
@@ -1111,7 +1120,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             requestContext,
             languageServer,
             razorCodeActionProviders,
-            diagnostics);
+            diagnostics,
+            selectionRange: selectionRange);
 
         Assert.NotEmpty(result);
         var codeActionToRun = GetCodeActionToRun(codeAction, childActionIndex, result);
@@ -1161,7 +1171,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
         RazorRequestContext requestContext,
         IClientConnection clientConnection,
         IRazorCodeActionProvider[]? razorProviders = null,
-        Diagnostic[]? diagnostics = null)
+        Diagnostic[]? diagnostics = null,
+        TextSpan? selectionRange = null)
     {
         var delegatedCodeActionsProvider = new DelegatedCodeActionsProvider(clientConnection, NoOpTelemetryReporter.Instance, LoggerFactory);
 
@@ -1199,6 +1210,12 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : SingleServer
             Range = sourceText.GetRange(textSpan),
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics ?? [] }
         };
+
+        if (selectionRange is { } selection)
+        {
+            // Simulate VS range vs selection range
+            @params.Context.SelectionRange = sourceText.GetRange(selection);
+        }
 
         var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
         Assert.NotNull(result);
