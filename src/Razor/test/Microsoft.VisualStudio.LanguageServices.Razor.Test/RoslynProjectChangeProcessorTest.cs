@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,6 +27,7 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     private readonly ProjectSnapshot _projectSnapshot;
     private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
     private readonly TestProjectSnapshotManager _projectManager;
+    private readonly ICompilationInfoProvider _compilationInfoProvider;
 
     public RoslynProjectChangeProcessorTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -47,6 +50,10 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
             [TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()]);
 
         _projectManager = CreateProjectSnapshotManager();
+
+        _compilationInfoProvider = StrictMock.Of<ICompilationInfoProvider>(p =>
+            p.GetCompilationInfoAsync(It.IsAny<Project>(), It.IsAny<CancellationToken>()) == Task.FromResult(new CompilationInfo(true))
+        );
     }
 
     [UIFact]
@@ -54,7 +61,7 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var processor = new RoslynProjectChangeProcessor(
-            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, _compilationInfoProvider, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var processorAccessor = processor.GetTestAccessor();
         processorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -73,7 +80,7 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var processor = new RoslynProjectChangeProcessor(
-            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, _compilationInfoProvider, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var processorAccessor = processor.GetTestAccessor();
         processorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -91,7 +98,7 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var processor = new RoslynProjectChangeProcessor(
-            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, _compilationInfoProvider, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var processorAccessor = processor.GetTestAccessor();
         processorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -112,7 +119,7 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var processor = new RoslynProjectChangeProcessor(
-            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, _compilationInfoProvider, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var processorAccessor = processor.GetTestAccessor();
         processorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
@@ -140,7 +147,7 @@ public class RoslynProjectChangeProcessorTest : VisualStudioWorkspaceTestBase
     {
         // Arrange
         using var processor = new RoslynProjectChangeProcessor(
-            _projectManager, _tagHelperResolver, LoggerFactory, NoOpTelemetryReporter.Instance);
+            _projectManager, _tagHelperResolver, _compilationInfoProvider, LoggerFactory, NoOpTelemetryReporter.Instance);
 
         var processorAccessor = processor.GetTestAccessor();
         processorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
