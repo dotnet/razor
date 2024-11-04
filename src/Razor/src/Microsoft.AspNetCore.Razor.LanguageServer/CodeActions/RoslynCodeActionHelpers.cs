@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,13 +17,13 @@ internal sealed class RoslynCodeActionHelpers(IClientConnection clientConnection
 {
     private readonly IClientConnection _clientConnection = clientConnection;
 
-    public Task<string?> GetFormattedNewFileContentsAsync(string projectFilePath, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
+    public Task<string?> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
     {
         var parameters = new FormatNewFileParams()
         {
             Project = new TextDocumentIdentifier
             {
-                Uri = new Uri(projectFilePath, UriKind.Absolute)
+                Uri = new Uri(projectSnapshot.FilePath, UriKind.Absolute)
             },
             Document = new TextDocumentIdentifier
             {
@@ -33,11 +34,14 @@ internal sealed class RoslynCodeActionHelpers(IClientConnection clientConnection
         return _clientConnection.SendRequestAsync<FormatNewFileParams, string?>(CustomMessageNames.RazorFormatNewFileEndpointName, parameters, cancellationToken);
     }
 
-    public Task<TextEdit[]?> GetSimplifiedTextEditsAsync(Uri codeBehindUri, TextEdit edit, bool requiresVirtualDocument, CancellationToken cancellationToken)
+    public Task<TextEdit[]?> GetSimplifiedTextEditsAsync(DocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
     {
+        var tdi = codeBehindUri is null
+            ? documentContext.GetTextDocumentIdentifierAndVersion()
+            : new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { Uri = codeBehindUri }, 1);
         var delegatedParams = new DelegatedSimplifyMethodParams(
-            new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { Uri = codeBehindUri }, 1),
-            requiresVirtualDocument,
+            tdi,
+            RequiresVirtualDocument: codeBehindUri == null,
             edit);
 
         return _clientConnection.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(

@@ -134,7 +134,7 @@ internal class ExtractToCodeBehindCodeActionResolver(
 
         var newFileContent = builder.ToString();
 
-        var fixedContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(project.FilePath, codeBehindUri, newFileContent, cancellationToken).ConfigureAwait(false);
+        var fixedContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(project, codeBehindUri, newFileContent, cancellationToken).ConfigureAwait(false);
 
         if (fixedContent is null)
         {

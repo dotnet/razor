@@ -4,9 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.Semantics;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -19,6 +18,7 @@ using Microsoft.VisualStudio.Razor.Settings;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -435,30 +435,158 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
     }
 
-    [Theory]
-    [InlineData("[||]DoesNotExist")]
-    [InlineData("Does[||]NotExist")]
-    [InlineData("DoesNotExist[||]")]
-    public async Task Handle_GenerateMethod_NoCodeBlock_NonEmptyTrailingLine(string cursorAndMethodName)
+    [Fact]
+    public async Task GenerateEventHandler_NoCodeBlock()
     {
-        var input = $$"""
-            <button @onclick="{|CS0103:{{cursorAndMethodName}}|}"></button>
+        var input = """
+            <button @onclick="{|CS0103:Does[||]NotExist|}"></button>
             """;
 
         var expected = """
             <button @onclick="DoesNotExist"></button>
             @code {
-                private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private void DoesNotExist(MouseEventArgs e)
                 {
-                    throw new global::System.NotImplementedException();
+                    throw new NotImplementedException();
                 }
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, "Generate Event Handler 'DoesNotExist'");
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
     }
 
-    private async Task VerifyCodeActionAsync(TestCode input, string? expected, string codeActionName, int childActionIndex = 0, string? fileKind = null)
+    [Fact]
+    public async Task GenerateEventHandler_CodeBlock()
+    {
+        var input = """
+            <button @onclick="{|CS0103:Does[||]NotExist|}"></button>
+
+            @code
+            {
+            }
+            """;
+
+        var expected = """
+            <button @onclick="DoesNotExist"></button>
+
+            @code
+            {
+                private void DoesNotExist(MouseEventArgs e)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [Fact]
+    public async Task GenerateAsyncEventHandler_NoCodeBlock()
+    {
+        var input = """
+            <button @onclick="{|CS0103:Does[||]NotExist|}"></button>
+            """;
+
+        var expected = """
+            <button @onclick="DoesNotExist"></button>
+            @code {
+                private Task DoesNotExist(MouseEventArgs e)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Async_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [Fact]
+    public async Task GenerateAsyncEventHandler_CodeBlock()
+    {
+        var input = """
+            <button @onclick="{|CS0103:Does[||]NotExist|}"></button>
+
+            @code
+            {
+            }
+            """;
+
+        var expected = """
+            <button @onclick="DoesNotExist"></button>
+
+            @code
+            {
+                private Task DoesNotExist(MouseEventArgs e)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Async_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [Fact]
+    public async Task ExtractToCodeBehind()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                @co[||]de
+                {
+                    private int x = 1;
+                }
+                """,
+            expected: """
+                <div></div>
+
+
+                """,
+            codeActionName: WorkspacesSR.ExtractTo_CodeBehind_Title,
+            additionalExpectedFiles: [
+                (FileUri("File1.razor.cs"), """
+                    namespace SomeProject
+                    {
+                        public partial class File1
+                        {
+                            private int x = 1;
+                        }
+                    }
+                    """)]);
+    }
+
+    [Fact]
+    public async Task ExtractToComponent()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                [|<div>
+                    Hello World
+                </div>|]
+
+                <div></div>
+                """,
+            expected: """
+                <div></div>
+
+                <Component />
+
+                <div></div>
+                """,
+            codeActionName: WorkspacesSR.ExtractTo_Component_Title,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    <div>
+                        Hello World
+                    </div>
+                    """)]);
+    }
+
+    private async Task VerifyCodeActionAsync(TestCode input, string? expected, string codeActionName, int childActionIndex = 0, string? fileKind = null, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         UpdateClientLSPInitializationOptions(options =>
         {
@@ -483,7 +611,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             return;
         }
 
-        await VerifyCodeActionResolveAsync(document, codeAction, expected);
+        await VerifyCodeActionResolveAsync(document, codeAction, expected, additionalExpectedFiles);
     }
 
     private async Task<CodeAction?> VerifyCodeActionRequestAsync(CodeAnalysis.TextDocument document, TestCode input, string codeActionName, int childActionIndex)
@@ -539,7 +667,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         return codeActionToRun;
     }
 
-    private async Task VerifyCodeActionResolveAsync(CodeAnalysis.TextDocument document, CodeAction codeAction, string? expected)
+    private async Task VerifyCodeActionResolveAsync(CodeAnalysis.TextDocument document, CodeAction codeAction, string? expected, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         var requestInvoker = new TestLSPRequestInvoker();
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
@@ -558,9 +686,15 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
 
         foreach (var edit in documentEdits)
         {
-            Assert.Equal(documentUri, edit.TextDocument.Uri);
-
-            sourceText = sourceText.WithChanges(edit.Edits.Select(sourceText.GetTextChange));
+            if (edit.TextDocument.Uri == documentUri)
+            {
+                sourceText = sourceText.WithChanges(edit.Edits.Select(sourceText.GetTextChange));
+            }
+            else
+            {
+                var contents = Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == edit.TextDocument.Uri).contents;
+                AssertEx.EqualOrDiff(contents, Assert.Single(edit.Edits).NewText);
+            }
         }
 
         AssertEx.EqualOrDiff(expected, sourceText.ToString());
