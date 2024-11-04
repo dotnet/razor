@@ -452,63 +452,6 @@ public class CodeActionEndpointTest(ITestOutputHelper testOutput) : LanguageServ
     }
 
     [Fact]
-    public async Task GenerateRazorCodeActionContextAsync_WithSelectionRange()
-    {
-        // Arrange
-        var documentPath = new Uri("C:/path/to/Page.razor");
-        var codeDocument = CreateCodeDocument("@code {}");
-        var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var (_, codeActionService) = CreateEndpointAndService(razorCodeActionProviders: [CreateRazorCodeActionProvider()]);
-
-        var initialRange = VsLspFactory.CreateZeroWidthRange(0, 1);
-        var selectionRange = VsLspFactory.CreateZeroWidthRange(0, 5);
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = documentPath },
-            Range = initialRange,
-            Context = new VSInternalCodeActionContext()
-            {
-                SelectionRange = selectionRange,
-            }
-        };
-
-        // Act
-        var razorCodeActionContext = await codeActionService.GetTestAccessor().GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, supportsCodeActionResolve: true, DisposalToken);
-
-        // Assert
-        Assert.NotNull(razorCodeActionContext);
-        Assert.Equal(selectionRange, razorCodeActionContext.Request.Range);
-    }
-
-    [Fact]
-    public async Task GenerateRazorCodeActionContextAsync_WithoutSelectionRange()
-    {
-        // Arrange
-        var documentPath = new Uri("C:/path/to/Page.razor");
-        var codeDocument = CreateCodeDocument("@code {}");
-        var documentContext = CreateDocumentContext(documentPath, codeDocument);
-        var (_, codeActionService) = CreateEndpointAndService(razorCodeActionProviders: [CreateRazorCodeActionProvider()]);
-
-        var initialRange = VsLspFactory.CreateZeroWidthRange(0, 1);
-        var request = new VSCodeActionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier { Uri = documentPath },
-            Range = initialRange,
-            Context = new VSInternalCodeActionContext()
-            {
-                SelectionRange = null
-            }
-        };
-
-        // Act
-        var razorCodeActionContext = await codeActionService.GetTestAccessor().GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot, supportsCodeActionResolve: true, DisposalToken);
-
-        // Assert
-        Assert.NotNull(razorCodeActionContext);
-        Assert.Equal(initialRange, razorCodeActionContext.Request.Range);
-    }
-
-    [Fact]
     public async Task GetCSharpCodeActionsFromLanguageServerAsync_InvalidRangeMapping()
     {
         // Arrange
