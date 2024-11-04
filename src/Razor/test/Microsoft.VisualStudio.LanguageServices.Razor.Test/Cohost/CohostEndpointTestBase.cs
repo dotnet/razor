@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -50,7 +51,19 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         // Create a new isolated MEF composition.
         // Note that this uses a cached catalog and configuration for performance.
-        _exportProvider = await RemoteMefComposition.CreateExportProviderAsync(DisposalToken);
+        try
+        {
+            _exportProvider = await RemoteMefComposition.CreateExportProviderAsync(DisposalToken);
+        }
+        catch (CompositionFailedException ex) when (ex.Errors is not null)
+        {
+            Assert.Fail($"""
+                Errors in the Remote MEF composition:
+
+                {string.Join(Environment.NewLine, ex.Errors.SelectMany(e => e).Select(e => e.Message))}
+                """);
+        }
+
         AddDisposable(_exportProvider);
 
         _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, _exportProvider, LoggerFactory);
