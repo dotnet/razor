@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Roslyn.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.Hover?>;
+using static Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilitiesExtensions;
 using static Microsoft.VisualStudio.LanguageServer.Protocol.VsLspExtensions;
 using static Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
@@ -29,6 +30,8 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
         protected override IRemoteHoverService CreateService(in ServiceArgs args)
             => new RemoteHoverService(in args);
     }
+
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
@@ -55,6 +58,8 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             return NoFurtherHandling;
         }
 
+        var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
+
         var positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex, preferCSharpOverHtml: true);
 
         if (positionInfo.LanguageKind is RazorLanguageKind.Html or RazorLanguageKind.Razor)
@@ -63,7 +68,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out _, out _))
             {
                 // Acquire from client capabilities
-                var options = new HoverDisplayOptions(VsLsp.MarkupKind.Markdown, SupportsVisualStudioExtensions: true);
+                var options = HoverDisplayOptions.From(clientCapabilities);
 
                 var razorHover = await HoverFactory
                     .GetHoverAsync(codeDocument, hostDocumentIndex, options, context.GetSolutionQueryOperations(), cancellationToken)
@@ -94,7 +99,12 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             .ConfigureAwait(false);
 
         var csharpHover = await ExternalHandlers.Hover
-            .GetHoverAsync(generatedDocument, mappedPosition, supportsVSExtensions: true, supportsMarkdown: true, cancellationToken)
+            .GetHoverAsync(
+                generatedDocument,
+                mappedPosition,
+                clientCapabilities.SupportsVisualStudioExtensions(),
+                clientCapabilities.SupportsMarkdown(),
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (csharpHover is null)
