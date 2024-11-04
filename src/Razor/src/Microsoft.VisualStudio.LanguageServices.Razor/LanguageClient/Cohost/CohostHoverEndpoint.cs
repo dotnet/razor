@@ -45,7 +45,10 @@ internal sealed class CohostHoverEndpoint(
             return [new Registration
             {
                 Method = Methods.TextDocumentHoverName,
-                RegisterOptions = new HoverOptions()
+                RegisterOptions = new HoverRegistrationOptions()
+                {
+                    DocumentSelector = filter
+                }
             }];
         }
 
