@@ -247,4 +247,10 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         return solution.GetAdditionalDocument(documentId).AssumeNotNull();
     }
+
+    protected static Uri FileUri(string projectRelativeFileName)
+        => new(FilePath(projectRelativeFileName));
+
+    protected static string FilePath(string projectRelativeFileName)
+        => Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName);
 }
