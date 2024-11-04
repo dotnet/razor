@@ -69,7 +69,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
 
             @code
             {
-                [||]void M(string[] args)
+                [|{|selection:|}void M(string[] args)|]
                 {
                     args.ToString();
                 }
@@ -628,12 +628,12 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                 continue;
             }
 
-            foreach (var textSpan in spans)
+            foreach (var diagnosticSpan in spans)
             {
                 diagnostics.Add(new Diagnostic
                 {
                     Code = code,
-                    Range = inputText.GetRange(textSpan)
+                    Range = inputText.GetRange(diagnosticSpan)
                 });
             }
         }
@@ -641,9 +641,15 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         var request = new VSCodeActionParams
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = document.CreateUri() },
-            Range = inputText.GetRange(input.NamedSpans[""].Single()),
+            Range = inputText.GetRange(input.Span),
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics.ToArray() }
         };
+
+        if (input.TryGetNamedSpans("selection", out var selectionSpans))
+        {
+            // Simulate VS range vs selection range
+            request.Context.SelectionRange = inputText.GetRange(selectionSpans.Single());
+        }
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, request, DisposalToken);
 
