@@ -119,12 +119,12 @@ internal class CohostCodeActionsEndpoint(
             options.Converters.Add(converter);
         }
 
-        var csharpRequest = JsonSerializer.Deserialize<Roslyn.LanguageServer.Protocol.CodeActionParams>(JsonSerializer.SerializeToDocument(request), options).AssumeNotNull();
+        var csharpRequest = JsonSerializer.Deserialize<Roslyn.LanguageServer.Protocol.CodeActionParams>(JsonSerializer.SerializeToDocument(request, options), options).AssumeNotNull();
 
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, "Razor.ExternalAccess", TelemetryThresholds.CodeActionSubLSPTelemetryThreshold, correlationId);
         var csharpCodeActions = await CodeActions.GetCodeActionsAsync(generatedDocument, csharpRequest, _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
 
-        return JsonSerializer.Deserialize<RazorVSInternalCodeAction[]>(JsonSerializer.SerializeToDocument(csharpCodeActions), options).AssumeNotNull();
+        return JsonSerializer.Deserialize<RazorVSInternalCodeAction[]>(JsonSerializer.SerializeToDocument(csharpCodeActions, options), options).AssumeNotNull();
     }
 
     private async Task<RazorVSInternalCodeAction[]> GetHtmlCodeActionsAsync(TextDocument razorDocument, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
