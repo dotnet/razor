@@ -288,11 +288,8 @@ internal sealed partial class RoslynProjectChangeProcessor(
             var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
             var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
 
-            var compilation = await workspaceProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var suppressAddComponentParameter = compilation is not null && !compilation.HasAddComponentParameter();
             var configuration = projectSnapshot.Configuration with
             {
-                SuppressAddComponentParameter = suppressAddComponentParameter,
                 UseRoslynTokenizer = useRoslynTokenizer,
                 CSharpLanguageVersion = csharpLanguageVersion
             };
