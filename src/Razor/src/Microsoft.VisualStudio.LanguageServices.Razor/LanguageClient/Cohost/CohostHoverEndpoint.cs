@@ -94,7 +94,7 @@ internal sealed class CohostHoverEndpoint(
             return null;
         }
 
-        request.TextDocument.Uri = htmlDocument.Uri;
+        request.TextDocument = request.TextDocument.WithUri(htmlDocument.Uri);
 
         var result = await _requestInvoker
             .ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VsHover?>(

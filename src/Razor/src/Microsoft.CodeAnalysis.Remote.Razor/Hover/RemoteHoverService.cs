@@ -17,6 +17,7 @@ using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageS
 using static Microsoft.VisualStudio.LanguageServer.Protocol.VsLspExtensions;
 using static Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+using Range = Roslyn.LanguageServer.Protocol.Range;
 using VsLsp = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -68,10 +69,15 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
                     .GetHoverAsync(codeDocument, hostDocumentIndex, options, context.GetSolutionQueryOperations(), cancellationToken)
                     .ConfigureAwait(false);
 
-                // Our HoverFactory currently returns a VS LSP VSInternalHover.
-                return razorHover is not null
-                    ? Results(ConvertHover(razorHover))
-                    : CallHtml;
+                if (razorHover is null)
+                {
+                    return CallHtml;
+                }
+
+                // Ensure that we convert our Hover to a Roslyn Hover.
+                var resultHover = ConvertHover(razorHover);
+
+                return Results(resultHover);
             }
         }
 
@@ -122,12 +128,13 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             VsLsp.VSInternalHover { Range: var range, RawContent: { } rawContent } => new VSInternalHover()
             {
                 Range = ConvertRange(range),
+                Contents = string.Empty,
                 RawContent = ConvertVsContent(rawContent)
             },
-            VsLsp.Hover { Range: var range, Contents: { } contents } => new Hover()
+            VsLsp.Hover { Range: var range, Contents.Fourth: VsLsp.MarkupContent contents } => new Hover()
             {
                 Range = ConvertRange(range),
-                Contents = ConvertMarkupContent((VsLsp.MarkupContent)contents)
+                Contents = ConvertMarkupContent(contents)
             },
             _ => Assumed.Unreachable<Hover>(),
         };
