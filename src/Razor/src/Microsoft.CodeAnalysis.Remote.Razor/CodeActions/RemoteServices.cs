@@ -6,10 +6,13 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
+
+// Services
 
 [Export(typeof(ICodeActionsService)), Shared]
 [method: ImportingConstructor]
@@ -20,6 +23,17 @@ internal sealed class OOPCodeActionsService(
     [ImportMany] IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
     LanguageServerFeatureOptions languageServerFeatureOptions)
     : CodeActionsService(documentMappingService, razorCodeActionProviders, csharpCodeActionProviders, htmlCodeActionProviders, languageServerFeatureOptions);
+
+[Export(typeof(ICodeActionResolveService)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPCodeActionResolveService(
+    [ImportMany] IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
+    [ImportMany] IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
+    [ImportMany] IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
+    ILoggerFactory loggerFactory)
+    : CodeActionResolveService(razorCodeActionResolvers, csharpCodeActionResolvers, htmlCodeActionResolvers, loggerFactory);
+
+// Code Action Providers
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
 [method: ImportingConstructor]
@@ -44,3 +58,43 @@ internal sealed class OOPDefaultCSharpCodeActionProvider(LanguageServerFeatureOp
 [Export(typeof(IHtmlCodeActionProvider)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPDefaultHtmlCodeActionProvider(IEditMappingService editMappingService) : HtmlCodeActionProvider(editMappingService);
+
+// Code Action Resolvers
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPExtractToCodeBehindCodeActionResolver(
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    IRoslynCodeActionHelpers roslynCodeActionHelpers)
+    : ExtractToCodeBehindCodeActionResolver(languageServerFeatureOptions, roslynCodeActionHelpers);
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPExtractToComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : ExtractToComponentCodeActionResolver(languageServerFeatureOptions);
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPCreateComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : CreateComponentCodeActionResolver(languageServerFeatureOptions);
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class OOPAddUsingsCodeActionResolver : AddUsingsCodeActionResolver;
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPGenerateMethodCodeActionResolver(
+    IRoslynCodeActionHelpers roslynCodeActionHelpers,
+    IDocumentMappingService documentMappingService,
+    IRazorFormattingService razorFormattingService)
+    : GenerateMethodCodeActionResolver(roslynCodeActionHelpers, documentMappingService, razorFormattingService);
+
+[Export(typeof(ICSharpCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPCSharpCodeActionResolver(IRazorFormattingService razorFormattingService) : CSharpCodeActionResolver(razorFormattingService);
+
+[Export(typeof(ICSharpCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPUnformattedRemappingCSharpCodeActionResolver(IDocumentMappingService documentMappingService) : UnformattedRemappingCSharpCodeActionResolver(documentMappingService);
+
+[Export(typeof(IHtmlCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPHtmlCodeActionResolver(IEditMappingService editMappingService) : HtmlCodeActionResolver(editMappingService);

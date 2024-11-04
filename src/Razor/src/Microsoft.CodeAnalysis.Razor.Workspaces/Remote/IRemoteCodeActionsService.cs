@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -23,5 +24,13 @@ internal interface IRemoteCodeActionsService : IRemoteJsonService
         JsonSerializableDocumentId razorDocumentId,
         VSCodeActionParams request,
         RazorVSInternalCodeAction[] delegatedCodeActions,
+        CancellationToken cancellationToken);
+
+    ValueTask<CodeAction> ResolveCodeActionAsync(
+        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableDocumentId razorDocumentId,
+        CodeAction request,
+        CodeAction? delegatedCodeAction,
+        RazorFormattingOptions options,
         CancellationToken cancellationToken);
 }

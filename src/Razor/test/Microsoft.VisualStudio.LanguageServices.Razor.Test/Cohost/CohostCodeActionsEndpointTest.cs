@@ -1,16 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.Semantics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Razor.Settings;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -51,6 +57,39 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             """;
 
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors);
+    }
+
+    [Fact]
+    public async Task UseExpressionBodiedMember()
+    {
+        var input = """
+            @using System.Linq
+
+            <div></div>
+
+            @code
+            {
+                [||]void M(string[] args)
+                {
+                    args.ToString();
+                }
+            }
+
+            """;
+
+        var expected = """
+            @using System.Linq
+
+            <div></div>
+            
+            @code
+            {
+                void M(string[] args) => args.ToString();
+            }
+
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.UseExpressionBody);
     }
 
     [Fact]
@@ -435,11 +474,23 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         });
 
         var document = await CreateProjectAndRazorDocumentAsync(input.Text, fileKind, createSeparateRemoteAndLocalWorkspaces: true);
-        var inputText = await document.GetTextAsync(DisposalToken);
 
+        var codeAction = await VerifyCodeActionRequestAsync(document, input, codeActionName, childActionIndex);
+
+        if (codeAction is null)
+        {
+            Assert.Null(expected);
+            return;
+        }
+
+        await VerifyCodeActionResolveAsync(document, codeAction, expected);
+    }
+
+    private async Task<CodeAction?> VerifyCodeActionRequestAsync(CodeAnalysis.TextDocument document, TestCode input, string codeActionName, int childActionIndex)
+    {
         var requestInvoker = new TestLSPRequestInvoker();
-
         var endpoint = new CohostCodeActionsEndpoint(RemoteServiceInvoker, ClientCapabilitiesService, TestHtmlDocumentSynchronizer.Instance, requestInvoker, NoOpTelemetryReporter.Instance);
+        var inputText = await document.GetTextAsync(DisposalToken);
 
         using var diagnostics = new PooledArrayBuilder<Diagnostic>();
         foreach (var (code, spans) in input.NamedSpans)
@@ -468,10 +519,9 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, request, DisposalToken);
 
-        if (expected is null)
+        if (result is null)
         {
-            Assert.Null(result);
-            return;
+            return null;
         }
 
         Assert.NotNull(result);
@@ -486,5 +536,33 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         }
 
         Assert.NotNull(codeActionToRun);
+        return codeActionToRun;
+    }
+
+    private async Task VerifyCodeActionResolveAsync(CodeAnalysis.TextDocument document, CodeAction codeAction, string? expected)
+    {
+        var requestInvoker = new TestLSPRequestInvoker();
+        var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
+
+        var endpoint = new CohostCodeActionsResolveEndpoint(RemoteServiceInvoker, ClientCapabilitiesService, clientSettingsManager, TestHtmlDocumentSynchronizer.Instance, requestInvoker);
+
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, codeAction, DisposalToken);
+
+        Assert.NotNull(result?.Edit);
+
+        var workspaceEdit = result.Edit;
+        Assert.True(workspaceEdit.TryGetTextDocumentEdits(out var documentEdits));
+
+        var documentUri = document.CreateUri();
+        var sourceText = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
+
+        foreach (var edit in documentEdits)
+        {
+            Assert.Equal(documentUri, edit.TextDocument.Uri);
+
+            sourceText = sourceText.WithChanges(edit.Edits.Select(sourceText.GetTextChange));
+        }
+
+        AssertEx.EqualOrDiff(expected, sourceText.ToString());
     }
 }

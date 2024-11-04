@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -24,6 +25,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
     }
 
     private readonly ICodeActionsService _codeActionsService = args.ExportProvider.GetExportedValue<ICodeActionsService>();
+    private readonly ICodeActionResolveService _codeActionResolveService = args.ExportProvider.GetExportedValue<ICodeActionResolveService>();
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
     public ValueTask<CodeActionRequestInfo> GetCodeActionRequestInfoAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, VSCodeActionParams request, CancellationToken cancellationToken)
@@ -71,5 +73,17 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
 
         var supportsCodeActionResolve = _clientCapabilitiesService.ClientCapabilities.TextDocument?.CodeAction?.ResolveSupport is not null;
         return await _codeActionsService.GetCodeActionsAsync(request, context.Snapshot, delegatedCodeActions, generatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
+    }
+
+    public ValueTask<CodeAction> ResolveCodeActionAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, CodeAction request, CodeAction? delegatedCodeAction, RazorFormattingOptions options, CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            razorDocumentId,
+            context => ResolveCodeActionAsync(context, request, delegatedCodeAction, options, cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<CodeAction> ResolveCodeActionAsync(RemoteDocumentContext context, CodeAction request, CodeAction? delegatedCodeAction, RazorFormattingOptions options, CancellationToken cancellationToken)
+    {
+        return await _codeActionResolveService.ResolveCodeActionAsync(context, request, delegatedCodeAction, options, cancellationToken).ConfigureAwait(false);
     }
 }

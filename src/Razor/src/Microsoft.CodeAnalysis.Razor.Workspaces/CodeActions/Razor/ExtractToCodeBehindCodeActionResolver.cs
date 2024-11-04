@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal sealed class ExtractToCodeBehindCodeActionResolver(
+internal class ExtractToCodeBehindCodeActionResolver(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IRoslynCodeActionHelpers roslynCodeActionHelpers) : IRazorCodeActionResolver
 {
