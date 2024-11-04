@@ -63,6 +63,7 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
             TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToNewComponentAction,
             Language = RazorLanguageKind.Razor,
+            DelegatedDocumentUri = context.DelegatedDocumentUri,
             Data = actionParams,
         };
 

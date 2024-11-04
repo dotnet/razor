@@ -66,7 +66,10 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
 
     private async ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(RemoteDocumentContext context, VSCodeActionParams request, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
     {
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocumentUri = generatedDocument.CreateUri();
+
         var supportsCodeActionResolve = _clientCapabilitiesService.ClientCapabilities.TextDocument?.CodeAction?.ResolveSupport is not null;
-        return await _codeActionsService.GetCodeActionsAsync(request, context.Snapshot, delegatedCodeActions, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
+        return await _codeActionsService.GetCodeActionsAsync(request, context.Snapshot, delegatedCodeActions, generatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
     }
 }

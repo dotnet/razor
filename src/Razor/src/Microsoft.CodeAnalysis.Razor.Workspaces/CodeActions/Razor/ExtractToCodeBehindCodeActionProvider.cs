@@ -113,6 +113,7 @@ internal class ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactor
             TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToCodeBehindAction,
             Language = RazorLanguageKind.Razor,
+            DelegatedDocumentUri = context.DelegatedDocumentUri,
             Data = actionParams,
         };
 

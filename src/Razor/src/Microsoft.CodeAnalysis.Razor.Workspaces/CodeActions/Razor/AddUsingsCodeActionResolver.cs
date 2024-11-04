@@ -39,7 +39,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         return AddUsingsHelper.CreateAddUsingWorkspaceEdit(actionParams.Namespace, actionParams.AdditionalEdit, codeDocument, codeDocumentIdentifier);
     }
 
-    internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
+    internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, Uri? delegatedDocumentUri, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
     {
         @namespace = GetNamespaceFromFQN(fullyQualifiedName);
         if (string.IsNullOrEmpty(@namespace))
@@ -60,6 +60,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
             TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.AddUsing,
             Language = RazorLanguageKind.Razor,
+            DelegatedDocumentUri = delegatedDocumentUri,
             Data = actionParams,
         };
 

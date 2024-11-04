@@ -38,8 +38,8 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             var textDocument = context.Request.TextDocument;
             return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>(
                 [
-                    RazorCodeActionFactory.CreateGenerateMethod(textDocument, methodName, eventName),
-                    RazorCodeActionFactory.CreateAsyncGenerateMethod(textDocument, methodName, eventName)
+                    RazorCodeActionFactory.CreateGenerateMethod(textDocument, context.DelegatedDocumentUri, methodName, eventName),
+                    RazorCodeActionFactory.CreateAsyncGenerateMethod(textDocument, context.DelegatedDocumentUri, methodName, eventName)
                 ]);
         }
 

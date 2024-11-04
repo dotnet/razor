@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -17,6 +18,9 @@ internal sealed class RazorCodeActionResolutionParams
 
     [JsonPropertyName("language")]
     public required RazorLanguageKind Language { get; set; }
+
+    [JsonPropertyName("delegatedDocumentUri")]
+    public required Uri? DelegatedDocumentUri { get; set; }
 
     [JsonPropertyName("data")]
     public object? Data { get; set; }
