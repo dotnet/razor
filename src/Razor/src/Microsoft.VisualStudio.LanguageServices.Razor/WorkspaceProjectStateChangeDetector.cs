@@ -20,11 +20,11 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(IRazorStartupService))]
-internal partial class RoslynProjectChangeDetector : IRazorStartupService, IDisposable
+internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
 
-    private readonly IRoslynProjectChangeProcessor _processor;
+    private readonly IProjectWorkspaceStateGenerator _generator;
     private readonly IProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _options;
     private readonly CodeAnalysis.Workspace _workspace;
@@ -35,23 +35,23 @@ internal partial class RoslynProjectChangeDetector : IRazorStartupService, IDisp
     private WorkspaceChangedListener? _workspaceChangedListener;
 
     [ImportingConstructor]
-    public RoslynProjectChangeDetector(
-        IRoslynProjectChangeProcessor processor,
+    public WorkspaceProjectStateChangeDetector(
+        IProjectWorkspaceStateGenerator generator,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider)
-        : this(processor, projectManager, options, workspaceProvider, s_delay)
+        : this(generator, projectManager, options, workspaceProvider, s_delay)
     {
     }
 
-    public RoslynProjectChangeDetector(
-        IRoslynProjectChangeProcessor processor,
+    public WorkspaceProjectStateChangeDetector(
+        IProjectWorkspaceStateGenerator generator,
         IProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider,
         TimeSpan delay)
     {
-        _processor = processor;
+        _generator = generator;
         _projectManager = projectManager;
         _options = options;
 
@@ -94,7 +94,7 @@ internal partial class RoslynProjectChangeDetector : IRazorStartupService, IDisp
                 return default;
             }
 
-            _processor.EnqueueUpdate(project, projectSnapshot);
+            _generator.EnqueueUpdate(project, projectSnapshot);
         }
 
         return default;
@@ -414,7 +414,7 @@ internal partial class RoslynProjectChangeDetector : IRazorStartupService, IDisp
 
     internal TestAccessor GetTestAccessor() => new(this);
 
-    internal sealed class TestAccessor(RoslynProjectChangeDetector instance)
+    internal sealed class TestAccessor(WorkspaceProjectStateChangeDetector instance)
     {
         public void CancelExistingWork()
         {

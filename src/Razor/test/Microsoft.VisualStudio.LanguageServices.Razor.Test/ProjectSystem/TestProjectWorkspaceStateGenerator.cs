@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
-internal class TestRoslynProjectChangeProcessor : IRoslynProjectChangeProcessor
+internal class TestProjectWorkspaceStateGenerator : IProjectWorkspaceStateGenerator
 {
     private readonly List<TestUpdate> _updates = [];
 
