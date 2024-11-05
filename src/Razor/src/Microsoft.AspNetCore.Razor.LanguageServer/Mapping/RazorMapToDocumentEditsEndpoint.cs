@@ -66,7 +66,7 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
             return null;
         }
 
-        var mappedEdits = await RazorEditHelper.MapEditsAsync(
+        var mappedEdits = await RazorEditHelper.MapCSharpEditsAsync(
             request.TextEdits.ToImmutableArray(),
             documentContext.Snapshot,
             codeDocument,

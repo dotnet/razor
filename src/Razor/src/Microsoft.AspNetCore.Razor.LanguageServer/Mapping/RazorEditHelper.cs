@@ -27,7 +27,7 @@ internal static partial class RazorEditHelper
     /// are applied if they map to the razor document.
     /// </summary>
     /// <returns></returns>
-    internal static async Task<ImmutableArray<TextChange>> MapEditsAsync(
+    internal static async Task<ImmutableArray<TextChange>> MapCSharpEditsAsync(
         ImmutableArray<TextChange> textEdits,
         IDocumentSnapshot snapshot,
         RazorCodeDocument codeDocument,
