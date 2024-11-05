@@ -69,11 +69,30 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         };
         UpdateClientInitializationOptions(c => c);
 
+        var completionSetting = new CompletionSetting
+        {
+            CompletionItem = new CompletionItemSetting(),
+            CompletionItemKind = new CompletionItemKindSetting()
+            {
+                ValueSet = (CompletionItemKind[])Enum.GetValues(typeof(CompletionItemKind)),
+            },
+            CompletionListSetting = new CompletionListSetting()
+            {
+                ItemDefaults = ["commitCharacters", "editRange", "insertTextFormat"]
+            },
+            ContextSupport = false,
+            InsertTextMode = InsertTextMode.AsIs,
+        };
+
         _clientLSPInitializationOptions = new()
         {
             ClientCapabilities = new VSInternalClientCapabilities()
             {
-                SupportsVisualStudioExtensions = true
+                SupportsVisualStudioExtensions = true,
+                TextDocument = new TextDocumentClientCapabilities
+                {
+                    Completion = completionSetting
+                }
             },
             TokenTypes = [],
             TokenModifiers = []

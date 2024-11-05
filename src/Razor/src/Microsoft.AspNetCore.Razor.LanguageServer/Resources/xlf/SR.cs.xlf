@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../SR.resx">
     <body>
-      <trans-unit id="Blazor_directive_attributes">
-        <source>Blazor directive attributes</source>
-        <target state="translated">Atributy direktivy Blazor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Changes">
         <source>Changes:</source>
         <target state="translated">Změny:</target>
@@ -20,16 +15,6 @@
       <trans-unit id="File_Externally_Modified">
         <source>File was externally modified: {0}</source>
         <target state="translated">Došlo k externí úpravě souboru: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ReTrigger_Completions_Title">
-        <source>"Re-trigger completions..."</source>
-        <target state="translated">Aktivovat znovu dokončení…</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Statement">
-        <source>statement</source>
-        <target state="translated">příkaz</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
