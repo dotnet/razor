@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -440,7 +439,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             var snippetInfos = snippetLabels.Select(label => new SnippetInfo(label, label, label, string.Empty, SnippetLanguage.Html)).ToImmutableArray();
             snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
         }
-;
+
         var endpoint = new CohostDocumentCompletionEndpoint(
             RemoteServiceInvoker,
             clientSettingsManager,
