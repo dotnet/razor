@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,28 +93,29 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             return Results(csharpHover);
         }
 
-        if (positionInfo.LanguageKind is RazorLanguageKind.Html or RazorLanguageKind.Razor)
+        if (positionInfo.LanguageKind is not (RazorLanguageKind.Html or RazorLanguageKind.Razor))
         {
-            // If this is Html or Razor, try to retrieve a hover from Razor.
-            var options = HoverDisplayOptions.From(clientCapabilities);
-
-            var razorHover = await HoverFactory
-                .GetHoverAsync(codeDocument, hostDocumentIndex, options, context.GetSolutionQueryOperations(), cancellationToken)
-                .ConfigureAwait(false);
-
-            // Roslyn couldn't provide a hover, so we're done.
-            if (razorHover is null)
-            {
-                return CallHtml;
-            }
-
-            // Ensure that we convert our Hover to a Roslyn Hover.
-            var resultHover = ConvertHover(razorHover);
-
-            return Results(resultHover);
+            Debug.Fail($"Encountered an unexpected {nameof(RazorLanguageKind)}: {positionInfo.LanguageKind}");
+            return NoFurtherHandling;
         }
 
-        return NoFurtherHandling;
+        // If this is Html or Razor, try to retrieve a hover from Razor.
+        var options = HoverDisplayOptions.From(clientCapabilities);
+
+        var razorHover = await HoverFactory
+            .GetHoverAsync(codeDocument, hostDocumentIndex, options, context.GetSolutionQueryOperations(), cancellationToken)
+            .ConfigureAwait(false);
+
+        // Roslyn couldn't provide a hover, so we're done.
+        if (razorHover is null)
+        {
+            return CallHtml;
+        }
+
+        // Ensure that we convert our Hover to a Roslyn Hover.
+        var resultHover = ConvertHover(razorHover);
+
+        return Results(resultHover);
     }
 
     /// <summary>
