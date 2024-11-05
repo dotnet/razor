@@ -110,4 +110,13 @@ internal sealed class CohostHoverEndpoint(
 
         return result?.Response;
     }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostHoverEndpoint instance)
+    {
+        public Task<SumType<RoslynHover, VsHover>?> HandleRequestAsync(
+            TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+    }
 }
