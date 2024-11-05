@@ -382,48 +382,48 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
 
     [Fact]
     public Task AddUsing_OrdersSystemCorrectly()
-    => TestAsync(
-        csharpSource:
-        """
-        {|mapUsing:using System;|}
-        {|mapUsing2:using MyNamespace;|}
-        class MyComponent : ComponentBase
-        {
-            {|map1:public int Counter { get; set; }|}
-        }
-        """,
-        razorSource:
-        """
-        @page "/counter"
-        {|mapUsing:@using System|}
-        {|mapUsing2:@using MyNamespace|}
+        => TestAsync(
+            csharpSource:
+            """
+            {|mapUsing:using System;|}
+            {|mapUsing2:using MyNamespace;|}
+            class MyComponent : ComponentBase
+            {
+                {|map1:public int Counter { get; set; }|}
+            }
+            """,
+            razorSource:
+            """
+            @page "/counter"
+            {|mapUsing:@using System|}
+            {|mapUsing2:@using MyNamespace|}
 
-        @code {
-            {|map1:public int Counter { get; set; }|} 
-        }
-        """,
-        newCSharpSource:
-        """
-        using OtherNamespace;
-        using System;
-        using System.Collections.Generic;
+            @code {
+                {|map1:public int Counter { get; set; }|} 
+            }
+            """,
+            newCSharpSource:
+            """
+            using OtherNamespace;
+            using System;
+            using System.Collections.Generic;
 
-        class MyComponent : ComponentBase
-        {
-            public int NewCounter { get; set; }
-        }
-        """,
-        expectedRazorSource:
-        """
-        @page "/counter"
-        @using System
-        @using System.Collections.Generic
-        @using OtherNamespace
+            class MyComponent : ComponentBase
+            {
+                public int NewCounter { get; set; }
+            }
+            """,
+            expectedRazorSource:
+            """
+            @page "/counter"
+            @using System
+            @using System.Collections.Generic
+            @using OtherNamespace
 
-        @code {
-            public int NewCounter { get; set; } 
-        }
-        """);
+            @code {
+                public int NewCounter { get; set; } 
+            }
+            """);
 
     [Fact]
     public Task UsingIndentation_DoesNotApply()
@@ -467,6 +467,161 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             public int NewCounter { get; set; } 
         }
         """);
+
+    [Fact]
+    public Task UsingAliasRemoved_HandledCorrectly()
+        => TestAsync(
+        csharpSource:
+        """
+        {|mapUsing:using System;|}
+        {|mapUsing2:using System.Collections.Generic;|}
+        {|mapUsing3:using Goo = Bar;|}
+        class MyComponent : ComponentBase
+        {
+            {|map1:public int Counter { get; set; }|}
+        }
+        """,
+        razorSource:
+        """
+        @page "/counter"
+        {|mapUsing:@using System|}
+        {|mapUsing2:@using System.Collections.Generic|}
+        {|mapUsing3:@using Goo = Bar|}
+
+        @code {
+            {|map1:public int Counter { get; set; }|} 
+        }
+        """,
+        newCSharpSource:
+        """
+        using System;
+        using System.Collections.Generic;
+
+        class MyComponent : ComponentBase
+        {
+            public int NewCounter { get; set; }
+        }
+        """,
+        expectedRazorSource:
+        """
+        @page "/counter"
+        @using System
+        @using System.Collections.Generic
+
+
+        @code {
+            public int NewCounter { get; set; } 
+        }
+        """);
+
+    [Fact]
+    public Task AddUsingMultipleUsingGroups_AppliesCurrently()
+        => TestAsync(
+            csharpSource:
+            """
+                {|mapUsing:using System;|}
+                {|mapUsing2:using MyNamespace;|}
+                {|mapUsing3:using MyNamespace2;|}
+                class MyComponent : ComponentBase
+                {
+                    {|map1:public int Counter { get; set; }|}
+                }
+                """,
+            razorSource:
+            """
+            @page "/counter"
+            {|mapUsing:@using System|}
+            {|mapUsing2:@using MyNamespace|}
+
+            <p></p>
+
+            {|mapUsing3:@using MyNamespace2|}
+
+            @code {
+                {|map1:public int Counter { get; set; }|} 
+            }
+            """,
+            newCSharpSource:
+            """
+            using OtherNamespace;
+            using System;
+            using System.Collections.Generic;
+            using MyNamespace;
+            using MyNamespace2;
+
+            class MyComponent : ComponentBase
+            {
+                public int NewCounter { get; set; }
+            }
+            """,
+            expectedRazorSource:
+            """
+            @page "/counter"
+            @using System
+            @using System.Collections.Generic
+            @using MyNamespace
+            @using OtherNamespace
+
+            <p></p>
+
+            @using MyNamespace2
+
+            @code {
+                public int NewCounter { get; set; } 
+            }
+            """);
+
+    [Fact]
+    public Task RemovingMultipleUsingGroups_AppliesCurrently()
+    => TestAsync(
+        csharpSource:
+        """
+                {|mapUsing:using System;|}
+                {|mapUsing2:using MyNamespace;|}
+                {|mapUsing3:using MyNamespace2;|}
+                class MyComponent : ComponentBase
+                {
+                    {|map1:public int Counter { get; set; }|}
+                }
+                """,
+        razorSource:
+        """
+            @page "/counter"
+            {|mapUsing:@using System|}
+
+            <p></p>
+
+            {|mapUsing2:@using MyNamespace|}
+
+            <p></p>
+
+            {|mapUsing3:@using MyNamespace2|}
+
+            @code {
+                {|map1:public int Counter { get; set; }|} 
+            }
+            """,
+        newCSharpSource:
+        """
+            class MyComponent : ComponentBase
+            {
+                public int NewCounter { get; set; }
+            }
+            """,
+        expectedRazorSource:
+        """
+            @page "/counter"
+
+            <p></p>
+
+
+            <p></p>
+
+
+            @code {
+                public int NewCounter { get; set; } 
+            }
+            """);
 
     private async Task TestAsync(
         TestCode csharpSource,

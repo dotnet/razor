@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
@@ -130,12 +131,13 @@ internal static partial class RazorEditHelper
 
         private void AddNewUsingChanges(RazorCodeDocument codeDocument, ImmutableArray<string> addedUsings, CancellationToken cancellationToken)
         {
-            var existingUsings = GetUsingsNodes(codeDocument, cancellationToken);
+            var (firstBlockOfUsings, remainingUsings) = GetGroupedUsings(codeDocument, cancellationToken);
             var razorSourceText = codeDocument.Source.Text;
 
             // If no usings are present then simply add all the usings as a block
-            if (existingUsings.Length == 0)
+            if (firstBlockOfUsings.Length == 0)
             {
+                Debug.Assert(remainingUsings.IsEmpty, "Should not have no first block but still have remaining usings");
                 var span = FindFirstTopLevelSpotForUsing(codeDocument);
                 var newText = GetUsingsText(usingDirectives: [], addedUsings, removedUsings: []);
                 _builder.Add(new TextEdit()
@@ -147,31 +149,7 @@ internal static partial class RazorEditHelper
                 return;
             }
 
-            // If usings are already present, find where to add new ones
-            // relative to existing ones
-            var sortedExistingUsings = existingUsings.OrderAsArray(UsingsNodeComparer.Instance);
-            var sortedAddedUsings = addedUsings.OrderAsArray(UsingsStringComparer.Instance);
-            using var _ = DictionaryBuilderPool<int, string>.GetPooledObject(out var indexToEditsMap);
-            foreach (var newUsing in sortedAddedUsings)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var absoluteIndex = GetInsertionPointNextToExistingUsing(sortedExistingUsings, newUsing, codeDocument);
-
-                indexToEditsMap.TryGetValue(absoluteIndex, out var newText);
-                indexToEditsMap[absoluteIndex] = newText + GetUsingsText(newUsing);
-            }
-
-            // Finally, add all the edits for the new usings text
-            foreach (var (index, newText) in indexToEditsMap)
-            {
-                var span = new TextSpan(index, 0);
-                _builder.Add(new TextEdit()
-                {
-                    Range = razorSourceText.GetRange(span),
-                    NewText = newText
-                });
-            }
+            AddNewUsingsToBlock(firstBlockOfUsings, addedUsings);
 
             static TextSpan FindFirstTopLevelSpotForUsing(RazorCodeDocument codeDocument)
             {
@@ -192,35 +170,70 @@ internal static partial class RazorEditHelper
                 return new TextSpan(start, 0);
             }
 
-            static int GetInsertionPointNextToExistingUsing(ImmutableArray<RazorDirectiveSyntax> existingUsings, string newUsing, RazorCodeDocument codeDocument)
+            void AddNewUsingsToBlock(ImmutableArray<RazorDirectiveSyntax> existingUsings, ImmutableArray<string> addedUsings)
             {
                 Debug.Assert(existingUsings.Length > 0);
+                using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-                for (var i = 0; i < existingUsings.Length; i++)
+                var orderedExistingUsings = existingUsings.OrderAsArray(UsingsNodeComparer.Instance);
+                var orderedAddedUsings = addedUsings.OrderAsArray(UsingsStringComparer.Instance);
+
+                var remainingExisting = orderedExistingUsings.AsSpan();
+                var remainingNew = orderedAddedUsings.AsSpan();
+
+                while (remainingExisting is not [] && remainingNew is not [])
                 {
-                    var directive = existingUsings[i];
-                    RazorSyntaxFacts.TryGetNamespaceFromDirective(directive, out var @namespace);
-                    var comparedValue = UsingsStringComparer.Instance.Compare(@namespace, newUsing);
+                    var currentDirective = remainingExisting[0];
+                    var nextNew = remainingNew[0];
 
-                    // New using goes before existing using
-                    if (comparedValue >= 0)
+                    RazorSyntaxFacts.TryGetNamespaceFromDirective(currentDirective, out var currentNamespace);
+                    var comparend = UsingsStringComparer.Instance.Compare(currentNamespace, nextNew);
+                    if (comparend < 0)
                     {
-                        return directive.Span.Start;
+                        // Current namespace goes before new namespace
+                        builder.AppendLine(currentDirective.GetContent());
+                        remainingExisting = remainingExisting[1..];
                     }
-                    // Last using and the new using goes after it
-                    else if (i == (existingUsings.Length - 1) && comparedValue < 0)
+                    else if (comparend > 0)
                     {
-                        return AdjustPositionToEndOfLine(directive.Span.End, codeDocument.Source.Text);
+                        // New namespace goes before current namespace
+                        builder.AppendLine(GetUsingsText(nextNew));
+                        remainingNew = remainingNew[1..];
                     }
+
+                    Debug.Assert(comparend != 0, "New namespace should never be an existing namespace");
                 }
 
-                return existingUsings[0].Span.Start;
+                Debug.Assert(remainingNew.IsEmpty || remainingExisting.IsEmpty, "Should have consumed all new or existing usings");
+
+                foreach (var directive in remainingExisting)
+                {
+                    builder.AppendLine(directive.GetContent());
+                }
+
+                foreach (var @namespace in remainingNew)
+                {
+                    builder.AppendLine(GetUsingsText(@namespace));
+                }
+
+                var startPosition = firstBlockOfUsings[0].Span.Start;
+                var endPosition = firstBlockOfUsings[^1].Span.End;
+
+                endPosition = AdjustPositionToEndOfLine(endPosition, codeDocument.Source.Text);
+
+                var span = TextSpan.FromBounds(startPosition, endPosition);
+                _builder.Add(new TextEdit()
+                {
+                    Range = codeDocument.Source.Text.GetRange(span),
+                    NewText = builder.ToString()
+                });
             }
         }
 
         private void AddRemoveUsingsChanges(RazorCodeDocument codeDocument, ImmutableArray<string> removedUsings, CancellationToken cancellationToken)
         {
-            var allUsingNodes = GetUsingsNodes(codeDocument, cancellationToken);
+            var (firstBlockOfUsings, remainingUsings) = GetGroupedUsings(codeDocument, cancellationToken);
+            var allUsingNodes = firstBlockOfUsings.Concat(remainingUsings);
             foreach (var node in allUsingNodes)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -243,89 +256,24 @@ internal static partial class RazorEditHelper
             Debug.Assert(addedUsings.Length > 0, "There should be at least one added using for complex changes");
             Debug.Assert(removedUsings.Length > 0, "There should be at least one removed using for complex changes");
 
-            var allUsingNodes = GetUsingsNodes(codeDocument, cancellationToken);
+            var (firstBlockOfUsings, remainingUsings) = GetGroupedUsings(codeDocument, cancellationToken);
 
-            AddUsingsChangesWithNodes(
-                    codeDocument,
-                    allUsingNodes,
-                    addedUsings,
-                    removedUsings,
-                    cancellationToken);
-        }
+            Debug.Assert(firstBlockOfUsings.Length > 0, "There should be at least one using directive in the first block");
 
-        private static ImmutableArray<RazorDirectiveSyntax> GetUsingsNodes(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
-        {
-            var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
-            using var usingsNodesBuilder = new PooledArrayBuilder<RazorDirectiveSyntax>();
-
-            foreach (var node in syntaxTreeRoot.DescendantNodes())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (node is RazorDirectiveSyntax razorDirective
-                    && razorDirective.IsUsingDirective(out var _))
-                {
-                    usingsNodesBuilder.Add(razorDirective);
-                }
-            }
-
-            return usingsNodesBuilder.DrainToImmutable();
-        }
-
-        private void AddUsingsChangesWithNodes(
-            RazorCodeDocument codeDocument,
-            ImmutableArray<RazorDirectiveSyntax> allUsingNodes,
-            ImmutableArray<string> newUsings,
-            ImmutableArray<string> removedUsings,
-            CancellationToken cancellationToken)
-        {
-            var startNode = allUsingNodes[0];
-            var endNode = startNode;
-
-            // It's not guaranteed that usings are continuous so this code has to account for that.
-            // The logic is as follows:
-            // All usings that are in a continuous block are bulk replaced with the set containing them and the new using directives.
-            // All usings outside of the continous block are checked to see if they need to be removed
-            using var nonContinuousUsingsToRemove = new PooledArrayBuilder<RazorDirectiveSyntax>(allUsingNodes.Length);
-            using var usingsNodesBuilder = new PooledArrayBuilder<RazorDirectiveSyntax>(allUsingNodes.Length);
-            usingsNodesBuilder.Add(startNode);
-            var allUsingsInContinuousBlock = true;
-
-            foreach (var node in allUsingNodes.Skip(1))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (allUsingsInContinuousBlock &&
-                    startNode.HasNextSibling(node))
-                {
-                    endNode = node;
-                    usingsNodesBuilder.Add(node);
-                }
-                else
-                {
-                    allUsingsInContinuousBlock = false;
-                    if (RazorSyntaxFacts.TryGetNamespaceFromDirective(node, out var @namespace)
-                        && removedUsings.Contains(@namespace))
-                    {
-                        nonContinuousUsingsToRemove.Add(node);
-                    }
-                }
-            }
-
-            var startPosition = startNode.Span.Start;
-            var endPosition = endNode.Span.End;
+            var startPosition = firstBlockOfUsings[0].Span.Start;
+            var endPosition = firstBlockOfUsings[^1].Span.End;
 
             endPosition = AdjustPositionToEndOfLine(endPosition, codeDocument.Source.Text);
 
             var span = TextSpan.FromBounds(startPosition, endPosition);
-            var newText = GetUsingsText(usingsNodesBuilder.ToImmutable(), newUsings, removedUsings);
+            var newText = GetUsingsText(firstBlockOfUsings, addedUsings, removedUsings);
             _builder.Add(new TextEdit()
             {
                 Range = codeDocument.Source.Text.GetRange(span),
                 NewText = newText
             });
 
-            foreach (var node in nonContinuousUsingsToRemove)
+            foreach (var node in remainingUsings)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 AddRemoveEdit(node, codeDocument.Source.Text);
@@ -370,7 +318,7 @@ internal static partial class RazorEditHelper
         }
 
         private static string GetUsingsText(string @namespace)
-            => $"@using {@namespace}{Environment.NewLine}";
+            => $"@using {@namespace}";
 
         private static string GetUsingsText(ImmutableArray<RazorDirectiveSyntax> usingDirectives, ImmutableArray<string> newUsings, ImmutableArray<string> removedUsings)
         {
@@ -424,7 +372,7 @@ internal static partial class RazorEditHelper
                 }
                 else
                 {
-                    builder.Append($"@using {@namespace}");
+                    builder.Append(GetUsingsText(@namespace));
                 }
 
                 if (appendNewLine)
@@ -432,6 +380,50 @@ internal static partial class RazorEditHelper
                     builder.AppendLine();
                 }
             }
+        }
+
+        private static (ImmutableArray<RazorDirectiveSyntax> firstBlockOfUsings, ImmutableArray<RazorDirectiveSyntax> remainingUsings) GetGroupedUsings(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        {
+            // It's not guaranteed that usings are continuous so this code has to account for that.
+            // The logic is as follows:
+            // All usings that are in a continuous block are bulk replaced with the set containing them and the new using directives.
+            // All usings outside of the continuous block are checked to see if they need to be removed
+
+            var syntaxTreeRoot = codeDocument.GetSyntaxTree().Root;
+            using var firstBlockOfUsingsBuilder = new PooledArrayBuilder<RazorDirectiveSyntax>();
+            using var remainingUsingsBuilder = new PooledArrayBuilder<RazorDirectiveSyntax>();
+            var allUsingsInSameBlock = true;
+
+            foreach (var node in syntaxTreeRoot.DescendantNodes())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (node is RazorDirectiveSyntax razorDirective
+                    && razorDirective.IsUsingDirective(out var _))
+                {
+                    if (!allUsingsInSameBlock)
+                    {
+                        remainingUsingsBuilder.Add(razorDirective);
+                        continue;
+                    }
+
+                    if (firstBlockOfUsingsBuilder.Count == 0)
+                    {
+                        firstBlockOfUsingsBuilder.Add(razorDirective);
+                    }
+                    else if (firstBlockOfUsingsBuilder[^1].IsNextTo(razorDirective, codeDocument.Source.Text))
+                    {
+                        firstBlockOfUsingsBuilder.Add(razorDirective);
+                    }
+                    else
+                    {
+                        remainingUsingsBuilder.Add(razorDirective);
+                        allUsingsInSameBlock = false;
+                    }
+                }
+            }
+
+            return (firstBlockOfUsingsBuilder.DrainToImmutable(), remainingUsingsBuilder.DrainToImmutable());
         }
     }
 }

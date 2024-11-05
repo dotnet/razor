@@ -80,8 +80,26 @@ internal static class RazorSyntaxNodeExtensions
         return false;
     }
 
-    public static bool HasNextSibling(this RazorSyntaxNode firstNode, RazorSyntaxNode secondNode)
-        => secondNode.TryGetPreviousSibling(out var previousSibling) && ReferenceEquals(previousSibling, firstNode);
+    /// <summary>
+    /// Determines if <paramref name="firstNode"/> is immediately followed by <paramref name="secondNode"/> in the source text ignoring whitespace.
+    /// </summary>
+    public static bool IsNextTo(this RazorSyntaxNode firstNode, RazorSyntaxNode secondNode, SourceText text)
+    {
+        var index = firstNode.Span.End;
+        var end = secondNode.Span.Start - 1;
+        var c = text[index];
+        while (char.IsWhiteSpace(c) || c == '\n')
+        {
+            if (index == end)
+            {
+                return true;
+            }
+
+            c = text[++index];
+        }
+
+        return false;
+    }
 
     public static bool ContainsOnlyWhitespace(this SyntaxNode node, bool includingNewLines = true)
     {
