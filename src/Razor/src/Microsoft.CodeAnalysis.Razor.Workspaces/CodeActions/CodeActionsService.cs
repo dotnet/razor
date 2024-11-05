@@ -279,12 +279,4 @@ internal class CodeActionsService(
 
         return availableCodeActionNames.ToImmutableHashSet();
     }
-
-    internal TestAccessor GetTestAccessor() => new(this);
-
-    internal readonly struct TestAccessor(CodeActionsService instance)
-    {
-        public Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot, bool supportsCodeActionResolve, CancellationToken cancellationToken)
-           => instance.GenerateRazorCodeActionContextAsync(request, documentSnapshot, delegatedDocumentUri: null, supportsCodeActionResolve, cancellationToken);
-    }
 }
