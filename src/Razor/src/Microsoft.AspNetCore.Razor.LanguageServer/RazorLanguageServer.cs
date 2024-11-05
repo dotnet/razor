@@ -128,7 +128,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
         services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
-        services.AddCompletionServices();
         services.AddFormattingServices(featureOptions);
         services.AddOptionsServices(_lspOptions);
         services.AddHoverServices();
@@ -140,6 +139,9 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddDiagnosticServices();
 
             services.AddCodeActionsServices();
+
+            // Completion
+            services.AddCompletionServices();
 
             // Auto insert
             services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();

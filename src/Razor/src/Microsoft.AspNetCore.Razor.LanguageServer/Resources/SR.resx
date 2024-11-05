@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Blazor_directive_attributes" xml:space="preserve">
-    <value>Blazor directive attributes</value>
-  </data>
   <data name="Changes" xml:space="preserve">
     <value>Changes:</value>
   </data>
@@ -129,16 +126,10 @@
   <data name="File_Externally_Modified" xml:space="preserve">
     <value>File was externally modified: {0}</value>
   </data>
-  <data name="ReTrigger_Completions_Title" xml:space="preserve">
-    <value>"Re-trigger completions..."</value>
-  </data>
   <data name="Unknown_ProjectChangeKind" xml:space="preserve">
     <value>Unknown ProjectChangeKind {0}</value>
   </data>
   <data name="Version_Should_Not_Be_Null" xml:space="preserve">
     <value>Provided version should not be null.</value>
-  </data>
-  <data name="Statement" xml:space="preserve">
-    <value>statement</value>
   </data>
 </root>

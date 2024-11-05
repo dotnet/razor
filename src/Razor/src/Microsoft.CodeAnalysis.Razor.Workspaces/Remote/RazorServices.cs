@@ -36,6 +36,7 @@ internal static class RazorServices
             (typeof(IRemoteRenameService), null),
             (typeof(IRemoteGoToImplementationService), null),
             (typeof(IRemoteDiagnosticsService), null),
+            (typeof(IRemoteCompletionService), null),
             (typeof(IRemoteCodeActionsService), null),
         ];
 
