@@ -90,6 +90,8 @@
     Versions below this comment are not managed by automation and can be changed as needed.
   -->
   <PropertyGroup Label="Manual">
+    <!-- Fix the analyzer code analysis version lower than the Roslyn we are referencing so we can still be built by older compilers -->
+    <MicrosoftCodeAnalysisPackageVersion_Analyzers>4.11.0</MicrosoftCodeAnalysisPackageVersion_Analyzers>
     <!-- dotnet/runtime packages -->
     <MicrosoftNETSdkRazorPackageVersion>6.0.0-alpha.1.21072.5</MicrosoftNETSdkRazorPackageVersion>
     <!--
