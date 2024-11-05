@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 /// Information that we need from a Roslyn compilation
 /// </summary>
 [DataContract]
-internal record CompilationInfo(
+internal readonly record struct CompilationInfo(
     [property: DataMember(Order = 0)]
     bool HasAddComponentParameter);
