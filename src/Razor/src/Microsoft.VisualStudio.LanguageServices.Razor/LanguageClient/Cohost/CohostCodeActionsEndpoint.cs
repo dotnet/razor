@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [ExportCohostStatelessLspService(typeof(CohostCodeActionsEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal class CohostCodeActionsEndpoint(
+internal sealed class CohostCodeActionsEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
