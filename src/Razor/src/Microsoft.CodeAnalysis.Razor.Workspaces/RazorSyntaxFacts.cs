@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -137,17 +138,19 @@ internal static class RazorSyntaxFacts
     public static bool IsInCodeBlock(RazorSyntaxNode n)
         => n.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is RazorDirectiveSyntax { DirectiveDescriptor.Directive: "code" }) is not null;
 
-    internal static string? TryGetNamespaceFromDirective(RazorDirectiveSyntax directiveNode)
+    internal static bool TryGetNamespaceFromDirective(RazorDirectiveSyntax directiveNode, [NotNullWhen(true)] out string? @namespace)
     {
         foreach (var child in directiveNode.DescendantNodes())
         {
             if (child.GetChunkGenerator() is AddImportChunkGenerator { IsStatic: false } usingStatement)
             {
-                return usingStatement.ParsedNamespace;
+                @namespace = usingStatement.ParsedNamespace;
+                return true;
             }
         }
 
-        return null;
+        @namespace = null;
+        return false;
     }
 
     internal static bool IsInUsingDirective(RazorSyntaxNode node)
@@ -158,7 +161,7 @@ internal static class RazorSyntaxFacts
 
         foreach (var directive in directives)
         {
-            if (TryGetNamespaceFromDirective(directive) is not null)
+            if (TryGetNamespaceFromDirective(directive, out var _))
             {
                 return true;
             }

@@ -189,7 +189,7 @@ internal static partial class RazorEditHelper
                 for (var i = 0; i < existingUsings.Length; i++)
                 {
                     var directive = existingUsings[i];
-                    var @namespace = RazorSyntaxFacts.TryGetNamespaceFromDirective(directive);
+                    RazorSyntaxFacts.TryGetNamespaceFromDirective(directive, out var @namespace);
                     var comparedValue = UsingsStringComparer.Instance.Compare(@namespace, newUsing);
 
                     // New using goes before existing using
@@ -215,7 +215,7 @@ internal static partial class RazorEditHelper
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var @namespace = RazorSyntaxFacts.TryGetNamespaceFromDirective(node);
+                RazorSyntaxFacts.TryGetNamespaceFromDirective(node, out var @namespace);
                 Debug.Assert(@namespace is not null);
                 if (removedUsings.Contains(@namespace))
                 {
@@ -294,7 +294,7 @@ internal static partial class RazorEditHelper
                 else
                 {
                     allUsingsInContinuousBlock = false;
-                    if (RazorSyntaxFacts.TryGetNamespaceFromDirective(node) is string @namespace
+                    if (RazorSyntaxFacts.TryGetNamespaceFromDirective(node, out var @namespace)
                         && removedUsings.Contains(@namespace))
                     {
                         nonContinuousUsingsToRemove.Add(node);
@@ -366,8 +366,7 @@ internal static partial class RazorEditHelper
 
             foreach (var directive in usingDirectives)
             {
-                var @namespace = RazorSyntaxFacts.TryGetNamespaceFromDirective(directive);
-                if (@namespace is not null)
+                if (RazorSyntaxFacts.TryGetNamespaceFromDirective(directive, out var @namespace))
                 {
                     usingsMap[@namespace] = directive;
                 }

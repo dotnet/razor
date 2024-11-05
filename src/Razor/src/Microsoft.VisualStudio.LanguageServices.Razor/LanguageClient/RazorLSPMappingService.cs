@@ -69,11 +69,6 @@ internal sealed class RazorLSPMappingService(
         SourceText sourceTextRazor,
         CancellationToken cancellationToken)
     {
-        if (spans is null)
-        {
-            throw new ArgumentNullException(nameof(spans));
-        }
-
         var projectedRanges = spans.Select(sourceTextGenerated.GetRange).ToArray();
 
         var mappedResult = await _lspDocumentMappingProvider.MapToDocumentRangesAsync(
@@ -120,14 +115,15 @@ internal sealed class RazorLSPMappingService(
 
     public TestAccessor GetTestAccessor() => new(this);
 
-    public class TestAccessor(RazorLSPMappingService instance)
+    public readonly struct TestAccessor(RazorLSPMappingService instance)
     {
         public async Task<IEnumerable<(string filePath, LinePositionSpan linePositionSpan, TextSpan span)>> MapSpansAsync(
             IEnumerable<TextSpan> spans,
             SourceText sourceTextGenerated,
-            SourceText sourceTextRazor)
+            SourceText sourceTextRazor,
+            CancellationToken cancellationToken)
         {
-            var result = await instance.MapSpansAsync(spans, sourceTextGenerated, sourceTextRazor, cancellationToken: default).ConfigureAwait(false);
+            var result = await instance.MapSpansAsync(spans, sourceTextGenerated, sourceTextRazor, cancellationToken).ConfigureAwait(false);
             return result.Select(static mappedResult => (mappedResult.FilePath, mappedResult.LinePositionSpan, mappedResult.Span));
         }
     }

@@ -5,27 +5,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
-public class RazorLSPSMappingServiceTest : ToolingTestBase
+public class RazorLSPMappingServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
 
@@ -34,6 +29,7 @@ public class RazorLSPSMappingServiceTest : ToolingTestBase
              This is the source text in the generated C# file.
              This is some more sample text for demo purposes.
             """;
+
     private static readonly string s_mockRazorContent = """
             Hello
              This is the
@@ -42,15 +38,8 @@ public class RazorLSPSMappingServiceTest : ToolingTestBase
              This is some more sample text for demo purposes.
             """;
 
-    private readonly SourceText _sourceTextGenerated;
-    private readonly SourceText _sourceTextRazor;
-
-    public RazorLSPSMappingServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
-        _sourceTextRazor = SourceText.From(s_mockRazorContent);
-    }
+    private static readonly SourceText _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
+    private static readonly SourceText _sourceTextRazor = SourceText.From(s_mockRazorContent);
 
     [Fact]
     public async Task MapSpans_WithinRange_ReturnsMapping()
@@ -59,7 +48,7 @@ public class RazorLSPSMappingServiceTest : ToolingTestBase
         var textSpan = new TextSpan(1, 10);
         var spans = new TextSpan[] { textSpan };
 
-        var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
+        var documentSnapshot = new StrictMock<LSPDocumentSnapshot>();
         documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
         documentSnapshot.SetupGet(doc => doc.Snapshot).Returns(new StringTextSnapshot(_sourceTextRazor.ToString()));
 
@@ -95,7 +84,7 @@ public class RazorLSPSMappingServiceTest : ToolingTestBase
         var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 
         // Act
-        var result = await service.GetTestAccessor().MapSpansAsync(spans, _sourceTextGenerated, _sourceTextRazor);
+        var result = await service.GetTestAccessor().MapSpansAsync(spans, _sourceTextGenerated, _sourceTextRazor, DisposalToken);
 
         // Assert
         Assert.Single(result, expectedResult);
@@ -108,7 +97,7 @@ public class RazorLSPSMappingServiceTest : ToolingTestBase
         var textSpan = new TextSpan(10, 10);
         var spans = new TextSpan[] { textSpan };
 
-        var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
+        var documentSnapshot = new StrictMock<LSPDocumentSnapshot>();
         documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
         documentSnapshot.SetupGet(doc => doc.Snapshot).Returns(new StringTextSnapshot(_sourceTextRazor.ToString()));
 
@@ -134,7 +123,7 @@ public class RazorLSPSMappingServiceTest : ToolingTestBase
         var service = new RazorLSPMappingService(documentMappingProvider, documentSnapshot.Object, textSnapshot);
 
         // Act
-        var result = await service.GetTestAccessor().MapSpansAsync(spans, _sourceTextGenerated, _sourceTextRazor);
+        var result = await service.GetTestAccessor().MapSpansAsync(spans, _sourceTextGenerated, _sourceTextRazor, DisposalToken);
 
         // Assert
         Assert.Empty(result);
@@ -151,6 +140,7 @@ public class RazorLSPSMappingServiceTest : ToolingTestBase
         var results = RazorLSPSpanMappingService.GetMappedSpanResults(_mockDocumentUri.LocalPath, sourceTextRazor, response);
 
         // Assert
-        Assert.True(results.Single().IsDefault);
+        Assert.Collection(results,
+            static mappingResult => Assert.True(mappingResult.IsDefault));
     }
 }

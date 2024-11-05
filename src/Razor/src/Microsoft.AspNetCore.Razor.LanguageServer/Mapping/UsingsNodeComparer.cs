@@ -22,8 +22,8 @@ internal sealed class UsingsNodeComparer : IComparer<RazorDirectiveSyntax>
             return 1;
         }
 
-        var xNamespace = RazorSyntaxFacts.TryGetNamespaceFromDirective(x);
-        var yNamespace = RazorSyntaxFacts.TryGetNamespaceFromDirective(y);
+        RazorSyntaxFacts.TryGetNamespaceFromDirective(x, out var xNamespace);
+        RazorSyntaxFacts.TryGetNamespaceFromDirective(y, out var yNamespace);
 
         return UsingsStringComparer.Instance.Compare(xNamespace, yNamespace);
     }

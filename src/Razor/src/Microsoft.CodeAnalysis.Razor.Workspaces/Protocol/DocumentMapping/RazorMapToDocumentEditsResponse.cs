@@ -2,14 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Text.Json.Serialization;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 
-internal class RazorMapToDocumentRangesResponse
+internal sealed record class RazorMapToDocumentEditsResponse
 {
-    [JsonPropertyName("ranges")]
-    public required Range[] Ranges { get; init; }
+    [JsonPropertyName("edits")]
+    public required TextChange[] Edits { get; init; }
 
     [JsonPropertyName("hostDocumentVersion")]
     public int? HostDocumentVersion { get; init; }
