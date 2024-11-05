@@ -46,8 +46,8 @@ internal static class DelegatedCompletionHelper
         Debug.Assert(languageKind != RazorLanguageKind.Razor,
             $"{nameof(RewriteContext)} should be called for delegated completion only");
 
-        if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
-            context.TriggerCharacter is not { } triggerCharacter)
+        if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter
+            || context.TriggerCharacter is not { } triggerCharacter)
         {
             // Non-triggered based completion, the existing context is valid.
             return context;

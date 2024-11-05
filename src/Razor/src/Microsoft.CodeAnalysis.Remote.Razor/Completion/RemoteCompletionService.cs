@@ -69,7 +69,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 DocumentMappingService,
                 cancellationToken)
                 .ConfigureAwait(false) is { } provisionalCompletionInfo)
-
         {
             return new CompletionPositionInfo(
                 provisionalCompletionInfo.ProvisionalTextEdit,
@@ -118,14 +117,14 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         {
             var mappedPosition = documentPositionInfo.Position;
             csharpCompletionList = await GetCSharpCompletionAsync(
-                    remoteDocumentContext,
-                    documentPositionInfo.HostDocumentIndex,
-                    mappedPosition,
-                    positionInfo.ProvisionalTextEdit,
-                    completionContext,
-                    razorCompletionOptions,
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                remoteDocumentContext,
+                documentPositionInfo.HostDocumentIndex,
+                mappedPosition,
+                positionInfo.ProvisionalTextEdit,
+                completionContext,
+                razorCompletionOptions,
+                cancellationToken)
+                .ConfigureAwait(false);
 
             if (csharpCompletionList is not null)
             {
