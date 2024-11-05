@@ -183,6 +183,7 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<DocumentDidSaveEndpoint>();
 
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();
+        services.AddHandler<RazorMapToDocumentEditsEndpoint>();
         services.AddHandler<RazorLanguageQueryEndpoint>();
     }
 
