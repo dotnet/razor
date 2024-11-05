@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -32,6 +33,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
     private readonly DelegatedCompletionParams _htmlCompletionParams;
     private readonly IDocumentContextFactory _documentContextFactory;
     private readonly AsyncLazy<IRazorFormattingService> _formattingService;
+    private readonly RazorCompletionOptions _defaultRazorCompletionOptions;
 
     public DelegatedCompletionItemResolverTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -71,6 +73,10 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
 
         _documentContextFactory = new TestDocumentContextFactory();
         _formattingService = new AsyncLazy<IRazorFormattingService>(() => TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory));
+        _defaultRazorCompletionOptions = new RazorCompletionOptions(
+            SnippetsSupported: true,
+            AutoInsertAttributeQuotes: true,
+            CommitElementsWithSpace: true);
     }
 
     [Fact]
@@ -277,7 +283,13 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         var provider = TestDelegatedCompletionListProvider.Create(csharpServer, LoggerFactory, DisposalToken);
 
         var completionList = await provider.GetCompletionListAsync(
-            cursorPosition, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
+            cursorPosition,
+            completionContext,
+            documentContext,
+            _clientCapabilities,
+            _defaultRazorCompletionOptions,
+            correlationId: Guid.Empty,
+            cancellationToken: DisposalToken);
 
         return (completionList, provider.DelegatedParams);
     }
