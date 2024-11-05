@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Text.Adornments;
@@ -89,6 +90,9 @@ internal static class AssertExtensions
 
     public static Action<ClassifiedTextRun> Text(string text)
         => Run(text, ClassificationTypeNames.Text);
+
+    public static Action<ClassifiedTextRun> Type(string text)
+        => Run(text, ClassifiedTagHelperTooltipFactory.TypeClassificationName);
 
     public static Action<ClassifiedTextRun> WhiteSpace(string text)
         => Run(text, ClassificationTypeNames.WhiteSpace);

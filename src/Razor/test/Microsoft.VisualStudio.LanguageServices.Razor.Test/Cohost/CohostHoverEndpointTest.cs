@@ -50,6 +50,34 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
+    [Fact]
+    public async Task RazorPageTitle()
+    {
+        TestCode code = """
+            <[|PageT$$itle|]></PageTitle>
+            """;
+
+        await VerifyHoverAsync(code, async (hover, document) =>
+        {
+            await hover.VerifyRangeAsync(code.Span, document);
+
+            hover.VerifyRawContent(
+                Container(
+                    Container(
+                        Image,
+                        ClassifiedText(
+                            Text("Microsoft"),
+                            Punctuation("."),
+                            Text("AspNetCore"),
+                            Punctuation("."),
+                            Text("Components"),
+                            Punctuation("."),
+                            Text("Web"),
+                            Punctuation("."),
+                            Type("PageTitle")))));
+        });
+    }
+
     private async Task VerifyHoverAsync(TestCode input, Func<RoslynHover, TextDocument, Task> verifyHover)
     {
         var document = await CreateProjectAndRazorDocumentAsync(input.Text);
