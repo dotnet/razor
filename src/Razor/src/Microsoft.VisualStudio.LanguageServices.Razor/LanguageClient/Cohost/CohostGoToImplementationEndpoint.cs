@@ -48,7 +48,7 @@ internal sealed class CohostGoToImplementationEndpoint(
             return [new Registration
             {
                 Method = Methods.TextDocumentImplementationName,
-                RegisterOptions = new ImplementationOptions()
+                RegisterOptions = new ImplementationRegistrationOptions()
             }];
         }
 

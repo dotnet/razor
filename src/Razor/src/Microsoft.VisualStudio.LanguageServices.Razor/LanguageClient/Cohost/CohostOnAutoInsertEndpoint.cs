@@ -74,7 +74,7 @@ internal class CohostOnAutoInsertEndpoint(
             return [new Registration
             {
                 Method = VSInternalMethods.OnAutoInsertName,
-                RegisterOptions = new VSInternalDocumentOnAutoInsertOptions()
+                RegisterOptions = new VSInternalDocumentOnAutoInsertRegistrationOptions()
                     .EnableOnAutoInsert(_triggerCharacters)
             }];
         }

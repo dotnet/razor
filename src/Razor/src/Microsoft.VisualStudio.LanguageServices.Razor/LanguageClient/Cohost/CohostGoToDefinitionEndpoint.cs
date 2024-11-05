@@ -52,7 +52,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
             return [new Registration
             {
                 Method = Methods.TextDocumentDefinitionName,
-                RegisterOptions = new DefinitionOptions()
+                RegisterOptions = new DefinitionRegistrationOptions()
             }];
         }
 
