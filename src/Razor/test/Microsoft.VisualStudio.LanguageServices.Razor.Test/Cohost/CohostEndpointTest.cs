@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -27,6 +28,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost;
 
 public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {
+    [Fact]
+    public void EndpointsHaveUniqueLSPMethods()
+    {
+        var methods = new Dictionary<string, Type>();
+
+        var endpoints = typeof(CohostColorPresentationEndpoint).Assembly.GetTypes()
+            .Where(t => t.GetCustomAttribute<CohostEndpointAttribute>() != null)
+            .Select(t => (t, t.GetCustomAttribute<CohostEndpointAttribute>().Method));
+
+        foreach (var (endpointType, method) in endpoints)
+        {
+            if (methods.TryGetValue(method, out var existing))
+            {
+                Assert.Fail($"Could not register {endpointType.Name} for {method} because {existing.Name} already has.");
+            }
+
+            methods.Add(method, endpointType);
+        }
+    }
+
     [Fact]
     public void RegistrationsProvideFilter()
     {
