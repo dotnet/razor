@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.Razor;
 
-internal sealed partial class RoslynProjectChangeProcessor
+internal sealed partial class ProjectWorkspaceStateGenerator
 {
     private sealed class UpdateItem
     {

@@ -77,7 +77,7 @@ public class StreamExtensionTests
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tag-name"))
             .Build();
 
-        var projectWorkspaceState = ProjectWorkspaceState.Create([tagHelper]);
+        var projectWorkspaceState = ProjectWorkspaceState.Create([tagHelper], CodeAnalysis.CSharp.LanguageVersion.Latest);
 
         var projectInfo = new RazorProjectInfo(
             new ProjectKey("TestProject"),
