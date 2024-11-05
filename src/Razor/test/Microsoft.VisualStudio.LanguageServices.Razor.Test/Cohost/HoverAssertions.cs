@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal static class AssertExtensions
+internal static class HoverAssertions
 {
     public static async Task VerifyRangeAsync(this Hover hover, TextSpan expected, TextDocument document)
     {

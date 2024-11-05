@@ -14,14 +14,69 @@ using RoslynHover = Roslyn.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-using static AssertExtensions;
+using static HoverAssertions;
 
 public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
-    public async Task CSharpLocalVariable()
+    public async Task Razor()
     {
         TestCode code = """
+            <[|PageTi$$tle|]></PageTitle>
+            <div></div>
+            
+            @{
+                var myVariable = "Hello";
+            
+                var length = myVariable.Length;
+            }
+            """;
+
+        await VerifyHoverAsync(code, async (hover, document) =>
+        {
+            await hover.VerifyRangeAsync(code.Span, document);
+
+            hover.VerifyRawContent(
+                Container(
+                    Container(
+                        Image,
+                        ClassifiedText(
+                            Text("Microsoft"),
+                            Punctuation("."),
+                            Text("AspNetCore"),
+                            Punctuation("."),
+                            Text("Components"),
+                            Punctuation("."),
+                            Text("Web"),
+                            Punctuation("."),
+                            Type("PageTitle")))));
+        });
+    }
+
+    [Fact]
+    public async Task Html()
+    {
+        TestCode code = """
+            <PageTitle></PageTitle>
+            <div$$></div>
+            
+            @{
+                var myVariable = "Hello";
+            
+                var length = myVariable.Length;
+            }
+            """;
+
+        var htmlResponse = new VSInternalHover();
+
+        await VerifyHoverAsync(code, htmlResponse, h => Assert.Same(htmlResponse, h));
+    }
+
+    [Fact]
+    public async Task CSharp()
+    {
+        TestCode code = """
+            <PageTitle></PageTitle>
             <div></div>
 
             @{
@@ -50,34 +105,6 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
-    [Fact]
-    public async Task RazorPageTitle()
-    {
-        TestCode code = """
-            <[|PageT$$itle|]></PageTitle>
-            """;
-
-        await VerifyHoverAsync(code, async (hover, document) =>
-        {
-            await hover.VerifyRangeAsync(code.Span, document);
-
-            hover.VerifyRawContent(
-                Container(
-                    Container(
-                        Image,
-                        ClassifiedText(
-                            Text("Microsoft"),
-                            Punctuation("."),
-                            Text("AspNetCore"),
-                            Punctuation("."),
-                            Text("Components"),
-                            Punctuation("."),
-                            Text("Web"),
-                            Punctuation("."),
-                            Type("PageTitle")))));
-        });
-    }
-
     private async Task VerifyHoverAsync(TestCode input, Func<RoslynHover, TextDocument, Task> verifyHover)
     {
         var document = await CreateProjectAndRazorDocumentAsync(input.Text);
@@ -90,12 +117,24 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         await verifyHover(hover, document);
     }
 
-    private async Task<SumType<RoslynHover, Hover>?> GetHoverResultAsync(TextDocument document, TestCode input)
+    private async Task VerifyHoverAsync(TestCode input, Hover htmlResponse, Action<Hover?> verifyHover)
+    {
+        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var result = await GetHoverResultAsync(document, input, htmlResponse);
+
+        Assert.NotNull(result);
+        var value = result.GetValueOrDefault();
+
+        Assert.True(value.TryGetSecond(out var hover));
+        verifyHover(hover);
+    }
+
+    private async Task<SumType<RoslynHover, Hover>?> GetHoverResultAsync(TextDocument document, TestCode input, Hover? htmlResponse = null)
     {
         var inputText = await document.GetTextAsync(DisposalToken);
         var linePosition = inputText.GetLinePosition(input.Position);
 
-        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentHoverName, null)]);
+        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentHoverName, htmlResponse)]);
         var endpoint = new CohostHoverEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker);
 
         var textDocumentPositionParams = new TextDocumentPositionParams
