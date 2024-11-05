@@ -31,11 +31,11 @@ internal static partial class RazorEditHelper
         ImmutableArray<TextChange> textEdits,
         IDocumentSnapshot snapshot,
         RazorCodeDocument codeDocument,
-        IDocumentMappingService _documentMappingService,
+        IDocumentMappingService documentMappingService,
         ITelemetryReporter? telemetryReporter,
         CancellationToken cancellationToken)
     {
-        using var textChangeBuilder = new TextChangeBuilder(_documentMappingService);
+        using var textChangeBuilder = new TextChangeBuilder(documentMappingService);
         var originalSyntaxTree =  await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var csharpSourceText = await originalSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var newText = csharpSourceText.WithChanges(textEdits);

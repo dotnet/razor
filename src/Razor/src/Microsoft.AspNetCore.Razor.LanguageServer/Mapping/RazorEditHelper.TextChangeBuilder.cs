@@ -24,11 +24,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
 internal static partial class RazorEditHelper
 {
-    private class TextChangeBuilder(IDocumentMappingService documentMapping) : IDisposable
+    private class TextChangeBuilder(IDocumentMappingService documentMappingService) : IDisposable
     {
         private static readonly ObjectPool<ImmutableArray<TextChange>.Builder> Pool = ArrayBuilderPool<TextChange>.Default;
         private readonly ImmutableArray<TextChange>.Builder _builder = Pool.Get();
-        private readonly IDocumentMappingService _documentMappingService = documentMapping;
+        private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
         public void Dispose()
         {
