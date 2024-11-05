@@ -60,16 +60,9 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
             };
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (codeDocument.IsUnsupported())
-        {
-            return null;
-        }
-
         var mappedEdits = await RazorEditHelper.MapCSharpEditsAsync(
             request.TextEdits.ToImmutableArray(),
             documentContext.Snapshot,
-            codeDocument,
             _documentMappingService,
             _telemetryReporter,
             cancellationToken).ConfigureAwait(false);

@@ -515,6 +515,51 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
         """);
 
     [Fact]
+    public Task UsingAliasAdded_HandledCorrectly()
+        => TestAsync(
+        csharpSource:
+        """
+        {|mapUsing:using System;|}
+        {|mapUsing2:using System.Collections.Generic;|}
+        class MyComponent : ComponentBase
+        {
+            {|map1:public int Counter { get; set; }|}
+        }
+        """,
+        razorSource:
+        """
+        @page "/counter"
+        {|mapUsing:@using System|}
+        {|mapUsing2:@using System.Collections.Generic|}
+
+        @code {
+            {|map1:public int Counter { get; set; }|} 
+        }
+        """,
+        newCSharpSource:
+        """
+        using System;
+        using System.Collections.Generic;
+        using Goo = Bar;
+
+        class MyComponent : ComponentBase
+        {
+            public int NewCounter { get; set; }
+        }
+        """,
+        expectedRazorSource:
+        """
+        @page "/counter"
+        @using System
+        @using System.Collections.Generic
+        @using Goo = Bar
+
+        @code {
+            public int NewCounter { get; set; } 
+        }
+        """);
+
+    [Fact]
     public Task AddUsingMultipleUsingGroups_AppliesCurrently()
         => TestAsync(
             csharpSource:

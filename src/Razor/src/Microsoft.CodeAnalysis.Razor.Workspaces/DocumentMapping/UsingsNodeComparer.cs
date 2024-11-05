@@ -3,9 +3,8 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal sealed class UsingsNodeComparer : IComparer<RazorDirectiveSyntax>
 {

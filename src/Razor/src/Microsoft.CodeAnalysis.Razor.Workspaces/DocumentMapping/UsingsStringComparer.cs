@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal sealed class UsingsStringComparer : IComparer<string>
 {

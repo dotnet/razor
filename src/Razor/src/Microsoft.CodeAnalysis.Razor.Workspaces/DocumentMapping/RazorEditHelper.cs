@@ -8,17 +8,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal static partial class RazorEditHelper
 {
@@ -31,12 +30,14 @@ internal static partial class RazorEditHelper
     internal static async Task<ImmutableArray<TextEdit>> MapCSharpEditsAsync(
         ImmutableArray<TextEdit> textEdits,
         IDocumentSnapshot snapshot,
-        RazorCodeDocument codeDocument,
         IDocumentMappingService documentMappingService,
         ITelemetryReporter telemetryReporter,
         CancellationToken cancellationToken)
     {
+
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         using var textChangeBuilder = new TextChangeBuilder(documentMappingService);
+
         var originalSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var csharpSourceText = await originalSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -79,7 +80,7 @@ internal static partial class RazorEditHelper
     {
         // Ensure that the changes are sorted by start position otherwise
         // the normalization logic will not work.
-        Debug.Assert(changes.SequenceEqual(changes.OrderBy(static c => c.Range, RangComparer.Instance)));
+        Debug.Assert(changes.SequenceEqual(changes.OrderBy(static c => c.Range, RangeComparer.Instance)));
 
         using var normalizedEdits = new PooledArrayBuilder<TextEdit>(changes.Length);
         var remaining = changes.AsSpan();

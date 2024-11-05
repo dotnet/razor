@@ -4,11 +4,11 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
 
-internal class RangComparer : IComparer<Range>
+internal sealed class RangeComparer : IComparer<Range>
 {
-    public static readonly RangComparer Instance = new();
+    public static readonly RangeComparer Instance = new();
 
     public int Compare(Range? x, Range? y)
     {
@@ -22,16 +22,6 @@ internal class RangComparer : IComparer<Range>
             return -1;
         }
 
-        if (x.Start.Line < y.Start.Line)
-        {
-            return -1;
-        }
-
-        if (x.Start.Line > y.Start.Line)
-        {
-            return 1;
-        }
-
-        return x.Start.Character - y.Start.Character;
+        return x.CompareTo(y);
     }
 }

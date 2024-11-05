@@ -13,14 +13,12 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
+namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal static partial class RazorEditHelper
 {
@@ -36,7 +34,7 @@ internal static partial class RazorEditHelper
         }
 
         public ImmutableArray<TextEdit> DrainToOrderedImmutable()
-            => _builder.DrainToImmutableOrderedBy(e => e.Range, RangComparer.Instance);
+            => _builder.DrainToImmutableOrderedBy(e => e.Range, RangeComparer.Instance);
 
         /// <summary>
         /// For all edits that are not mapped to using directives, add them directly to the builder.
@@ -62,7 +60,7 @@ internal static partial class RazorEditHelper
                 }
 
                 var mappedSpan = razorText.GetTextSpan(mappedLinePositionSpan);
-                var node = root.FindNode(mappedSpan);
+                var node = root.FindNode(mappedSpan, getInnermostNodeForTie: true);
                 if (node is null)
                 {
                     continue;
