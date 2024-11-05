@@ -12,6 +12,11 @@
         <target state="translated">Utwórz składnik z tagu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blazor_directive_attributes">
+        <source>Blazor directive attributes</source>
+        <target state="new">Blazor directive attributes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Diagnostics_after">
         <source>Diagnostics after:</source>
         <target state="translated">Diagnostyka po:</target>
@@ -99,6 +104,11 @@
         <target state="translated">Wykonano zapytanie wiersza "{0}" poza zakresem {1} "{2}". Dokument może być nieaktualny.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="new">statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Symbol atrybutu pomocnika tagów składni Razor</target>
@@ -107,6 +117,11 @@
       <trans-unit id="TagHelper_Element_Glyph">
         <source>Razor TagHelper Element Glyph</source>
         <target state="translated">Symbol elementu pomocnika tagów składni Razor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="new">"Re-trigger completions..."</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
