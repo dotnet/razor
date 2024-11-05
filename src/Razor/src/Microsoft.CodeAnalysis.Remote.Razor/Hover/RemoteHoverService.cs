@@ -59,67 +59,61 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
         }
 
         var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
-
         var positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex, preferCSharpOverHtml: true);
+
+        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
+        {
+            var generatedDocument = await context.Snapshot
+                .GetGeneratedDocumentAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var csharpHover = await ExternalHandlers.Hover
+                .GetHoverAsync(
+                    generatedDocument,
+                    positionInfo.Position.ToLinePosition(),
+                    clientCapabilities.SupportsVisualStudioExtensions(),
+                    clientCapabilities.SupportsMarkdown(),
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            // Roslyn couldn't provide a hover, so we're done.
+            if (csharpHover is null)
+            {
+                return NoFurtherHandling;
+            }
+
+            // Map the hover range back to the host document
+            if (csharpHover.Range is { } range &&
+                DocumentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range.ToLinePositionSpan(), out var hostDocumentSpan))
+            {
+                csharpHover.Range = RoslynLspFactory.CreateRange(hostDocumentSpan);
+            }
+
+            return Results(csharpHover);
+        }
 
         if (positionInfo.LanguageKind is RazorLanguageKind.Html or RazorLanguageKind.Razor)
         {
-            // Sometimes what looks like a html attribute can actually map to C#, in which case its better to let Roslyn try to handle this.
-            if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out _, out _))
+            // If this is Html or Razor, try to retrieve a hover from Razor.
+            var options = HoverDisplayOptions.From(clientCapabilities);
+
+            var razorHover = await HoverFactory
+                .GetHoverAsync(codeDocument, hostDocumentIndex, options, context.GetSolutionQueryOperations(), cancellationToken)
+                .ConfigureAwait(false);
+
+            // Roslyn couldn't provide a hover, so we're done.
+            if (razorHover is null)
             {
-                // Acquire from client capabilities
-                var options = HoverDisplayOptions.From(clientCapabilities);
-
-                var razorHover = await HoverFactory
-                    .GetHoverAsync(codeDocument, hostDocumentIndex, options, context.GetSolutionQueryOperations(), cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (razorHover is null)
-                {
-                    return CallHtml;
-                }
-
-                // Ensure that we convert our Hover to a Roslyn Hover.
-                var resultHover = ConvertHover(razorHover);
-
-                return Results(resultHover);
+                return CallHtml;
             }
+
+            // Ensure that we convert our Hover to a Roslyn Hover.
+            var resultHover = ConvertHover(razorHover);
+
+            return Results(resultHover);
         }
 
-        var csharpDocument = codeDocument.GetCSharpDocument();
-        if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, positionInfo.HostDocumentIndex, out var mappedPosition, out _))
-        {
-            // If we can't map to the generated C# file, we're done.
-            return NoFurtherHandling;
-        }
-
-        // Finally, call into C#.
-        var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        var csharpHover = await ExternalHandlers.Hover
-            .GetHoverAsync(
-                generatedDocument,
-                mappedPosition,
-                clientCapabilities.SupportsVisualStudioExtensions(),
-                clientCapabilities.SupportsMarkdown(),
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        if (csharpHover is null)
-        {
-            return NoFurtherHandling;
-        }
-
-        // Map range back to host document
-        if (csharpHover.Range is { } range &&
-            DocumentMappingService.TryMapToHostDocumentRange(csharpDocument, range.ToLinePositionSpan(), out var hostDocumentSpan))
-        {
-            csharpHover.Range = RoslynLspFactory.CreateRange(hostDocumentSpan);
-        }
-
-        return Results(csharpHover);
+        return NoFurtherHandling;
     }
 
     /// <summary>
