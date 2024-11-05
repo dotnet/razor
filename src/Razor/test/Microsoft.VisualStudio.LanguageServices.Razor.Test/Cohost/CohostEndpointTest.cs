@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -80,8 +79,6 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
             },
         };
 
-        var filter = new[] { new DocumentFilter() { Pattern = "*.razor" } };
-
         foreach (var endpoint in providers)
         {
             if (endpoint is CohostSemanticTokensRangeEndpoint)
@@ -91,7 +88,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
                 continue;
             }
 
-            var registrations = endpoint.GetRegistrations(clientCapabilities, filter, requestContext: new());
+            var registrations = endpoint.GetRegistrations(clientCapabilities, requestContext: new());
 
             // If we didn't get any registrations then the test is probably invalid, and we need to update client capabilities above
             if (registrations.Length == 0)
