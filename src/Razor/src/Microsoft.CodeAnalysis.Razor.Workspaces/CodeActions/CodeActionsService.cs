@@ -107,20 +107,6 @@ internal sealed class CodeActionsService(
 
         var sourceText = codeDocument.Source.Text;
 
-        // VS Provides `CodeActionParams.Context.SelectionRange` in addition to
-        // `CodeActionParams.Range`. The `SelectionRange` is relative to where the
-        // code action was invoked (ex. line 14, char 3) whereas the `Range` is
-        // always at the start of the line (ex. line 14, char 0). We want to utilize
-        // the relative positioning to ensure we provide code actions for the appropriate
-        // context.
-        //
-        // Note: VS Code doesn't provide a `SelectionRange`.
-        var vsCodeActionContext = request.Context;
-        if (vsCodeActionContext.SelectionRange != null)
-        {
-            request.Range = vsCodeActionContext.SelectionRange;
-        }
-
         if (!sourceText.TryGetAbsoluteIndex(request.Range.Start, out var startLocation))
         {
             return null;
@@ -289,13 +275,5 @@ internal sealed class CodeActionsService(
         availableCodeActionNames.Add(LanguageServerConstants.CodeActions.CodeActionFromVSCode);
 
         return availableCodeActionNames.ToImmutableHashSet();
-    }
-
-    internal TestAccessor GetTestAccessor() => new(this);
-
-    internal readonly struct TestAccessor(CodeActionsService instance)
-    {
-        public Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot, bool supportsCodeActionResolve, CancellationToken cancellationToken)
-           => instance.GenerateRazorCodeActionContextAsync(request, documentSnapshot, supportsCodeActionResolve, cancellationToken);
     }
 }
