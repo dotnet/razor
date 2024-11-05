@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using static Microsoft.AspNetCore.Razor.LanguageServer.Mapping.RazorMapToDocumentEditsEndpoint;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
@@ -26,8 +25,8 @@ internal static partial class RazorEditHelper
 {
     private class TextChangeBuilder(IDocumentMappingService documentMappingService) : IDisposable
     {
-        private static readonly ObjectPool<ImmutableArray<TextChange>.Builder> Pool = ArrayBuilderPool<TextChange>.Default;
-        private readonly ImmutableArray<TextChange>.Builder _builder = Pool.Get();
+        private static readonly ObjectPool<ImmutableArray<TextEdit>.Builder> Pool = ArrayBuilderPool<TextEdit>.Default;
+        private readonly ImmutableArray<TextEdit>.Builder _builder = Pool.Get();
         private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
         public void Dispose()
@@ -35,28 +34,26 @@ internal static partial class RazorEditHelper
             Pool.Return(_builder);
         }
 
-        public ImmutableArray<TextChange> DrainToOrderedImmutable()
-            => _builder.DrainToImmutableOrderedBy(e => e.Span.Start);
+        public ImmutableArray<TextEdit> DrainToOrderedImmutable()
+            => _builder.DrainToImmutableOrderedBy(e => e.Range, RangComparer.Instance);
 
         /// <summary>
         /// For all edits that are not mapped to using directives, add them directly to the builder.
         /// Edits that are not mapped are skipped, and using directive changes are handled by <see cref="AddUsingsChanges(RazorCodeDocument, ImmutableArray{string}, ImmutableArray{string}, CancellationToken)"/>
         /// </summary>
-        public void AddDirectlyMappedChanges(ImmutableArray<TextChange> edits, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        public void AddDirectlyMappedEdits(ImmutableArray<TextEdit> edits, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
         {
             var root = codeDocument.GetSyntaxTree().Root;
             var razorText = codeDocument.Source.Text;
             var csharpDocument = codeDocument.GetCSharpDocument();
-            var csharpText = csharpDocument.GetGeneratedSourceText();
+
             foreach (var edit in edits)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var linePositionSpan = csharpText.GetLinePositionSpan(edit.Span);
-
                 if (!_documentMappingService.TryMapToHostDocumentRange(
                     csharpDocument,
-                    linePositionSpan,
+                    edit.Range.ToLinePositionSpan(),
                     MappingBehavior.Strict,
                     out var mappedLinePositionSpan))
                 {
@@ -75,7 +72,11 @@ internal static partial class RazorEditHelper
                     continue;
                 }
 
-                var mappedEdit = new TextChange(mappedSpan, edit.NewText ?? "");
+                var mappedEdit = new TextEdit()
+                {
+                    Range = mappedLinePositionSpan.ToRange(),
+                    NewText = edit.NewText ?? ""
+                };
                 _builder.Add(mappedEdit);
             }
         }
@@ -130,13 +131,18 @@ internal static partial class RazorEditHelper
         private void AddNewUsingChanges(RazorCodeDocument codeDocument, ImmutableArray<string> addedUsings, CancellationToken cancellationToken)
         {
             var existingUsings = GetUsingsNodes(codeDocument, cancellationToken);
+            var razorSourceText = codeDocument.Source.Text;
 
             // If no usings are present then simply add all the usings as a block
             if (existingUsings.Length == 0)
             {
                 var span = FindFirstTopLevelSpotForUsing(codeDocument);
                 var newText = GetUsingsText(usingDirectives: [], addedUsings, removedUsings: []);
-                _builder.Add(new TextChange(span, newText));
+                _builder.Add(new TextEdit()
+                {
+                    Range = razorSourceText.GetRange(span),
+                    NewText = newText
+                });
 
                 return;
             }
@@ -145,7 +151,7 @@ internal static partial class RazorEditHelper
             // relative to existing ones
             var sortedExistingUsings = existingUsings.OrderAsArray(UsingsNodeComparer.Instance);
             var sortedAddedUsings = addedUsings.OrderAsArray(UsingsStringComparer.Instance);
-            var indexToEditsMap = new Dictionary<int, string>();
+            using var _ = DictionaryBuilderPool<int, string>.GetPooledObject(out var indexToEditsMap);
             foreach (var newUsing in sortedAddedUsings)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -160,7 +166,11 @@ internal static partial class RazorEditHelper
             foreach (var (index, newText) in indexToEditsMap)
             {
                 var span = new TextSpan(index, 0);
-                _builder.Add(new TextChange(span, newText));
+                _builder.Add(new TextEdit()
+                {
+                    Range = razorSourceText.GetRange(span),
+                    NewText = newText
+                });
             }
 
             static TextSpan FindFirstTopLevelSpotForUsing(RazorCodeDocument codeDocument)
@@ -253,7 +263,7 @@ internal static partial class RazorEditHelper
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (node is RazorDirectiveSyntax razorDirective
-                    && RazorSyntaxFacts.IsInUsingDirective(razorDirective))
+                    && razorDirective.IsUsingDirective(out var _))
                 {
                     usingsNodesBuilder.Add(razorDirective);
                 }
@@ -286,7 +296,7 @@ internal static partial class RazorEditHelper
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (allUsingsInContinuousBlock &&
-                    RazorSyntaxFacts.AreNextToEachother(startNode, node, codeDocument.Source.Text))
+                    startNode.HasNextSibling(node))
                 {
                     endNode = node;
                     usingsNodesBuilder.Add(node);
@@ -309,7 +319,11 @@ internal static partial class RazorEditHelper
 
             var span = TextSpan.FromBounds(startPosition, endPosition);
             var newText = GetUsingsText(usingsNodesBuilder.ToImmutable(), newUsings, removedUsings);
-            _builder.Add(new TextChange(span, newText));
+            _builder.Add(new TextEdit()
+            {
+                Range = codeDocument.Source.Text.GetRange(span),
+                NewText = newText
+            });
 
             foreach (var node in nonContinuousUsingsToRemove)
             {
@@ -323,7 +337,11 @@ internal static partial class RazorEditHelper
             var start = node.Span.Start;
             var end = AdjustPositionToEndOfLine(node.Span.End, text);
             var removeSpan = TextSpan.FromBounds(start, end);
-            _builder.Add(new TextChange(removeSpan, ""));
+            _builder.Add(new TextEdit()
+            {
+                Range = text.GetRange(removeSpan),
+                NewText = ""
+            });
         }
 
         private static int AdjustPositionToEndOfLine(int endPosition, SourceText text)

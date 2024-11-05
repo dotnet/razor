@@ -2,8 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
@@ -69,11 +72,12 @@ internal class LSPDocumentMappingProvider(
             return null;
         }
 
+        var razorSourceText = textBuffer.CurrentSnapshot.AsText();
         var mapToDocumentEditsParams = new RazorMapToDocumentEditsParams()
         {
             Kind = languageKind,
             RazorDocumentUri = razorDocumentUri,
-            TextEdits = textEdits,
+            TextEdits = textEdits.Select(c => razorSourceText.GetTextEdit(c)).ToArray(),
         };
 
         var documentMappingResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(

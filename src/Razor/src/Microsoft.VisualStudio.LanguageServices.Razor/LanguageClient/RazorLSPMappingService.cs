@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -60,7 +59,9 @@ internal sealed class RazorLSPMappingService(
             return [];
         }
 
-        return [new RazorMappedEditoResult(_documentSnapshot.Uri.AbsolutePath, mappedEdits.Edits)];
+        var sourceTextRazor = _documentSnapshot.Snapshot.AsText();
+        var mappedChanges = mappedEdits.TextEdits.Select(e => sourceTextRazor.GetTextChange(e)).ToArray();
+        return [new RazorMappedEditoResult(_documentSnapshot.Uri.AbsolutePath, mappedChanges)];
     }
 
     private async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(

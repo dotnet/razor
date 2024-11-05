@@ -161,28 +161,10 @@ internal static class RazorSyntaxFacts
 
         foreach (var directive in directives)
         {
-            if (TryGetNamespaceFromDirective(directive, out var _))
+            if (directive.IsUsingDirective(out var _))
             {
                 return true;
             }
-        }
-
-        return false;
-    }
-
-    internal static bool AreNextToEachother(RazorDirectiveSyntax firstNode, RazorDirectiveSyntax secondNode, SourceText text)
-    {
-        var index = firstNode.Span.End;
-        var end = secondNode.Span.Start - 1;
-        var c = text[index];
-        while (char.IsWhiteSpace(c) || c == '\n')
-        {
-            if (index == end)
-            {
-                return true;
-            }
-
-            c = text[++index];
         }
 
         return false;

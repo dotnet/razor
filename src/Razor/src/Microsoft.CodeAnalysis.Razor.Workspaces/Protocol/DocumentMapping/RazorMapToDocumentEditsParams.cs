@@ -3,7 +3,7 @@
 
 using System;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 
@@ -16,5 +16,5 @@ internal sealed record class RazorMapToDocumentEditsParams
     public required Uri RazorDocumentUri { get; init; }
 
     [JsonPropertyName("textEdits")]
-    public required TextChange[] TextEdits { get; init; }
+    public required TextEdit[] TextEdits { get; init; }
 }

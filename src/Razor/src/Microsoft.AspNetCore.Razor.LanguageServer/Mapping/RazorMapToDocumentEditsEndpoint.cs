@@ -55,7 +55,7 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
             // so the edits do as well
             return new RazorMapToDocumentEditsResponse()
             {
-                Edits = request.TextEdits,
+                TextEdits = request.TextEdits,
                 HostDocumentVersion = documentContext.Snapshot.Version,
             };
         }
@@ -84,12 +84,12 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
 
         return new RazorMapToDocumentEditsResponse()
         {
-            Edits = mappedEdits.ToArray(),
+            TextEdits = mappedEdits.ToArray(),
         };
     }
 
-    private string DisplayEdits(IEnumerable<TextChange> edits)
+    private string DisplayEdits(IEnumerable<TextEdit> edits)
         => string.Join(
             Environment.NewLine,
-            edits.Select(e => $"{e.Span} => '{e.NewText}'"));
+            edits.Select(e => $"{e.Range} => '{e.NewText}'"));
 }

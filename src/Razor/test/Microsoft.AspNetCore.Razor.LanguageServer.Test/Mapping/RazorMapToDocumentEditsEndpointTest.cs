@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -37,24 +39,28 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task SimpleEdits_Apply()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         class MyComponent : ComponentBase
         {
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         @code {
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         class MyComponent : ComponentBase
         {
             public int NewCounter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @code {
             public int NewCounter { get; set; } 
         }
@@ -63,7 +69,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task MappedAndUnmappedEdits_Apply()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         class MyComponent : ComponentBase
         {
             {|map1:public int Counter { get; set; }|}
@@ -73,12 +80,14 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             }
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         @code {
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         class MyComponent : ComponentBase
         {
             public int NewCounter { get; set; }
@@ -88,7 +97,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @code {
             public int NewCounter { get; set; } 
         }
@@ -97,18 +107,21 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task NewUsing_TopOfFile()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         class MyComponent : ComponentBase
         {
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         @code {
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         using System;
 
         class MyComponent : ComponentBase
@@ -116,7 +129,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             public int NewCounter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @using System
         @code {
             public int NewCounter { get; set; } 
@@ -126,7 +140,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task RemovedUsing_IsRemoved()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         {|mapUsing:using System;|}
 
         class MyComponent : ComponentBase
@@ -134,20 +149,23 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         {|mapUsing:@using System|}
 
         @code {
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         class MyComponent : ComponentBase
         {
             public int Counter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
 
         @code {
             public int Counter { get; set; } 
@@ -157,7 +175,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task NewUsing_AfterExisting()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         {|mapUsing:using System;|}
 
         class MyComponent : ComponentBase
@@ -165,14 +184,16 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         {|mapUsing:@using System|}
 
         @code {
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         using System;
         using System.Collections.Generic;
 
@@ -181,7 +202,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             public int NewCounter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @using System
         @using System.Collections.Generic
 
@@ -193,20 +215,23 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task NewUsing_AfterPage()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         class MyComponent : ComponentBase
         {
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         @page "/counter"
 
         @code {
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         using System;
         using System.Collections.Generic;
 
@@ -215,7 +240,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             public int NewCounter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @page "/counter"
         @using System
         @using System.Collections.Generic
@@ -228,13 +254,15 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task NewUsing_AfterPage2()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         class MyComponent : ComponentBase
         {
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         @page "/counter"
 
         <h3>Counter</h3>
@@ -244,7 +272,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         using System;
         using System.Collections.Generic;
 
@@ -253,7 +282,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             public int NewCounter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @page "/counter"
         @using System
         @using System.Collections.Generic
@@ -269,7 +299,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task RenamedUsing_Applies()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         {|mapUsing:using System;|}
         {|mapUsing2:using System.Collections.Generic;|}
         class MyComponent : ComponentBase
@@ -277,7 +308,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         @page "/counter"
         {|mapUsing:@using System|}
         {|mapUsing2:@using System.Collections.Generic|}
@@ -286,7 +318,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         using Renamed;
 
         class MyComponent : ComponentBase
@@ -294,7 +327,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             public int NewCounter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @page "/counter"
         @using Renamed
 
@@ -306,7 +340,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task AddUsing_AfterSystem()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         {|mapUsing:using System;|}
         {|mapUsing2:using System.Collections.Generic;|}
         class MyComponent : ComponentBase
@@ -314,7 +349,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         @page "/counter"
         {|mapUsing:@using System|}
         {|mapUsing2:@using System.Collections.Generic|}
@@ -323,7 +359,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         using OtherNamespace;
         using System;
 
@@ -332,7 +369,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             public int NewCounter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @page "/counter"
         @using System
         @using OtherNamespace
@@ -345,7 +383,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task AddUsing_OrdersSystemCorrectly()
     => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         {|mapUsing:using System;|}
         {|mapUsing2:using MyNamespace;|}
         class MyComponent : ComponentBase
@@ -353,7 +392,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         @page "/counter"
         {|mapUsing:@using System|}
         {|mapUsing2:@using MyNamespace|}
@@ -362,7 +402,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
         using OtherNamespace;
         using System;
         using System.Collections.Generic;
@@ -372,7 +413,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             public int NewCounter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @page "/counter"
         @using System
         @using System.Collections.Generic
@@ -386,7 +428,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
     [Fact]
     public Task UsingIndentation_DoesNotApply()
         => TestAsync(
-        csharpSource: """
+        csharpSource:
+        """
         {|mapUsing:using System;|}
         {|mapUsing2:using System.Collections.Generic;|}
         class MyComponent : ComponentBase
@@ -394,7 +437,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|}
         }
         """,
-        razorSource: """
+        razorSource:
+        """
         @page "/counter"
         {|mapUsing:@using System|}
         {|mapUsing2:@using System.Collections.Generic|}
@@ -403,7 +447,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             {|map1:public int Counter { get; set; }|} 
         }
         """,
-        newCSharpSource: """
+        newCSharpSource:
+        """
             using System;
             using System.Collections.Generic;
 
@@ -412,7 +457,8 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             public int NewCounter { get; set; }
         }
         """,
-        expectedRazorSource: """
+        expectedRazorSource:
+        """
         @page "/counter"
         @using System
         @using System.Collections.Generic
@@ -482,7 +528,7 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
         var request = new RazorMapToDocumentEditsParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            TextEdits = changes.ToArray(),
+            TextEdits = changes.Select(c => csharpSourceText.GetTextEdit(c)).ToArray(),
             RazorDocumentUri = new Uri(razorPath),
         };
 
@@ -491,9 +537,10 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
         var response = await languageEndpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
 
         Assert.NotNull(response);
-        Assert.NotEmpty(response.Edits);
+        Assert.NotEmpty(response.TextEdits);
 
-        var newRazorSourceText = razorSourceText.WithChanges(response.Edits);
+        var responseTextChanges = response.TextEdits.Select(e => razorSourceText.GetTextChange(e)).ToArray();
+        var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges);
         AssertEx.EqualOrDiff(expectedRazorSource, newRazorSourceText.ToString());
     }
 

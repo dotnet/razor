@@ -80,6 +80,9 @@ internal static class RazorSyntaxNodeExtensions
         return false;
     }
 
+    public static bool HasNextSibling(this RazorSyntaxNode firstNode, RazorSyntaxNode secondNode)
+        => secondNode.TryGetPreviousSibling(out var previousSibling) && ReferenceEquals(previousSibling, firstNode);
+
     public static bool ContainsOnlyWhitespace(this SyntaxNode node, bool includingNewLines = true)
     {
         foreach (var token in node.GetTokens())

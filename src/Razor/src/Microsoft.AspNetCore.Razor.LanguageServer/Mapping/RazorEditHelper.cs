@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
@@ -27,21 +28,23 @@ internal static partial class RazorEditHelper
     /// are applied if they map to the razor document.
     /// </summary>
     /// <returns></returns>
-    internal static async Task<ImmutableArray<TextChange>> MapCSharpEditsAsync(
-        ImmutableArray<TextChange> textEdits,
+    internal static async Task<ImmutableArray<TextEdit>> MapCSharpEditsAsync(
+        ImmutableArray<TextEdit> textEdits,
         IDocumentSnapshot snapshot,
         RazorCodeDocument codeDocument,
         IDocumentMappingService documentMappingService,
-        ITelemetryReporter? telemetryReporter,
+        ITelemetryReporter telemetryReporter,
         CancellationToken cancellationToken)
     {
         using var textChangeBuilder = new TextChangeBuilder(documentMappingService);
-        var originalSyntaxTree =  await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var originalSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var csharpSourceText = await originalSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var newText = csharpSourceText.WithChanges(textEdits);
+
+        var textChanges = textEdits.SelectAsArray(e => csharpSourceText.GetTextChange(e));
+        var newText = csharpSourceText.WithChanges(textChanges);
         var newSyntaxTree = originalSyntaxTree.WithChangedText(newText);
 
-        textChangeBuilder.AddDirectlyMappedChanges(textEdits, codeDocument, cancellationToken);
+        textChangeBuilder.AddDirectlyMappedEdits(textEdits, codeDocument, cancellationToken);
 
         var oldUsings = await AddUsingsHelper.FindUsingDirectiveStringsAsync(
             originalSyntaxTree,
@@ -72,13 +75,13 @@ internal static partial class RazorEditHelper
     /// </item>
     /// </list>
     /// </summary>
-    private static ImmutableArray<TextChange> NormalizeEdits(ImmutableArray<TextChange> changes, ITelemetryReporter? telemetryReporter, CancellationToken cancellationToken)
+    private static ImmutableArray<TextEdit> NormalizeEdits(ImmutableArray<TextEdit> changes, ITelemetryReporter telemetryReporter, CancellationToken cancellationToken)
     {
         // Ensure that the changes are sorted by start position otherwise
         // the normalization logic will not work.
-        Debug.Assert(changes.SequenceEqual(changes.OrderBy(static c => c.Span.Start)));
+        Debug.Assert(changes.SequenceEqual(changes.OrderBy(static c => c.Range, RangComparer.Instance)));
 
-        using var normalizedEdits = new PooledArrayBuilder<TextChange>(changes.Length);
+        using var normalizedEdits = new PooledArrayBuilder<TextEdit>(changes.Length);
         var remaining = changes.AsSpan();
 
         var droppedEdits = 0;
@@ -87,7 +90,7 @@ internal static partial class RazorEditHelper
             cancellationToken.ThrowIfCancellationRequested();
             if (remaining is [var edit, var nextEdit, ..])
             {
-                if (edit.Span == nextEdit.Span)
+                if (edit.Range == nextEdit.Range)
                 {
                     normalizedEdits.Add(nextEdit);
                     remaining = remaining[1..];
@@ -97,18 +100,22 @@ internal static partial class RazorEditHelper
                         droppedEdits++;
                     }
                 }
-                else if (edit.Span.Contains(nextEdit.Span))
+                else if (edit.Range.Contains(nextEdit.Range))
                 {
                     // Cases where there was a removal and addition on the same
                     // line err to taking the addition. This can happen in the
                     // case of a namespace rename
-                    if (edit.Span.Start == nextEdit.Span.Start)
+                    if (edit.Range.Start.Line == nextEdit.Range.Start.Line)
                     {
                         if (string.IsNullOrEmpty(edit.NewText) && !string.IsNullOrEmpty(nextEdit.NewText))
                         {
                             // Don't count this as a dropped edit, it is expected
                             // in the case of a rename
-                            normalizedEdits.Add(new TextChange(edit.Span, nextEdit.NewText));
+                            normalizedEdits.Add(new TextEdit()
+                            {
+                                Range = edit.Range,
+                                NewText = nextEdit.NewText
+                            });
                             remaining = remaining[1..];
                         }
                         else
@@ -126,13 +133,16 @@ internal static partial class RazorEditHelper
                         droppedEdits++;
                     }
                 }
-                else if (nextEdit.Span.Contains(edit.Span))
+                else if (nextEdit.Range.Contains(edit.Range))
                 {
                     // Add the edit that is contained in the other edit
                     // and skip the next edit.
                     normalizedEdits.Add(nextEdit);
                     remaining = remaining[1..];
-                    droppedEdits++;
+                    if (edit.NewText != nextEdit.NewText)
+                    {
+                        droppedEdits++;
+                    }
                 }
                 else
                 {
@@ -149,7 +159,7 @@ internal static partial class RazorEditHelper
 
         if (droppedEdits > 0)
         {
-            telemetryReporter?.ReportFault(
+            telemetryReporter.ReportFault(
                 new DroppedEditsException(),
                 "Potentially dropped edits when trying to map",
                 new Property("droppedEditCount", droppedEdits));

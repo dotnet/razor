@@ -2,14 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 
 internal sealed record class RazorMapToDocumentEditsResponse
 {
-    [JsonPropertyName("edits")]
-    public required TextChange[] Edits { get; init; }
+    [JsonPropertyName("textEdits")]
+    public required TextEdit[] TextEdits { get; init; }
 
     [JsonPropertyName("hostDocumentVersion")]
     public int? HostDocumentVersion { get; init; }
