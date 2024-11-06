@@ -177,7 +177,7 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
         AssertSnapshotsEqual(miscProject, project);
     }
 
-    [ConditionalFact(Is.Windows)]
+    [OSSkipConditionFact(["OSX", "Linux"])]
     public async Task TryResolveAllProjects_OwnerProjectDifferentCasing_ReturnsTrue()
     {
         // Arrange
