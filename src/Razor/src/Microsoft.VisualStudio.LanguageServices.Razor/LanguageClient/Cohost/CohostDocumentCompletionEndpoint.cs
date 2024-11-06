@@ -55,7 +55,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
         {
@@ -66,7 +66,6 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 {
                     ResolveProvider = false, // TODO - change to true when Resolve is implemented
                     TriggerCharacters = CompletionTriggerAndCommitCharacters.AllTriggerCharacters,
-                    DocumentSelector = filter,
                     AllCommitCharacters = CompletionTriggerAndCommitCharacters.AllCommitCharacters
                 }
             }];
@@ -188,7 +187,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 completionContext.TriggerCharacter);
         }
 
-        return combinedCompletionList; 
+        return combinedCompletionList;
     }
 
     private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(
@@ -219,7 +218,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
         return rewrittenResponse;
     }
 
-    private static T? ToVsLSP<T>(object source) where T : class 
+    private static T? ToVsLSP<T>(object source) where T : class
     {
         // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
         var options = new JsonSerializerOptions();
