@@ -103,7 +103,7 @@ public class RazorLSPMappingServiceTest(ITestOutputHelper testOutput) : ToolingT
 
         var textSpanAsRange = _sourceTextGenerated.GetRange(textSpan);
 
-        var requestInvoker = new TestLSPRequestInvoker(new List<(string, object)>()
+        var requestInvoker = new TestLSPRequestInvoker(new List<(string, object?)>()
         {
             (LanguageServerConstants.RazorMapToDocumentRangesEndpoint, null)
         });
