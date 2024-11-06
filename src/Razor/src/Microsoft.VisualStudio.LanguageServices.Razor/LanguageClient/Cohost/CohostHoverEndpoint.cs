@@ -38,7 +38,7 @@ internal sealed class CohostHoverEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Hover?.DynamicRegistration == true)
         {
@@ -46,9 +46,6 @@ internal sealed class CohostHoverEndpoint(
             {
                 Method = Methods.TextDocumentHoverName,
                 RegisterOptions = new HoverRegistrationOptions()
-                {
-                    DocumentSelector = filter
-                }
             }];
         }
 
