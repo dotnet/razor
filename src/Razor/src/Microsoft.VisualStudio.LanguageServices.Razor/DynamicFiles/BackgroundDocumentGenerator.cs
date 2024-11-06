@@ -157,7 +157,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
         if (!_suppressedDocuments.Contains(filePath))
         {
-            var container = new DefaultDynamicDocumentContainer(document);
+            var container = new DefaultDynamicDocumentContainer(document, _loggerFactory);
             _infoProvider.UpdateFileInfo(project.Key, container);
         }
     }

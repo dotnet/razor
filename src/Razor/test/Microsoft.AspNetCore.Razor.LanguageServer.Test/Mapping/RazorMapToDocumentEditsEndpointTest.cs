@@ -468,7 +468,7 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
         }
         """);
 
-    [Fact]
+    [Fact (Skip = "https://github.com/dotnet/razor/issues/11168")]
     public Task UsingAliasRemoved_HandledCorrectly()
         => TestAsync(
         csharpSource:
