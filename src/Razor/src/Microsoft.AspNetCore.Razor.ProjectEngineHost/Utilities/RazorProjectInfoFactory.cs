@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
@@ -62,9 +61,7 @@ internal static class RazorProjectInfoFactory
             return new(null, "No razor documents in project");
         }
 
-        var csharpParseOptions = project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
-        var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
-        var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
+        var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
 
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (compilation is null)
@@ -85,7 +82,6 @@ internal static class RazorProjectInfoFactory
 
             builder.SetCSharpLanguageVersion(csharpLanguageVersion);
             builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too!
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, csharpParseOptions));
         };
 
         var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration);
@@ -97,7 +93,7 @@ internal static class RazorProjectInfoFactory
 
         var tagHelpers = await project.GetTagHelpersAsync(engine, NoOpTelemetryReporter.Instance, cancellationToken).ConfigureAwait(false);
 
-        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
+        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
 
         var projectInfo = new RazorProjectInfo(
             projectKey: new ProjectKey(intermediateOutputPath),

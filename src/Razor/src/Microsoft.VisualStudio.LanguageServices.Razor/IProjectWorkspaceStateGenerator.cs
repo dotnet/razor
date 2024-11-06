@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor;
 
-internal interface IRoslynProjectChangeProcessor
+internal interface IProjectWorkspaceStateGenerator
 {
     void EnqueueUpdate(Project? workspaceProject, IProjectSnapshot projectSnapshot);
 
