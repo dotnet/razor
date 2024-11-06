@@ -28,6 +28,7 @@ internal static class RazorCodeActionFactory
             Title = newTagName is null ? title : $"{newTagName} - {title}",
             Data = data,
             TelemetryId = s_addComponentUsingTelemetryId,
+            Priority = VSInternalPriorityLevel.High
         };
         return codeAction;
     }
@@ -39,6 +40,7 @@ internal static class RazorCodeActionFactory
             Title = fullyQualifiedName,
             Edit = workspaceEdit,
             TelemetryId = s_fullyQualifyComponentTelemetryId,
+            Priority = VSInternalPriorityLevel.High
         };
         return codeAction;
     }

@@ -25,7 +25,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutput) : CodeActionEndToEndTest(testOutput)
+public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutput) : CodeActionEndToEndTestBase(testOutput)
 {
     private const string ExtractToComponentTitle = "Extract element to new component";
 
@@ -251,6 +251,31 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
 
         var expectedOriginalDocument = """
             <Component />
+            """;
+
+        await TestAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent);
+    }
+
+    [Fact]
+    public async Task Handle_TextOnlySelection()
+    {
+        var input = """
+            <h1> Hello </h1>
+
+            Welcome to [|your new app|]
+            """;
+
+        var expectedRazorComponent = """
+            your new app
+            """;
+
+        var expectedOriginalDocument = """
+            <h1> Hello </h1>
+
+            Welcome to <Component />
             """;
 
         await TestAsync(

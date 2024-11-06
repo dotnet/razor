@@ -14,6 +14,10 @@ internal sealed record class RazorCodeActionContext(
     RazorCodeDocument CodeDocument,
     int StartAbsoluteIndex,
     int EndAbsoluteIndex,
+    Protocol.RazorLanguageKind LanguageKind,
     SourceText SourceText,
     bool SupportsFileCreation,
-    bool SupportsCodeActionResolve);
+    bool SupportsCodeActionResolve)
+{
+    public bool HasSelection => StartAbsoluteIndex != EndAbsoluteIndex;
+}

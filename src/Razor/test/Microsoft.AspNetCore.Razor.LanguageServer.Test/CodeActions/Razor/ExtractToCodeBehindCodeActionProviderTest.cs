@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -51,7 +52,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -80,7 +81,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -109,7 +110,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -138,7 +139,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -172,7 +173,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -212,7 +213,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         var codeAction = Assert.Single(commandOrCodeActionContainer);
@@ -254,7 +255,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         var codeAction = Assert.Single(commandOrCodeActionContainer);
@@ -290,7 +291,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -325,7 +326,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         var codeAction = Assert.Single(commandOrCodeActionContainer);
@@ -361,7 +362,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -402,6 +403,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             codeDocument,
             StartAbsoluteIndex: absoluteIndex,
             EndAbsoluteIndex: absoluteIndex,
+            RazorLanguageKind.Razor,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

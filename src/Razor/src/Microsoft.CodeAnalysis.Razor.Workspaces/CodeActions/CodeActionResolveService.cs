@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -31,7 +32,7 @@ internal sealed class CodeActionResolveService(
     private readonly FrozenDictionary<string, IHtmlCodeActionResolver> _htmlCodeActionResolvers = CreateResolverMap(htmlCodeActionResolvers);
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CodeActionResolveService>();
 
-    public async Task<CodeAction> ResolveCodeActionAsync(DocumentContext documentContext, CodeAction request, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<CodeAction> ResolveCodeActionAsync(DocumentContext documentContext, CodeAction request, CodeAction? resolvedDelegatedCodeAction, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var resolutionParams = GetRazorCodeActionResolutionParams(request);
 
@@ -47,8 +48,6 @@ internal sealed class CodeActionResolveService(
             return request;
         }
 
-        request.Data = resolutionParams.Data;
-
         switch (resolutionParams.Language)
         {
             case RazorLanguageKind.Razor:
@@ -61,13 +60,13 @@ internal sealed class CodeActionResolveService(
             case RazorLanguageKind.CSharp:
                 return await ResolveCSharpCodeActionAsync(
                     documentContext,
-                    request,
+                    resolvedDelegatedCodeAction.AssumeNotNull(),
                     resolutionParams,
                     cancellationToken).ConfigureAwait(false);
             case RazorLanguageKind.Html:
                 return await ResolveHtmlCodeActionAsync(
                     documentContext,
-                    request,
+                    resolvedDelegatedCodeAction.AssumeNotNull(),
                     resolutionParams,
                     cancellationToken).ConfigureAwait(false);
             default:
@@ -76,7 +75,7 @@ internal sealed class CodeActionResolveService(
         }
     }
 
-    public RazorCodeActionResolutionParams GetRazorCodeActionResolutionParams(CodeAction request)
+    public static RazorCodeActionResolutionParams GetRazorCodeActionResolutionParams(CodeAction request)
     {
         if (request.Data is not JsonElement paramsObj)
         {

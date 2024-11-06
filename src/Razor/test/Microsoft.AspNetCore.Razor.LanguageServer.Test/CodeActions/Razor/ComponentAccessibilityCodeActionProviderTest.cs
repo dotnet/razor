@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
@@ -47,7 +48,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -76,7 +77,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -104,7 +105,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -132,7 +133,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -179,7 +180,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -228,7 +229,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -269,7 +270,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -316,7 +317,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         var command = Assert.Single(commandOrCodeActionContainer);
@@ -346,7 +347,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         var command = Assert.Single(commandOrCodeActionContainer);
@@ -376,7 +377,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -404,7 +405,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var provider = new ComponentAccessibilityCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -476,6 +477,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             codeDocument,
             StartAbsoluteIndex: absoluteIndex,
             EndAbsoluteIndex: absoluteIndex,
+            RazorLanguageKind.Razor,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

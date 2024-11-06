@@ -48,6 +48,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
     {
         CodeActionEndpoint = new CodeActionEndpoint(
             codeActionsService: RazorLanguageServerHost.GetRequiredService<ICodeActionsService>(),
+            delegatedCodeActionProvider: RazorLanguageServerHost.GetRequiredService<IDelegatedCodeActionsProvider>(),
             telemetryReporter: NoOpTelemetryReporter.Instance);
 
         var projectRoot = Path.Combine(Helpers.GetTestAppsPath(), "ComponentApp");

@@ -173,6 +173,7 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
             codeDocument,
             StartAbsoluteIndex: absoluteIndex,
             EndAbsoluteIndex: absoluteIndex,
+            RazorLanguageKind.Html,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);

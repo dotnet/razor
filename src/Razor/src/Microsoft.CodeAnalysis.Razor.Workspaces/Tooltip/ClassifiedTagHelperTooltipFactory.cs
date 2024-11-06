@@ -58,7 +58,7 @@ internal static class ClassifiedTagHelperTooltipFactory
     private static readonly ClassifiedTextRun s_nullableType = new(ClassificationTypeNames.Punctuation, "?");
 
     public static async Task<ContainerElement?> TryCreateTooltipContainerAsync(
-        string documentFilePath,
+        string? documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
         ISolutionQueryOperations solutionQueryOperations,
         CancellationToken cancellationToken)
@@ -140,7 +140,7 @@ internal static class ClassifiedTagHelperTooltipFactory
     }
 
     private static async Task<ImmutableArray<DescriptionClassification>> TryClassifyElementAsync(
-        string documentFilePath,
+        string? documentFilePath,
         AggregateBoundElementDescription elementInfo,
         ISolutionQueryOperations solutionQueryOperations,
         CancellationToken cancellationToken)
@@ -169,8 +169,11 @@ internal static class ClassifiedTagHelperTooltipFactory
             TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
 
             // 3. Project availability
-            await AddProjectAvailabilityInfoAsync(
-                documentFilePath, descriptionInfo.TagHelperTypeName, solutionQueryOperations, documentationRuns, cancellationToken).ConfigureAwait(false);
+            if (documentFilePath is not null)
+            {
+                await AddProjectAvailabilityInfoAsync(
+                    documentFilePath, descriptionInfo.TagHelperTypeName, solutionQueryOperations, documentationRuns, cancellationToken).ConfigureAwait(false);
+            }
 
             // 4. Combine type + summary information
             descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));

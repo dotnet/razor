@@ -17,8 +17,10 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -29,11 +31,14 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private ExportProvider? _exportProvider;
     private TestRemoteServiceInvoker? _remoteServiceInvoker;
     private RemoteClientInitializationOptions _clientInitializationOptions;
+    private RemoteClientLSPInitializationOptions _clientLSPInitializationOptions;
     private IFilePathService? _filePathService;
 
     private protected TestRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected RemoteLanguageServerFeatureOptions FeatureOptions => OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
+    private protected RemoteClientCapabilitiesService ClientCapabilities => OOPExportProvider.GetExportedValue<RemoteClientCapabilitiesService>();
+    private protected RemoteSemanticTokensLegendService SemanticTokensLegendService => OOPExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
 
     /// <summary>
     /// The export provider for Razor OOP services (not Roslyn)
@@ -64,6 +69,36 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         };
         UpdateClientInitializationOptions(c => c);
 
+        var completionSetting = new CompletionSetting
+        {
+            CompletionItem = new CompletionItemSetting(),
+            CompletionItemKind = new CompletionItemKindSetting()
+            {
+                ValueSet = (CompletionItemKind[])Enum.GetValues(typeof(CompletionItemKind)),
+            },
+            CompletionListSetting = new CompletionListSetting()
+            {
+                ItemDefaults = ["commitCharacters", "editRange", "insertTextFormat"]
+            },
+            ContextSupport = false,
+            InsertTextMode = InsertTextMode.AsIs,
+        };
+
+        _clientLSPInitializationOptions = new()
+        {
+            ClientCapabilities = new VSInternalClientCapabilities()
+            {
+                SupportsVisualStudioExtensions = true,
+                TextDocument = new TextDocumentClientCapabilities
+                {
+                    Completion = completionSetting
+                }
+            },
+            TokenTypes = [],
+            TokenModifiers = []
+        };
+        UpdateClientLSPInitializationOptions(c => c);
+
         _filePathService = new RemoteFilePathService(FeatureOptions);
     }
 
@@ -71,6 +106,13 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     {
         _clientInitializationOptions = mutation(_clientInitializationOptions);
         FeatureOptions.SetOptions(_clientInitializationOptions);
+    }
+
+    private protected void UpdateClientLSPInitializationOptions(Func<RemoteClientLSPInitializationOptions, RemoteClientLSPInitializationOptions> mutation)
+    {
+        _clientLSPInitializationOptions = mutation(_clientLSPInitializationOptions);
+        ClientCapabilities.SetCapabilities(_clientLSPInitializationOptions.ClientCapabilities);
+        SemanticTokensLegendService.SetLegend(_clientLSPInitializationOptions.TokenTypes, _clientLSPInitializationOptions.TokenModifiers);
     }
 
     protected Task<TextDocument> CreateProjectAndRazorDocumentAsync(
