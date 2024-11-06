@@ -28,7 +28,6 @@ internal interface IProjectSnapshot
     /// </summary>
     string IntermediateOutputPath { get; }
 
-    string? RootNamespace { get; }
     string DisplayName { get; }
     VersionStamp Version { get; }
     ProjectWorkspaceState ProjectWorkspaceState { get; }

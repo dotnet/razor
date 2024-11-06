@@ -222,7 +222,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
                 {
                     RemoveProject(updater, projectKey);
 
-                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace);
+                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration);
                     UpdateProject(updater, hostProject);
 
                     // This should no-op in the common case, just putting it here for insurance.

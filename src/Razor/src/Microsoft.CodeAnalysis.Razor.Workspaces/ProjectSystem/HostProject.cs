@@ -24,8 +24,6 @@ internal record class HostProject
 
     public RazorConfiguration Configuration { get; init; }
 
-    public string? RootNamespace { get; init; }
-
     /// <summary>
     /// An extra user-friendly string to show in the VS navigation bar to help the user, of the form "{ProjectFileName} ({Flavor})"
     /// </summary>
@@ -35,13 +33,11 @@ internal record class HostProject
         string filePath,
         string intermediateOutputPath,
         RazorConfiguration configuration,
-        string? rootNamespace,
         string? displayName = null)
     {
         FilePath = filePath;
         IntermediateOutputPath = intermediateOutputPath;
         Configuration = configuration;
-        RootNamespace = rootNamespace;
         DisplayName = displayName ?? Path.GetFileNameWithoutExtension(filePath);
 
         Key = new(intermediateOutputPath);
@@ -59,7 +55,6 @@ internal record class HostProject
                FilePathComparer.Instance.Equals(FilePath, other.FilePath) &&
                FilePathComparer.Instance.Equals(IntermediateOutputPath, other.IntermediateOutputPath) &&
                Configuration == other.Configuration &&
-               RootNamespace == other.RootNamespace &&
                DisplayName == other.DisplayName;
     }
 
@@ -70,7 +65,6 @@ internal record class HostProject
         hash.Add(FilePath, FilePathComparer.Instance);
         hash.Add(IntermediateOutputPath, FilePathComparer.Instance);
         hash.Add(Configuration);
-        hash.Add(RootNamespace);
         hash.Add(DisplayName);
 
         return hash.CombinedHash;

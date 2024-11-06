@@ -69,8 +69,10 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         await projectService.GetTestAccessor().AddProjectAsync(
             s_projectFilePath1,
             s_intermediateOutputPath1,
-            RazorConfiguration.Default,
-            RootNamespace1,
+            RazorConfiguration.Default with
+            {
+                RootNamespace = RootNamespace1,
+            },
             displayName: "",
             DisposalToken);
 
@@ -83,8 +85,10 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
         await projectService.GetTestAccessor().AddProjectAsync(
             s_projectFilePath2,
             s_intermediateOutputPath2,
-            RazorConfiguration.Default,
-            RootNamespace2,
+            RazorConfiguration.Default with
+            {
+                RootNamespace = RootNamespace2,
+            },
             displayName: "",
             DisposalToken);
 

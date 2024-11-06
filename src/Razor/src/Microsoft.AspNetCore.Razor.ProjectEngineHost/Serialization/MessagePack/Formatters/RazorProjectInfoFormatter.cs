@@ -31,11 +31,10 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
         var filePath = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var configuration = reader.DeserializeOrNull<RazorConfiguration>(options) ?? RazorConfiguration.Default;
         var projectWorkspaceState = reader.DeserializeOrNull<ProjectWorkspaceState>(options) ?? ProjectWorkspaceState.Default;
-        var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var documents = reader.Deserialize<ImmutableArray<DocumentSnapshotHandle>>(options);
 
-        return new RazorProjectInfo(new ProjectKey(projectKeyId), filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
+        return new RazorProjectInfo(new ProjectKey(projectKeyId), filePath, configuration, displayName, projectWorkspaceState, documents);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorProjectInfo value, SerializerCachingOptions options)
@@ -47,7 +46,6 @@ internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProject
         CachedStringFormatter.Instance.Serialize(ref writer, value.FilePath, options);
         writer.Serialize(value.Configuration, options);
         writer.Serialize(value.ProjectWorkspaceState, options);
-        CachedStringFormatter.Instance.Serialize(ref writer, value.RootNamespace, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
         writer.Serialize(value.Documents, options);
     }

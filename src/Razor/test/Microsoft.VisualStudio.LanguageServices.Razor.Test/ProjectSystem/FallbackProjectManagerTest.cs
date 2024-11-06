@@ -50,8 +50,10 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
     {
         var hostProject = SomeProject with
         {
-            Configuration = RazorConfiguration.Default,
-            RootNamespace = "RootNamespace",
+            Configuration = RazorConfiguration.Default with
+            {
+                RootNamespace = "RootNamespace",
+            },
             DisplayName = "DisplayName"
         };
 
@@ -102,7 +104,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         var project = Assert.Single(_projectManager.GetProjects());
         Assert.Equal("DisplayName", project.DisplayName);
-        Assert.Equal("RootNamespace", project.RootNamespace);
+        Assert.Equal("RootNamespace", project.Configuration.RootNamespace);
 
         Assert.IsType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
 
@@ -136,8 +138,10 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         var hostProject = SomeProject with
         {
-            Configuration = RazorConfiguration.Default,
-            RootNamespace = "RootNamespace",
+            Configuration = RazorConfiguration.Default with
+            {
+                RootNamespace = "RootNamespace"
+            },
             DisplayName = "DisplayName"
         };
 

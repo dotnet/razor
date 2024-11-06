@@ -12,9 +12,8 @@ internal sealed record class FallbackHostProject : HostProject
         string filePath,
         string intermediateOutputPath,
         RazorConfiguration configuration,
-        string? rootNamespace,
         string displayName)
-        : base(filePath, intermediateOutputPath, configuration, rootNamespace, displayName)
+        : base(filePath, intermediateOutputPath, configuration, displayName)
     {
     }
 }

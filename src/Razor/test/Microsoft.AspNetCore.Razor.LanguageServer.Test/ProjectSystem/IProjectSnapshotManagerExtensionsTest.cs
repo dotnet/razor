@@ -267,6 +267,5 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
     {
         Assert.Equal(first.FilePath, second.FilePath);
         Assert.Equal(first.Configuration, second.Configuration);
-        Assert.Equal(first.RootNamespace, second.RootNamespace);
     }
 }

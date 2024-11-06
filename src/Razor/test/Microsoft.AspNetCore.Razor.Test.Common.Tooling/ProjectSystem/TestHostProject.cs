@@ -13,5 +13,5 @@ internal static class TestHostProject
         => Create(filePath, intermediateOutputPath: Path.Combine(Path.GetDirectoryName(filePath) ?? @"\\path", "obj"));
 
     public static HostProject Create(string filePath, string intermediateOutputPath)
-        => new(filePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
+        => new(filePath, intermediateOutputPath, RazorConfiguration.Default with { RootNamespace = "TestRootNamespace" });
 }

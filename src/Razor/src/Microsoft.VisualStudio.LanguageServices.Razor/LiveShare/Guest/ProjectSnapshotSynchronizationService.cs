@@ -76,7 +76,7 @@ internal class ProjectSnapshotSynchronizationService(
         {
             var guestPath = ResolveGuestPath(args.ProjectFilePath);
             var guestIntermediateOutputPath = ResolveGuestPath(args.IntermediateOutputPath);
-            var hostProject = new HostProject(guestPath, guestIntermediateOutputPath, args.Newer!.Configuration, args.Newer.RootNamespace);
+            var hostProject = new HostProject(guestPath, guestIntermediateOutputPath, args.Newer!.Configuration);
 
             await _projectManager.UpdateAsync(
                 static (updater, state) =>
@@ -112,7 +112,7 @@ internal class ProjectSnapshotSynchronizationService(
             {
                 var guestPath = ResolveGuestPath(args.Newer.FilePath);
                 var guestIntermediateOutputPath = ResolveGuestPath(args.Newer.IntermediateOutputPath);
-                var hostProject = new HostProject(guestPath, guestIntermediateOutputPath, args.Newer.Configuration, args.Newer.RootNamespace);
+                var hostProject = new HostProject(guestPath, guestIntermediateOutputPath, args.Newer.Configuration);
                 await _projectManager.UpdateAsync(
                     static (updater, hostProject) => updater.ProjectConfigurationChanged(hostProject),
                     state: hostProject,
@@ -144,7 +144,7 @@ internal class ProjectSnapshotSynchronizationService(
         {
             var guestPath = ResolveGuestPath(projectHandle.FilePath);
             var guestIntermediateOutputPath = ResolveGuestPath(projectHandle.IntermediateOutputPath);
-            var hostProject = new HostProject(guestPath, guestIntermediateOutputPath, projectHandle.Configuration, projectHandle.RootNamespace);
+            var hostProject = new HostProject(guestPath, guestIntermediateOutputPath, projectHandle.Configuration);
             await _projectManager.UpdateAsync(
                 static (updater, state) =>
                 {

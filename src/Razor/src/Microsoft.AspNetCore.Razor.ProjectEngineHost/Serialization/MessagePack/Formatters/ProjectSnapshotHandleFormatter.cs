@@ -18,23 +18,21 @@ internal sealed class ProjectSnapshotHandleFormatter : TopLevelFormatter<Project
 
     public override ProjectSnapshotHandle Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        reader.ReadArrayHeaderAndVerify(3);
+        reader.ReadArrayHeaderAndVerify(2);
 
         var id = GuidFormatter.Instance.Deserialize(ref reader, options);
         var projectId = ProjectId.CreateFromSerialized(id);
 
         var configuration = reader.DeserializeOrNull<RazorConfiguration>(options) ?? RazorConfiguration.Default;
-        var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options);
 
-        return new(projectId, configuration, rootNamespace);
+        return new(projectId, configuration);
     }
 
     public override void Serialize(ref MessagePackWriter writer, ProjectSnapshotHandle value, SerializerCachingOptions options)
     {
-        writer.WriteArrayHeader(3);
+        writer.WriteArrayHeader(2);
 
         GuidFormatter.Instance.Serialize(ref writer, value.ProjectId.Id, options);
         writer.Serialize(value.Configuration, options);
-        CachedStringFormatter.Instance.Serialize(ref writer, value.RootNamespace, options);
     }
 }

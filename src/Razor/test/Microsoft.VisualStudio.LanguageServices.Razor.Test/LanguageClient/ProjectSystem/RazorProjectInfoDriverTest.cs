@@ -21,16 +21,20 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
     private static readonly HostProject s_hostProject1 = new(
         filePath: "C:/path/to/project1/project1.csproj",
         intermediateOutputPath: "C:/path/to/project1/obj",
-        configuration: RazorConfiguration.Default,
-        rootNamespace: "TestNamespace");
+        configuration: RazorConfiguration.Default with
+        {
+            RootNamespace = "TestNamespace"
+        });
 
     private static readonly HostDocument s_hostDocument1 = new("C:/path/to/project1/file.razor", "file.razor");
 
     private static readonly HostProject s_hostProject2 = new(
         filePath: "C:/path/to/project2/project2.csproj",
         intermediateOutputPath: "C:/path/to/project2/obj",
-        configuration: RazorConfiguration.Default,
-        rootNamespace: "TestNamespace");
+        configuration: RazorConfiguration.Default with
+        {
+            RootNamespace = "TestNamespace"
+        });
 
     private static readonly HostDocument s_hostDocument2 = new("C:/path/to/project2/file.razor", "file.razor");
 

@@ -42,7 +42,6 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public IEnumerable<string> DocumentFilePaths => RealSnapshot.DocumentFilePaths;
     public string FilePath => RealSnapshot.FilePath;
     public string IntermediateOutputPath => RealSnapshot.IntermediateOutputPath;
-    public string? RootNamespace => RealSnapshot.RootNamespace;
     public string DisplayName => RealSnapshot.DisplayName;
     public ProjectWorkspaceState ProjectWorkspaceState => RealSnapshot.ProjectWorkspaceState;
     public VersionStamp Version => RealSnapshot.Version;

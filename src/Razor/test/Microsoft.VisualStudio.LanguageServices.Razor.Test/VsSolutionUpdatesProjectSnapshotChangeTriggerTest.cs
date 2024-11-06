@@ -259,7 +259,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         await projectManager.UpdateAsync(updater =>
         {
             updater.ProjectAdded(
-                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path"));
+                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default));
         });
 
         var roslynProjectChangeProcessor = new TestRoslynProjectChangeProcessor();

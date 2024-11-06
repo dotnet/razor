@@ -16,7 +16,8 @@ public sealed record class RazorConfiguration(
     bool SuppressAddComponentParameter = false,
     LanguageServerFlags? LanguageServerFlags = null,
     bool UseRoslynTokenizer = false,
-    LanguageVersion CSharpLanguageVersion = LanguageVersion.Default)
+    LanguageVersion CSharpLanguageVersion = LanguageVersion.Default,
+    string? RootNamespace = null)
 {
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
@@ -32,6 +33,7 @@ public sealed record class RazorConfiguration(
            UseConsolidatedMvcViews == other.UseConsolidatedMvcViews &&
            UseRoslynTokenizer == other.UseRoslynTokenizer &&
            CSharpLanguageVersion == other.CSharpLanguageVersion &&
+           RootNamespace == other.RootNamespace &&
            Extensions.SequenceEqual(other.Extensions);
 
     public override int GetHashCode()
@@ -45,6 +47,7 @@ public sealed record class RazorConfiguration(
         hash.Add(LanguageServerFlags);
         hash.Add(UseRoslynTokenizer);
         hash.Add(CSharpLanguageVersion);
+        hash.Add(RootNamespace);
         return hash;
     }
 }

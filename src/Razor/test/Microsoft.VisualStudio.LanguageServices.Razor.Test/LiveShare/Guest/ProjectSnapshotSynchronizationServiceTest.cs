@@ -42,7 +42,6 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             new Uri("vsls:/path/project.csproj"),
             new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
-            "project",
             _projectWorkspaceStateWithTagHelpers);
         var state = new ProjectSnapshotManagerProxyState([projectHandle]);
         var hostProjectManagerProxyMock = new StrictMock<IProjectSnapshotManagerProxy>();
@@ -82,7 +81,6 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             new Uri("vsls:/path/project.csproj"),
             new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
-            "project",
             _projectWorkspaceStateWithTagHelpers);
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _sessionContext,
@@ -117,7 +115,6 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             new Uri("vsls:/path/project.csproj"),
             new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
-            "project",
             ProjectWorkspaceState.Default);
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _sessionContext,
@@ -125,7 +122,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _projectManager,
             LoggerFactory,
             JoinableTaskFactory);
-        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
+        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -150,14 +147,12 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             new Uri("vsls:/path/project.csproj"),
             new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
-            "project",
             ProjectWorkspaceState.Default);
         var newConfiguration = new RazorConfiguration(RazorLanguageVersion.Version_1_0, "Custom-1.0", Extensions: []);
         var newHandle = new ProjectSnapshotHandleProxy(
             oldHandle.FilePath,
             oldHandle.IntermediateOutputPath,
             newConfiguration,
-            oldHandle.RootNamespace,
             oldHandle.ProjectWorkspaceState);
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _sessionContext,
@@ -165,7 +160,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _projectManager,
             LoggerFactory,
             JoinableTaskFactory);
-        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
+        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -194,14 +189,12 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             new Uri("vsls:/path/project.csproj"),
             new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
-            "project",
             ProjectWorkspaceState.Default);
         var newProjectWorkspaceState = _projectWorkspaceStateWithTagHelpers;
         var newHandle = new ProjectSnapshotHandleProxy(
             oldHandle.FilePath,
             oldHandle.IntermediateOutputPath,
             oldHandle.Configuration,
-            oldHandle.RootNamespace,
             newProjectWorkspaceState);
         var synchronizationService = new ProjectSnapshotSynchronizationService(
             _sessionContext,
@@ -209,7 +202,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _projectManager,
             LoggerFactory,
             JoinableTaskFactory);
-        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
+        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default);
 
         await _projectManager.UpdateAsync(updater =>
         {

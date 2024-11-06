@@ -497,7 +497,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
             builder.SetCSharpLanguageVersion(projectSnapshot.Configuration.CSharpLanguageVersion);
         }
 
-        builder.SetRootNamespace(projectSnapshot?.RootNamespace);
+        builder.SetRootNamespace(projectSnapshot?.Configuration.RootNamespace);
         builder.Features.Add(new VisualStudioParserOptionsFeature(_documentTracker.EditorSettings));
         builder.Features.Add(new VisualStudioTagHelperFeature(_documentTracker.TagHelpers));
         builder.Features.Add(new VisualStudioEnableTagHelpersFeature());

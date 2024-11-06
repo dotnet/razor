@@ -60,8 +60,6 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         if (TryGetConfiguration(update.Value.CurrentState, _languageServerFeatureOptions.ToLanguageServerFlags(), out var configuration) &&
             TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
-            TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
-
             if (TryGetBeforeIntermediateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath) &&
                 beforeIntermediateOutputPath != intermediatePath)
             {
@@ -95,7 +93,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
                         ? $"{projectFileName} ({sliceDimensions})"
                         : projectFileName;
 
-                    var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName);
+                    var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, displayName);
 
                     UpdateProject(updater, hostProject);
 
@@ -162,11 +160,14 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             return false;
         }
 
+        TryGetRootNamespace(state, out var rootNamespace);
+
         configuration = new(
             languageVersion,
             configurationItem.Key,
             extensions,
-            LanguageServerFlags: languageServerFlags);
+            LanguageServerFlags: languageServerFlags,
+            RootNamespace: rootNamespace);
 
         return true;
     }

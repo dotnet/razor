@@ -28,7 +28,6 @@ internal sealed record class RazorProjectInfo
     public ProjectKey ProjectKey { get; init; }
     public string FilePath { get; init; }
     public RazorConfiguration Configuration { get; init; }
-    public string? RootNamespace { get; init; }
     public string DisplayName { get; init; }
     public ProjectWorkspaceState ProjectWorkspaceState { get; init; }
     public ImmutableArray<DocumentSnapshotHandle> Documents { get; init; }
@@ -37,7 +36,6 @@ internal sealed record class RazorProjectInfo
         ProjectKey projectKey,
         string filePath,
         RazorConfiguration configuration,
-        string? rootNamespace,
         string displayName,
         ProjectWorkspaceState projectWorkspaceState,
         ImmutableArray<DocumentSnapshotHandle> documents)
@@ -45,7 +43,6 @@ internal sealed record class RazorProjectInfo
         ProjectKey = projectKey;
         FilePath = filePath;
         Configuration = configuration;
-        RootNamespace = rootNamespace;
         DisplayName = displayName;
         ProjectWorkspaceState = projectWorkspaceState;
         Documents = documents.NullToEmpty();
@@ -56,7 +53,6 @@ internal sealed record class RazorProjectInfo
            ProjectKey == other.ProjectKey &&
            FilePath == other.FilePath &&
            Configuration.Equals(other.Configuration) &&
-           RootNamespace == other.RootNamespace &&
            DisplayName == other.DisplayName &&
            ProjectWorkspaceState.Equals(other.ProjectWorkspaceState) &&
            Documents.SequenceEqual(other.Documents);
@@ -68,7 +64,6 @@ internal sealed record class RazorProjectInfo
         hash.Add(ProjectKey);
         hash.Add(FilePath);
         hash.Add(Configuration);
-        hash.Add(RootNamespace);
         hash.Add(DisplayName);
         hash.Add(ProjectWorkspaceState);
         hash.Add(Documents);

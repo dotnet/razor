@@ -62,7 +62,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
     internal async Task<IDocumentSnapshot> GetDocumentSnapshotAsync(string projectFilePath, string filePath, string targetPath)
     {
         var intermediateOutputPath = Path.Combine(Path.GetDirectoryName(projectFilePath), "obj");
-        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
+        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default);
         using var fileStream = new FileStream(filePath, FileMode.Open);
         var text = SourceText.From(fileStream);
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));

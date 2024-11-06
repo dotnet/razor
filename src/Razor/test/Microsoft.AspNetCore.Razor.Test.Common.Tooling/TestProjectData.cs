@@ -22,7 +22,7 @@ internal static class TestProjectData
         SomeProjectPath = Path.Combine(baseDirectory, "SomeProject");
         var someProjectObjPath = Path.Combine(SomeProjectPath, "obj");
 
-        SomeProject = new HostProject(Path.Combine(SomeProjectPath, "SomeProject.csproj"), someProjectObjPath, RazorConfiguration.Default, "SomeProject");
+        SomeProject = new HostProject(Path.Combine(SomeProjectPath, "SomeProject.csproj"), someProjectObjPath, RazorConfiguration.Default with { RootNamespace = "SomeProject" });
         SomeProjectFile1 = new HostDocument(Path.Combine(SomeProjectPath, "File1.cshtml"), "File1.cshtml", FileKinds.Legacy);
         SomeProjectFile2 = new HostDocument(Path.Combine(SomeProjectPath, "File2.cshtml"), "File2.cshtml", FileKinds.Legacy);
         SomeProjectImportFile = new HostDocument(Path.Combine(SomeProjectPath, "_ViewImports.cshtml"), "_ViewImports.cshtml", FileKinds.Legacy);
@@ -39,7 +39,7 @@ internal static class TestProjectData
         var anotherProjectPath = Path.Combine(baseDirectory, "AnotherProject");
         var anotherProjectObjPath = Path.Combine(anotherProjectPath, "obj");
 
-        AnotherProject = new HostProject(Path.Combine(anotherProjectPath, "AnotherProject.csproj"), anotherProjectObjPath, RazorConfiguration.Default, "AnotherProject");
+        AnotherProject = new HostProject(Path.Combine(anotherProjectPath, "AnotherProject.csproj"), anotherProjectObjPath, RazorConfiguration.Default with { RootNamespace = "AnotherProject" });
         AnotherProjectFile1 = new HostDocument(Path.Combine(anotherProjectPath, "File1.cshtml"), "File1.cshtml", FileKinds.Legacy);
         AnotherProjectFile2 = new HostDocument(Path.Combine(anotherProjectPath, "File2.cshtml"), "File2.cshtml", FileKinds.Legacy);
         AnotherProjectImportFile = new HostDocument(Path.Combine(anotherProjectPath, "_ViewImports.cshtml"), "_ViewImports.cshtml", FileKinds.Legacy);

@@ -113,9 +113,9 @@ public class RoslynProjectChangeDetectorTest : VisualStudioWorkspaceTestBase
         _projectNumberTwo = _solutionWithTwoProjects.GetProject(projectId2).AssumeNotNull();
         _projectNumberThree = _solutionWithOneProject.GetProject(projectId3).AssumeNotNull();
 
-        _hostProjectOne = new HostProject("One.csproj", "obj1", FallbackRazorConfiguration.MVC_1_1, "One");
-        _hostProjectTwo = new HostProject("Two.csproj", "obj2", FallbackRazorConfiguration.MVC_1_1, "Two");
-        _hostProjectThree = new HostProject("Three.csproj", "obj3", FallbackRazorConfiguration.MVC_1_1, "Three");
+        _hostProjectOne = new HostProject("One.csproj", "obj1", FallbackRazorConfiguration.MVC_1_1);
+        _hostProjectTwo = new HostProject("Two.csproj", "obj2", FallbackRazorConfiguration.MVC_1_1);
+        _hostProjectThree = new HostProject("Three.csproj", "obj3", FallbackRazorConfiguration.MVC_1_1);
     }
 
     [UIFact]

@@ -27,9 +27,8 @@ internal sealed record class MiscFilesHostProject : HostProject
         string filePath,
         string intermediateOutputPath,
         RazorConfiguration razorConfiguration,
-        string? rootNamespace, string?
-        displayName = null)
-        : base(filePath, intermediateOutputPath, razorConfiguration, rootNamespace, displayName)
+        string? displayName = null)
+        : base(filePath, intermediateOutputPath, razorConfiguration, displayName)
     {
         DirectoryPath = directory;
     }
@@ -45,7 +44,6 @@ internal sealed record class MiscFilesHostProject : HostProject
             normalizedPath,
             normalizedPath,
             FallbackRazorConfiguration.Latest,
-            rootNamespace: null,
             "Miscellaneous Files");
     }
 

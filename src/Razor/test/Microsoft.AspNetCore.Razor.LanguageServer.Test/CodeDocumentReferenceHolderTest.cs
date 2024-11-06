@@ -21,8 +21,10 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
     private static readonly HostProject s_hostProject = new(
         filePath: "C:/path/to/project.csproj",
         intermediateOutputPath: "C:/path/to/obj",
-        configuration: RazorConfiguration.Default,
-        rootNamespace: "TestNamespace");
+        configuration: RazorConfiguration.Default with
+        {
+            RootNamespace = "TestNamespace"
+        });
 
     private static readonly HostDocument s_hostDocument = new("C:/path/to/file.razor", "file.razor");
 
@@ -135,7 +137,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(s_hostProject with { Configuration = RazorConfiguration.Default, RootNamespace = "NewRootNamespace" });
+            updater.ProjectConfigurationChanged(s_hostProject with { Configuration = RazorConfiguration.Default with { RootNamespace = "NewRootNamespace" } });
         });
 
         PerformFullGC();

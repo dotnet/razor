@@ -112,8 +112,6 @@ internal static class TestMocks
             .Returns(hostProject.IntermediateOutputPath);
         mock.SetupGet(x => x.Configuration)
             .Returns(hostProject.Configuration);
-        mock.SetupGet(x => x.RootNamespace)
-            .Returns(hostProject.RootNamespace);
         mock.SetupGet(x => x.DisplayName)
             .Returns(hostProject.DisplayName);
 
