@@ -8,7 +8,5 @@ using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal record CodeActionRequestInfo(
-    [property: JsonPropertyName("languageKind")]
-    RazorLanguageKind LanguageKind,
-    [property: JsonPropertyName("csharpRequest")]
-    VSCodeActionParams? CSharpRequest);
+    [property: JsonPropertyName("languageKind")] RazorLanguageKind LanguageKind,
+    [property: JsonPropertyName("csharpRequest")] VSCodeActionParams? CSharpRequest);

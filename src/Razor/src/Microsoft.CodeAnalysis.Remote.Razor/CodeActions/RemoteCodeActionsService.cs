@@ -82,8 +82,8 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
             context => ResolveCodeActionAsync(context, request, delegatedCodeAction, options, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<CodeAction> ResolveCodeActionAsync(RemoteDocumentContext context, CodeAction request, CodeAction? delegatedCodeAction, RazorFormattingOptions options, CancellationToken cancellationToken)
+    private ValueTask<CodeAction> ResolveCodeActionAsync(RemoteDocumentContext context, CodeAction request, CodeAction? delegatedCodeAction, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        return await _codeActionResolveService.ResolveCodeActionAsync(context, request, delegatedCodeAction, options, cancellationToken).ConfigureAwait(false);
+        return new(_codeActionResolveService.ResolveCodeActionAsync(context, request, delegatedCodeAction, options, cancellationToken));
     }
 }

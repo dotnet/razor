@@ -20,16 +20,16 @@ using RoslynTextEdit = Roslyn.LanguageServer.Protocol.TextEdit;
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Export(typeof(IRoslynCodeActionHelpers)), Shared]
-internal sealed class RoslynCodeActionHelpers() : IRoslynCodeActionHelpers
+internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
 {
-    public async Task<string?> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
+    public Task<string?> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
     {
         Debug.Assert(projectSnapshot is RemoteProjectSnapshot);
         var project = ((RemoteProjectSnapshot)projectSnapshot).Project;
 
         var document = project.AddDocument(RazorUri.GetDocumentFilePathFromUri(csharpFileUri), newFileContent);
 
-        return await ExternalHandlers.CodeActions.GetFormattedNewFileContentAsync(document, cancellationToken).ConfigureAwait(false);
+        return ExternalHandlers.CodeActions.GetFormattedNewFileContentAsync(document, cancellationToken)!;
     }
 
     public async Task<TextEdit[]?> GetSimplifiedTextEditsAsync(DocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
