@@ -2,11 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
@@ -25,6 +27,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [CohostEndpoint(Methods.CodeActionResolveName)]
+[Export(typeof(IDynamicRegistrationProvider))]
 [ExportCohostStatelessLspService(typeof(CohostCodeActionsResolveEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -34,7 +37,7 @@ internal sealed class CohostCodeActionsResolveEndpoint(
     IClientSettingsManager clientSettingsManager,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker)
-    : AbstractRazorCohostDocumentRequestHandler<CodeAction, CodeAction?>
+    : AbstractRazorCohostDocumentRequestHandler<CodeAction, CodeAction?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
@@ -45,6 +48,20 @@ internal sealed class CohostCodeActionsResolveEndpoint(
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
+
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    {
+        if (clientCapabilities.TextDocument?.CodeAction?.DynamicRegistration == true)
+        {
+            return [new Registration
+            {
+                Method = Methods.CodeActionResolveName,
+                RegisterOptions = new CodeActionRegistrationOptions().EnableCodeActions()
+            }];
+        }
+
+        return [];
+    }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(CodeAction request)
     {
