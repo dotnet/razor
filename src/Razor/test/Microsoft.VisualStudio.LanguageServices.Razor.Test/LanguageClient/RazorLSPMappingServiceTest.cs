@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -24,13 +22,13 @@ public class RazorLSPMappingServiceTest(ITestOutputHelper testOutput) : ToolingT
 {
     private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
 
-    private static readonly string s_mockGeneratedContent = """
+    const string s_mockGeneratedContent = """
             Hello
              This is the source text in the generated C# file.
              This is some more sample text for demo purposes.
             """;
 
-    private static readonly string s_mockRazorContent = """
+    const string s_mockRazorContent = """
             Hello
              This is the
              source text

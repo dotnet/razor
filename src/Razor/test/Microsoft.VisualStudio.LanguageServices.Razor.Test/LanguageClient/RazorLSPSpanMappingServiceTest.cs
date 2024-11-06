@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -22,16 +20,16 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
-public class RazorLSPSpanMappingServiceTest : ToolingTestBase
+public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
 
-    private static readonly string s_mockGeneratedContent = """
+    const string s_mockGeneratedContent = """
             Hello
              This is the source text in the generated C# file.
              This is some more sample text for demo purposes.
             """;
-    private static readonly string s_mockRazorContent = """
+    const string s_mockRazorContent = """
             Hello
              This is the
              source text
@@ -39,15 +37,8 @@ public class RazorLSPSpanMappingServiceTest : ToolingTestBase
              This is some more sample text for demo purposes.
             """;
 
-    private readonly SourceText _sourceTextGenerated;
-    private readonly SourceText _sourceTextRazor;
-
-    public RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
-        _sourceTextRazor = SourceText.From(s_mockRazorContent);
-    }
+    private static readonly SourceText _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
+    private static readonly SourceText _sourceTextRazor = SourceText.From(s_mockRazorContent);
 
     [Fact]
     public async Task MapSpans_WithinRange_ReturnsMapping()
