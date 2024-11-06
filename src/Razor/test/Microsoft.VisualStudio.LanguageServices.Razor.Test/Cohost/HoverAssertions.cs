@@ -79,11 +79,17 @@ internal static class HoverAssertions
             Assert.Equal(text, run.Text);
         };
 
+    public static Action<ClassifiedTextRun> ClassName (string text)
+        => Run(text, ClassificationTypeNames.ClassName);
+
     public static Action<ClassifiedTextRun> Keyword(string text)
         => Run(text, ClassificationTypeNames.Keyword);
 
     public static Action<ClassifiedTextRun> LocalName(string text)
         => Run(text, ClassificationTypeNames.LocalName);
+
+    public static Action<ClassifiedTextRun> PropertyName(string text)
+        => Run(text, ClassificationTypeNames.PropertyName);
 
     public static Action<ClassifiedTextRun> Punctuation(string text)
         => Run(text, ClassificationTypeNames.Punctuation);
