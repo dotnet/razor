@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -26,8 +24,6 @@ internal class ExtractToCodeBehindCodeActionResolver(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IRoslynCodeActionHelpers roslynCodeActionHelpers) : IRazorCodeActionResolver
 {
-    private static readonly Workspace s_workspace = new AdhocWorkspace();
-
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
 
@@ -134,18 +130,6 @@ internal class ExtractToCodeBehindCodeActionResolver(
 
         var newFileContent = builder.ToString();
 
-        var fixedContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(project, codeBehindUri, newFileContent, cancellationToken).ConfigureAwait(false);
-
-        if (fixedContent is null)
-        {
-            // Sadly we can't use a "real" workspace here, because we don't have access. If we use our workspace, it wouldn't have the right settings
-            // for C# formatting, only Razor formatting, and we have no access to Roslyn's real workspace, since it could be in another process.
-            var node = await CSharpSyntaxTree.ParseText(newFileContent, cancellationToken: cancellationToken).GetRootAsync(cancellationToken).ConfigureAwait(false);
-            node = Formatter.Format(node, s_workspace, cancellationToken: cancellationToken);
-
-            return node.ToFullString();
-        }
-
-        return fixedContent;
+        return await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(project, codeBehindUri, newFileContent, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 [Export(typeof(IRoslynCodeActionHelpers)), Shared]
 internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
 {
-    public Task<string?> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
+    public Task<string> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
     {
         Debug.Assert(projectSnapshot is RemoteProjectSnapshot);
         var project = ((RemoteProjectSnapshot)projectSnapshot).Project;
 
         var document = project.AddDocument(RazorUri.GetDocumentFilePathFromUri(csharpFileUri), newFileContent);
 
-        return ExternalHandlers.CodeActions.GetFormattedNewFileContentAsync(document, cancellationToken)!;
+        return ExternalHandlers.CodeActions.GetFormattedNewFileContentAsync(document, cancellationToken);
     }
 
     public async Task<TextEdit[]?> GetSimplifiedTextEditsAsync(DocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)

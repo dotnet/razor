@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal interface IRoslynCodeActionHelpers
 {
-    Task<string?> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken);
+    Task<string> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken);
 
     /// <summary>
     /// Apply the edit to the specified document, get Roslyn to simplify it, and return the simplified edit
