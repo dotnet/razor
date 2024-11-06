@@ -3,11 +3,12 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor;
 
-internal partial class RoslynProjectChangeDetector
+internal partial class WorkspaceProjectStateChangeDetector
 {
     private sealed class Comparer : IEqualityComparer<(Project?, IProjectSnapshot)>
     {
@@ -22,14 +23,14 @@ internal partial class RoslynProjectChangeDetector
             var (_, snapshotX) = x;
             var (_, snapshotY) = y;
 
-            return snapshotX.Key.Equals(snapshotY.Key);
+            return FilePathComparer.Instance.Equals(snapshotX.Key.Id, snapshotY.Key.Id);
         }
 
         public int GetHashCode((Project?, IProjectSnapshot) obj)
         {
             var (_, snapshot) = obj;
 
-            return snapshot.Key.GetHashCode();
+            return FilePathComparer.Instance.GetHashCode(snapshot.Key.Id);
         }
     }
 }

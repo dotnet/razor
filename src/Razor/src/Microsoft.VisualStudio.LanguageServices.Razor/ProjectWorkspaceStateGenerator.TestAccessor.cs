@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.VisualStudio.Razor;
 
-internal sealed partial class RoslynProjectChangeProcessor
+internal sealed partial class ProjectWorkspaceStateGenerator
 {
     internal TestAccessor GetTestAccessor() => new(this);
 
-    internal sealed class TestAccessor(RoslynProjectChangeProcessor instance)
+    internal sealed class TestAccessor(ProjectWorkspaceStateGenerator instance)
     {
         public interface IUpdateItem
         {
