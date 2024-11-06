@@ -40,7 +40,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                 Container(
                     Container(
                         Image,
-                        ClassifiedText(
+                        ClassifiedText( // Microsoft.AspNetCore.Components.Web.PageTitle
                             Text("Microsoft"),
                             Punctuation("."),
                             Text("AspNetCore"),
@@ -67,6 +67,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
             }
             """;
 
+        // This simply verifies that Hover will call into HTML.
         var htmlResponse = new VSInternalHover();
 
         await VerifyHoverAsync(code, htmlResponse, h => Assert.Same(htmlResponse, h));
@@ -94,7 +95,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                 Container(
                     Container(
                         Image,
-                        ClassifiedText(
+                        ClassifiedText( // (local variable) string myVariable
                             Punctuation("("),
                             Text("local variable"),
                             Punctuation(")"),
@@ -102,6 +103,45 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                             Keyword("string"),
                             WhiteSpace(" "),
                             LocalName("myVariable")))));
+        });
+    }
+
+    [Fact]
+    public async Task ComponentAttribute()
+    {
+        // Component attributes are within HTML but actually map to C#.
+        // In this situation, Hover prefers treating the position as C# and calls
+        // Roslyn rather than HTML.
+
+        TestCode code = """
+            <EditForm [|Form$$Name|]="Hello" />
+            """;
+
+        await VerifyHoverAsync(code, async (hover, document) =>
+        {
+            await hover.VerifyRangeAsync(code.Span, document);
+
+            hover.VerifyRawContent(
+                Container(
+                    Container(
+                        Image,
+                        ClassifiedText( // string? EditForm.FormName { get; set; }
+                            Keyword("string"),
+                            Punctuation("?"),
+                            WhiteSpace(" "),
+                            ClassName("EditForm"),
+                            Punctuation("."),
+                            PropertyName("FormName"),
+                            WhiteSpace(" "),
+                            Punctuation("{"),
+                            WhiteSpace(" "),
+                            Keyword("get"),
+                            Punctuation(";"),
+                            WhiteSpace(" "),
+                            Keyword("set"),
+                            Punctuation(";"),
+                            WhiteSpace(" "),
+                            Punctuation("}")))));
         });
     }
 
