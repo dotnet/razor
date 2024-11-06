@@ -130,7 +130,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         services.AddDocumentManagementServices(featureOptions);
         services.AddFormattingServices(featureOptions);
         services.AddOptionsServices(_lspOptions);
-        services.AddHoverServices();
         services.AddTextDocumentServices(featureOptions);
 
         if (!featureOptions.UseRazorCohostServer)
@@ -157,6 +156,9 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
             services.AddSingleton<IFoldingRangeService, FoldingRangeService>();
+
+            // Hover
+            services.AddHoverServices();
         }
 
         // Other
