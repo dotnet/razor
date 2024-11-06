@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -66,9 +67,8 @@ internal class RazorMappingService(IDocumentSnapshot document, ITelemetryReporte
 
         var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
         var csharpSource = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var edits = changes.SelectAsArray(c => csharpSource.GetTextEdit(c));
         var results = await RazorEditHelper.MapCSharpEditsAsync(
-            edits,
+            changes.SelectAsArray(c => c.ToRazorTextChange()),
             _document,
             _documentMappingService,
             _telemetryReporter,
@@ -76,7 +76,7 @@ internal class RazorMappingService(IDocumentSnapshot document, ITelemetryReporte
 
         var razorCodeDocument = await _document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var razorSource = razorCodeDocument.Source.Text;
-        var textChanges = results.SelectAsArray(te => razorSource.GetTextChange(te));
+        var textChanges = results.SelectAsArray(te => te.ToTextChange());
 
         return [new RazorMappedEditoResult() { FilePath = _document.FilePath, TextChanges = textChanges.ToArray() }];
     }

@@ -44,7 +44,7 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
             return null;
         }
 
-        if (request.TextEdits.Length == 0)
+        if (request.TextChanges.Length == 0)
         {
             return null;
         }
@@ -55,13 +55,13 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
             // so the edits do as well
             return new RazorMapToDocumentEditsResponse()
             {
-                TextEdits = request.TextEdits,
+                TextChanges = request.TextChanges,
                 HostDocumentVersion = documentContext.Snapshot.Version,
             };
         }
 
         var mappedEdits = await RazorEditHelper.MapCSharpEditsAsync(
-            request.TextEdits.ToImmutableArray(),
+            request.TextChanges.ToImmutableArray(),
             documentContext.Snapshot,
             _documentMappingService,
             _telemetryReporter,
@@ -69,7 +69,7 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
 
         _logger.LogTrace($"""
             Before:
-            {DisplayEdits(request.TextEdits)}
+            {DisplayEdits(request.TextChanges)}
 
             After:
             {DisplayEdits(mappedEdits)}
@@ -77,12 +77,12 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
 
         return new RazorMapToDocumentEditsResponse()
         {
-            TextEdits = mappedEdits.ToArray(),
+            TextChanges = mappedEdits.ToArray(),
         };
     }
 
-    private string DisplayEdits(IEnumerable<TextEdit> edits)
+    private string DisplayEdits(IEnumerable<RazorTextChange> changes)
         => string.Join(
             Environment.NewLine,
-            edits.Select(e => $"{e.Range} => '{e.NewText}'"));
+            changes.Select(e => $"{e.Span} => '{e.NewText}'"));
 }

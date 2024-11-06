@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.Workspaces.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -24,8 +24,8 @@ internal static partial class RazorEditHelper
 {
     private class TextChangeBuilder(IDocumentMappingService documentMappingService) : IDisposable
     {
-        private static readonly ObjectPool<ImmutableArray<TextEdit>.Builder> Pool = ArrayBuilderPool<TextEdit>.Default;
-        private readonly ImmutableArray<TextEdit>.Builder _builder = Pool.Get();
+        private ObjectPool<ImmutableArray<RazorTextChange>.Builder> Pool => ArrayBuilderPool<RazorTextChange>.Default;
+        private readonly ImmutableArray<RazorTextChange>.Builder _builder = ArrayBuilderPool<RazorTextChange>.Default.Get();
         private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
         public void Dispose()
@@ -33,14 +33,14 @@ internal static partial class RazorEditHelper
             Pool.Return(_builder);
         }
 
-        public ImmutableArray<TextEdit> DrainToOrderedImmutable()
-            => _builder.DrainToImmutableOrderedBy(e => e.Range, RangeComparer.Instance);
+        public ImmutableArray<RazorTextChange> DrainToOrderedImmutable()
+            => _builder.DrainToImmutableOrderedBy(e => e.Span.Start);
 
         /// <summary>
         /// For all edits that are not mapped to using directives, add them directly to the builder.
         /// Edits that are not mapped are skipped, and using directive changes are handled by <see cref="AddUsingsChanges(RazorCodeDocument, ImmutableArray{string}, ImmutableArray{string}, CancellationToken)"/>
         /// </summary>
-        public void AddDirectlyMappedEdits(ImmutableArray<TextEdit> edits, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        public void AddDirectlyMappedEdits(ImmutableArray<RazorTextChange> edits, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
         {
             var root = codeDocument.GetSyntaxTree().Root;
             var razorText = codeDocument.Source.Text;
@@ -50,9 +50,11 @@ internal static partial class RazorEditHelper
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                var linePositionSpan = razorText.GetLinePositionSpan(edit.Span.ToTextSpan());
+
                 if (!_documentMappingService.TryMapToHostDocumentRange(
                     csharpDocument,
-                    edit.Range.ToLinePositionSpan(),
+                    linePositionSpan,
                     MappingBehavior.Strict,
                     out var mappedLinePositionSpan))
                 {
@@ -71,9 +73,9 @@ internal static partial class RazorEditHelper
                     continue;
                 }
 
-                var mappedEdit = new TextEdit()
+                var mappedEdit = new RazorTextChange()
                 {
-                    Range = mappedLinePositionSpan.ToRange(),
+                    Span = mappedSpan.ToRazorTextSpan(),
                     NewText = edit.NewText ?? ""
                 };
                 _builder.Add(mappedEdit);
@@ -138,9 +140,9 @@ internal static partial class RazorEditHelper
                 Debug.Assert(remainingUsings.IsEmpty, "Should not have no first block but still have remaining usings");
                 var span = FindFirstTopLevelSpotForUsing(codeDocument);
                 var newText = GetUsingsText(usingDirectives: [], addedUsings, removedUsings: []);
-                _builder.Add(new TextEdit()
+                _builder.Add(new RazorTextChange()
                 {
-                    Range = razorSourceText.GetRange(span),
+                    Span = span.ToRazorTextSpan(),
                     NewText = newText
                 });
 
@@ -185,21 +187,21 @@ internal static partial class RazorEditHelper
                     var nextNew = remainingNew[0];
 
                     RazorSyntaxFacts.TryGetNamespaceFromDirective(currentDirective, out var currentNamespace);
-                    var comparend = UsingsStringComparer.Instance.Compare(currentNamespace, nextNew);
-                    if (comparend < 0)
+                    var comparand = UsingsStringComparer.Instance.Compare(currentNamespace, nextNew);
+                    if (comparand < 0)
                     {
                         // Current namespace goes before new namespace
                         builder.AppendLine(currentDirective.GetContent());
                         remainingExisting = remainingExisting[1..];
                     }
-                    else if (comparend > 0)
+                    else if (comparand > 0)
                     {
                         // New namespace goes before current namespace
                         builder.AppendLine(GetUsingsText(nextNew));
                         remainingNew = remainingNew[1..];
                     }
 
-                    Debug.Assert(comparend != 0, "New namespace should never be an existing namespace");
+                    Debug.Assert(comparand != 0, "New namespace should never be an existing namespace");
                 }
 
                 Debug.Assert(remainingNew.IsEmpty || remainingExisting.IsEmpty, "Should have consumed all new or existing usings");
@@ -220,9 +222,9 @@ internal static partial class RazorEditHelper
                 endPosition = AdjustPositionToEndOfLine(endPosition, codeDocument.Source.Text);
 
                 var span = TextSpan.FromBounds(startPosition, endPosition);
-                _builder.Add(new TextEdit()
+                _builder.Add(new RazorTextChange()
                 {
-                    Range = codeDocument.Source.Text.GetRange(span),
+                    Span = span.ToRazorTextSpan(),
                     NewText = builder.ToString()
                 });
             }
@@ -265,9 +267,9 @@ internal static partial class RazorEditHelper
 
             var span = TextSpan.FromBounds(startPosition, endPosition);
             var newText = GetUsingsText(firstBlockOfUsings, addedUsings, removedUsings);
-            _builder.Add(new TextEdit()
+            _builder.Add(new RazorTextChange()
             {
-                Range = codeDocument.Source.Text.GetRange(span),
+                Span = span.ToRazorTextSpan(),
                 NewText = newText
             });
 
@@ -283,9 +285,9 @@ internal static partial class RazorEditHelper
             var start = node.Span.Start;
             var end = AdjustPositionToEndOfLine(node.Span.End, text);
             var removeSpan = TextSpan.FromBounds(start, end);
-            _builder.Add(new TextEdit()
+            _builder.Add(new RazorTextChange()
             {
-                Range = text.GetRange(removeSpan),
+                Span = removeSpan.ToRazorTextSpan(),
                 NewText = ""
             });
         }

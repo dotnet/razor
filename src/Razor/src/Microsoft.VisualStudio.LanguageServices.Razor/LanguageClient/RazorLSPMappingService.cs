@@ -48,7 +48,7 @@ internal sealed class RazorLSPMappingService(
     {
         var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
 
-        var mappedEdits = await _lspDocumentMappingProvider.MapToDocumentEditssAsync(
+        var mappedEdits = await _lspDocumentMappingProvider.MapToDocumentEditsAsync(
             RazorLanguageKind.CSharp,
             _documentSnapshot.Uri,
             changes.ToArray(),
@@ -60,7 +60,7 @@ internal sealed class RazorLSPMappingService(
         }
 
         var sourceTextRazor = _documentSnapshot.Snapshot.AsText();
-        var mappedChanges = mappedEdits.TextEdits.Select(e => sourceTextRazor.GetTextChange(e)).ToArray();
+        var mappedChanges = mappedEdits.TextChanges.Select(e => e.ToTextChange()).ToArray();
         return [new RazorMappedEditoResult(_documentSnapshot.Uri.AbsolutePath, mappedChanges)];
     }
 

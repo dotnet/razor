@@ -61,7 +61,7 @@ internal class LSPDocumentMappingProvider(
         return documentMappingResponse?.Response;
     }
 
-    public async Task<RazorMapToDocumentEditsResponse?> MapToDocumentEditssAsync(
+    public async Task<RazorMapToDocumentEditsResponse?> MapToDocumentEditsAsync(
         RazorLanguageKind languageKind,
         Uri razorDocumentUri,
         TextChange[] textEdits,
@@ -72,12 +72,11 @@ internal class LSPDocumentMappingProvider(
             return null;
         }
 
-        var razorSourceText = textBuffer.CurrentSnapshot.AsText();
         var mapToDocumentEditsParams = new RazorMapToDocumentEditsParams()
         {
             Kind = languageKind,
             RazorDocumentUri = razorDocumentUri,
-            TextEdits = textEdits.Select(c => razorSourceText.GetTextEdit(c)).ToArray(),
+            TextChanges = textEdits.Select(ConvertToRazorCSharpTextChange).ToArray(),
         };
 
         var documentMappingResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(
@@ -89,6 +88,9 @@ internal class LSPDocumentMappingProvider(
 
         return documentMappingResponse?.Response;
     }
+
+    private RazorTextChange ConvertToRazorCSharpTextChange(TextChange change)
+        => change.ToRazorTextChange();
 
     private bool TryGetTextBuffer(Uri razorDocumentUri, [NotNullWhen(true)] out ITextBuffer? textBuffer)
     {

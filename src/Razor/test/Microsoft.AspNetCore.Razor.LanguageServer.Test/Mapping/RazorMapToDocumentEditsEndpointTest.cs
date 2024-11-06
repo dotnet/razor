@@ -728,7 +728,7 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
         var request = new RazorMapToDocumentEditsParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            TextEdits = changes.Select(c => csharpSourceText.GetTextEdit(c)).ToArray(),
+            TextChanges = changes.Select(c => c.ToRazorTextChange()).ToArray(),
             RazorDocumentUri = new Uri(razorPath),
         };
 
@@ -737,9 +737,9 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
         var response = await languageEndpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
 
         Assert.NotNull(response);
-        Assert.NotEmpty(response.TextEdits);
+        Assert.NotEmpty(response.TextChanges);
 
-        var responseTextChanges = response.TextEdits.Select(e => razorSourceText.GetTextChange(e)).ToArray();
+        var responseTextChanges = response.TextChanges.Select(e => e.ToTextChange()).ToArray();
         var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges);
         AssertEx.EqualOrDiff(expectedRazorSource, newRazorSourceText.ToString());
     }
