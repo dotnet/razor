@@ -395,6 +395,54 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
+    public async Task FullyQualify()
+    {
+        var input = """
+            @code
+            {
+                private [||]StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                private System.Text.StringBuilder _x = new StringBuilder();
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "System.Text.StringBuilder");
+    }
+
+    [Fact]
+    public async Task FullyQualify_Multiple()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code
+                {
+                    private [||]StringBuilder _x = new StringBuilder();
+                }
+                """,
+            expected: """
+                @code
+                {
+                    private System.Text.StringBuilder _x = new StringBuilder();
+                }
+                """,
+            additionalFiles: [
+                (FilePath("StringBuilder.cs"), """
+                    namespace Not.Built.In;
+
+                    public class StringBuilder
+                    {
+                    }
+                    """)],
+            codeActionName: "Fully qualify 'StringBuilder'",
+            childActionIndex: 0);
+    }
+
+    [Fact]
     public async Task AddUsing()
     {
         var input = """
@@ -905,7 +953,12 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         Assert.NotEmpty(result);
 
         var codeActionToRun = (VSInternalCodeAction?)result.SingleOrDefault(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeActionName || ((RazorVSInternalCodeAction)e.Value!).Title == codeActionName).Value;
-        Assert.NotNull(codeActionToRun);
+        AssertEx.NotNull(codeActionToRun, $"""
+            Could not file code action with name or title '{codeActionName}'.
+
+            Available:
+                {string.Join(Environment.NewLine + "    ", result.Select(e => $"{((RazorVSInternalCodeAction)e.Value!).Name} or {((RazorVSInternalCodeAction)e.Value!).Title}"))}
+            """);
 
         if (codeActionToRun.Children?.Length > 0)
         {
