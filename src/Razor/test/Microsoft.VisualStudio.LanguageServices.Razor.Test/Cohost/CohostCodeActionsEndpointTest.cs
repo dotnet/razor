@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -12,6 +13,8 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Settings;
@@ -409,6 +412,27 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
+    public async Task AddUsing_Typo()
+    {
+        var input = """
+            @code
+            {
+                private [||]Stringbuilder _x = new Stringbuilder();
+            }
+            """;
+
+        var expected = """
+            @using System.Text
+            @code
+            {
+                private StringBuilder _x = new Stringbuilder();
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
+    }
+
+    [Fact]
     public async Task AddUsing_WithExisting()
     {
         var input = """
@@ -528,6 +552,114 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
+    public async Task CreateComponentFromTag()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <He[||]llo></Hello>
+                """,
+            expected: """
+                <div></div>
+
+                <Hello><Hello>
+                """,
+            codeActionName: WorkspacesSR.Create_Component_FromTag_Title,
+            additionalExpectedFiles: [
+                (FileUri("Hello.razor"), "")]);
+    }
+
+    [Fact]
+    public async Task CreateComponentFromTag_Attribute()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Hello wor[||]ld="true"></Hello>
+                """,
+            expected: """
+                <div></div>
+
+                <Hello><Hello>
+                """,
+            codeActionName: WorkspacesSR.Create_Component_FromTag_Title,
+            additionalExpectedFiles: [
+                (FileUri("Hello.razor"), "")]);
+    }
+
+    [Fact]
+    public async Task ComponentAccessibility_FixCasing()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Edit[||]form></Editform>
+                """,
+            expected: """
+                <div></div>
+
+                <EditForm></EditForm>
+                """,
+            codeActionName: "EditForm");
+    }
+
+    [Fact]
+    public async Task ComponentAccessibility_FullyQualify()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Section[||]Outlet></SectionOutlet>
+                """,
+            expected: """
+                <div></div>
+
+                <Microsoft.AspNetCore.Components.Sections.SectionOutlet></Microsoft.AspNetCore.Components.Sections.SectionOutlet>
+                """,
+            codeActionName: "Microsoft.AspNetCore.Components.Sections.SectionOutlet");
+    }
+
+    [Fact]
+    public async Task ComponentAccessibility_AddUsing()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Section[||]Outlet></SectionOutlet>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Sections
+                <div></div>
+
+                <SectionOutlet></SectionOutlet>
+                """,
+            codeActionName: "@using Microsoft.AspNetCore.Components.Sections");
+    }
+
+    [Fact]
+    public async Task ComponentAccessibility_AddUsing_FixTypo()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Section[||]outlet></Sectionoutlet>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Sections
+                <div></div>
+
+                <SectionOutlet></SectionOutlet>
+                """,
+            codeActionName: "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections");
+    }
+
+    [Fact]
     public async Task ExtractToCodeBehind()
     {
         await VerifyCodeActionAsync(
@@ -588,6 +720,9 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
 
     private async Task VerifyCodeActionAsync(TestCode input, string? expected, string codeActionName, int childActionIndex = 0, string? fileKind = null, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
+        var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
+        fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(additionalExpectedFiles));
+
         UpdateClientLSPInitializationOptions(options =>
         {
             options.ClientCapabilities.TextDocument = new()
@@ -611,7 +746,11 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             return;
         }
 
-        await VerifyCodeActionResolveAsync(document, codeAction, expected, additionalExpectedFiles);
+        var workspaceEdit = codeAction.Data is null
+            ? codeAction.Edit.AssumeNotNull()
+            : await ResolveCodeActionAsync(document, codeAction);
+
+        await VerifyCodeActionResultAsync(document, workspaceEdit, expected, additionalExpectedFiles);
     }
 
     private async Task<CodeAction?> VerifyCodeActionRequestAsync(CodeAnalysis.TextDocument document, TestCode input, string codeActionName, int childActionIndex)
@@ -673,36 +812,74 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         return codeActionToRun;
     }
 
-    private async Task VerifyCodeActionResolveAsync(CodeAnalysis.TextDocument document, CodeAction codeAction, string? expected, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+    private async Task VerifyCodeActionResultAsync(CodeAnalysis.TextDocument document, WorkspaceEdit workspaceEdit, string? expected, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+    {
+        var validated = false;
+        if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
+        {
+            var documentUri = document.CreateUri();
+            var sourceText = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
+
+            foreach (var edit in documentEdits)
+            {
+                if (edit.TextDocument.Uri == documentUri)
+                {
+                    sourceText = sourceText.WithChanges(edit.Edits.Select(sourceText.GetTextChange));
+                }
+                else
+                {
+                    var contents = Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == edit.TextDocument.Uri).contents;
+                    AssertEx.EqualOrDiff(contents, Assert.Single(edit.Edits).NewText);
+                }
+            }
+
+            validated = true;
+            AssertEx.EqualOrDiff(expected, sourceText.ToString());
+        }
+
+        if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
+        {
+            using var builder = new PooledArrayBuilder<TextDocumentEdit>();
+            foreach (var sumType in sumTypeArray)
+            {
+                if (sumType.Value is CreateFile createFile)
+                {
+                    validated = true;
+                    Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == createFile.Uri);
+                }
+            }
+        }
+
+        Assert.True(validated, "Test did not validate anything. Code action response type is presumably not supported.");
+    }
+
+    private async Task<WorkspaceEdit> ResolveCodeActionAsync(CodeAnalysis.TextDocument document, CodeAction codeAction)
     {
         var requestInvoker = new TestLSPRequestInvoker();
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
-
         var endpoint = new CohostCodeActionsResolveEndpoint(RemoteServiceInvoker, ClientCapabilitiesService, clientSettingsManager, TestHtmlDocumentSynchronizer.Instance, requestInvoker);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, codeAction, DisposalToken);
 
         Assert.NotNull(result?.Edit);
+        return result.Edit;
+    }
 
-        var workspaceEdit = result.Edit;
-        Assert.True(workspaceEdit.TryGetTextDocumentEdits(out var documentEdits));
-
-        var documentUri = document.CreateUri();
-        var sourceText = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
-
-        foreach (var edit in documentEdits)
+    private class TestFileSystem((Uri fileUri, string contents)[]? files) : IFileSystem
+    {
+        public bool FileExists(string filePath)
         {
-            if (edit.TextDocument.Uri == documentUri)
-            {
-                sourceText = sourceText.WithChanges(edit.Edits.Select(sourceText.GetTextChange));
-            }
-            else
-            {
-                var contents = Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == edit.TextDocument.Uri).contents;
-                AssertEx.EqualOrDiff(contents, Assert.Single(edit.Edits).NewText);
-            }
+            return false;
         }
 
-        AssertEx.EqualOrDiff(expected, sourceText.ToString());
+        public IEnumerable<string> GetDirectories(string workspaceDirectory)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<string> GetFiles(string workspaceDirectory, string searchPattern, SearchOption searchOption)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

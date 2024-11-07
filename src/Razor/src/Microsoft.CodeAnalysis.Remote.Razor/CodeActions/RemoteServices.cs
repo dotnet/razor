@@ -43,7 +43,8 @@ internal sealed class OOPExtractToCodeBehindCodeActionProvider(ILoggerFactory lo
 internal sealed class OOPExtractToComponentCodeActionProvider : ExtractToComponentCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
-internal sealed class OOPComponentAccessibilityCodeActionProvider : ComponentAccessibilityCodeActionProvider;
+[method: ImportingConstructor]
+internal sealed class OOPComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) : ComponentAccessibilityCodeActionProvider(fileSystem);
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
 internal sealed class OOPGenerateMethodCodeActionProvider : GenerateMethodCodeActionProvider;

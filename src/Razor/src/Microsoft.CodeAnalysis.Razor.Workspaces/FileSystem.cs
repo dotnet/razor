@@ -6,15 +6,14 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-internal class FileSystem : IFileSystem
+internal sealed class FileSystem : IFileSystem
 {
     public IEnumerable<string> GetFiles(string workspaceDirectory, string searchPattern, SearchOption searchOption)
-    {
-        return Directory.GetFiles(workspaceDirectory, searchPattern, searchOption);
-    }
+        => Directory.GetFiles(workspaceDirectory, searchPattern, searchOption);
 
     public IEnumerable<string> GetDirectories(string workspaceDirectory)
-    {
-        return Directory.GetDirectories(workspaceDirectory);
-    }
+        => Directory.GetDirectories(workspaceDirectory);
+
+    public bool FileExists(string filePath)
+        => File.Exists(filePath);
 }

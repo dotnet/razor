@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -96,5 +97,8 @@ public class IFileSystemExtensionsTest(ITestOutputHelper testOutput) : TagHelper
                 throw new DirectoryNotFoundException();
             }
         }
+
+        public bool FileExists(string filePath)
+            => throw new NotImplementedException();
     }
 }
