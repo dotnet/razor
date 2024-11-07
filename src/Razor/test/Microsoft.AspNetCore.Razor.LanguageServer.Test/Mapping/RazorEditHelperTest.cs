@@ -382,47 +382,47 @@ public class RazorEditHelperTest : LanguageServerTestBase
     [Fact]
     public Task AddUsing_OrdersSystemCorrectly()
         => TestAsync(
-            csharpSource:
-            """
-            {|mapUsing:using System;|}
-            {|mapUsing2:using MyNamespace;|}
-            class MyComponent : ComponentBase
-            {
-                {|map1:public int Counter { get; set; }|}
-            }
-            """,
-            razorSource:
-            """
-            @page "/counter"
-            {|mapUsing:@using System|}
-            {|mapUsing2:@using MyNamespace|}
+        csharpSource:
+        """
+        {|mapUsing:using System;|}
+        {|mapUsing2:using MyNamespace;|}
+        class MyComponent : ComponentBase
+        {
+            {|map1:public int Counter { get; set; }|}
+        }
+        """,
+        razorSource:
+        """
+        @page "/counter"
+        {|mapUsing:@using System|}
+        {|mapUsing2:@using MyNamespace|}
 
-            @code {
-                {|map1:public int Counter { get; set; }|} 
-            }
-            """,
-            newCSharpSource:
-            """
-            using OtherNamespace;
-            using System;
-            using System.Collections.Generic;
+        @code {
+            {|map1:public int Counter { get; set; }|} 
+        }
+        """,
+        newCSharpSource:
+        """
+        using OtherNamespace;
+        using System;
+        using System.Collections.Generic;
 
-            class MyComponent : ComponentBase
-            {
-                public int NewCounter { get; set; }
-            }
-            """,
-            expectedRazorSource:
-            """
-            @page "/counter"
-            @using System
-            @using System.Collections.Generic
-            @using OtherNamespace
+        class MyComponent : ComponentBase
+        {
+            public int NewCounter { get; set; }
+        }
+        """,
+        expectedRazorSource:
+        """
+        @page "/counter"
+        @using System
+        @using System.Collections.Generic
+        @using OtherNamespace
 
-            @code {
-                public int NewCounter { get; set; } 
-            }
-            """);
+        @code {
+            public int NewCounter { get; set; } 
+        }
+        """);
 
     [Fact]
     public Task UsingIndentation_DoesNotApply()
@@ -467,7 +467,7 @@ public class RazorEditHelperTest : LanguageServerTestBase
         }
         """);
 
-    [Fact (Skip = "https://github.com/dotnet/razor/issues/11168")]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/11168")]
     public Task UsingAliasRemoved_HandledCorrectly()
         => TestAsync(
         csharpSource:
@@ -563,14 +563,14 @@ public class RazorEditHelperTest : LanguageServerTestBase
         => TestAsync(
             csharpSource:
             """
-                {|mapUsing:using System;|}
-                {|mapUsing2:using MyNamespace;|}
-                {|mapUsing3:using MyNamespace2;|}
-                class MyComponent : ComponentBase
-                {
-                    {|map1:public int Counter { get; set; }|}
-                }
-                """,
+            {|mapUsing:using System;|}
+            {|mapUsing2:using MyNamespace;|}
+            {|mapUsing3:using MyNamespace2;|}
+            class MyComponent : ComponentBase
+            {
+                {|map1:public int Counter { get; set; }|}
+            }
+            """,
             razorSource:
             """
             @page "/counter"
@@ -617,19 +617,19 @@ public class RazorEditHelperTest : LanguageServerTestBase
 
     [Fact]
     public Task RemovingMultipleUsingGroups_AppliesCurrently()
-    => TestAsync(
-        csharpSource:
-        """
-                {|mapUsing:using System;|}
-                {|mapUsing2:using MyNamespace;|}
-                {|mapUsing3:using MyNamespace2;|}
-                class MyComponent : ComponentBase
-                {
-                    {|map1:public int Counter { get; set; }|}
-                }
-                """,
-        razorSource:
-        """
+        => TestAsync(
+            csharpSource:
+            """
+            {|mapUsing:using System;|}
+            {|mapUsing2:using MyNamespace;|}
+            {|mapUsing3:using MyNamespace2;|}
+            class MyComponent : ComponentBase
+            {
+                {|map1:public int Counter { get; set; }|}
+            }
+            """,
+            razorSource:
+            """
             @page "/counter"
             {|mapUsing:@using System|}
 
@@ -645,15 +645,15 @@ public class RazorEditHelperTest : LanguageServerTestBase
                 {|map1:public int Counter { get; set; }|} 
             }
             """,
-        newCSharpSource:
-        """
+            newCSharpSource:
+            """
             class MyComponent : ComponentBase
             {
                 public int NewCounter { get; set; }
             }
             """,
-        expectedRazorSource:
-        """
+            expectedRazorSource:
+            """
             @page "/counter"
 
             <p></p>

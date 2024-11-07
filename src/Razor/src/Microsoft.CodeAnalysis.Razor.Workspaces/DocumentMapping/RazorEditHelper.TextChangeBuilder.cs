@@ -22,11 +22,17 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal static partial class RazorEditHelper
 {
-    private class TextChangeBuilder(IDocumentMappingService documentMappingService) : IDisposable
+    private class TextChangeBuilder : IDisposable
     {
         private ObjectPool<ImmutableArray<RazorTextChange>.Builder> Pool => ArrayBuilderPool<RazorTextChange>.Default;
-        private readonly ImmutableArray<RazorTextChange>.Builder _builder = ArrayBuilderPool<RazorTextChange>.Default.Get();
-        private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+        private readonly ImmutableArray<RazorTextChange>.Builder _builder;
+        private readonly IDocumentMappingService _documentMappingService;
+
+        public TextChangeBuilder(IDocumentMappingService documentMappingService)
+        {
+            _documentMappingService = documentMappingService;
+            _builder = Pool.Get();
+        }
 
         public void Dispose()
         {
@@ -34,7 +40,7 @@ internal static partial class RazorEditHelper
         }
 
         public ImmutableArray<RazorTextChange> DrainToOrderedImmutable()
-            => _builder.DrainToImmutableOrderedBy(e => e.Span.Start);
+            => _builder.DrainToImmutableOrderedBy(static e => e.Span.Start);
 
         /// <summary>
         /// For all edits that are not mapped to using directives, add them directly to the builder.
@@ -157,10 +163,10 @@ internal static partial class RazorEditHelper
                 var root = codeDocument.GetSyntaxTree().Root;
                 var nodeToInsertAfter = root
                     .DescendantNodes()
-                    .LastOrDefault(t => t is RazorDirectiveSyntax razorDirectiveSyntax
-                    && (razorDirectiveSyntax.DirectiveDescriptor == ComponentPageDirective.Directive
-                        || razorDirectiveSyntax.DirectiveDescriptor == NamespaceDirective.Directive
-                        || razorDirectiveSyntax.DirectiveDescriptor == PageDirective.Directive));
+                    .LastOrDefault(t => t is RazorDirectiveSyntax { DirectiveDescriptor: var descriptor }
+                    && (descriptor == ComponentPageDirective.Directive
+                        || descriptor == NamespaceDirective.Directive
+                        || descriptor == PageDirective.Directive));
 
                 if (nodeToInsertAfter is null)
                 {
@@ -345,22 +351,16 @@ internal static partial class RazorEditHelper
             }
 
             var sortedUsingsAndDirectives = usingsMap
-                .OrderBy(static kvp => kvp.Key, UsingsStringComparer.Instance)
-                .ToImmutableArray();
+                .OrderByAsArray(static kvp => kvp.Key, UsingsStringComparer.Instance);
 
-            var usingsAndDirectivesWithNewLine = sortedUsingsAndDirectives.Take(sortedUsingsAndDirectives.Length - 1);
-            foreach (var (@namespace, directive) in usingsAndDirectivesWithNewLine)
+            foreach (var (@namespace, directive) in sortedUsingsAndDirectives)
             {
-                AddIfNotRemoved(@namespace, directive, true);
+                AddIfNotRemoved(@namespace, directive);
             }
 
-            var (lastNamespace, lastDirective) = sortedUsingsAndDirectives[^1];
-            AddIfNotRemoved(lastNamespace, lastDirective, false);
-
-            builder.AppendLine();
             return builder.ToString();
 
-            void AddIfNotRemoved(string @namespace, RazorDirectiveSyntax? directive, bool appendNewLine)
+            void AddIfNotRemoved(string @namespace, RazorDirectiveSyntax? directive)
             {
                 if (directive is not null)
                 {
@@ -376,10 +376,7 @@ internal static partial class RazorEditHelper
                     builder.Append(GetUsingsText(@namespace));
                 }
 
-                if (appendNewLine)
-                {
-                    builder.AppendLine();
-                }
+                builder.AppendLine();
             }
         }
 
