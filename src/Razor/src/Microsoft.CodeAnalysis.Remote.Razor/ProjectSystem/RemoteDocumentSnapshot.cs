@@ -103,7 +103,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
             var imports = await DocumentState.GetImportsAsync(this, projectEngine, cancellationToken).ConfigureAwait(false);
 
             return await DocumentState
-                .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: forceRuntimeCodeGeneration, cancellationToken)
+                .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration, cancellationToken)
                 .ConfigureAwait(false);
         }
     }

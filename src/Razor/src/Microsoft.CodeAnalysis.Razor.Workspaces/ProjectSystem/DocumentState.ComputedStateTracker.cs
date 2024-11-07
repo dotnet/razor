@@ -233,7 +233,7 @@ internal partial class DocumentState
             }
 
             var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-            var forceRuntimeCodeGeneration = project.Configuration.LanguageServerFlags?.ForceRuntimeCodeGeneration ?? false;
+            var forceRuntimeCodeGeneration = project.LanguageServerFeatureOptions.ForceRuntimeCodeGeneration;
             var codeDocument = await GenerateCodeDocumentAsync(document, project.GetProjectEngine(), imports, tagHelpers, forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
             return (codeDocument, inputVersion);
         }
