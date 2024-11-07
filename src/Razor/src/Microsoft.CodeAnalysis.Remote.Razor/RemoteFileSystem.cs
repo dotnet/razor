@@ -13,8 +13,11 @@ internal class RemoteFileSystem : IFileSystem
 {
     private IFileSystem _fileSystem = new FileSystem();
 
-    public bool FileExists(string filePath) =>
-        _fileSystem.FileExists(filePath);
+    public bool FileExists(string filePath)
+        => _fileSystem.FileExists(filePath);
+
+    public string ReadFile(string filePath)
+        => _fileSystem.ReadFile(filePath);
 
     public IEnumerable<string> GetDirectories(string workspaceDirectory)
         => _fileSystem.GetDirectories(workspaceDirectory);

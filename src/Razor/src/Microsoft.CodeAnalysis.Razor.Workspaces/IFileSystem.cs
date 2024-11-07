@@ -13,4 +13,6 @@ internal interface IFileSystem
     public IEnumerable<string> GetDirectories(string workspaceDirectory);
 
     bool FileExists(string filePath);
+
+    string ReadFile(string filePath);
 }

@@ -16,4 +16,7 @@ internal sealed class FileSystem : IFileSystem
 
     public bool FileExists(string filePath)
         => File.Exists(filePath);
+
+    public string ReadFile(string filePath)
+        => File.ReadAllText(filePath);
 }

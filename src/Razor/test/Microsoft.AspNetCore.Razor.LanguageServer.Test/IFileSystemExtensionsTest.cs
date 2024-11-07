@@ -100,5 +100,8 @@ public class IFileSystemExtensionsTest(ITestOutputHelper testOutput) : TagHelper
 
         public bool FileExists(string filePath)
             => throw new NotImplementedException();
+
+        public string ReadFile(string filePath)
+            => throw new NotImplementedException();
     }
 }

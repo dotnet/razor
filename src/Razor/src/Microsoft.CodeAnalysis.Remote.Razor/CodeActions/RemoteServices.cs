@@ -85,8 +85,9 @@ internal sealed class OOPAddUsingsCodeActionResolver : AddUsingsCodeActionResolv
 internal sealed class OOPGenerateMethodCodeActionResolver(
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
     IDocumentMappingService documentMappingService,
-    IRazorFormattingService razorFormattingService)
-    : GenerateMethodCodeActionResolver(roslynCodeActionHelpers, documentMappingService, razorFormattingService);
+    IRazorFormattingService razorFormattingService,
+    IFileSystem fileSystem)
+    : GenerateMethodCodeActionResolver(roslynCodeActionHelpers, documentMappingService, razorFormattingService, fileSystem);
 
 [Export(typeof(ICSharpCodeActionResolver)), Shared]
 [method: ImportingConstructor]

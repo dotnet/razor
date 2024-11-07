@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -27,11 +28,13 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 internal class GenerateMethodCodeActionResolver(
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
     IDocumentMappingService documentMappingService,
-    IRazorFormattingService razorFormattingService) : IRazorCodeActionResolver
+    IRazorFormattingService razorFormattingService,
+    IFileSystem fileSystem) : IRazorCodeActionResolver
 {
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
+    private readonly IFileSystem _fileSystem = fileSystem;
 
     private const string ReturnType = "$$ReturnType$$";
     private const string MethodName = "$$MethodName$$";
@@ -58,7 +61,7 @@ internal class GenerateMethodCodeActionResolver(
         var razorClassName = Path.GetFileNameWithoutExtension(uriPath);
         var codeBehindPath = $"{uriPath}.cs";
 
-        if (!File.Exists(codeBehindPath) ||
+        if (!_fileSystem.FileExists(codeBehindPath) ||
             razorClassName is null ||
             !code.TryComputeNamespace(fallbackToRootNamespace: true, out var razorNamespace))
         {
@@ -72,7 +75,7 @@ internal class GenerateMethodCodeActionResolver(
                 cancellationToken).ConfigureAwait(false);
         }
 
-        var content = File.ReadAllText(codeBehindPath);
+        var content = _fileSystem.ReadFile(codeBehindPath);
         if (GetCSharpClassDeclarationSyntax(content, razorNamespace, razorClassName) is not { } @class)
         {
             // The code behind file is malformed, generate the code in the razor file instead.

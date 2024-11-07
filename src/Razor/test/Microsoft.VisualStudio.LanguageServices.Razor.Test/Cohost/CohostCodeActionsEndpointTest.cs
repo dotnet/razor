@@ -10,7 +10,10 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -22,6 +25,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
+using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -506,6 +510,106 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
+    public async Task GenerateEventHandler_BadCodeBehind()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <button @onclick="{|CS0103:Does[||]NotExist|}"></button>
+                """,
+            expected: """
+                <button @onclick="DoesNotExist"></button>
+                @code {
+                    private void DoesNotExist(MouseEventArgs e)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            additionalFiles: [
+                (FilePath("File1.razor.cs"), """
+                    namespace Goo
+                    {
+                        public partial class NotAComponent
+                        {
+                        }
+                    }
+                    """)],
+            codeActionName: WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [Fact]
+    public async Task GenerateEventHandler_CodeBehind()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <button @onclick="{|CS0103:Does[||]NotExist|}"></button>
+                """,
+            expected: """
+                <button @onclick="DoesNotExist"></button>
+                """,
+            additionalFiles: [
+                (FilePath("File1.razor.cs"), """
+                    namespace SomeProject
+
+                    public partial class File1
+                    {
+                        public void M()
+                        {
+                        }
+                    }
+                    """)],
+            additionalExpectedFiles: [
+                (FileUri("File1.razor.cs"), """
+                    namespace SomeProject
+                    
+                    public partial class File1
+                    {
+                        public void M()
+                        {
+                        }
+                        private void DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    }
+                    """)],
+            codeActionName: WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [Fact]
+    public async Task GenerateEventHandler_EmptyCodeBehind()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <button @onclick="{|CS0103:Does[||]NotExist|}"></button>
+                """,
+            expected: """
+                <button @onclick="DoesNotExist"></button>
+                """,
+            additionalFiles: [
+                (FilePath("File1.razor.cs"), """
+                    namespace SomeProject
+
+                    public partial class File1
+                    {
+                    }
+                    """)],
+            additionalExpectedFiles: [
+                (FileUri("File1.razor.cs"), """
+                    namespace SomeProject
+                    
+                    public partial class File1
+                    {
+                        private void DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    }
+                    """)],
+            codeActionName: WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [Fact]
     public async Task GenerateAsyncEventHandler_NoCodeBlock()
     {
         var input = """
@@ -718,10 +822,10 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)]);
     }
 
-    private async Task VerifyCodeActionAsync(TestCode input, string? expected, string codeActionName, int childActionIndex = 0, string? fileKind = null, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+    private async Task VerifyCodeActionAsync(TestCode input, string? expected, string codeActionName, int childActionIndex = 0, string? fileKind = null, (string filePath, string contents)[]? additionalFiles = null, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
-        fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(additionalExpectedFiles));
+        fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(additionalFiles));
 
         UpdateClientLSPInitializationOptions(options =>
         {
@@ -736,7 +840,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             return options;
         });
 
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text, fileKind, createSeparateRemoteAndLocalWorkspaces: true);
+        var document = await CreateProjectAndRazorDocumentAsync(input.Text, fileKind, createSeparateRemoteAndLocalWorkspaces: true, additionalFiles: additionalFiles);
 
         var codeAction = await VerifyCodeActionRequestAsync(document, input, codeActionName, childActionIndex);
 
@@ -759,7 +863,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         var endpoint = new CohostCodeActionsEndpoint(RemoteServiceInvoker, ClientCapabilitiesService, TestHtmlDocumentSynchronizer.Instance, requestInvoker, NoOpTelemetryReporter.Instance);
         var inputText = await document.GetTextAsync(DisposalToken);
 
-        using var diagnostics = new PooledArrayBuilder<Diagnostic>();
+        using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
         foreach (var (code, spans) in input.NamedSpans)
         {
             if (code.Length == 0)
@@ -769,7 +873,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
 
             foreach (var diagnosticSpan in spans)
             {
-                diagnostics.Add(new Diagnostic
+                diagnostics.Add(new LspDiagnostic
                 {
                     Code = code,
                     Range = inputText.GetRange(diagnosticSpan)
@@ -812,30 +916,10 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         return codeActionToRun;
     }
 
-    private async Task VerifyCodeActionResultAsync(CodeAnalysis.TextDocument document, WorkspaceEdit workspaceEdit, string? expected, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+    private async Task VerifyCodeActionResultAsync(TextDocument document, WorkspaceEdit workspaceEdit, string? expected, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
+        var solution = document.Project.Solution;
         var validated = false;
-        if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
-        {
-            var documentUri = document.CreateUri();
-            var sourceText = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
-
-            foreach (var edit in documentEdits)
-            {
-                if (edit.TextDocument.Uri == documentUri)
-                {
-                    sourceText = sourceText.WithChanges(edit.Edits.Select(sourceText.GetTextChange));
-                }
-                else
-                {
-                    var contents = Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == edit.TextDocument.Uri).contents;
-                    AssertEx.EqualOrDiff(contents, Assert.Single(edit.Edits).NewText);
-                }
-            }
-
-            validated = true;
-            AssertEx.EqualOrDiff(expected, sourceText.ToString());
-        }
 
         if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
         {
@@ -846,8 +930,43 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                 {
                     validated = true;
                     Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == createFile.Uri);
+                    var documentId = DocumentId.CreateNewId(document.Project.Id);
+                    var filePath = createFile.Uri.GetDocumentFilePath();
+                    var documentInfo = DocumentInfo.Create(documentId, filePath, filePath: filePath);
+                    solution = solution.AddDocument(documentInfo);
                 }
             }
+        }
+
+        if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
+        {
+            foreach (var edit in documentEdits)
+            {
+                var textDocument = solution.GetTextDocuments(edit.TextDocument.Uri).First();
+                var text = await textDocument.GetTextAsync(DisposalToken).ConfigureAwait(false);
+                if (textDocument is Document)
+                {
+                    solution = solution.WithDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(text.GetTextChange)));
+                }
+                else
+                {
+                    solution = solution.WithAdditionalDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(text.GetTextChange)));
+                }
+            }
+
+            if (additionalExpectedFiles is not null)
+            {
+                foreach (var (uri, contents) in additionalExpectedFiles)
+                {
+                    var additionalDocument = solution.GetTextDocuments(uri).First();
+                    var text = await additionalDocument.GetTextAsync(DisposalToken).ConfigureAwait(false);
+                    AssertEx.EqualOrDiff(contents, text.ToString());
+                }
+            }
+
+            validated = true;
+            var actual = await solution.GetAdditionalDocument(document.Id).AssumeNotNull().GetTextAsync(DisposalToken).ConfigureAwait(false);
+            AssertEx.EqualOrDiff(expected, actual.ToString());
         }
 
         Assert.True(validated, "Test did not validate anything. Code action response type is presumably not supported.");
@@ -865,21 +984,18 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         return result.Edit;
     }
 
-    private class TestFileSystem((Uri fileUri, string contents)[]? files) : IFileSystem
+    private class TestFileSystem((string filePath, string contents)[]? files) : IFileSystem
     {
         public bool FileExists(string filePath)
-        {
-            return false;
-        }
+            => files?.Any(f => FilePathNormalizingComparer.Instance.Equals(f.filePath, filePath)) ?? false;
+
+        public string ReadFile(string filePath)
+            => files.AssumeNotNull().Single(f => FilePathNormalizingComparer.Instance.Equals(f.filePath, filePath)).contents;
 
         public IEnumerable<string> GetDirectories(string workspaceDirectory)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public IEnumerable<string> GetFiles(string workspaceDirectory, string searchPattern, SearchOption searchOption)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }
