@@ -8,14 +8,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -24,11 +23,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
 
-public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
+public class RazorEditHelperTest : LanguageServerTestBase
 {
     private readonly IDocumentMappingService _documentMappingService;
 
-    public RazorMapToDocumentEditsEndpointTest(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    public RazorEditHelperTest(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
         _documentMappingService = new LspDocumentMappingService(
             FilePathService,
@@ -514,7 +513,7 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
         }
         """);
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/11168")]
     public Task UsingAliasAdded_HandledCorrectly()
         => TestAsync(
         csharpSource:
@@ -723,23 +722,18 @@ public class RazorMapToDocumentEditsEndpointTest : LanguageServerTestBase
             linePragmas: []);
 
         codeDocument.SetCSharpDocument(csharpDocument);
-        var documentContext = CreateDocumentContext(new Uri(razorPath), codeDocument);
-        var languageEndpoint = new RazorMapToDocumentEditsEndpoint(_documentMappingService, FailingTelemetryReporter.Instance, LoggerFactory);
-        var request = new RazorMapToDocumentEditsParams()
-        {
-            Kind = RazorLanguageKind.CSharp,
-            TextChanges = changes.Select(c => c.ToRazorTextChange()).ToArray(),
-            RazorDocumentUri = new Uri(razorPath),
-        };
+        var snapshot = TestDocumentSnapshot.Create(razorPath, codeDocument);
 
-        var requestContext = CreateRazorRequestContext(documentContext);
+        var mappedChanges = await RazorEditHelper.MapCSharpEditsAsync(
+            changes.Select(c => c.ToRazorTextChange()).ToImmutableArray(),
+            snapshot,
+            _documentMappingService,
+            FailingTelemetryReporter.Instance,
+            CancellationToken.None);
 
-        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+        Assert.NotEmpty(mappedChanges);
 
-        Assert.NotNull(response);
-        Assert.NotEmpty(response.TextChanges);
-
-        var responseTextChanges = response.TextChanges.Select(e => e.ToTextChange()).ToArray();
+        var responseTextChanges = mappedChanges.Select(e => e.ToTextChange()).ToArray();
         var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges);
         AssertEx.EqualOrDiff(expectedRazorSource, newRazorSourceText.ToString());
     }

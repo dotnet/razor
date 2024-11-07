@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -26,6 +28,7 @@ internal class RazorMappingService(IDocumentSnapshot document, ITelemetryReporte
     private readonly IDocumentSnapshot _document = document;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly IDocumentMappingService _documentMappingService = new DocumentMappingService(loggerFactory);
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorMappingService>();
 
     public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
     {
@@ -60,25 +63,46 @@ internal class RazorMappingService(IDocumentSnapshot document, ITelemetryReporte
 
     public async Task<ImmutableArray<RazorMappedEditoResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
     {
-        if (_document.FilePath is null)
+        try
         {
+            if (_document.FilePath is null)
+            {
+                return ImmutableArray<RazorMappedEditoResult>.Empty;
+            }
+
+            var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
+            var csharpSource = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var results = await RazorEditHelper.MapCSharpEditsAsync(
+                changes.SelectAsArray(c => c.ToRazorTextChange()),
+                _document,
+                _documentMappingService,
+                _telemetryReporter,
+                cancellationToken);
+
+            var razorCodeDocument = await _document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+            var razorSource = razorCodeDocument.Source.Text;
+            var textChanges = results.SelectAsArray(te => te.ToTextChange());
+
+            _logger.LogTrace($"""
+                Before:
+                {DisplayEdits(changes)}
+
+                After:
+                {DisplayEdits(textChanges)}
+                """);
+
+            return [new RazorMappedEditoResult() { FilePath = _document.FilePath, TextChanges = textChanges.ToArray() }];
+        }
+        catch (Exception ex)
+        {
+            _telemetryReporter.ReportFault(ex, "Failed to map edits");
             return ImmutableArray<RazorMappedEditoResult>.Empty;
         }
 
-        var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
-        var csharpSource = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var results = await RazorEditHelper.MapCSharpEditsAsync(
-            changes.SelectAsArray(c => c.ToRazorTextChange()),
-            _document,
-            _documentMappingService,
-            _telemetryReporter,
-            cancellationToken);
-
-        var razorCodeDocument = await _document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var razorSource = razorCodeDocument.Source.Text;
-        var textChanges = results.SelectAsArray(te => te.ToTextChange());
-
-        return [new RazorMappedEditoResult() { FilePath = _document.FilePath, TextChanges = textChanges.ToArray() }];
+        string DisplayEdits(IEnumerable<TextChange> changes)
+            => string.Join(
+                Environment.NewLine,
+                changes.Select(e => $"{e.Span} => '{e.NewText}'"));
     }
 
     // Internal for testing.

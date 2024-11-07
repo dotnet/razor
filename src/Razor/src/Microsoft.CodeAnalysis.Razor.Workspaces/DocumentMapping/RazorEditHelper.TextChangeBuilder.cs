@@ -40,17 +40,18 @@ internal static partial class RazorEditHelper
         /// For all edits that are not mapped to using directives, add them directly to the builder.
         /// Edits that are not mapped are skipped, and using directive changes are handled by <see cref="AddUsingsChanges(RazorCodeDocument, ImmutableArray{string}, ImmutableArray{string}, CancellationToken)"/>
         /// </summary>
-        public void AddDirectlyMappedEdits(ImmutableArray<RazorTextChange> edits, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        public void AddDirectlyMappedEdits(ImmutableArray<RazorTextChange> csharpEdits, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
         {
             var root = codeDocument.GetSyntaxTree().Root;
             var razorText = codeDocument.Source.Text;
             var csharpDocument = codeDocument.GetCSharpDocument();
+            var csharpText = csharpDocument.GetGeneratedSourceText();
 
-            foreach (var edit in edits)
+            foreach (var edit in csharpEdits)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var linePositionSpan = razorText.GetLinePositionSpan(edit.Span.ToTextSpan());
+                var linePositionSpan = csharpText.GetLinePositionSpan(edit.Span.ToTextSpan());
 
                 if (!_documentMappingService.TryMapToHostDocumentRange(
                     csharpDocument,
@@ -76,7 +77,7 @@ internal static partial class RazorEditHelper
                 var mappedEdit = new RazorTextChange()
                 {
                     Span = mappedSpan.ToRazorTextSpan(),
-                    NewText = edit.NewText ?? ""
+                    NewText = edit.NewText
                 };
                 _builder.Add(mappedEdit);
             }

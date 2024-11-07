@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -147,15 +148,12 @@ internal static class AddUsingsHelper
         // We descend any compilation unit (ie, the file) or and namespaces because the compiler puts all usings inside
         // the namespace node.
         var usings = syntaxRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
-            // Filter to using directives
             .OfType<UsingDirectiveSyntax>()
-            // Select everything after the initial "using " part of the statement, and excluding the ending semi-colon. The
-            // semi-colon is valid in Razor, but users find it surprising. This is slightly lazy, for sure, but has
-            // the advantage of us not caring about changes to C# syntax, we just grab whatever Roslyn wanted to put in, so
-            // we should still work in C# v26
-            .Select(u => u.ToString()["using ".Length..^1]);
+            .Select(u => u.Name)
+            .WhereNotNull()
+            .SelectAsArray(n => n.ToString());
 
-        return usings.ToImmutableArray();
+        return usings;
     }
 
     private static TextDocumentEdit GenerateSingleUsingEditsInterpolated(
