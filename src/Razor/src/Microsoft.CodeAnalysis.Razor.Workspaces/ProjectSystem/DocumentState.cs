@@ -193,8 +193,7 @@ internal partial class DocumentState
         return new DocumentState(HostDocument, Version + 1, textAndVersion: null, textLoader);
     }
 
-    // Internal, because we are temporarily sharing code with CohostDocumentSnapshot
-    internal static ImmutableArray<IDocumentSnapshot> GetImportsCore(IProjectSnapshot project, RazorProjectEngine projectEngine, string filePath, string fileKind)
+    private static ImmutableArray<IDocumentSnapshot> GetImportsCore(IProjectSnapshot project, RazorProjectEngine projectEngine, string filePath, string fileKind)
     {
         var projectItem = projectEngine.FileSystem.GetItem(filePath, fileKind);
 
