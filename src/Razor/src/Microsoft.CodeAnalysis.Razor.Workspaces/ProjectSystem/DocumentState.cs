@@ -244,24 +244,12 @@ internal partial class DocumentState
         bool forceRuntimeCodeGeneration,
         CancellationToken cancellationToken)
     {
-        // OK we have to generate the code.
-        using var importSources = new PooledArrayBuilder<RazorSourceDocument>(imports.Length);
-        foreach (var item in imports)
-        {
-            var importProjectItem = item.FilePath is null ? null : projectEngine.FileSystem.GetItem(item.FilePath, item.FileKind);
-            var sourceDocument = await GetRazorSourceDocumentAsync(item.Document, importProjectItem, cancellationToken).ConfigureAwait(false);
-            importSources.Add(sourceDocument);
-        }
+        var importSources = await GetImportSourcesAsync(imports, projectEngine, cancellationToken).ConfigureAwait(false);
+        var source = await GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
 
-        var projectItem = document.FilePath is null ? null : projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
-        var documentSource = await GetRazorSourceDocumentAsync(document, projectItem, cancellationToken).ConfigureAwait(false);
-
-        if (forceRuntimeCodeGeneration)
-        {
-            return projectEngine.Process(documentSource, fileKind: document.FileKind, importSources.DrainToImmutable(), tagHelpers);
-        }
-
-        return projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources.DrainToImmutable(), tagHelpers);
+        return forceRuntimeCodeGeneration
+            ? projectEngine.Process(source, fileKind: document.FileKind, importSources, tagHelpers)
+            : projectEngine.ProcessDesignTime(source, fileKind: document.FileKind, importSources, tagHelpers);
     }
 
     internal static async Task<ImmutableArray<ImportItem>> GetImportsAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
@@ -278,12 +266,37 @@ internal partial class DocumentState
         return result.DrainToImmutable();
     }
 
-    private static async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(
-        IDocumentSnapshot document,
-        RazorProjectItem? projectItem,
+    private static async Task<ImmutableArray<RazorSourceDocument>> GetImportSourcesAsync(
+        ImmutableArray<ImportItem> importItems,
+        RazorProjectEngine projectEngine,
         CancellationToken cancellationToken)
     {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        return RazorSourceDocument.Create(sourceText, RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath));
+        using var importSources = new PooledArrayBuilder<RazorSourceDocument>(importItems.Length);
+
+        foreach (var importItem in importItems)
+        {
+            var importProjectItem = importItem is { FilePath: string filePath, FileKind: var fileKind }
+                ? projectEngine.FileSystem.GetItem(filePath, fileKind)
+                : null;
+
+            var text = await importItem.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var properties = RazorSourceDocumentProperties.Create(importItem.FilePath, importProjectItem?.RelativePhysicalPath);
+            var importSource = RazorSourceDocument.Create(text, properties);
+
+            importSources.Add(importSource);
+        }
+
+        return importSources.DrainToImmutable();
+    }
+
+    private static async Task<RazorSourceDocument> GetSourceAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
+    {
+        var projectItem = document is { FilePath: string filePath, FileKind: var fileKind }
+            ? projectEngine.FileSystem.GetItem(filePath, fileKind)
+            : null;
+
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var properties = RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath);
+        return RazorSourceDocument.Create(text, properties);
     }
 }
