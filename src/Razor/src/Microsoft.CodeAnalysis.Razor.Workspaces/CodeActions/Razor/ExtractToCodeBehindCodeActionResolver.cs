@@ -67,8 +67,10 @@ internal class ExtractToCodeBehindCodeActionResolver(
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
         var className = Path.GetFileNameWithoutExtension(path);
-        var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
-        var codeBehindContent = await GenerateCodeBehindClassAsync(documentContext.Project, codeBehindUri, className, actionParams.Namespace, codeBlockContent, codeDocument, cancellationToken).ConfigureAwait(false);
+        var codeBlockContent = text.GetSubTextString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
+        var codeBehindContent = GenerateCodeBehindClass(className, actionParams.Namespace, codeBlockContent, codeDocument);
+
+        codeBehindContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(documentContext.Project, codeBehindUri, codeBehindContent, cancellationToken).ConfigureAwait(false);
 
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
@@ -96,7 +98,7 @@ internal class ExtractToCodeBehindCodeActionResolver(
         };
     }
 
-    private async Task<string> GenerateCodeBehindClassAsync(IProjectSnapshot project, Uri codeBehindUri, string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument, CancellationToken cancellationToken)
+    private string GenerateCodeBehindClass(string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument)
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -128,8 +130,6 @@ internal class ExtractToCodeBehindCodeActionResolver(
         builder.AppendLine(contents);
         builder.Append('}');
 
-        var newFileContent = builder.ToString();
-
-        return await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(project, codeBehindUri, newFileContent, cancellationToken).ConfigureAwait(false);
+        return builder.ToString();
     }
 }
