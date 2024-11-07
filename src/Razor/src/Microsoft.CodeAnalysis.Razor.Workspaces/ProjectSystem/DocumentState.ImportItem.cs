@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal partial class DocumentState
 {
-    internal readonly record struct ImportItem(
+    private readonly record struct ImportItem(
         string? FilePath,
         string? FileKind,
         SourceText Text,
