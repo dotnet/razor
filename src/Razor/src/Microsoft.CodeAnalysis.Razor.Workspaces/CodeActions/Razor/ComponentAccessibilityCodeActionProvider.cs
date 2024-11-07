@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActionProvider
+internal class ComponentAccessibilityCodeActionProvider : IRazorCodeActionProvider
 {
     public async Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
@@ -118,6 +118,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.CreateComponentFromTag,
             Language = RazorLanguageKind.Razor,
+            DelegatedDocumentUri = context.DelegatedDocumentUri,
             Data = actionParams,
         };
 
@@ -179,7 +180,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
                 // name to give the tag.
                 if (!tagHelperPair.CaseInsensitiveMatch || newTagName is not null)
                 {
-                    if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument, additionalEdit, out var @namespace, out var resolutionParams))
+                    if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument, additionalEdit, context.DelegatedDocumentUri, out var @namespace, out var resolutionParams))
                     {
                         var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, newTagName, resolutionParams);
                         container.Add(addUsingCodeAction);

@@ -24,7 +24,7 @@ using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
-internal sealed class GenerateMethodCodeActionResolver(
+internal class GenerateMethodCodeActionResolver(
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
     IDocumentMappingService documentMappingService,
     IRazorFormattingService razorFormattingService) : IRazorCodeActionResolver
@@ -110,7 +110,7 @@ internal sealed class GenerateMethodCodeActionResolver(
             character: 0,
             $"{formattedMethod}{Environment.NewLine}");
 
-        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(codeBehindUri, edit, requiresVirtualDocument: false, cancellationToken).ConfigureAwait(false);
+        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri, edit, cancellationToken).ConfigureAwait(false);
 
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
@@ -152,7 +152,7 @@ internal sealed class GenerateMethodCodeActionResolver(
                 character: 0,
                 editToSendToRoslyn.NewText);
 
-            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext.Uri, tempTextEdit, requiresVirtualDocument: true, cancellationToken).ConfigureAwait(false);
+            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri: null, tempTextEdit, cancellationToken).ConfigureAwait(false);
 
             // Roslyn should have passed back 2 edits. One that contains the simplified method stub and the other that contains the new
             // location for the class end brace since we had asked to insert the method stub at the original class end brace location.
@@ -175,7 +175,7 @@ internal sealed class GenerateMethodCodeActionResolver(
                 .Replace(FormattingUtilities.Indent, string.Empty);
 
             var remappedEdit = VsLspFactory.CreateTextEdit(remappedRange, unformattedMethodSignature);
-            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext.Uri, remappedEdit, requiresVirtualDocument: true, cancellationToken).ConfigureAwait(false);
+            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri: null, remappedEdit, cancellationToken).ConfigureAwait(false);
 
             if (result is not null)
             {
