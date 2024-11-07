@@ -186,7 +186,7 @@ internal partial class DocumentState
             var configurationVersion = project.ConfigurationVersion;
             var projectWorkspaceStateVersion = project.ProjectWorkspaceStateVersion;
             var documentCollectionVersion = project.DocumentCollectionVersion;
-            var importItems = await GetImportsAsync(document, project.GetProjectEngine(), cancellationToken).ConfigureAwait(false);
+            var importItems = await GetImportItemsAsync(document, project.GetProjectEngine(), cancellationToken).ConfigureAwait(false);
             var documentVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // OK now that have the previous output and all of the versions, we can see if anything
@@ -232,9 +232,8 @@ internal partial class DocumentState
                 }
             }
 
-            var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
             var forceRuntimeCodeGeneration = project.LanguageServerFeatureOptions.ForceRuntimeCodeGeneration;
-            var codeDocument = await GenerateCodeDocumentAsync(document, project.GetProjectEngine(), importItems, tagHelpers, forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
+            var codeDocument = await GenerateCodeDocumentAsync(document, project.GetProjectEngine(), importItems, forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
             return (codeDocument, inputVersion);
         }
 

@@ -99,11 +99,9 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
             // but since we don't expect users to ever use cohosting without source generators, it's fine for now.
 
             var projectEngine = await ProjectSnapshot.GetProjectEngine_CohostOnlyAsync(cancellationToken).ConfigureAwait(false);
-            var tagHelpers = await ProjectSnapshot.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-            var imports = await DocumentState.GetImportsAsync(this, projectEngine, cancellationToken).ConfigureAwait(false);
 
             return await DocumentState
-                .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration, cancellationToken)
+                .GenerateCodeDocumentAsync(this, projectEngine, forceRuntimeCodeGeneration, cancellationToken)
                 .ConfigureAwait(false);
         }
     }

@@ -196,12 +196,24 @@ internal partial class DocumentState
     internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
         IDocumentSnapshot document,
         RazorProjectEngine projectEngine,
+        bool forceRuntimeCodeGeneration,
+        CancellationToken cancellationToken)
+    {
+        var importItems = await GetImportItemsAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
+
+        return await GenerateCodeDocumentAsync(
+            document, projectEngine, importItems, forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
+        IDocumentSnapshot document,
+        RazorProjectEngine projectEngine,
         ImmutableArray<ImportItem> imports,
-        ImmutableArray<TagHelperDescriptor> tagHelpers,
         bool forceRuntimeCodeGeneration,
         CancellationToken cancellationToken)
     {
         var importSources = GetImportSources(imports, projectEngine);
+        var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
         var source = await GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
 
         return forceRuntimeCodeGeneration
@@ -209,7 +221,7 @@ internal partial class DocumentState
             : projectEngine.ProcessDesignTime(source, fileKind: document.FileKind, importSources, tagHelpers);
     }
 
-    internal static async Task<ImmutableArray<ImportItem>> GetImportsAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<ImportItem>> GetImportItemsAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
     {
         var filePath = document.FilePath.AssumeNotNull();
         var fileKind = document.FileKind.AssumeNotNull();
