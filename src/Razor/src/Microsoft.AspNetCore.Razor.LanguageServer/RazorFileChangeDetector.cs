@@ -224,7 +224,7 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
 
         foreach (var extension in s_razorFileExtensions)
         {
-            var existingFiles = DirectoryHelper.GetFilteredFiles(workspaceDirectory, "*" + extension, s_ignoredDirectories, _fileSystem, _logger);
+            var existingFiles = _fileSystem.GetFilteredFiles(workspaceDirectory, "*" + extension, s_ignoredDirectories, _logger);
             result.AddRange(existingFiles);
         }
 

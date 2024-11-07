@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal static class DirectoryHelper
+internal static class IFileSystemExtensions
 {
     /// <summary>
     /// Finds all the files in a directory which meet the given criteria.
@@ -24,10 +24,10 @@ internal static class DirectoryHelper
     /// <returns>A list of files within the given directory that meet the search criteria.</returns>
     /// <remarks>This method is needed to avoid problematic folders such as "node_modules" which are known not to yield the desired results or may cause performance issues.</remarks>
     internal static IEnumerable<string> GetFilteredFiles(
+        this IFileSystem fileSystem,
         string workspaceDirectory,
         string searchPattern,
         IReadOnlyCollection<string> ignoredDirectories,
-        IFileSystem fileSystem,
         ILogger logger)
     {
         IEnumerable<string> files;
@@ -94,7 +94,7 @@ internal static class DirectoryHelper
             var directory = Path.GetFileName(path);
             if (!ignoredDirectories.Contains(directory, FilePathComparer.Instance))
             {
-                foreach (var result in GetFilteredFiles(path, searchPattern, ignoredDirectories, fileSystem, logger))
+                foreach (var result in GetFilteredFiles(fileSystem, path, searchPattern, ignoredDirectories, logger))
                 {
                     yield return result;
                 }

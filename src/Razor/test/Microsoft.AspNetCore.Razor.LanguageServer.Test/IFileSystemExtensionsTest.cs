@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-public class DirectoryHelperTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
+public class IFileSystemExtensionsTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
     [Fact]
     public void GetFilteredFiles_FindsFiles()
@@ -38,7 +38,7 @@ public class DirectoryHelperTest(ITestOutputHelper testOutput) : TagHelperServic
         var fileSystem = new TestFileSystem(fileResults, directoryResults);
 
         // Act
-        var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, searchPattern, ignoredDirectories, fileSystem, Logger);
+        var files = fileSystem.GetFilteredFiles(workspaceDirectory, searchPattern, ignoredDirectories, Logger);
 
         // Assert
         Assert.Collection(files,
