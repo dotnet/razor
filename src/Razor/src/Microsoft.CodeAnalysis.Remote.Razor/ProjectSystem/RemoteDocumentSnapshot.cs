@@ -149,7 +149,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 
         var solution = TextDocument.Project.Solution;
         var filePathService = ProjectSnapshot.SolutionSnapshot.SnapshotManager.FilePathService;
-        var generatedFilePath = filePathService.GetRazorCSharpFilePath(Project.Key, FilePath.AssumeNotNull());
+        var generatedFilePath = filePathService.GetRazorCSharpFilePath(Project.Key, FilePath);
         var projectId = TextDocument.Project.Id;
         var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == projectId);
         var generatedDocument = solution.GetRequiredDocument(generatedDocumentId);

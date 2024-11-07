@@ -217,16 +217,13 @@ internal partial class DocumentState
         var source = await GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
 
         return forceRuntimeCodeGeneration
-            ? projectEngine.Process(source, fileKind: document.FileKind, importSources, tagHelpers)
-            : projectEngine.ProcessDesignTime(source, fileKind: document.FileKind, importSources, tagHelpers);
+            ? projectEngine.Process(source, document.FileKind, importSources, tagHelpers)
+            : projectEngine.ProcessDesignTime(source, document.FileKind, importSources, tagHelpers);
     }
 
     private static async Task<ImmutableArray<ImportItem>> GetImportItemsAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
     {
-        var filePath = document.FilePath.AssumeNotNull();
-        var fileKind = document.FileKind.AssumeNotNull();
-
-        var projectItem = projectEngine.FileSystem.GetItem(filePath, fileKind);
+        var projectItem = projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
 
         using var importProjectItems = new PooledArrayBuilder<RazorProjectItem>();
 
