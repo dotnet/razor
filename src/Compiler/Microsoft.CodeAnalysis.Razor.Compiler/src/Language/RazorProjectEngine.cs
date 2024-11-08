@@ -40,10 +40,7 @@ public class RazorProjectEngine
 
     public RazorCodeDocument Process(RazorProjectItem projectItem)
     {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+        ArgHelper.ThrowIfNull(projectItem);
 
         var codeDocument = CreateCodeDocumentCore(projectItem);
         ProcessCore(codeDocument);
@@ -56,10 +53,7 @@ public class RazorProjectEngine
         ImmutableArray<RazorSourceDocument> importSources,
         IReadOnlyList<TagHelperDescriptor> tagHelpers)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         var codeDocument = CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
         ProcessCore(codeDocument);
@@ -68,10 +62,7 @@ public class RazorProjectEngine
 
     public RazorCodeDocument ProcessDeclarationOnly(RazorProjectItem projectItem)
     {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+        ArgHelper.ThrowIfNull(projectItem);
 
         var codeDocument = CreateCodeDocumentCore(projectItem, configureParser: null, configureCodeGeneration: (builder) =>
         {
@@ -88,10 +79,7 @@ public class RazorProjectEngine
         ImmutableArray<RazorSourceDocument> importSources,
         IReadOnlyList<TagHelperDescriptor> tagHelpers)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         var codeDocument = CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: (builder) =>
         {
@@ -104,10 +92,7 @@ public class RazorProjectEngine
 
     public RazorCodeDocument ProcessDesignTime(RazorProjectItem projectItem)
     {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+        ArgHelper.ThrowIfNull(projectItem);
 
         var codeDocument = CreateCodeDocumentDesignTimeCore(projectItem);
         ProcessCore(codeDocument);
@@ -120,10 +105,7 @@ public class RazorProjectEngine
         ImmutableArray<RazorSourceDocument> importSources,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgHelper.ThrowIfNull(source);
 
         var codeDocument = CreateCodeDocumentDesignTimeCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
         ProcessCore(codeDocument);
@@ -132,10 +114,7 @@ public class RazorProjectEngine
 
     private protected RazorCodeDocument CreateCodeDocumentCore(RazorProjectItem projectItem)
     {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+        ArgHelper.ThrowIfNull(projectItem);
 
         return CreateCodeDocumentCore(projectItem, configureParser: null, configureCodeGeneration: null);
     }
@@ -145,10 +124,7 @@ public class RazorProjectEngine
         Action<RazorParserOptionsBuilder>? configureParser,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
     {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+        ArgHelper.ThrowIfNull(projectItem);
 
         var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
 
@@ -175,10 +151,7 @@ public class RazorProjectEngine
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null,
         string? cssScope = null)
     {
-        if (sourceDocument == null)
-        {
-            throw new ArgumentNullException(nameof(sourceDocument));
-        }
+        ArgHelper.ThrowIfNull(sourceDocument);
 
         var parserOptions = GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(fileKind, builder =>
         {
@@ -209,10 +182,7 @@ public class RazorProjectEngine
 
     private protected RazorCodeDocument CreateCodeDocumentDesignTimeCore(RazorProjectItem projectItem)
     {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+        ArgHelper.ThrowIfNull(projectItem);
 
         return CreateCodeDocumentDesignTimeCore(projectItem, configureParser: null, configureCodeGeneration: null);
     }
@@ -222,10 +192,7 @@ public class RazorProjectEngine
         Action<RazorParserOptionsBuilder>? configureParser,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
     {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+        ArgHelper.ThrowIfNull(projectItem);
 
         var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
 
@@ -251,10 +218,7 @@ public class RazorProjectEngine
         Action<RazorParserOptionsBuilder>? configureParser,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
     {
-        if (sourceDocument == null)
-        {
-            throw new ArgumentNullException(nameof(sourceDocument));
-        }
+        ArgHelper.ThrowIfNull(sourceDocument);
 
         var parserOptions = GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(fileKind, builder =>
         {
@@ -280,10 +244,7 @@ public class RazorProjectEngine
 
     private void ProcessCore(RazorCodeDocument codeDocument)
     {
-        if (codeDocument == null)
-        {
-            throw new ArgumentNullException(nameof(codeDocument));
-        }
+        ArgHelper.ThrowIfNull(codeDocument);
 
         Engine.Process(codeDocument);
     }
@@ -325,15 +286,8 @@ public class RazorProjectEngine
         RazorProjectFileSystem fileSystem,
         Action<RazorProjectEngineBuilder>? configure)
     {
-        if (fileSystem == null)
-        {
-            throw new ArgumentNullException(nameof(fileSystem));
-        }
-
-        if (configuration == null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
+        ArgHelper.ThrowIfNull(configuration);
+        ArgHelper.ThrowIfNull(fileSystem);
 
         var builder = new RazorProjectEngineBuilder(configuration, fileSystem);
 
