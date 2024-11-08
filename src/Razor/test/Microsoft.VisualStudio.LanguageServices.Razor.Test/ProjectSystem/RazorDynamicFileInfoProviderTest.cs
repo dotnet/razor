@@ -73,7 +73,6 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
 
         var fallbackProjectManager = new FallbackProjectManager(
             serviceProvider,
-            languageServerFeatureOptions,
             _projectManager,
             WorkspaceProvider,
             NoOpTelemetryReporter.Instance);
