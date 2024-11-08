@@ -117,8 +117,6 @@ public class RazorProjectEngine
         Action<RazorParserOptionsBuilder>? configureParser = null,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
     {
-        ArgHelper.ThrowIfNull(projectItem);
-
         var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
 
         using var importItems = new PooledArrayBuilder<RazorProjectItem>();
@@ -178,8 +176,6 @@ public class RazorProjectEngine
         Action<RazorParserOptionsBuilder>? configureParser = null,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
     {
-        ArgHelper.ThrowIfNull(projectItem);
-
         var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
 
         using var importItems = new PooledArrayBuilder<RazorProjectItem>();

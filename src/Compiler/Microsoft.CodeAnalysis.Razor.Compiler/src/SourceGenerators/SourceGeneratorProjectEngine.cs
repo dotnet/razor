@@ -44,8 +44,8 @@ internal sealed class SourceGeneratorProjectEngine : RazorProjectEngine
     public SourceGeneratorRazorCodeDocument ProcessInitialParse(RazorProjectItem projectItem, bool designTime)
     {
         var codeDocument = designTime 
-                            ? CreateCodeDocumentDesignTimeCore(projectItem)
-                            : CreateCodeDocumentCore(projectItem);
+            ? CreateCodeDocumentDesignTimeCore(projectItem)
+            : CreateCodeDocumentCore(projectItem);
 
 
         ProcessPartial(codeDocument, 0, _discoveryPhaseIndex);
