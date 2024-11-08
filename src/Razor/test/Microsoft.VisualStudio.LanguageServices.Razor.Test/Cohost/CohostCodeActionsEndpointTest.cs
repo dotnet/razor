@@ -597,7 +597,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                 """,
             additionalFiles: [
                 (FilePath("File1.razor.cs"), """
-                    namespace SomeProject
+                    namespace SomeProject;
 
                     public partial class File1
                     {
@@ -608,7 +608,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)],
             additionalExpectedFiles: [
                 (FileUri("File1.razor.cs"), """
-                    namespace SomeProject
+                    namespace SomeProject;
                     
                     public partial class File1
                     {
@@ -636,7 +636,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                 """,
             additionalFiles: [
                 (FilePath("File1.razor.cs"), """
-                    namespace SomeProject
+                    namespace SomeProject;
 
                     public partial class File1
                     {
@@ -644,7 +644,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)],
             additionalExpectedFiles: [
                 (FileUri("File1.razor.cs"), """
-                    namespace SomeProject
+                    namespace SomeProject;
                     
                     public partial class File1
                     {
@@ -954,7 +954,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
 
         var codeActionToRun = (VSInternalCodeAction?)result.SingleOrDefault(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeActionName || ((RazorVSInternalCodeAction)e.Value!).Title == codeActionName).Value;
         AssertEx.NotNull(codeActionToRun, $"""
-            Could not file code action with name or title '{codeActionName}'.
+            Could not find code action with name or title '{codeActionName}'.
 
             Available:
                 {string.Join(Environment.NewLine + "    ", result.Select(e => $"{((RazorVSInternalCodeAction)e.Value!).Name} or {((RazorVSInternalCodeAction)e.Value!).Title}"))}
