@@ -5,9 +5,11 @@ using System;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal sealed record class MiscFilesHostProject : HostProject
 {

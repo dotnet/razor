@@ -6,9 +6,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal static partial class IProjectSnapshotManagerExtensions
 {
