@@ -55,4 +55,3 @@ can cause changes to how the output is rendered from previous versions of the Ra
 #endif
 }
 ```
-
