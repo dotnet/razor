@@ -27,9 +27,9 @@ public class RazorProjectEngine
         RazorProjectFileSystem fileSystem,
         ImmutableArray<IRazorProjectEngineFeature> projectFeatures)
     {
-        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-        Engine = engine ?? throw new ArgumentNullException(nameof(engine));
-        FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        Configuration = configuration;
+        Engine = engine;
+        FileSystem = fileSystem;
         ProjectFeatures = projectFeatures;
 
         foreach (var projectFeature in projectFeatures)
