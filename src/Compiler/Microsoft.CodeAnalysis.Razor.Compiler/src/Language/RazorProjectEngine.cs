@@ -112,17 +112,10 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
-    private protected RazorCodeDocument CreateCodeDocumentCore(RazorProjectItem projectItem)
-    {
-        ArgHelper.ThrowIfNull(projectItem);
-
-        return CreateCodeDocumentCore(projectItem, configureParser: null, configureCodeGeneration: null);
-    }
-
-    private RazorCodeDocument CreateCodeDocumentCore(
+    private protected RazorCodeDocument CreateCodeDocumentCore(
         RazorProjectItem projectItem,
-        Action<RazorParserOptionsBuilder>? configureParser,
-        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
+        Action<RazorParserOptionsBuilder>? configureParser = null,
+        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
     {
         ArgHelper.ThrowIfNull(projectItem);
 
@@ -180,17 +173,10 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
-    private protected RazorCodeDocument CreateCodeDocumentDesignTimeCore(RazorProjectItem projectItem)
-    {
-        ArgHelper.ThrowIfNull(projectItem);
-
-        return CreateCodeDocumentDesignTimeCore(projectItem, configureParser: null, configureCodeGeneration: null);
-    }
-
-    private RazorCodeDocument CreateCodeDocumentDesignTimeCore(
+    private protected RazorCodeDocument CreateCodeDocumentDesignTimeCore(
         RazorProjectItem projectItem,
-        Action<RazorParserOptionsBuilder>? configureParser,
-        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
+        Action<RazorParserOptionsBuilder>? configureParser = null,
+        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
     {
         ArgHelper.ThrowIfNull(projectItem);
 
