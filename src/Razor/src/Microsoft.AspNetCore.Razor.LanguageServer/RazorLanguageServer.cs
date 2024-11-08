@@ -123,6 +123,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         services.AddSingleton(featureOptions);
 
         services.AddSingleton<IFilePathService, LSPFilePathService>();
+        services.AddSingleton<IFileSystem, FileSystem>();
 
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 

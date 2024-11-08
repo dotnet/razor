@@ -25,8 +25,10 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-internal class ComponentAccessibilityCodeActionProvider : IRazorCodeActionProvider
+internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) : IRazorCodeActionProvider
 {
+    private readonly IFileSystem _fileSystem = fileSystem;
+
     public async Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         // Locate cursor
@@ -89,7 +91,7 @@ internal class ComponentAccessibilityCodeActionProvider : IRazorCodeActionProvid
         return true;
     }
 
-    private static void AddCreateComponentFromTag(RazorCodeActionContext context, IStartTagSyntaxNode startTag, List<RazorVSInternalCodeAction> container)
+    private void AddCreateComponentFromTag(RazorCodeActionContext context, IStartTagSyntaxNode startTag, List<RazorVSInternalCodeAction> container)
     {
         if (!context.SupportsFileCreation)
         {
@@ -103,7 +105,7 @@ internal class ComponentAccessibilityCodeActionProvider : IRazorCodeActionProvid
         Assumes.NotNull(directoryName);
 
         var newComponentPath = Path.Combine(directoryName, $"{startTag.Name.Content}.razor");
-        if (File.Exists(newComponentPath))
+        if (_fileSystem.FileExists(newComponentPath))
         {
             return;
         }
