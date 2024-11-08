@@ -39,4 +39,6 @@ internal abstract class LanguageServerFeatureOptions
     /// When enabled, design time code will not be generated. All tooling will be using runtime code generation.
     /// </summary>
     public abstract bool ForceRuntimeCodeGeneration { get; }
+
+    public abstract bool UseRoslynTokenizer { get; }
 }
