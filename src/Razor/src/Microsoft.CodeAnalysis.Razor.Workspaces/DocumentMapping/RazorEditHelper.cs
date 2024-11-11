@@ -24,7 +24,7 @@ internal static partial class RazorEditHelper
     /// are applied if they map to the razor document.
     /// </summary>
     /// <remarks>
-    ///Not that the changes coming in are in the generated C# file. This method will map them appropriately.
+    /// Note that the changes coming in are in the generated C# file. This method will map them appropriately.
     /// </remarks>
     internal static async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
