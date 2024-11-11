@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 internal sealed class UsingsNodeComparer : IComparer<RazorDirectiveSyntax>
 {
     public static readonly UsingsNodeComparer Instance = new();
+
     public int Compare(RazorDirectiveSyntax? x, RazorDirectiveSyntax? y)
     {
         if (x is null)
