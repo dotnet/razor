@@ -88,7 +88,7 @@ internal static class RazorSyntaxNodeExtensions
         var index = firstNode.Span.End;
         var end = secondNode.Span.Start - 1;
         var c = text[index];
-        while (char.IsWhiteSpace(c) || c == '\n')
+        while (char.IsWhiteSpace(c))
         {
             if (index == end)
             {

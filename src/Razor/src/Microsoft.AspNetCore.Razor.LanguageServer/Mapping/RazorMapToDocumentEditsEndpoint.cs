@@ -81,7 +81,7 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
         };
     }
 
-    private string DisplayEdits(IEnumerable<RazorTextChange> changes)
+    private static string DisplayEdits(IEnumerable<RazorTextChange> changes)
         => string.Join(
             Environment.NewLine,
             changes.Select(e => $"{e.Span} => '{e.NewText}'"));

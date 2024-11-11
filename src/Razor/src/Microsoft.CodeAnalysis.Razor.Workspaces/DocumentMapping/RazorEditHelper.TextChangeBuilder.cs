@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal static partial class RazorEditHelper
 {
-    private class TextChangeBuilder : IDisposable
+    private sealed class TextChangeBuilder : IDisposable
     {
         private ObjectPool<ImmutableArray<RazorTextChange>.Builder> Pool => ArrayBuilderPool<RazorTextChange>.Default;
         private readonly ImmutableArray<RazorTextChange>.Builder _builder;
@@ -122,7 +122,7 @@ internal static partial class RazorEditHelper
             // If only usings were added then just need to find where to insert them.
             if (removedUsings.Length == 0)
             {
-                AddNewUsingChanges(codeDocument, addedUsings, cancellationToken);
+                AddNewUsingsChanges(codeDocument, addedUsings, cancellationToken);
                 return;
             }
 
@@ -136,7 +136,7 @@ internal static partial class RazorEditHelper
             AddComplexUsingsChanges(codeDocument, addedUsings, removedUsings, cancellationToken);
         }
 
-        private void AddNewUsingChanges(RazorCodeDocument codeDocument, ImmutableArray<string> addedUsings, CancellationToken cancellationToken)
+        private void AddNewUsingsChanges(RazorCodeDocument codeDocument, ImmutableArray<string> addedUsings, CancellationToken cancellationToken)
         {
             var (firstBlockOfUsings, remainingUsings) = GetGroupedUsings(codeDocument, cancellationToken);
             var razorSourceText = codeDocument.Source.Text;
