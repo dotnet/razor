@@ -8,10 +8,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 [Flags]
 internal enum ProjectDifference
 {
-    None = 0,
-    ConfigurationChanged = 1,
-    ProjectWorkspaceStateChanged = 2,
-    DocumentAdded = 4,
-    DocumentRemoved = 8,
-    DocumentChanged = 16,
+    None = 1 << 0,
+    ConfigurationChanged = 1 << 1,
+    DocumentAdded = 1 << 2,
+    DocumentRemoved = 1 << 3,
+    DocumentChanged = 1 << 4,
 }
