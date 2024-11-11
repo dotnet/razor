@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Test;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
-using IProjectSnapshotManagerExtensions = Microsoft.CodeAnalysis.Razor.Workspaces.Test.IProjectSnapshotManagerExtensions;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
@@ -22,7 +22,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
     public async Task GetProjectAvailabilityText_NoProjects_ReturnsNull()
     {
         var projectManager = CreateProjectSnapshotManager();
-        var solutionQueryOperations = IProjectSnapshotManagerExtensions.GetQueryOperations(projectManager);
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
         var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync("file.razor", "MyTagHelper", DisposalToken);
 
@@ -60,7 +60,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             updater.DocumentAdded(hostProject.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var solutionQueryOperations = IProjectSnapshotManagerExtensions.GetQueryOperations(projectManager);
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
         var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
 
@@ -109,7 +109,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var solutionQueryOperations = IProjectSnapshotManagerExtensions.GetQueryOperations(projectManager);
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
         var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
 
@@ -157,7 +157,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var solutionQueryOperations = IProjectSnapshotManagerExtensions.GetQueryOperations(projectManager);
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
         var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
 
@@ -201,7 +201,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
-        var solutionQueryOperations = IProjectSnapshotManagerExtensions.GetQueryOperations(projectManager);
+        var solutionQueryOperations = projectManager.GetQueryOperations();
 
         var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, "MyTagHelper", DisposalToken);
 
