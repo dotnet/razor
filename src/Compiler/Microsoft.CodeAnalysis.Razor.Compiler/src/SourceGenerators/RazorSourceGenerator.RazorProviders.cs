@@ -21,7 +21,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         {
             var (((options, parseOptions), references), isSuppressed) = pair;
             var globalOptions = options.GlobalOptions;
-            
+
             if (isSuppressed)
             {
                 return default;
@@ -49,11 +49,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Where(r => r.Display is { } display && display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal))
                 .ToImmutableArray();
 
-            var isComponentParameterSupported = minimalReferences.Length == 0 
-                ? false 
+            var isComponentParameterSupported = minimalReferences.Length == 0
+                ? false
                 : CSharpCompilation.Create("components", references: minimalReferences).HasAddComponentParameter();
 
             var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported);
+
+            // We use the new tokenizer only when requested for now.
+            var useRoslynTokenizer = parseOptions.Features.TryGetValue("use-roslyn-tokenizer", out var useRoslynTokenizerValue)
+                                    && string.Equals(useRoslynTokenizerValue, "true", StringComparison.OrdinalIgnoreCase);
 
             var razorSourceGenerationOptions = new RazorSourceGenerationOptions()
             {
@@ -61,8 +65,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 GenerateMetadataSourceChecksumAttributes = generateMetadataSourceChecksumAttributes == "true",
                 RootNamespace = rootNamespace ?? "ASP",
                 SupportLocalizedComponentNames = supportLocalizedComponentNames == "true",
-                CSharpLanguageVersion = ((CSharpParseOptions)parseOptions).LanguageVersion,
+                CSharpParseOptions = (CSharpParseOptions)parseOptions,
                 TestSuppressUniqueIds = _testSuppressUniqueIds,
+                UseRoslynTokenizer = useRoslynTokenizer,
             };
 
             return (razorSourceGenerationOptions, diagnostic);

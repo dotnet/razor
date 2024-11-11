@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -16,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -25,7 +25,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutput) : CodeActionEndToEndTest(testOutput)
+public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutput) : CodeActionEndToEndTestBase(testOutput)
 {
     private const string ExtractToComponentTitle = "Extract element to new component";
 
@@ -259,6 +259,31 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
             expectedRazorComponent);
     }
 
+    [Fact]
+    public async Task Handle_TextOnlySelection()
+    {
+        var input = """
+            <h1> Hello </h1>
+
+            Welcome to [|your new app|]
+            """;
+
+        var expectedRazorComponent = """
+            your new app
+            """;
+
+        var expectedOriginalDocument = """
+            <h1> Hello </h1>
+
+            Welcome to <Component />
+            """;
+
+        await TestAsync(
+            input,
+            expectedOriginalDocument,
+            expectedRazorComponent);
+    }
+
     private async Task TestAsync(
         string input,
         string expectedOriginalDocument,
@@ -296,14 +321,14 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
         Assert.NotNull(codeActionToRun);
 
         var resolver = new ExtractToComponentCodeActionResolver(
-                    new GenerateMethodResolverDocumentContextFactory(razorFilePath, codeDocument),
-                    TestLanguageServerFeatureOptions.Instance);
+            TestLanguageServerFeatureOptions.Instance);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, null);
         var changes = await GetEditsAsync(
             codeActionToRun,
             requestContext,
             languageServer,
+            optionsMonitor: null,
             [resolver]
             );
 

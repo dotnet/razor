@@ -168,7 +168,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     public void Block_TwoArguments()
     {
         using var reporter = new TestTelemetryReporter(LoggerFactory);
-        using (reporter.BeginBlock("EventName", Severity.Normal, new("P1", false), new("P2", "test")))
+        using (reporter.BeginBlock("EventName", Severity.Normal, TimeSpan.Zero, new("P1", false), new("P2", "test")))
         {
         }
 
@@ -192,6 +192,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
         var p3Value = Guid.NewGuid();
         using (reporter.BeginBlock("EventName",
             Severity.Normal,
+            TimeSpan.Zero,
             new("P1", false),
             new("P2", "test"),
             new("P3", p3Value)))
@@ -222,6 +223,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
         var p3Value = Guid.NewGuid();
         using (reporter.BeginBlock("EventName",
             Severity.Normal,
+            TimeSpan.Zero,
             new("P1", false),
             new("P2", "test"),
             new("P3", p3Value),
@@ -296,7 +298,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
     {
         using var reporter = new TestTelemetryReporter(LoggerFactory);
         var correlationId = Guid.NewGuid();
-        using (reporter.TrackLspRequest("MethodName", "ServerName", correlationId))
+        using (reporter.TrackLspRequest("MethodName", "ServerName", TimeSpan.Zero, correlationId))
         {
         }
 
@@ -304,27 +306,14 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
             e1 =>
             {
                 Assert.Equal(TelemetrySeverity.Normal, e1.Severity);
-                Assert.Equal("dotnet/razor/beginlsprequest", e1.Name);
+                Assert.Equal("dotnet/razor/tracklsprequest", e1.Name);
                 Assert.True(e1.HasProperties);
 
+                Assert.True(e1.Properties["dotnet.razor.eventscope.ellapsedms"] is long);
                 Assert.Equal("MethodName", e1.Properties["dotnet.razor.eventscope.method"]);
                 Assert.Equal("ServerName", e1.Properties["dotnet.razor.eventscope.languageservername"]);
 
                 var correlationProperty = e1.Properties["dotnet.razor.eventscope.correlationid"] as TelemetryComplexProperty;
-                Assert.NotNull(correlationProperty);
-                Assert.Equal(correlationId, correlationProperty.Value);
-            },
-            e2 =>
-            {
-                Assert.Equal(TelemetrySeverity.Normal, e2.Severity);
-                Assert.Equal("dotnet/razor/tracklsprequest", e2.Name);
-                Assert.True(e2.HasProperties);
-
-                Assert.True(e2.Properties["dotnet.razor.eventscope.ellapsedms"] is long);
-                Assert.Equal("MethodName", e2.Properties["dotnet.razor.eventscope.method"]);
-                Assert.Equal("ServerName", e2.Properties["dotnet.razor.eventscope.languageservername"]);
-
-                var correlationProperty = e2.Properties["dotnet.razor.eventscope.correlationid"] as TelemetryComplexProperty;
                 Assert.NotNull(correlationProperty);
                 Assert.Equal(correlationId, correlationProperty.Value);
             });

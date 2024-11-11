@@ -42,6 +42,11 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
         }
     }
 
+    public void Dispose()
+    {
+        _manager?.Dispose();
+    }
+
     internal static string GetEventName(string name) => "dotnet/razor/" + name;
     internal static string GetPropertyName(string name) => "dotnet.razor." + name;
 
@@ -50,11 +55,6 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
 #else
     public virtual bool IsEnabled => _manager?.Session.IsOptedIn ?? false;
 #endif
-
-    public void Dispose()
-    {
-        _manager?.Dispose();
-    }
 
     public void ReportEvent(string name, Severity severity)
     {
@@ -237,7 +237,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
         }
     }
 
-    protected virtual bool HandleException(Exception exception, string? message, params object?[] @params)
+    protected virtual bool HandleException(Exception exception, string? message, params ReadOnlySpan<object?> @params)
         => false;
 
     protected virtual void LogTrace(string message)
@@ -248,34 +248,30 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
     {
     }
 
-    public TelemetryScope BeginBlock(string name, Severity severity)
-        => TelemetryScope.Create(this, name, severity);
+    public TelemetryScope BeginBlock(string name, Severity severity, TimeSpan minTimeToReport)
+        => TelemetryScope.Create(this, name, severity, minTimeToReport);
 
-    public TelemetryScope BeginBlock(string name, Severity severity, Property property)
-        => TelemetryScope.Create(this, name, severity, property);
+    public TelemetryScope BeginBlock(string name, Severity severity, TimeSpan minTimeToReport, Property property)
+        => TelemetryScope.Create(this, name, severity, minTimeToReport, property);
 
-    public TelemetryScope BeginBlock(string name, Severity severity, Property property1, Property property2)
-        => TelemetryScope.Create(this, name, severity, property1, property2);
+    public TelemetryScope BeginBlock(string name, Severity severity, TimeSpan minTimeToReport, Property property1, Property property2)
+        => TelemetryScope.Create(this, name, severity, minTimeToReport, property1, property2);
 
-    public TelemetryScope BeginBlock(string name, Severity severity, Property property1, Property property2, Property property3)
-        => TelemetryScope.Create(this, name, severity, property1, property2, property3);
+    public TelemetryScope BeginBlock(string name, Severity severity, TimeSpan minTimeToReport, Property property1, Property property2, Property property3)
+        => TelemetryScope.Create(this, name, severity, minTimeToReport, property1, property2, property3);
 
-    public TelemetryScope BeginBlock(string name, Severity severity, params Property[] properties)
-        => TelemetryScope.Create(this, name, severity, properties);
+    public TelemetryScope BeginBlock(string name, Severity severity, TimeSpan minTimeToReport, params ReadOnlySpan<Property> properties)
+        => TelemetryScope.Create(this, name, severity, minTimeToReport, properties);
 
-    public TelemetryScope TrackLspRequest(string lspMethodName, string languageServerName, Guid correlationId)
+    public TelemetryScope TrackLspRequest(string lspMethodName, string languageServerName, TimeSpan minTimeToReport, Guid correlationId)
     {
         if (correlationId == Guid.Empty)
         {
             return TelemetryScope.Null;
         }
 
-        ReportEvent("BeginLspRequest", Severity.Normal,
-            new("eventscope.method", lspMethodName),
-            new("eventscope.languageservername", languageServerName),
-            new("eventscope.correlationid", correlationId));
-
         return BeginBlock("TrackLspRequest", Severity.Normal,
+            minTimeToReport,
             new("eventscope.method", lspMethodName),
             new("eventscope.languageservername", languageServerName),
             new("eventscope.correlationid", correlationId));
@@ -439,7 +435,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
             declaringTypeName.StartsWith(AspNetCoreNamespace) ||
             declaringTypeName.StartsWith(MicrosoftVSRazorNamespace);
 
-    private sealed class TelemetrySessionManager : IDisposable
+    private sealed class TelemetrySessionManager: IDisposable
     {
         /// <summary>
         /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
@@ -456,6 +452,12 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
             Session = session;
         }
 
+        public void Dispose()
+        {
+            Flush();
+            Session.Dispose();
+        }
+
         public static TelemetrySessionManager Create(TelemetryReporter telemetryReporter, TelemetrySession session)
             => new(
                 telemetryReporter,
@@ -464,12 +466,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
 
         public TelemetrySession Session { get; }
 
-        public void Dispose()
-        {
-            Flush();
-        }
-
-        public void Flush()
+        private void Flush()
         {
             _aggregatingManager.Flush();
             LogRequestCounters();

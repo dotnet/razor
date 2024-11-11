@@ -175,7 +175,7 @@ End summary description.";
         var elementDescription = AggregateBoundElementDescription.Empty;
 
         // Act
-        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(classifiedTextElement);
@@ -195,7 +195,7 @@ End summary description.";
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(classifiedTextElement);
@@ -235,7 +235,7 @@ End summary description.";
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(classifiedTextElement);
@@ -273,7 +273,7 @@ End summary description.";
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(classifiedTextElement);
@@ -448,7 +448,7 @@ End summary description.";
         var elementDescription = AggregateBoundElementDescription.Empty;
 
         // Act
-        var containerElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipContainerAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var containerElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipContainerAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), DisposalToken);
 
         // Assert
         Assert.Null(containerElement);
@@ -467,7 +467,7 @@ End summary description.";
         var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos.ToImmutableArray());
 
         // Act
-        var container = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipContainerAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), CancellationToken.None);
+        var container = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipContainerAsync("file.razor", elementDescription, projectManager.GetQueryOperations(), DisposalToken);
 
         // Assert
         Assert.NotNull(container);

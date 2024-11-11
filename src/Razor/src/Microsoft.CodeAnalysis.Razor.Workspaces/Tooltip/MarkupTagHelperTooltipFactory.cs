@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 internal static class MarkupTagHelperTooltipFactory
 {
     public static async Task<MarkupContent?> TryCreateTooltipAsync(
-        string documentFilePath,
+        string? documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
         ISolutionQueryOperations solutionQueryOperations,
         MarkupKind markupKind,
@@ -73,14 +73,17 @@ internal static class MarkupTagHelperTooltipFactory
                 descriptionBuilder.Append(finalSummaryContent);
             }
 
-            var availability = await solutionQueryOperations
-                .GetProjectAvailabilityTextAsync(documentFilePath, tagHelperType, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (availability is not null)
+            if (documentFilePath is not null)
             {
-                descriptionBuilder.AppendLine();
-                descriptionBuilder.Append(availability);
+                var availability = await solutionQueryOperations
+                    .GetProjectAvailabilityTextAsync(documentFilePath, tagHelperType, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (availability is not null)
+                {
+                    descriptionBuilder.AppendLine();
+                    descriptionBuilder.Append(availability);
+                }
             }
         }
 

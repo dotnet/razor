@@ -5,7 +5,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -24,32 +23,38 @@ namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal static class RazorProjectInfoFactory
 {
+    internal readonly record struct ConversionResult(RazorProjectInfo? ProjectInfo, string? Reason)
+    {
+        [MemberNotNullWhen(true, nameof(ProjectInfo))]
+        public bool Succeeded => ProjectInfo is not null;
+    }
+
     private static readonly StringComparison s_stringComparison;
 
     static RazorProjectInfoFactory()
     {
-        s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+        s_stringComparison = PlatformInformation.IsLinux
             ? StringComparison.Ordinal
             : StringComparison.OrdinalIgnoreCase;
     }
 
-    public static async Task<RazorProjectInfo?> ConvertAsync(Project project, CancellationToken cancellationToken)
+    public static async Task<ConversionResult> ConvertAsync(Project project, CancellationToken cancellationToken)
     {
         if (project.FilePath is null)
         {
-            return null;
+            return new(null, "Project does not have file path.");
         }
 
         var projectPath = Path.GetDirectoryName(project.FilePath);
         if (projectPath is null)
         {
-            return null;
+            return new(null, "Failed to get directory name from project path");
         }
 
         var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
         if (intermediateOutputPath is null)
         {
-            return null;
+            return new(null, "Failed to get intermediate output path");
         }
 
         // First, lets get the documents, because if there aren't any, we can skip out early
@@ -58,7 +63,7 @@ internal static class RazorProjectInfoFactory
         // Not a razor project
         if (documents.Length == 0)
         {
-            return null;
+            return new(null, "No razor documents in project");
         }
 
         var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
@@ -66,7 +71,7 @@ internal static class RazorProjectInfoFactory
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (compilation is null)
         {
-            return null;
+            return new(null, "Failed to get compilation for project");
         }
 
         var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
@@ -85,16 +90,14 @@ internal static class RazorProjectInfoFactory
                 builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too
             });
 
-        var tagHelpers = await project.GetTagHelpersAsync(engine, NoOpTelemetryReporter.Instance, cancellationToken).ConfigureAwait(false);
-
-        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
-
         var hostProject = new HostProject(project.FilePath, intermediateOutputPath, configuration, rootNamespace, displayName: project.Name);
 
-        return new RazorProjectInfo(
-            hostProject,
-            projectWorkspaceState: projectWorkspaceState,
-            documents: documents);
+        var tagHelpers = await project.GetTagHelpersAsync(engine, NoOpTelemetryReporter.Instance, cancellationToken).ConfigureAwait(false);
+        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
+
+        var projectInfo = new RazorProjectInfo(hostProject, projectWorkspaceState, documents);
+
+        return new(projectInfo, null);
     }
 
     private static (RazorConfiguration configuration, string rootNamespace) ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation)

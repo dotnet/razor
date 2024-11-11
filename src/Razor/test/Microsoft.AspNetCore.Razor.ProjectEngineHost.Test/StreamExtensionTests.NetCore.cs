@@ -9,13 +9,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
-public class StreamExtensionTests
+public class StreamExtensionTests(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {
     [Theory]
     [InlineData(0)]
@@ -55,10 +57,10 @@ public class StreamExtensionTests
     {
         using var stream = new MemoryStream();
 
-        await stream.WriteStringAsync(expected, encoding, default);
+        await stream.WriteStringAsync(expected, encoding, DisposalToken);
         stream.Position = 0;
 
-        var actual = await stream.ReadStringAsync(encoding, default);
+        var actual = await stream.ReadStringAsync(encoding, DisposalToken);
         Assert.Equal(expected, actual);
     }
 
@@ -92,7 +94,7 @@ public class StreamExtensionTests
 
         var bytesToSerialize = projectInfo.Serialize();
 
-        await stream.WriteProjectInfoAsync(projectInfo, default);
+        await stream.WriteProjectInfoAsync(projectInfo, DisposalToken);
 
         // WriteProjectInfoAsync prepends the size before writing which is 4 bytes long
         Assert.Equal(bytesToSerialize.Length + 4, stream.Position);

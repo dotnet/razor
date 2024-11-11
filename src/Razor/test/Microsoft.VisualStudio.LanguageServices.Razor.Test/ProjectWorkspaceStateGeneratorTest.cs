@@ -42,7 +42,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
             TestProjectData.SomeProject.FilePath));
         _workspaceProject = solution.GetProject(projectId).AssumeNotNull();
         _projectSnapshot = new ProjectSnapshot(
-            ProjectState.Create(ProjectEngineFactoryProvider, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
+            ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, TestProjectData.SomeProject, ProjectWorkspaceState.Default));
         _projectWorkspaceStateWithTagHelpers = ProjectWorkspaceState.Create(
             [TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()]);
 
@@ -132,7 +132,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
         // Assert
         var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);
         Assert.NotNull(newProjectSnapshot);
-        Assert.Empty(await newProjectSnapshot.GetTagHelpersAsync(CancellationToken.None));
+        Assert.Empty(await newProjectSnapshot.GetTagHelpersAsync(DisposalToken));
     }
 
     [UIFact]
@@ -159,6 +159,6 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
         // Assert
         var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);
         Assert.NotNull(newProjectSnapshot);
-        Assert.Equal<TagHelperDescriptor>(_tagHelperResolver.TagHelpers, await newProjectSnapshot.GetTagHelpersAsync(CancellationToken.None));
+        Assert.Equal<TagHelperDescriptor>(_tagHelperResolver.TagHelpers, await newProjectSnapshot.GetTagHelpersAsync(DisposalToken));
     }
 }

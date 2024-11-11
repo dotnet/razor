@@ -10,12 +10,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -68,7 +69,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -402,6 +403,68 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             }|}
             """);
 
+    [Fact]
+    public Task Handle_MultipointSelection_SurroundingH1()
+        => TestAsync("""
+            @page "/"
+
+            <PageTitle>Home</PageTitle>
+
+            {|result:{|selection:<h1>Hello</h1>|}|}
+
+            Welcome to your new app.
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_TextOnly()
+        => TestAsync("""
+            @page "/"
+
+            <PageTitle>Home</PageTitle>
+            <h1>Hello</h1>
+
+            {|result:{|selection:Welcome to your new app|}|}
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_TextOnly2()
+        => TestAsync("""
+            @page "/"
+
+            <PageTitle>Home</PageTitle>
+            <h1>Hello</h1>
+
+            Welcome to {|result:{|selection:your new app|}|}
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_TextInNested()
+        => TestAsync("""
+            {|result:<div>
+                <div>
+                    <p>
+                        Hello {|selection:there!
+                    </p>
+                </div>
+            </div>
+
+            Welcome to your|}|} new app
+            """);
+
+    [Fact]
+    public Task Handle_MultipointSelection_TextInNested2()
+        => TestAsync("""
+            Welcome to your{|result:{|selection: new app
+
+            <div>
+                <div>
+                    <p>
+                        Hello |}there!
+                    </p>
+                </div>
+            </div>|}
+            """);
+
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
         TextSpan selectionSpan,
@@ -439,8 +502,10 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             request,
             documentSnapshot.Object,
             codeDocument,
-            new SourceLocation(selectionSpan.Start, -1, -1),
-            new SourceLocation(selectionSpan.End, -1, -1),
+            DelegatedDocumentUri: null,
+            selectionSpan.Start,
+            selectionSpan.End,
+            RazorLanguageKind.Razor,
             sourceText,
             supportsFileCreation,
             SupportsCodeActionResolve: true);
@@ -477,7 +542,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var provider = new ExtractToComponentCodeActionProvider();
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         if (resultSpan.IsEmpty)
@@ -490,7 +555,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var codeAction = Assert.Single(commandOrCodeActionContainer);
         var razorCodeActionResolutionParams = ((JsonElement)codeAction.Data!).Deserialize<RazorCodeActionResolutionParams>();
         Assert.NotNull(razorCodeActionResolutionParams);
-        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data).Deserialize<ExtractToComponentCodeActionParams>();
+        var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data!).Deserialize<ExtractToComponentCodeActionParams>();
         Assert.NotNull(actionParams);
         Assert.Equal(resultSpan.Start, actionParams.Start);
         Assert.Equal(resultSpan.End, actionParams.End);

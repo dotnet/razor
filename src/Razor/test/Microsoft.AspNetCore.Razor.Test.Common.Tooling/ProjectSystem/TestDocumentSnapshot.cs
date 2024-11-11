@@ -44,7 +44,7 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     }
 
     public static TestDocumentSnapshot Create(string filePath, RazorCodeDocument codeDocument, int version = 0)
-        => Create(filePath, codeDocument, ProjectWorkspaceState.Default, version);
+        => Create(filePath, codeDocument, ProjectWorkspaceState.Create([.. codeDocument.GetTagHelpers() ?? []]), version);
 
     public static TestDocumentSnapshot Create(string filePath, RazorCodeDocument codeDocument, ProjectWorkspaceState projectWorkspaceState, int version = 0)
     {
@@ -61,9 +61,9 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
 
     public HostDocument HostDocument => RealSnapshot.HostDocument;
 
-    public string? FileKind => RealSnapshot.FileKind;
-    public string? FilePath => RealSnapshot.FilePath;
-    public string? TargetPath => RealSnapshot.TargetPath;
+    public string FileKind => RealSnapshot.FileKind;
+    public string FilePath => RealSnapshot.FilePath;
+    public string TargetPath => RealSnapshot.TargetPath;
     public IProjectSnapshot Project => RealSnapshot.Project;
     public int Version => RealSnapshot.Version;
 
