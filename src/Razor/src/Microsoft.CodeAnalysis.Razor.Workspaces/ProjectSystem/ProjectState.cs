@@ -173,6 +173,7 @@ internal class ProjectState
                 var configuration = HostProject.Configuration;
                 var rootDirectoryPath = Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull();
                 var useRoslynTokenizer = LanguageServerFeatureOptions.UseRoslynTokenizer;
+
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
                     builder.SetRootNamespace(HostProject.RootNamespace);
