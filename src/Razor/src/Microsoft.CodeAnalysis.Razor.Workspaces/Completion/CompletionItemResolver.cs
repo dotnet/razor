@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
@@ -11,8 +12,9 @@ internal abstract class CompletionItemResolver
 {
     public abstract Task<VSInternalCompletionItem?> ResolveAsync(
         VSInternalCompletionItem item,
-        VSInternalCompletionList containingCompletionlist,
+        VSInternalCompletionList containingCompletionList,
         object? originalRequestContext,
         VSInternalClientCapabilities? clientCapabilities,
+        ISolutionQueryOperations solutionQueryOperations,
         CancellationToken cancellationToken);
 }

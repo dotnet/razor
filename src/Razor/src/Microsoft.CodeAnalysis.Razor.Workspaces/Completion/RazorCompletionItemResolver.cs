@@ -13,15 +13,14 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal class RazorCompletionItemResolver(IProjectSnapshotManager projectManager) : CompletionItemResolver
+internal class RazorCompletionItemResolver : CompletionItemResolver
 {
-    private readonly IProjectSnapshotManager _projectManager = projectManager;
-
     public override async Task<VSInternalCompletionItem?> ResolveAsync(
         VSInternalCompletionItem completionItem,
         VSInternalCompletionList containingCompletionList,
         object? originalRequestContext,
         VSInternalClientCapabilities? clientCapabilities,
+        ISolutionQueryOperations solutionQueryOperations,
         CancellationToken cancellationToken)
     {
         if (originalRequestContext is not RazorCompletionResolveContext razorCompletionResolveContext)
@@ -120,13 +119,13 @@ internal class RazorCompletionItemResolver(IProjectSnapshotManager projectManage
                     if (useDescriptionProperty)
                     {
                         tagHelperClassifiedTextTooltip = await ClassifiedTagHelperTooltipFactory
-                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, _projectManager.GetQueryOperations(), cancellationToken)
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, solutionQueryOperations, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
                         tagHelperMarkupTooltip = await MarkupTagHelperTooltipFactory
-                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, _projectManager.GetQueryOperations(), documentationKind, cancellationToken)
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, solutionQueryOperations, documentationKind, cancellationToken)
                             .ConfigureAwait(false);
                     }
 
