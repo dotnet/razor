@@ -67,7 +67,7 @@ internal class ProjectSnapshot : IProjectSnapshot
             throw new ArgumentNullException(nameof(document));
         }
 
-        return State.ImportsToRelatedDocuments.ContainsKey(document.TargetPath);
+        return State.ImportsToRelatedDocuments.ContainsKey(document.TargetPath!);
     }
 
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
