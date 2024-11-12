@@ -443,7 +443,7 @@ public class TelemetryReporterTests(ITestOutputHelper testOutput) : ToolingTestB
             static evt =>
             {
                 var histogram = Assert.IsAssignableFrom<IHistogram<long>>(evt.Instrument);
-                Assert.Equal("", histogram.Name);
+                Assert.Equal("TimeInQueue", histogram.Name);
 
                 var telemetryEvent = evt.Event;
                 Assert.Equal("dotnet/razor/lsp_timeinqueue", telemetryEvent.Name);

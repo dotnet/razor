@@ -475,7 +475,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
         public void LogRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result)
         {
             LogAggregated("LSP_TimeInQueue",
-                "",  // All time in queue events use the same histogram, no need for separate keys
+                "TimeInQueue",  // All time in queue events use the same histogram, no need for separate keys
                 (int)queuedDuration.TotalMilliseconds,
                 name);
 
