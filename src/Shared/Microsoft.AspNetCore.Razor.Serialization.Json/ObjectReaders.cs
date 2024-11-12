@@ -3,12 +3,12 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 using SR = Microsoft.AspNetCore.Razor.Serialization.Json.Internal.Strings;
 
@@ -90,13 +90,24 @@ internal static partial class ObjectReaders
         return new(projectId, configuration, rootNamespace);
     }
 
-    public static DocumentSnapshotHandle ReadDocumentSnapshotHandleFromProperties(JsonDataReader reader)
+    public static HostDocument ReadHostDocumentFromProperties(JsonDataReader reader)
     {
-        var filePath = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.FilePath));
-        var targetPath = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.TargetPath));
-        var fileKind = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.FileKind));
+        var filePath = reader.ReadNonNullString(nameof(HostDocument.FilePath));
+        var targetPath = reader.ReadNonNullString(nameof(HostDocument.TargetPath));
+        var fileKind = reader.ReadNonNullString(nameof(HostDocument.FileKind));
 
-        return new DocumentSnapshotHandle(filePath, targetPath, fileKind);
+        return new HostDocument(filePath, targetPath, fileKind);
+    }
+
+    public static HostProject ReadHostProjectFromProperties(JsonDataReader reader)
+    {
+        var filePath = reader.ReadNonNullString(nameof(HostProject.FilePath));
+        var intermediateOutputPath = reader.ReadNonNullString(nameof(HostProject.IntermediateOutputPath));
+        var configuration = reader.ReadNonNullObject(nameof(HostProject.Configuration), ReadConfigurationFromProperties);
+        var rootNamespace = reader.ReadStringOrNull(nameof(HostProject.RootNamespace));
+        var displayName = reader.ReadNonNullString(nameof(HostProject.DisplayName));
+
+        return new HostProject(filePath, intermediateOutputPath, configuration, rootNamespace, displayName);
     }
 
     public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonDataReader reader)
@@ -344,16 +355,11 @@ internal static partial class ObjectReaders
             throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        var projectKeyId = reader.ReadNonNullString(nameof(RazorProjectInfo.ProjectKey));
-        var filePath = reader.ReadNonNullString(nameof(RazorProjectInfo.FilePath));
-        var configuration = reader.ReadObject(nameof(RazorProjectInfo.Configuration), ReadConfigurationFromProperties) ?? RazorConfiguration.Default;
-        var projectWorkspaceState = reader.ReadObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties) ?? ProjectWorkspaceState.Default;
-        var rootNamespace = reader.ReadString(nameof(RazorProjectInfo.RootNamespace));
-        var documents = reader.ReadImmutableArray(nameof(RazorProjectInfo.Documents), static r => r.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties));
+        var hostProject = reader.ReadNonNullObject(nameof(RazorProjectInfo.HostProject), ReadHostProjectFromProperties);
+        var projectWorkspaceState = reader.ReadNonNullObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties);
+        var documents = reader.ReadImmutableArray(nameof(RazorProjectInfo.Documents), static r => r.ReadNonNullObject(ReadHostDocumentFromProperties));
 
-        var displayName = Path.GetFileNameWithoutExtension(filePath);
-
-        return new RazorProjectInfo(new ProjectKey(projectKeyId), filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
+        return new RazorProjectInfo(hostProject, projectWorkspaceState, documents);
     }
 
     public static Checksum ReadChecksum(JsonDataReader reader)

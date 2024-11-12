@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectInfoDriver, IDisposable
 {
     private abstract record Work(ProjectKey ProjectKey);
-    private sealed record Update(RazorProjectInfo ProjectInfo) : Work(ProjectInfo.ProjectKey);
+    private sealed record Update(RazorProjectInfo ProjectInfo) : Work(ProjectInfo.Key);
     private sealed record Remove(ProjectKey ProjectKey) : Work(ProjectKey);
 
     protected static readonly TimeSpan DefaultDelay = TimeSpan.FromMilliseconds(250);
@@ -103,7 +103,7 @@ internal abstract partial class AbstractRazorProjectInfoDriver : IRazorProjectIn
                 {
                     case Update(var projectInfo):
                         Logger?.LogTrace($"Sending update for {projectInfo.FilePath} with {projectInfo.ProjectWorkspaceState.TagHelpers.Length} TagHelpers");
-                        _latestProjectInfoMap[projectInfo.ProjectKey] = projectInfo;
+                        _latestProjectInfoMap[projectInfo.Key] = projectInfo;
                         break;
 
                     case Remove(var projectKey):

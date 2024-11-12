@@ -3,16 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -73,7 +72,14 @@ public class StreamExtensionTests(ITestOutputHelper testOutputHelper) : ToolingT
         var configuration = new RazorConfiguration(
             RazorLanguageVersion.Latest,
             "TestConfiguration",
-            ImmutableArray<RazorExtension>.Empty);
+            Extensions: []);
+
+        var hostProject = new HostProject(
+            filePath: @"C:\test\test.csproj",
+            intermediateOutputPath: "TestProject",
+            configuration,
+            rootNamespace: "TestNamespace",
+            displayName: "Test");
 
         var tagHelper = TagHelperDescriptorBuilder.Create("TypeName", "AssemblyName")
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tag-name"))
@@ -82,13 +88,9 @@ public class StreamExtensionTests(ITestOutputHelper testOutputHelper) : ToolingT
         var projectWorkspaceState = ProjectWorkspaceState.Create([tagHelper], CodeAnalysis.CSharp.LanguageVersion.Latest);
 
         var projectInfo = new RazorProjectInfo(
-            new ProjectKey("TestProject"),
-            @"C:\test\test.csproj",
-            configuration,
-            "TestNamespace",
-            "Test",
+            hostProject,
             projectWorkspaceState,
-            [new DocumentSnapshotHandle(@"C:\test\document.razor", @"document.razor", FileKinds.Component)]);
+            [new HostDocument(@"C:\test\document.razor", @"document.razor", FileKinds.Component)]);
 
         var bytesToSerialize = projectInfo.Serialize();
 

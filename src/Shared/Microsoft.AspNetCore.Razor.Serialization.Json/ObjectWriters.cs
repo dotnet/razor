@@ -9,6 +9,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
@@ -68,14 +69,26 @@ internal static class ObjectWriters
         writer.WriteIfNotNull(nameof(value.RootNamespace), value.RootNamespace);
     }
 
-    public static void Write(JsonDataWriter writer, DocumentSnapshotHandle? value)
+    public static void Write(JsonDataWriter writer, HostDocument? value)
         => writer.WriteObject(value, WriteProperties);
 
-    public static void WriteProperties(JsonDataWriter writer, DocumentSnapshotHandle value)
+    public static void WriteProperties(JsonDataWriter writer, HostDocument value)
     {
         writer.Write(nameof(value.FilePath), value.FilePath);
         writer.Write(nameof(value.TargetPath), value.TargetPath);
         writer.Write(nameof(value.FileKind), value.FileKind);
+    }
+
+    public static void Write(JsonDataWriter writer, HostProject? value)
+        => writer.WriteObject(value, WriteProperties);
+
+    public static void WriteProperties(JsonDataWriter writer, HostProject value)
+    {
+        writer.Write(nameof(value.FilePath), value.FilePath);
+        writer.Write(nameof(value.IntermediateOutputPath), value.IntermediateOutputPath);
+        writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);
+        writer.WriteIfNotNull(nameof(value.RootNamespace), value.RootNamespace);
+        writer.Write(nameof(value.DisplayName), value.DisplayName);
     }
 
     public static void Write(JsonDataWriter writer, ProjectWorkspaceState? value)
@@ -239,11 +252,8 @@ internal static class ObjectWriters
     public static void WriteProperties(JsonDataWriter writer, RazorProjectInfo value)
     {
         writer.Write(WellKnownPropertyNames.Version, SerializationFormat.Version);
-        writer.Write(nameof(value.ProjectKey), value.ProjectKey.Id);
-        writer.Write(nameof(value.FilePath), value.FilePath);
-        writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);
+        writer.WriteObject(nameof(value.HostProject), value.HostProject, WriteProperties);
         writer.WriteObject(nameof(value.ProjectWorkspaceState), value.ProjectWorkspaceState, WriteProperties);
-        writer.Write(nameof(value.RootNamespace), value.RootNamespace);
         writer.WriteArray(nameof(value.Documents), value.Documents, Write);
     }
 
