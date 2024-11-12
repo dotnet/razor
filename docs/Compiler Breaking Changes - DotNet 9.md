@@ -3,6 +3,7 @@ title: Razor compiler breaking changes since .NET 9
 description: Learn about any breaking changes since the initial release of .NET 9.
 author: rick-anderson
 ms.author: riande
+ms.date: 2024-11-12
 ---
 # Breaking changes in Razor after .NET 9.0.100 through .NET 10.0.100
 
