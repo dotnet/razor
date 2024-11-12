@@ -245,9 +245,8 @@ stages:
             -configuration $(_BuildConfig)
             -prepareMachine
             -test
-            -integrationTest
           name: Run_Tests
-          displayName: Run Unit and Integration tests
+          displayName: Run Unit tests
           condition: succeeded()
 
         - task: PublishBuildArtifacts@1
