@@ -51,10 +51,11 @@ internal sealed class AggregatingTelemetryLog
     }
 
     /// <summary>
-    /// Adds aggregated information for the metric and value passed in via <paramref name="name"/>. The Name/Value properties
-    /// are used as the metric name and value to record.
+    /// Adds aggregated information for the <paramref name="histogramKey"/> and <paramref name="value"/>. Method name is tacked onto
+    /// to the first <paramref name="histogramKey"/> used for convenience.
     /// </summary>
-    public void Log(string histogramKey,
+    public void Log(
+        string histogramKey,
         int value,
         string method)
     {
