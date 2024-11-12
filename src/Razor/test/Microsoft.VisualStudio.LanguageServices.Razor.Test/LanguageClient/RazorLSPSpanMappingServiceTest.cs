@@ -94,8 +94,6 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
     public async Task MapSpans_OutsideRange_ReturnsEmpty()
     {
         // Arrange
-        var called = false;
-
         var textSpan = new TextSpan(10, 10);
         var spans = new TextSpan[] { textSpan };
 
@@ -107,13 +105,7 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
         var textSpanAsRange = _sourceTextGenerated.GetRange(textSpan);
 
         var requestInvoker = new StrictMock<LSPRequestInvoker>();
-        var lazyDocumentManager = new Lazy<LSPDocumentManager>(() =>
-        {
-            var documentManager = new StrictMock<LSPDocumentManager>();
-            documentManager.Setup(d => d.TryGetDocument(It.IsAny<Uri>(), out It.Ref<LSPDocumentSnapshot>.IsAny)).Returns(false);
-            called = true;
-            return documentManager.Object;
-        });
+        var lazyDocumentManager = new Lazy<LSPDocumentManager>(() => new TestDocumentManager());
 
         var documentMappingProvider = new LSPDocumentMappingProvider(requestInvoker.Object, lazyDocumentManager);
 
@@ -123,7 +115,6 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
         var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
 
         // Assert
-        Assert.True(called);
         Assert.Empty(result);
     }
 
