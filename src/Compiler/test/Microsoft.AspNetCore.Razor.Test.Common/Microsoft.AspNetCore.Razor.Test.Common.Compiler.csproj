@@ -21,6 +21,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="DiffPlex" />
 
+    <PackageReference Include="xunit.assert" PrivateAssets="all" VersionOverride="$(XunitAssertVersion)" />
     <PackageReference Include="xunit.extensibility.execution" />
   </ItemGroup>
 
