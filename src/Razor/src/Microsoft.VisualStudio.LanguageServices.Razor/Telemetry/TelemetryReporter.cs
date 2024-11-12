@@ -503,13 +503,13 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
         }
 
         private void LogAggregated(
-            string eventName,
-            string keyName,
+            string managerKey,
+            string histogramKey,
             int value,
             string method)
         {
-            var aggregatingLog = _aggregatingManager?.GetLog(eventName);
-            aggregatingLog?.Log(keyName, value, method);
+            var aggregatingLog = _aggregatingManager?.GetLog(managerKey);
+            aggregatingLog?.Log(histogramKey, value, method);
         }
 
         private sealed class Counter
