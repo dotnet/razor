@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -171,12 +172,14 @@ internal class ProjectState
             {
                 var configuration = HostProject.Configuration;
                 var rootDirectoryPath = Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull();
+                var useRoslynTokenizer = LanguageServerFeatureOptions.UseRoslynTokenizer;
 
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
                     builder.SetRootNamespace(HostProject.RootNamespace);
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
+                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, CSharpParseOptions.Default));
                 });
             }
         }
