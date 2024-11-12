@@ -7,12 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
+using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -57,22 +59,23 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
         var textSpanAsRange = _sourceTextGenerated.GetRange(textSpan);
         var mappedRange = VsLspFactory.CreateSingleLineRange(2, character: 1, length: 10);
 
-        var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
         var mappingResult = new RazorMapToDocumentRangesResponse()
         {
             Ranges = [mappedRange]
         };
-        documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
-            .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
-            {
-                Assert.Equal(RazorLanguageKind.CSharp, languageKind);
-                Assert.Equal(_mockDocumentUri, uri);
-                Assert.Single(ranges, textSpanAsRange);
-                called = true;
-            })
-            .ReturnsAsync(mappingResult);
+        var requestInvoker = new TestLSPRequestInvoker([(LanguageServerConstants.RazorMapToDocumentRangesEndpoint, mappingResult)]);
 
-        var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
+        
+        var lazyDocumentManager = new Lazy<LSPDocumentManager>(() =>
+        {
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(_mockDocumentUri, new TestLSPDocumentSnapshot(_mockDocumentUri, 1));
+            return documentManager;
+        });
+
+        var documentMappingProvider = new LSPDocumentMappingProvider(requestInvoker, lazyDocumentManager);
+
+        var service = new RazorLSPSpanMappingService(documentMappingProvider, documentSnapshot.Object, textSnapshot);
 
         var expectedSpan = _sourceTextRazor.GetTextSpan(mappedRange);
         var expectedLinePosition = _sourceTextRazor.GetLinePositionSpan(expectedSpan);
@@ -103,18 +106,18 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
 
         var textSpanAsRange = _sourceTextGenerated.GetRange(textSpan);
 
-        var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
-        documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
-            .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
-            {
-                Assert.Equal(RazorLanguageKind.CSharp, languageKind);
-                Assert.Equal(_mockDocumentUri, uri);
-                Assert.Single(ranges, textSpanAsRange);
-                called = true;
-            })
-            .ReturnsAsync(value: null);
+        var requestInvoker = new StrictMock<LSPRequestInvoker>();
+        var lazyDocumentManager = new Lazy<LSPDocumentManager>(() =>
+        {
+            var documentManager = new StrictMock<LSPDocumentManager>();
+            documentManager.Setup(d => d.TryGetDocument(It.IsAny<Uri>(), out It.Ref<LSPDocumentSnapshot>.IsAny)).Returns(false);
+            called = true;
+            return documentManager.Object;
+        });
 
-        var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
+        var documentMappingProvider = new LSPDocumentMappingProvider(requestInvoker.Object, lazyDocumentManager);
+
+        var service = new RazorLSPSpanMappingService(documentMappingProvider, documentSnapshot.Object, textSnapshot);
 
         // Act
         var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
