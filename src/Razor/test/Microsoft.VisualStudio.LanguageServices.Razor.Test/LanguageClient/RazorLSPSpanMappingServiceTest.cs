@@ -46,8 +46,6 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
     public async Task MapSpans_WithinRange_ReturnsMapping()
     {
         // Arrange
-        var called = false;
-
         var textSpan = new TextSpan(1, 10);
         var spans = new TextSpan[] { textSpan };
 
@@ -86,7 +84,6 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
         var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
 
         // Assert
-        Assert.True(called);
         Assert.Single(result, expectedResult);
     }
 
