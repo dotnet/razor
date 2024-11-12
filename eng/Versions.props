@@ -178,7 +178,6 @@
     <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
     <SystemTextEncodingsWebVersion>6.0.0</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>6.0.0</SystemTextJsonVersion>
-    <XunitAssertVersion>$(XunitVersion)</XunitAssertVersion>
     <XunitExtensibilityExecutionVersion>$(XunitVersion)</XunitExtensibilityExecutionVersion>
     <!-- Benchmarks -->
     <Benchmarks_BaselineSourceGeneratorsVersion>7.0.0-preview.5.22528.1</Benchmarks_BaselineSourceGeneratorsVersion>
