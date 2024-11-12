@@ -660,11 +660,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             RazorConfiguration.Default,
             RootNamespace1);
 
-        var projectKey1 = await projectService.AddProjectAsync(hostProject1, DisposalToken);
+        var projectKey1 = await projectService.GetTestAccessor().AddProjectAsync(hostProject1, DisposalToken);
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectWorkspaceStateChanged(projectKey1, ProjectWorkspaceState.Create(tagHelpers));
+            updater.ProjectChanged(hostProject1, ProjectWorkspaceState.Create(tagHelpers));
         });
 
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath1, DisposalToken);
@@ -687,11 +687,11 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
             RazorConfiguration.Default,
             RootNamespace2);
 
-        var projectKey2 = await projectService.AddProjectAsync(hostProject2, DisposalToken);
+        var projectKey2 = await projectService.GetTestAccessor().AddProjectAsync(hostProject2, DisposalToken);
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectWorkspaceStateChanged(projectKey2, ProjectWorkspaceState.Create(tagHelpers));
+            updater.ProjectChanged(hostProject2, ProjectWorkspaceState.Create(tagHelpers));
         });
 
         await projectService.AddDocumentToPotentialProjectsAsync(s_componentFilePath3, DisposalToken);
