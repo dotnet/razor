@@ -229,24 +229,4 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IProjectEngineFactoryProvider, LspProjectEngineFactoryProvider>();
         services.AddSingleton<IProjectSnapshotManager, LspProjectSnapshotManager>();
     }
-
-    public static void AddHandlerWithCapabilities<T>(this IServiceCollection services)
-        where T : class, IMethodHandler, ICapabilitiesProvider
-    {
-        services.AddSingleton<T>();
-        services.AddSingleton<IMethodHandler, T>(s => s.GetRequiredService<T>());
-        // Transient because it should only be used once and I'm hoping it doesn't stick around.
-        services.AddTransient<ICapabilitiesProvider, T>(s => s.GetRequiredService<T>());
-    }
-
-    public static void AddHandler<T>(this IServiceCollection services)
-        where T : class, IMethodHandler
-    {
-        if (typeof(ICapabilitiesProvider).IsAssignableFrom(typeof(T)))
-        {
-            throw new NotImplementedException($"{nameof(T)} is not using {nameof(AddHandlerWithCapabilities)} when it implements {nameof(ICapabilitiesProvider)}");
-        }
-
-        services.AddSingleton<IMethodHandler, T>();
-    }
 }
