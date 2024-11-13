@@ -9,7 +9,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting.NamedPipes;
 
 [RazorLanguageServerEndpoint(CustomMessageNames.RazorNamedPipeConnectEndpointName)]
 internal sealed class RazorNamedPipeConnectEndpoint(IRazorProjectInfoDriver infoDriver, ILoggerFactory loggerFactory) : IRazorNotificationHandler<RazorNamedPipeConnectParams>
