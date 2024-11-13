@@ -2,14 +2,17 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -45,13 +48,9 @@ internal static partial class RazorEditHelper
 
         textChangeBuilder.AddDirectlyMappedEdits(textChanges, codeDocument, cancellationToken);
 
-        var oldUsings = await AddUsingsHelper.FindUsingDirectiveStringsAsync(
-            originalSyntaxTree,
-            cancellationToken).ConfigureAwait(false);
+        var oldUsings = await GetUsingsDirectivesAsync(originalSyntaxTree, cancellationToken).ConfigureAwait(false);
 
-        var newUsings = await AddUsingsHelper.FindUsingDirectiveStringsAsync(
-            newSyntaxTree,
-            cancellationToken).ConfigureAwait(false);
+        var newUsings = await GetUsingsDirectivesAsync(newSyntaxTree, cancellationToken).ConfigureAwait(false);
 
         var addedUsings = Delta.Compute(oldUsings, newUsings);
         var removedUsings = Delta.Compute(newUsings, oldUsings);
@@ -59,6 +58,35 @@ internal static partial class RazorEditHelper
         textChangeBuilder.AddUsingsChanges(codeDocument, addedUsings, removedUsings, cancellationToken);
 
         return NormalizeEdits(textChangeBuilder.DrainToOrderedImmutable(), telemetryReporter, cancellationToken);
+    }
+
+    private static async Task<ImmutableArray<string>> GetUsingsDirectivesAsync(SyntaxTree originalSyntaxTree, CancellationToken cancellationToken)
+    {
+        var syntaxRoot = await originalSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        return syntaxRoot
+            .DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
+            .OfType<UsingDirectiveSyntax>()
+            .SelectAsArray(GetNamespaceFromDirective);
+    }
+
+    private static string GetNamespaceFromDirective(UsingDirectiveSyntax usingDirectiveSyntax)
+    {
+        var str = usingDirectiveSyntax.ToFullString();
+        var span = str.AsSpan();
+
+        span = span.Trim();
+
+        if (!usingDirectiveSyntax.SemicolonToken.IsMissing)
+        {
+            span = span[0..^1];
+        }
+
+        if (!usingDirectiveSyntax.UsingKeyword.IsMissing)
+        {
+            span = span[usingDirectiveSyntax.UsingKeyword.Span.Length..];
+        }
+
+        return span.Trim().ToString();
     }
 
     /// <summary>

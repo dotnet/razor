@@ -467,7 +467,7 @@ public class RazorEditHelperTest : LanguageServerTestBase
             }
             """);
 
-    [Fact(Skip = "https://github.com/dotnet/razor/issues/11168")]
+    [Fact]
     public Task UsingAliasRemoved_HandledCorrectly()
         => TestAsync(
             csharpSource:
@@ -507,13 +507,12 @@ public class RazorEditHelperTest : LanguageServerTestBase
             @using System
             @using System.Collections.Generic
 
-
             @code {
                 public int NewCounter { get; set; } 
             }
             """);
 
-    [Fact(Skip = "https://github.com/dotnet/razor/issues/11168")]
+    [Fact]
     public Task UsingAliasAdded_HandledCorrectly()
         => TestAsync(
             csharpSource:
