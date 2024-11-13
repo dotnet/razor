@@ -512,7 +512,11 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
             case CSharpSyntaxKind.SingleLineCommentTrivia or
                  CSharpSyntaxKind.MultiLineCommentTrivia or
                  CSharpSyntaxKind.MultiLineDocumentationCommentTrivia or
-                 CSharpSyntaxKind.SingleLineDocumentationCommentTrivia:
+                 CSharpSyntaxKind.SingleLineDocumentationCommentTrivia or
+                 // We treat skipped tokens as comments because they're tokens that were skipped over by roslyn,
+                 // and we want to keep them in the output so that the final C# ends up failing due to their presence.
+                 // We also don't want them to cause loops over comments and other trivia to break.
+                 CSharpSyntaxKind.SkippedTokensTrivia:
                 tokenType = SyntaxKind.CSharpComment;
                 _isOnlyWhitespaceOnLine = false;
                 break;
