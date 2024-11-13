@@ -23,7 +23,7 @@ internal sealed class RazorNamedPipeConnectEndpoint(IRazorProjectInfoDriver info
     {
         if (_infoDriver is not INamedPipeProjectInfoDriver namedPipeDriver)
         {
-            _logger.LogInformation($"Named pipe communication is attempting to be set up when a valid driver is not available.");
+            _logger.LogError($"Named pipe communication is attempting to be set up when a valid driver is not available.");
             return Task.CompletedTask;
         }
 
