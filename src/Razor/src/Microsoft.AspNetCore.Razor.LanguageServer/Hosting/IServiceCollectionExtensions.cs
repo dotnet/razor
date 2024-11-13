@@ -23,7 +23,7 @@ internal static class IServiceCollectionExtensions
     {
         if (typeof(ICapabilitiesProvider).IsAssignableFrom(typeof(T)))
         {
-            throw new NotImplementedException($"{nameof(T)} is not using {nameof(AddHandlerWithCapabilities)} when it implements {nameof(ICapabilitiesProvider)}");
+            throw new InvalidOperationException($"{nameof(T)} is not using {nameof(AddHandlerWithCapabilities)} when it implements {nameof(ICapabilitiesProvider)}");
         }
 
         services.AddSingleton<IMethodHandler, T>();
