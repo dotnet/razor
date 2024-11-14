@@ -43,7 +43,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var span = new TextSpan(generated.GeneratedCode.IndexOf(symbol, StringComparison.Ordinal), symbol.Length);
 
         // Act
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out var mappedLinePositionSpan, out var mappedSpan);
+        var result = VisualStudioSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out var mappedLinePositionSpan, out var mappedSpan);
 
         // Assert
         Assert.True(result);
@@ -76,7 +76,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var span = new TextSpan(generated.GeneratedCode.IndexOf(symbol, generated.GeneratedCode.IndexOf(symbol, StringComparison.Ordinal) + symbol.Length, StringComparison.Ordinal), symbol.Length);
 
         // Act
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out var mappedLinePositionSpan, out var mappedSpan);
+        var result = VisualStudioSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out var mappedLinePositionSpan, out var mappedSpan);
 
         // Assert
         Assert.True(result);
@@ -108,7 +108,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var span = new TextSpan(generated.GeneratedCode.IndexOf(symbol, StringComparison.Ordinal), symbol.Length);
 
         // Act
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out var mappedLinePositionSpan, out var mappedSpan);
+        var result = VisualStudioSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out var mappedLinePositionSpan, out var mappedSpan);
 
         // Assert
         Assert.True(result);
@@ -140,7 +140,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var span = new TextSpan(generated.GeneratedCode.IndexOf(symbol, StringComparison.Ordinal), symbol.Length);
 
         // Act
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out _, out _);
+        var result = VisualStudioSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out _, out _);
 
         // Assert
         Assert.False(result);

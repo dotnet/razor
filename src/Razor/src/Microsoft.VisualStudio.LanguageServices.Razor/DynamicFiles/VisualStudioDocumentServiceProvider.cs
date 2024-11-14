@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentContainer) : IRazorDocumentServiceProvider, IRazorDocumentOperationService
+internal class VisualStudioDocumentServiceProvider(IDynamicDocumentContainer? documentContainer) : IRazorDocumentServiceProvider, IRazorDocumentOperationService
 {
     private readonly IDynamicDocumentContainer? _documentContainer = documentContainer;
     private readonly object _lock = new object();
@@ -15,7 +15,7 @@ internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentC
     private IRazorDocumentPropertiesService? _documentPropertiesService;
     private IRazorMappingService? _mappingService;
 
-    public RazorDocumentServiceProvider()
+    public VisualStudioDocumentServiceProvider()
         : this(null)
     {
     }

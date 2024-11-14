@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,16 +11,11 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-[Export(typeof(IRazorStartupService))]
-internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisposable
+internal abstract partial class AbstractBackgroundDocumentGenerator : IDisposable
 {
-    private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(2);
-
     private readonly IProjectSnapshotManager _projectManager;
     private readonly IRazorDynamicFileInfoProviderInternal _infoProvider;
     private readonly ILoggerFactory _loggerFactory;
@@ -32,17 +26,8 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     private ImmutableHashSet<string> _suppressedDocuments;
     private bool _solutionIsClosing;
 
-    [ImportingConstructor]
-    public BackgroundDocumentGenerator(
-        IProjectSnapshotManager projectManager,
-        IRazorDynamicFileInfoProviderInternal infoProvider,
-        ILoggerFactory loggerFactory)
-        : this(projectManager, infoProvider, loggerFactory, s_delay)
-    {
-    }
-
     // Provided for tests to be able to modify the timer delay
-    protected BackgroundDocumentGenerator(
+    protected AbstractBackgroundDocumentGenerator(
         IProjectSnapshotManager projectManager,
         IRazorDynamicFileInfoProviderInternal infoProvider,
         ILoggerFactory loggerFactory,
@@ -51,7 +36,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         _projectManager = projectManager;
         _infoProvider = infoProvider;
         _loggerFactory = loggerFactory;
-        _logger = loggerFactory.GetOrCreateLogger<BackgroundDocumentGenerator>();
+        _logger = loggerFactory.GetOrCreateLogger<AbstractBackgroundDocumentGenerator>();
 
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<(IProjectSnapshot, IDocumentSnapshot)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
@@ -70,6 +55,9 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         _disposeTokenSource.Dispose();
     }
 
+    protected abstract IDynamicDocumentContainer CreateContainer(IDocumentSnapshot documentSnapshot, ILoggerFactory loggerFactory);
+    protected abstract bool IgnoreEnqueue(IProjectSnapshot project, IDocumentSnapshot document);
+
     protected Task WaitUntilCurrentBatchCompletesAsync()
         => _workQueue.WaitUntilCurrentBatchCompletesAsync();
 
@@ -87,9 +75,8 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
             return;
         }
 
-        if (project is ProjectSnapshot { HostProject: FallbackHostProject })
+        if (IgnoreEnqueue(project, document))
         {
-            // We don't support closed file code generation for fallback projects
             return;
         }
 
@@ -136,7 +123,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         }
     }
 
-    private bool Suppressed(IProjectSnapshot project, IDocumentSnapshot document)
+    protected virtual bool Suppressed(IProjectSnapshot project, IDocumentSnapshot document)
     {
         var filePath = document.FilePath;
 
@@ -157,12 +144,12 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
         if (!_suppressedDocuments.Contains(filePath))
         {
-            var container = new DefaultDynamicDocumentContainer(document, _loggerFactory);
+            var container = CreateContainer(document, _loggerFactory);
             _infoProvider.UpdateFileInfo(project.Key, container);
         }
     }
 
-    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // We don't want to do any work on solution close
         if (args.SolutionIsClosing)

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-internal partial class BackgroundDocumentGenerator
+internal abstract partial class AbstractBackgroundDocumentGenerator
 {
     private sealed class Comparer : IEqualityComparer<(IProjectSnapshot, IDocumentSnapshot)>
     {

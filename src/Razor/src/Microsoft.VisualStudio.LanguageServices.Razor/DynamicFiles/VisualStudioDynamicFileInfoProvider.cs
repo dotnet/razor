@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 [Export(typeof(IRazorDynamicFileInfoProvider))]
 [Export(typeof(IRazorDynamicFileInfoProviderInternal))]
 [Export(typeof(IRazorStartupService))]
-internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInternal, IRazorDynamicFileInfoProvider, IRazorStartupService
+internal class VisualStudioDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInternal, IRazorDynamicFileInfoProvider, IRazorStartupService
 {
     private readonly ConcurrentDictionary<Key, Entry> _entries;
     private readonly Func<Key, Entry> _createEmptyEntry;
@@ -38,7 +38,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     private readonly FallbackProjectManager _fallbackProjectManager;
 
     [ImportingConstructor]
-    public RazorDynamicFileInfoProvider(
+    public VisualStudioDynamicFileInfoProvider(
         IRazorDocumentServiceProviderFactory factory,
         ILspEditorFeatureDetector lspEditorFeatureDetector,
         IFilePathService filePathService,
@@ -501,9 +501,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
     public class TestAccessor
     {
-        private readonly RazorDynamicFileInfoProvider _provider;
+        private readonly VisualStudioDynamicFileInfoProvider _provider;
 
-        public TestAccessor(RazorDynamicFileInfoProvider provider)
+        public TestAccessor(VisualStudioDynamicFileInfoProvider provider)
         {
             _provider = provider;
         }

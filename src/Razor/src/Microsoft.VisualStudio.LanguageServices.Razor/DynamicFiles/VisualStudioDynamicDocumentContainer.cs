@@ -15,12 +15,12 @@ namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 // Given a DocumentSnapshot this class allows the retrieval of a TextLoader for the generated C#
 // and services to help map spans and excerpts to and from the top-level Razor document to behind
 // the scenes C#.
-internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot documentSnapshot, ILoggerFactory loggerFactory) : IDynamicDocumentContainer
+internal sealed class VisualStudioDynamicDocumentContainer(IDocumentSnapshot documentSnapshot, ILoggerFactory loggerFactory) : IDynamicDocumentContainer
 {
     private readonly IDocumentSnapshot _documentSnapshot = documentSnapshot ?? throw new ArgumentNullException(nameof(documentSnapshot));
-    private RazorDocumentExcerptService? _excerptService;
-    private RazorSpanMappingService? _spanMappingService;
-    private RazorMappingService? _mappingService;
+    private VisualStudioDocumentExcerptService? _excerptService;
+    private VisualStudioSpanMappingService? _spanMappingService;
+    private VisualStudioMappingService? _mappingService;
 
     public string FilePath => _documentSnapshot.FilePath;
 
@@ -36,11 +36,11 @@ internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot document
 
     public IRazorDocumentExcerptServiceImplementation GetExcerptService()
         => _excerptService ?? InterlockedOperations.Initialize(ref _excerptService,
-            new RazorDocumentExcerptService(_documentSnapshot, GetSpanMappingService()));
+            new VisualStudioDocumentExcerptService(_documentSnapshot, GetSpanMappingService()));
 
     public IRazorSpanMappingService GetSpanMappingService()
         => _spanMappingService ?? InterlockedOperations.Initialize(ref _spanMappingService,
-            new RazorSpanMappingService(_documentSnapshot));
+            new VisualStudioSpanMappingService(_documentSnapshot));
 
     public IRazorDocumentPropertiesService GetDocumentPropertiesService()
     {
@@ -53,5 +53,5 @@ internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot document
 
     public IRazorMappingService? GetMappingService()
         => _mappingService ?? InterlockedOperations.Initialize(ref _mappingService,
-            new RazorMappingService(_documentSnapshot, NoOpTelemetryReporter.Instance, loggerFactory));
+            new VisualStudioMappingService(_documentSnapshot, NoOpTelemetryReporter.Instance, loggerFactory));
 }

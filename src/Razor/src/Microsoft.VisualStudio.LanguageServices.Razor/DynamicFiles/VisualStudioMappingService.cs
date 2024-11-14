@@ -4,38 +4,34 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-internal class RazorSpanMappingService(IDocumentSnapshot document) : IRazorSpanMappingService
+internal class VisualStudioMappingService(IDocumentSnapshot document, ITelemetryReporter telemetryReporter, ILoggerFactory loggerFactory) : IRazorMappingService
 {
     private readonly IDocumentSnapshot _document = document;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
+    private readonly IDocumentMappingService _documentMappingService = new DocumentMappingService(loggerFactory);
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<VisualStudioMappingService>();
 
-    public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
-        Document document,
-        IEnumerable<TextSpan> spans,
-        CancellationToken cancellationToken)
+    public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        if (spans is null)
-        {
-            throw new ArgumentNullException(nameof(spans));
-        }
-
         // Called on an uninitialized document.
         if (_document is null)
         {
@@ -63,6 +59,50 @@ internal class RazorSpanMappingService(IDocumentSnapshot document) : IRazorSpanM
         }
 
         return results.DrainToImmutable();
+    }
+
+    public async Task<ImmutableArray<RazorMappedEditoResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (_document.FilePath is null)
+            {
+                return ImmutableArray<RazorMappedEditoResult>.Empty;
+            }
+
+            var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
+            var csharpSource = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var results = await RazorEditHelper.MapCSharpEditsAsync(
+                changes.SelectAsArray(c => c.ToRazorTextChange()),
+                _document,
+                _documentMappingService,
+                _telemetryReporter,
+                cancellationToken);
+
+            var razorCodeDocument = await _document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+            var razorSource = razorCodeDocument.Source.Text;
+            var textChanges = results.SelectAsArray(te => te.ToTextChange());
+
+            _logger.LogTrace($"""
+                Before:
+                {DisplayEdits(changes)}
+
+                After:
+                {DisplayEdits(textChanges)}
+                """);
+
+            return [new RazorMappedEditoResult() { FilePath = _document.FilePath, TextChanges = textChanges.ToArray() }];
+        }
+        catch (Exception ex)
+        {
+            _telemetryReporter.ReportFault(ex, "Failed to map edits");
+            return ImmutableArray<RazorMappedEditoResult>.Empty;
+        }
+
+        string DisplayEdits(IEnumerable<TextChange> changes)
+            => string.Join(
+                Environment.NewLine,
+                changes.Select(e => $"{e.Span} => '{e.NewText}'"));
     }
 
     // Internal for testing.
@@ -94,5 +134,9 @@ internal class RazorSpanMappingService(IDocumentSnapshot document) : IRazorSpanM
         mappedSpan = default;
         linePositionSpan = default;
         return false;
+    }
+
+    private class DocumentMappingService(ILoggerFactory loggerFactory) : AbstractDocumentMappingService(loggerFactory.GetOrCreateLogger<DocumentMappingService>())
+    {
     }
 }

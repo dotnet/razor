@@ -640,8 +640,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
             });
     }
 
-    private RazorDocumentExcerptService CreateExcerptService(IDocumentSnapshot document)
+    private VisualStudioDocumentExcerptService CreateExcerptService(IDocumentSnapshot document)
     {
-        return new RazorDocumentExcerptService(document, new RazorSpanMappingService(document));
+        return new VisualStudioDocumentExcerptService(document, new VisualStudioSpanMappingService(document));
     }
 }

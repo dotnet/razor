@@ -27,7 +27,7 @@ internal partial class RazorCustomMessageTarget
 
         using var projectContexts = new PooledArrayBuilder<VSProjectContext>(capacity: projects.Length);
 
-        var documentFilePath = RazorDynamicFileInfoProvider.GetProjectSystemFilePath(request.Uri);
+        var documentFilePath = VisualStudioDynamicFileInfoProvider.GetProjectSystemFilePath(request.Uri);
 
         foreach (var project in projects)
         {

@@ -51,7 +51,7 @@ internal class CSharpVirtualDocumentPublisher : LSPDocumentChangeListener
         // This workaround adds the Razor client name to the generated document so the C# server will recognize
         // it, despite the document not being formally opened. Note this is meant to only be a temporary
         // workaround until a longer-term solution is implemented in the future.
-        if (kind == LSPDocumentChangeKind.Added && _dynamicFileInfoProvider is RazorDynamicFileInfoProvider defaultProvider)
+        if (kind == LSPDocumentChangeKind.Added && _dynamicFileInfoProvider is VisualStudioDynamicFileInfoProvider defaultProvider)
         {
             defaultProvider.PromoteBackgroundDocument(@new.AssumeNotNull().Uri, CSharpDocumentPropertiesService.Instance);
         }

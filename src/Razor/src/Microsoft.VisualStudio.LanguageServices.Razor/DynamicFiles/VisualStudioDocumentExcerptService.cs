@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-internal class RazorDocumentExcerptService(
+internal class VisualStudioDocumentExcerptService(
     IDocumentSnapshot document,
     IRazorSpanMappingService mappingService) : DocumentExcerptService
 {

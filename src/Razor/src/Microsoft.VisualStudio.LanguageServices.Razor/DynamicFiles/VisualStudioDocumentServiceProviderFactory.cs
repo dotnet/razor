@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 [Export(typeof(IRazorDocumentServiceProviderFactory))]
-internal sealed class RazorDocumentServiceProviderFactory : IRazorDocumentServiceProviderFactory
+internal sealed class VisualStudioDocumentServiceProviderFactory : IRazorDocumentServiceProviderFactory
 {
     public IRazorDocumentServiceProvider Create(IDynamicDocumentContainer documentContainer)
     {
@@ -17,11 +17,11 @@ internal sealed class RazorDocumentServiceProviderFactory : IRazorDocumentServic
             throw new ArgumentNullException(nameof(documentContainer));
         }
 
-        return new RazorDocumentServiceProvider(documentContainer);
+        return new VisualStudioDocumentServiceProvider(documentContainer);
     }
 
     public IRazorDocumentServiceProvider CreateEmpty()
     {
-        return new RazorDocumentServiceProvider();
+        return new VisualStudioDocumentServiceProvider();
     }
 }

@@ -19,17 +19,17 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
-using static Microsoft.VisualStudio.Razor.DynamicFiles.RazorDynamicFileInfoProvider;
+using static Microsoft.VisualStudio.Razor.DynamicFiles.VisualStudioDynamicFileInfoProvider;
 
 namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
-public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : VisualStudioWorkspaceTestBase(testOutput)
+public class VisualStudioDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : VisualStudioWorkspaceTestBase(testOutput)
 {
     private readonly ProjectId _projectId = ProjectId.CreateNewId();
 
     // These fields are initialized by InitializeAsync().
 #nullable disable
-    private RazorDynamicFileInfoProvider _provider;
+    private VisualStudioDynamicFileInfoProvider _provider;
     private TestAccessor _testAccessor;
     private TestProjectSnapshotManager _projectManager;
     private IProjectSnapshot _project;
@@ -40,7 +40,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
 
     protected override async Task InitializeAsync()
     {
-        var documentServiceFactory = new RazorDocumentServiceProviderFactory();
+        var documentServiceFactory = new VisualStudioDocumentServiceProviderFactory();
         var editorFeatureDetector = StrictMock.Of<ILspEditorFeatureDetector>();
 
         _projectManager = CreateProjectSnapshotManager();
@@ -77,7 +77,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
             WorkspaceProvider,
             NoOpTelemetryReporter.Instance);
 
-        _provider = new RazorDynamicFileInfoProvider(
+        _provider = new VisualStudioDynamicFileInfoProvider(
             documentServiceFactory, editorFeatureDetector, filePathService, WorkspaceProvider, _projectManager, fallbackProjectManager);
         _testAccessor = _provider.GetTestAccessor();
 
