@@ -517,6 +517,16 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
 
                 // SkippedTokenTrivia is used for trailing directives; they can consume the trailing newline, so we need to reset _isOnlyWhitespaceOnLine if the trivia ends with one
                 _isOnlyWhitespaceOnLine = triviaString.EndsWith('\n');
+
+                // Look for any misplaced directives in the skipped tokens and error if we find them
+                if (triviaString.Contains('#'))
+                {
+                    CurrentErrors.Add(
+                        RazorDiagnosticFactory.CreateParsing_PreprocessorDirectivesMustBeAtTheStartOfLine(
+                            // Won't be quite precise, but it's close enough
+                            new SourceSpan(CurrentStart, contentLength: trivia.FullSpan.Length)));
+                }
+
                 break;
             case CSharpSyntaxKind.SingleLineCommentTrivia or
                  CSharpSyntaxKind.MultiLineCommentTrivia or
