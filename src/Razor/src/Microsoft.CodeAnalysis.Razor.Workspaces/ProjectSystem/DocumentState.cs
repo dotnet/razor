@@ -160,12 +160,14 @@ internal partial class DocumentState
         return state;
     }
 
-    public virtual DocumentState WithProjectChange()
+    public virtual DocumentState WithProjectChange(bool cacheComputedState)
     {
         var state = new DocumentState(HostDocument, Version + 1, _textAndVersion, _textLoader);
 
-        // Optimistically cache the computed state
-        state._computedState = new ComputedStateTracker(_computedState);
+        if (cacheComputedState)
+        {
+            state._computedState = new ComputedStateTracker(_computedState);
+        }
 
         return state;
     }

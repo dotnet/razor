@@ -70,7 +70,7 @@ public class DocumentStateTest : ToolingTestBase
             .WithText(_text, VersionStamp.Create());
 
         // Act
-        var state = original.WithProjectChange();
+        var state = original.WithProjectChange(cacheComputedState: false);
 
         // Assert
         Assert.True(state.TryGetText(out _));
@@ -87,7 +87,7 @@ public class DocumentStateTest : ToolingTestBase
         await original.GetTextAsync(DisposalToken);
 
         // Act
-        var state = original.WithProjectChange();
+        var state = original.WithProjectChange(cacheComputedState: false);
 
         // Assert
         Assert.True(state.TryGetText(out _));

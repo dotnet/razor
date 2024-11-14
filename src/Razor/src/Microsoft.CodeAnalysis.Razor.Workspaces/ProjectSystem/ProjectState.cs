@@ -274,26 +274,36 @@ internal class ProjectState
 
     public ProjectState WithHostProjectAndWorkspaceState(HostProject hostProject, ProjectWorkspaceState projectWorkspaceState)
     {
-        if (HostProject.Configuration.Equals(hostProject.Configuration) &&
-            HostProject.RootNamespace == hostProject.RootNamespace &&
-            ProjectWorkspaceState.Equals(projectWorkspaceState))
+        var configUnchanged = (HostProject.Configuration.Equals(hostProject.Configuration) &&
+            HostProject.RootNamespace == hostProject.RootNamespace);
+
+        if (configUnchanged && ProjectWorkspaceState.Equals(projectWorkspaceState))
         {
             return this;
         }
 
-        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithProjectChange(), FilePathNormalizingComparer.Instance);
+        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithProjectChange(cacheComputedState: configUnchanged), FilePathNormalizingComparer.Instance);
 
         // If the host project has changed then we need to recompute the imports map
-        var importsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
+        var importsToRelatedDocuments = configUnchanged
+            ? ImportsToRelatedDocuments
+            : ComputeImportsToRelatedDocuments(documents);
 
-        foreach (var document in documents)
-        {
-            var importTargetPaths = GetImportDocumentTargetPaths(document.Value.HostDocument);
-            importsToRelatedDocuments = AddToImportsToRelatedDocuments(importsToRelatedDocuments, document.Value.HostDocument.FilePath, importTargetPaths);
-        }
-
-        var state = new ProjectState(this, numberOfDocumentsMayHaveChanged: true, hostProject, projectWorkspaceState, documents, importsToRelatedDocuments);
+        var state = new ProjectState(this, numberOfDocumentsMayHaveChanged: !configUnchanged, hostProject, projectWorkspaceState, documents, importsToRelatedDocuments);
         return state;
+
+        ImmutableDictionary<string, ImmutableArray<string>> ComputeImportsToRelatedDocuments(ImmutableDictionary<string, DocumentState> documents)
+        {
+            var importsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
+
+            foreach (var document in documents)
+            {
+                var importTargetPaths = GetImportDocumentTargetPaths(document.Value.HostDocument);
+                importsToRelatedDocuments = AddToImportsToRelatedDocuments(importsToRelatedDocuments, document.Value.HostDocument.FilePath, importTargetPaths);
+            }
+
+            return importsToRelatedDocuments;
+        }
     }
 
     internal static ImmutableDictionary<string, ImmutableArray<string>> AddToImportsToRelatedDocuments(

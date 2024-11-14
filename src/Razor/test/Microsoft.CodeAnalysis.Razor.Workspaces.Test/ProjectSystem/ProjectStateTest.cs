@@ -558,6 +558,7 @@ public class ProjectStateTest : WorkspaceTestBase
             Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
         }
 
+        Assert.NotEqual(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
         Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
         Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
@@ -584,6 +585,7 @@ public class ProjectStateTest : WorkspaceTestBase
 
         // Assert
         Assert.NotSame(original, state);
+        Assert.NotEqual(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
     }
 
     [Fact]
@@ -602,6 +604,7 @@ public class ProjectStateTest : WorkspaceTestBase
 
         // Assert
         Assert.Same(original, state);
+        Assert.Equal(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
     }
 
     [Fact]
@@ -623,6 +626,7 @@ public class ProjectStateTest : WorkspaceTestBase
         // Assert
         Assert.NotEqual(original.Version, state.Version);
         Assert.Same(_hostProjectWithConfigurationChange, state.HostProject);
+        Assert.NotEqual(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
         Assert.Equal(2, callCount);
     }
 
@@ -640,6 +644,38 @@ public class ProjectStateTest : WorkspaceTestBase
         var importMap = Assert.Single(state.ImportsToRelatedDocuments);
         var documentFilePath = Assert.Single(importMap.Value);
         Assert.Equal(TestProjectData.SomeProjectFile1.FilePath, documentFilePath);
+        Assert.NotSame(original.ImportsToRelatedDocuments, state.ImportsToRelatedDocuments);
+        Assert.NotEqual(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
+    }
+
+    [Fact]
+    public void ProjectState_WithHostProjectAndWorkspaceState_ProjectWorkspaceStateChange_CachesImportedDocuments()
+    {
+        // Arrange
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState);
+        original = original.WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader);
+
+        var changed = ProjectWorkspaceState.Default;
+
+        // Act
+        var state = original.WithHostProjectAndWorkspaceState(_hostProject, changed);
+
+        // Assert
+        Assert.Same(original.ImportsToRelatedDocuments, state.ImportsToRelatedDocuments);
+    }
+
+    [Fact]
+    public void ProjectState_WithHostProjectAndWorkspaceState_HostProjectChange_DoesntCacheImportedDocuments()
+    {
+        // Arrange
+        var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState);
+        original = original.WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader);
+
+        // Act
+        var state = original.WithHostProjectAndWorkspaceState(_hostProjectWithConfigurationChange, _projectWorkspaceState);
+
+        // Assert
+        Assert.NotSame(original.ImportsToRelatedDocuments, state.ImportsToRelatedDocuments);
     }
 
     [Fact]
@@ -679,6 +715,8 @@ public class ProjectStateTest : WorkspaceTestBase
 
         Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
         Assert.NotSame(original.Documents[_documents[2].FilePath], state.Documents[_documents[2].FilePath]);
+
+        Assert.Equal(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
     }
 
     [Fact]
@@ -713,6 +751,8 @@ public class ProjectStateTest : WorkspaceTestBase
 
         Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
         Assert.NotSame(original.Documents[_documents[2].FilePath], state.Documents[_documents[2].FilePath]);
+
+        Assert.Equal(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
     }
 
     [Fact]
@@ -756,6 +796,7 @@ public class ProjectStateTest : WorkspaceTestBase
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
+        Assert.Equal(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
         Assert.Equal(2, callCount);
     }
 
@@ -1034,10 +1075,10 @@ public class ProjectStateTest : WorkspaceTestBase
             return base.WithTextLoader(loader);
         }
 
-        public override DocumentState WithProjectChange()
+        public override DocumentState WithProjectChange(bool cacheComputedState)
         {
             _onConfigurationChange?.Invoke();
-            return base.WithProjectChange();
+            return base.WithProjectChange(cacheComputedState);
         }
 
         public override DocumentState WithImportsChange()
