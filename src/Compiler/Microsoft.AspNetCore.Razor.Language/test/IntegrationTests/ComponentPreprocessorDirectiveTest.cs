@@ -360,6 +360,25 @@ public class ComponentPreprocessorDirectiveTest(bool designTime = false)
     }
 
     [IntegrationTestFact]
+    public void StartOfLine_12()
+    {
+        var generated = CompileToCSharp("""
+            @{ #if true
+                var x = 1;
+                #endif
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+            // x:\dir\subdir\Test\TestComponent.razor(2,9): warning CS0219: The variable 'x' is assigned but its value is never used
+            //     var x = 1;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(2, 9)
+        );
+    }
+
+    [IntegrationTestFact]
     public void MisplacedEndingDirective_01()
     {
         var generated = CompileToCSharp("""
