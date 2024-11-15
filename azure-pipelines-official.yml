@@ -237,8 +237,9 @@ extends:
                 -sign
                 $(_BuildArgs)
                 $(_PublishArgs)
+                /p:DeployExtension=false
               name: Build
-              displayName: Build and Deploy
+              displayName: Build
               condition: succeeded()
 
             - script: eng\CIBuild.cmd
