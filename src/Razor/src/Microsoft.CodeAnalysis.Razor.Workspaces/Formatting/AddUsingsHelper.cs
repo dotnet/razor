@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -144,16 +145,25 @@ internal static class AddUsingsHelper
     public static async Task<ImmutableArray<string>> FindUsingDirectiveStringsAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
     {
         var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        // We descend any compilation unit (ie, the file) or and namespaces because the compiler puts all usings inside
-        // the namespace node.
-        var usings = syntaxRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
+        return syntaxRoot
+            .DescendantNodes(static n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
             .OfType<UsingDirectiveSyntax>()
-            .Select(u => u.Name)
-            .WhereNotNull()
-            .SelectAsArray(n => n.ToString());
+            .Where(static u => u.Name is not null) // If the Name is null then this isn't a using directive, it's probably an alias for a tuple type
+            .SelectAsArray(u => GetNamespaceFromDirective(u, sourceText));
 
-        return usings;
+        static string GetNamespaceFromDirective(UsingDirectiveSyntax usingDirectiveSyntax, SourceText sourceText)
+        {
+            var nameSyntax = usingDirectiveSyntax.Name.AssumeNotNull();
+
+            if (usingDirectiveSyntax.Alias is null)
+            {
+                return sourceText.GetSubTextString(nameSyntax.Span);
+            }
+
+            return sourceText.GetSubTextString(TextSpan.FromBounds(usingDirectiveSyntax.Alias.Span.Start, nameSyntax.Span.End));
+        }
     }
 
     private static TextDocumentEdit GenerateSingleUsingEditsInterpolated(

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
@@ -48,9 +49,8 @@ internal static partial class RazorEditHelper
 
         textChangeBuilder.AddDirectlyMappedEdits(textChanges, codeDocument, cancellationToken);
 
-        var oldUsings = await GetUsingsDirectivesAsync(originalSyntaxTree, cancellationToken).ConfigureAwait(false);
-
-        var newUsings = await GetUsingsDirectivesAsync(newSyntaxTree, cancellationToken).ConfigureAwait(false);
+        var oldUsings = await AddUsingsHelper.FindUsingDirectiveStringsAsync(originalSyntaxTree, cancellationToken).ConfigureAwait(false);
+        var newUsings = await AddUsingsHelper.FindUsingDirectiveStringsAsync(newSyntaxTree, cancellationToken).ConfigureAwait(false);
 
         var addedUsings = Delta.Compute(oldUsings, newUsings);
         var removedUsings = Delta.Compute(newUsings, oldUsings);
@@ -58,30 +58,6 @@ internal static partial class RazorEditHelper
         textChangeBuilder.AddUsingsChanges(codeDocument, addedUsings, removedUsings, cancellationToken);
 
         return NormalizeEdits(textChangeBuilder.DrainToOrderedImmutable(), telemetryReporter, cancellationToken);
-    }
-
-    private static async Task<ImmutableArray<string>> GetUsingsDirectivesAsync(SyntaxTree originalSyntaxTree, CancellationToken cancellationToken)
-    {
-        var syntaxRoot = await originalSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = await originalSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-        return syntaxRoot
-            .DescendantNodes(static n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
-            .OfType<UsingDirectiveSyntax>()
-            .Where(static u => u.Name is not null) // If the Name is null then this isn't a using directive, it's probably an alias for a tuple type
-            .SelectAsArray(u => GetNamespaceFromDirective(u, sourceText));
-    }
-
-    private static string GetNamespaceFromDirective(UsingDirectiveSyntax usingDirectiveSyntax, SourceText sourceText)
-    {
-        var nameSyntax = usingDirectiveSyntax.Name.AssumeNotNull();
-
-        if (usingDirectiveSyntax.Alias is null)
-        {
-            return sourceText.GetSubTextString(nameSyntax.Span);
-        }
-
-        return sourceText.GetSubTextString(TextSpan.FromBounds(usingDirectiveSyntax.Alias.Span.Start, nameSyntax.Span.End));
     }
 
     /// <summary>
