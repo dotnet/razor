@@ -5,17 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
@@ -63,30 +63,25 @@ internal static partial class RazorEditHelper
     private static async Task<ImmutableArray<string>> GetUsingsDirectivesAsync(SyntaxTree originalSyntaxTree, CancellationToken cancellationToken)
     {
         var syntaxRoot = await originalSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await originalSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
         return syntaxRoot
-            .DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
+            .DescendantNodes(static n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
             .OfType<UsingDirectiveSyntax>()
-            .SelectAsArray(GetNamespaceFromDirective);
+            .Where(static u => u.Name is not null) // If the Name is null then this isn't a using directive, it's probably an alias for a tuple type
+            .SelectAsArray(u => GetNamespaceFromDirective(u, sourceText));
     }
 
-    private static string GetNamespaceFromDirective(UsingDirectiveSyntax usingDirectiveSyntax)
+    private static string GetNamespaceFromDirective(UsingDirectiveSyntax usingDirectiveSyntax, SourceText sourceText)
     {
-        var str = usingDirectiveSyntax.ToFullString();
-        var span = str.AsSpan();
+        var nameSyntax = usingDirectiveSyntax.Name.AssumeNotNull();
 
-        span = span.Trim();
-
-        if (!usingDirectiveSyntax.SemicolonToken.IsMissing)
+        if (usingDirectiveSyntax.Alias is null)
         {
-            span = span[0..^1];
+            return sourceText.GetSubTextString(nameSyntax.Span);
         }
 
-        if (!usingDirectiveSyntax.UsingKeyword.IsMissing)
-        {
-            span = span[usingDirectiveSyntax.UsingKeyword.Span.Length..];
-        }
-
-        return span.Trim().ToString();
+        return sourceText.GetSubTextString(TextSpan.FromBounds(usingDirectiveSyntax.Alias.Span.Start, nameSyntax.Span.End));
     }
 
     /// <summary>
