@@ -284,7 +284,6 @@ internal class ProjectState
 
         var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithProjectChange(cacheComputedState: configUnchanged), FilePathNormalizingComparer.Instance);
 
-        // If the host project has changed then we need to recompute the imports map
         var importsToRelatedDocuments = configUnchanged
             ? ImportsToRelatedDocuments
             : ComputeImportsToRelatedDocuments(documents);
@@ -294,6 +293,7 @@ internal class ProjectState
 
         ImmutableDictionary<string, ImmutableArray<string>> ComputeImportsToRelatedDocuments(ImmutableDictionary<string, DocumentState> documents)
         {
+            // If the host project has changed then we need to recompute the imports map
             var importsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
 
             foreach (var document in documents)
