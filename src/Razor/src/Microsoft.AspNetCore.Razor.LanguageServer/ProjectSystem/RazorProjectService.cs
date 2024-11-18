@@ -376,7 +376,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     configuration = FallbackRazorConfiguration.Latest;
                     _logger.LogInformation($"Updating project '{project.Key}' to use the latest configuration ('{configuration.ConfigurationName}')'.");
                 }
-                else if (currentConfiguration == configuration &&
+                else if (currentConfiguration.Equals(configuration) &&
                     currentRootNamespace == rootNamespace)
                 {
                     _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.");
