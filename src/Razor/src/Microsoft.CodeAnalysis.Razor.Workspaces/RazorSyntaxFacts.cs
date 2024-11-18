@@ -142,7 +142,7 @@ internal static class RazorSyntaxFacts
     {
         foreach (var child in directiveNode.DescendantNodes())
         {
-            if (child.GetChunkGenerator() is AddImportChunkGenerator { IsStatic: false } usingStatement)
+            if (child.GetChunkGenerator() is AddImportChunkGenerator usingStatement)
             {
                 @namespace = usingStatement.Namespace.Trim();
                 return true;

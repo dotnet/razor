@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -157,12 +156,20 @@ internal static class AddUsingsHelper
         {
             var nameSyntax = usingDirectiveSyntax.Name.AssumeNotNull();
 
-            if (usingDirectiveSyntax.Alias is null)
+            var end = nameSyntax.Span.End;
+            var start = nameSyntax.Span.Start;
+
+            foreach (var nodeOrToken in usingDirectiveSyntax.ChildNodesAndTokens())
             {
-                return sourceText.GetSubTextString(nameSyntax.Span);
+                if (nodeOrToken.IsToken && nodeOrToken.AsToken() == usingDirectiveSyntax.UsingKeyword)
+                {
+                    continue;
+                }
+
+                start = Math.Min(nodeOrToken.Span.Start, start);
             }
 
-            return sourceText.GetSubTextString(TextSpan.FromBounds(usingDirectiveSyntax.Alias.Span.Start, nameSyntax.Span.End));
+            return sourceText.GetSubTextString(TextSpan.FromBounds(start, end));
         }
     }
 
