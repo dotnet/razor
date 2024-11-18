@@ -157,17 +157,11 @@ internal static class AddUsingsHelper
             var nameSyntax = usingDirectiveSyntax.Name.AssumeNotNull();
 
             var end = nameSyntax.Span.End;
-            var start = nameSyntax.Span.Start;
 
-            foreach (var nodeOrToken in usingDirectiveSyntax.ChildNodesAndTokens())
-            {
-                if (nodeOrToken.IsToken && nodeOrToken.AsToken() == usingDirectiveSyntax.UsingKeyword)
-                {
-                    continue;
-                }
-
-                start = Math.Min(nodeOrToken.Span.Start, start);
-            }
+            // FullSpan to get the end of the trivia before the next
+            // token. Testing shows that the trailing whitespace is always given
+            // as trivia to the using keyword.
+            var start = usingDirectiveSyntax.UsingKeyword.FullSpan.End;
 
             return sourceText.GetSubTextString(TextSpan.FromBounds(start, end));
         }
