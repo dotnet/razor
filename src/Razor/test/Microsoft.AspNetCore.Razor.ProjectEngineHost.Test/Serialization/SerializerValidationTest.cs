@@ -147,8 +147,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
 
         // Deserialize from JSON
         var actualTagHelpers = JsonDataConvert.DeserializeData(jsonText,
-            r => r.ReadImmutableArray(
-                static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
+            r => r.ReadImmutableArray(ObjectReaders.ReadTagHelper));
 
         // Assert
         Assert.Equal<TagHelperDescriptor>(originalTagHelpers, actualTagHelpers);
@@ -171,8 +170,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         using var streamReader = new StreamReader(stream);
 
         return JsonDataConvert.DeserializeData(streamReader,
-            static r => r.ReadImmutableArray(
-                static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
+            static r => r.ReadImmutableArray(ObjectReaders.ReadTagHelper));
     }
 
 #if WRITE_JSON_FILES

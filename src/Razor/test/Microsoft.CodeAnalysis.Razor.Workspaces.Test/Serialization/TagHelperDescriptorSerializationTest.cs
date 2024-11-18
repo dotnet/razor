@@ -47,8 +47,7 @@ public class TagHelperDescriptorSerializationTest : ToolingTestBase
         using (var reader = new StreamReader(writeStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: true))
         {
             actualTagHelpers = JsonDataConvert.DeserializeData(reader,
-                static r => r.ReadImmutableArray(
-                    static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
+                static r => r.ReadImmutableArray(ObjectReaders.ReadTagHelper));
         }
 
         // Assert
@@ -93,7 +92,7 @@ public class TagHelperDescriptorSerializationTest : ToolingTestBase
 
         // Act
         var json = JsonDataConvert.SerializeObject(expectedDescriptor, ObjectWriters.WriteProperties);
-        var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
+        var descriptor = JsonDataConvert.DeserializeObject(json, ObjectReaders.ReadTagHelperFromProperties);
 
         // Assert
         Assert.Equal(expectedDescriptor, descriptor);
@@ -137,7 +136,7 @@ public class TagHelperDescriptorSerializationTest : ToolingTestBase
 
         // Act
         var json = JsonDataConvert.SerializeObject(expectedDescriptor, ObjectWriters.WriteProperties);
-        var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
+        var descriptor = JsonDataConvert.DeserializeObject(json, ObjectReaders.ReadTagHelperFromProperties);
 
         // Assert
         Assert.Equal(expectedDescriptor, descriptor);
@@ -179,7 +178,7 @@ public class TagHelperDescriptorSerializationTest : ToolingTestBase
 
         // Act
         var json = JsonDataConvert.SerializeObject(expectedDescriptor, ObjectWriters.WriteProperties);
-        var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
+        var descriptor = JsonDataConvert.DeserializeObject(json, ObjectReaders.ReadTagHelperFromProperties);
 
         // Assert
         Assert.Equal(expectedDescriptor, descriptor);
@@ -222,7 +221,7 @@ public class TagHelperDescriptorSerializationTest : ToolingTestBase
 
         // Act
         var json = JsonDataConvert.SerializeObject(expectedDescriptor, ObjectWriters.WriteProperties);
-        var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
+        var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r));
 
         // Assert
         Assert.Equal(expectedDescriptor, descriptor);
@@ -250,7 +249,7 @@ public class TagHelperDescriptorSerializationTest : ToolingTestBase
 
         // Act
         var json = JsonDataConvert.SerializeObject(expectedDescriptor, ObjectWriters.WriteProperties);
-        var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
+        var descriptor = JsonDataConvert.DeserializeObject(json, ObjectReaders.ReadTagHelperFromProperties);
 
         // Assert
         Assert.NotNull(descriptor);
@@ -284,7 +283,7 @@ public class TagHelperDescriptorSerializationTest : ToolingTestBase
 
         // Act
         var json = JsonDataConvert.SerializeObject(expectedDescriptor, ObjectWriters.WriteProperties);
-        var descriptor = JsonDataConvert.DeserializeObject(json, static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: false));
+        var descriptor = JsonDataConvert.DeserializeObject(json, ObjectReaders.ReadTagHelperFromProperties);
 
         // Assert
         Assert.NotNull(descriptor);

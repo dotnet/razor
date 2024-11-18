@@ -91,8 +91,7 @@ internal static class RazorTestResources
                 using var reader = new StreamReader(stream);
 
                 return JsonDataConvert.DeserializeData(reader,
-                    static r => r.ReadImmutableArray(
-                        static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
+                    static r => r.ReadImmutableArray(ObjectReaders.ReadTagHelper));
             }
         }
     }

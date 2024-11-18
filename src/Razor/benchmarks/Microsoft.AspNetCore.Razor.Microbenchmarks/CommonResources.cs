@@ -29,8 +29,7 @@ internal static class CommonResources
         using var reader = new StreamReader(stream);
 
         return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadImmutableArray(
-                static r => ObjectReaders.ReadTagHelper(r, useCache: false))).NullToEmpty();
+            static r => r.ReadImmutableArray(ObjectReaders.ReadTagHelper)).NullToEmpty();
     }
 
     private static RazorProjectInfo LoadProjectInfo(byte[] bytes)

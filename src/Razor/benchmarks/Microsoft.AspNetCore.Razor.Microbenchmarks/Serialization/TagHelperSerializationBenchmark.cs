@@ -48,8 +48,7 @@ public class TagHelperSerializationBenchmark
     private static ImmutableArray<TagHelperDescriptor> DeserializeTagHelpers_Json(TextReader reader)
     {
         return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadImmutableArray(
-                static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
+            static r => r.ReadImmutableArray(ObjectReaders.ReadTagHelper));
     }
 
     private static void SerializeTagHelpers(TextWriter writer, ImmutableArray<TagHelperDescriptor> tagHelpers)
