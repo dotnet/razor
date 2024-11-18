@@ -529,7 +529,7 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public void ProjectState_WithHostProjectAndWorkspaceState_ConfigurationChange_UpdatesConfigurationState()
+    public void ProjectState_WithHostProject_ConfigurationChange_UpdatesConfigurationState()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -541,7 +541,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalProjectWorkspaceStateVersion = original.ConfigurationVersion;
 
         // Act
-        var state = original.WithHostProjectAndWorkspaceState(_hostProjectWithConfigurationChange, _projectWorkspaceState);
+        var state = original.WithHostProject(_hostProjectWithConfigurationChange);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
@@ -567,7 +567,7 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public void ProjectState_WithHostProjectAndWorkspaceState_RootNamespaceChange_UpdatesConfigurationState()
+    public void ProjectState_WithHostProject_RootNamespaceChange_UpdatesConfigurationState()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -580,14 +580,14 @@ public class ProjectStateTest : WorkspaceTestBase
         _ = original.ConfigurationVersion;
 
         // Act
-        var state = original.WithHostProjectAndWorkspaceState(hostProjectWithRootNamespaceChange, _projectWorkspaceState);
+        var state = original.WithHostProject(hostProjectWithRootNamespaceChange);
 
         // Assert
         Assert.NotSame(original, state);
     }
 
     [Fact]
-    public void ProjectState_WithHostProjectAndWorkspaceState_NoConfigurationChange_Noops()
+    public void ProjectState_WithHostProject_NoConfigurationChange_Noops()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -598,14 +598,14 @@ public class ProjectStateTest : WorkspaceTestBase
         _ = original.ProjectWorkspaceStateVersion;
 
         // Act
-        var state = original.WithHostProjectAndWorkspaceState(_hostProject, _projectWorkspaceState);
+        var state = original.WithHostProject(_hostProject);
 
         // Assert
         Assert.Same(original, state);
     }
 
     [Fact]
-    public void ProjectState_WithHostProjectAndWorkspaceState_CallsConfigurationChangeOnDocumentState()
+    public void ProjectState_WithHostProject_CallsConfigurationChangeOnDocumentState()
     {
         // Arrange
         var callCount = 0;
@@ -618,7 +618,7 @@ public class ProjectStateTest : WorkspaceTestBase
         original.Documents = documents.ToImmutable();
 
         // Act
-        var state = original.WithHostProjectAndWorkspaceState(_hostProjectWithConfigurationChange, _projectWorkspaceState);
+        var state = original.WithHostProject(_hostProjectWithConfigurationChange);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
@@ -627,14 +627,14 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public void ProjectState_WithHostProjectAndWorkspaceState_ResetsImportedDocuments()
+    public void ProjectState_WithHostProject_ResetsImportedDocuments()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState);
         original = original.WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader);
 
         // Act
-        var state = original.WithHostProjectAndWorkspaceState(_hostProjectWithConfigurationChange, _projectWorkspaceState);
+        var state = original.WithHostProject(_hostProjectWithConfigurationChange);
 
         // Assert
         var importMap = Assert.Single(state.ImportsToRelatedDocuments);
@@ -643,7 +643,7 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public void ProjectState_WithHostProjectAndWorkspaceState_Changed()
+    public void ProjectState_WithProjectWorkspaceState_Changed()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -657,7 +657,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var changed = ProjectWorkspaceState.Create(_projectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
 
         // Act
-        var state = original.WithHostProjectAndWorkspaceState(_hostProject, changed);
+        var state = original.WithProjectWorkspaceState(changed);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
@@ -682,7 +682,7 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public void ProjectState_WithHostProjectAndWorkspaceState_Changed_TagHelpersChanged()
+    public void ProjectState_WithProjectWorkspaceState_Changed_TagHelpersChanged()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -696,7 +696,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var changed = ProjectWorkspaceState.Default;
 
         // Act
-        var state = original.WithHostProjectAndWorkspaceState(_hostProject, changed);
+        var state = original.WithProjectWorkspaceState(changed);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
@@ -716,7 +716,7 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public void ProjectState_WithHostProjectAndWorkspaceState_IdenticalState_Caches()
+    public void ProjectState_WithProjectWorkspaceState_IdenticalState_Caches()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -730,21 +730,21 @@ public class ProjectStateTest : WorkspaceTestBase
         var changed = ProjectWorkspaceState.Create(original.TagHelpers, original.CSharpLanguageVersion);
 
         // Act
-        var state = original.WithHostProjectAndWorkspaceState(_hostProject, changed);
+        var state = original.WithProjectWorkspaceState(changed);
 
         // Assert
         Assert.Same(original, state);
     }
 
     [Fact]
-    public void ProjectState_WithHostProjectAndWorkspaceState_CallsWorkspaceProjectChangeOnDocumentState()
+    public void ProjectState_WithProjectWorkspaceState_CallsWorkspaceProjectChangeOnDocumentState()
     {
         // Arrange
         var callCount = 0;
 
         var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-        documents[_documents[1].FilePath] = TestDocumentState.Create(_documents[1], onConfigurationChange: () => callCount++);
-        documents[_documents[2].FilePath] = TestDocumentState.Create(_documents[2], onConfigurationChange: () => callCount++);
+        documents[_documents[1].FilePath] = TestDocumentState.Create(_documents[1], onProjectWorkspaceStateChange: () => callCount++);
+        documents[_documents[2].FilePath] = TestDocumentState.Create(_documents[2], onProjectWorkspaceStateChange: () => callCount++);
 
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
@@ -752,7 +752,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var changed = ProjectWorkspaceState.Default;
 
         // Act
-        var state = original.WithHostProjectAndWorkspaceState(_hostProject, changed);
+        var state = original.WithProjectWorkspaceState(changed);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
@@ -991,7 +991,8 @@ public class ProjectStateTest : WorkspaceTestBase
             Action? onTextChange = null,
             Action? onTextLoaderChange = null,
             Action? onConfigurationChange = null,
-            Action? onImportsChange = null)
+            Action? onImportsChange = null,
+            Action? onProjectWorkspaceStateChange = null)
         {
             return new TestDocumentState(
                 hostDocument,
@@ -999,13 +1000,15 @@ public class ProjectStateTest : WorkspaceTestBase
                 onTextChange,
                 onTextLoaderChange,
                 onConfigurationChange,
-                onImportsChange);
+                onImportsChange,
+                onProjectWorkspaceStateChange);
         }
 
         private readonly Action? _onTextChange;
         private readonly Action? _onTextLoaderChange;
         private readonly Action? _onConfigurationChange;
         private readonly Action? _onImportsChange;
+        private readonly Action? _onProjectWorkspaceStateChange;
 
         private TestDocumentState(
             HostDocument hostDocument,
@@ -1013,13 +1016,15 @@ public class ProjectStateTest : WorkspaceTestBase
             Action? onTextChange,
             Action? onTextLoaderChange,
             Action? onConfigurationChange,
-            Action? onImportsChange)
+            Action? onImportsChange,
+            Action? onProjectWorkspaceStateChange)
             : base(hostDocument, version: 1, loader ?? EmptyLoader)
         {
             _onTextChange = onTextChange;
             _onTextLoaderChange = onTextLoaderChange;
             _onConfigurationChange = onConfigurationChange;
             _onImportsChange = onImportsChange;
+            _onProjectWorkspaceStateChange = onProjectWorkspaceStateChange;
         }
 
         public override DocumentState WithText(SourceText sourceText, VersionStamp textVersion)
@@ -1034,16 +1039,22 @@ public class ProjectStateTest : WorkspaceTestBase
             return base.WithTextLoader(loader);
         }
 
-        public override DocumentState WithProjectChange()
+        public override DocumentState WithConfigurationChange()
         {
             _onConfigurationChange?.Invoke();
-            return base.WithProjectChange();
+            return base.WithConfigurationChange();
         }
 
         public override DocumentState WithImportsChange()
         {
             _onImportsChange?.Invoke();
             return base.WithImportsChange();
+        }
+
+        public override DocumentState WithProjectWorkspaceStateChange()
+        {
+            _onProjectWorkspaceStateChange?.Invoke();
+            return base.WithProjectWorkspaceStateChange();
         }
     }
 }

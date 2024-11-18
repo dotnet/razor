@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // Internal tracker for DefaultProjectSnapshot
 internal class ProjectState
 {
+    private const ProjectDifference ClearConfigurationVersionMask = ProjectDifference.ConfigurationChanged;
+
+    private const ProjectDifference ClearProjectWorkspaceStateVersionMask =
+        ProjectDifference.ConfigurationChanged |
+        ProjectDifference.ProjectWorkspaceStateChanged;
+
     private const ProjectDifference ClearDocumentCollectionVersionMask =
         ProjectDifference.ConfigurationChanged |
         ProjectDifference.DocumentAdded |
@@ -91,9 +97,7 @@ internal class ProjectState
             DocumentCollectionVersion = Version;
         }
 
-        if (older._projectEngine != null &&
-            HostProject.Configuration == older.HostProject.Configuration &&
-            CSharpLanguageVersion == older.CSharpLanguageVersion)
+        if ((difference & ClearConfigurationVersionMask) == 0 && older._projectEngine != null)
         {
             // Optimistically cache the RazorProjectEngine.
             _projectEngine = older.ProjectEngine;
@@ -104,13 +108,23 @@ internal class ProjectState
             ConfigurationVersion = Version;
         }
 
-        if (ProjectWorkspaceState.Equals(older.ProjectWorkspaceState))
+        if ((difference & ClearProjectWorkspaceStateVersionMask) == 0 ||
+            ProjectWorkspaceState == older.ProjectWorkspaceState ||
+            ProjectWorkspaceState.Equals(older.ProjectWorkspaceState))
         {
             ProjectWorkspaceStateVersion = older.ProjectWorkspaceStateVersion;
         }
         else
         {
             ProjectWorkspaceStateVersion = Version;
+        }
+
+        if ((difference & ClearProjectWorkspaceStateVersionMask) != 0 &&
+            CSharpLanguageVersion != older.CSharpLanguageVersion)
+        {
+            // C# language version changed. This impacts the ProjectEngine, reset it.
+            _projectEngine = null;
+            ConfigurationVersion = Version;
         }
     }
 
@@ -303,16 +317,20 @@ internal class ProjectState
         return state;
     }
 
-    public ProjectState WithHostProjectAndWorkspaceState(HostProject hostProject, ProjectWorkspaceState projectWorkspaceState)
+    public ProjectState WithHostProject(HostProject hostProject)
     {
+        if (hostProject is null)
+        {
+            throw new ArgumentNullException(nameof(hostProject));
+        }
+
         if (HostProject.Configuration.Equals(hostProject.Configuration) &&
-            HostProject.RootNamespace == hostProject.RootNamespace &&
-            ProjectWorkspaceState.Equals(projectWorkspaceState))
+            HostProject.RootNamespace == hostProject.RootNamespace)
         {
             return this;
         }
 
-        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithProjectChange(), FilePathNormalizingComparer.Instance);
+        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithConfigurationChange(), FilePathNormalizingComparer.Instance);
 
         // If the host project has changed then we need to recompute the imports map
         var importsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
@@ -323,7 +341,25 @@ internal class ProjectState
             importsToRelatedDocuments = AddToImportsToRelatedDocuments(importsToRelatedDocuments, document.Value.HostDocument.FilePath, importTargetPaths);
         }
 
-        var state = new ProjectState(this, ProjectDifference.ConfigurationChanged, hostProject, projectWorkspaceState, documents, importsToRelatedDocuments);
+        var state = new ProjectState(this, ProjectDifference.ConfigurationChanged, hostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
+        return state;
+    }
+
+    public ProjectState WithProjectWorkspaceState(ProjectWorkspaceState projectWorkspaceState)
+    {
+        if (ProjectWorkspaceState == projectWorkspaceState)
+        {
+            return this;
+        }
+
+        if (ProjectWorkspaceState.Equals(projectWorkspaceState))
+        {
+            return this;
+        }
+
+        var difference = ProjectDifference.ProjectWorkspaceStateChanged;
+        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithProjectWorkspaceStateChange(), FilePathNormalizingComparer.Instance);
+        var state = new ProjectState(this, difference, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments);
         return state;
     }
 
