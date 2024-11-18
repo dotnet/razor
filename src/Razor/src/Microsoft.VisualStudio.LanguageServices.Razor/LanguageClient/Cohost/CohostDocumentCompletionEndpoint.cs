@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Razor.Snippets;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
 using RoslynCompletionParams = Roslyn.LanguageServer.Protocol.CompletionParams;
 using RoslynLspExtensions = Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
+using RoslynTextDocumentIdentifier = Roslyn.LanguageServer.Protocol.TextDocumentIdentifier;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -64,7 +65,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 Method = Methods.TextDocumentCompletionName,
                 RegisterOptions = new CompletionRegistrationOptions()
                 {
-                    ResolveProvider = true, // TODO - change to true when Resolve is implemented
+                    ResolveProvider = false, // TODO - change to true when Resolve is implemented
                     TriggerCharacters = CompletionTriggerAndCommitCharacters.AllTriggerCharacters,
                     AllCommitCharacters = CompletionTriggerAndCommitCharacters.AllCommitCharacters
                 }
@@ -88,8 +89,11 @@ internal sealed class CohostDocumentCompletionEndpoint(
             return null;
         }
 
+        // Save as it may be modified if we forward request to HTML language server
+        var originalTextDocumentIdentifier = request.TextDocument;
+
         // Return immediately if this is auto-shown completion but auto-shown completion is disallowed in settings
-        var clientSettings =  _clientSettingsManager.GetClientSettings();
+        var clientSettings = _clientSettingsManager.GetClientSettings();
         var autoShownCompletion = completionContext.TriggerKind != CompletionTriggerKind.Invoked;
         if (autoShownCompletion && !clientSettings.ClientCompletionSettings.AutoShowCompletion)
         {
@@ -187,6 +191,11 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 completionContext.TriggerCharacter);
         }
 
+        if (combinedCompletionList != null)
+        {
+            AddResolutionParams(combinedCompletionList, originalTextDocumentIdentifier);
+        }
+
         return combinedCompletionList;
     }
 
@@ -271,6 +280,15 @@ internal sealed class CohostDocumentCompletionEndpoint(
         }
 
         return completionList;
+    }
+
+    private static void AddResolutionParams(VSInternalCompletionList completionList, RoslynTextDocumentIdentifier textDocumentIdentifier)
+    {
+        foreach (var item in completionList.Items)
+        {
+            var resolutionParams = CohostDocumentCompletionResolveParams.Create(textDocumentIdentifier);
+            item.Data = JsonSerializer.SerializeToElement(resolutionParams);
+        }
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

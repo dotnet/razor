@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IDynamicRegistrationProvider))]
 [ExportCohostStatelessLspService(typeof(CohostDocumentCompletionResolveEndpoint))]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal sealed class CohostDocumentCompletionResolveEndpoint : AbstractRazorCohostRequestHandler<RoslynVSInternalCompletionItem, RoslynVSInternalCompletionItem>, IDynamicRegistrationProvider
+internal sealed class CohostDocumentCompletionResolveEndpoint : AbstractRazorCohostDocumentRequestHandler<RoslynVSInternalCompletionItem, RoslynVSInternalCompletionItem>, IDynamicRegistrationProvider
 {
     protected override bool MutatesSolutionState => false;
 
@@ -29,18 +29,45 @@ internal sealed class CohostDocumentCompletionResolveEndpoint : AbstractRazorCoh
         {
             return [new Registration()
             {
-                Method = Methods.TextDocumentCompletionResolveName
+                Method = Methods.TextDocumentCompletionResolveName,
+                RegisterOptions = new CompletionRegistrationOptions()
+                {
+                    ResolveProvider = true
+                }
             }];
         }
 
         return [];
     }
 
-    protected override Task<RoslynVSInternalCompletionItem> HandleRequestAsync(RoslynVSInternalCompletionItem request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-        => HandleRequestAsync(request);
-
-    private Task<RoslynVSInternalCompletionItem> HandleRequestAsync(RoslynVSInternalCompletionItem request)
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(RoslynVSInternalCompletionItem request)
     {
+        var completionResolveParams = CohostDocumentCompletionResolveParams.GetCohostDocumentCompletionResolveParams(request);
+        return Roslyn.LanguageServer.Protocol.RoslynLspExtensions.ToRazorTextDocumentIdentifier(completionResolveParams.TextDocument);
+    }
+
+    protected override Task<RoslynVSInternalCompletionItem> HandleRequestAsync(RoslynVSInternalCompletionItem request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+        => HandleRequestAsync(request, cancellationToken);
+
+    private Task<RoslynVSInternalCompletionItem> HandleRequestAsync(RoslynVSInternalCompletionItem request, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(request);
+        }
+
+        // TODO: actual request processing code
+
         return Task.FromResult(request);
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostDocumentCompletionResolveEndpoint instance)
+    {
+        public Task<RoslynVSInternalCompletionItem> HandleRequestAsync(
+            RoslynVSInternalCompletionItem request,
+            CancellationToken cancellationToken)
+                => instance.HandleRequestAsync(request, cancellationToken);
     }
 }
