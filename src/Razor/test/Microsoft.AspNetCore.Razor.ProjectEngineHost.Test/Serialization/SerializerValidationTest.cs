@@ -1,9 +1,32 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Note: The JSON files used for testing are very large. When making
+// significant changes to the JSON format for tag helpers or RazorProjectInfo, it
+// can be helpful to update the ObjectWriters first and the write new JSON files
+// before updating the ObjectReaders. This avoids having to make a series of
+// manual edits to the JSON resource files.
+//
+// 1. Update ObjectWriters to write the new JSON format.
+// 2. Uncomment the WRITE_JSON_FILES #define below.
+// 3. Run the VerifyJson_RazorProjectInfo and VerifyJson_TagHelpers tests.
+//    This will create JSON files on your desktop in the new format.
+// 4. Replace the old JSON resource files in the "Test.Common.Tooling" project
+//    with the newly generated versions. (Tip: Be sure to run them through a
+//    JSON formatter to make diffs more sane.)
+// 5. Update ObjectReaders to read the new JSON format.
+// 6. Comment the WRITE_JSON_FILES #define again.
+// 7. Run all of the tests in SerializerValidationTest to ensure that the
+//    new JSON files deserialize correctly.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+//#define WRITE_JSON_FILES
+
 using System.Collections.Immutable;
 using System.IO;
-using System.Reflection;
 using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,10 +35,8 @@ using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Xunit;
 using Xunit.Abstractions;
-using MessagePackSerializationFormat = Microsoft.AspNetCore.Razor.Serialization.MessagePack.SerializationFormat;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test.Serialization;
 
@@ -54,7 +75,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
 
         // Read tag helpers from JSON
-        var originalTagHelpers = ReadTagHelpersFromJsonBytes(resourceBytes);
+        var originalTagHelpers = DeserializeTagHelpersFromJsonBytes(resourceBytes);
 
         var options = MessagePackSerializerOptions.Standard.WithResolver(
             CompositeResolver.Create(
@@ -79,6 +100,10 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
 
         // Read tag helpers from JSON
         var originalProjectInfo = DeserializeProjectInfoFromJsonBytes(resourceBytes);
+
+#if WRITE_JSON_FILES
+        SerializeProjectInfoToJsonFile(resourceName, originalProjectInfo);
+#endif
 
         // Act
 
@@ -108,7 +133,11 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, folderName);
 
         // Read tag helpers from JSON
-        var originalTagHelpers = ReadTagHelpersFromJsonBytes(resourceBytes);
+        var originalTagHelpers = DeserializeTagHelpersFromJsonBytes(resourceBytes);
+
+#if WRITE_JSON_FILES
+        SerializeTagHelpersToJsonFile(resourceName, originalTagHelpers);
+#endif
 
         // Act
 
@@ -136,7 +165,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         return originalProjectInfo;
     }
 
-    private static ImmutableArray<TagHelperDescriptor> ReadTagHelpersFromJsonBytes(byte[] resourceBytes)
+    private static ImmutableArray<TagHelperDescriptor> DeserializeTagHelpersFromJsonBytes(byte[] resourceBytes)
     {
         using var stream = new MemoryStream(resourceBytes);
         using var streamReader = new StreamReader(stream);
@@ -145,4 +174,24 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
             static r => r.ReadImmutableArray(
                 static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
     }
+
+#if WRITE_JSON_FILES
+    private static void SerializeProjectInfoToJsonFile(string fileName, RazorProjectInfo projectInfo)
+    {
+        var filePath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory), fileName);
+        using var streamWriter = new StreamWriter(filePath);
+
+        JsonDataConvert.SerializeObject(streamWriter, projectInfo, ObjectWriters.WriteProperties);
+    }
+
+    private static void SerializeTagHelpersToJsonFile(string fileName, ImmutableArray<TagHelperDescriptor> tagHelpers)
+    {
+        var filePath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory), fileName);
+        using var streamWriter = new StreamWriter(filePath);
+
+        JsonDataConvert.SerializeData(streamWriter,
+            w => w.WriteArray(tagHelpers,
+                static (w, v) => ObjectWriters.Write(w, v)));
+    }
+#endif
 }
