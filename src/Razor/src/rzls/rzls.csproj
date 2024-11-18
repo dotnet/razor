@@ -11,6 +11,7 @@
     <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx-x64;osx-arm64</RuntimeIdentifiers>
     <IsShippingPackage>false</IsShippingPackage>
     <RemoveDevicePlatformSupport>true</RemoveDevicePlatformSupport>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);NETSDK1201</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <ItemGroup>

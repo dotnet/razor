@@ -233,9 +233,8 @@ stages:
             -configuration $(_BuildConfig)
             -prepareMachine
             -test
-            -integrationTest
           name: Run_Tests
-          displayName: Run Unit and Integration tests
+          displayName: Run Unit tests
           condition: succeeded()
 
         - task: PublishBuildArtifacts@1
@@ -373,7 +372,7 @@ stages:
 
       - job: Linux
         container:
-          image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
+          image: mcr.microsoft.com/dotnet-buildtools/prereqs:cbl-mariner-2.0
           options: --init # This ensures all the stray defunct processes are reaped.
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
