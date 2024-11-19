@@ -126,6 +126,7 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
 
                 // VS Code only handlers are added by rzls, but add here for testing purposes
                 s.AddHandler<RazorNamedPipeConnectEndpoint>();
+                s.AddSingleton(new LogLevelProvider(CodeAnalysis.Razor.Logging.LogLevel.None));
                 s.AddHandler<UpdateLogLevelEndpoint>();
             });
     }
