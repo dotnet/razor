@@ -1,30 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Note: The JSON files used for testing are very large. When making
-// significant changes to the JSON format for tag helpers or RazorProjectInfo, it
-// can be helpful to update the ObjectWriters first and the write new JSON files
-// before updating the ObjectReaders. This avoids having to make a series of
-// manual edits to the JSON resource files.
-//
-// 1. Update ObjectWriters to write the new JSON format.
-// 2. Uncomment the WRITE_JSON_FILES #define below.
-// 3. Run the VerifyJson_RazorProjectInfo and VerifyJson_TagHelpers tests.
-//    This will create JSON files on your desktop in the new format.
-// 4. Replace the old JSON resource files in the "Test.Common.Tooling" project
-//    with the newly generated versions. (Tip: Be sure to run them through a
-//    JSON formatter to make diffs more sane.)
-// 5. Update ObjectReaders to read the new JSON format.
-// 6. Comment the WRITE_JSON_FILES #define again.
-// 7. Run all of the tests in SerializerValidationTest to ensure that the
-//    new JSON files deserialize correctly.
-//
-///////////////////////////////////////////////////////////////////////////////
-
-//#define WRITE_JSON_FILES
-
 using System.Collections.Immutable;
 using MessagePack;
 using MessagePack.Resolvers;
@@ -100,10 +76,6 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         // Read tag helpers from JSON
         var originalProjectInfo = JsonDataConvert.DeserializeProjectInfo(resourceBytes);
 
-#if WRITE_JSON_FILES
-        JsonDataConvert.SerializeToFile(originalProjectInfo, GetDesktopFilePath(resourceName), indented: true);
-#endif
-
         // Act
 
         // Serialize to JSON
@@ -134,10 +106,6 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         // Read tag helpers from JSON
         var originalTagHelpers = JsonDataConvert.DeserializeTagHelperArray(resourceBytes);
 
-#if WRITE_JSON_FILES
-        JsonDataConvert.SerializeToFile(originalTagHelpers, GetDesktopFilePath(resourceName), indented: true);
-#endif
-
         // Act
 
         // Serialize to JSON
@@ -149,9 +117,4 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         // Assert
         Assert.Equal<TagHelperDescriptor>(originalTagHelpers, actualTagHelpers);
     }
-
-#if WRITE_JSON_FILES
-    private static string GetDesktopFilePath(string fileName)
-        => System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory), fileName);
-#endif
 }

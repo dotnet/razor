@@ -11,7 +11,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.FetchData",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "FetchData" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "FetchData"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.FetchData",
       "Runtime.Name": "Components.IComponent"
@@ -29,7 +33,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.FetchData",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.Pages.FetchData" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.Pages.FetchData"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.FetchData",
       "Components.NameMatch": "Components.FullyQualifiedNameMatch",
@@ -48,7 +56,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Component1",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "Component1" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "Component1"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Component1",
       "Runtime.Name": "Components.IComponent"
@@ -66,7 +78,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Component1",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.Pages.Component1" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.Pages.Component1"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Component1",
       "Components.NameMatch": "Components.FullyQualifiedNameMatch",
@@ -85,7 +101,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Index",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "Index" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "Index"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Index",
       "Runtime.Name": "Components.IComponent"
@@ -103,7 +123,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Index",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.Pages.Index" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.Pages.Index"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Index",
       "Components.NameMatch": "Components.FullyQualifiedNameMatch",
@@ -122,7 +146,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Component",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "Component" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "Component"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Component",
       "Runtime.Name": "Components.IComponent"
@@ -140,7 +168,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Component",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.Pages.Component" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.Pages.Component"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Component",
       "Components.NameMatch": "Components.FullyQualifiedNameMatch",
@@ -159,35 +191,47 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Counter",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "Counter" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "Counter"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
         "Name": "FooVal",
         "TypeName": "System.Int32",
         "DisplayName": "int BlazorServer_31.Pages.Counter.FooVal",
-        "Metadata": { "Common.PropertyName": "FooVal" }
+        "Metadata": {
+          "Common.PropertyName": "FooVal"
+        }
       },
       {
         "Kind": "Components.Component",
         "Name": "Additional",
         "TypeName": "System.String",
         "DisplayName": "string BlazorServer_31.Pages.Counter.Additional",
-        "Metadata": { "Common.PropertyName": "Additional" }
+        "Metadata": {
+          "Common.PropertyName": "Additional"
+        }
       },
       {
         "Kind": "Components.Component",
         "Name": "IncrementAmount",
         "TypeName": "System.Int32",
         "DisplayName": "int BlazorServer_31.Pages.Counter.IncrementAmount",
-        "Metadata": { "Common.PropertyName": "IncrementAmount" }
+        "Metadata": {
+          "Common.PropertyName": "IncrementAmount"
+        }
       },
       {
         "Kind": "Components.Component",
         "Name": "MoreParams",
         "TypeName": "System.String",
         "DisplayName": "string BlazorServer_31.Pages.Counter.MoreParams",
-        "Metadata": { "Common.PropertyName": "MoreParams" }
+        "Metadata": {
+          "Common.PropertyName": "MoreParams"
+        }
       }
     ],
     "Metadata": {
@@ -207,35 +251,47 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Counter",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.Pages.Counter" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.Pages.Counter"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
         "Name": "FooVal",
         "TypeName": "System.Int32",
         "DisplayName": "int BlazorServer_31.Pages.Counter.FooVal",
-        "Metadata": { "Common.PropertyName": "FooVal" }
+        "Metadata": {
+          "Common.PropertyName": "FooVal"
+        }
       },
       {
         "Kind": "Components.Component",
         "Name": "Additional",
         "TypeName": "System.String",
         "DisplayName": "string BlazorServer_31.Pages.Counter.Additional",
-        "Metadata": { "Common.PropertyName": "Additional" }
+        "Metadata": {
+          "Common.PropertyName": "Additional"
+        }
       },
       {
         "Kind": "Components.Component",
         "Name": "IncrementAmount",
         "TypeName": "System.Int32",
         "DisplayName": "int BlazorServer_31.Pages.Counter.IncrementAmount",
-        "Metadata": { "Common.PropertyName": "IncrementAmount" }
+        "Metadata": {
+          "Common.PropertyName": "IncrementAmount"
+        }
       },
       {
         "Kind": "Components.Component",
         "Name": "MoreParams",
         "TypeName": "System.String",
         "DisplayName": "string BlazorServer_31.Pages.Counter.MoreParams",
-        "Metadata": { "Common.PropertyName": "MoreParams" }
+        "Metadata": {
+          "Common.PropertyName": "MoreParams"
+        }
       }
     ],
     "Metadata": {
@@ -256,7 +312,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Error",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "Error" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "Error"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Error",
       "Runtime.Name": "Components.IComponent"
@@ -274,7 +334,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Error",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.Pages.Error" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.Pages.Error"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Error",
       "Components.NameMatch": "Components.FullyQualifiedNameMatch",
@@ -293,7 +357,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Component2",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "Component2" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "Component2"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Component2",
       "Runtime.Name": "Components.IComponent"
@@ -311,7 +379,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Pages.Component2",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.Pages.Component2" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.Pages.Component2"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Pages.Component2",
       "Components.NameMatch": "Components.FullyQualifiedNameMatch",
@@ -330,7 +402,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Shared.NavMenu",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "NavMenu" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "NavMenu"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Shared.NavMenu",
       "Runtime.Name": "Components.IComponent"
@@ -348,7 +424,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Shared.NavMenu",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.Shared.NavMenu" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.Shared.NavMenu"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.Shared.NavMenu",
       "Components.NameMatch": "Components.FullyQualifiedNameMatch",
@@ -367,7 +447,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Shared.MainLayout",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "MainLayout" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "MainLayout"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -398,7 +482,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.Shared.MainLayout",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.Shared.MainLayout" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.Shared.MainLayout"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -481,7 +569,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.App",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "App" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "App"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.App",
       "Runtime.Name": "Components.IComponent"
@@ -499,7 +591,11 @@
     "AssemblyName": "BlazorServer_31",
     "DisplayName": "BlazorServer_31.App",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "BlazorServer_31.App" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "BlazorServer_31.App"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "BlazorServer_31.App",
       "Components.NameMatch": "Components.FullyQualifiedNameMatch",
@@ -519,7 +615,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.CascadingValue<TValue>",
     "Documentation": "\n<summary>\nAcomponentthatprovidesacascadingvaluetoalldescendantcomponents.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "CascadingValue" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "CascadingValue"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -549,7 +649,9 @@
         "TypeName": "System.Boolean",
         "DisplayName": "bool Microsoft.AspNetCore.Components.CascadingValue<TValue>.IsFixed",
         "Documentation": "\n<summary>\nIftrue,indicatesthat<seecref=\"P:Microsoft.AspNetCore.Components.CascadingValue`1.Value\"/>willnotchange.Thisisa\nperformanceoptimizationthatallowstheframeworktoskipsettingup\nchangenotifications.Setthisflagonlyifyouwillnotchange\n<seecref=\"P:Microsoft.AspNetCore.Components.CascadingValue`1.Value\"/>duringthecomponent'slifetime.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "IsFixed" }
+        "Metadata": {
+          "Common.PropertyName": "IsFixed"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -557,7 +659,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.CascadingValue<TValue>.Name",
         "Documentation": "\n<summary>\nOptionallygivesanametotheprovidedvalue.Descendantcomponents\nwillbeabletoreceivethevaluebyspecifyingthisname.\n\nIfnonameisspecified,thendescendantcomponentswillreceivethe\nvaluebasedthetypeofvaluetheyarerequesting.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Name" }
+        "Metadata": {
+          "Common.PropertyName": "Name"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -591,7 +695,9 @@
     "Documentation": "\n<summary>\nAcomponentthatprovidesacascadingvaluetoalldescendantcomponents.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.CascadingValue" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.CascadingValue"
+      }
     ],
     "BoundAttributes": [
       {
@@ -622,7 +728,9 @@
         "TypeName": "System.Boolean",
         "DisplayName": "bool Microsoft.AspNetCore.Components.CascadingValue<TValue>.IsFixed",
         "Documentation": "\n<summary>\nIftrue,indicatesthat<seecref=\"P:Microsoft.AspNetCore.Components.CascadingValue`1.Value\"/>willnotchange.Thisisa\nperformanceoptimizationthatallowstheframeworktoskipsettingup\nchangenotifications.Setthisflagonlyifyouwillnotchange\n<seecref=\"P:Microsoft.AspNetCore.Components.CascadingValue`1.Value\"/>duringthecomponent'slifetime.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "IsFixed" }
+        "Metadata": {
+          "Common.PropertyName": "IsFixed"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -630,7 +738,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.CascadingValue<TValue>.Name",
         "Documentation": "\n<summary>\nOptionallygivesanametotheprovidedvalue.Descendantcomponents\nwillbeabletoreceivethevaluebyspecifyingthisname.\n\nIfnonameisspecified,thendescendantcomponentswillreceivethe\nvaluebasedthetypeofvaluetheyarerequesting.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Name" }
+        "Metadata": {
+          "Common.PropertyName": "Name"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -715,7 +825,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.LayoutView",
     "Documentation": "\n<summary>\nDisplaysthespecifiedcontentinsidethespecifiedlayoutandanyfurther\nnestedlayouts.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "LayoutView" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "LayoutView"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -734,7 +848,9 @@
         "TypeName": "System.Type",
         "DisplayName": "System.Type Microsoft.AspNetCore.Components.LayoutView.Layout",
         "Documentation": "\n<summary>\nGetsorsetsthetypeofthelayoutinwhichtodisplaythecontent.\nThetypemustimplement<seecref=\"T:Microsoft.AspNetCore.Components.IComponent\"/>andacceptaparameternamed<seecref=\"P:Microsoft.AspNetCore.Components.LayoutComponentBase.Body\"/>.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Layout" }
+        "Metadata": {
+          "Common.PropertyName": "Layout"
+        }
       }
     ],
     "Metadata": {
@@ -756,7 +872,9 @@
     "Documentation": "\n<summary>\nDisplaysthespecifiedcontentinsidethespecifiedlayoutandanyfurther\nnestedlayouts.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.LayoutView" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.LayoutView"
+      }
     ],
     "BoundAttributes": [
       {
@@ -776,7 +894,9 @@
         "TypeName": "System.Type",
         "DisplayName": "System.Type Microsoft.AspNetCore.Components.LayoutView.Layout",
         "Documentation": "\n<summary>\nGetsorsetsthetypeofthelayoutinwhichtodisplaythecontent.\nThetypemustimplement<seecref=\"T:Microsoft.AspNetCore.Components.IComponent\"/>andacceptaparameternamed<seecref=\"P:Microsoft.AspNetCore.Components.LayoutComponentBase.Body\"/>.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Layout" }
+        "Metadata": {
+          "Common.PropertyName": "Layout"
+        }
       }
     ],
     "Metadata": {
@@ -849,7 +969,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.RouteView",
     "Documentation": "\n<summary>\nDisplaysthespecifiedpagecomponent,renderingitinsideitslayout\nandanyfurthernestedlayouts.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "RouteView" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "RouteView"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -857,7 +981,9 @@
         "TypeName": "System.Type",
         "DisplayName": "System.Type Microsoft.AspNetCore.Components.RouteView.DefaultLayout",
         "Documentation": "\n<summary>\nGetsorsetsthetypeofalayouttobeusedifthepagedoesnot\ndeclareanylayout.Ifspecified,thetypemustimplement<seecref=\"T:Microsoft.AspNetCore.Components.IComponent\"/>\nandacceptaparameternamed<seecref=\"P:Microsoft.AspNetCore.Components.LayoutComponentBase.Body\"/>.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "DefaultLayout" }
+        "Metadata": {
+          "Common.PropertyName": "DefaultLayout"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -865,7 +991,9 @@
         "TypeName": "Microsoft.AspNetCore.Components.RouteData",
         "DisplayName": "Microsoft.AspNetCore.Components.RouteData Microsoft.AspNetCore.Components.RouteView.RouteData",
         "Documentation": "\n<summary>\nGetsorsetstheroutedata.Thisdeterminesthepagethatwillbe\ndisplayedandtheparametervaluesthatwillbesuppliedtothepage.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "RouteData" }
+        "Metadata": {
+          "Common.PropertyName": "RouteData"
+        }
       }
     ],
     "Metadata": {
@@ -887,7 +1015,9 @@
     "Documentation": "\n<summary>\nDisplaysthespecifiedpagecomponent,renderingitinsideitslayout\nandanyfurthernestedlayouts.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.RouteView" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.RouteView"
+      }
     ],
     "BoundAttributes": [
       {
@@ -896,7 +1026,9 @@
         "TypeName": "System.Type",
         "DisplayName": "System.Type Microsoft.AspNetCore.Components.RouteView.DefaultLayout",
         "Documentation": "\n<summary>\nGetsorsetsthetypeofalayouttobeusedifthepagedoesnot\ndeclareanylayout.Ifspecified,thetypemustimplement<seecref=\"T:Microsoft.AspNetCore.Components.IComponent\"/>\nandacceptaparameternamed<seecref=\"P:Microsoft.AspNetCore.Components.LayoutComponentBase.Body\"/>.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "DefaultLayout" }
+        "Metadata": {
+          "Common.PropertyName": "DefaultLayout"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -904,7 +1036,9 @@
         "TypeName": "Microsoft.AspNetCore.Components.RouteData",
         "DisplayName": "Microsoft.AspNetCore.Components.RouteData Microsoft.AspNetCore.Components.RouteView.RouteData",
         "Documentation": "\n<summary>\nGetsorsetstheroutedata.Thisdeterminesthepagethatwillbe\ndisplayedandtheparametervaluesthatwillbesuppliedtothepage.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "RouteData" }
+        "Metadata": {
+          "Common.PropertyName": "RouteData"
+        }
       }
     ],
     "Metadata": {
@@ -926,7 +1060,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Routing.Router",
     "Documentation": "\n<summary>\nAcomponentthatsuppliesroutedatacorrespondingtothecurrentnavigationstate.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "Router" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "Router"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -934,7 +1072,9 @@
         "TypeName": "System.Collections.Generic.IEnumerable<System.Reflection.Assembly>",
         "DisplayName": "System.Collections.Generic.IEnumerable<System.Reflection.Assembly> Microsoft.AspNetCore.Components.Routing.Router.AdditionalAssemblies",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalassembliesthatshouldbesearchedforcomponents\nthatcanmatchURIs.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAssemblies" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAssemblies"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -942,7 +1082,9 @@
         "TypeName": "System.Reflection.Assembly",
         "DisplayName": "System.Reflection.Assembly Microsoft.AspNetCore.Components.Routing.Router.AppAssembly",
         "Documentation": "\n<summary>\nGetsorsetstheassemblythatshouldbesearchedforcomponentsmatchingtheURI.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AppAssembly" }
+        "Metadata": {
+          "Common.PropertyName": "AppAssembly"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -997,7 +1139,9 @@
     "Documentation": "\n<summary>\nAcomponentthatsuppliesroutedatacorrespondingtothecurrentnavigationstate.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Routing.Router" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Routing.Router"
+      }
     ],
     "BoundAttributes": [
       {
@@ -1006,7 +1150,9 @@
         "TypeName": "System.Collections.Generic.IEnumerable<System.Reflection.Assembly>",
         "DisplayName": "System.Collections.Generic.IEnumerable<System.Reflection.Assembly> Microsoft.AspNetCore.Components.Routing.Router.AdditionalAssemblies",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalassembliesthatshouldbesearchedforcomponents\nthatcanmatchURIs.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAssemblies" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAssemblies"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1014,7 +1160,9 @@
         "TypeName": "System.Reflection.Assembly",
         "DisplayName": "System.Reflection.Assembly Microsoft.AspNetCore.Components.Routing.Router.AppAssembly",
         "Documentation": "\n<summary>\nGetsorsetstheassemblythatshouldbesearchedforcomponentsmatchingtheURI.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AppAssembly" }
+        "Metadata": {
+          "Common.PropertyName": "AppAssembly"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1197,7 +1345,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator",
     "Documentation": "\n<summary>\nAddsDataAnnotationsvalidationsupporttoan<seecref=\"T:Microsoft.AspNetCore.Components.Forms.EditContext\"/>.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "DataAnnotationsValidator" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "DataAnnotationsValidator"
+      }
+    ],
     "Metadata": {
       "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator",
       "Runtime.Name": "Components.IComponent"
@@ -1240,7 +1392,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView",
     "Documentation": "\n<summary>\nCombinesthebehaviorsof<seecref=\"T:Microsoft.AspNetCore.Components.Authorization.AuthorizeView\"/>and<seecref=\"T:Microsoft.AspNetCore.Components.RouteView\"/>,\nsothatitdisplaysthepagematchingthespecifiedroutebutonlyiftheuser\nisauthorizedtoseeit.\n\nAdditionally,thiscomponentsuppliesacascadingparameteroftype<seecref=\"T:System.Threading.Tasks.Task`1\"/>,\nwhichmakestheuser'scurrentauthenticationstateavailabletodescendants.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "AuthorizeRouteView" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "AuthorizeRouteView"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -1270,7 +1426,9 @@
         "TypeName": "System.Type",
         "DisplayName": "System.Type Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView.DefaultLayout",
         "Documentation": "\n<summary>\nGetsorsetsthetypeofalayouttobeusedifthepagedoesnot\ndeclareanylayout.Ifspecified,thetypemustimplement<seecref=\"T:Microsoft.AspNetCore.Components.IComponent\"/>\nandacceptaparameternamed<seecref=\"P:Microsoft.AspNetCore.Components.LayoutComponentBase.Body\"/>.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "DefaultLayout" }
+        "Metadata": {
+          "Common.PropertyName": "DefaultLayout"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1278,7 +1436,9 @@
         "TypeName": "Microsoft.AspNetCore.Components.RouteData",
         "DisplayName": "Microsoft.AspNetCore.Components.RouteData Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView.RouteData",
         "Documentation": "\n<summary>\nGetsorsetstheroutedata.Thisdeterminesthepagethatwillbe\ndisplayedandtheparametervaluesthatwillbesuppliedtothepage.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "RouteData" }
+        "Metadata": {
+          "Common.PropertyName": "RouteData"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1344,7 +1504,9 @@
         "TypeName": "System.Type",
         "DisplayName": "System.Type Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView.DefaultLayout",
         "Documentation": "\n<summary>\nGetsorsetsthetypeofalayouttobeusedifthepagedoesnot\ndeclareanylayout.Ifspecified,thetypemustimplement<seecref=\"T:Microsoft.AspNetCore.Components.IComponent\"/>\nandacceptaparameternamed<seecref=\"P:Microsoft.AspNetCore.Components.LayoutComponentBase.Body\"/>.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "DefaultLayout" }
+        "Metadata": {
+          "Common.PropertyName": "DefaultLayout"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1352,7 +1514,9 @@
         "TypeName": "Microsoft.AspNetCore.Components.RouteData",
         "DisplayName": "Microsoft.AspNetCore.Components.RouteData Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView.RouteData",
         "Documentation": "\n<summary>\nGetsorsetstheroutedata.Thisdeterminesthepagethatwillbe\ndisplayedandtheparametervaluesthatwillbesuppliedtothepage.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "RouteData" }
+        "Metadata": {
+          "Common.PropertyName": "RouteData"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1513,7 +1677,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView",
     "Documentation": "\n<summary>\nDisplaysdifferingcontentdependingontheuser'sauthorizationstatus.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "AuthorizeView" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "AuthorizeView"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -1521,7 +1689,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Policy",
         "Documentation": "\n<summary>\nThepolicynamethatdetermineswhetherthecontentcanbedisplayed.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Policy" }
+        "Metadata": {
+          "Common.PropertyName": "Policy"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1529,7 +1699,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Roles",
         "Documentation": "\n<summary>\nAcommadelimitedlistofrolesthatareallowedtodisplaythecontent.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Roles" }
+        "Metadata": {
+          "Common.PropertyName": "Roles"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1581,7 +1753,9 @@
         "TypeName": "System.Object",
         "DisplayName": "object Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Resource",
         "Documentation": "\n<summary>\nTheresourcetowhichaccessisbeingcontrolled.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Resource" }
+        "Metadata": {
+          "Common.PropertyName": "Resource"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1625,7 +1799,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Policy",
         "Documentation": "\n<summary>\nThepolicynamethatdetermineswhetherthecontentcanbedisplayed.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Policy" }
+        "Metadata": {
+          "Common.PropertyName": "Policy"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1633,7 +1809,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Roles",
         "Documentation": "\n<summary>\nAcommadelimitedlistofrolesthatareallowedtodisplaythecontent.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Roles" }
+        "Metadata": {
+          "Common.PropertyName": "Roles"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1685,7 +1863,9 @@
         "TypeName": "System.Object",
         "DisplayName": "object Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Resource",
         "Documentation": "\n<summary>\nTheresourcetowhichaccessisbeingcontrolled.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Resource" }
+        "Metadata": {
+          "Common.PropertyName": "Resource"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -1999,7 +2179,11 @@
     "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
     "DisplayName": "Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "CascadingAuthenticationState" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "CascadingAuthenticationState"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -2118,7 +2302,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.EditForm",
     "Documentation": "\n<summary>\nRendersaformelementthatcascadesan<seecref=\"P:Microsoft.AspNetCore.Components.Forms.EditForm.EditContext\"/>todescendants.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "EditForm" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "EditForm"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -2126,7 +2314,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.EditForm.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreated<c>form</c>element.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2145,7 +2335,9 @@
         "TypeName": "Microsoft.AspNetCore.Components.Forms.EditContext",
         "DisplayName": "Microsoft.AspNetCore.Components.Forms.EditContext Microsoft.AspNetCore.Components.Forms.EditForm.EditContext",
         "Documentation": "\n<summary>\nSuppliestheeditcontextexplicitly.Ifusingthisparameter,donot\nalsosupply<seecref=\"P:Microsoft.AspNetCore.Components.Forms.EditForm.Model\"/>,sincethemodelvaluewillbetaken\nfromthe<seecref=\"P:Microsoft.AspNetCore.Components.Forms.EditContext.Model\"/>property.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "EditContext" }
+        "Metadata": {
+          "Common.PropertyName": "EditContext"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2153,7 +2345,9 @@
         "TypeName": "System.Object",
         "DisplayName": "object Microsoft.AspNetCore.Components.Forms.EditForm.Model",
         "Documentation": "\n<summary>\nSpecifiesthetop-levelmodelobjectfortheform.Aneditcontextwill\nbeconstructedforthismodel.Ifusingthisparameter,donotalsosupply\navaluefor<seecref=\"P:Microsoft.AspNetCore.Components.Forms.EditForm.EditContext\"/>.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Model" }
+        "Metadata": {
+          "Common.PropertyName": "Model"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2219,7 +2413,9 @@
     "Documentation": "\n<summary>\nRendersaformelementthatcascadesan<seecref=\"P:Microsoft.AspNetCore.Components.Forms.EditForm.EditContext\"/>todescendants.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Forms.EditForm" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Forms.EditForm"
+      }
     ],
     "BoundAttributes": [
       {
@@ -2228,7 +2424,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.EditForm.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreated<c>form</c>element.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2247,7 +2445,9 @@
         "TypeName": "Microsoft.AspNetCore.Components.Forms.EditContext",
         "DisplayName": "Microsoft.AspNetCore.Components.Forms.EditContext Microsoft.AspNetCore.Components.Forms.EditForm.EditContext",
         "Documentation": "\n<summary>\nSuppliestheeditcontextexplicitly.Ifusingthisparameter,donot\nalsosupply<seecref=\"P:Microsoft.AspNetCore.Components.Forms.EditForm.Model\"/>,sincethemodelvaluewillbetaken\nfromthe<seecref=\"P:Microsoft.AspNetCore.Components.Forms.EditContext.Model\"/>property.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "EditContext" }
+        "Metadata": {
+          "Common.PropertyName": "EditContext"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2255,7 +2455,9 @@
         "TypeName": "System.Object",
         "DisplayName": "object Microsoft.AspNetCore.Components.Forms.EditForm.Model",
         "Documentation": "\n<summary>\nSpecifiesthetop-levelmodelobjectfortheform.Aneditcontextwill\nbeconstructedforthismodel.Ifusingthisparameter,donotalsosupply\navaluefor<seecref=\"P:Microsoft.AspNetCore.Components.Forms.EditForm.EditContext\"/>.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Model" }
+        "Metadata": {
+          "Common.PropertyName": "Model"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2398,7 +2600,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.InputCheckbox",
     "Documentation": "\n<summary>\nAninputcomponentforediting<seecref=\"T:System.Boolean\"/>values.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "InputCheckbox" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "InputCheckbox"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -2406,7 +2612,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputCheckbox.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2414,7 +2622,9 @@
         "TypeName": "System.Boolean",
         "DisplayName": "bool Microsoft.AspNetCore.Components.Forms.InputCheckbox.Value",
         "Documentation": "\n<summary>\nGetsorsetsthevalueoftheinput.Thisshouldbeusedwithtwo-waybinding.\n</summary>\n<example>\n@bind-Value=\"model.PropertyName\"\n</example>\n",
-        "Metadata": { "Common.PropertyName": "Value" }
+        "Metadata": {
+          "Common.PropertyName": "Value"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2433,7 +2643,9 @@
         "TypeName": "System.Linq.Expressions.Expression<System.Func<System.Boolean>>",
         "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.Boolean>> Microsoft.AspNetCore.Components.Forms.InputCheckbox.ValueExpression",
         "Documentation": "\n<summary>\nGetsorsetsanexpressionthatidentifiestheboundvalue.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ValueExpression" }
+        "Metadata": {
+          "Common.PropertyName": "ValueExpression"
+        }
       }
     ],
     "Metadata": {
@@ -2455,7 +2667,9 @@
     "Documentation": "\n<summary>\nAninputcomponentforediting<seecref=\"T:System.Boolean\"/>values.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Forms.InputCheckbox" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Forms.InputCheckbox"
+      }
     ],
     "BoundAttributes": [
       {
@@ -2464,7 +2678,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputCheckbox.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2472,7 +2688,9 @@
         "TypeName": "System.Boolean",
         "DisplayName": "bool Microsoft.AspNetCore.Components.Forms.InputCheckbox.Value",
         "Documentation": "\n<summary>\nGetsorsetsthevalueoftheinput.Thisshouldbeusedwithtwo-waybinding.\n</summary>\n<example>\n@bind-Value=\"model.PropertyName\"\n</example>\n",
-        "Metadata": { "Common.PropertyName": "Value" }
+        "Metadata": {
+          "Common.PropertyName": "Value"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2491,7 +2709,9 @@
         "TypeName": "System.Linq.Expressions.Expression<System.Func<System.Boolean>>",
         "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.Boolean>> Microsoft.AspNetCore.Components.Forms.InputCheckbox.ValueExpression",
         "Documentation": "\n<summary>\nGetsorsetsanexpressionthatidentifiestheboundvalue.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ValueExpression" }
+        "Metadata": {
+          "Common.PropertyName": "ValueExpression"
+        }
       }
     ],
     "Metadata": {
@@ -2513,7 +2733,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.InputDate<TValue>",
     "Documentation": "\n<summary>\nAninputcomponentforeditingdatevalues.\nSupportedtypesare<seecref=\"T:System.DateTime\"/>and<seecref=\"T:System.DateTimeOffset\"/>.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "InputDate" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "InputDate"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -2532,7 +2756,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Forms.InputDate<TValue>.ParsingErrorMessage",
         "Documentation": "\n<summary>\nGetsorsetstheerrormessageusedwhendisplayinganaparsingerror.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ParsingErrorMessage" }
+        "Metadata": {
+          "Common.PropertyName": "ParsingErrorMessage"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2540,7 +2766,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputDate<TValue>.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2597,7 +2825,9 @@
     "Documentation": "\n<summary>\nAninputcomponentforeditingdatevalues.\nSupportedtypesare<seecref=\"T:System.DateTime\"/>and<seecref=\"T:System.DateTimeOffset\"/>.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Forms.InputDate" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Forms.InputDate"
+      }
     ],
     "BoundAttributes": [
       {
@@ -2617,7 +2847,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Forms.InputDate<TValue>.ParsingErrorMessage",
         "Documentation": "\n<summary>\nGetsorsetstheerrormessageusedwhendisplayinganaparsingerror.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ParsingErrorMessage" }
+        "Metadata": {
+          "Common.PropertyName": "ParsingErrorMessage"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2625,7 +2857,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputDate<TValue>.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2682,7 +2916,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>",
     "Documentation": "\n<summary>\nAninputcomponentforeditingnumericvalues.\nSupportednumerictypesare<seecref=\"T:System.Int32\"/>,<seecref=\"T:System.Int64\"/>,<seecref=\"T:System.Single\"/>,<seecref=\"T:System.Double\"/>,<seecref=\"T:System.Decimal\"/>.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "InputNumber" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "InputNumber"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -2701,7 +2939,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>.ParsingErrorMessage",
         "Documentation": "\n<summary>\nGetsorsetstheerrormessageusedwhendisplayinganaparsingerror.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ParsingErrorMessage" }
+        "Metadata": {
+          "Common.PropertyName": "ParsingErrorMessage"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2709,7 +2949,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2766,7 +3008,9 @@
     "Documentation": "\n<summary>\nAninputcomponentforeditingnumericvalues.\nSupportednumerictypesare<seecref=\"T:System.Int32\"/>,<seecref=\"T:System.Int64\"/>,<seecref=\"T:System.Single\"/>,<seecref=\"T:System.Double\"/>,<seecref=\"T:System.Decimal\"/>.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Forms.InputNumber" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Forms.InputNumber"
+      }
     ],
     "BoundAttributes": [
       {
@@ -2786,7 +3030,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>.ParsingErrorMessage",
         "Documentation": "\n<summary>\nGetsorsetstheerrormessageusedwhendisplayinganaparsingerror.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ParsingErrorMessage" }
+        "Metadata": {
+          "Common.PropertyName": "ParsingErrorMessage"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2794,7 +3040,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2851,7 +3099,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>",
     "Documentation": "\n<summary>\nAdropdownselectioncomponent.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "InputSelect" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "InputSelect"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -2881,7 +3133,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -2938,7 +3192,9 @@
     "Documentation": "\n<summary>\nAdropdownselectioncomponent.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Forms.InputSelect" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Forms.InputSelect"
+      }
     ],
     "BoundAttributes": [
       {
@@ -2969,7 +3225,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3077,7 +3335,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.InputText",
     "Documentation": "\n<summary>\nAninputcomponentforediting<seecref=\"T:System.String\"/>values.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "InputText" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "InputText"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -3085,7 +3347,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputText.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3093,7 +3357,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Forms.InputText.Value",
         "Documentation": "\n<summary>\nGetsorsetsthevalueoftheinput.Thisshouldbeusedwithtwo-waybinding.\n</summary>\n<example>\n@bind-Value=\"model.PropertyName\"\n</example>\n",
-        "Metadata": { "Common.PropertyName": "Value" }
+        "Metadata": {
+          "Common.PropertyName": "Value"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3112,7 +3378,9 @@
         "TypeName": "System.Linq.Expressions.Expression<System.Func<System.String>>",
         "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.String>> Microsoft.AspNetCore.Components.Forms.InputText.ValueExpression",
         "Documentation": "\n<summary>\nGetsorsetsanexpressionthatidentifiestheboundvalue.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ValueExpression" }
+        "Metadata": {
+          "Common.PropertyName": "ValueExpression"
+        }
       }
     ],
     "Metadata": {
@@ -3134,7 +3402,9 @@
     "Documentation": "\n<summary>\nAninputcomponentforediting<seecref=\"T:System.String\"/>values.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Forms.InputText" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Forms.InputText"
+      }
     ],
     "BoundAttributes": [
       {
@@ -3143,7 +3413,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputText.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3151,7 +3423,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Forms.InputText.Value",
         "Documentation": "\n<summary>\nGetsorsetsthevalueoftheinput.Thisshouldbeusedwithtwo-waybinding.\n</summary>\n<example>\n@bind-Value=\"model.PropertyName\"\n</example>\n",
-        "Metadata": { "Common.PropertyName": "Value" }
+        "Metadata": {
+          "Common.PropertyName": "Value"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3170,7 +3444,9 @@
         "TypeName": "System.Linq.Expressions.Expression<System.Func<System.String>>",
         "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.String>> Microsoft.AspNetCore.Components.Forms.InputText.ValueExpression",
         "Documentation": "\n<summary>\nGetsorsetsanexpressionthatidentifiestheboundvalue.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ValueExpression" }
+        "Metadata": {
+          "Common.PropertyName": "ValueExpression"
+        }
       }
     ],
     "Metadata": {
@@ -3192,7 +3468,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.InputTextArea",
     "Documentation": "\n<summary>\nAmultilineinputcomponentforediting<seecref=\"T:System.String\"/>values.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "InputTextArea" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "InputTextArea"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -3200,7 +3480,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputTextArea.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3208,7 +3490,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Forms.InputTextArea.Value",
         "Documentation": "\n<summary>\nGetsorsetsthevalueoftheinput.Thisshouldbeusedwithtwo-waybinding.\n</summary>\n<example>\n@bind-Value=\"model.PropertyName\"\n</example>\n",
-        "Metadata": { "Common.PropertyName": "Value" }
+        "Metadata": {
+          "Common.PropertyName": "Value"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3227,7 +3511,9 @@
         "TypeName": "System.Linq.Expressions.Expression<System.Func<System.String>>",
         "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.String>> Microsoft.AspNetCore.Components.Forms.InputTextArea.ValueExpression",
         "Documentation": "\n<summary>\nGetsorsetsanexpressionthatidentifiestheboundvalue.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ValueExpression" }
+        "Metadata": {
+          "Common.PropertyName": "ValueExpression"
+        }
       }
     ],
     "Metadata": {
@@ -3249,7 +3535,9 @@
     "Documentation": "\n<summary>\nAmultilineinputcomponentforediting<seecref=\"T:System.String\"/>values.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Forms.InputTextArea" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Forms.InputTextArea"
+      }
     ],
     "BoundAttributes": [
       {
@@ -3258,7 +3546,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.InputTextArea.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreatedelement.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3266,7 +3556,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Forms.InputTextArea.Value",
         "Documentation": "\n<summary>\nGetsorsetsthevalueoftheinput.Thisshouldbeusedwithtwo-waybinding.\n</summary>\n<example>\n@bind-Value=\"model.PropertyName\"\n</example>\n",
-        "Metadata": { "Common.PropertyName": "Value" }
+        "Metadata": {
+          "Common.PropertyName": "Value"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3285,7 +3577,9 @@
         "TypeName": "System.Linq.Expressions.Expression<System.Func<System.String>>",
         "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.String>> Microsoft.AspNetCore.Components.Forms.InputTextArea.ValueExpression",
         "Documentation": "\n<summary>\nGetsorsetsanexpressionthatidentifiestheboundvalue.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ValueExpression" }
+        "Metadata": {
+          "Common.PropertyName": "ValueExpression"
+        }
       }
     ],
     "Metadata": {
@@ -3307,7 +3601,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue>",
     "Documentation": "\n<summary>\nDisplaysalistofvalidationmessagesforaspecifiedfieldwithinacascaded<seecref=\"T:Microsoft.AspNetCore.Components.Forms.EditContext\"/>.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "ValidationMessage" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "ValidationMessage"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -3326,7 +3624,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue>.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreated<c>div</c>element.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3360,7 +3660,9 @@
     "Documentation": "\n<summary>\nDisplaysalistofvalidationmessagesforaspecifiedfieldwithinacascaded<seecref=\"T:Microsoft.AspNetCore.Components.Forms.EditContext\"/>.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Forms.ValidationMessage" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Forms.ValidationMessage"
+      }
     ],
     "BoundAttributes": [
       {
@@ -3380,7 +3682,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue>.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreated<c>div</c>element.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3414,7 +3718,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Forms.ValidationSummary",
     "Documentation": "\n<summary>\nDisplaysalistofvalidationmessagesfromacascaded<seecref=\"T:Microsoft.AspNetCore.Components.Forms.EditContext\"/>.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "ValidationSummary" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "ValidationSummary"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -3422,7 +3730,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.ValidationSummary.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreated<c>ul</c>element.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3430,7 +3740,9 @@
         "TypeName": "System.Object",
         "DisplayName": "object Microsoft.AspNetCore.Components.Forms.ValidationSummary.Model",
         "Documentation": "\n<summary>\nGetsorsetsthemodeltoproducethelistofvalidationmessagesfor.\nWhenspecified,thislistsallerrorsthatareassociatedwiththemodelinstance.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Model" }
+        "Metadata": {
+          "Common.PropertyName": "Model"
+        }
       }
     ],
     "Metadata": {
@@ -3452,7 +3764,9 @@
     "Documentation": "\n<summary>\nDisplaysalistofvalidationmessagesfromacascaded<seecref=\"T:Microsoft.AspNetCore.Components.Forms.EditContext\"/>.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Forms.ValidationSummary" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Forms.ValidationSummary"
+      }
     ],
     "BoundAttributes": [
       {
@@ -3461,7 +3775,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Forms.ValidationSummary.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeappliedtothecreated<c>ul</c>element.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3469,7 +3785,9 @@
         "TypeName": "System.Object",
         "DisplayName": "object Microsoft.AspNetCore.Components.Forms.ValidationSummary.Model",
         "Documentation": "\n<summary>\nGetsorsetsthemodeltoproducethelistofvalidationmessagesfor.\nWhenspecified,thislistsallerrorsthatareassociatedwiththemodelinstance.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Model" }
+        "Metadata": {
+          "Common.PropertyName": "Model"
+        }
       }
     ],
     "Metadata": {
@@ -3491,7 +3809,11 @@
     "DisplayName": "Microsoft.AspNetCore.Components.Routing.NavLink",
     "Documentation": "\n<summary>\nAcomponentthatrendersananchortag,automaticallytogglingits'active'\nclassbasedonwhetherits'href'matchesthecurrentURI.\n</summary>\n",
     "CaseSensitive": true,
-    "TagMatchingRules": [ { "TagName": "NavLink" } ],
+    "TagMatchingRules": [
+      {
+        "TagName": "NavLink"
+      }
+    ],
     "BoundAttributes": [
       {
         "Kind": "Components.Component",
@@ -3499,7 +3821,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Routing.NavLink.ActiveClass",
         "Documentation": "\n<summary>\nGetsorsetstheCSSclassnameappliedtotheNavLinkwhenthe\ncurrentroutematchestheNavLinkhref.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ActiveClass" }
+        "Metadata": {
+          "Common.PropertyName": "ActiveClass"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3507,7 +3831,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Routing.NavLink.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeaddedtothegenerated\n<c>a</c>element.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3527,7 +3853,9 @@
         "IsEnum": true,
         "DisplayName": "Microsoft.AspNetCore.Components.Routing.NavLinkMatch Microsoft.AspNetCore.Components.Routing.NavLink.Match",
         "Documentation": "\n<summary>\nGetsorsetsavaluerepresentingtheURLmatchingbehavior.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Match" }
+        "Metadata": {
+          "Common.PropertyName": "Match"
+        }
       }
     ],
     "Metadata": {
@@ -3549,7 +3877,9 @@
     "Documentation": "\n<summary>\nAcomponentthatrendersananchortag,automaticallytogglingits'active'\nclassbasedonwhetherits'href'matchesthecurrentURI.\n</summary>\n",
     "CaseSensitive": true,
     "TagMatchingRules": [
-      { "TagName": "Microsoft.AspNetCore.Components.Routing.NavLink" }
+      {
+        "TagName": "Microsoft.AspNetCore.Components.Routing.NavLink"
+      }
     ],
     "BoundAttributes": [
       {
@@ -3558,7 +3888,9 @@
         "TypeName": "System.String",
         "DisplayName": "string Microsoft.AspNetCore.Components.Routing.NavLink.ActiveClass",
         "Documentation": "\n<summary>\nGetsorsetstheCSSclassnameappliedtotheNavLinkwhenthe\ncurrentroutematchestheNavLinkhref.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "ActiveClass" }
+        "Metadata": {
+          "Common.PropertyName": "ActiveClass"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3566,7 +3898,9 @@
         "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>",
         "DisplayName": "System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Microsoft.AspNetCore.Components.Routing.NavLink.AdditionalAttributes",
         "Documentation": "\n<summary>\nGetsorsetsacollectionofadditionalattributesthatwillbeaddedtothegenerated\n<c>a</c>element.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "AdditionalAttributes" }
+        "Metadata": {
+          "Common.PropertyName": "AdditionalAttributes"
+        }
       },
       {
         "Kind": "Components.Component",
@@ -3586,7 +3920,9 @@
         "IsEnum": true,
         "DisplayName": "Microsoft.AspNetCore.Components.Routing.NavLinkMatch Microsoft.AspNetCore.Components.Routing.NavLink.Match",
         "Documentation": "\n<summary>\nGetsorsetsavaluerepresentingtheURLmatchingbehavior.\n</summary>\n",
-        "Metadata": { "Common.PropertyName": "Match" }
+        "Metadata": {
+          "Common.PropertyName": "Match"
+        }
       }
     ],
     "Metadata": {
@@ -3648,10 +3984,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 5719829429478301498,
-      "Data2": -2215568001637325537,
-      "Data3": -3380748468016310106,
-      "Data4": 5961165578306122411
+      "Data1": 3369443405112860396,
+      "Data2": 3046097734821200829,
+      "Data3": -896897866579515934,
+      "Data4": 7373654384212824488
     },
     "Kind": "Components.EventHandler",
     "Name": "onabort",
@@ -3666,7 +4002,9 @@
           {
             "Name": "@onabort",
             "DisplayName": "@onabort",
-            "Metadata": { "Common.DirectiveAttribute": "True" }
+            "Metadata": {
+              "Common.DirectiveAttribute": "True"
+            }
           }
         ]
       },
@@ -3676,7 +4014,9 @@
           {
             "Name": "@onabort:preventDefault",
             "DisplayName": "@onabort:preventDefault",
-            "Metadata": { "Common.DirectiveAttribute": "True" }
+            "Metadata": {
+              "Common.DirectiveAttribute": "True"
+            }
           }
         ]
       },
@@ -3686,7 +4026,9 @@
           {
             "Name": "@onabort:stopPropagation",
             "DisplayName": "@onabort:stopPropagation",
-            "Metadata": { "Common.DirectiveAttribute": "True" }
+            "Metadata": {
+              "Common.DirectiveAttribute": "True"
+            }
           }
         ]
       }
@@ -3720,9 +4062,13 @@
         "TypeName": "System.Boolean",
         "DisplayName": "stopPropagation",
         "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onabort'eventinthecapturingandbubblingphases.",
-        "Metadata": { "Common.PropertyName": "StopPropagation" }
+        "Metadata": {
+          "Common.PropertyName": "StopPropagation"
+        }
       }
     ],
-    "Metadata": { "Runtime.Name": "ITagHelper" }
+    "Metadata": {
+      "Runtime.Name": "ITagHelper"
+    }
   }
 ]
