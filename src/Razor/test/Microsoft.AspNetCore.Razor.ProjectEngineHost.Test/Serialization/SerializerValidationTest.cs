@@ -42,12 +42,12 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test.Serialization;
 public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Theory]
-    [InlineData("Kendo.Mvc.Examples.project.razor.json")]
+    [InlineData("Kendo.Mvc.Examples.project.razor.json", "Telerik")]
     [InlineData("project.razor.json")]
-    public void VerifyMessagePack_RazorProjectInfo(string resourceName)
+    public void VerifyMessagePack_RazorProjectInfo(string resourceName, string? folderName = null)
     {
         // Arrange
-        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
+        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, folderName);
 
         // Read tag helpers from JSON
         var originalProjectInfo = JsonDataConvert.DeserializeProjectInfo(resourceBytes);
@@ -66,12 +66,12 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
     }
 
     [Theory]
-    [InlineData("Kendo.Mvc.Examples.taghelpers.json")]
+    [InlineData("Kendo.Mvc.Examples.taghelpers.json", "Telerik")]
     [InlineData("taghelpers.json")]
-    public void VerifyMessagePack_TagHelpers(string resourceName)
+    public void VerifyMessagePack_TagHelpers(string resourceName, string? folderName = null)
     {
         // Arrange
-        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
+        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, folderName);
 
         // Read tag helpers from JSON
         var originalTagHelpers = JsonDataConvert.DeserializeTagHelperArray(resourceBytes);
@@ -90,12 +90,12 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
     }
 
     [Theory]
-    [InlineData("Kendo.Mvc.Examples.project.razor.json")]
+    [InlineData("Kendo.Mvc.Examples.project.razor.json", "Telerik")]
     [InlineData("project.razor.json")]
-    public void VerifyJson_RazorProjectInfo(string resourceName)
+    public void VerifyJson_RazorProjectInfo(string resourceName, string? folderName = null)
     {
         // Arrange
-        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
+        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, folderName);
 
         // Read tag helpers from JSON
         var originalProjectInfo = JsonDataConvert.DeserializeProjectInfo(resourceBytes);
@@ -123,8 +123,8 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
     }
 
     [Theory]
-    [InlineData("Kendo.Mvc.Examples.taghelpers.json", "Benchmarking")]
-    [InlineData("taghelpers.json", "Benchmarking")]
+    [InlineData("Kendo.Mvc.Examples.taghelpers.json", "Telerik")]
+    [InlineData("taghelpers.json")]
     [InlineData("BlazorServerApp.TagHelpers.json")]
     public void VerifyJson_TagHelpers(string resourceName, string? folderName = null)
     {

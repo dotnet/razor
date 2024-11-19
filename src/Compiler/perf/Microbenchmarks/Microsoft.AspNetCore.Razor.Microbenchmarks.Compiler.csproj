@@ -18,14 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="MSN.cshtml" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="BlazorServerTagHelpers.razor" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\shared\taghelpers.json" CopyToOutputDirectory="PreserveNewest">
-      <Link>taghelpers.json</Link>
-    </None>
+    <None Include="$(SharedFilesRoot)Compiler\MSN.cshtml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(SharedFilesRoot)Compiler\BlazorServerTagHelpers.razor" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(SharedFilesRoot)Compiler\taghelpers.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <Import Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.Serialization.Json\Microsoft.AspNetCore.Razor.Serialization.Json.projitems" Label="Shared" />

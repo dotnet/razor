@@ -8,7 +8,7 @@
 
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
-    
+
     <!-- To generate baselines, run tests with /p:GenerateJsonFiles=true -->
     <DefineConstants Condition="'$(GenerateJsonFiles)'=='true'">$(DefineConstants);GENERATE_JSON_FILES</DefineConstants>
 
@@ -19,18 +19,10 @@
 
   <ItemGroup>
     <Compile Remove="Resources\**\*.*" />
-    <Compile Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Language\Legacy\SyntaxNodeWriter.cs" />
-  </ItemGroup>
+    <None Remove="Resources\**\*.*" />
 
-  <ItemGroup>
     <EmbeddedResource Include="Resources\**\*.*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\benchmarks\Microsoft.AspNetCore.Razor.Microbenchmarks\Resources\project.razor.json" Link="Resources\Benchmarking\project.razor.json" />
-    <EmbeddedResource Include="..\..\benchmarks\Microsoft.AspNetCore.Razor.Microbenchmarks\Resources\taghelpers.json" Link="Resources\Benchmarking\taghelpers.json" />
-    <EmbeddedResource Include="..\..\benchmarks\Microsoft.AspNetCore.Razor.Microbenchmarks\Resources\Telerik\Kendo.Mvc.Examples.project.razor.json" Link="Resources\Benchmarking\Kendo.Mvc.Examples.project.razor.json" />
-    <EmbeddedResource Include="..\..\benchmarks\Microsoft.AspNetCore.Razor.Microbenchmarks\Resources\Telerik\Kendo.Mvc.Examples.taghelpers.json" Link="Resources\Benchmarking\Kendo.Mvc.Examples.taghelpers.json" />
+    <EmbeddedResource Include="$(SharedFilesRoot)\Tooling\**\*.*" Link="Resources\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
