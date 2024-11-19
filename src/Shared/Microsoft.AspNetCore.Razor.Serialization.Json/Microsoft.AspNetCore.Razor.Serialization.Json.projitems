@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.AspNetCore.Razor.Serialization.Json</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)JsonDataConvert_ProjectSystem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonDataConvert.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonDataReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonDataReader.Policy.cs" />
