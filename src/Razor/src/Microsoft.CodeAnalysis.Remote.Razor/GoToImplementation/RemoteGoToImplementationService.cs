@@ -66,12 +66,6 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
             return CallHtml;
         }
 
-        if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out var mappedPosition, out _))
-        {
-            // If we can't map to the generated C# file, we're done.
-            return NoFurtherHandling;
-        }
-
         // Finally, call into C#.
         var generatedDocument = await context.Snapshot
             .GetGeneratedDocumentAsync(cancellationToken)
@@ -80,7 +74,7 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
         var locations = await ExternalHandlers.GoToImplementation
             .FindImplementationsAsync(
                 generatedDocument,
-                mappedPosition,
+                positionInfo.Position.ToLinePosition(),
                 supportsVisualStudioExtensions: true,
                 cancellationToken)
             .ConfigureAwait(false);
