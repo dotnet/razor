@@ -27,12 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\shared\JsonReaderExtensions.cs" LinkBase="Shared" />
-    <Compile Include="..\..\shared\RazorDiagnosticJsonConverter.cs" LinkBase="Shared" />
-    <Compile Include="..\..\shared\TagHelperDescriptorJsonConverter.cs" LinkBase="Shared" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="TestFiles\**\*" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
