@@ -26,7 +26,6 @@
 //#define WRITE_JSON_FILES
 
 using System.Collections.Immutable;
-using System.IO;
 using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Language;
@@ -51,7 +50,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
 
         // Read tag helpers from JSON
-        var originalProjectInfo = DeserializeProjectInfoFromJsonBytes(resourceBytes);
+        var originalProjectInfo = JsonDataConvert.DeserializeProjectInfo(resourceBytes);
 
         var options = MessagePackSerializerOptions.Standard
             .WithResolver(CompositeResolver.Create(
@@ -75,7 +74,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
 
         // Read tag helpers from JSON
-        var originalTagHelpers = DeserializeTagHelpersFromJsonBytes(resourceBytes);
+        var originalTagHelpers = JsonDataConvert.DeserializeTagHelperArray(resourceBytes);
 
         var options = MessagePackSerializerOptions.Standard.WithResolver(
             CompositeResolver.Create(
@@ -99,19 +98,19 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
 
         // Read tag helpers from JSON
-        var originalProjectInfo = DeserializeProjectInfoFromJsonBytes(resourceBytes);
+        var originalProjectInfo = JsonDataConvert.DeserializeProjectInfo(resourceBytes);
 
 #if WRITE_JSON_FILES
-        SerializeProjectInfoToJsonFile(resourceName, originalProjectInfo);
+        JsonDataConvert.SerializeToFile(originalProjectInfo, GetDesktopFilePath(resourceName), indented: true);
 #endif
 
         // Act
 
         // Serialize to JSON
-        var jsonText = JsonDataConvert.SerializeObject(originalProjectInfo, ObjectWriters.WriteProperties);
+        var jsonText = JsonDataConvert.Serialize(originalProjectInfo);
 
-        // Deserialize from message pack
-        var actualProjectInfo = JsonDataConvert.DeserializeObject(jsonText, ObjectReaders.ReadProjectInfoFromProperties);
+        // Deserialize from JSON
+        var actualProjectInfo = JsonDataConvert.DeserializeProjectInfo(jsonText);
         Assert.NotNull(actualProjectInfo);
 
         // Assert
@@ -133,63 +132,26 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, folderName);
 
         // Read tag helpers from JSON
-        var originalTagHelpers = DeserializeTagHelpersFromJsonBytes(resourceBytes);
+        var originalTagHelpers = JsonDataConvert.DeserializeTagHelperArray(resourceBytes);
 
 #if WRITE_JSON_FILES
-        SerializeTagHelpersToJsonFile(resourceName, originalTagHelpers);
+        JsonDataConvert.SerializeToFile(originalTagHelpers, GetDesktopFilePath(resourceName), indented: true);
 #endif
 
         // Act
 
         // Serialize to JSON
-        var jsonText = JsonDataConvert.SerializeData(
-            dataWriter => dataWriter.WriteArray(originalTagHelpers, ObjectWriters.Write));
+        var jsonText = JsonDataConvert.Serialize(originalTagHelpers);
 
         // Deserialize from JSON
-        var actualTagHelpers = JsonDataConvert.DeserializeData(jsonText,
-            r => r.ReadImmutableArray(ObjectReaders.ReadTagHelper));
+        var actualTagHelpers = JsonDataConvert.DeserializeTagHelperArray(jsonText);
 
         // Assert
         Assert.Equal<TagHelperDescriptor>(originalTagHelpers, actualTagHelpers);
     }
 
-    private static RazorProjectInfo DeserializeProjectInfoFromJsonBytes(byte[] resourceBytes)
-    {
-        using var stream = new MemoryStream(resourceBytes);
-        using var streamReader = new StreamReader(stream);
-
-        var originalProjectInfo = JsonDataConvert.DeserializeObject(streamReader, ObjectReaders.ReadProjectInfoFromProperties);
-        Assert.NotNull(originalProjectInfo);
-
-        return originalProjectInfo;
-    }
-
-    private static ImmutableArray<TagHelperDescriptor> DeserializeTagHelpersFromJsonBytes(byte[] resourceBytes)
-    {
-        using var stream = new MemoryStream(resourceBytes);
-        using var streamReader = new StreamReader(stream);
-
-        return JsonDataConvert.DeserializeData(streamReader,
-            static r => r.ReadImmutableArray(ObjectReaders.ReadTagHelper));
-    }
-
 #if WRITE_JSON_FILES
-    private static void SerializeProjectInfoToJsonFile(string fileName, RazorProjectInfo projectInfo)
-    {
-        var filePath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory), fileName);
-        using var streamWriter = new StreamWriter(filePath);
-
-        JsonDataConvert.SerializeObject(streamWriter, projectInfo, ObjectWriters.WriteProperties);
-    }
-
-    private static void SerializeTagHelpersToJsonFile(string fileName, ImmutableArray<TagHelperDescriptor> tagHelpers)
-    {
-        var filePath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory), fileName);
-        using var streamWriter = new StreamWriter(filePath);
-
-        JsonDataConvert.SerializeData(streamWriter,
-            w => w.WriteArray(tagHelpers,
-                static (w, v) => ObjectWriters.Write(w, v)));
-    }
+    private static string GetDesktopFilePath(string fileName)
+        => System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory), fileName);
 #endif
 }

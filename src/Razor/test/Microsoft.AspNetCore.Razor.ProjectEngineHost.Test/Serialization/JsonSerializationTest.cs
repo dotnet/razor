@@ -4,31 +4,21 @@
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
-using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
-public class SerializationTest : ToolingTestBase
+public class JsonSerializationTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private readonly RazorConfiguration _configuration;
-    private readonly ProjectWorkspaceState _projectWorkspaceState;
+    private readonly RazorConfiguration _configuration = new(RazorLanguageVersion.Experimental, ConfigurationName: "Custom", [new("TestExtension")]);
 
-    public SerializationTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        var languageVersion = RazorLanguageVersion.Experimental;
-
-        _configuration = new(languageVersion, "Custom", [new("TestExtension")]);
-        _projectWorkspaceState = ProjectWorkspaceState.Create(
-            tagHelpers: [TagHelperDescriptorBuilder.Create("Test", "TestAssembly").Build()],
-            csharpLanguageVersion: LanguageVersion.LatestMajor);
-    }
+    private readonly ProjectWorkspaceState _projectWorkspaceState = ProjectWorkspaceState.Create(
+        tagHelpers: [TagHelperDescriptorBuilder.Create("Test", "TestAssembly").Build()],
+        csharpLanguageVersion: LanguageVersion.LatestMajor);
 
     [Fact]
     public void RazorProjectInfo_InvalidVersionThrows()
@@ -43,7 +33,7 @@ public class SerializationTest : ToolingTestBase
             _projectWorkspaceState,
             documents: []);
 
-        var jsonText = JsonDataConvert.SerializeObject(projectInfo, ObjectWriters.WriteProperties);
+        var jsonText = JsonDataConvert.Serialize(projectInfo);
         Assert.NotNull(jsonText);
 
         var serializedJObject = JObject.Parse(jsonText);
@@ -56,7 +46,7 @@ public class SerializationTest : ToolingTestBase
         RazorProjectInfo? deserializedProjectInfo = null;
         Assert.Throws<RazorProjectInfoSerializationException>(() =>
         {
-            deserializedProjectInfo = JsonDataConvert.DeserializeObject(updatedJsonText, ObjectReaders.ReadProjectInfoFromProperties);
+            deserializedProjectInfo = JsonDataConvert.DeserializeProjectInfo(updatedJsonText);
         });
 
         // Assert
@@ -76,7 +66,7 @@ public class SerializationTest : ToolingTestBase
             _projectWorkspaceState,
             documents: []);
 
-        var jsonText = JsonDataConvert.SerializeObject(projectInfo, ObjectWriters.WriteProperties);
+        var jsonText = JsonDataConvert.Serialize(projectInfo);
         Assert.NotNull(jsonText);
 
         var serializedJObject = JObject.Parse(jsonText);
@@ -89,7 +79,7 @@ public class SerializationTest : ToolingTestBase
         RazorProjectInfo? deserializedProjectInfo = null;
         Assert.Throws<RazorProjectInfoSerializationException>(() =>
         {
-            deserializedProjectInfo = JsonDataConvert.DeserializeObject(updatedJsonText, ObjectReaders.ReadProjectInfoFromProperties);
+            deserializedProjectInfo = JsonDataConvert.DeserializeProjectInfo(updatedJsonText);
         });
 
         // Assert
@@ -111,11 +101,11 @@ public class SerializationTest : ToolingTestBase
             _projectWorkspaceState,
             documents: [legacyDocument, componentDocument]);
 
-        var jsonText = JsonDataConvert.SerializeObject(projectInfo, ObjectWriters.WriteProperties);
+        var jsonText = JsonDataConvert.Serialize(projectInfo);
         Assert.NotNull(jsonText);
 
         // Act
-        var deserializedProjectInfo = JsonDataConvert.DeserializeObject(jsonText, ObjectReaders.ReadProjectInfoFromProperties);
+        var deserializedProjectInfo = JsonDataConvert.DeserializeProjectInfo(jsonText);
         Assert.NotNull(deserializedProjectInfo);
 
         // Assert
@@ -142,11 +132,11 @@ public class SerializationTest : ToolingTestBase
     public void RazorConfiguration_CanRoundTrip()
     {
         // Arrange
-        var jsonText = JsonDataConvert.SerializeObject(_configuration, ObjectWriters.WriteProperties);
+        var jsonText = JsonDataConvert.Serialize(_configuration);
         Assert.NotNull(jsonText);
 
         // Act
-        var deserializedConfiguration = JsonDataConvert.DeserializeObject(jsonText, ObjectReaders.ReadConfigurationFromProperties);
+        var deserializedConfiguration = JsonDataConvert.DeserializeConfiguration(jsonText);
 
         // Assert
         Assert.Equal(_configuration, deserializedConfiguration);
