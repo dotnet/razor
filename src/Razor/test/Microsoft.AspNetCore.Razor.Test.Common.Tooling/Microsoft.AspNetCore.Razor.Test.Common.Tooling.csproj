@@ -8,7 +8,6 @@
 
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
-    <DefineConstants>$(DefineConstants);__RemoveThisBitTo__GENERATE_BASELINES</DefineConstants>
 
     <!-- We only import JSON serialization on non-NetFx.
          For NetFx, we rely on the JSON serialization compiled into Microsoft.VisualStudio.LanguageService.Razor for Live Share. -->
