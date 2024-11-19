@@ -13,15 +13,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 /// <summary>
 /// ILogger implementation that logs via the window/logMessage LSP method
 /// </summary>
-internal class LspLogger(string categoryName, LogLevel logLevel, IClientConnection clientConnection) : ILogger
+internal class LspLogger(string categoryName, LogLevelProvider logLevelProvider, IClientConnection clientConnection) : ILogger
 {
-    private readonly LogLevel _logLevel = logLevel;
+    private LogLevel LogLevel => logLevelProvider.GetLogLevel();
     private readonly string _categoryName = categoryName;
     private readonly IClientConnection _clientConnection = clientConnection;
 
     public bool IsEnabled(LogLevel logLevel)
     {
-        return logLevel.IsAtLeast(_logLevel);
+        return logLevel.IsAtLeast(LogLevel);
     }
 
     public void Log(LogLevel logLevel, string message, Exception? exception)

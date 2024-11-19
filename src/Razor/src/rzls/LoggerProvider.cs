@@ -6,13 +6,12 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LoggerProvider(LogLevel logLevel, IClientConnection clientConnection) : ILoggerProvider
+internal class LoggerProvider(LogLevelProvider logLevelProvider, IClientConnection clientConnection) : ILoggerProvider
 {
-    private readonly LogLevel _logLevel = logLevel;
     private readonly IClientConnection _clientConnection = clientConnection;
 
     public ILogger CreateLogger(string categoryName)
     {
-        return new LspLogger(categoryName, _logLevel, _clientConnection);
+        return new LspLogger(categoryName, logLevelProvider, _clientConnection);
     }
 }
