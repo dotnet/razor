@@ -8,10 +8,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class LoggerProvider(LogLevelProvider logLevelProvider, IClientConnection clientConnection) : ILoggerProvider
 {
-    private readonly IClientConnection _clientConnection = clientConnection;
-
     public ILogger CreateLogger(string categoryName)
     {
-        return new LspLogger(categoryName, logLevelProvider, _clientConnection);
+        return new LspLogger(categoryName, logLevelProvider, clientConnection);
     }
 }
