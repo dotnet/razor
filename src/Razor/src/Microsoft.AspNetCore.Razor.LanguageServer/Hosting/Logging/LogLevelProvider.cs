@@ -4,15 +4,9 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Logging;
 
 internal class LogLevelProvider(LogLevel logLevel)
 {
-    private int _logLevel = (int)logLevel;
-
-    internal LogLevel GetLogLevel()
-        => (LogLevel)_logLevel;
-
-    internal void SetLogLevel(LogLevel logLevel)
-        => Interlocked.Exchange(ref _logLevel, (int)logLevel);
+    public LogLevel Current { get; set; } = logLevel;
 }

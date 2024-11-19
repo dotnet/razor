@@ -83,8 +83,7 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <ProjectReference
-      Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -99,6 +98,10 @@
     <Content Include=".\Targets\Rules\*.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Endpoints\" />
   </ItemGroup>
 
   <Target Name="PackPublishContent" DependsOnTargets="Publish">

@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Logging;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
@@ -15,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 /// </summary>
 internal class LspLogger(string categoryName, LogLevelProvider logLevelProvider, IClientConnection clientConnection) : ILogger
 {
-    private LogLevel LogLevel => logLevelProvider.GetLogLevel();
+    private LogLevel LogLevel => logLevelProvider.Current;
     private readonly string _categoryName = categoryName;
     private readonly IClientConnection _clientConnection = clientConnection;
 

@@ -4,10 +4,10 @@
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Endpoints;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Logging;
 
 /// <summary>
 /// Request parameters for updating the log level in the server dynamically.
 /// </summary>
-/// <param name="LogLevelValue">the string value of the <see cref="LogLevel"/> enum</param>
-internal record class UpdateLogLevelParams([property: JsonPropertyName("logLevel")] string LogLevelValue);
+/// <param name="LogLevel">the int value of the <see cref="LogLevel"/> enum</param>
+internal record class UpdateLogLevelParams([property: JsonPropertyName("logLevel")] int LogLevel);
