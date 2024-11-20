@@ -32,6 +32,15 @@ namespace Microsoft.AspNetCore.Razor.Utilities;
 internal class AsyncBatchingWorkQueue<TItem, TResult>
 {
     /// <summary>
+    /// Fired when all batches have finished being processed, and the queue is waiting for an AddWork call.
+    /// </summary>
+    /// <remarks>
+    /// This is a best-effort signal with no guarantee that more work won't be queued, and hence the queue
+    /// going non-idle, immediately after (or during!) the event firing.
+    /// </remarks>
+    public event EventHandler? Idle;
+
+    /// <summary>
     /// Delay we wait after finishing the processing of one batch and starting up on then.
     /// </summary>
     private readonly TimeSpan _delay;
@@ -210,7 +219,17 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
             // then reset that bool back to false
             await Task.Yield().ConfigureAwait(false);
             await Task.Delay(_delay, _entireQueueCancellationToken).ConfigureAwait(false);
-            return await ProcessNextBatchAsync().ConfigureAwait(false);
+            var result = await ProcessNextBatchAsync().ConfigureAwait(false);
+
+            // Not worried about the lock here because we don't want to fire the event under the lock, which means
+            // there is no effective way to avoid a race. The event doesn't guarantee that there will never be any
+            // more work anyway, it's merely a best effort.
+            if (_nextBatch.Count == 0)
+            {
+                Idle?.Invoke(this, EventArgs.Empty);
+            }
+
+            return result;
         }
     }
 

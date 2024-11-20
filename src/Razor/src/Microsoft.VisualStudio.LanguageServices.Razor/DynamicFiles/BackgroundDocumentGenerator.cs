@@ -55,6 +55,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<(IProjectSnapshot, IDocumentSnapshot)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
+        _workQueue.Idle += (_, _) => RazorEventSource.Instance.BackgroundDocumentGeneratorIdle();
         _suppressedDocuments = ImmutableHashSet<string>.Empty.WithComparer(FilePathComparer.Instance);
         _projectManager.Changed += ProjectManager_Changed;
     }
