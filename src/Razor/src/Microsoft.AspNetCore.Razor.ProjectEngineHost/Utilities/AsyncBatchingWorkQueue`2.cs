@@ -32,15 +32,6 @@ namespace Microsoft.AspNetCore.Razor.Utilities;
 internal class AsyncBatchingWorkQueue<TItem, TResult>
 {
     /// <summary>
-    /// Fired when all batches have finished being processed, and the queue is waiting for an AddWork call.
-    /// </summary>
-    /// <remarks>
-    /// This is a best-effort signal with no guarantee that more work won't be queued, and hence the queue
-    /// going non-idle, immediately after (or during!) the event firing.
-    /// </remarks>
-    public event EventHandler? Idle;
-
-    /// <summary>
     /// Delay we wait after finishing the processing of one batch and starting up on then.
     /// </summary>
     private readonly TimeSpan _delay;
@@ -49,6 +40,15 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
     /// Equality comparer uses to dedupe items if present.
     /// </summary>
     private readonly IEqualityComparer<TItem>? _equalityComparer;
+
+    /// <summary>
+    /// Fired when all batches have finished being processed, and the queue is waiting for an AddWork call.
+    /// </summary>
+    /// <remarks>
+    /// This is a best-effort signal with no guarantee that more work won't be queued, and hence the queue
+    /// going non-idle, immediately after (or during!) the event firing.
+    /// </remarks>
+    private readonly Action? _idleAction;
 
     /// <summary>
     /// Callback to actually perform the processing of the next batch of work.
@@ -115,11 +115,13 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
         TimeSpan delay,
         Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
         IEqualityComparer<TItem>? equalityComparer,
+        Action? idleAction,
         CancellationToken cancellationToken)
     {
         _delay = delay;
         _processBatchAsync = processBatchAsync;
         _equalityComparer = equalityComparer;
+        _idleAction = idleAction;
         _entireQueueCancellationToken = cancellationToken;
 
         _uniqueItems = new HashSet<TItem>(equalityComparer);
@@ -224,9 +226,9 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
             // Not worried about the lock here because we don't want to fire the event under the lock, which means
             // there is no effective way to avoid a race. The event doesn't guarantee that there will never be any
             // more work anyway, it's merely a best effort.
-            if (_nextBatch.Count == 0)
+            if (_idleAction is { } idleAction && _nextBatch.Count == 0)
             {
-                Idle?.Invoke(this, EventArgs.Empty);
+                idleAction();
             }
 
             return result;
