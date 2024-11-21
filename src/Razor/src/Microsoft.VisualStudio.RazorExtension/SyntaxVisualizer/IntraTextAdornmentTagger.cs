@@ -141,12 +141,9 @@ internal abstract class IntraTextAdornmentTagger<TData, TAdornment>
         var visibleSpan = view.TextViewLines.FormattedSpan;
 
         // Filter out the adornments that are no longer visible.
-        var toRemove = from keyValuePair
-            in _adornmentCache
-#pragma warning disable format
-            where !keyValuePair.Key.TranslateTo(visibleSpan.Snapshot, SpanTrackingMode.EdgeExclusive).IntersectsWith(visibleSpan)
-            select keyValuePair.Key;
-#pragma warning restore format
+        var toRemove = from keyValuePair in _adornmentCache
+                       where !keyValuePair.Key.TranslateTo(visibleSpan.Snapshot, SpanTrackingMode.EdgeExclusive).IntersectsWith(visibleSpan)
+                       select keyValuePair.Key;
 
         foreach (var span in toRemove)
         {
