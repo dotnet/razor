@@ -36,13 +36,12 @@ internal static partial class ObjectReaders
 
     public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonDataReader reader)
     {
+        var tagHelpers = reader.ReadImmutableArrayOrEmpty(nameof(ProjectWorkspaceState.TagHelpers),
+            static r => ReadTagHelper(r
 #if JSONSERIALIZATION_ENABLETAGHELPERCACHE
-        var tagHelpers = reader.ReadImmutableArrayOrEmpty(nameof(ProjectWorkspaceState.TagHelpers),
-            static r => ReadTagHelper(r, useCache: true));
-#else
-        var tagHelpers = reader.ReadImmutableArrayOrEmpty(nameof(ProjectWorkspaceState.TagHelpers),
-            static r => ReadTagHelper(r));
+                , useCache: true
 #endif
+            ));
 
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32OrZero(nameof(ProjectWorkspaceState.CSharpLanguageVersion));
 
