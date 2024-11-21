@@ -5,13 +5,11 @@ namespace Microsoft.CodeAnalysis.Razor.Logging;
 
 internal enum LogLevel
 {
-#pragma warning disable format
-    None        = 0,
-    Trace       = 1,
-    Debug       = 2,
+    None = 0,
+    Trace = 1,
+    Debug = 2,
     Information = 3,
-    Warning     = 4,
-    Error       = 5,
-    Critical    = 6,
-#pragma warning restore format
+    Warning = 4,
+    Error = 5,
+    Critical = 6,
 }
