@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -51,16 +50,14 @@ public class GenerateJsonFiles(ITestOutputHelper testOutput) : ToolingTestBase(t
     }
 
     // This updates shared JSON files
+#if GENERATE_JSON_FILES
     [Theory]
+#else
+    [Theory(Skip = "Run with /p:GenerateJsonFiles=true or uncomment #define GENERATE_JSON_FILES to run this test.")]
+#endif
     [MemberData(nameof(JsonFiles))]
     public void GenerateNewJsonFiles(JsonFile jsonFile)
     {
-        if (!ShouldGenerate)
-        {
-            Logger.LogInformation("Did not generate new JSON files.");
-            return;
-        }
-
         var filePath = Path.Combine([GetSharedFilesRoot(), .. jsonFile.PathParts]);
 
         if (jsonFile.IsRazorProjectInfo)
