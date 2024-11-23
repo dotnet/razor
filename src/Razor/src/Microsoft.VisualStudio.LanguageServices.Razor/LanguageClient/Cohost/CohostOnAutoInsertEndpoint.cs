@@ -67,14 +67,14 @@ internal class CohostOnAutoInsertEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.SupportsVisualStudioExtensions)
         {
             return [new Registration
             {
                 Method = VSInternalMethods.OnAutoInsertName,
-                RegisterOptions = new VSInternalDocumentOnAutoInsertOptions()
+                RegisterOptions = new VSInternalDocumentOnAutoInsertRegistrationOptions()
                     .EnableOnAutoInsert(_triggerCharacters)
             }];
         }

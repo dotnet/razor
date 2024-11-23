@@ -6,11 +6,12 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -22,6 +23,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
     private readonly Dictionary<string, DocumentSnapshot> _filePathToDocumentMap = new(FilePathNormalizingComparer.Instance);
 
     public HostProject HostProject => _state.HostProject;
+    public LanguageServerFeatureOptions LanguageServerFeatureOptions => _state.LanguageServerFeatureOptions;
 
     public ProjectKey Key => _state.HostProject.Key;
     public RazorConfiguration Configuration => _state.HostProject.Configuration;
@@ -31,6 +33,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
     public string? RootNamespace => _state.HostProject.RootNamespace;
     public string DisplayName => _state.HostProject.DisplayName;
     public VersionStamp Version => _state.Version;
+    public LanguageVersion CSharpLanguageVersion => _state.CSharpLanguageVersion;
     public ProjectWorkspaceState ProjectWorkspaceState => _state.ProjectWorkspaceState;
 
     public int DocumentCount => _state.Documents.Count;
@@ -100,7 +103,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
     /// </summary>
     public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
     {
-        var targetPath = document.TargetPath.AssumeNotNull();
+        var targetPath = document.TargetPath;
 
         if (!_state.ImportsToRelatedDocuments.TryGetValue(targetPath, out var relatedDocuments))
         {

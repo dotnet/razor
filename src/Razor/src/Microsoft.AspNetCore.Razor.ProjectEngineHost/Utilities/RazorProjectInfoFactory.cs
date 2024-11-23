@@ -18,12 +18,17 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal static class RazorProjectInfoFactory
 {
+    internal readonly record struct ConversionResult(RazorProjectInfo? ProjectInfo, string? Reason)
+    {
+        [MemberNotNullWhen(true, nameof(ProjectInfo))]
+        public bool Succeeded => ProjectInfo is not null;
+    }
+
     private static readonly StringComparison s_stringComparison;
 
     static RazorProjectInfoFactory()
@@ -33,18 +38,18 @@ internal static class RazorProjectInfoFactory
             : StringComparison.OrdinalIgnoreCase;
     }
 
-    public static async Task<RazorProjectInfo?> ConvertAsync(Project project, CancellationToken cancellationToken)
+    public static async Task<ConversionResult> ConvertAsync(Project project, CancellationToken cancellationToken)
     {
         var projectPath = Path.GetDirectoryName(project.FilePath);
         if (projectPath is null)
         {
-            return null;
+            return new(null, "Failed to get directory name from project path");
         }
 
         var intermediateOutputPath = Path.GetDirectoryName(project.CompilationOutputInfo.AssemblyPath);
         if (intermediateOutputPath is null)
         {
-            return null;
+            return new(null, "Failed to get intermediate output path");
         }
 
         // First, lets get the documents, because if there aren't any, we can skip out early
@@ -53,17 +58,15 @@ internal static class RazorProjectInfoFactory
         // Not a razor project
         if (documents.Length == 0)
         {
-            return null;
+            return new(null, "No razor documents in project");
         }
 
-        var csharpParseOptions = project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
-        var csharpLanguageVersion = csharpParseOptions.LanguageVersion;
-        var useRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer();
+        var csharpLanguageVersion = (project.ParseOptions as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.Default;
 
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (compilation is null)
         {
-            return null;
+            return new(null, "Failed to get compilation for project");
         }
 
         var options = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
@@ -79,7 +82,6 @@ internal static class RazorProjectInfoFactory
 
             builder.SetCSharpLanguageVersion(csharpLanguageVersion);
             builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too!
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, csharpParseOptions));
         };
 
         var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration);
@@ -91,9 +93,9 @@ internal static class RazorProjectInfoFactory
 
         var tagHelpers = await project.GetTagHelpersAsync(engine, NoOpTelemetryReporter.Instance, cancellationToken).ConfigureAwait(false);
 
-        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
+        var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
 
-        return new RazorProjectInfo(
+        var projectInfo = new RazorProjectInfo(
             projectKey: new ProjectKey(intermediateOutputPath),
             filePath: project.FilePath!,
             configuration: configuration,
@@ -101,6 +103,8 @@ internal static class RazorProjectInfoFactory
             displayName: project.Name,
             projectWorkspaceState: projectWorkspaceState,
             documents: documents);
+
+        return new(projectInfo, null);
     }
 
     private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, Compilation compilation, out string defaultNamespace)

@@ -52,7 +52,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         _lazyProjectEngine = new AsyncLazy<RazorProjectEngine>(async () =>
         {
             var configuration = await _lazyConfiguration.GetValueAsync();
-            var csharpParseOptions = project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
+            var useRoslynTokenizer = SolutionSnapshot.SnapshotManager.LanguageServerFeatureOptions.UseRoslynTokenizer;
             return ProjectEngineFactories.DefaultProvider.Create(
                 configuration,
                 rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
@@ -61,7 +61,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
                     builder.SetRootNamespace(RootNamespace);
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
-                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: csharpParseOptions.UseRoslynTokenizer(), csharpParseOptions));
+                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, CSharpParseOptions.Default));
                 });
         },
         joinableTaskFactory: null);
@@ -83,6 +83,8 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     public string DisplayName => _project.Name;
 
     public VersionStamp Version => _project.Version;
+
+    public Project Project => _project;
 
     public LanguageVersion CSharpLanguageVersion => ((CSharpParseOptions)_project.ParseOptions.AssumeNotNull()).LanguageVersion;
 

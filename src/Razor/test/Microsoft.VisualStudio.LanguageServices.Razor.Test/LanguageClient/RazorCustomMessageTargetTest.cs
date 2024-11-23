@@ -64,7 +64,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);
@@ -75,7 +75,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         };
 
         // Act & Assert
-        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
+        await target.UpdateCSharpBufferCoreAsync(request, DisposalToken);
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);
@@ -118,7 +118,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         };
 
         // Act
-        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
+        await target.UpdateCSharpBufferCoreAsync(request, DisposalToken);
 
         // Assert
         documentManager.VerifyAll();
@@ -159,7 +159,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true),
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);
@@ -172,7 +172,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         };
 
         // Act
-        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
+        await target.UpdateCSharpBufferCoreAsync(request, DisposalToken);
 
         // Assert
         documentManager.VerifyAll();
@@ -200,7 +200,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);
@@ -282,7 +282,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             telemetryReporter.Object,
             TestLanguageServerFeatureOptions.Instance,
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);
@@ -369,7 +369,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             telemetryReporter.Object,
             TestLanguageServerFeatureOptions.Instance,
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);
@@ -411,7 +411,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);
@@ -460,7 +460,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);
@@ -542,7 +542,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             telemetryReporter.Object,
             TestLanguageServerFeatureOptions.Instance,
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);
@@ -625,7 +625,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             telemetryReporter.Object,
             TestLanguageServerFeatureOptions.Instance,
             StrictMock.Of<IProjectSnapshotManager>(),
-            new SnippetCache(),
+            new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
             LoggerFactory);

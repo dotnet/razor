@@ -23,7 +23,7 @@ internal class RazorCohostDynamicRegistrationService(
     Lazy<RazorCohostClientCapabilitiesService> lazyRazorCohostClientCapabilitiesService)
     : IRazorCohostDynamicRegistrationService
 {
-    private readonly DocumentFilter[] _filter = [new DocumentFilter()
+    private static readonly DocumentFilter[] s_filter = [new DocumentFilter()
     {
         Language = Constants.RazorLanguageName,
         Pattern = "**/*.{razor,cshtml}"
@@ -50,10 +50,15 @@ internal class RazorCohostDynamicRegistrationService(
 
         foreach (var provider in _lazyRegistrationProviders)
         {
-            foreach (var registration in provider.Value.GetRegistrations(clientCapabilities, _filter, requestContext))
+            foreach (var registration in provider.Value.GetRegistrations(clientCapabilities, requestContext))
             {
                 // We don't unregister anything, so we don't need to do anything interesting with Ids
                 registration.Id = Guid.NewGuid().ToString();
+                if (registration.RegisterOptions is ITextDocumentRegistrationOptions options)
+                {
+                    options.DocumentSelector = s_filter;
+                }
+
                 registrations.Add(registration);
             }
         }

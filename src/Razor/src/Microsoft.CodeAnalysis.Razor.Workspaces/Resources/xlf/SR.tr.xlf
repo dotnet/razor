@@ -12,6 +12,11 @@
         <target state="translated">Etiketten bileşen oluştur</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blazor_directive_attributes">
+        <source>Blazor directive attributes</source>
+        <target state="translated">Blazor yönergesi öznitelikleri</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Diagnostics_after">
         <source>Diagnostics after:</source>
         <target state="translated">Şundan sonraki tanılama:</target>
@@ -99,6 +104,11 @@
         <target state="translated">{1} / '{2}' aralığının dışındaki '{0}' satırı sorgulandı. Belge güncel olmayabilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="translated">deyim</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Razor TagHelper Öznitelik Karakteri</target>
@@ -107,6 +117,11 @@
       <trans-unit id="TagHelper_Element_Glyph">
         <source>Razor TagHelper Element Glyph</source>
         <target state="translated">Razor TagHelper Element Karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="translated">"Tamamlamaları yeniden tetikleyin..."</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
