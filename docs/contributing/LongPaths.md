@@ -34,19 +34,6 @@ Either import / execute [/eng/enable-long-path.reg] or invoke the following powe
 New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value "1" -PropertyType DWORD -Force
 ```
 
-### Use [subst] to shorten your local path
-> :warning: While this might work in your particular environment, chances are high that future changes might introduce even longer paths, which might then again result in above errors.
-> Also, [subst] has no way to make a substitution permanent, so you might need to repeat this step after reboots, or ensure it get's executed at startup.
->
-If you don't want to / can't enable long path support globally, try shortening your local path with [subst] where `R` is a free drive-letter, e.g.:
-
-> ```ps1
-> $dir = pwd
-> subst R: $dir
-> cd R:\
-> ```
-
 [git long paths]:https://stackoverflow.com/questions/22575662/filename-too-long-in-git-for-windows
 [windows long paths support]:https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry#enable-long-paths-in-windows-10-version-1607-and-later
-[subst]:https://learn.microsoft.com/de-de/windows-server/administration/windows-commands/subst
 [/eng/enable-long-path.reg]:../../eng/enable-long-paths.reg

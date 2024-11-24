@@ -23,6 +23,7 @@ Building Razor on Windows requires:
 - Windows 10, version 1803 or newer
 - At least 10 GB of disk space and a good internet connection (our build scripts download a lot of tools and dependencies)
 - Git. <https://git-scm.org>
+- [LongPaths](LongPaths.md) to be enabled
 
 ### macOS/Linux
 
@@ -80,17 +81,6 @@ Executing `.\restore.cmd` or `.\build.cmd` may produce these errors:
 > error MSB4236: The SDK 'Microsoft.NET.Sdk' specified could not be found.
 
 In most cases, this is because the option _Use previews of the .NET Core SDK_ in VS2019 is not checked. Start Visual Studio, go to _Tools > Options_ and check _Use previews of the .NET Core SDK_ under _Environment > Preview Features_.
-
-### Common error: path too long (on windows)
-If you encounter errors pointing to `path-too-long` errors, like:
-```
-Path: {{SOME-PATH}} exceeds the OS max path limit. The fully qualified file name must be less than 260 characters.
-```
-or
-```
-error LongPathsDisabled: Long paths are required for this project. See 'docs/contributing/LongPaths.md'.
-```
-see [LongPaths](LongPaths.md) on how to deal with this.
 
 ## Building with Visual Studio Code
 
