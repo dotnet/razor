@@ -9,7 +9,12 @@
       </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
-        <target state="new">Create component from tag</target>
+        <target state="translated">Vytvořit komponentu ze značky</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blazor_directive_attributes">
+        <source>Blazor directive attributes</source>
+        <target state="translated">Atributy direktivy Blazor</target>
         <note />
       </trans-unit>
       <trans-unit id="Diagnostics_after">
@@ -46,12 +51,12 @@
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
-        <target state="new">Extract block to code behind</target>
+        <target state="translated">Extrahovat blok do kódu na pozadí</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_Component_Title">
         <source>Extract element to new component</source>
-        <target state="new">Extract element to new component</target>
+        <target state="translated">Extrahovat element do nové komponenty</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
@@ -66,12 +71,12 @@
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
         <source>Generate Async Event Handler '{0}'</source>
-        <target state="new">Generate Async Event Handler '{0}'</target>
+        <target state="translated">Generovat asynchronní obslužnou rutinu události {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Event_Handler_Title">
         <source>Generate Event Handler '{0}'</source>
-        <target state="new">Generate Event Handler '{0}'</target>
+        <target state="translated">Generovat obslužnou rutinu události {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_Offset">
@@ -99,6 +104,11 @@
         <target state="translated">Proběhl dotaz na řádek {0} mimo rozsah {1} {2}. Dokument nemusí být aktuální.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="translated">příkaz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Piktogram atributu Razor TagHelper</target>
@@ -107,6 +117,11 @@
       <trans-unit id="TagHelper_Element_Glyph">
         <source>Razor TagHelper Element Glyph</source>
         <target state="translated">Piktogram elementu Razor TagHelper</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="translated">Aktivovat znovu dokončení…</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">

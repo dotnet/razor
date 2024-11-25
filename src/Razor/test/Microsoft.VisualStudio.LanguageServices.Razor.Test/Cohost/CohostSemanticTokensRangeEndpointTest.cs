@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Settings;
-using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Utilities;
@@ -97,8 +96,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         var legend = TestRazorSemanticTokensLegendService.Instance;
 
         // We need to manually initialize the OOP service so we can get semantic token info later
-        var legendService = OOPExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
-        legendService.SetLegend(legend.TokenTypes.All, legend.TokenModifiers.All);
+        UpdateClientLSPInitializationOptions(options => options with { TokenTypes = legend.TokenTypes.All, TokenModifiers = legend.TokenModifiers.All });
 
         // Update the client initialization options to control the precise ranges option
         UpdateClientInitializationOptions(c => c with { UsePreciseSemanticTokenRanges = precise });

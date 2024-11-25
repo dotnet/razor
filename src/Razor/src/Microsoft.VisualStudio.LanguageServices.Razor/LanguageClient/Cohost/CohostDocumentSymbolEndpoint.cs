@@ -30,7 +30,7 @@ internal class CohostDocumentSymbolEndpoint(IRemoteServiceInvoker remoteServiceI
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.DocumentSymbol?.DynamicRegistration == true)
         {
@@ -40,9 +40,6 @@ internal class CohostDocumentSymbolEndpoint(IRemoteServiceInvoker remoteServiceI
             {
                 Method = Methods.TextDocumentDocumentSymbolName,
                 RegisterOptions = new DocumentSymbolRegistrationOptions()
-                {
-                    DocumentSelector = filter
-                }
             }];
         }
 

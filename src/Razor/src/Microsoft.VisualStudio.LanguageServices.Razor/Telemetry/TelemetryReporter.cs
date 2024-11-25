@@ -20,7 +20,7 @@ using System.Linq;
 
 namespace Microsoft.VisualStudio.Razor.Telemetry;
 
-internal abstract partial class TelemetryReporter : ITelemetryReporter
+internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposable
 {
     private const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
     private const string AspNetCoreNamespace = nameof(Microsoft) + "." + nameof(AspNetCore);
@@ -42,6 +42,11 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         }
     }
 
+    public void Dispose()
+    {
+        _manager?.Dispose();
+    }
+
     internal static string GetEventName(string name) => "dotnet/razor/" + name;
     internal static string GetPropertyName(string name) => "dotnet.razor." + name;
 
@@ -50,11 +55,6 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 #else
     public virtual bool IsEnabled => _manager?.Session.IsOptedIn ?? false;
 #endif
-
-    public void Flush()
-    {
-        _manager?.Flush();
-    }
 
     public void ReportEvent(string name, Severity severity)
     {
@@ -215,7 +215,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 
     protected void SetSession(TelemetrySession session)
     {
-        _manager?.Flush();
+        _manager?.Dispose();
         _manager = TelemetrySessionManager.Create(this, session);
     }
 
@@ -435,7 +435,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             declaringTypeName.StartsWith(AspNetCoreNamespace) ||
             declaringTypeName.StartsWith(MicrosoftVSRazorNamespace);
 
-    private sealed class TelemetrySessionManager
+    private sealed class TelemetrySessionManager : IDisposable
     {
         /// <summary>
         /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
@@ -452,6 +452,12 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
             Session = session;
         }
 
+        public void Dispose()
+        {
+            Flush();
+            Session.Dispose();
+        }
+
         public static TelemetrySessionManager Create(TelemetryReporter telemetryReporter, TelemetrySession session)
             => new(
                 telemetryReporter,
@@ -460,7 +466,7 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
 
         public TelemetrySession Session { get; }
 
-        public void Flush()
+        private void Flush()
         {
             _aggregatingManager.Flush();
             LogRequestCounters();
@@ -469,13 +475,13 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         public void LogRequestTelemetry(string name, string? language, TimeSpan queuedDuration, TimeSpan requestDuration, TelemetryResult result)
         {
             LogAggregated("LSP_TimeInQueue",
+                "TimeInQueue",  // All time in queue events use the same histogram, no need for separate keys
                 (int)queuedDuration.TotalMilliseconds,
-                "TimeInQueue",
                 name);
 
             LogAggregated("LSP_RequestDuration",
+                name, // RequestDuration requests are histogrammed by their unique name
                 (int)requestDuration.TotalMilliseconds,
-                "RequestDuration",
                 name);
 
             _requestCounters.GetOrAdd((name, language), (_) => new Counter()).IncrementCount(result);
@@ -497,13 +503,13 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter
         }
 
         private void LogAggregated(
-            string name,
+            string managerKey,
+            string histogramKey,
             int value,
-            string metricName,
             string method)
         {
-            var aggregatingLog = _aggregatingManager?.GetLog(name);
-            aggregatingLog?.Log(name, value, metricName, method);
+            var aggregatingLog = _aggregatingManager?.GetLog(managerKey);
+            aggregatingLog?.Log(histogramKey, value, method);
         }
 
         private sealed class Counter

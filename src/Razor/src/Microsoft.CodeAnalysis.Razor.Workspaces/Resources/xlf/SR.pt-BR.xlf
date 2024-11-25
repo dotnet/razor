@@ -9,7 +9,12 @@
       </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
-        <target state="new">Create component from tag</target>
+        <target state="translated">Criar componente a partir da marca</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blazor_directive_attributes">
+        <source>Blazor directive attributes</source>
+        <target state="translated">Atributos da diretiva Blazor</target>
         <note />
       </trans-unit>
       <trans-unit id="Diagnostics_after">
@@ -46,12 +51,12 @@
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
-        <target state="new">Extract block to code behind</target>
+        <target state="translated">Extrair o bloco para codificar atrás</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_Component_Title">
         <source>Extract element to new component</source>
-        <target state="new">Extract element to new component</target>
+        <target state="translated">Extrair elemento para o novo componente</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
@@ -66,12 +71,12 @@
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
         <source>Generate Async Event Handler '{0}'</source>
-        <target state="new">Generate Async Event Handler '{0}'</target>
+        <target state="translated">Gerar Manipulador de Eventos Assíncronos '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Event_Handler_Title">
         <source>Generate Event Handler '{0}'</source>
-        <target state="new">Generate Event Handler '{0}'</target>
+        <target state="translated">Gerar manipulador de eventos '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_Offset">
@@ -99,6 +104,11 @@
         <target state="translated">A linha '{0}' fora do intervalo {1} de '{2}' foi consultada. O documento pode não estar atualizado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Statement">
+        <source>statement</source>
+        <target state="translated">instrução</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Atributo Glyph Razor TagHelper</target>
@@ -107,6 +117,11 @@
       <trans-unit id="TagHelper_Element_Glyph">
         <source>Razor TagHelper Element Glyph</source>
         <target state="translated">Elemento Glyph Razor TagHelper</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="translated">"Disparar conclusões novamente..."</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">

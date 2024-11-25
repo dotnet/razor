@@ -24,6 +24,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
     private readonly IProjectSnapshotManager _projectManager;
     private readonly IRazorDynamicFileInfoProviderInternal _infoProvider;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
 
     private readonly CancellationTokenSource _disposeTokenSource;
@@ -49,10 +50,16 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     {
         _projectManager = projectManager;
         _infoProvider = infoProvider;
+        _loggerFactory = loggerFactory;
         _logger = loggerFactory.GetOrCreateLogger<BackgroundDocumentGenerator>();
 
         _disposeTokenSource = new();
-        _workQueue = new AsyncBatchingWorkQueue<(IProjectSnapshot, IDocumentSnapshot)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
+        _workQueue = new AsyncBatchingWorkQueue<(IProjectSnapshot, IDocumentSnapshot)>(
+            delay,
+            processBatchAsync: ProcessBatchAsync,
+            equalityComparer: null,
+            idleAction: RazorEventSource.Instance.BackgroundDocumentGeneratorIdle,
+            _disposeTokenSource.Token);
         _suppressedDocuments = ImmutableHashSet<string>.Empty.WithComparer(FilePathComparer.Instance);
         _projectManager.Changed += ProjectManager_Changed;
     }
@@ -136,7 +143,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
     private bool Suppressed(IProjectSnapshot project, IDocumentSnapshot document)
     {
-        var filePath = document.FilePath.AssumeNotNull();
+        var filePath = document.FilePath;
 
         if (_projectManager.IsDocumentOpen(filePath))
         {
@@ -151,11 +158,11 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
     private void UpdateFileInfo(IProjectSnapshot project, IDocumentSnapshot document)
     {
-        var filePath = document.FilePath.AssumeNotNull();
+        var filePath = document.FilePath;
 
         if (!_suppressedDocuments.Contains(filePath))
         {
-            var container = new DefaultDynamicDocumentContainer(document);
+            var container = new DefaultDynamicDocumentContainer(document, _loggerFactory);
             _infoProvider.UpdateFileInfo(project.Key, container);
         }
     }

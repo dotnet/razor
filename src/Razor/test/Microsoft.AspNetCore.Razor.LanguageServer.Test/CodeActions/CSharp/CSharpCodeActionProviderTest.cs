@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
@@ -65,7 +66,7 @@ public class CSharpCodeActionProviderTest : LanguageServerTestBase
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
@@ -95,7 +96,7 @@ public class CSharpCodeActionProviderTest : LanguageServerTestBase
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Empty(providedCodeActions);
@@ -122,7 +123,7 @@ public class CSharpCodeActionProviderTest : LanguageServerTestBase
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
@@ -154,7 +155,7 @@ $$Path;
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
@@ -187,7 +188,7 @@ $$Path;
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
@@ -226,7 +227,7 @@ $$Path;
         ];
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, codeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
 
         // Assert
         Assert.Empty(providedCodeActions);
@@ -263,7 +264,7 @@ $$Path;
         ];
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, codeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
 
         // Assert
         Assert.NotEmpty(providedCodeActions);
@@ -298,7 +299,7 @@ $$Path;
         var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
         // Act
-        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+        var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, DisposalToken);
 
         // Assert
         Assert.Equal(_supportedImplicitExpressionCodeActions.Length, providedCodeActions.Length);
@@ -346,8 +347,10 @@ $$Path;
             request,
             documentSnapshotMock.Object,
             codeDocument,
+            DelegatedDocumentUri: null,
             StartAbsoluteIndex: absoluteIndex,
             EndAbsoluteIndex: absoluteIndex,
+            RazorLanguageKind.CSharp,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);

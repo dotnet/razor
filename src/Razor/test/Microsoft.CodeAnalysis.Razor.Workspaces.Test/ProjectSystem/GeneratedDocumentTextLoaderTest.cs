@@ -30,7 +30,7 @@ public class GeneratedDocumentTextLoaderTest : WorkspaceTestBase
     {
         // Arrange
         var project = new ProjectSnapshot(
-            ProjectState.Create(ProjectEngineFactoryProvider, _hostProject, ProjectWorkspaceState.Default)
+            ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
             .WithAddedHostDocument(_hostDocument, TestMocks.CreateTextLoader("", VersionStamp.Create())));
 
         var document = project.GetDocument(_hostDocument.FilePath);
@@ -38,7 +38,7 @@ public class GeneratedDocumentTextLoaderTest : WorkspaceTestBase
         var loader = new GeneratedDocumentTextLoader(document, "file.cshtml");
 
         // Act
-        var textAndVersion = await loader.LoadTextAndVersionAsync(default, default);
+        var textAndVersion = await loader.LoadTextAndVersionAsync(default, DisposalToken);
 
         // Assert
         Assert.True(textAndVersion.Text.CanBeEmbedded);

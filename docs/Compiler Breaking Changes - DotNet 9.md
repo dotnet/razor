@@ -1,4 +1,13 @@
-﻿# This document lists known breaking changes in Razor after .NET 9 all the way to .NET 10.
+﻿---
+title: Razor compiler breaking changes since .NET 9
+description: Learn about any breaking changes since the initial release of .NET 9.
+author: rick-anderson
+ms.author: riande
+ms.date: 11/12/2024
+---
+# Breaking changes in Razor after .NET 9.0.100 through .NET 10.0.100
+
+This document lists known breaking changes in Razor after .NET 9 general release (.NET SDK version 9.0.100) through .NET 10 general release (.NET SDK version 10.0.100).
 
 ## Preprocessor directive parsing breaks
 
@@ -53,4 +62,3 @@ can cause changes to how the output is rendered from previous versions of the Ra
 #endif
 }
 ```
-

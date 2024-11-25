@@ -57,7 +57,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         ];
 
         // Act
-        var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+        var results = await provider.ProvideAsync(context, csharpCodeActions, DisposalToken);
 
         // Assert
         Assert.Empty(results);
@@ -111,7 +111,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         ];
 
         // Act
-        var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+        var results = await provider.ProvideAsync(context, csharpCodeActions, DisposalToken);
 
         // Assert
         Assert.Empty(results);
@@ -146,7 +146,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var csharpCodeActions = ImmutableArray<RazorVSInternalCodeAction>.Empty;
 
         // Act
-        var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+        var results = await provider.ProvideAsync(context, csharpCodeActions, DisposalToken);
 
         // Assert
         Assert.Empty(results);
@@ -208,7 +208,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         ];
 
         // Act
-        var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+        var results = await provider.ProvideAsync(context, csharpCodeActions, DisposalToken);
 
         // Assert
         Assert.Collection(results,
@@ -266,7 +266,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         ];
 
         // Act
-        var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+        var results = await provider.ProvideAsync(context, csharpCodeActions, DisposalToken);
 
         // Assert
         Assert.Collection(results,
@@ -317,7 +317,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         ];
 
         // Act
-        var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+        var results = await provider.ProvideAsync(context, csharpCodeActions, DisposalToken);
 
         // Assert
         Assert.Collection(results,
@@ -391,7 +391,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         ];
 
         // Act
-        var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+        var results = await provider.ProvideAsync(context, csharpCodeActions, DisposalToken);
 
         // Assert
         Assert.Collection(results,
@@ -474,8 +474,10 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             request,
             documentSnapshotMock.Object,
             codeDocument,
+            DelegatedDocumentUri: null,
             StartAbsoluteIndex: absoluteIndex,
             EndAbsoluteIndex: absoluteIndex,
+            RazorLanguageKind.Razor,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);

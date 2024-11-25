@@ -32,7 +32,7 @@ internal class CohostLinkedEditingRangeEndpoint(IRemoteServiceInvoker remoteServ
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.LinkedEditingRange?.DynamicRegistration == true)
         {
@@ -40,9 +40,6 @@ internal class CohostLinkedEditingRangeEndpoint(IRemoteServiceInvoker remoteServ
             {
                 Method = Methods.TextDocumentLinkedEditingRangeName,
                 RegisterOptions = new LinkedEditingRangeRegistrationOptions()
-                {
-                    DocumentSelector = filter
-                }
             }];
         }
 

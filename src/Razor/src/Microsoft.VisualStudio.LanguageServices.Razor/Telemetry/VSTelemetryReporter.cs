@@ -11,15 +11,10 @@ using StreamJsonRpc;
 namespace Microsoft.VisualStudio.Razor.Telemetry;
 
 [Export(typeof(ITelemetryReporter))]
-[method:ImportingConstructor]
-internal class VSTelemetryReporter(ILoggerFactory loggerFactory) : TelemetryReporter(TelemetryService.DefaultSession), IDisposable
+[method: ImportingConstructor]
+internal class VSTelemetryReporter(ILoggerFactory loggerFactory) : TelemetryReporter(TelemetryService.DefaultSession)
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<VSTelemetryReporter>();
-
-    public void Dispose()
-    {
-        Flush();
-    }
 
     protected override bool HandleException(Exception exception, string? message, params ReadOnlySpan<object?> @params)
     {

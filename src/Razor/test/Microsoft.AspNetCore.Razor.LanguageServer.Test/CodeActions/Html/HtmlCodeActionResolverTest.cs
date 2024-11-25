@@ -4,15 +4,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -59,8 +56,7 @@ public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : Language
             .Setup(x => x.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remappedEdit);
 
-        var delegatedCodeActionResolver = new DelegatedCodeActionResolver(CreateLanguageServer(resolvedCodeAction));
-        var resolver = new HtmlCodeActionResolver(delegatedCodeActionResolver, editMappingServiceMock.Object);
+        var resolver = new HtmlCodeActionResolver(editMappingServiceMock.Object);
 
         var codeAction = new RazorVSInternalCodeAction()
         {
@@ -98,17 +94,5 @@ public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : Language
             {
                 Assert.Equal("", e.NewText);
             });
-    }
-
-    private static IClientConnection CreateLanguageServer(CodeAction resolvedCodeAction)
-    {
-        var response = resolvedCodeAction;
-
-        var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
-        clientConnection
-            .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(CustomMessageNames.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(response);
-
-        return clientConnection.Object;
     }
 }
