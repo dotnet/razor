@@ -224,4 +224,17 @@ internal static class DelegatedCompletionHelper
 
         return !startOrEndTag.Span.Contains(absoluteIndex);
     }
+
+    /// <summary>
+    /// Converts completion list and completion item data (for each item) from JObject to JsonElement
+    /// </summary>
+    public static void ConvertCompletionDataToJsonElements(VSInternalCompletionList completionList)
+    {
+        completionList.Data = JsonHelpers.TryConvertFromJObject(completionList.Data);
+
+        foreach (var item in completionList.Items)
+        {
+            item.Data = JsonHelpers.TryConvertFromJObject(item.Data);
+        }
+    }
 }

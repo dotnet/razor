@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Telemetry;
@@ -157,8 +158,7 @@ internal partial class RazorCustomMessageTarget
 
             completionList.Items = builder.ToArray();
 
-            completionList.Data = JsonHelpers.TryConvertFromJObject(completionList.Data);
-            ConvertJsonElementToJObject(completionList);
+            DelegatedCompletionHelper.ConvertCompletionDataToJsonElements(completionList);
 
             return completionList;
         }
@@ -170,14 +170,6 @@ internal partial class RazorCustomMessageTarget
                 var revertedProvisionalChange = new VisualStudioTextChange(revertedProvisionalTextEdit, virtualDocumentSnapshot.Snapshot);
                 UpdateVirtualDocument(revertedProvisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
             }
-        }
-    }
-
-    private void ConvertJsonElementToJObject(VSInternalCompletionList completionList)
-    {
-        foreach (var item in completionList.Items)
-        {
-            item.Data = JsonHelpers.TryConvertFromJObject(item.Data);
         }
     }
 

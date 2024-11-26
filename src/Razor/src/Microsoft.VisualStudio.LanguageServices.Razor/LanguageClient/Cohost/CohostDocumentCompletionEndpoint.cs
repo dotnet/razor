@@ -222,6 +222,11 @@ internal sealed class CohostDocumentCompletionEndpoint(
             request,
             cancellationToken).ConfigureAwait(false);
 
+        if (result?.Response is { } htmlCompletionList)
+        {
+            DelegatedCompletionHelper.ConvertCompletionDataToJsonElements(htmlCompletionList);
+        }
+
         var rewrittenResponse = DelegatedCompletionHelper.RewriteHtmlResponse(result?.Response, razorCompletionOptions);
 
         return rewrittenResponse;
