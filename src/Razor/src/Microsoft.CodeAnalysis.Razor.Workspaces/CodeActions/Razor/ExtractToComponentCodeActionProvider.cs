@@ -84,8 +84,7 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
 
     private static (SyntaxNode? Start, SyntaxNode? End) GetStartAndEndElements(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
-        var startIndex = AdjustStartIndex(context.StartAbsoluteIndex);
-        var owner = syntaxTree.Root.FindInnermostNode(startIndex, includeWhitespace: true);
+        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: !context.HasSelection);
         if (owner is null)
         {
             return (null, null);
@@ -110,66 +109,17 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
             : startElementNode;
 
         return (startElementNode, endElementNode);
-
-        int AdjustStartIndex(int startIndex)
-        {
-            // Don't adjust for cases without a selection
-            if (!context.HasSelection)
-            {
-                return startIndex;
-            }
-
-            // If the owner is a text literal of only whitespace and is the whitespace at the
-            // start of the line, adjust so that the owner is the first non-whitespace node on
-            // the line
-            // example:
-            // @if (true) {
-            // {|selection:    <p>Some text</p>
-            //                  <div>More text</div> |}
-            // }
-            var linePosition = context.SourceText.GetLinePosition(startIndex);
-            var line = context.SourceText.Lines[linePosition.Line];
-            if (line.GetFirstNonWhitespaceOffset() is int firstNonWhitespace
-                && firstNonWhitespace > linePosition.Character)
-            {
-                var potentialNew = context.SourceText.GetRequiredAbsoluteIndex(linePosition.WithCharacter(firstNonWhitespace));
-
-                // Never push the new index past the end of the selection
-                if (potentialNew < context.EndAbsoluteIndex)
-                {
-                    return potentialNew;
-                }
-                else
-                {
-                    return startIndex;
-                }
-            }
-
-            return startIndex;
-        }
     }
 
     private static SyntaxNode? GetEndElementNode(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
-        var endOwner = syntaxTree.Root.FindInnermostNode(context.EndAbsoluteIndex, includeWhitespace: true);
+        var endOwner = syntaxTree.Root.FindInnermostNode(context.EndAbsoluteIndex, includeWhitespace: false);
         if (endOwner is null)
         {
             return null;
         }
 
-        // Correct selection to include the current node if the selection ends immediately after a closing tag.
-        if (endOwner is MarkupTextLiteralSyntax markupTextLiteral
-            && SelectionShouldBePrevious(markupTextLiteral, context.EndAbsoluteIndex)
-            && endOwner.TryGetPreviousSibling(out var previousSibling))
-        {
-            endOwner = previousSibling;
-        }
-
         return GetBlockOrTextNode(endOwner);
-
-        static bool SelectionShouldBePrevious(MarkupTextLiteralSyntax markupTextLiteral, int absoluteIndex)
-            => markupTextLiteral.Span.Start == absoluteIndex
-                || markupTextLiteral.ContainsOnlyWhitespace();
     }
 
     private static SyntaxNode? GetBlockOrTextNode(SyntaxNode node)
