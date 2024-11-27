@@ -87,6 +87,11 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 ? referenceItem.Location
                 : result.Second;
 
+            if (location is null)
+            {
+                continue;
+            }
+
             var (mappedUri, mappedRange) = await DocumentMappingService.MapToHostDocumentUriAndRangeAsync(context.Snapshot, location.Uri, location.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
 
             if (referenceItem is not null)
