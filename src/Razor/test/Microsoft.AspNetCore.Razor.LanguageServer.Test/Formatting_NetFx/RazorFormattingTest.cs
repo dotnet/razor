@@ -7,14 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-[Collection(HtmlFormattingCollection.Name)]
-public class RazorFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput) : FormattingTestBase(fixture.Service, testOutput)
+public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
 {
     [Fact]
     public async Task Section_BraceOnNextLine()

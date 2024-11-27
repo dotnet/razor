@@ -14,9 +14,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-[Collection(HtmlFormattingCollection.Name)]
-public class HtmlFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
-    : FormattingTestBase(fixture.Service, testOutput)
+public class HtmlFormattingTest(ITestOutputHelper testOutput)
+    : FormattingTestBase(testOutput)
 {
     [Fact]
     public async Task FormatsSimpleHtmlTag()

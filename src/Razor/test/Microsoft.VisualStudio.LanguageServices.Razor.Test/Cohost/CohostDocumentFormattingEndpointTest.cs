@@ -18,8 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-[Collection(HtmlFormattingCollection.Name)]
-public class CohostDocumentFormattingEndpointTest(HtmlFormattingFixture htmlFormattingFixture, ITestOutputHelper testOutputHelper)
+public class CohostDocumentFormattingEndpointTest(ITestOutputHelper testOutputHelper)
     : CohostEndpointTestBase(testOutputHelper)
 {
     // All of the formatting tests in the language server exercise the formatting engine and cover various edge cases
@@ -120,7 +119,8 @@ public class CohostDocumentFormattingEndpointTest(HtmlFormattingFixture htmlForm
         Assert.NotNull(generatedHtml);
 
         var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
-        var htmlEdits = await htmlFormattingFixture.Service.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces: true, tabSize: 4);
+        using var service = new HtmlFormattingService();
+        var htmlEdits = await service.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces: true, tabSize: 4);
 
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
 
