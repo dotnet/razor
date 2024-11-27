@@ -2,12 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Settings;
@@ -18,7 +22,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostDocumentFormattingEndpointTest(ITestOutputHelper testOutputHelper)
+public class FormattingTestBase(ITestOutputHelper testOutputHelper)
     : CohostEndpointTestBase(testOutputHelper)
 {
     // All of the formatting tests in the language server exercise the formatting engine and cover various edge cases
@@ -28,7 +32,7 @@ public class CohostDocumentFormattingEndpointTest(ITestOutputHelper testOutputHe
     [Theory]
     [CombinatorialData]
     public Task Formatting(bool fuse)
-        => VerifyDocumentFormattingAsync(
+        => RunFormattingTestAsync(
             input: """
             @preservewhitespace    true
 
@@ -107,11 +111,31 @@ public class CohostDocumentFormattingEndpointTest(ITestOutputHelper testOutputHe
             """,
             fuse: fuse);
 
-    private async Task VerifyDocumentFormattingAsync(string input, string expected, bool fuse)
+    protected async Task RunFormattingTestAsync(
+        string input,
+        string expected,
+        string? fileKind = null,
+        bool fuse = false,
+        bool inGlobalNamespace = false,
+        bool codeBlockBraceOnNextLine = false,
+        bool insertSpaces = true,
+        int tabSize = 4,
+        bool allowDiagnostics = false,
+        bool skipFlipLineEndingTest = false)
     {
         UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = fuse });
 
-        var document = await CreateProjectAndRazorDocumentAsync(input);
+        TestFileMarkupParser.GetSpans(input, out input, out ImmutableArray<TextSpan> _);
+
+        var document = await CreateProjectAndRazorDocumentAsync(input, fileKind, inGlobalNamespace: inGlobalNamespace);
+        if (!allowDiagnostics)
+        {
+            // TODO: This doesn't work, but should when the source generator is hooked up
+            var compilation = await document.Project.GetCompilationAsync(DisposalToken);
+            var diagnostics = compilation.AssumeNotNull().GetDiagnostics(DisposalToken);
+            Assert.False(diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, diagnostics));
+        }
+
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);
@@ -125,6 +149,7 @@ public class CohostDocumentFormattingEndpointTest(ITestOutputHelper testOutputHe
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
 
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
+        clientSettingsManager.Update(clientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine });
 
         var endpoint = new CohostDocumentFormattingEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
 
@@ -133,8 +158,8 @@ public class CohostDocumentFormattingEndpointTest(ITestOutputHelper testOutputHe
             TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
             Options = new FormattingOptions()
             {
-                TabSize = 4,
-                InsertSpaces = true
+                TabSize = tabSize,
+                InsertSpaces = insertSpaces
             }
         };
 

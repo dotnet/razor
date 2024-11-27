@@ -3,13 +3,16 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
+#if COHOSTING
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+#else
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+#endif
 
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
 {
