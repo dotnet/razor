@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -10,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -111,8 +110,8 @@ public class FormattingTestBase(ITestOutputHelper testOutputHelper)
             """,
             fuse: fuse);
 
-    protected async Task RunFormattingTestAsync(
-        string input,
+    private protected async Task RunFormattingTestAsync(
+        TestCode input,
         string expected,
         string? fileKind = null,
         bool fuse = false,
@@ -123,11 +122,11 @@ public class FormattingTestBase(ITestOutputHelper testOutputHelper)
         bool allowDiagnostics = false,
         bool skipFlipLineEndingTest = false)
     {
+        ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
+
         UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = fuse });
 
-        TestFileMarkupParser.GetSpans(input, out input, out ImmutableArray<TextSpan> _);
-
-        var document = await CreateProjectAndRazorDocumentAsync(input, fileKind, inGlobalNamespace: inGlobalNamespace);
+        var document = await CreateProjectAndRazorDocumentAsync(input.Text, fileKind, inGlobalNamespace: inGlobalNamespace);
         if (!allowDiagnostics)
         {
             // TODO: This doesn't work, but should when the source generator is hooked up
@@ -136,7 +135,6 @@ public class FormattingTestBase(ITestOutputHelper testOutputHelper)
             Assert.False(diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, diagnostics));
         }
 
-        var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);
         var generatedHtml = await htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, DisposalToken);
@@ -151,23 +149,55 @@ public class FormattingTestBase(ITestOutputHelper testOutputHelper)
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
         clientSettingsManager.Update(clientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine });
 
-        var endpoint = new CohostDocumentFormattingEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
+        var span = input.TryGetNamedSpans(string.Empty, out var spans)
+            ? spans.First()
+            : default;
+        var edits = await GetFormattingEditsAsync(span, insertSpaces, tabSize, document, requestInvoker, clientSettingsManager);
 
-        var request = new DocumentFormattingParams()
+        if (edits is null)
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
-            Options = new FormattingOptions()
-            {
-                TabSize = tabSize,
-                InsertSpaces = insertSpaces
-            }
-        };
+            AssertEx.EqualOrDiff(expected, input.Text);
+            return;
+        }
 
-        var edits = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
-
+        var inputText = await document.GetTextAsync(DisposalToken);
         var changes = edits.Select(inputText.GetTextChange);
         var finalText = inputText.WithChanges(changes);
 
         AssertEx.EqualOrDiff(expected, finalText.ToString());
+    }
+
+    private async Task<TextEdit[]?> GetFormattingEditsAsync(TextSpan span, bool insertSpaces, int tabSize, TextDocument document, LSPRequestInvoker requestInvoker, IClientSettingsManager clientSettingsManager)
+    {
+        if (span.IsEmpty)
+        {
+            var endpoint = new CohostDocumentFormattingEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
+            var request = new DocumentFormattingParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+                Options = new FormattingOptions()
+                {
+                    TabSize = tabSize,
+                    InsertSpaces = insertSpaces
+                }
+            };
+
+            return await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+        }
+
+        var inputText = await document.GetTextAsync(DisposalToken);
+        var rangeEndpoint = new CohostRangeFormattingEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
+        var rangeRequest = new DocumentRangeFormattingParams()
+        {
+            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            Options = new FormattingOptions()
+            {
+                TabSize = 4,
+                InsertSpaces = true
+            },
+            Range = inputText.GetRange(span)
+        };
+
+        return await rangeEndpoint.GetTestAccessor().HandleRequestAsync(rangeRequest, document, DisposalToken);
     }
 }
