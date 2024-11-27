@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -83,7 +84,8 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
 
     private static (SyntaxNode? Start, SyntaxNode? End) GetStartAndEndElements(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
     {
-        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: true);
+        var startIndex = AdjustStartIndex(context.StartAbsoluteIndex);
+        var owner = syntaxTree.Root.FindInnermostNode(startIndex, includeWhitespace: true);
         if (owner is null)
         {
             return (null, null);
@@ -108,6 +110,27 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
             : startElementNode;
 
         return (startElementNode, endElementNode);
+
+        int AdjustStartIndex(int startIndex)
+        {
+            // If the owner is a text literal of only whitespace and is the whitespace at the
+            // start of the line, adjust so that the owner is the first non-whitespace node on
+            // the line
+            // example:
+            // @if (true) {
+            // {|selection:    <p>Some text</p>
+            //                  <div>More text</div> |}
+            // }
+            var linePosition = context.SourceText.GetLinePosition(startIndex);
+            var line = context.SourceText.Lines[linePosition.Line];
+            if (line.GetFirstNonWhitespaceOffset() is int firstNonWhitespace
+                && firstNonWhitespace > linePosition.Character)
+            {
+                return context.SourceText.GetRequiredAbsoluteIndex(linePosition.WithCharacter(firstNonWhitespace));
+            }
+
+            return startIndex;
+        }
     }
 
     private static SyntaxNode? GetEndElementNode(RazorCodeActionContext context, RazorSyntaxTree syntaxTree)
