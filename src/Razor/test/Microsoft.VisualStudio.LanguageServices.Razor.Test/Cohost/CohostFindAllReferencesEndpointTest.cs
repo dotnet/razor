@@ -3,6 +3,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -234,7 +235,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
     private static Location GetLocation(SumType<VSInternalReferenceItem, Location> r)
     {
         return r.TryGetFirst(out var refItem)
-            ? refItem.Location
+            ? refItem.Location ?? Assumed.Unreachable<Location>()
             : r.Second;
     }
 }
