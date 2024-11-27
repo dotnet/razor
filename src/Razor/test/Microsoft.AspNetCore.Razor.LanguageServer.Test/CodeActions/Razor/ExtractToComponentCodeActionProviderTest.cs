@@ -25,6 +25,7 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions.Razor;
 
@@ -467,6 +468,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             """);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11261")]
     public Task Handle_Inside_ElseBlock()
         => TestAsync("""
             @page "/weather"
