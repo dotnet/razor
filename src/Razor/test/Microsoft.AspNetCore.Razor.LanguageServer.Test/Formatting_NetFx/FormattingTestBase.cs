@@ -59,10 +59,12 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         string? fileKind = null,
         ImmutableArray<TagHelperDescriptor> tagHelpers = default,
         bool allowDiagnostics = false,
-        RazorLSPOptions? razorLSPOptions = null,
+        bool codeBlockBraceOnNextLine = false,
         bool inGlobalNamespace = false,
         bool skipFlipLineEndingTest = false)
     {
+        var razorLSPOptions = RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine };
+
         // Run with and without forceRuntimeCodeGeneration
         await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace);
 

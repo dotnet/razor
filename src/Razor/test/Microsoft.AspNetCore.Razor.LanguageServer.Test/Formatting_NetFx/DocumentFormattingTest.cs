@@ -251,7 +251,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                         }
                     }
                     """,
-            razorLSPOptions: RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = true });
+            codeBlockBraceOnNextLine: true);
     }
 
     [Fact]
@@ -278,7 +278,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                         }
                     }
                     """,
-            razorLSPOptions: RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = true });
+            codeBlockBraceOnNextLine: true);
     }
 
     [Fact]
@@ -358,7 +358,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                         }
                     }
                     """,
-            razorLSPOptions: RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = true });
+            codeBlockBraceOnNextLine: true);
     }
 
     [Fact]
@@ -412,7 +412,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                         }
                     }
                     """,
-            razorLSPOptions: RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = true });
+            codeBlockBraceOnNextLine: true);
     }
 
     [Fact]
@@ -497,7 +497,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     }
                     """,
             fileKind: FileKinds.Legacy,
-            razorLSPOptions: RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = true });
+            codeBlockBraceOnNextLine: true);
     }
 
     [Fact]
