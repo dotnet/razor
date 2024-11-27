@@ -113,6 +113,12 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
 
         int AdjustStartIndex(int startIndex)
         {
+            // Don't adjust for cases without a selection
+            if (!context.HasSelection)
+            {
+                return startIndex;
+            }
+
             // If the owner is a text literal of only whitespace and is the whitespace at the
             // start of the line, adjust so that the owner is the first non-whitespace node on
             // the line
@@ -126,7 +132,17 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
             if (line.GetFirstNonWhitespaceOffset() is int firstNonWhitespace
                 && firstNonWhitespace > linePosition.Character)
             {
-                return context.SourceText.GetRequiredAbsoluteIndex(linePosition.WithCharacter(firstNonWhitespace));
+                var potentialNew = context.SourceText.GetRequiredAbsoluteIndex(linePosition.WithCharacter(firstNonWhitespace));
+
+                // Never push the new index past the end of the selection
+                if (potentialNew < context.EndAbsoluteIndex)
+                {
+                    return potentialNew;
+                }
+                else
+                {
+                    return startIndex;
+                }
             }
 
             return startIndex;
