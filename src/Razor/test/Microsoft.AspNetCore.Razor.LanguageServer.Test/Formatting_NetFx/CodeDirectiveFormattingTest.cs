@@ -14,11 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 [Collection(HtmlFormattingCollection.Name)]
 public class CodeDirectiveFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
     : FormattingTestBase(fixture.Service, testOutput)
-{
-    internal override bool UseTwoPhaseCompilation => true;
-
-    internal override bool DesignTime => true;
-
+    {
     [Fact]
     public async Task FormatsCodeBlockDirective()
     {

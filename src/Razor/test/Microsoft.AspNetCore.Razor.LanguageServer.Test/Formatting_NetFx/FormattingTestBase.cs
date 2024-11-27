@@ -38,6 +38,10 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 {
     private readonly HtmlFormattingService _htmlFormattingService;
 
+    internal sealed override bool UseTwoPhaseCompilation => true;
+
+    internal sealed override bool DesignTime => true;
+
     internal FormattingTestBase(HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
         : base(testOutput)
     {

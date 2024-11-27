@@ -18,10 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class HtmlFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
     : FormattingTestBase(fixture.Service, testOutput)
 {
-    internal override bool UseTwoPhaseCompilation => true;
-
-    internal override bool DesignTime => true;
-
     [Fact]
     public async Task FormatsSimpleHtmlTag()
     {
