@@ -21,9 +21,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class FormattingTestBase(ITestOutputHelper testOutputHelper)
+public class FormattingTestBase(FormattingTestContext context, ITestOutputHelper testOutputHelper)
     : CohostEndpointTestBase(testOutputHelper)
 {
+    private readonly FormattingTestContext _context = context;
+
     private protected async Task RunFormattingTestAsync(
         TestCode input,
         string expected,
@@ -33,12 +35,18 @@ public class FormattingTestBase(ITestOutputHelper testOutputHelper)
         bool codeBlockBraceOnNextLine = false,
         bool insertSpaces = true,
         int tabSize = 4,
-        bool allowDiagnostics = false,
-        bool skipFlipLineEndingTest = false)
+        bool allowDiagnostics = false)
     {
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
 
         UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = fuse });
+
+        if (_context.ShouldFlipLineEndings)
+        {
+            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
+            input = new TestCode(_context.FlipLineEndings(input.OriginalInput));
+            expected = _context.FlipLineEndings(expected);
+        }
 
         var document = await CreateProjectAndRazorDocumentAsync(input.Text, fileKind, inGlobalNamespace: inGlobalNamespace);
         if (!allowDiagnostics)
@@ -48,7 +56,6 @@ public class FormattingTestBase(ITestOutputHelper testOutputHelper)
             var diagnostics = compilation.AssumeNotNull().GetDiagnostics(DisposalToken);
             Assert.False(diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, diagnostics));
         }
-
 
         var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);
         var generatedHtml = await htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, DisposalToken);

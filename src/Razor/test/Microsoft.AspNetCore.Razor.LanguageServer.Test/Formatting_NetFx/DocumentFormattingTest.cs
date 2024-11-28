@@ -14,9 +14,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 #endif
 
-public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
+public class DocumentFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput) : FormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
-    [Fact]
+    [FormattingTestFact]
     public async Task Section_BraceOnNextLine()
     {
         await RunFormattingTestAsync(
@@ -35,7 +35,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Section_BraceOnSameLine()
     {
         await RunFormattingTestAsync(
@@ -52,7 +52,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Theory, CombinatorialData]
+    [FormattingTestTheory, CombinatorialData]
     public async Task CodeBlock_SpansMultipleLines(bool inGlobalNamespace)
     {
         await RunFormattingTestAsync(
@@ -81,7 +81,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             inGlobalNamespace: inGlobalNamespace);
     }
 
-    [Theory, CombinatorialData]
+    [FormattingTestTheory, CombinatorialData]
     public async Task CodeBlock_IndentedBlock_MaintainsIndent(bool inGlobalNamespace)
     {
         await RunFormattingTestAsync(
@@ -114,7 +114,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             inGlobalNamespace: inGlobalNamespace);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_IndentedBlock_FixCloseBrace()
     {
         await RunFormattingTestAsync(
@@ -146,7 +146,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_IndentedBlock_FixCloseBrace2()
     {
         await RunFormattingTestAsync(
@@ -178,7 +178,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_FixCloseBrace()
     {
         await RunFormattingTestAsync(
@@ -204,7 +204,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_FixCloseBrace2()
     {
         await RunFormattingTestAsync(
@@ -229,7 +229,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_FixCloseBrace3()
     {
         await RunFormattingTestAsync(
@@ -257,7 +257,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             codeBlockBraceOnNextLine: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_FixCloseBrace4()
     {
         await RunFormattingTestAsync(
@@ -284,7 +284,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             codeBlockBraceOnNextLine: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_TooMuchWhitespace()
     {
         await RunFormattingTestAsync(
@@ -310,7 +310,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_NonSpaceWhitespace()
     {
         await RunFormattingTestAsync(
@@ -336,7 +336,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_NonSpaceWhitespace2()
     {
         await RunFormattingTestAsync(
@@ -364,7 +364,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             codeBlockBraceOnNextLine: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_NoWhitespace()
     {
         await RunFormattingTestAsync(
@@ -390,7 +390,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlock_NoWhitespace2()
     {
         await RunFormattingTestAsync(
@@ -418,7 +418,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             codeBlockBraceOnNextLine: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FunctionsBlock_BraceOnNewLine()
     {
         await RunFormattingTestAsync(
@@ -447,7 +447,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FunctionsBlock_TooManySpaces()
     {
         await RunFormattingTestAsync(
@@ -474,7 +474,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FunctionsBlock_TooManySpaces2()
     {
         await RunFormattingTestAsync(
@@ -503,7 +503,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             codeBlockBraceOnNextLine: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FunctionsBlock_FixCloseBrace()
     {
         await RunFormattingTestAsync(
@@ -530,7 +530,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FunctionsBlock_FixCloseBrace2()
     {
         await RunFormattingTestAsync(
@@ -556,7 +556,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FunctionsBlock_Tabs_FixCloseBrace()
     {
         await RunFormattingTestAsync(
@@ -585,7 +585,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Layout()
     {
         await RunFormattingTestAsync(
@@ -597,7 +597,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Inherits()
     {
         await RunFormattingTestAsync(
@@ -609,7 +609,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Implements()
     {
         await RunFormattingTestAsync(
@@ -621,7 +621,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task PreserveWhitespace()
     {
         await RunFormattingTestAsync(
@@ -633,7 +633,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Inject()
     {
         await RunFormattingTestAsync(
@@ -645,7 +645,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Inject_TrailingWhitespace()
     {
         await RunFormattingTestAsync(
@@ -657,7 +657,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Attribute()
     {
         await RunFormattingTestAsync(
@@ -669,7 +669,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task TypeParam()
     {
         await RunFormattingTestAsync(
@@ -681,7 +681,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Model()
     {
         await RunFormattingTestAsync(
@@ -694,7 +694,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Page()
     {
         await RunFormattingTestAsync(
@@ -707,7 +707,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task MultiLineComment_WithinHtml ()
     {
         await RunFormattingTestAsync(
@@ -733,7 +733,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
     }
 
     // Regression prevention tests:
-    [Fact]
+    [FormattingTestFact]
     public async Task Using()
     {
         await RunFormattingTestAsync(
@@ -745,7 +745,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task UsingStatic()
     {
         await RunFormattingTestAsync(
@@ -757,7 +757,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task UsingAlias()
     {
         await RunFormattingTestAsync(
@@ -769,7 +769,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task TagHelpers()
     {
         await RunFormattingTestAsync(
@@ -790,7 +790,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task LargeFile()
     {
         await RunFormattingTestAsync(
@@ -799,7 +799,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             allowDiagnostics: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatsSimpleHtmlTag()
     {
         await RunFormattingTestAsync(
@@ -825,7 +825,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatsSimpleHtmlTag_Range()
     {
         await RunFormattingTestAsync(
@@ -853,7 +853,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatsRazorHtmlBlock()
     {
         await RunFormattingTestAsync(
@@ -910,7 +910,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatsMixedHtmlBlock()
     {
         await RunFormattingTestAsync(
@@ -962,7 +962,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatAttributeStyles()
     {
         await RunFormattingTestAsync(
@@ -994,7 +994,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatsMixedRazorBlock()
     {
         await RunFormattingTestAsync(
@@ -1046,7 +1046,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatsMixedContentWithMultilineExpressions()
     {
         await RunFormattingTestAsync(
@@ -1112,7 +1112,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatsComplexBlock()
     {
         await RunFormattingTestAsync(
@@ -1198,7 +1198,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task FormatsShortBlock()
     {
         await RunFormattingTestAsync(
@@ -1209,11 +1209,10 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     @{
                         <p></p>
                     }
-                    """,
-            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
+                    """); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/26836")]
     public async Task FormatNestedBlock()
     {
@@ -1244,7 +1243,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/26836")]
     public async Task FormatNestedBlock_Tabs()
     {
@@ -1277,7 +1276,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             insertSpaces: false);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1273468/")]
     public async Task FormatHtmlWithTabs1()
     {
@@ -1323,7 +1322,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1273468/")]
     public async Task FormatHtmlWithTabs2()
     {
@@ -1365,7 +1364,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
     public async Task FormatNestedComponents()
     {
@@ -1410,7 +1409,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
     public async Task FormatHtmlInIf()
     {
@@ -1455,7 +1454,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
     public async Task FormatHtmlInIf_Range()
     {
@@ -1500,7 +1499,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/5749")]
     public async Task FormatRenderFragmentInCSharpCodeBlock()
     {
@@ -1542,7 +1541,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6090")]
     public async Task FormatHtmlCommentsInsideCSharp1()
     {
@@ -1577,7 +1576,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6090")]
     public async Task FormatHtmlCommentsInsideCSharp2()
     {
@@ -1604,7 +1603,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue()
     {
@@ -1666,7 +1665,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Component);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue2()
     {
@@ -1721,11 +1720,10 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component,
-            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
+            fileKind: FileKinds.Component); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue3()
     {
@@ -1785,7 +1783,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Component);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue4()
     {
@@ -1834,11 +1832,10 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component,
-            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
+            fileKind: FileKinds.Component); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue5()
     {
@@ -1893,11 +1890,10 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component,
-            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
+            fileKind: FileKinds.Component); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/5676")]
     public async Task FormatInputSelect()
     {
@@ -1947,7 +1943,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Component);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/5676")]
     public async Task FormatInputSelect2()
     {
@@ -1991,7 +1987,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Component);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/5676")]
     public async Task FormatInputSelect3()
     {
@@ -2029,7 +2025,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Component);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/5676")]
     public async Task FormatInputSelect4()
     {
@@ -2073,7 +2069,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Component);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/8606")]
     public async Task FormatAttributesWithTransition()
     {
@@ -2123,7 +2119,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Component);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/9337")]
     public async Task FormatMinimizedTagHelperAttributes()
     {
@@ -2167,7 +2163,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Component);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6110")]
     public async Task FormatExplicitCSharpInsideHtml()
     {
@@ -2261,7 +2257,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task RazorDiagnostics_SkipRangeFormatting()
     {
         await RunFormattingTestAsync(
@@ -2288,7 +2284,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             allowDiagnostics: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task RazorDiagnostics_DontSkipDocumentFormatting()
     {
         // Yes this format result looks wrong, but this is only done in direct response
@@ -2308,7 +2304,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             allowDiagnostics: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task RazorDiagnostics_SkipRangeFormatting_WholeDocumentRange()
     {
         await RunFormattingTestAsync(
@@ -2327,7 +2323,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             allowDiagnostics: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task RazorDiagnostics_DontSkipWhenOutsideOfRange()
     {
         await RunFormattingTestAsync(
@@ -2354,7 +2350,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             allowDiagnostics: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatIndentedElementAttributes()
     {
         await RunFormattingTestAsync(
@@ -2438,7 +2434,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     }
                     """);
     }
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatsCodeBlockDirective()
     {
         await RunFormattingTestAsync(
@@ -2459,7 +2455,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task FormatCSharpInsideHtmlTag()
     {
         await RunFormattingTestAsync(
@@ -2489,7 +2485,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Format_DocumentWithDiagnostics()
     {
         await RunFormattingTestAsync(
@@ -2540,7 +2536,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             allowDiagnostics: true);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_MultipleBlocksInADirective()
     {
         await RunFormattingTestAsync(
@@ -2571,7 +2567,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_NonCodeBlockDirectives()
     {
         await RunFormattingTestAsync(
@@ -2591,7 +2587,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_CodeBlockDirectiveWithMarkup_NonBraced()
     {
         await RunFormattingTestAsync(
@@ -2617,7 +2613,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_CodeBlockDirectiveWithMarkup()
     {
         await RunFormattingTestAsync(
@@ -2641,7 +2637,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_CodeBlockDirectiveWithImplicitExpressions()
     {
         await RunFormattingTestAsync(
@@ -2665,7 +2661,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task DoesNotFormat_CodeBlockDirectiveWithExplicitExpressions()
     {
         await RunFormattingTestAsync(
@@ -2690,7 +2686,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Format_SectionDirectiveBlock1()
     {
         await RunFormattingTestAsync(
@@ -2720,7 +2716,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Format_SectionDirectiveBlock2()
     {
         await RunFormattingTestAsync(
@@ -2756,7 +2752,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Format_SectionDirectiveBlock3()
     {
         await RunFormattingTestAsync(
@@ -2794,7 +2790,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6401")]
     public async Task Format_SectionDirectiveBlock4()
     {
@@ -2835,7 +2831,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Format_SectionDirectiveBlock5()
     {
         await RunFormattingTestAsync(
@@ -2883,7 +2879,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Format_SectionDirectiveBlock6()
     {
         await RunFormattingTestAsync(
@@ -2927,7 +2923,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Format_SectionDirectiveBlock7()
     {
         await RunFormattingTestAsync(
@@ -2973,7 +2969,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_CodeBlockDirectiveWithRazorComments()
     {
         await RunFormattingTestAsync(
@@ -2996,7 +2992,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_CodeBlockDirectiveWithRazorStatements()
     {
         await RunFormattingTestAsync(
@@ -3017,7 +3013,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task DoesNotFormat_CodeBlockDirective_NotInSelectedRange()
     {
         await RunFormattingTestAsync(
@@ -3039,7 +3035,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task OnlyFormatsWithinRange()
     {
         await RunFormattingTestAsync(
@@ -3060,7 +3056,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task MultipleCodeBlockDirectives()
     {
         await RunFormattingTestAsync(
@@ -3097,7 +3093,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task MultipleCodeBlockDirectives2()
     {
         await RunFormattingTestAsync(
@@ -3129,7 +3125,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeOnTheSameLineAsCodeBlockDirectiveStart()
     {
         await RunFormattingTestAsync(
@@ -3147,7 +3143,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeOnTheSameLineAsCodeBlockDirectiveEnd()
     {
         await RunFormattingTestAsync(
@@ -3165,7 +3161,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task SingleLineCodeBlockDirective()
     {
         await RunFormattingTestAsync(
@@ -3180,7 +3176,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                 """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task IndentsCodeBlockDirectiveStart()
     {
         await RunFormattingTestAsync(
@@ -3197,7 +3193,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task IndentsCodeBlockDirectiveEnd()
     {
         await RunFormattingTestAsync(
@@ -3213,7 +3209,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task ComplexCodeBlockDirective()
     {
         await RunFormattingTestAsync(
@@ -3274,7 +3270,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Strings()
     {
         await RunFormattingTestAsync(
@@ -3326,7 +3322,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlockDirective_UseTabs()
     {
         await RunFormattingTestAsync(
@@ -3348,7 +3344,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             insertSpaces: false);
 
     }
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlockDirective_UseTabsWithTabSize8_HTML()
     {
         await RunFormattingTestAsync(
@@ -3372,7 +3368,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             insertSpaces: false);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlockDirective_UseTabsWithTabSize8()
     {
         await RunFormattingTestAsync(
@@ -3395,7 +3391,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             insertSpaces: false);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlockDirective_WithTabSize3()
     {
         await RunFormattingTestAsync(
@@ -3417,7 +3413,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             tabSize: 3);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlockDirective_WithTabSize8()
     {
         await RunFormattingTestAsync(
@@ -3439,7 +3435,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             tabSize: 8);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task CodeBlockDirective_WithTabSize12()
     {
         await RunFormattingTestAsync(
@@ -3461,7 +3457,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
             tabSize: 12);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
     public async Task CodeBlock_SemiColon_SingleLine()
     {
@@ -3480,7 +3476,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/29837")]
     public async Task CodeBlock_NestedComponents()
     {
@@ -3519,7 +3515,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/34320")]
     public async Task CodeBlock_ObjectCollectionArrayInitializers()
     {
@@ -3578,7 +3574,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6548")]
     public async Task CodeBlock_ImplicitObjectArrayInitializers()
     {
@@ -3623,7 +3619,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/7058")]
     public async Task CodeBlock_ImplicitArrayInitializers()
     {
@@ -3656,7 +3652,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
     public async Task CodeBlock_ArrayInitializers()
     {
@@ -3691,7 +3687,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6548")]
     public async Task CodeBlock_ArrayInitializers2()
     {
@@ -3756,7 +3752,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
     public async Task CodeBlock_CollectionArrayInitializers()
     {
@@ -3813,7 +3809,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
     public async Task CodeBlock_ObjectInitializers()
     {
@@ -3846,7 +3842,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
     public async Task CodeBlock_ImplicitObjectInitializers()
     {
@@ -3879,7 +3875,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
     public async Task CodeBlock_CollectionInitializers()
     {
@@ -3914,7 +3910,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5618")]
     public async Task CodeBlock_EmptyObjectCollectionInitializers()
     {
@@ -3954,7 +3950,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
     public async Task IfBlock_TopLevel()
     {
@@ -3971,7 +3967,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
     public async Task IfBlock_TopLevel_WithOtherCode()
     {
@@ -3996,7 +3992,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
     public async Task IfBlock_Nested()
     {
@@ -4017,7 +4013,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task IfBlock_Nested_Contents()
     {
         await RunFormattingTestAsync(
@@ -4043,7 +4039,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task IfBlock_SingleLine_Nested_Contents()
     {
         await RunFormattingTestAsync(
@@ -4066,7 +4062,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_MultilineExpressions()
     {
         await RunFormattingTestAsync(
@@ -4118,7 +4114,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_MultilineExpressionAtStartOfBlock()
     {
         await RunFormattingTestAsync(
@@ -4138,7 +4134,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_MultilineExpressionAfterWhitespaceAtStartOfBlock()
     {
         await RunFormattingTestAsync(
@@ -4164,7 +4160,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_MultilineExpressionNotAtStartOfBlock()
     {
         await RunFormattingTestAsync(
@@ -4186,7 +4182,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     public async Task Formats_MultilineRazorComment()
     {
         await RunFormattingTestAsync(
@@ -4230,7 +4226,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6192")]
     public async Task Formats_NoEditsForNoChanges()
     {
@@ -4248,7 +4244,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
         await RunFormattingTestAsync(input, input, fileKind: FileKinds.Component);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6158")]
     public async Task Format_NestedLambdas()
     {
@@ -4307,7 +4303,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : FormattingTe
                     """);
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5693")]
     public async Task Format_NestedLambdasWithAtIf()
     {
