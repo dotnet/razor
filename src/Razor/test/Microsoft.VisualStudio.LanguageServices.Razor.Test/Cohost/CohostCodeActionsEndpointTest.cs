@@ -897,6 +897,34 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
+    public async Task PromoteUsingDirective_Indented()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div>
+                    @using [||]System
+                </div>
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+                <div>
+                </div>
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.PromoteUsingDirective,
+            additionalExpectedFiles: [
+                (FileUri(@"..\_Imports.razor"), """
+                    @using System
+                    """)]);
+    }
+
+    [Fact]
     public async Task PromoteUsingDirective_Mvc()
     {
         await VerifyCodeActionAsync(
