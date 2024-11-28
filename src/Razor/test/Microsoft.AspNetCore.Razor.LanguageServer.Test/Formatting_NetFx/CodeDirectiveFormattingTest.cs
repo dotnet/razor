@@ -71,7 +71,7 @@ public class CodeDirectiveFormattingTest(FormattingTestContext context, ITestOut
             tagHelpers: GetComponentWithCascadingTypeParameter());
     }
 
-    [Fact]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
     public async Task GenericComponentWithCascadingTypeParameter_Nested()
     {

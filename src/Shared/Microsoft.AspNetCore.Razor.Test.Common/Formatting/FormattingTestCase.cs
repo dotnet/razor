@@ -32,8 +32,12 @@ internal class FormattingTestCase : XunitTestCase
 
     public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
     {
-        Debug.Assert(constructorArguments.Length >= 1 && constructorArguments[0] is FormattingTestContext, $"{TestMethod.Method.Name} uses a formatting test attribute in a class without a FormattingTestContext parameter?");
-        constructorArguments[0] = new FormattingTestContext { ShouldFlipLineEndings = _shouldFlipLineEndings };
+        Debug.Assert(constructorArguments.Length >= 1 && constructorArguments[0] is FormattingTestContext, $"{TestMethod.TestClass.Class.Name}.{TestMethod.Method.Name} uses a formatting test attribute in a class without a FormattingTestContext parameter?");
+        constructorArguments[0] = new FormattingTestContext
+        {
+            ShouldFlipLineEndings = _shouldFlipLineEndings,
+            CreatedByFormattingDiscoverer = true
+        };
         return base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
     }
 

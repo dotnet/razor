@@ -64,6 +64,8 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         bool codeBlockBraceOnNextLine = false,
         bool inGlobalNamespace = false)
     {
+        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
+
         var razorLSPOptions = RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine };
 
         if (_context.ShouldFlipLineEndings)

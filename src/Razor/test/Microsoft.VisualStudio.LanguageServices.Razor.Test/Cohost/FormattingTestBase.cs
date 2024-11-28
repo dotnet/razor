@@ -37,6 +37,8 @@ public class FormattingTestBase(FormattingTestContext context, ITestOutputHelper
         int tabSize = 4,
         bool allowDiagnostics = false)
     {
+        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
+
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
 
         UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = fuse });
