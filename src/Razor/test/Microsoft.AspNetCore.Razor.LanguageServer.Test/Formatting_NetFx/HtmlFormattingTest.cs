@@ -13,8 +13,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class HtmlFormattingTest(ITestOutputHelper testOutput)
-    : FormattingTestBase(testOutput)
+public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
+    : FormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
     [Fact]
     public async Task FormatsSimpleHtmlTag_OnType()
@@ -44,7 +44,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput)
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)] // tracked by https://github.com/dotnet/razor/issues/10836
     public async Task FormatsComponentTags()
     {
         var tagHelpers = GetComponents();
@@ -84,8 +84,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput)
                         }
                     </GridTable>
                     """,
-            tagHelpers: tagHelpers,
-            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
+            tagHelpers: tagHelpers);
     }
 
     [Fact]
@@ -392,7 +391,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput)
             tagHelpers: GetComponents());
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)] // tracked by https://github.com/dotnet/razor/issues/10836
     [WorkItem("https://github.com/dotnet/razor/issues/6211")]
     public async Task FormatCascadingValueWithCascadingTypeParameter()
     {
@@ -427,8 +426,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput)
                         }
                     </Select>
                     """,
-            tagHelpers: CreateTagHelpers(),
-            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
+            tagHelpers: CreateTagHelpers());
 
         ImmutableArray<TagHelperDescriptor> CreateTagHelpers()
         {

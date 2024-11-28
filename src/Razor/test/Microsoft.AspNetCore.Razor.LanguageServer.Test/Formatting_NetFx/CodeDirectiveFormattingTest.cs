@@ -10,10 +10,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput)
-    : FormattingTestBase(testOutput)
+public class CodeDirectiveFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
+    : FormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
     public async Task GenericComponentWithCascadingTypeParameter()
     {
@@ -68,8 +68,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput)
                         private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
                     }
                     """,
-            tagHelpers: GetComponentWithCascadingTypeParameter(),
-            skipFlipLineEndingTest: true);
+            tagHelpers: GetComponentWithCascadingTypeParameter());
     }
 
     [Fact]
@@ -122,7 +121,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput)
             tagHelpers: GetComponentWithCascadingTypeParameter());
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)] // tracked by https://github.com/dotnet/razor/issues/10836
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
     public async Task GenericComponentWithCascadingTypeParameter_MultipleParameters()
     {
@@ -159,8 +158,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput)
                         private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
                     }
                     """,
-            tagHelpers: GetComponentWithTwoCascadingTypeParameter(),
-            skipFlipLineEndingTest: true); // tracked by https://github.com/dotnet/razor/issues/10836
+            tagHelpers: GetComponentWithTwoCascadingTypeParameter());
     }
 
     private ImmutableArray<TagHelperDescriptor> GetComponentWithCascadingTypeParameter()

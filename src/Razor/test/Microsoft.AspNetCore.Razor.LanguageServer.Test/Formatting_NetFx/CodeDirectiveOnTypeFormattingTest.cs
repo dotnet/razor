@@ -10,8 +10,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CodeDirectiveOnTypeFormattingTest(ITestOutputHelper testOutput)
-    : FormattingTestBase(testOutput)
+public class CodeDirectiveOnTypeFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
+    : FormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
     [Fact]
     public async Task FormatsIfStatementInComponent()

@@ -4,13 +4,14 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper testOutput)
-    : FormattingTestBase(testOutput)
+public class CSharpStatementBlockOnTypeFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
+    : FormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
     [Fact]
     public async Task CloseCurly_IfBlock_SingleLineAsync()

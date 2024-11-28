@@ -5,12 +5,13 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
+public class RazorFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput) : FormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
     [Fact]
     public async Task OnTypeFormatting_Enabled()
