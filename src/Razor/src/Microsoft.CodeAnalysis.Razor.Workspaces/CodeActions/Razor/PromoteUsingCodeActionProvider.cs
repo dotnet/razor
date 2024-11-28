@@ -37,21 +37,19 @@ internal class PromoteUsingCodeActionProvider : IRazorCodeActionProvider
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (owner.FirstAncestorOrSelf<RazorDirectiveSyntax>() is not { } directive ||
-            !directive.IsUsingDirective(out _))
+        var directive = owner.FirstAncestorOrSelf<RazorDirectiveSyntax>();
+        if (directive is null || !directive.IsUsingDirective(out _))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var importFileName = FileKinds.IsLegacy(context.DocumentSnapshot.FileKind)
-                ? MvcImportProjectFeature.ImportsFileName
-                : ComponentMetadata.ImportsFileName;
+        var importFileName = GetImportsFileName(context.DocumentSnapshot.FileKind);
 
         var line = context.CodeDocument.Source.Text.Lines.GetLineFromPosition(context.StartAbsoluteIndex);
         var data = new PromoteToUsingCodeActionParams
         {
-            ImportsFileName = importFileName,
-            UsingDirective = directive.GetContent(),
+            UsingStart = directive.SpanStart,
+            UsingEnd = directive.Span.End,
             RemoveStart = line.Start,
             RemoveEnd = line.EndIncludingLineBreak
         };
@@ -68,5 +66,12 @@ internal class PromoteUsingCodeActionProvider : IRazorCodeActionProvider
         var action = RazorCodeActionFactory.CreatePromoteUsingDirective(importFileName, resolutionParams);
 
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([action]);
+    }
+
+    public static string GetImportsFileName(string fileKind)
+    {
+        return FileKinds.IsLegacy(fileKind)
+                ? MvcImportProjectFeature.ImportsFileName
+                : ComponentMetadata.ImportsFileName;
     }
 }

@@ -7,11 +7,11 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 
 internal sealed class PromoteToUsingCodeActionParams
 {
-    [JsonPropertyName("importsFileName")]
-    public required string ImportsFileName { get; init; }
+    [JsonPropertyName("usingStart")]
+    public required int UsingStart { get; init; }
 
-    [JsonPropertyName("usingDirective")]
-    public required string UsingDirective { get; init; }
+    [JsonPropertyName("usingEnd")]
+    public required int UsingEnd { get; init; }
 
     [JsonPropertyName("removeStart")]
     public required int RemoveStart { get; init; }

@@ -7,7 +7,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -34,15 +33,13 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (codeDocument.IsUnsupported())
-        {
-            return null;
-        }
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+
+        var importsFileName = PromoteUsingCodeActionProvider.GetImportsFileName(documentContext.FileKind);
 
         var file = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var folder = Path.GetDirectoryName(file).AssumeNotNull();
-        var importsFile = Path.GetFullPath(Path.Combine(folder, "..", actionParams.ImportsFileName));
+        var importsFile = Path.GetFullPath(Path.Combine(folder, "..", importsFileName));
         var importFileUri = new UriBuilder
         {
             Scheme = Uri.UriSchemeFile,
@@ -52,7 +49,7 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
 
         using var edits = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
 
-        var textToInsert = actionParams.UsingDirective;
+        var textToInsert = sourceText.GetSubTextString(TextSpan.FromBounds(actionParams.UsingStart, actionParams.UsingEnd));
         var insertLocation = new LinePosition(0, 0);
         if (!_fileSystem.FileExists(importsFile))
         {
@@ -61,7 +58,7 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
         else
         {
             var st = SourceText.From(_fileSystem.ReadFile(importsFile));
-            var lastLine = st.Lines[st.Lines.Count - 1];
+            var lastLine = st.Lines[^1];
             insertLocation = new LinePosition(lastLine.LineNumber, 0);
             if (lastLine.GetFirstNonWhitespaceOffset() is { } nonWhiteSpaceOffset)
             {
@@ -77,7 +74,7 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
             Edits = [VsLspFactory.CreateTextEdit(insertLocation, textToInsert)]
         });
 
-        var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
+        var removeRange = sourceText.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
         edits.Add(new TextDocumentEdit
         {
