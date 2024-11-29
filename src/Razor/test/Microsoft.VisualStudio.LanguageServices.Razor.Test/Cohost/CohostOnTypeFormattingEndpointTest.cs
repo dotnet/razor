@@ -18,7 +18,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostOnTypeFormattingEndpointTest(ITestOutputHelper testOutputHelper)
+[Collection(HtmlFormattingCollection.Name)]
+public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormattingFixture, ITestOutputHelper testOutputHelper)
     : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
@@ -120,8 +121,7 @@ public class CohostOnTypeFormattingEndpointTest(ITestOutputHelper testOutputHelp
             Assert.NotNull(generatedHtml);
 
             var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
-            using var service = new HtmlFormattingService();
-            var htmlEdits = await service.GetOnTypeFormattingEditsAsync(LoggerFactory, uri, generatedHtml, position, insertSpaces: true, tabSize: 4);
+            var htmlEdits = await htmlFormattingFixture.Service.GetOnTypeFormattingEditsAsync(LoggerFactory, uri, generatedHtml, position, insertSpaces: true, tabSize: 4);
 
             requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentOnTypeFormattingName, htmlEdits)]);
         }

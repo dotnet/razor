@@ -14,7 +14,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 #endif
 
-public class DocumentFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput) : FormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
+[Collection(HtmlFormattingCollection.Name)]
+public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
+    : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
 {
     [FormattingTestFact]
     public async Task Section_BraceOnNextLine()
@@ -708,7 +710,7 @@ public class DocumentFormattingTest(FormattingTestContext context, ITestOutputHe
     }
 
     [FormattingTestFact]
-    public async Task MultiLineComment_WithinHtml ()
+    public async Task MultiLineComment_WithinHtml()
     {
         await RunFormattingTestAsync(
             input: """

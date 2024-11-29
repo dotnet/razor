@@ -21,10 +21,19 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class FormattingTestBase(FormattingTestContext context, ITestOutputHelper testOutputHelper)
-    : CohostEndpointTestBase(testOutputHelper)
+public class FormattingTestBase : CohostEndpointTestBase
 {
-    private readonly FormattingTestContext _context = context;
+    private readonly FormattingTestContext _context;
+    private readonly HtmlFormattingService _htmlFormattingService;
+
+    internal FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
+    {
+        ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
+
+        _context = context;
+        _htmlFormattingService = htmlFormattingService;
+    }
 
     private protected async Task RunFormattingTestAsync(
         TestCode input,
@@ -37,8 +46,6 @@ public class FormattingTestBase(FormattingTestContext context, ITestOutputHelper
         bool allowDiagnostics = false)
     {
         Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
-
-        ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
 
         UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = _context.ForceRuntimeCodeGeneration });
 
@@ -63,8 +70,7 @@ public class FormattingTestBase(FormattingTestContext context, ITestOutputHelper
         Assert.NotNull(generatedHtml);
 
         var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
-        using var service = new HtmlFormattingService();
-        var htmlEdits = await service.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces: true, tabSize: 4);
+        var htmlEdits = await _htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces: true, tabSize: 4);
 
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
 

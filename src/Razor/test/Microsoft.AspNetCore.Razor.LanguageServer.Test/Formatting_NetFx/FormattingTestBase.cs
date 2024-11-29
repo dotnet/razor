@@ -43,13 +43,12 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
     internal sealed override bool DesignTime => true;
 
-    internal FormattingTestBase(FormattingTestContext context, ITestOutputHelper testOutput)
+    internal FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
         : base(testOutput)
     {
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
 
-        _htmlFormattingService = new HtmlFormattingService();
-        AddDisposable(_htmlFormattingService);
+        _htmlFormattingService = htmlFormattingService;
         _context = context;
     }
 

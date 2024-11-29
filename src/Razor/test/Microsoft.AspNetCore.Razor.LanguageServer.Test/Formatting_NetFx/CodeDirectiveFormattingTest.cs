@@ -5,13 +5,15 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CodeDirectiveFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
-    : FormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
+[Collection(HtmlFormattingCollection.Name)]
+public class CodeDirectiveFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
+    : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
 {
     [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
