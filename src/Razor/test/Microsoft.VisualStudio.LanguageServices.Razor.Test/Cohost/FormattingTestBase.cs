@@ -30,7 +30,6 @@ public class FormattingTestBase(FormattingTestContext context, ITestOutputHelper
         TestCode input,
         string expected,
         string? fileKind = null,
-        bool fuse = false,
         bool inGlobalNamespace = false,
         bool codeBlockBraceOnNextLine = false,
         bool insertSpaces = true,
@@ -41,7 +40,7 @@ public class FormattingTestBase(FormattingTestContext context, ITestOutputHelper
 
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
 
-        UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = fuse });
+        UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = _context.ForceRuntimeCodeGeneration });
 
         if (_context.ShouldFlipLineEndings)
         {

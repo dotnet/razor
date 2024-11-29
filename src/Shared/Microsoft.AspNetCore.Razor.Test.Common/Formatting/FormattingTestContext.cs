@@ -7,6 +7,8 @@ public class FormattingTestContext
 {
     public bool ShouldFlipLineEndings { get; init; }
 
+    public bool ForceRuntimeCodeGeneration { get; init; }
+
     public bool CreatedByFormattingDiscoverer { get; init; }
 
     public string FlipLineEndings(string input)

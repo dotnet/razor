@@ -12,6 +12,6 @@ internal class FormattingTheoryDiscoverer(IMessageSink diagnosticMessageSink)
 {
     protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
     {
-        return FormattingFactDiscoverer.CreateTestCases(discoveryOptions, testMethod, theoryAttribute, DiagnosticMessageSink, dataRow);
+        return FormattingFactDiscoverer.CreateTestCases(discoveryOptions, testMethod, DiagnosticMessageSink, dataRow);
     }
 }
