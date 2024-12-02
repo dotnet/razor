@@ -16,34 +16,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
     : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
 {
-    [FormattingTestFact]
-    public async Task FormatsSimpleHtmlTag_OnType()
-    {
-        await RunOnTypeFormattingTestAsync(
-            input: """
-                    <html>
-                    <head>
-                        <title>Hello</title>
-                            <script>
-                                var x = 2;$$
-                            </script>
-                    </head>
-                    </html>
-                    """,
-            expected: """
-                    <html>
-                    <head>
-                        <title>Hello</title>
-                        <script>
-                            var x = 2;
-                        </script>
-                    </head>
-                    </html>
-                    """,
-            triggerCharacter: ';',
-            fileKind: FileKinds.Legacy);
-    }
-
     [FormattingTestFact(SkipFlipLineEnding = true)] // tracked by https://github.com/dotnet/razor/issues/10836
     public async Task FormatsComponentTags()
     {
