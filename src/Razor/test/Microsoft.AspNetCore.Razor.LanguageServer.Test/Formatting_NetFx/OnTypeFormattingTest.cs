@@ -8,7 +8,11 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
+#if COHOSTING
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+#else
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+#endif
 
 [Collection(HtmlFormattingCollection.Name)]
 public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
@@ -1065,7 +1069,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: ';');
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsSimpleHtmlTag_OnType()
     {
         await RunOnTypeFormattingTestAsync(

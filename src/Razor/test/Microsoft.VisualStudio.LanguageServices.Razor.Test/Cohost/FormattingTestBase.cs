@@ -95,6 +95,69 @@ public class FormattingTestBase : CohostEndpointTestBase
         AssertEx.EqualOrDiff(expected, finalText.ToString());
     }
 
+    private protected async Task RunOnTypeFormattingTestAsync(
+        TestCode input,
+        string expected,
+        char triggerCharacter,
+        bool inGlobalNamespace = false,
+        bool insertSpaces = true,
+        int tabSize = 4,
+        string? fileKind = null,
+        int? expectedChangedLines = null)
+    {
+        UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = false });
+
+        var document = await CreateProjectAndRazorDocumentAsync(input.Text, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
+        var inputText = await document.GetTextAsync(DisposalToken);
+        var position = inputText.GetPosition(input.Position);
+
+        var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);
+        var generatedHtml = await htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, DisposalToken);
+        Assert.NotNull(generatedHtml);
+
+        var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
+        var htmlEdits = await _htmlFormattingService.GetOnTypeFormattingEditsAsync(LoggerFactory, uri, generatedHtml, position, insertSpaces: true, tabSize: 4);
+
+        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentOnTypeFormattingName, htmlEdits)]);
+
+        var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
+
+        var endpoint = new CohostOnTypeFormattingEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
+
+        var request = new DocumentOnTypeFormattingParams()
+        {
+            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            Options = new FormattingOptions()
+            {
+                TabSize = tabSize,
+                InsertSpaces = insertSpaces
+            },
+            Character = triggerCharacter.ToString(),
+            Position = position
+        };
+
+        var edits = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+
+        if (edits is null)
+        {
+            Assert.Equal(expected, input.Text);
+            return;
+        }
+
+        var changes = edits.Select(inputText.GetTextChange);
+        var finalText = inputText.WithChanges(changes);
+
+        AssertEx.EqualOrDiff(expected, finalText.ToString());
+
+        if (expectedChangedLines is { } changedLines)
+        {
+            var firstLine = changes.Min(e => inputText.GetLinePositionSpan(e.Span).Start.Line);
+            var lastLine = changes.Max(e => inputText.GetLinePositionSpan(e.Span).End.Line);
+            var delta = lastLine - firstLine + changes.Count(e => e.NewText.AssumeNotNull().Contains(Environment.NewLine));
+            Assert.Equal(changedLines, delta + 1);
+        }
+    }
+
     private async Task<TextEdit[]?> GetFormattingEditsAsync(TextSpan span, bool insertSpaces, int tabSize, TextDocument document, LSPRequestInvoker requestInvoker, IClientSettingsManager clientSettingsManager)
     {
         if (span.IsEmpty)
