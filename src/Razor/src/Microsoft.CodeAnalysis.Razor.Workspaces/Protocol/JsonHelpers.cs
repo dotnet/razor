@@ -58,13 +58,7 @@ internal static class JsonHelpers
     /// </summary>
     internal static TVsLspResult? ToVsLSP<TVsLspResult, TRoslynLspSource>(TRoslynLspSource source)
     {
-        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        if (JsonSerializer.Deserialize<TVsLspResult>(JsonSerializer.SerializeToDocument(source, RoslynLspJsonSerializerOptions), VsLspJsonSerializerOptions) is not { } target)
-        {
-            return default;
-        }
-
-        return target;
+        return JsonSerializer.Deserialize<TVsLspResult>(JsonSerializer.SerializeToDocument(source, RoslynLspJsonSerializerOptions), VsLspJsonSerializerOptions);
     }
 
     /// <summary>
@@ -72,18 +66,7 @@ internal static class JsonHelpers
     /// </summary>
     internal static TRoslynLspResult? ToRoslynLSP<TRoslynLspResult, TVsLspSource>(TVsLspSource? source)
     {
-        if (source is null)
-        {
-            return default;
-        }
-
-        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        if (JsonSerializer.Deserialize<TRoslynLspResult>(JsonSerializer.SerializeToDocument(source, VsLspJsonSerializerOptions), RoslynLspJsonSerializerOptions) is not { } target)
-        {
-            return default;
-        }
-
-        return target;
+        return JsonSerializer.Deserialize<TRoslynLspResult>(JsonSerializer.SerializeToDocument(source, VsLspJsonSerializerOptions), RoslynLspJsonSerializerOptions);
     }
 
     /// <summary>
