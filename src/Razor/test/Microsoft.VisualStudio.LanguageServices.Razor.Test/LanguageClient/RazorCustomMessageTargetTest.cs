@@ -73,7 +73,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
             Changes = null,
-            Checksum = Array.Empty<byte>(),
+            Checksum = "",
             ChecksumAlgorithm = SourceHashAlgorithm.Sha256,
             SourceEncodingCodePage = null,
         };
@@ -119,7 +119,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             HostDocumentFilePath = "C:/path/to/file.razor",
             HostDocumentVersion = 1337,
             Changes = [],
-            Checksum = Array.Empty<byte>(),
+            Checksum = "",
             ChecksumAlgorithm = SourceHashAlgorithm.Sha256,
             SourceEncodingCodePage = null,
         };
@@ -176,7 +176,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             HostDocumentFilePath = "C:/path/to/file.razor",
             HostDocumentVersion = 1337,
             Changes = [],
-            Checksum = Array.Empty<byte>(),
+            Checksum = "",
             ChecksumAlgorithm = SourceHashAlgorithm.Sha256,
             SourceEncodingCodePage = null,
         };
