@@ -8,8 +8,8 @@ using Xunit.Sdk;
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-[XunitTestCaseDiscoverer("Microsoft.AspNetCore.Razor.Test.Common." + nameof(FormattingFactDiscoverer), "Microsoft.AspNetCore.Razor.Test.Common")]
-internal class FormattingTestFactAttribute : FactAttribute
+[XunitTestCaseDiscoverer($"Microsoft.AspNetCore.Razor.Test.Common.{nameof(FormattingFactDiscoverer)}", "Microsoft.AspNetCore.Razor.Test.Common")]
+internal sealed class FormattingTestFactAttribute : FactAttribute
 {
     public bool SkipFlipLineEnding { get; set; }
 }

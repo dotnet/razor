@@ -7,7 +7,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-internal class FormattingTheoryDiscoverer(IMessageSink diagnosticMessageSink)
+internal sealed class FormattingTheoryDiscoverer(IMessageSink diagnosticMessageSink)
     : TheoryDiscoverer(diagnosticMessageSink)
 {
     protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)

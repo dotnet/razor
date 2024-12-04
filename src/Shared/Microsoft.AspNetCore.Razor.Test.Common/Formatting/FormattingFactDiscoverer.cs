@@ -7,7 +7,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-internal class FormattingFactDiscoverer(IMessageSink diagnosticMessageSink)
+internal sealed class FormattingFactDiscoverer(IMessageSink diagnosticMessageSink)
     : FactDiscoverer(diagnosticMessageSink)
 {
     public override IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)

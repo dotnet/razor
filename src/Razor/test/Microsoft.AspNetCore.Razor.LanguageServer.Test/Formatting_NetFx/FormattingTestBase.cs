@@ -34,7 +34,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class FormattingTestBase : RazorToolingIntegrationTestBase
+public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 {
     private readonly HtmlFormattingService _htmlFormattingService;
     private readonly FormattingTestContext _context;
@@ -43,7 +43,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
 
     internal sealed override bool DesignTime => true;
 
-    internal FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
+    private protected FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
         : base(testOutput)
     {
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;

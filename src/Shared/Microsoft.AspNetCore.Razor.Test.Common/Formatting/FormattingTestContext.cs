@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-public class FormattingTestContext
+public sealed class FormattingTestContext
 {
     public bool ShouldFlipLineEndings { get; init; }
 

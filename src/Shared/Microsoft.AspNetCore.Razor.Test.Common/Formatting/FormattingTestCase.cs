@@ -11,7 +11,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-internal class FormattingTestCase : XunitTestCase
+internal sealed class FormattingTestCase : XunitTestCase
 {
     private bool _shouldFlipLineEndings;
     private bool _forceRuntimeCodeGeneration;

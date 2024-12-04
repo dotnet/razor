@@ -21,12 +21,12 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class FormattingTestBase : CohostEndpointTestBase
+public abstract class FormattingTestBase : CohostEndpointTestBase
 {
     private readonly FormattingTestContext _context;
     private readonly HtmlFormattingService _htmlFormattingService;
 
-    internal FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutputHelper)
+    private protected FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutputHelper)
         : base(testOutputHelper)
     {
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
@@ -65,7 +65,7 @@ public class FormattingTestBase : CohostEndpointTestBase
             Assert.False(diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, diagnostics));
         }
 
-        var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);
+        var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), JoinableTaskContext, LoggerFactory);
         var generatedHtml = await htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, DisposalToken);
         Assert.NotNull(generatedHtml);
 
