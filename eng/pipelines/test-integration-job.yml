@@ -36,7 +36,6 @@ steps:
       -PropertyType DWORD
       -Force
     displayName: Enable Long Paths
-    condition: succeeded()
 
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
