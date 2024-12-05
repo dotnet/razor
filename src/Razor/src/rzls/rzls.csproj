@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>$(DefaultNetCoreTargetFramework)</TargetFramework>
     <OutputType>Exe</OutputType>
+    <DebugType>portable</DebugType>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package
       contains a Razor language server.</Description>
     <RootNamespace>Microsoft.AspNetCore.Razor.LanguageServer</RootNamespace>
