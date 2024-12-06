@@ -32,6 +32,16 @@ internal readonly record struct RazorFormattingOptions
         };
     }
 
+    public static RazorFormattingOptions From(RoslynFormattingOptions options, bool codeBlockBraceOnNextLine)
+    {
+        return new RazorFormattingOptions()
+        {
+            InsertSpaces = options.InsertSpaces,
+            TabSize = options.TabSize,
+            CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine
+        };
+    }
+
     public RazorIndentationOptions ToIndentationOptions()
         => new(
             UseTabs: !InsertSpaces,
