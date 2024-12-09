@@ -24,7 +24,7 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
     public ValueTask<InlineCompletionRequestInfo?> GetInlineCompletionInfoAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition linePosition, CancellationToken cancellationToken)
-       => RunServiceAsync(
+        => RunServiceAsync(
             solutionInfo,
             documentId,
             context => GetInlineCompletionInfoAsync(context, linePosition, cancellationToken),

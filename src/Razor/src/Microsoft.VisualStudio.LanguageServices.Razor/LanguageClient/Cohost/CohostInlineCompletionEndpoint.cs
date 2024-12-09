@@ -58,24 +58,24 @@ internal sealed class CohostInlineCompletionEndpoint(
     protected override Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RazorCohostRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(context, context.TextDocument.AssumeNotNull(), request.Position.ToLinePosition(), request.Options, cancellationToken);
 
-    private async Task<VSInternalInlineCompletionList?> HandleRequestAsync(RazorCohostRequestContext? context, TextDocument razorDocument, LinePosition position, FormattingOptions formattingOptions, CancellationToken cancellationToken)
+    private async Task<VSInternalInlineCompletionList?> HandleRequestAsync(RazorCohostRequestContext? context, TextDocument razorDocument, LinePosition linePosition, FormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var requestInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlineCompletionService, InlineCompletionRequestInfo?>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetInlineCompletionInfoAsync(solutionInfo, razorDocument.Id, position, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetInlineCompletionInfoAsync(solutionInfo, razorDocument.Id, linePosition, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (requestInfo is not { } info)
+        if (requestInfo is not InlineCompletionRequestInfo(var generatedDocumentUri, var position))
         {
             return null;
         }
 
-        if (!razorDocument.Project.TryGetCSharpDocument(info.GeneratedDocumentUri, out var generatedDocument))
+        if (!razorDocument.Project.TryGetCSharpDocument(generatedDocumentUri, out var generatedDocument))
         {
             return null;
         }
 
-        var result = await Completion.GetInlineCompletionItemsAsync(context, generatedDocument, info.Position, formattingOptions, cancellationToken).ConfigureAwait(false);
+        var result = await Completion.GetInlineCompletionItemsAsync(context, generatedDocument, position, formattingOptions, cancellationToken).ConfigureAwait(false);
 
         if (result is null)
         {

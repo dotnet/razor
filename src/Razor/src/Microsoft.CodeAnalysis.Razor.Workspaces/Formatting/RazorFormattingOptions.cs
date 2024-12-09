@@ -23,24 +23,20 @@ internal readonly record struct RazorFormattingOptions
     }
 
     public static RazorFormattingOptions From(FormattingOptions options, bool codeBlockBraceOnNextLine)
-    {
-        return new RazorFormattingOptions()
+        => new()
         {
             InsertSpaces = options.InsertSpaces,
             TabSize = options.TabSize,
             CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine
         };
-    }
 
     public static RazorFormattingOptions From(RoslynFormattingOptions options, bool codeBlockBraceOnNextLine)
-    {
-        return new RazorFormattingOptions()
+        => new()
         {
             InsertSpaces = options.InsertSpaces,
             TabSize = options.TabSize,
             CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine
         };
-    }
 
     public RazorIndentationOptions ToIndentationOptions()
         => new(
@@ -49,9 +45,9 @@ internal readonly record struct RazorFormattingOptions
             IndentationSize: TabSize);
 
     public RoslynFormattingOptions ToRoslynFormattingOptions()
-        => new RoslynFormattingOptions()
+        => new()
         {
             InsertSpaces = InsertSpaces,
-            TabSize = TabSize
+            TabSize = TabSize,
         };
 }
