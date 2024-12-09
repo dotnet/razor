@@ -13,6 +13,16 @@ Source Location: (67:2,19 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1046:33,0 [1] )
 |3|
 
+Source Location: (67:2,19 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|3|
+Generated Location: (1046:33,0 [1] )
+|3|
+
+Source Location: (79:2,31 [26] x:\dir\subdir\Test\TestComponent.cshtml)
+|(IEnumerable<int> x) => {}|
+Generated Location: (1275:41,0 [26] )
+|(IEnumerable<int> x) => {}|
+
 Source Location: (79:2,31 [26] x:\dir\subdir\Test\TestComponent.cshtml)
 |(IEnumerable<int> x) => {}|
 Generated Location: (1275:41,0 [26] )

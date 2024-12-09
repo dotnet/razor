@@ -9,3 +9,14 @@ Generated Location: (733:21,0 [41] )
 #undef SomeSymbol
 |
 
+Source Location: (2:0,2 [41] x:\dir\subdir\Test\TestComponent.razor)
+|
+#define SomeSymbol
+#undef SomeSymbol
+|
+Generated Location: (733:21,0 [41] )
+|
+#define SomeSymbol
+#undef SomeSymbol
+|
+

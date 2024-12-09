@@ -3,6 +3,16 @@
 Generated Location: (895:23,0 [64] )
 |Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
 
+Source Location: (28:0,28 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+Generated Location: (895:23,0 [64] )
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+
+Source Location: (126:1,28 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+Generated Location: (1426:37,0 [64] )
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+
 Source Location: (126:1,28 [64] x:\dir\subdir\Test\TestComponent.cshtml)
 |Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
 Generated Location: (1426:37,0 [64] )

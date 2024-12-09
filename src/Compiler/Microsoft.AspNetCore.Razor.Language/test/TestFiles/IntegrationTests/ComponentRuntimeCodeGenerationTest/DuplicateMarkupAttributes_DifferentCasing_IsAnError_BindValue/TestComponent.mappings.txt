@@ -8,6 +8,20 @@ Source Location: (91:2,40 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1200:32,0 [4] )
 |text|
 
+Source Location: (91:2,40 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|text|
+Generated Location: (1200:32,0 [4] )
+|text|
+
+Source Location: (127:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string text = "hi";
+|
+Generated Location: (1705:46,0 [35] )
+|
+    private string text = "hi";
+|
+
 Source Location: (127:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     private string text = "hi";

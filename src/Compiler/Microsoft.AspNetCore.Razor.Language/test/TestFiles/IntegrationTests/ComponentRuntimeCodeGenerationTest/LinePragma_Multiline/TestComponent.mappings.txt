@@ -5,3 +5,10 @@ Generated Location: (772:22,0 [8] )
 |"text"
 |
 
+Source Location: (2:0,2 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|"text"
+|
+Generated Location: (772:22,0 [8] )
+|"text"
+|
+

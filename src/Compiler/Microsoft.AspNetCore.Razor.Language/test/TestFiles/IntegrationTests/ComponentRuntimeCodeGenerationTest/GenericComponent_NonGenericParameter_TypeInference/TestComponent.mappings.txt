@@ -8,10 +8,29 @@ Source Location: (39:1,19 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (957:28,0 [1] )
 |3|
 
+Source Location: (39:1,19 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|3|
+Generated Location: (957:28,0 [1] )
+|3|
+
 Source Location: (48:1,28 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Hello|
 Generated Location: (1111:36,0 [5] )
 |Hello|
+
+Source Location: (48:1,28 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Hello|
+Generated Location: (1111:36,0 [5] )
+|Hello|
+
+Source Location: (68:3,7 [38] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    MyClass Hello = new MyClass();
+|
+Generated Location: (1313:46,0 [38] )
+|
+    MyClass Hello = new MyClass();
+|
 
 Source Location: (68:3,7 [38] x:\dir\subdir\Test\TestComponent.cshtml)
 |

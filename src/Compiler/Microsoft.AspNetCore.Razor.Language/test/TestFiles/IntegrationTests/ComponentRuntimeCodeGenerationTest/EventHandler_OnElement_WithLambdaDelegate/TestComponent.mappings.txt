@@ -8,3 +8,8 @@ Source Location: (61:1,17 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1114:29,0 [8] )
 |x => { }|
 
+Source Location: (61:1,17 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|x => { }|
+Generated Location: (1114:29,0 [8] )
+|x => { }|
+

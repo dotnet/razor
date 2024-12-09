@@ -13,3 +13,8 @@ Source Location: (69:4,1 [3] x:\dir\subdir\Test\_Imports.razor)
 Generated Location: (945:35,0 [3] )
 |Foo|
 
+Source Location: (69:4,1 [3] x:\dir\subdir\Test\_Imports.razor)
+|Foo|
+Generated Location: (945:35,0 [3] )
+|Foo|
+

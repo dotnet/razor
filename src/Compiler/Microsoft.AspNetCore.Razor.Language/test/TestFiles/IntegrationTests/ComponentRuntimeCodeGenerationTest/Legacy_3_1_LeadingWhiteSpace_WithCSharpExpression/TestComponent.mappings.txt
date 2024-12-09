@@ -3,3 +3,8 @@
 Generated Location: (773:22,0 [10] )
 |"My value"|
 
+Source Location: (2:0,2 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|"My value"|
+Generated Location: (773:22,0 [10] )
+|"My value"|
+

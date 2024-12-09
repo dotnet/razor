@@ -8,6 +8,20 @@ Source Location: (64:1,35 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1086:30,0 [11] )
 |ParentValue|
 
+Source Location: (64:1,35 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentValue|
+Generated Location: (1086:30,0 [11] )
+|ParentValue|
+
+Source Location: (121:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public int ParentValue { get; set; }
+|
+Generated Location: (1576:43,0 [44] )
+|
+    public int ParentValue { get; set; }
+|
+
 Source Location: (121:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     public int ParentValue { get; set; }

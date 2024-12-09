@@ -8,6 +8,16 @@ Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1138:30,0 [9] )
 |() => { }|
 
+Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1138:30,0 [9] )
+|() => { }|
+
+Source Location: (98:1,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|x|
+Generated Location: (1422:39,0 [1] )
+|x|
+
 Source Location: (98:1,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |x|
 Generated Location: (1422:39,0 [1] )
@@ -18,10 +28,31 @@ Source Location: (141:2,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1984:53,0 [9] )
 |() => { }|
 
+Source Location: (141:2,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1984:53,0 [9] )
+|() => { }|
+
 Source Location: (164:2,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |y|
 Generated Location: (2271:62,0 [1] )
 |y|
+
+Source Location: (164:2,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|y|
+Generated Location: (2271:62,0 [1] )
+|y|
+
+Source Location: (183:3,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    string x = "a";
+    string y = "b";
+|
+Generated Location: (2573:74,0 [44] )
+|
+    string x = "a";
+    string y = "b";
+|
 
 Source Location: (183:3,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
 |

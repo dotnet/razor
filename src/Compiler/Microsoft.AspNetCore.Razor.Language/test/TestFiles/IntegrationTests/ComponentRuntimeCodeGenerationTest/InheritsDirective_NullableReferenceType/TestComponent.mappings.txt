@@ -8,3 +8,8 @@ Source Location: (61:3,2 [17] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (951:31,0 [17] )
 |_field.ToString()|
 
+Source Location: (61:3,2 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|_field.ToString()|
+Generated Location: (951:31,0 [17] )
+|_field.ToString()|
+

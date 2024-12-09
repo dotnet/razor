@@ -8,3 +8,8 @@ Source Location: (54:0,54 [26] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1426:36,0 [26] )
 |context.ToLowerInvariant()|
 
+Source Location: (54:0,54 [26] x:\dir\subdir\Test\TestComponent.cshtml)
+|context.ToLowerInvariant()|
+Generated Location: (1426:36,0 [26] )
+|context.ToLowerInvariant()|
+

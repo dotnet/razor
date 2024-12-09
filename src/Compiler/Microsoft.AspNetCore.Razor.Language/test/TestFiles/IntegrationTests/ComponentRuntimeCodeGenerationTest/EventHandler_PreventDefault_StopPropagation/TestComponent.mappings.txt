@@ -8,6 +8,16 @@ Source Location: (62:1,18 [17] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1115:29,0 [17] )
 |() => Foo = false|
 
+Source Location: (62:1,18 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => Foo = false|
+Generated Location: (1115:29,0 [17] )
+|() => Foo = false|
+
+Source Location: (106:1,62 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|true|
+Generated Location: (1353:38,0 [4] )
+|true|
+
 Source Location: (106:1,62 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |true|
 Generated Location: (1353:38,0 [4] )
@@ -18,10 +28,29 @@ Source Location: (138:1,94 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1578:47,0 [3] )
 |Foo|
 
+Source Location: (138:1,94 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|Foo|
+Generated Location: (1578:47,0 [3] )
+|Foo|
+
 Source Location: (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |false|
 Generated Location: (1804:56,0 [5] )
 |false|
+
+Source Location: (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|false|
+Generated Location: (1804:56,0 [5] )
+|false|
+
+Source Location: (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    bool Foo { get; set; }
+|
+Generated Location: (2095:68,0 [30] )
+|
+    bool Foo { get; set; }
+|
 
 Source Location: (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml)
 |

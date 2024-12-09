@@ -8,3 +8,8 @@ Source Location: (137:2,33 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1516:36,0 [20] )
 |"named-form-handler"|
 
+Source Location: (137:2,33 [20] x:\dir\subdir\Test\TestComponent.cshtml)
+|"named-form-handler"|
+Generated Location: (1516:36,0 [20] )
+|"named-form-handler"|
+

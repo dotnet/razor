@@ -15,3 +15,20 @@ Generated Location: (733:21,0 [40] )
 #endif
 |
 
+Source Location: (2:0,2 [40] x:\dir\subdir\Test\TestComponent.razor)
+|
+#if false
+}
+@{ #else }
+@{
+#endif
+|
+Generated Location: (733:21,0 [40] )
+|
+#if false
+}
+@{ #else }
+@{
+#endif
+|
+

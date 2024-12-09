@@ -20,10 +20,39 @@ Generated Location: (927:28,0 [213] )
         else output = "Builder is not null!";
 |
 
+Source Location: (60:2,7 [213] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    void RenderChildComponent(RenderTreeBuilder __builder)
+    {
+        var output = string.Empty;
+        if (__builder == null) output = "Builder is null!";
+        else output = "Builder is not null!";
+|
+Generated Location: (927:28,0 [213] )
+|
+    void RenderChildComponent(RenderTreeBuilder __builder)
+    {
+        var output = string.Empty;
+        if (__builder == null) output = "Builder is null!";
+        else output = "Builder is not null!";
+|
+
 Source Location: (293:8,20 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |output|
 Generated Location: (1394:44,0 [6] )
 |output|
+
+Source Location: (293:8,20 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|output|
+Generated Location: (1394:44,0 [6] )
+|output|
+
+Source Location: (305:9,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|    }
+|
+Generated Location: (1581:53,0 [7] )
+|    }
+|
 
 Source Location: (305:9,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |    }

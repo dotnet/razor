@@ -3,6 +3,11 @@
 Generated Location: (823:23,0 [8] )
 |TestBool|
 
+Source Location: (9:0,9 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestBool|
+Generated Location: (823:23,0 [8] )
+|TestBool|
+
 Source Location: (45:2,15 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestBool|
 Generated Location: (1228:35,0 [8] )
@@ -12,6 +17,22 @@ Source Location: (55:2,25 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |true|
 Generated Location: (1493:43,0 [4] )
 |true|
+
+Source Location: (55:2,25 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|true|
+Generated Location: (1493:43,0 [4] )
+|true|
+
+Source Location: (74:4,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public bool TestBool { get; set; }
+|
+Generated Location: (1736:54,0 [59] )
+|
+    [Parameter]
+    public bool TestBool { get; set; }
+|
 
 Source Location: (74:4,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
 |

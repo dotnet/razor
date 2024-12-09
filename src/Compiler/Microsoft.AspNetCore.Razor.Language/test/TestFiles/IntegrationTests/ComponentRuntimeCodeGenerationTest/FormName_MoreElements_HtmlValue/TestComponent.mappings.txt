@@ -8,6 +8,16 @@ Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1138:30,0 [9] )
 |() => { }|
 
+Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1138:30,0 [9] )
+|() => { }|
+
+Source Location: (140:2,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1838:45,0 [9] )
+|() => { }|
+
 Source Location: (140:2,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
 Generated Location: (1838:45,0 [9] )

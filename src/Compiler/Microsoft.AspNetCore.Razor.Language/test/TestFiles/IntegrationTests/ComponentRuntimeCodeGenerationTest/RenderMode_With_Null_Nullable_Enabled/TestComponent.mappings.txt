@@ -3,3 +3,8 @@
 Generated Location: (895:23,0 [4] )
 |null|
 
+Source Location: (28:0,28 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|null|
+Generated Location: (895:23,0 [4] )
+|null|
+

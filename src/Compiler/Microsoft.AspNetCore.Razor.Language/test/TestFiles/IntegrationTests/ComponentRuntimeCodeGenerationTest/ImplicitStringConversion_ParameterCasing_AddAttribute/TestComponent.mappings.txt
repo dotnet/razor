@@ -8,3 +8,8 @@ Source Location: (28:0,28 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1151:31,0 [13] )
 |new MyClass()|
 
+Source Location: (28:0,28 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|new MyClass()|
+Generated Location: (1151:31,0 [13] )
+|new MyClass()|
+

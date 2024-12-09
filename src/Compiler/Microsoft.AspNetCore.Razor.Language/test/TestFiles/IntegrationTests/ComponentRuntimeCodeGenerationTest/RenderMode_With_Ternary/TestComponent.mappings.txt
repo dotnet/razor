@@ -3,3 +3,8 @@
 Generated Location: (896:23,0 [78] )
 |true ? Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer : null|
 
+Source Location: (30:0,30 [78] x:\dir\subdir\Test\TestComponent.cshtml)
+|true ? Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer : null|
+Generated Location: (896:23,0 [78] )
+|true ? Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer : null|
+

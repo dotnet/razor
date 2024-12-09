@@ -8,6 +8,16 @@ Source Location: (119:6,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1509:37,0 [7] )
 |context|
 
+Source Location: (119:6,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|context|
+Generated Location: (1509:37,0 [7] )
+|context|
+
+Source Location: (276:12,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|context|
+Generated Location: (2455:59,0 [7] )
+|context|
+
 Source Location: (276:12,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |context|
 Generated Location: (2455:59,0 [7] )
