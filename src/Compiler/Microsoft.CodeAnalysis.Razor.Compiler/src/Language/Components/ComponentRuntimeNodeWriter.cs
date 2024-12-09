@@ -51,11 +51,10 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             }
         }
 
-        if (isWhitespaceStatement)
+        if (node.Source is null && isWhitespaceStatement)
         {
-            // The runtime and design time code differ in their handling of whitespace-only
-            // statements. At runtime we can discard them completely. At design time we need
-            // to keep them for the editor.
+            // If source is null, we won't create source mappings, and if we're not creating source mappings,
+            // there is no point emitting whitespace
             return;
         }
 
@@ -1208,6 +1207,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
         {
+            context.AddSourceMappingFor(token);
             context.CodeWriter.Write(token.Content);
         }
     }
