@@ -146,7 +146,10 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
         // @code
         // {
         // }
-        if (node is CSharpCodeBlockSyntax { Children: [RazorDirectiveSyntax { Body: RazorDirectiveBodySyntax body } directive] })
+
+        // In design time code gen, there is only one child of a node like this, but at runtime any leading whitespace is included
+        // as a child, so we handle both cases by just checking the last child.
+        if (node is CSharpCodeBlockSyntax { Children: [.., RazorDirectiveSyntax { Body: RazorDirectiveBodySyntax body } directive] })
         {
             if (!IsCodeOrFunctionsBlock(body.Keyword))
             {
