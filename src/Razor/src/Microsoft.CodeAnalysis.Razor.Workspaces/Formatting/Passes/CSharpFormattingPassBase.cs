@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -37,7 +38,7 @@ internal abstract partial class CSharpFormattingPassBase(IDocumentMappingService
 
     protected abstract Task<ImmutableArray<TextChange>> ExecuteCoreAsync(FormattingContext context, RoslynWorkspaceHelper roslynWorkspaceHelper, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
 
-    protected async Task<ImmutableArray<TextChange>> AdjustIndentationAsync(FormattingContext context, int startLine, int endLineInclusive, HostWorkspaceServices hostWorkspaceServices, CancellationToken cancellationToken)
+    protected async Task<ImmutableArray<TextChange>> AdjustIndentationAsync(FormattingContext context, int startLine, int endLineInclusive, HostWorkspaceServices hostWorkspaceServices, ILogger logger, CancellationToken cancellationToken)
     {
         // In this method, the goal is to make final adjustments to the indentation of each line.
         // We will take into account the following,
@@ -111,6 +112,7 @@ internal abstract partial class CSharpFormattingPassBase(IDocumentMappingService
             if (!ShouldFormat(context, lineStartSpan, allowImplicitStatements: true))
             {
                 // We don't care about this range as this can potentially lead to incorrect scopes.
+                logger.LogTestOnly($"Don't care about line: {line.ToString()}");
                 continue;
             }
 
@@ -119,7 +121,13 @@ internal abstract partial class CSharpFormattingPassBase(IDocumentMappingService
                 lineStartMap[lineStart] = projectedLineStart;
                 significantLocations.Add(projectedLineStart);
             }
+            else
+            {
+                logger.LogTestOnly($"Couldn't map line: {line.ToString()}");
+            }
         }
+
+        logger.LogTestOnly($"Significant locations:\r\n{string.Join(",", significantLocations)}");
 
         // Now, invoke the C# formatter to obtain the CSharpDesiredIndentation for all significant locations.
         var significantLocationIndentation = await CSharpFormatter.GetCSharpIndentationAsync(context, significantLocations, hostWorkspaceServices, cancellationToken).ConfigureAwait(false);

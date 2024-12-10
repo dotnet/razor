@@ -55,7 +55,7 @@ internal sealed class CSharpFormattingPass(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var indentationChanges = await AdjustIndentationAsync(changedContext, startLine: 0, endLineInclusive: changedText.Lines.Count - 1, roslynWorkspaceHelper.HostWorkspaceServices, cancellationToken).ConfigureAwait(false);
+        var indentationChanges = await AdjustIndentationAsync(changedContext, startLine: 0, endLineInclusive: changedText.Lines.Count - 1, roslynWorkspaceHelper.HostWorkspaceServices, _logger, cancellationToken).ConfigureAwait(false);
         if (indentationChanges.Length > 0)
         {
             // Apply the edits that modify indentation.
@@ -63,6 +63,8 @@ internal sealed class CSharpFormattingPass(
 
             _logger.LogTestOnly($"After AdjustIndentationAsync:\r\n{changedText}");
         }
+
+        _logger.LogTestOnly($"Source Mappings:\r\n{string.Join(Environment.NewLine, context.CodeDocument.GetCSharpDocument().SourceMappings)}");
 
         _logger.LogTestOnly($"Generated C#:\r\n{context.CSharpSourceText}");
 
