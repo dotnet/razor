@@ -392,7 +392,8 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
                 changes.Add(new TextChange(source.Text.GetTextSpan(span), newText));
                 didFormat = true;
             }
-            else if (codeRange.End.Line == closeBraceRange.Start.Line)
+            else if (codeRange.End.Line == closeBraceRange.Start.Line &&
+                codeNode.GetLastToken(includeZeroWidth: false) is not { Kind: SyntaxKind.NewLine })
             {
                 // Add a Newline between the content and the "}" if one doesn't already exist.
                 changes.Add(new TextChange(source.Text.GetTextSpan(codeRange.End, codeRange.End), context.NewLineString));
