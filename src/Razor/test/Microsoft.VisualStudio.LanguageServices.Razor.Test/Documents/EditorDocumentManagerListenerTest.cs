@@ -40,7 +40,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
             updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
@@ -79,7 +79,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
             updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
@@ -118,7 +118,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();
@@ -158,7 +158,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();

@@ -55,7 +55,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
             updater.DocumentAdded(hostProject.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
@@ -100,11 +100,11 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject1);
+            updater.AddProject(hostProject1);
             updater.ProjectWorkspaceStateChanged(hostProject1.Key, projectWorkspaceState);
             updater.DocumentAdded(hostProject1.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
 
-            updater.ProjectAdded(hostProject2);
+            updater.AddProject(hostProject2);
             updater.ProjectWorkspaceStateChanged(hostProject2.Key, projectWorkspaceState);
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
@@ -149,11 +149,11 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject1);
+            updater.AddProject(hostProject1);
             updater.ProjectWorkspaceStateChanged(hostProject1.Key, projectWorkspaceState);
             updater.DocumentAdded(hostProject1.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
 
-            updater.ProjectAdded(hostProject2);
+            updater.AddProject(hostProject2);
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 
@@ -194,10 +194,10 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject1);
+            updater.AddProject(hostProject1);
             updater.DocumentAdded(hostProject1.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
 
-            updater.ProjectAdded(hostProject2);
+            updater.AddProject(hostProject2);
             updater.DocumentAdded(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
         });
 

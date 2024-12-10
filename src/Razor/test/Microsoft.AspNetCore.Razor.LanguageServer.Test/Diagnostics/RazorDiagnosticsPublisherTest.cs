@@ -69,7 +69,7 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
 
         await testProjectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, openedHostDocument, TextLoader.From(textAndVersion));
             updater.DocumentOpened(hostProject.Key, openedHostDocument.FilePath, sourceText);
             updater.DocumentAdded(hostProject.Key, closedHostDocument, TextLoader.From(textAndVersion));

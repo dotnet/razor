@@ -320,7 +320,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
 
         // ProjectAdded will no-op if the project already exists
-        updater.ProjectAdded(hostProject);
+        updater.AddProject(hostProject);
 
         _logger.LogInformation($"Added project '{filePath}' with key {hostProject.Key} to project system.");
 

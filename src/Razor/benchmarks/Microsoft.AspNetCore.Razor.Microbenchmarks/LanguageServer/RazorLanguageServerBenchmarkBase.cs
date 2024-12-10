@@ -73,7 +73,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         await projectManager.UpdateAsync(
             updater =>
             {
-                updater.ProjectAdded(hostProject);
+                updater.AddProject(hostProject);
                 var tagHelpers = CommonResources.LegacyTagHelpers;
                 var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
                 updater.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);

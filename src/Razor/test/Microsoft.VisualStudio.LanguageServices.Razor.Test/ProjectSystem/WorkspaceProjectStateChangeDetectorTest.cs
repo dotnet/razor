@@ -135,7 +135,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
+            updater.AddProject(_hostProjectOne);
         });
 
         await workspaceChangedTask;
@@ -171,9 +171,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
-            updater.ProjectAdded(_hostProjectTwo);
-            updater.ProjectAdded(_hostProjectThree);
+            updater.AddProject(_hostProjectOne);
+            updater.AddProject(_hostProjectTwo);
+            updater.AddProject(_hostProjectThree);
         });
 
         // Initialize with a project. This will get removed.
@@ -212,9 +212,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
-            updater.ProjectAdded(_hostProjectTwo);
-            updater.ProjectAdded(_hostProjectThree);
+            updater.AddProject(_hostProjectOne);
+            updater.AddProject(_hostProjectTwo);
+            updater.AddProject(_hostProjectThree);
         });
 
         // Initialize with a project. This will get removed.
@@ -255,8 +255,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
-            updater.ProjectAdded(_hostProjectTwo);
+            updater.AddProject(_hostProjectOne);
+            updater.AddProject(_hostProjectTwo);
         });
 
         var e = new WorkspaceChangeEventArgs(kind, oldSolution: _emptySolution, newSolution: _solutionWithTwoProjects);
@@ -289,9 +289,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
-            updater.ProjectAdded(_hostProjectTwo);
-            updater.ProjectAdded(_hostProjectThree);
+            updater.AddProject(_hostProjectOne);
+            updater.AddProject(_hostProjectTwo);
+            updater.AddProject(_hostProjectThree);
         });
 
         // Initialize with a project. This will get removed.
@@ -329,7 +329,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
+            updater.AddProject(_hostProjectOne);
         });
 
         // Stop any existing work and clear out any updates that we might have received.
@@ -367,7 +367,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
+            updater.AddProject(_hostProjectOne);
         });
 
         generator.Clear();
@@ -399,7 +399,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
+            updater.AddProject(_hostProjectOne);
         });
 
         generator.Clear();
@@ -431,7 +431,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
+            updater.AddProject(_hostProjectOne);
         });
 
         generator.Clear();
@@ -463,7 +463,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
+            updater.AddProject(_hostProjectOne);
         });
 
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -511,8 +511,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectOne);
-            updater.ProjectAdded(_hostProjectTwo);
+            updater.AddProject(_hostProjectOne);
+            updater.AddProject(_hostProjectTwo);
         });
 
         var solution = _solutionWithTwoProjects.RemoveProject(_projectNumberOne.Id);
@@ -539,7 +539,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProjectThree);
+            updater.AddProject(_hostProjectThree);
         });
 
         var solution = _solutionWithOneProject;

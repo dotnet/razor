@@ -44,8 +44,8 @@ internal partial class ProjectSnapshotManager
         public void DocumentClosed(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
             => instance.DocumentClosed(projectKey, documentFilePath, textLoader);
 
-        public void ProjectAdded(HostProject project)
-            => instance.ProjectAdded(project);
+        public void AddProject(HostProject project)
+            => instance.AddProject(project);
 
         public void ProjectRemoved(ProjectKey projectKey)
             => instance.ProjectRemoved(projectKey);

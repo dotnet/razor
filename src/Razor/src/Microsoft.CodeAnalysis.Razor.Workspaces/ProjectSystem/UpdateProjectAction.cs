@@ -26,8 +26,6 @@ internal record DocumentTextChangedAction(SourceText SourceText) : IUpdateProjec
 
 internal record DocumentTextLoaderChangedAction(TextLoader TextLoader) : IUpdateProjectAction;
 
-internal record ProjectAddedAction(HostProject HostProject) : IUpdateProjectAction;
-
 internal record ProjectRemovedAction(ProjectKey ProjectKey) : IUpdateProjectAction;
 
 internal record HostProjectUpdatedAction(HostProject HostProject) : IUpdateProjectAction;

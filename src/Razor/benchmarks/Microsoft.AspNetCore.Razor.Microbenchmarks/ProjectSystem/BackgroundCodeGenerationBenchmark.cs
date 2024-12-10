@@ -19,7 +19,7 @@ public class BackgroundCodeGenerationBenchmark : ProjectSnapshotManagerBenchmark
         ProjectManager = CreateProjectSnapshotManager();
 
         await ProjectManager.UpdateAsync(
-            updater => updater.ProjectAdded(HostProject),
+            updater => updater.AddProject(HostProject),
             CancellationToken.None);
 
         ProjectManager.Changed += SnapshotManager_Changed;

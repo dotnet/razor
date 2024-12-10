@@ -115,7 +115,7 @@ internal sealed class FallbackProjectManager(
         var hostProject = new FallbackHostProject(project.FilePath, intermediateOutputPath, configuration, rootNamespace, project.Name);
 
         EnqueueProjectManagerUpdate(
-            updater => updater.ProjectAdded(hostProject),
+            updater => updater.AddProject(hostProject),
             cancellationToken);
 
         AddFallbackDocument(hostProject.Key, filePath, project.FilePath, cancellationToken);

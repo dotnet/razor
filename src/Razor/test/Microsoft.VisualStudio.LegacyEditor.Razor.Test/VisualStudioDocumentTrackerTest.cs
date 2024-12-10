@@ -156,7 +156,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject);
+            updater.AddProject(_hostProject);
         });
 
         var e = ProjectChangeEventArgs.ProjectAdded(_projectManager.GetLoadedProject(_hostProject.Key), isSolutionClosing: false);
@@ -182,7 +182,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject);
+            updater.AddProject(_hostProject);
         });
 
         var project = _projectManager.GetLoadedProject(_hostProject.Key);
@@ -209,7 +209,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject);
+            updater.AddProject(_hostProject);
         });
 
         var project = _projectManager.GetLoadedProject(_hostProject.Key);
@@ -243,7 +243,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_otherHostProject);
+            updater.AddProject(_otherHostProject);
         });
 
         var project = _projectManager.GetLoadedProject(_otherHostProject.Key);
@@ -445,7 +445,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject);
+            updater.AddProject(_hostProject);
         });
 
         // Act
@@ -461,7 +461,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject);
+            updater.AddProject(_hostProject);
         });
 
         _documentTracker.Subscribe();
@@ -490,7 +490,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject);
+            updater.AddProject(_hostProject);
         });
 
         _documentTracker.Subscribe();

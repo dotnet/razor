@@ -41,10 +41,10 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
 
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
             updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, TestMocks.CreateTextLoader(s_hostDocument1.FilePath, "<p>Hello World</p>"));
 
-            updater.ProjectAdded(s_hostProject2);
+            updater.AddProject(s_hostProject2);
             updater.DocumentAdded(s_hostProject2.Key, s_hostDocument2, TestMocks.CreateTextLoader(s_hostDocument2.FilePath, "<p>Hello World</p>"));
         });
 
@@ -93,10 +93,10 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
         // Now add some projects
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
             updater.DocumentAdded(s_hostProject1.Key, s_hostDocument1, TestMocks.CreateTextLoader(s_hostDocument1.FilePath, "<p>Hello World</p>"));
 
-            updater.ProjectAdded(s_hostProject2);
+            updater.AddProject(s_hostProject2);
             updater.DocumentAdded(s_hostProject2.Key, s_hostDocument2, TestMocks.CreateTextLoader(s_hostDocument2.FilePath, "<p>Hello World</p>"));
         });
 
@@ -128,7 +128,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
 
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
         });
 
         var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
@@ -159,7 +159,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
 
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
         });
 
         var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
@@ -193,7 +193,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
 
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
         });
 
         var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);
@@ -225,7 +225,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
 
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
         });
 
         var (driver, testAccessor) = await CreateDriverAndInitializeAsync(projectManager);

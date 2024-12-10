@@ -114,7 +114,7 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
         });
 
         // Act
@@ -133,8 +133,8 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
 
         var expectedProject = await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
-            updater.ProjectAdded(otherHostProject);
+            updater.AddProject(hostProject);
+            updater.AddProject(otherHostProject);
             updater.DocumentAdded(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
 
             return updater.GetLoadedProject(hostProject.Key);
@@ -164,7 +164,7 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
         var miscProject = await projectManager.UpdateAsync(updater =>
         {
             updater.DocumentAdded(miscFilesHostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
 
             return updater.GetLoadedProject(miscFilesHostProject.Key);
         });
@@ -188,7 +188,7 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
 
         var ownerProject = await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
 
             return updater.GetLoadedProject(hostProject.Key);
@@ -249,7 +249,7 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
 
             await projectManager.UpdateAsync(updater =>
             {
-                updater.ProjectAdded(hostProject);
+                updater.AddProject(hostProject);
             });
         }
 

@@ -43,10 +43,10 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject1);
+            updater.AddProject(_hostProject1);
             updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
 
-            updater.ProjectAdded(_hostProject2);
+            updater.AddProject(_hostProject2);
             updater.ProjectWorkspaceStateChanged(_hostProject2.Key, _projectWorkspaceState2);
         });
 
@@ -76,7 +76,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject1);
+            updater.AddProject(_hostProject1);
             updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
         });
 
@@ -124,7 +124,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject1);
+            updater.AddProject(_hostProject1);
             updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
         });
 
@@ -163,7 +163,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject1);
+            updater.AddProject(_hostProject1);
             updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
         });
 
@@ -195,10 +195,10 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject1);
+            updater.AddProject(_hostProject1);
             updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
 
-            updater.ProjectAdded(_hostProject2);
+            updater.AddProject(_hostProject2);
             updater.ProjectWorkspaceStateChanged(_hostProject2.Key, _projectWorkspaceState2);
         });
 
@@ -228,7 +228,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_hostProject1);
+            updater.AddProject(_hostProject1);
             updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
         });
 

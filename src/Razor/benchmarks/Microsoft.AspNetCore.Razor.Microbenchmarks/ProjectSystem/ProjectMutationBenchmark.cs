@@ -32,7 +32,7 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
     public async Task ProjectMutation_Mutates100kFilesAsync()
     {
         await ProjectManager.UpdateAsync(
-            updater => updater.ProjectAdded(HostProject),
+            updater => updater.AddProject(HostProject),
             CancellationToken.None);
 
         var cancellationSource = new CancellationTokenSource();

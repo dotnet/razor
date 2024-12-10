@@ -167,7 +167,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
     {
         return _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
             var textLoader = new SourceTextLoader("<p>Hello World</p>", s_hostDocument.FilePath);
             updater.DocumentAdded(s_hostProject.Key, s_hostDocument, textLoader);
             var project = updater.GetLoadedProject(s_hostProject.Key);

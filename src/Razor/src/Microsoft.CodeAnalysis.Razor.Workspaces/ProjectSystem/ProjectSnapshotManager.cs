@@ -307,21 +307,11 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void ProjectAdded(HostProject hostProject)
+    private void AddProject(HostProject hostProject)
     {
-        if (_initialized)
+        if (TryAddProject(hostProject, out var newSnapshot, out var isSolutionClosing))
         {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            hostProject.Key,
-            documentFilePath: null,
-            new ProjectAddedAction(hostProject),
-            out _,
-            out var newSnapshot))
-        {
-            NotifyListeners(ProjectChangeEventArgs.ProjectAdded(newSnapshot, IsSolutionClosing));
+            NotifyListeners(ProjectChangeEventArgs.ProjectAdded(newSnapshot, isSolutionClosing));
         }
     }
 
@@ -453,6 +443,39 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
+    private bool TryAddProject(HostProject hostProject, [NotNullWhen(true)] out IProjectSnapshot? newProject, out bool isSolutionClosing)
+    {
+        if (_initialized)
+        {
+            _dispatcher.AssertRunningOnDispatcher();
+        }
+
+        using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
+
+        isSolutionClosing = _isSolutionClosing;
+
+        // If the solution is closing or the project already exists, we don't need to add a new project.
+        if (isSolutionClosing || _projectMap.ContainsKey(hostProject.Key))
+        {
+            newProject = null;
+            return false;
+        }
+
+        var state = ProjectState.Create(
+            _projectEngineFactoryProvider,
+            _languageServerFeatureOptions,
+            hostProject,
+            ProjectWorkspaceState.Default);
+
+        var newEntry = new Entry(state);
+
+        upgradeableLock.EnterWrite();
+        _projectMap.Add(hostProject.Key, newEntry);
+
+        newProject = newEntry.GetSnapshot();
+        return true;
+    }
+
     private bool TryUpdate(
         ProjectKey projectKey,
         string? documentFilePath,
@@ -461,32 +484,6 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         [NotNullWhen(true)] out IProjectSnapshot? newSnapshot)
     {
         using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
-
-        if (action is ProjectAddedAction(var hostProject))
-        {
-            // If the project already exists, we can't add it again, so return false.
-            if (_projectMap.ContainsKey(hostProject.Key))
-            {
-                oldSnapshot = newSnapshot = null;
-                return false;
-            }
-
-            // ... otherwise, add the project and return true.
-
-            var state = ProjectState.Create(
-                _projectEngineFactoryProvider,
-                _languageServerFeatureOptions,
-                hostProject,
-                ProjectWorkspaceState.Default);
-
-            var newEntry = new Entry(state);
-
-            upgradeableLock.EnterWrite();
-            _projectMap[hostProject.Key] = newEntry;
-
-            oldSnapshot = newSnapshot = newEntry.GetSnapshot();
-            return true;
-        }
 
         if (_projectMap.TryGetValue(projectKey, out var entry))
         {

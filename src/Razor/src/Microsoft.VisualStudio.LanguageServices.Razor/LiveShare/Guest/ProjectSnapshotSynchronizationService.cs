@@ -81,7 +81,7 @@ internal class ProjectSnapshotSynchronizationService(
             await _projectManager.UpdateAsync(
                 static (updater, state) =>
                 {
-                    updater.ProjectAdded(state.hostProject);
+                    updater.AddProject(state.hostProject);
 
                     if (state.projectWorkspaceState != null)
                     {
@@ -148,7 +148,7 @@ internal class ProjectSnapshotSynchronizationService(
             await _projectManager.UpdateAsync(
                 static (updater, state) =>
                 {
-                    updater.ProjectAdded(state.hostProject);
+                    updater.AddProject(state.hostProject);
 
                     if (state.projectWorkspaceState is not null)
                     {

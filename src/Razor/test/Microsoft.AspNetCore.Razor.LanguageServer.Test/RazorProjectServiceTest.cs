@@ -63,7 +63,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
         });
 
         var projectWorkspaceState = ProjectWorkspaceState.Create(LanguageVersion.LatestMajor);
@@ -93,7 +93,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, hostDocument, StrictMock.Of<TextLoader>());
         });
 
@@ -126,7 +126,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, hostDocument, StrictMock.Of<TextLoader>());
         });
 
@@ -161,7 +161,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(miscProject.Key, hostDocument, StrictMock.Of<TextLoader>());
         });
 
@@ -238,7 +238,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         var project = await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
 
             var project = updater.GetLoadedProject(hostProject.Key);
             updater.DocumentAdded(hostProject.Key, hostDocument, StrictMock.Of<TextLoader>());
@@ -276,7 +276,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, document, StrictMock.Of<TextLoader>());
         });
 
@@ -307,7 +307,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, legacyDocument, StrictMock.Of<TextLoader>());
         });
 

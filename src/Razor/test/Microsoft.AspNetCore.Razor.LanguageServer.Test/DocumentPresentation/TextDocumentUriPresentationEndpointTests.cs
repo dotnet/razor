@@ -35,7 +35,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
             updater.DocumentAdded(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });
@@ -95,7 +95,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
             updater.DocumentAdded(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });
@@ -160,7 +160,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
             updater.DocumentAdded(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });
@@ -320,7 +320,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
             updater.DocumentAdded(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
             updater.DocumentAdded(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });

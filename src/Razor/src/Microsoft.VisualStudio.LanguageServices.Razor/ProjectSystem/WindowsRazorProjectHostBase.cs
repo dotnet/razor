@@ -271,7 +271,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
             // ensure we're going to actually do something with the new project that we've just been told about.
             // If VS did tell us, then this is a no-op.
             updater.SolutionOpened();
-            updater.ProjectAdded(project);
+            updater.AddProject(project);
         }
         else
         {

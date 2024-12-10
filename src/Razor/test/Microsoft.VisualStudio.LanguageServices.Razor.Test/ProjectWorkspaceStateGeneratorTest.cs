@@ -119,7 +119,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_projectSnapshot.HostProject);
+            updater.AddProject(_projectSnapshot.HostProject);
             updater.ProjectWorkspaceStateChanged(_projectSnapshot.Key, _projectWorkspaceStateWithTagHelpers);
         });
 
@@ -147,7 +147,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_projectSnapshot.HostProject);
+            updater.AddProject(_projectSnapshot.HostProject);
         });
 
         // Act

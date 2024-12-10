@@ -51,7 +51,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
         });
 
         // We utilize a task completion source here so we can "fake" a document parse taking a significant amount of time
@@ -103,7 +103,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
         });
 
         var loggerMock = new StrictMock<ILogger>();
@@ -144,7 +144,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
         });
 
         var loggerMock = new StrictMock<ILogger>();
@@ -185,8 +185,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
-            updater.ProjectAdded(s_hostProject2);
+            updater.AddProject(s_hostProject1);
+            updater.AddProject(s_hostProject2);
             updater.DocumentAdded(s_hostProject1.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
             updater.DocumentAdded(s_hostProject1.Key, s_documents[1], s_documents[1].CreateEmptyTextLoader());
         });
@@ -224,8 +224,8 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject1);
-            updater.ProjectAdded(hostProject2);
+            updater.AddProject(hostProject1);
+            updater.AddProject(hostProject2);
             updater.DocumentAdded(hostProject1.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
             updater.DocumentAdded(hostProject1.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });
@@ -272,7 +272,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
             for (var i = 0; i < documents.Length; i++)
             {
                 updater.DocumentAdded(s_hostProject1.Key, documents[i], documents[i].CreateEmptyTextLoader());
@@ -318,7 +318,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject1);
+            updater.AddProject(s_hostProject1);
             updater.DocumentAdded(s_hostProject1.Key, TestProjectData.SomeProjectComponentFile1, TestProjectData.SomeProjectComponentFile1.CreateEmptyTextLoader());
             updater.DocumentAdded(s_hostProject1.Key, TestProjectData.SomeProjectImportFile, TestProjectData.SomeProjectImportFile.CreateEmptyTextLoader());
         });

@@ -26,7 +26,7 @@ public class ProjectLoadBenchmark : ProjectSnapshotManagerBenchmarkBase
         await ProjectManager.UpdateAsync(
             updater =>
             {
-                updater.ProjectAdded(HostProject);
+                updater.AddProject(HostProject);
 
                 for (var i = 0; i < Documents.Length; i++)
                 {
