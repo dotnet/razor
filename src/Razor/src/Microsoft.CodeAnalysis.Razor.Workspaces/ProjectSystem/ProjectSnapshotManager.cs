@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly Dispatcher _dispatcher;
+    private readonly ILogger _logger;
     private readonly bool _initialized;
 
     public event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
@@ -57,9 +59,25 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
 
     #endregion
 
-    // We have a queue for changes because if one change results in another change aka, add -> open
-    // we want to make sure the "add" finishes running first before "open" is notified.
+    #region protected by dispatcher
+
+    /// <summary>
+    ///  A queue of ordered notifications to process.
+    /// </summary>
+    /// <remarks>
+    ///  ⚠️ This field must only be accessed when running on the dispatcher.
+    /// </remarks>
     private readonly Queue<ProjectChangeEventArgs> _notificationQueue = new();
+
+    /// <summary>
+    ///  <see langword="true"/> while <see cref="_notificationQueue"/> is being processed.
+    /// </summary>
+    /// <remarks>
+    ///  ⚠️ This field must only be accessed when running on the dispatcher.
+    /// </remarks>
+    private bool _processingNotifications;
+
+    #endregion
 
     /// <summary>
     /// Constructs an instance of <see cref="ProjectSnapshotManager"/>.
@@ -80,6 +98,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         _projectEngineFactoryProvider = projectEngineFactoryProvider;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _dispatcher = new(loggerFactory);
+        _logger = loggerFactory.GetOrCreateLogger(GetType());
 
         initializer?.Invoke(new(this));
 
@@ -393,30 +412,44 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             return;
         }
 
+        // Notifications are *always* sent using the dispatcher.
+        // This ensures that _notificationQueue and _processingNotifications are synchronized.
+        _dispatcher.AssertRunningOnDispatcher();
+
+        // Enqueue the latest notification.
         _notificationQueue.Enqueue(notification);
 
-        if (_notificationQueue.Count == 1)
+        // We're already processing the notification queue, so we're done.
+        if (_processingNotifications)
         {
-            // Only one notification, go ahead and start notifying. In the situation where Count > 1
-            // it means an event was triggered as a response to another event. To ensure order we won't
-            // immediately re-invoke Changed here, we'll wait for the stack to unwind to notify others.
-            // This process still happens synchronously it just ensures that events happen in the correct
-            // order. For instance, let's take the situation where a document is added to a project.
-            // That document will be added and then opened. However, if the result of "adding" causes an
-            // "open" to trigger we want to ensure that "add" finishes prior to "open" being notified.
+            return;
+        }
 
-            // Start unwinding the notification queue
-            do
+        Debug.Assert(_notificationQueue.Count == 1, "There should only be a single queued notification when it processing begins.");
+
+        // The notification queue is processed when it contains *exactly* one notification.
+        // Note that a notification subscriber may mutate the current solution and cause additional
+        // notifications to be be enqueued. However, because we are already running on the dispatcher,
+        // those updates will occur synchronously.
+
+        _processingNotifications = true;
+        try
+        {
+            while (_notificationQueue.Count > 0)
             {
-                // Don't dequeue yet, we want the notification to sit in the queue until we've finished
-                // notifying to ensure other calls to NotifyListeners know there's a currently running event loop.
-                var args = _notificationQueue.Peek();
-                PriorityChanged?.Invoke(this, args);
-                Changed?.Invoke(this, args);
+                var current = _notificationQueue.Dequeue();
 
-                _notificationQueue.Dequeue();
+                PriorityChanged?.Invoke(this, current);
+                Changed?.Invoke(this, current);
             }
-            while (_notificationQueue.Count > 0);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception occurred while sending notifications.");
+        }
+        finally
+        {
+            _processingNotifications = false;
         }
     }
 
