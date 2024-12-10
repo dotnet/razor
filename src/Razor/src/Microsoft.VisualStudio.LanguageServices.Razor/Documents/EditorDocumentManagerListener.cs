@@ -102,7 +102,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
         }
 
         // Don't do any work if the solution is closing
-        if (work is DocumentAdded && e.SolutionIsClosing)
+        if (work is DocumentAdded && e.IsSolutionClosing)
         {
             return;
         }

@@ -194,7 +194,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out var oldSnapshot,
             out var newSnapshot))
         {
-            NotifyListeners(oldSnapshot, newSnapshot, document.FilePath, ProjectChangeKind.DocumentAdded);
+            NotifyListeners(ProjectChangeEventArgs.DocumentAdded(oldSnapshot, newSnapshot, document.FilePath, IsSolutionClosing));
         }
     }
 
@@ -212,7 +212,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out var oldSnapshot,
             out var newSnapshot))
         {
-            NotifyListeners(oldSnapshot, newSnapshot, document.FilePath, ProjectChangeKind.DocumentRemoved);
+            NotifyListeners(ProjectChangeEventArgs.DocumentRemoved(oldSnapshot, newSnapshot, document.FilePath, IsSolutionClosing));
         }
     }
 
@@ -230,7 +230,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out var oldSnapshot,
             out var newSnapshot))
         {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
+            NotifyListeners(ProjectChangeEventArgs.DocumentChanged(oldSnapshot, newSnapshot, documentFilePath, IsSolutionClosing));
         }
     }
 
@@ -248,7 +248,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out var oldSnapshot,
             out var newSnapshot))
         {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
+            NotifyListeners(ProjectChangeEventArgs.DocumentChanged(oldSnapshot, newSnapshot, documentFilePath, IsSolutionClosing));
         }
     }
 
@@ -266,7 +266,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out var oldSnapshot,
             out var newSnapshot))
         {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
+            NotifyListeners(ProjectChangeEventArgs.DocumentChanged(oldSnapshot, newSnapshot, documentFilePath, IsSolutionClosing));
         }
     }
 
@@ -284,7 +284,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out var oldSnapshot,
             out var newSnapshot))
         {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
+            NotifyListeners(ProjectChangeEventArgs.DocumentChanged(oldSnapshot, newSnapshot, documentFilePath, IsSolutionClosing));
         }
     }
 
@@ -302,7 +302,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out _,
             out var newSnapshot))
         {
-            NotifyListeners(older: null, newSnapshot, documentFilePath: null, ProjectChangeKind.ProjectAdded);
+            NotifyListeners(ProjectChangeEventArgs.ProjectAdded(newSnapshot, IsSolutionClosing));
         }
     }
 
@@ -320,7 +320,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out var oldSnapshot,
             out var newSnapshot))
         {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
+            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldSnapshot, newSnapshot, IsSolutionClosing));
         }
     }
 
@@ -338,7 +338,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out var oldSnapshot,
             out var newSnapshot))
         {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
+            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldSnapshot, newSnapshot, IsSolutionClosing));
         }
     }
 
@@ -354,9 +354,9 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             documentFilePath: null,
             new ProjectRemovedAction(projectKey),
             out var oldSnapshot,
-            out var newSnapshot))
+            out _))
         {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath: null, ProjectChangeKind.ProjectRemoved);
+            NotifyListeners(ProjectChangeEventArgs.ProjectRemoved(oldSnapshot, IsSolutionClosing));
         }
     }
 
@@ -386,14 +386,14 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void NotifyListeners(IProjectSnapshot? older, IProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)
+    private void NotifyListeners(ProjectChangeEventArgs notification)
     {
         if (!_initialized)
         {
             return;
         }
 
-        _notificationQueue.Enqueue(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, IsSolutionClosing));
+        _notificationQueue.Enqueue(notification);
 
         if (_notificationQueue.Count == 1)
         {

@@ -159,7 +159,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_hostProject);
         });
 
-        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectAdded);
+        var e = ProjectChangeEventArgs.ProjectAdded(_projectManager.GetLoadedProject(_hostProject.Key), isSolutionClosing: false);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -185,7 +185,8 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_hostProject);
         });
 
-        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_hostProject.Key), ProjectChangeKind.ProjectChanged);
+        var project = _projectManager.GetLoadedProject(_hostProject.Key);
+        var e = ProjectChangeEventArgs.ProjectChanged(older: project, newer: project, isSolutionClosing: false);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -218,7 +219,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.ProjectRemoved(_hostProject.Key);
         });
 
-        var e = new ProjectChangeEventArgs(project!, null!, ProjectChangeKind.ProjectRemoved);
+        var e = ProjectChangeEventArgs.ProjectRemoved(project, isSolutionClosing: false);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
@@ -245,7 +246,8 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.ProjectAdded(_otherHostProject);
         });
 
-        var e = new ProjectChangeEventArgs(null!, _projectManager.GetLoadedProject(_otherHostProject.Key), ProjectChangeKind.ProjectChanged);
+        var project = _projectManager.GetLoadedProject(_otherHostProject.Key);
+        var e = ProjectChangeEventArgs.ProjectChanged(older: project, newer: project, isSolutionClosing: false);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) => called = true;
