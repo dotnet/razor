@@ -2,17 +2,17 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
-using Xunit;
 using Microsoft.VisualStudio.Razor.LanguageClient;
-using Microsoft.AspNetCore.Razor.Threading;
-using System.Collections.Immutable;
-using System.Linq;
+using Xunit;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
@@ -50,7 +50,7 @@ internal partial class RazorProjectSystemInProcess
                 return SpecializedTasks.False;
             }
 
-            return Task.FromResult(projectManager.TryGetProject(projectKeys[0], out _));
+            return Task.FromResult(projectManager.ContainsProject(projectKeys[0]));
         }, TimeSpan.FromMilliseconds(100), cancellationToken);
     }
 

@@ -126,6 +126,14 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
+    public bool ContainsProject(ProjectKey projectKey)
+    {
+        using (_readerWriterLock.DisposableRead())
+        {
+            return _projectMap.ContainsKey(projectKey);
+        }
+    }
+
     public bool TryGetProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
     {
         using (_readerWriterLock.DisposableRead())
