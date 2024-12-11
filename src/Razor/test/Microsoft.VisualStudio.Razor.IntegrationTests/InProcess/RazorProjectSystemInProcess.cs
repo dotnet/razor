@@ -86,14 +86,9 @@ internal partial class RazorProjectSystemInProcess
         {
             var projectKeys = projectManager.GetAllProjectKeys(projectFilePath);
 
-            if (projectKeys is [var projectKey, ..] &&
-                projectManager.TryGetProject(projectKey, out var project) &&
-                project.ContainsDocument(filePath))
-            {
-                return SpecializedTasks.True;
-            }
-
-            return SpecializedTasks.False;
+            return projectKeys is [var projectKey, ..] && projectManager.ContainsDocument(projectKey, filePath)
+                ? SpecializedTasks.True
+                : SpecializedTasks.False;
         }, TimeSpan.FromMilliseconds(100), cancellationToken);
     }
 

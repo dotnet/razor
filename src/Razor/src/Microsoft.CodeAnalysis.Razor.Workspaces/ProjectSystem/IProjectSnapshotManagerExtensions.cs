@@ -17,6 +17,10 @@ internal static class IProjectSnapshotManagerExtensions
     public static IProjectSnapshot GetRequiredProject(this IProjectSnapshotManager projectManager, ProjectKey projectKey)
         => projectManager.GetProject(projectKey).AssumeNotNull();
 
+    public static bool ContainsDocument(this IProjectSnapshotManager projectManager, ProjectKey projectKey, string documentFilePath)
+        => projectManager.TryGetProject(projectKey, out var project) &&
+           project.ContainsDocument(documentFilePath);
+
     public static bool TryGetDocument(
         this IProjectSnapshotManager projectManager,
         ProjectKey projectKey,
@@ -45,6 +49,10 @@ internal static class IProjectSnapshotManagerExtensions
 
     public static IProjectSnapshot GetRequiredProject(this ProjectSnapshotManager.Updater updater, ProjectKey projectKey)
         => updater.GetProject(projectKey).AssumeNotNull();
+
+    public static bool ContainsDocument(this ProjectSnapshotManager.Updater updater, ProjectKey projectKey, string documentFilePath)
+        => updater.TryGetProject(projectKey, out var project) &&
+           project.ContainsDocument(documentFilePath);
 
     public static bool TryGetDocument(
         this ProjectSnapshotManager.Updater updater,
