@@ -36,8 +36,9 @@ internal static class MiscFilesProject
             "Miscellaneous Files");
     }
 
-    public static bool IsMiscellaneousProject(IProjectSnapshot project)
-    {
-        return project.Key == HostProject.Key;
-    }
+    public static IProjectSnapshot GetMiscellaneousProject(this IProjectSnapshotManager projectManager)
+        => projectManager.GetLoadedProject(Key);
+
+    public static bool IsMiscellaneousProject(this IProjectSnapshot project)
+        => project.Key == Key;
 }
