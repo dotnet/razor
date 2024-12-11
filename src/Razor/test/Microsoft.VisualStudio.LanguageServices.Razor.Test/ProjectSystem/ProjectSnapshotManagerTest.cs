@@ -201,7 +201,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.AddDocument(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], StrictMock.Of<TextLoader>());
         });
 
         // Assert

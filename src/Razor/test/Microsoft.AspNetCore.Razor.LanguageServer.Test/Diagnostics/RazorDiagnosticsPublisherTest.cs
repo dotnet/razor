@@ -63,16 +63,15 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
         var testProjectManager = CreateProjectSnapshotManager();
         var hostProject = new HostProject("C:/project/project.csproj", "C:/project/obj", RazorConfiguration.Default, "TestRootNamespace");
         var sourceText = SourceText.From(string.Empty);
-        var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default);
         var openedHostDocument = new HostDocument("C:/project/open_document.cshtml", "C:/project/open_document.cshtml");
         var closedHostDocument = new HostDocument("C:/project/closed_document.cshtml", "C:/project/closed_document.cshtml");
 
         await testProjectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject);
-            updater.AddDocument(hostProject.Key, openedHostDocument, TextLoader.From(textAndVersion));
+            updater.AddDocument(hostProject.Key, openedHostDocument, sourceText);
             updater.OpenDocument(hostProject.Key, openedHostDocument.FilePath, sourceText);
-            updater.AddDocument(hostProject.Key, closedHostDocument, TextLoader.From(textAndVersion));
+            updater.AddDocument(hostProject.Key, closedHostDocument, sourceText);
         });
 
         var project = testProjectManager.GetLoadedProject(hostProject.Key);

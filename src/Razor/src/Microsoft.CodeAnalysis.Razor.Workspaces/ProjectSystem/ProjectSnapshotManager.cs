@@ -198,6 +198,19 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
+    private void AddDocument(ProjectKey projectKey, HostDocument hostDocument, SourceText text)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.AddDocument(hostDocument, text),
+            out var oldProject,
+            out var newSnapshot,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.DocumentAdded(oldProject, newSnapshot, hostDocument.FilePath, isSolutionClosing));
+        }
+    }
+
     private void AddDocument(ProjectKey projectKey, HostDocument hostDocument, TextLoader textLoader)
     {
         if (TryUpdateProject(
