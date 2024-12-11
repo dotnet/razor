@@ -16,7 +16,7 @@ internal static partial class IProjectSnapshotManagerExtensions
 {
     public static IProjectSnapshot GetMiscellaneousProject(this IProjectSnapshotManager projectManager)
     {
-        return projectManager.GetLoadedProject(MiscFilesHostProject.Instance.Key);
+        return projectManager.GetLoadedProject(MiscFilesProject.Key);
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ internal static partial class IProjectSnapshotManagerExtensions
         foreach (var project in projectManager.GetProjects())
         {
             // Always exclude the miscellaneous project.
-            if (project.FilePath == MiscFilesHostProject.Instance.FilePath)
+            if (project.FilePath == MiscFilesProject.FilePath)
             {
                 continue;
             }

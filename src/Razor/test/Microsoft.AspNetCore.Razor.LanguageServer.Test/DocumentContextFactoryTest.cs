@@ -65,7 +65,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(MiscFilesHostProject.Instance.Key, hostDocument, TestMocks.CreateTextLoader(filePath, ""));
+            updater.DocumentAdded(MiscFilesProject.Key, hostDocument, TestMocks.CreateTextLoader(filePath, ""));
         });
 
         var miscFilesProject = _projectManager.GetMiscellaneousProject();
@@ -120,7 +120,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(MiscFilesHostProject.Instance.Key, hostDocument, TestMocks.CreateTextLoader(filePath, ""));
+            updater.DocumentAdded(MiscFilesProject.Key, hostDocument, TestMocks.CreateTextLoader(filePath, ""));
         });
 
         var miscFilesProject = _projectManager.GetMiscellaneousProject();
