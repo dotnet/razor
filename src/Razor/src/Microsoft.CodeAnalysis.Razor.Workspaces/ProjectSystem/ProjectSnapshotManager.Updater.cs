@@ -12,8 +12,9 @@ internal partial class ProjectSnapshotManager
 {
     public readonly struct Updater(ProjectSnapshotManager instance)
     {
-        public ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
-            => instance.GetAllProjectKeys(projectFileName);
+        public ImmutableArray<ProjectKey> GetProjectKeysWithFilePath(string filePath)
+            => instance.GetProjectKeysWithFilePath(filePath);
+
         public ImmutableArray<IProjectSnapshot> GetProjects()
             => instance.GetProjects();
 

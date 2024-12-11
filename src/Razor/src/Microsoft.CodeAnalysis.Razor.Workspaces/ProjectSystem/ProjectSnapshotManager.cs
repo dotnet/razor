@@ -149,7 +149,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         return false;
     }
 
-    public ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
+    public ImmutableArray<ProjectKey> GetProjectKeysWithFilePath(string filePath)
     {
         using (_readerWriterLock.DisposableRead())
         {
@@ -157,7 +157,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
 
             foreach (var (key, entry) in _projectMap)
             {
-                if (FilePathComparer.Instance.Equals(entry.State.HostProject.FilePath, projectFileName))
+                if (FilePathComparer.Instance.Equals(entry.State.HostProject.FilePath, filePath))
                 {
                     projects.Add(key);
                 }

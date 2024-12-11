@@ -122,7 +122,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupServ
             return;
         }
 
-        var projectKeys = _projectManager.GetAllProjectKeys(projectFilePath);
+        var projectKeys = _projectManager.GetProjectKeysWithFilePath(projectFilePath);
         foreach (var projectKey in projectKeys)
         {
             if (_projectManager.TryGetProject(projectKey, out var project))

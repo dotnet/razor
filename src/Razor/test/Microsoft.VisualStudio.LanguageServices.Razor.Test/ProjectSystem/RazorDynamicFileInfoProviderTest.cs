@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -55,8 +54,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
             updater.DocumentAdded(hostProject.Key, hostDocument2, new EmptyTextLoader(hostDocument2.FilePath));
         });
 
-        var projectKey = _projectManager.GetAllProjectKeys(hostProject.FilePath).Single();
-        _project = _projectManager.GetRequiredProject(projectKey);
+        _project = _projectManager.GetRequiredProject(hostProject.Key);
         _document1 = _project.GetRequiredDocument(hostDocument1.FilePath);
         _document2 = _project.GetRequiredDocument(hostDocument2.FilePath);
 

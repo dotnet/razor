@@ -17,7 +17,7 @@ internal interface IProjectSnapshotManager
 
     bool IsSolutionClosing { get; }
 
-    ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
+    ImmutableArray<ProjectKey> GetProjectKeysWithFilePath(string projectFileName);
     ImmutableArray<IProjectSnapshot> GetProjects();
 
     bool ContainsProject(ProjectKey projectKey);

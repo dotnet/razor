@@ -44,36 +44,30 @@ internal partial class RazorProjectSystemInProcess
         Assert.NotNull(projectManager);
         await Helper.RetryAsync(ct =>
         {
-            var projectKeys = projectManager.GetAllProjectKeys(projectFilePath);
-            if (projectKeys.Length == 0)
-            {
-                return SpecializedTasks.False;
-            }
+            var projectKeys = projectManager.GetProjectKeysWithFilePath(projectFilePath);
 
-            return Task.FromResult(projectManager.ContainsProject(projectKeys[0]));
+            return projectKeys is [var projectKey, ..] && projectManager.ContainsProject(projectKey)
+                ? SpecializedTasks.True
+                : SpecializedTasks.False;
         }, TimeSpan.FromMilliseconds(100), cancellationToken);
     }
 
     public async Task WaitForComponentTagNameAsync(string projectName, string componentName, CancellationToken cancellationToken)
     {
-        var projectFileName = await TestServices.SolutionExplorer.GetProjectFileNameAsync(projectName, cancellationToken);
+        var projectFilePath = await TestServices.SolutionExplorer.GetProjectFileNameAsync(projectName, cancellationToken);
         var projectManager = await TestServices.Shell.GetComponentModelServiceAsync<IProjectSnapshotManager>(cancellationToken);
         Assert.NotNull(projectManager);
         await Helper.RetryAsync(async ct =>
         {
-            var projectKeys = projectManager.GetAllProjectKeys(projectFileName);
-            if (projectKeys.Length == 0)
+            var projectKeys = projectManager.GetProjectKeysWithFilePath(projectFilePath);
+
+            if (projectKeys is [var projectKey, ..] && projectManager.TryGetProject(projectKey, out var project))
             {
-                return false;
+                var tagHelpers = await project.GetTagHelpersAsync(cancellationToken);
+                return tagHelpers.Any(tagHelper => tagHelper.TagMatchingRules.Any(r => r.TagName.Equals(componentName, StringComparison.Ordinal)));
             }
 
-            if (!projectManager.TryGetProject(projectKeys[0], out var project))
-            {
-                return false;
-            }
-
-            var tagHelpers = await project.GetTagHelpersAsync(cancellationToken);
-            return tagHelpers.Any(tagHelper => tagHelper.TagMatchingRules.Any(r => r.TagName.Equals(componentName, StringComparison.Ordinal)));
+            return false;
         }, TimeSpan.FromMilliseconds(100), cancellationToken);
     }
 
@@ -84,7 +78,7 @@ internal partial class RazorProjectSystemInProcess
 
         await Helper.RetryAsync(ct =>
         {
-            var projectKeys = projectManager.GetAllProjectKeys(projectFilePath);
+            var projectKeys = projectManager.GetProjectKeysWithFilePath(projectFilePath);
 
             return projectKeys is [var projectKey, ..] && projectManager.ContainsDocument(projectKey, filePath)
                 ? SpecializedTasks.True
@@ -97,9 +91,7 @@ internal partial class RazorProjectSystemInProcess
         var projectManager = await TestServices.Shell.GetComponentModelServiceAsync<IProjectSnapshotManager>(cancellationToken);
         Assert.NotNull(projectManager);
 
-        var projectKeys = projectManager.GetAllProjectKeys(projectFilePath);
-
-        return projectKeys.SelectAsArray(key => key.Id);
+        return projectManager.GetProjectKeysWithFilePath(projectFilePath).SelectAsArray(static key => key.Id);
     }
 
     public async Task WaitForCSharpVirtualDocumentAsync(string razorFilePath, CancellationToken cancellationToken)

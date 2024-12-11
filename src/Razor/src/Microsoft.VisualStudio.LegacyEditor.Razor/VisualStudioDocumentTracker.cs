@@ -150,17 +150,16 @@ internal sealed class VisualStudioDocumentTracker : IVisualStudioDocumentTracker
         _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
     }
 
-    private IProjectSnapshot GetOrCreateProject(string projectPath)
+    private IProjectSnapshot GetOrCreateProject(string projectFilePath)
     {
-        var projectKeys = _projectManager.GetAllProjectKeys(projectPath);
+        var projectKeys = _projectManager.GetProjectKeysWithFilePath(projectFilePath);
 
-        if (projectKeys.Length == 0 ||
-            !_projectManager.TryGetProject(projectKeys[0], out var project))
+        if (projectKeys is [var projectKey, ..] && _projectManager.TryGetProject(projectKey, out var project))
         {
-            return new EphemeralProjectSnapshot(_projectEngineFactoryProvider, projectPath);
+            return project;
         }
 
-        return project;
+        return new EphemeralProjectSnapshot(_projectEngineFactoryProvider, projectFilePath);
     }
 
     public void Unsubscribe()
