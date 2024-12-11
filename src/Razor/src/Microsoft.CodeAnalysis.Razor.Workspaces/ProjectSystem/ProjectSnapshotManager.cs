@@ -198,6 +198,74 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
+    private void SolutionOpened()
+    {
+        if (_initialized)
+        {
+            _dispatcher.AssertRunningOnDispatcher();
+        }
+
+        using (_readerWriterLock.DisposableWrite())
+        {
+            _isSolutionClosing = false;
+        }
+    }
+
+    private void SolutionClosed()
+    {
+        if (_initialized)
+        {
+            _dispatcher.AssertRunningOnDispatcher();
+        }
+
+        using (_readerWriterLock.DisposableWrite())
+        {
+            _isSolutionClosing = true;
+        }
+    }
+
+    private void AddProject(HostProject hostProject)
+    {
+        if (TryAddProject(hostProject, out var newSnapshot, out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.ProjectAdded(newSnapshot, isSolutionClosing));
+        }
+    }
+
+    private void RemoveProject(ProjectKey projectKey)
+    {
+        if (TryRemoveProject(projectKey, out var oldProject, out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.ProjectRemoved(oldProject, isSolutionClosing));
+        }
+    }
+
+    private void UpdateProjectConfiguration(HostProject hostProject)
+    {
+        if (TryUpdateProject(
+            hostProject.Key,
+            transformer: state => state.WithHostProject(hostProject),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldProject, newProject, isSolutionClosing));
+        }
+    }
+
+    private void UpdateProjectWorkspaceState(ProjectKey projectKey, ProjectWorkspaceState projectWorkspaceState)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.WithProjectWorkspaceState(projectWorkspaceState),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldProject, newProject, isSolutionClosing));
+        }
+    }
+
     private void AddDocument(ProjectKey projectKey, HostDocument hostDocument, SourceText text)
     {
         if (TryUpdateProject(
@@ -265,11 +333,11 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void UpdateDocumentText(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
+    private void UpdateDocumentText(ProjectKey projectKey, string documentFilePath, SourceText text)
     {
         if (TryUpdateProject(
             projectKey,
-            transformer: state => state.WithDocumentText(documentFilePath, sourceText),
+            transformer: state => state.WithDocumentText(documentFilePath, text),
             out var oldProject,
             out var newProject,
             out var isSolutionClosing))
@@ -288,122 +356,6 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             out var isSolutionClosing))
         {
             NotifyListeners(ProjectChangeEventArgs.DocumentChanged(oldProject, newProject, documentFilePath, isSolutionClosing));
-        }
-    }
-
-    private void AddProject(HostProject hostProject)
-    {
-        if (TryAddProject(hostProject, out var newSnapshot, out var isSolutionClosing))
-        {
-            NotifyListeners(ProjectChangeEventArgs.ProjectAdded(newSnapshot, isSolutionClosing));
-        }
-    }
-
-    private void UpdateProjectConfiguration(HostProject hostProject)
-    {
-        if (TryUpdateProject(
-            hostProject.Key,
-            transformer: state => state.WithHostProject(hostProject),
-            out var oldProject,
-            out var newProject,
-            out var isSolutionClosing))
-        {
-            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldProject, newProject, IsSolutionClosing));
-        }
-    }
-
-    private void UpdateProjectWorkspaceState(ProjectKey projectKey, ProjectWorkspaceState projectWorkspaceState)
-    {
-        if (TryUpdateProject(
-            projectKey,
-            transformer: state => state.WithProjectWorkspaceState(projectWorkspaceState),
-            out var oldProject,
-            out var newProject,
-            out var isSolutionClosing))
-        {
-            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldProject, newProject, isSolutionClosing));
-        }
-    }
-
-    private void RemoveProject(ProjectKey projectKey)
-    {
-        if (TryRemoveProject(projectKey, out var oldProject, out var isSolutionClosing))
-        {
-            NotifyListeners(ProjectChangeEventArgs.ProjectRemoved(oldProject, isSolutionClosing));
-        }
-    }
-
-    private void SolutionOpened()
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        using (_readerWriterLock.DisposableWrite())
-        {
-            _isSolutionClosing = false;
-        }
-    }
-
-    private void SolutionClosed()
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        using (_readerWriterLock.DisposableWrite())
-        {
-            _isSolutionClosing = true;
-        }
-    }
-
-    private void NotifyListeners(ProjectChangeEventArgs notification)
-    {
-        if (!_initialized)
-        {
-            return;
-        }
-
-        // Notifications are *always* sent using the dispatcher.
-        // This ensures that _notificationQueue and _processingNotifications are synchronized.
-        _dispatcher.AssertRunningOnDispatcher();
-
-        // Enqueue the latest notification.
-        _notificationQueue.Enqueue(notification);
-
-        // We're already processing the notification queue, so we're done.
-        if (_processingNotifications)
-        {
-            return;
-        }
-
-        Debug.Assert(_notificationQueue.Count == 1, "There should only be a single queued notification when it processing begins.");
-
-        // The notification queue is processed when it contains *exactly* one notification.
-        // Note that a notification subscriber may mutate the current solution and cause additional
-        // notifications to be be enqueued. However, because we are already running on the dispatcher,
-        // those updates will occur synchronously.
-
-        _processingNotifications = true;
-        try
-        {
-            while (_notificationQueue.Count > 0)
-            {
-                var current = _notificationQueue.Dequeue();
-
-                PriorityChanged?.Invoke(this, current);
-                Changed?.Invoke(this, current);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exception occurred while sending notifications.");
-        }
-        finally
-        {
-            _processingNotifications = false;
         }
     }
 
@@ -523,6 +475,54 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         newProject = newEntry.GetSnapshot();
 
         return true;
+    }
+
+    private void NotifyListeners(ProjectChangeEventArgs notification)
+    {
+        if (!_initialized)
+        {
+            return;
+        }
+
+        // Notifications are *always* sent using the dispatcher.
+        // This ensures that _notificationQueue and _processingNotifications are synchronized.
+        _dispatcher.AssertRunningOnDispatcher();
+
+        // Enqueue the latest notification.
+        _notificationQueue.Enqueue(notification);
+
+        // We're already processing the notification queue, so we're done.
+        if (_processingNotifications)
+        {
+            return;
+        }
+
+        Debug.Assert(_notificationQueue.Count == 1, "There should only be a single queued notification when it processing begins.");
+
+        // The notification queue is processed when it contains *exactly* one notification.
+        // Note that a notification subscriber may mutate the current solution and cause additional
+        // notifications to be be enqueued. However, because we are already running on the dispatcher,
+        // those updates will occur synchronously.
+
+        _processingNotifications = true;
+        try
+        {
+            while (_notificationQueue.Count > 0)
+            {
+                var current = _notificationQueue.Dequeue();
+
+                PriorityChanged?.Invoke(this, current);
+                Changed?.Invoke(this, current);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception occurred while sending notifications.");
+        }
+        finally
+        {
+            _processingNotifications = false;
+        }
     }
 
     public Task UpdateAsync(Action<Updater> updater, CancellationToken cancellationToken)
