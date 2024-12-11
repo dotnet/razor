@@ -53,7 +53,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentOpened(hostProject.Key, hostDocument1.FilePath, SourceText.From("<div></div>"));
+            updater.OpenDocument(hostProject.Key, hostDocument1.FilePath, SourceText.From("<div></div>"));
         });
 
         var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
@@ -113,7 +113,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentOpened(hostProject.Key, hostDocument1.FilePath, SourceText.From("<div></div>"));
+            updater.OpenDocument(hostProject.Key, hostDocument1.FilePath, SourceText.From("<div></div>"));
         });
 
         var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
@@ -184,7 +184,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentOpened(hostProject.Key, hostDocument1.FilePath, SourceText.From("<div></div>"));
+            updater.OpenDocument(hostProject.Key, hostDocument1.FilePath, SourceText.From("<div></div>"));
         });
 
         var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
@@ -339,7 +339,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentOpened(hostProject.Key, hostDocument1.FilePath, SourceText.From("<div></div>"));
+            updater.OpenDocument(hostProject.Key, hostDocument1.FilePath, SourceText.From("<div></div>"));
         });
 
         var documentSnapshot = projectManager

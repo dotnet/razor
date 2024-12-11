@@ -265,7 +265,7 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public async Task ProjectState_WithChangedHostDocument_Loader()
+    public async Task ProjectState_WithDocumentText_Loader()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -273,7 +273,7 @@ public class ProjectStateTest : WorkspaceTestBase
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
         // Act
-        var state = original.WithChangedHostDocument(_documents[1], _textLoader);
+        var state = original.WithDocumentText(_documents[1].FilePath, _textLoader);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
@@ -285,7 +285,7 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public async Task ProjectState_WithChangedHostDocument_Snapshot()
+    public async Task ProjectState_WithDocumentText_Snapshot()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -293,7 +293,7 @@ public class ProjectStateTest : WorkspaceTestBase
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
         // Act
-        var state = original.WithChangedHostDocument(_documents[1], _text, VersionStamp.Create());
+        var state = original.WithDocumentText(_documents[1].FilePath, _text);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
@@ -317,7 +317,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
         // Act
-        var state = original.WithChangedHostDocument(_documents[1], _textLoader);
+        var state = original.WithDocumentText(_documents[1].FilePath, _textLoader);
 
         // Assert
         var actualTagHelpers = state.TagHelpers;
@@ -337,7 +337,7 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public void ProjectState_WithChangedHostDocument_Snapshot_RetainsComputedState()
+    public void ProjectState_WithDocumentText_Snapshot_RetainsComputedState()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -349,7 +349,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
         // Act
-        var state = original.WithChangedHostDocument(_documents[1], _text, VersionStamp.Create());
+        var state = original.WithDocumentText(_documents[1].FilePath, _text);
 
         // Assert
         var actualTagHelpers = state.TagHelpers;
@@ -369,7 +369,7 @@ public class ProjectStateTest : WorkspaceTestBase
     }
 
     [Fact]
-    public void ProjectState_WithChangedHostDocument_Loader_NotFoundNoops()
+    public void ProjectState_WithDocumentText_Loader_NotFoundNoops()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -377,14 +377,14 @@ public class ProjectStateTest : WorkspaceTestBase
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
         // Act
-        var state = original.WithChangedHostDocument(_documents[0], _textLoader);
+        var state = original.WithDocumentText(_documents[0].FilePath, _textLoader);
 
         // Assert
         Assert.Same(original, state);
     }
 
     [Fact]
-    public void ProjectState_WithChangedHostDocument_Snapshot_NotFoundNoops()
+    public void ProjectState_WithDocumentText_Snapshot_NotFoundNoops()
     {
         // Arrange
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
@@ -392,7 +392,7 @@ public class ProjectStateTest : WorkspaceTestBase
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
         // Act
-        var state = original.WithChangedHostDocument(_documents[0], _text, VersionStamp.Create());
+        var state = original.WithDocumentText(_documents[0].FilePath, _text);
 
         // Assert
         Assert.Same(original, state);
@@ -884,7 +884,7 @@ public class ProjectStateTest : WorkspaceTestBase
         original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
         // Act
-        var state = original.WithChangedHostDocument(document5, DocumentState.EmptyLoader);
+        var state = original.WithDocumentText(document5.FilePath, DocumentState.EmptyLoader);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
@@ -930,7 +930,7 @@ public class ProjectStateTest : WorkspaceTestBase
         original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
         // Act
-        var state = original.WithChangedHostDocument(document5, _text, VersionStamp.Create());
+        var state = original.WithDocumentText(document5.FilePath, _text);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);

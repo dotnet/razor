@@ -90,7 +90,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
 
         // Act
         var version = VersionStamp.Create();
-        var state = original.WithChangedHostDocument(_hostDocument, TestMocks.CreateTextLoader("@using System", version));
+        var state = original.WithDocumentText(_hostDocument.FilePath, TestMocks.CreateTextLoader("@using System", version));
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument, DisposalToken);
@@ -112,7 +112,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
 
         // Act
         var version = VersionStamp.Create();
-        var state = original.WithChangedHostDocument(TestProjectData.SomeProjectImportFile, TestMocks.CreateTextLoader("@using System", version));
+        var state = original.WithDocumentText(TestProjectData.SomeProjectImportFile.FilePath, TestMocks.CreateTextLoader("@using System", version));
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument, DisposalToken);

@@ -84,7 +84,7 @@ internal partial class DocumentState
 
     public ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
     {
-        return _textAndVersion is TextAndVersion result
+        return TryGetTextAndVersion(out var result)
             ? new(result)
             : LoadTextAndVersionAsync(_textLoader, cancellationToken);
 
@@ -126,9 +126,15 @@ internal partial class DocumentState
         }
     }
 
+    public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? result)
+    {
+        result = _textAndVersion;
+        return result is not null;
+    }
+
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
     {
-        if (_textAndVersion is { } textAndVersion)
+        if (TryGetTextAndVersion(out var textAndVersion))
         {
             result = textAndVersion.Text;
             return true;
@@ -140,7 +146,7 @@ internal partial class DocumentState
 
     public bool TryGetTextVersion(out VersionStamp result)
     {
-        if (_textAndVersion is { } textAndVersion)
+        if (TryGetTextAndVersion(out var textAndVersion))
         {
             result = textAndVersion.Version;
             return true;

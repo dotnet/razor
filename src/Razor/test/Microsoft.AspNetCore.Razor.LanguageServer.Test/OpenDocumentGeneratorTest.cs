@@ -41,7 +41,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
             updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
-            updater.DocumentOpened(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
+            updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
         });
 
         await listener.GetProcessedDocumentAsync(cancelAfter: TimeSpan.FromSeconds(10));
@@ -95,7 +95,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
 
             // Act
-            updater.DocumentChanged(_hostProject1.Key, _documents[0].FilePath, SourceText.From("new"));
+            updater.UpdateDocumentText(_hostProject1.Key, _documents[0].FilePath, SourceText.From("new"));
         });
 
         // Assert
@@ -115,10 +115,10 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
             updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
-            updater.DocumentOpened(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
+            updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
             // Act
-            updater.DocumentChanged(_hostProject1.Key, _documents[0].FilePath, SourceText.From("new"));
+            updater.UpdateDocumentText(_hostProject1.Key, _documents[0].FilePath, SourceText.From("new"));
         });
 
         // Assert
@@ -163,7 +163,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
             updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
-            updater.DocumentOpened(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
+            updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
             // Act
             updater.ProjectWorkspaceStateChanged(_hostProject1.Key,

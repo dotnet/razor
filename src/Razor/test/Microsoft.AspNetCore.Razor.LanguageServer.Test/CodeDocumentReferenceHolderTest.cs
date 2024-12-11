@@ -76,7 +76,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentChanged(s_hostProject.Key, unrelatedHostDocument.FilePath, SourceText.From(string.Empty));
+            updater.UpdateDocumentText(s_hostProject.Key, unrelatedHostDocument.FilePath, SourceText.From(string.Empty));
         });
 
         PerformFullGC();
@@ -97,7 +97,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentChanged(s_hostProject.Key, s_hostDocument.FilePath, SourceText.From(string.Empty));
+            updater.UpdateDocumentText(s_hostProject.Key, s_hostDocument.FilePath, SourceText.From(string.Empty));
         });
 
         PerformFullGC();

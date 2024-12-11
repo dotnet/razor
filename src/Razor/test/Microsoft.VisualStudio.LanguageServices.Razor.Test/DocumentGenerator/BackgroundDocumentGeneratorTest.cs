@@ -80,7 +80,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentOpened(s_hostProject1.Key, hostDocument.FilePath, SourceText.From(string.Empty));
+            updater.OpenDocument(s_hostProject1.Key, hostDocument.FilePath, SourceText.From(string.Empty));
         });
 
         // Verify document was suppressed because it was opened
@@ -289,7 +289,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         // Act & Assert
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentChanged(s_hostProject1.Key, TestProjectData.SomeProjectImportFile.FilePath, changedSourceText);
+            updater.UpdateDocumentText(s_hostProject1.Key, TestProjectData.SomeProjectImportFile.FilePath, changedSourceText);
         });
 
         Assert.True(generator.HasPendingWork);

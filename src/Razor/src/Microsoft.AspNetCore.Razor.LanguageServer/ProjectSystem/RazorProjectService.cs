@@ -203,7 +203,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     (projectSnapshot, textDocumentPath) =>
                     {
                         _logger.LogInformation($"Opening document '{textDocumentPath}' in project '{projectSnapshot.Key}'.");
-                        updater.DocumentOpened(projectSnapshot.Key, textDocumentPath, sourceText);
+                        updater.OpenDocument(projectSnapshot.Key, textDocumentPath, sourceText);
                     });
             },
             cancellationToken)
@@ -224,7 +224,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                         var textLoader = _remoteTextLoaderFactory.Create(filePath);
                         _logger.LogInformation($"Closing document '{textDocumentPath}' in project '{projectSnapshot.Key}'.");
 
-                        updater.DocumentClosed(projectSnapshot.Key, textDocumentPath, textLoader);
+                        updater.CloseDocument(projectSnapshot.Key, textDocumentPath, textLoader);
                     });
             },
             cancellationToken)
@@ -291,7 +291,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     {
                         _logger.LogTrace($"Updating document '{textDocumentPath}' in {project.Key}.");
 
-                        updater.DocumentChanged(project.Key, textDocumentPath, sourceText);
+                        updater.UpdateDocumentText(project.Key, textDocumentPath, sourceText);
                     });
             },
             cancellationToken)

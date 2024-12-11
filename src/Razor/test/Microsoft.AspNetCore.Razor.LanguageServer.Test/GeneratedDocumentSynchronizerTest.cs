@@ -50,7 +50,7 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentOpened(s_hostProject.Key, s_hostDocument.FilePath, SourceText.From("<p>Hello World</p>"));
+            updater.OpenDocument(s_hostProject.Key, s_hostDocument.FilePath, SourceText.From("<p>Hello World</p>"));
         });
 
         // Act

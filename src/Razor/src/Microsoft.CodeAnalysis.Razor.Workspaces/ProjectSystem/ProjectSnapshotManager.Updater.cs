@@ -32,17 +32,17 @@ internal partial class ProjectSnapshotManager
         public void DocumentRemoved(ProjectKey projectKey, HostDocument document)
             => instance.DocumentRemoved(projectKey, document);
 
-        public void DocumentChanged(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
-            => instance.DocumentChanged(projectKey, documentFilePath, textLoader);
+        public void UpdateDocumentText(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
+            => instance.UpdateDocumentText(projectKey, documentFilePath, textLoader);
 
-        public void DocumentChanged(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
-            => instance.DocumentChanged(projectKey, documentFilePath, sourceText);
+        public void UpdateDocumentText(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
+            => instance.UpdateDocumentText(projectKey, documentFilePath, sourceText);
 
-        public void DocumentOpened(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
-            => instance.DocumentOpened(projectKey, documentFilePath, sourceText);
+        public void OpenDocument(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
+            => instance.OpenDocument(projectKey, documentFilePath, sourceText);
 
-        public void DocumentClosed(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
-            => instance.DocumentClosed(projectKey, documentFilePath, textLoader);
+        public void CloseDocument(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
+            => instance.CloseDocument(projectKey, documentFilePath, textLoader);
 
         public void AddProject(HostProject project)
             => instance.AddProject(project);

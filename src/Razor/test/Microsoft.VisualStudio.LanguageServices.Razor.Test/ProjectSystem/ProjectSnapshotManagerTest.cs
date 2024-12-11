@@ -455,7 +455,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
+            updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
         // Assert
@@ -481,7 +481,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         {
             updater.AddProject(s_hostProject);
             updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
-            updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
+            updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -494,7 +494,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentClosed(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
+            updater.CloseDocument(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
         });
 
         // Assert
@@ -528,7 +528,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentClosed(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
+            updater.CloseDocument(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
         });
 
         // Assert
@@ -550,7 +550,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         {
             updater.AddProject(s_hostProject);
             updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
-            updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
+            updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -560,7 +560,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentChanged(s_hostProject.Key, s_documents[0].FilePath, expected);
+            updater.UpdateDocumentText(s_hostProject.Key, s_documents[0].FilePath, expected);
         });
 
         // Assert
@@ -583,7 +583,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         {
             updater.AddProject(s_hostProject);
             updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
-            updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
+            updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -594,7 +594,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentChanged(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
+            updater.UpdateDocumentText(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
         });
 
         // Assert
@@ -842,7 +842,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
             if (args.Kind == ProjectChangeKind.DocumentAdded)
             {
                 _projectManager.UpdateAsync(updater =>
-                    updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText)).Forget();
+                    updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText)).Forget();
             }
             else if (args.Kind == ProjectChangeKind.DocumentChanged)
             {

@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
@@ -265,46 +267,46 @@ internal class ProjectState
         return state;
     }
 
-    public ProjectState WithChangedHostDocument(HostDocument hostDocument, SourceText sourceText, VersionStamp textVersion)
+    public ProjectState WithDocumentText(string documentFilePath, SourceText text)
     {
-        if (hostDocument is null)
-        {
-            throw new ArgumentNullException(nameof(hostDocument));
-        }
+        ArgHelper.ThrowIfNull(documentFilePath);
+        ArgHelper.ThrowIfNull(text);
 
-        if (!Documents.TryGetValue(hostDocument.FilePath, out var document))
+        if (!Documents.TryGetValue(documentFilePath, out var oldState))
         {
             return this;
         }
 
-        var documents = Documents.SetItem(hostDocument.FilePath, document.WithText(sourceText, textVersion));
-
-        if (ImportsToRelatedDocuments.TryGetValue(hostDocument.TargetPath, out var relatedDocuments))
+        if (oldState.TryGetTextAndVersion(out var oldTextAndVersion))
         {
-            foreach (var relatedDocument in relatedDocuments)
-            {
-                documents = documents.SetItem(relatedDocument, documents[relatedDocument].WithImportsChange());
-            }
+            var newVersion = text.ContentEquals(oldTextAndVersion.Text)
+                ? oldTextAndVersion.Version
+                : oldTextAndVersion.Version.GetNewerVersion();
+
+            return WithDocumentText(oldState, state => state.WithText(text, newVersion));
         }
 
-        var state = new ProjectState(this, ProjectDifference.DocumentChanged, HostProject, ProjectWorkspaceState, documents, ImportsToRelatedDocuments);
-        return state;
+        return WithDocumentText(oldState, state => state.WithTextLoader(new UpdatedTextLoader(state, text)));
     }
 
-    public ProjectState WithChangedHostDocument(HostDocument hostDocument, TextLoader loader)
+    public ProjectState WithDocumentText(string documentFilePath, TextLoader textLoader)
     {
-        if (hostDocument is null)
-        {
-            throw new ArgumentNullException(nameof(hostDocument));
-        }
+        ArgHelper.ThrowIfNull(documentFilePath);
 
-        if (!Documents.TryGetValue(hostDocument.FilePath, out var document))
+        if (!Documents.TryGetValue(documentFilePath, out var state))
         {
             return this;
         }
 
-        var documents = Documents.SetItem(hostDocument.FilePath, document.WithTextLoader(loader));
+        return WithDocumentText(state, state => state.WithTextLoader(textLoader));
+    }
 
+    private ProjectState WithDocumentText(DocumentState state, Func<DocumentState, DocumentState> transformer)
+    {
+        var hostDocument = state.HostDocument;
+        var documents = Documents.SetItem(hostDocument.FilePath, transformer(state));
+
+        // If this document is an import, update its related documents.
         if (ImportsToRelatedDocuments.TryGetValue(hostDocument.TargetPath, out var relatedDocuments))
         {
             foreach (var relatedDocument in relatedDocuments)
@@ -313,8 +315,7 @@ internal class ProjectState
             }
         }
 
-        var state = new ProjectState(this, ProjectDifference.DocumentChanged, HostProject, ProjectWorkspaceState, documents, ImportsToRelatedDocuments);
-        return state;
+        return new(this, ProjectDifference.DocumentChanged, HostProject, ProjectWorkspaceState, documents, ImportsToRelatedDocuments);
     }
 
     public ProjectState WithHostProject(HostProject hostProject)
@@ -430,5 +431,19 @@ internal class ProjectState
         }
 
         return targetPaths;
+    }
+
+    private sealed class UpdatedTextLoader(DocumentState oldState, SourceText text) : TextLoader
+    {
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        {
+            var oldTextAndVersion = await oldState.GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            var newVersion = text.ContentEquals(oldTextAndVersion.Text)
+                ? oldTextAndVersion.Version
+                : oldTextAndVersion.Version.GetNewerVersion();
+
+            return TextAndVersion.Create(text, newVersion);
+        }
     }
 }
