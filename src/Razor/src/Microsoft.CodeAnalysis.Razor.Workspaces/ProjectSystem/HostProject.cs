@@ -29,7 +29,7 @@ internal sealed record class HostProject
     /// <summary>
     /// An extra user-friendly string to show in the VS navigation bar to help the user, of the form "{ProjectFileName} ({Flavor})"
     /// </summary>
-    public string DisplayName { get; init; }
+    public string DisplayName { get; }
 
     public HostProject(
         string filePath,

@@ -49,8 +49,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         var hostProject = SomeProject with
         {
             Configuration = RazorConfiguration.Default,
-            RootNamespace = "RootNamespace",
-            DisplayName = "DisplayName"
+            RootNamespace = "RootNamespace"
         };
 
         await _projectManager.UpdateAsync(updater =>
@@ -135,8 +134,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         var hostProject = SomeProject with
         {
             Configuration = RazorConfiguration.Default,
-            RootNamespace = "RootNamespace",
-            DisplayName = "DisplayName"
+            RootNamespace = "RootNamespace"
         };
 
         await _projectManager.UpdateAsync(updater =>
