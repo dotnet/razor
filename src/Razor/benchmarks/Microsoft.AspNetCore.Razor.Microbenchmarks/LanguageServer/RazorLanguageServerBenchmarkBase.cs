@@ -81,9 +81,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
             },
             CancellationToken.None);
 
-        return projectManager
-            .GetRequiredProject(hostProject.Key)
-            .GetRequiredDocument(filePath);
+        return projectManager.GetRequiredDocument(hostProject.Key, filePath);
     }
 
     private sealed class NoOpClientNotifierService : IClientConnection, IOnInitialized

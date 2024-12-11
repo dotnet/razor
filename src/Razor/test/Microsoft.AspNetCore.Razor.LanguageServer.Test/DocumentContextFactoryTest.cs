@@ -68,8 +68,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
             updater.DocumentAdded(MiscFilesHostProject.Instance.Key, hostDocument, TestMocks.CreateTextLoader(filePath, ""));
         });
 
-        var miscFilesProject = _projectManager.GetMiscellaneousProject();
-        var documentSnapshot = miscFilesProject.GetRequiredDocument(filePath);
+        var documentSnapshot = _projectManager
+            .GetMiscellaneousProject()
+            .GetRequiredDocument(filePath);
 
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 
@@ -122,8 +123,9 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
             updater.DocumentAdded(MiscFilesHostProject.Instance.Key, hostDocument, TestMocks.CreateTextLoader(filePath, ""));
         });
 
-        var miscFilesProject = _projectManager.GetMiscellaneousProject();
-        var documentSnapshot = miscFilesProject.GetRequiredDocument(filePath);
+        var documentSnapshot = _projectManager
+            .GetMiscellaneousProject()
+            .GetRequiredDocument(filePath);
 
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 

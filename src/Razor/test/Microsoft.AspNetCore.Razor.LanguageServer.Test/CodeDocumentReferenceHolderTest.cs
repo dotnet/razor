@@ -64,7 +64,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
             var unrelatedTextLoader = new SourceTextLoader("<p>Unrelated</p>", unrelatedHostDocument.FilePath);
             updater.DocumentAdded(s_hostProject.Key, unrelatedHostDocument, unrelatedTextLoader);
 
-            return updater.GetRequiredProject(s_hostProject.Key).GetRequiredDocument(unrelatedHostDocument.FilePath);
+            return updater.GetRequiredDocument(s_hostProject.Key, unrelatedHostDocument.FilePath);
         });
 
         Assert.NotNull(unrelatedDocumentSnapshot);
@@ -170,7 +170,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
             var textLoader = new SourceTextLoader("<p>Hello World</p>", s_hostDocument.FilePath);
             updater.DocumentAdded(s_hostProject.Key, s_hostDocument, textLoader);
 
-            return updater.GetRequiredProject(s_hostProject.Key).GetRequiredDocument(s_hostDocument.FilePath);
+            return updater.GetRequiredDocument(s_hostProject.Key, s_hostDocument.FilePath);
         });
     }
 

@@ -467,9 +467,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var document = _projectManager
-            .GetRequiredProject(s_hostProject.Key)
-            .GetRequiredDocument(s_documents[0].FilePath);
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
 
         var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(_sourceText, text);
@@ -507,9 +505,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var document = _projectManager
-            .GetRequiredProject(s_hostProject.Key)
-            .GetRequiredDocument(s_documents[0].FilePath);
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
 
         var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(expected, text);
@@ -542,9 +538,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var document = _projectManager
-            .GetRequiredProject(s_hostProject.Key)
-            .GetRequiredDocument(s_documents[0].FilePath);
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
 
         var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(expected, text);
@@ -575,9 +569,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var document = _projectManager
-            .GetRequiredProject(s_hostProject.Key)
-            .GetRequiredDocument(s_documents[0].FilePath);
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
 
         var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(expected, text);
@@ -610,9 +602,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var document = _projectManager
-            .GetRequiredProject(s_hostProject.Key)
-            .GetRequiredDocument(s_documents[0].FilePath);
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
 
         var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(expected, text);
@@ -781,9 +771,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         });
 
         // Assert
-        var document = _projectManager
-            .GetRequiredProject(s_hostProject.Key)
-            .GetRequiredDocument(s_documents[0].FilePath);
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
 
         Assert.Equal(2, document.Version);
     }

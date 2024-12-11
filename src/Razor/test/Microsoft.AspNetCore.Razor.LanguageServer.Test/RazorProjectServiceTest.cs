@@ -111,9 +111,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             DisposalToken);
 
         // Assert
-        var document = _projectManager
-            .GetRequiredProject(hostProject.Key)
-            .GetRequiredDocument(hostDocument.FilePath);
+        var document = _projectManager.GetRequiredDocument(hostProject.Key, hostDocument.FilePath);
 
         Assert.Equal(FileKinds.Component, document.FileKind);
     }
@@ -316,9 +314,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             DisposalToken);
 
         // Assert
-        var document = _projectManager
-            .GetRequiredProject(hostProject.Key)
-            .GetRequiredDocument(newDocument.FilePath);
+        var document = _projectManager.GetRequiredDocument(hostProject.Key, newDocument.FilePath);
 
         Assert.Equal(FileKinds.Component, document.FileKind);
     }
@@ -959,9 +955,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         listener.AssertNotifications(
             x => x.DocumentChanged(DocumentFilePath, ownerProjectKey));
 
-        var latestVersion = _projectManager
-            .GetRequiredProject(ownerProjectKey)
-            .GetRequiredDocument(DocumentFilePath).Version;
+        var latestVersion = _projectManager.GetRequiredDocument(ownerProjectKey, DocumentFilePath).Version;
 
         Assert.Equal(2, latestVersion);
     }
