@@ -75,7 +75,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
                 updater.AddProject(hostProject);
                 var tagHelpers = CommonResources.LegacyTagHelpers;
                 var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
-                updater.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
+                updater.UpdateProjectWorkspaceState(hostProject.Key, projectWorkspaceState);
                 updater.AddDocument(hostProject.Key, hostDocument, text);
             },
             CancellationToken.None);

@@ -727,10 +727,8 @@ public class ProjectStateTest : WorkspaceTestBase
         _ = original.TagHelpers;
         _ = original.ProjectWorkspaceStateVersion;
 
-        var changed = ProjectWorkspaceState.Create(original.TagHelpers, original.CSharpLanguageVersion);
-
         // Act
-        var state = original.WithProjectWorkspaceState(changed);
+        var state = original.WithProjectWorkspaceState(ProjectWorkspaceState.Create(original.TagHelpers, original.CSharpLanguageVersion));
 
         // Assert
         Assert.Same(original, state);
@@ -749,10 +747,8 @@ public class ProjectStateTest : WorkspaceTestBase
         var original = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
 
-        var changed = ProjectWorkspaceState.Default;
-
         // Act
-        var state = original.WithProjectWorkspaceState(changed);
+        var state = original.WithProjectWorkspaceState(ProjectWorkspaceState.Default);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);

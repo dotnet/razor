@@ -316,20 +316,16 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void ProjectWorkspaceStateChanged(ProjectKey projectKey, ProjectWorkspaceState projectWorkspaceState)
+    private void UpdateProjectWorkspaceState(ProjectKey projectKey, ProjectWorkspaceState projectWorkspaceState)
     {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
+        if (TryUpdateProject(
             projectKey,
-            new ProjectWorkspaceStateChangedAction(projectWorkspaceState),
-            out var oldSnapshot,
-            out var newSnapshot))
+            transformer: state => state.WithProjectWorkspaceState(projectWorkspaceState),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
         {
-            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldSnapshot, newSnapshot, IsSolutionClosing));
+            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldProject, newProject, isSolutionClosing));
         }
     }
 
@@ -574,9 +570,6 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
     {
         switch (action)
         {
-            case ProjectWorkspaceStateChangedAction(var workspaceState):
-                return new Entry(originalEntry.State.WithProjectWorkspaceState(workspaceState));
-
             case HostProjectUpdatedAction(var hostProject):
                 return new Entry(originalEntry.State.WithHostProject(hostProject));
 

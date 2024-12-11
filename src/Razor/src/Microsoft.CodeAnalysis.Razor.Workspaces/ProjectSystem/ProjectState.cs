@@ -363,6 +363,8 @@ internal class ProjectState
 
     public ProjectState WithProjectWorkspaceState(ProjectWorkspaceState projectWorkspaceState)
     {
+        ArgHelper.ThrowIfNull(projectWorkspaceState);
+
         if (ProjectWorkspaceState == projectWorkspaceState)
         {
             return this;
@@ -373,10 +375,12 @@ internal class ProjectState
             return this;
         }
 
-        var difference = ProjectDifference.ProjectWorkspaceStateChanged;
-        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithProjectWorkspaceStateChange(), FilePathNormalizingComparer.Instance);
-        var state = new ProjectState(this, difference, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments);
-        return state;
+        var documents = Documents.ToImmutableDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.WithProjectWorkspaceStateChange(),
+            FilePathNormalizingComparer.Instance);
+
+        return new(this, ProjectDifference.ProjectWorkspaceStateChanged, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments);
     }
 
     internal static ImmutableDictionary<string, ImmutableArray<string>> AddToImportsToRelatedDocuments(

@@ -44,10 +44,10 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(_hostProject1);
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
+            updater.UpdateProjectWorkspaceState(_hostProject1.Key, _projectWorkspaceState1);
 
             updater.AddProject(_hostProject2);
-            updater.ProjectWorkspaceStateChanged(_hostProject2.Key, _projectWorkspaceState2);
+            updater.UpdateProjectWorkspaceState(_hostProject2.Key, _projectWorkspaceState2);
         });
 
         using var proxy = new ProjectSnapshotManagerProxy(
@@ -77,7 +77,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(_hostProject1);
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
+            updater.UpdateProjectWorkspaceState(_hostProject1.Key, _projectWorkspaceState1);
         });
 
         using var proxy = new ProjectSnapshotManagerProxy(
@@ -125,7 +125,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(_hostProject1);
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
+            updater.UpdateProjectWorkspaceState(_hostProject1.Key, _projectWorkspaceState1);
         });
 
         var proxy = new ProjectSnapshotManagerProxy(
@@ -164,7 +164,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(_hostProject1);
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
+            updater.UpdateProjectWorkspaceState(_hostProject1.Key, _projectWorkspaceState1);
         });
 
         using var proxy = new ProjectSnapshotManagerProxy(
@@ -196,10 +196,10 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(_hostProject1);
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
+            updater.UpdateProjectWorkspaceState(_hostProject1.Key, _projectWorkspaceState1);
 
             updater.AddProject(_hostProject2);
-            updater.ProjectWorkspaceStateChanged(_hostProject2.Key, _projectWorkspaceState2);
+            updater.UpdateProjectWorkspaceState(_hostProject2.Key, _projectWorkspaceState2);
         });
 
         using var proxy = new ProjectSnapshotManagerProxy(
@@ -229,7 +229,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(_hostProject1);
-            updater.ProjectWorkspaceStateChanged(_hostProject1.Key, _projectWorkspaceState1);
+            updater.UpdateProjectWorkspaceState(_hostProject1.Key, _projectWorkspaceState1);
         });
 
         using var proxy = new ProjectSnapshotManagerProxy(

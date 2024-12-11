@@ -151,10 +151,9 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
             .AddDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
-        var changed = ProjectWorkspaceState.Default;
 
         // Act
-        var state = original.WithProjectWorkspaceState(changed);
+        var state = original.WithProjectWorkspaceState(ProjectWorkspaceState.Default);
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument, DisposalToken);
@@ -172,10 +171,10 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
             .AddDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
-        var changed = ProjectWorkspaceState.Create(_someTagHelpers);
 
         // Act
-        var state = original.WithProjectWorkspaceState(changed);
+        var state = original.WithProjectWorkspaceState(
+            ProjectWorkspaceState.Create(_someTagHelpers));
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument, DisposalToken);
@@ -194,12 +193,12 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, hostProject, originalWorkspaceState)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader("@DateTime.Now", VersionStamp.Default));
-        var changedWorkspaceState = ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp8);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
 
         // Act
-        var state = original.WithProjectWorkspaceState(changedWorkspaceState);
+        var state = original.WithProjectWorkspaceState(
+            ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp8));
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument, DisposalToken);

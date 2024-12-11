@@ -85,7 +85,7 @@ internal class ProjectSnapshotSynchronizationService(
 
                     if (state.projectWorkspaceState != null)
                     {
-                        updater.ProjectWorkspaceStateChanged(state.hostProject.Key, state.projectWorkspaceState);
+                        updater.UpdateProjectWorkspaceState(state.hostProject.Key, state.projectWorkspaceState);
                     }
                 },
                 state: (hostProject, projectWorkspaceState: args.Newer.ProjectWorkspaceState),
@@ -129,7 +129,7 @@ internal class ProjectSnapshotSynchronizationService(
 
                         foreach (var projectKey in projectKeys)
                         {
-                            updater.ProjectWorkspaceStateChanged(projectKey, state.projectWorkspaceState);
+                            updater.UpdateProjectWorkspaceState(projectKey, state.projectWorkspaceState);
                         }
                     },
                     state: (guestPath, projectWorkspaceState: args.Newer.ProjectWorkspaceState),
@@ -152,7 +152,7 @@ internal class ProjectSnapshotSynchronizationService(
 
                     if (state.projectWorkspaceState is not null)
                     {
-                        updater.ProjectWorkspaceStateChanged(state.hostProject.Key, state.projectWorkspaceState);
+                        updater.UpdateProjectWorkspaceState(state.hostProject.Key, state.projectWorkspaceState);
                     }
                 },
                 state: (hostProject, projectWorkspaceState: projectHandle.ProjectWorkspaceState),
