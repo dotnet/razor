@@ -111,9 +111,10 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             DisposalToken);
 
         // Assert
-        var project = _projectManager.GetLoadedProject(hostProject.Key);
-        var document = project.GetDocument(hostDocument.FilePath);
-        Assert.NotNull(document);
+        var document = _projectManager
+            .GetLoadedProject(hostProject.Key)
+            .GetRequiredDocument(hostDocument.FilePath);
+
         Assert.Equal(FileKinds.Component, document.FileKind);
     }
 
@@ -325,9 +326,10 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
             DisposalToken);
 
         // Assert
-        var project = _projectManager.GetLoadedProject(hostProject.Key);
-        var document = project.GetDocument(newDocument.FilePath);
-        Assert.NotNull(document);
+        var document = _projectManager
+            .GetLoadedProject(hostProject.Key)
+            .GetRequiredDocument(newDocument.FilePath);
+
         Assert.Equal(FileKinds.Component, document.FileKind);
     }
 
@@ -992,7 +994,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         listener.AssertNotifications(
             x => x.DocumentChanged(DocumentFilePath, ownerProject.Key));
 
-        var latestVersion = _projectManager.GetLoadedProject(ownerProjectKey).GetDocument(DocumentFilePath)!.Version;
+        var latestVersion = _projectManager.GetLoadedProject(ownerProjectKey).GetRequiredDocument(DocumentFilePath).Version;
         Assert.Equal(2, latestVersion);
     }
 

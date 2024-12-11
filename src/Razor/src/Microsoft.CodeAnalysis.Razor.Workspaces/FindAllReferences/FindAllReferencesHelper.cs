@@ -36,7 +36,7 @@ internal static class FindAllReferencesHelper
         // either start or end fail to map, it means the entire line is not C#
 
         if (solutionQueryOperations.GetProjectsContainingDocument(filePath).FirstOrDefault() is { } project &&
-            project.GetDocument(filePath) is { } document)
+            project.TryGetDocument(filePath, out var document))
         {
             var codeDoc = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
             var line = codeDoc.Source.Text.Lines[lineNumber];

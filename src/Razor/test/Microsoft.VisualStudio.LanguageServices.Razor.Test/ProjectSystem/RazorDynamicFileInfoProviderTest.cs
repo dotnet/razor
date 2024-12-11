@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -58,8 +57,8 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
 
         var projectKey = _projectManager.GetAllProjectKeys(hostProject.FilePath).Single();
         _project = _projectManager.GetLoadedProject(projectKey);
-        _document1 = _project.GetDocument(hostDocument1.FilePath).AssumeNotNull();
-        _document2 = _project.GetDocument(hostDocument2.FilePath).AssumeNotNull();
+        _document1 = _project.GetRequiredDocument(hostDocument1.FilePath);
+        _document2 = _project.GetRequiredDocument(hostDocument2.FilePath);
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
         var filePathService = new VisualStudioFilePathService(languageServerFeatureOptions);

@@ -79,20 +79,21 @@ internal partial class RazorProjectSystemInProcess
 
     public async Task WaitForRazorFileInProjectAsync(string projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        var projectSnapshotManager = await TestServices.Shell.GetComponentModelServiceAsync<IProjectSnapshotManager>(cancellationToken);
-        Assert.NotNull(projectSnapshotManager);
+        var projectManager = await TestServices.Shell.GetComponentModelServiceAsync<IProjectSnapshotManager>(cancellationToken);
+        Assert.NotNull(projectManager);
+
         await Helper.RetryAsync(ct =>
         {
-            var projectKeys = projectSnapshotManager.GetAllProjectKeys(projectFilePath);
-            if (projectKeys.Length == 0 ||
-                !projectSnapshotManager.TryGetLoadedProject(projectKeys[0], out var project))
+            var projectKeys = projectManager.GetAllProjectKeys(projectFilePath);
+
+            if (projectKeys is [var projectKey, ..] &&
+                projectManager.TryGetLoadedProject(projectKey, out var project) &&
+                project.ContainsDocument(filePath))
             {
-                return SpecializedTasks.False;
+                return SpecializedTasks.True;
             }
 
-            var document = project.GetDocument(filePath);
-
-            return Task.FromResult(document is not null);
+            return SpecializedTasks.False;
         }, TimeSpan.FromMilliseconds(100), cancellationToken);
     }
 
