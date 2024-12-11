@@ -281,7 +281,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     protected void RemoveProject(ProjectSnapshotManager.Updater updater, ProjectKey projectKey)
     {
-        updater.ProjectRemoved(projectKey);
+        updater.RemoveProject(projectKey);
     }
 
     private async Task ExecuteWithLockAsync(Func<Task> func)

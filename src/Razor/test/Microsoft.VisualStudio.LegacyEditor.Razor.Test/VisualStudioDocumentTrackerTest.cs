@@ -216,7 +216,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectRemoved(_hostProject.Key);
+            updater.RemoveProject(_hostProject.Key);
         });
 
         var e = ProjectChangeEventArgs.ProjectRemoved(project, isSolutionClosing: false);
@@ -501,7 +501,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectRemoved(_hostProject.Key);
+            updater.RemoveProject(_hostProject.Key);
         });
 
         // Assert

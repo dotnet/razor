@@ -184,7 +184,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         await projectManager.UpdateAsync(updater =>
         {
             updater.SolutionClosed();
-            updater.ProjectRemoved(s_someProject.Key);
+            updater.RemoveProject(s_someProject.Key);
         });
 
         var update = Assert.Single(workspaceStateGenerator.Updates);

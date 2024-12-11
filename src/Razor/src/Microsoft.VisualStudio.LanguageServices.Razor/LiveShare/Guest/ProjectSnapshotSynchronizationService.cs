@@ -52,7 +52,7 @@ internal class ProjectSnapshotSynchronizationService(
                 {
                     try
                     {
-                        updater.ProjectRemoved(project.Key);
+                        updater.RemoveProject(project.Key);
                     }
                     catch (Exception ex)
                     {
@@ -100,7 +100,7 @@ internal class ProjectSnapshotSynchronizationService(
                     var projectKeys = updater.GetAllProjectKeys(guestPath);
                     foreach (var projectKey in projectKeys)
                     {
-                        updater.ProjectRemoved(projectKey);
+                        updater.RemoveProject(projectKey);
                     }
                 },
                 state: guestPath,

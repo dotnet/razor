@@ -101,7 +101,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectRemoved(s_hostProject.Key);
+            updater.RemoveProject(s_hostProject.Key);
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();

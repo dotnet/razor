@@ -351,21 +351,11 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void ProjectRemoved(ProjectKey projectKey)
+    private void RemoveProject(ProjectKey projectKey)
     {
-        if (_initialized)
+        if (TryRemoveProject(projectKey, out var oldProject, out var isSolutionClosing))
         {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            projectKey,
-            documentFilePath: null,
-            new ProjectRemovedAction(projectKey),
-            out var oldSnapshot,
-            out _))
-        {
-            NotifyListeners(ProjectChangeEventArgs.ProjectRemoved(oldSnapshot, IsSolutionClosing));
+            NotifyListeners(ProjectChangeEventArgs.ProjectRemoved(oldProject, isSolutionClosing));
         }
     }
 
@@ -454,7 +444,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
 
         isSolutionClosing = _isSolutionClosing;
 
-        // If the solution is closing or the project already exists, we don't need to add a new project.
+        // If the solution is closing or the project already exists, don't add a new project.
         if (isSolutionClosing || _projectMap.ContainsKey(hostProject.Key))
         {
             newProject = null;
@@ -476,6 +466,31 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         return true;
     }
 
+    private bool TryRemoveProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? oldProject, out bool isSolutionClosing)
+    {
+        if (_initialized)
+        {
+            _dispatcher.AssertRunningOnDispatcher();
+        }
+
+        using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
+
+        isSolutionClosing = _isSolutionClosing;
+
+        if (!_projectMap.TryGetValue(projectKey, out var entry))
+        {
+            oldProject = null;
+            return false;
+        }
+
+        oldProject = entry.GetSnapshot();
+
+        upgradeableLock.EnterWrite();
+        _projectMap.Remove(projectKey);
+
+        return true;
+    }
+
     private bool TryUpdate(
         ProjectKey projectKey,
         string? documentFilePath,
@@ -490,18 +505,6 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             // if the solution is closing we don't need to bother computing new state
             if (_isSolutionClosing)
             {
-                oldSnapshot = newSnapshot = entry.GetSnapshot();
-                return true;
-            }
-
-            // If we're removing a project, we don't need to try and compute new state for it.
-            // We can just remove it.
-            if (action is ProjectRemovedAction)
-            {
-                upgradeableLock.EnterWrite();
-
-                _projectMap.Remove(projectKey);
-
                 oldSnapshot = newSnapshot = entry.GetSnapshot();
                 return true;
             }

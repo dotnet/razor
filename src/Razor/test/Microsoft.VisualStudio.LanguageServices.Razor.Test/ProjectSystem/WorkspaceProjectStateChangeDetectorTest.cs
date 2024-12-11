@@ -149,7 +149,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
             updater.SolutionClosed();
 
             // Trigger a project removed event while solution is closing to clear state.
-            updater.ProjectRemoved(_hostProjectOne.Key);
+            updater.RemoveProject(_hostProjectOne.Key);
         });
 
         // Assert

@@ -154,7 +154,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectRemoved(s_hostProject.Key);
+            updater.RemoveProject(s_hostProject.Key);
         });
 
         PerformFullGC();

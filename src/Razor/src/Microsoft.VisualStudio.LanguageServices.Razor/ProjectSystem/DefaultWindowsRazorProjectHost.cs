@@ -63,7 +63,7 @@ internal class DefaultWindowsRazorProjectHost(
                     updater =>
                     {
                         var beforeProjectKey = new ProjectKey(beforeIntermediateOutputPath);
-                        updater.ProjectRemoved(beforeProjectKey);
+                        updater.RemoveProject(beforeProjectKey);
                     },
                     CancellationToken.None)
                     .ConfigureAwait(false);

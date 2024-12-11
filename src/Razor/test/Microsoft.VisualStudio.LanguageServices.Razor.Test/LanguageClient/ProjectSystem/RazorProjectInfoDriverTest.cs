@@ -177,7 +177,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
 
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.ProjectRemoved(s_hostProject1.Key);
+            updater.RemoveProject(s_hostProject1.Key);
         });
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -237,7 +237,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
 
         await projectManager.UpdateAsync(static updater =>
         {
-            updater.ProjectRemoved(s_hostProject1.Key);
+            updater.RemoveProject(s_hostProject1.Key);
         });
 
         await testAccessor.WaitUntilCurrentBatchCompletesAsync();

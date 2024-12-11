@@ -144,7 +144,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectRemoved(_project.Key);
+            updater.RemoveProject(_project.Key);
         });
 
         // Act
