@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Test.Common.TestProjectData;
@@ -76,7 +75,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         await WaitForProjectManagerUpdatesAsync();
 
         var project = Assert.Single(_projectManager.GetProjects());
-        Assert.IsNotType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
+        Assert.False(_fallbackProjectManger.IsFallbackProject(project));
     }
 
     [UIFact]
@@ -103,7 +102,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         Assert.Equal("DisplayName", project.DisplayName);
         Assert.Equal("RootNamespace", project.RootNamespace);
 
-        Assert.IsType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
+        Assert.True(_fallbackProjectManger.IsFallbackProject(project));
 
         var documentFilePath = Assert.Single(project.DocumentFilePaths);
         Assert.Equal(SomeProjectFile1.FilePath, documentFilePath);
@@ -131,7 +130,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         await WaitForProjectManagerUpdatesAsync();
 
         var project = Assert.Single(_projectManager.GetProjects());
-        Assert.IsType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
+        Assert.True(_fallbackProjectManger.IsFallbackProject(project));
 
         var hostProject = SomeProject with
         {
@@ -146,7 +145,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         });
 
         project = Assert.Single(_projectManager.GetProjects());
-        Assert.IsNotType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
+        Assert.False(_fallbackProjectManger.IsFallbackProject(project));
     }
 
     [UIFact]
