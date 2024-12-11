@@ -497,7 +497,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             return;
         }
 
-        Debug.Assert(_notificationQueue.Count == 1, "There should only be a single queued notification when it processing begins.");
+        Debug.Assert(_notificationQueue.Count == 1, "There should only be a single queued notification when processing begins.");
 
         // The notification queue is processed when it contains *exactly* one notification.
         // Note that a notification subscriber may mutate the current solution and cause additional
