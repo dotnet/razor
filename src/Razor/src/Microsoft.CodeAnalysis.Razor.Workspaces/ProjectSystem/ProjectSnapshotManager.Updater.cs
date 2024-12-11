@@ -16,8 +16,7 @@ internal partial class ProjectSnapshotManager
             => instance.GetAllProjectKeys(projectFileName);
         public ImmutableArray<IProjectSnapshot> GetProjects()
             => instance.GetProjects();
-        public IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
-            => instance.GetLoadedProject(projectKey);
+
         public bool TryGetProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
             => instance.TryGetProject(projectKey, out project);
 

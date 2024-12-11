@@ -82,7 +82,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
             CancellationToken.None);
 
         return projectManager
-            .GetLoadedProject(hostProject.Key)
+            .GetRequiredProject(hostProject.Key)
             .GetRequiredDocument(filePath);
     }
 

@@ -19,7 +19,7 @@ internal interface IProjectSnapshotManager
 
     ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
     ImmutableArray<IProjectSnapshot> GetProjects();
-    IProjectSnapshot GetLoadedProject(ProjectKey projectKey);
+
     bool TryGetProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project);
 
     bool IsDocumentOpen(string documentFilePath);
