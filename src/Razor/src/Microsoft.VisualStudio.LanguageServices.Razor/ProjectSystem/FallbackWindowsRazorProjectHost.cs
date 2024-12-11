@@ -153,7 +153,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             for (var i = 0; i < documents.Length; i++)
             {
                 var document = documents[i];
-                updater.DocumentAdded(hostProject.Key, document, new FileTextLoader(document.FilePath, null));
+                updater.AddDocument(hostProject.Key, document, new FileTextLoader(document.FilePath, null));
             }
         }, CancellationToken.None).ConfigureAwait(false);
     }

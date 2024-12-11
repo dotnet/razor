@@ -103,7 +103,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
         await projectSnapshotManager.UpdateAsync(
             updater =>
             {
-                updater.DocumentAdded(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
+                updater.AddDocument(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
             });
 
         await testAccessor.WaitForRefreshAsync();

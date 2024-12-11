@@ -54,6 +54,11 @@ internal partial class DocumentState
     {
     }
 
+    public static DocumentState Create(HostDocument hostDocument, int version, SourceText text, VersionStamp textVersion)
+    {
+        return new DocumentState(hostDocument, version, TextAndVersion.Create(text, textVersion), textLoader: null);
+    }
+
     public static DocumentState Create(HostDocument hostDocument, int version, TextLoader loader)
     {
         return new DocumentState(hostDocument, version, loader);

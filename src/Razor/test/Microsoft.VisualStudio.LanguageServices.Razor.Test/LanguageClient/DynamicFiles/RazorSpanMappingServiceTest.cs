@@ -31,7 +31,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 
         var project = new ProjectSnapshot(ProjectState
             .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
+            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
 
         var document = project.GetDocument(_hostDocument.FilePath);
         Assert.NotNull(document);
@@ -63,7 +63,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 
         var project = new ProjectSnapshot(ProjectState
             .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
+            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
 
         var document = project.GetDocument(_hostDocument.FilePath);
         Assert.NotNull(document);
@@ -96,7 +96,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 
         var project = new ProjectSnapshot(ProjectState
             .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
+            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
 
         var document = project.GetDocument(_hostDocument.FilePath);
         Assert.NotNull(document);
@@ -128,7 +128,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 
         var project = new ProjectSnapshot(ProjectState
             .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
+            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
 
         var document = project.GetDocument(_hostDocument.FilePath);
         Assert.NotNull(document);

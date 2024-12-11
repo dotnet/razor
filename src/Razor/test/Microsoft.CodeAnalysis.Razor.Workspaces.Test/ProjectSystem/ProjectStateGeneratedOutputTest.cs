@@ -44,12 +44,12 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         // Arrange
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
+            .AddDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
 
         // Act
-        var state = original.WithAddedHostDocument(TestProjectData.AnotherProjectFile1, DocumentState.EmptyLoader);
+        var state = original.AddDocument(TestProjectData.AnotherProjectFile1, DocumentState.EmptyLoader);
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument, DisposalToken);
@@ -63,12 +63,12 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         // Arrange
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
+            .AddDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
 
         // Act
-        var state = original.WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
+        var state = original.AddDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument, DisposalToken);
@@ -83,8 +83,8 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         // Arrange
         var original = ProjectState
             .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
-            .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
+            .AddDocument(_hostDocument, DocumentState.EmptyLoader)
+            .AddDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
 
@@ -105,8 +105,8 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         // Arrange
         var original = ProjectState
             .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
-            .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
+            .AddDocument(_hostDocument, DocumentState.EmptyLoader)
+            .AddDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
 
@@ -127,8 +127,8 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         // Arrange
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
-            .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
+            .AddDocument(_hostDocument, DocumentState.EmptyLoader)
+            .AddDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
 
@@ -148,7 +148,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         // Arrange
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
+            .AddDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
         var changed = ProjectWorkspaceState.Default;
@@ -169,7 +169,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         // Arrange
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
+            .AddDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
         var changed = ProjectWorkspaceState.Create(_someTagHelpers);
@@ -193,7 +193,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         var originalWorkspaceState = ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp7);
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, hostProject, originalWorkspaceState)
-            .WithAddedHostDocument(_hostDocument, TestMocks.CreateTextLoader("@DateTime.Now", VersionStamp.Default));
+            .AddDocument(_hostDocument, TestMocks.CreateTextLoader("@DateTime.Now", VersionStamp.Default));
         var changedWorkspaceState = ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp8);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
@@ -214,7 +214,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         // Arrange
         var original =
             ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
+            .AddDocument(_hostDocument, DocumentState.EmptyLoader);
 
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
 

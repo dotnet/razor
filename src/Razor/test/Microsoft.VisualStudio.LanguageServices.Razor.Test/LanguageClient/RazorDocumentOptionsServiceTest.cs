@@ -98,7 +98,7 @@ public class RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput) : Wor
 
         var project = new ProjectSnapshot(ProjectState
             .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
+            .AddDocument(hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
 
         var documentSnapshot = project.GetDocument(hostDocument.FilePath);
         Assert.NotNull(documentSnapshot);

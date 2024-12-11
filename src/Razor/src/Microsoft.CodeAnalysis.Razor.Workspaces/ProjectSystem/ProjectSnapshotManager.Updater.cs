@@ -26,8 +26,8 @@ internal partial class ProjectSnapshotManager
         public ImmutableArray<string> GetOpenDocuments()
             => instance.GetOpenDocuments();
 
-        public void DocumentAdded(ProjectKey projectKey, HostDocument document, TextLoader textLoader)
-            => instance.DocumentAdded(projectKey, document, textLoader);
+        public void AddDocument(ProjectKey projectKey, HostDocument document, TextLoader textLoader)
+            => instance.AddDocument(projectKey, document, textLoader);
 
         public void DocumentRemoved(ProjectKey projectKey, HostDocument document)
             => instance.DocumentRemoved(projectKey, document);

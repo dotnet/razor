@@ -175,7 +175,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
         _logger.LogInformation($"Adding document '{textDocumentPath}' to project '{miscFilesProject.Key}'.");
 
-        updater.DocumentAdded(miscFilesProject.Key, hostDocument, textLoader);
+        updater.AddDocument(miscFilesProject.Key, hostDocument, textLoader);
     }
 
     public async Task OpenDocumentAsync(string filePath, SourceText sourceText, CancellationToken cancellationToken)
@@ -465,7 +465,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 : _remoteTextLoaderFactory.Create(newFilePath);
 
             updater.DocumentRemoved(currentProjectKey, currentHostDocument);
-            updater.DocumentAdded(currentProjectKey, newHostDocument, textLoader);
+            updater.AddDocument(currentProjectKey, newHostDocument, textLoader);
         }
 
         project = _projectManager.GetLoadedProject(project.Key);
@@ -493,7 +493,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
                 _logger.LogInformation($"Adding new document '{documentFilePath}' to project '{currentProjectKey}'.");
 
-                updater.DocumentAdded(currentProjectKey, newHostDocument, remoteTextLoader);
+                updater.AddDocument(currentProjectKey, newHostDocument, remoteTextLoader);
             }
         }
     }
@@ -531,7 +531,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         _logger.LogInformation($"Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.");
 
         updater.DocumentRemoved(fromProject.Key, currentHostDocument);
-        updater.DocumentAdded(toProject.Key, newHostDocument, textLoader);
+        updater.AddDocument(toProject.Key, newHostDocument, textLoader);
     }
 
     private static string EnsureFullPath(string filePath, string projectDirectory)

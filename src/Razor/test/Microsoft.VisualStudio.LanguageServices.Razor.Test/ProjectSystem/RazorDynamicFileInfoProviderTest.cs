@@ -52,8 +52,8 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject);
-            updater.DocumentAdded(hostProject.Key, hostDocument1, new EmptyTextLoader(hostDocument1.FilePath));
-            updater.DocumentAdded(hostProject.Key, hostDocument2, new EmptyTextLoader(hostDocument2.FilePath));
+            updater.AddDocument(hostProject.Key, hostDocument1, new EmptyTextLoader(hostDocument1.FilePath));
+            updater.AddDocument(hostProject.Key, hostDocument2, new EmptyTextLoader(hostDocument2.FilePath));
         });
 
         var projectKey = _projectManager.GetAllProjectKeys(hostProject.FilePath).Single();

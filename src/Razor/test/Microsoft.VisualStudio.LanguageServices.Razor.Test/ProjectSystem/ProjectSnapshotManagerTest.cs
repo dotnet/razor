@@ -97,7 +97,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -123,7 +123,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -151,7 +151,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[3], s_documents[3].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[3], s_documents[3].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -172,7 +172,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -180,7 +180,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -201,7 +201,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], null!);
         });
 
         // Assert
@@ -221,7 +221,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -248,7 +248,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
+            updater.AddDocument(s_hostProject.Key, s_documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
         });
 
         // Assert
@@ -276,7 +276,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -304,7 +304,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -319,9 +319,9 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
-            updater.DocumentAdded(s_hostProject.Key, s_documents[1], s_documents[1].CreateEmptyTextLoader());
-            updater.DocumentAdded(s_hostProject.Key, s_documents[2], s_documents[2].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[1], s_documents[1].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[2], s_documents[2].CreateEmptyTextLoader());
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -391,9 +391,9 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         {
             updater.AddProject(s_hostProject);
             updater.ProjectWorkspaceStateChanged(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
-            updater.DocumentAdded(s_hostProject.Key, s_documents[1], s_documents[1].CreateEmptyTextLoader());
-            updater.DocumentAdded(s_hostProject.Key, s_documents[2], s_documents[2].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[1], s_documents[1].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[2], s_documents[2].CreateEmptyTextLoader());
         });
 
         var originalTagHelpers = await _projectManager.GetLoadedProject(s_hostProject.Key).GetTagHelpersAsync(DisposalToken);
@@ -421,9 +421,9 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
-            updater.DocumentAdded(s_hostProject.Key, s_documents[1], s_documents[1].CreateEmptyTextLoader());
-            updater.DocumentAdded(s_hostProject.Key, s_documents[2], s_documents[2].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[1], s_documents[1].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[2], s_documents[2].CreateEmptyTextLoader());
         });
 
         var project = _projectManager.GetLoadedProject(s_hostProject.Key);
@@ -447,7 +447,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -480,7 +480,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
             updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
@@ -517,7 +517,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -549,7 +549,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
             updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
@@ -582,7 +582,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
             updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
@@ -761,7 +761,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         // Act
@@ -854,7 +854,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(s_hostProject.Key, s_documents[0], s_documents[0].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -881,7 +881,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.SolutionClosed();
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], textLoader.Object);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], textLoader.Object);
         });
 
         // Assert

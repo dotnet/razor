@@ -30,7 +30,7 @@ public class ProjectLoadBenchmark : ProjectSnapshotManagerBenchmarkBase
 
                 for (var i = 0; i < Documents.Length; i++)
                 {
-                    updater.DocumentAdded(HostProject.Key, Documents[i], TextLoaders[i % 4]);
+                    updater.AddDocument(HostProject.Key, Documents[i], TextLoaders[i % 4]);
                 }
             },
             CancellationToken.None);

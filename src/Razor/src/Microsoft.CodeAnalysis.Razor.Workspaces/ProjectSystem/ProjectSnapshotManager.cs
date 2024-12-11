@@ -198,20 +198,16 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void DocumentAdded(ProjectKey projectKey, HostDocument document, TextLoader textLoader)
+    private void AddDocument(ProjectKey projectKey, HostDocument hostDocument, TextLoader textLoader)
     {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
+        if (TryUpdateProject(
             projectKey,
-            new AddDocumentAction(document, textLoader),
-            out var oldSnapshot,
-            out var newSnapshot))
+            transformer: state => state.AddDocument(hostDocument, textLoader),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
         {
-            NotifyListeners(ProjectChangeEventArgs.DocumentAdded(oldSnapshot, newSnapshot, document.FilePath, IsSolutionClosing));
+            NotifyListeners(ProjectChangeEventArgs.DocumentAdded(oldProject, newProject, hostDocument.FilePath, isSolutionClosing));
         }
     }
 
@@ -232,11 +228,11 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void OpenDocument(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
+    private void OpenDocument(ProjectKey projectKey, string documentFilePath, SourceText text)
     {
         if (TryUpdateProject(
             projectKey,
-            transformer: state => state.WithDocumentText(documentFilePath, sourceText),
+            transformer: state => state.WithDocumentText(documentFilePath, text),
             onAfterUpdate: () => _openDocumentSet.Add(documentFilePath),
             out var oldProject,
             out var newProject,
@@ -569,9 +565,6 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
     {
         switch (action)
         {
-            case AddDocumentAction(var newDocument, var textLoader):
-                return new Entry(originalEntry.State.WithAddedHostDocument(newDocument, textLoader));
-
             case RemoveDocumentAction(var originalDocument):
                 return new Entry(originalEntry.State.WithRemovedHostDocument(originalDocument));
 

@@ -137,7 +137,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject);
-            updater.DocumentAdded(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
         });
 
         var factory = new CSharpVirtualDocumentFactory(
@@ -187,10 +187,10 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject1);
-            updater.DocumentAdded(hostProject1.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject1.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
 
             updater.AddProject(hostProject2);
-            updater.DocumentAdded(hostProject2.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject2.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);

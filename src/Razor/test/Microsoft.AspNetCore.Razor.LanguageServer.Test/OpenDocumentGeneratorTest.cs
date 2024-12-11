@@ -40,7 +40,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
             updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
         });
 
@@ -50,7 +50,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         await projectManager.UpdateAsync(updater =>
         {
             updater.DocumentRemoved(_hostProject1.Key, _documents[0]);
-            updater.DocumentAdded(_hostProject2.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject2.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -73,7 +73,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.AddProject(_hostProject2);
 
             // Act
-            updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
         });
 
         // Assert
@@ -92,7 +92,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
 
             // Act
             updater.UpdateDocumentText(_hostProject1.Key, _documents[0].FilePath, SourceText.From("new"));
@@ -114,7 +114,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
             updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
             // Act
@@ -139,7 +139,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
 
             // Act
             updater.ProjectWorkspaceStateChanged(_hostProject1.Key,
@@ -162,7 +162,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.DocumentAdded(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
             updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
             // Act

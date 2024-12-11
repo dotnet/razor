@@ -62,7 +62,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         var unrelatedDocumentSnapshot = await _projectManager.UpdateAsync(updater =>
         {
             var unrelatedTextLoader = new SourceTextLoader("<p>Unrelated</p>", unrelatedHostDocument.FilePath);
-            updater.DocumentAdded(s_hostProject.Key, unrelatedHostDocument, unrelatedTextLoader);
+            updater.AddDocument(s_hostProject.Key, unrelatedHostDocument, unrelatedTextLoader);
             var project = updater.GetLoadedProject(s_hostProject.Key);
 
             return project.GetDocument(unrelatedHostDocument.FilePath);
@@ -169,7 +169,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         {
             updater.AddProject(s_hostProject);
             var textLoader = new SourceTextLoader("<p>Hello World</p>", s_hostDocument.FilePath);
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, textLoader);
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, textLoader);
             var project = updater.GetLoadedProject(s_hostProject.Key);
             return project.GetDocument(s_hostDocument.FilePath).AssumeNotNull();
         });

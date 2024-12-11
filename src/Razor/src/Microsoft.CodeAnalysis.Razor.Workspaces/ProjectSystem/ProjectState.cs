@@ -196,17 +196,10 @@ internal class ProjectState
 
     public VersionStamp ConfigurationVersion { get; }
 
-    public ProjectState WithAddedHostDocument(HostDocument hostDocument, TextLoader loader)
+    public ProjectState AddDocument(HostDocument hostDocument, SourceText text)
     {
-        if (hostDocument is null)
-        {
-            throw new ArgumentNullException(nameof(hostDocument));
-        }
-
-        if (loader is null)
-        {
-            throw new ArgumentNullException(nameof(loader));
-        }
+        ArgHelper.ThrowIfNull(hostDocument);
+        ArgHelper.ThrowIfNull(text);
 
         // Ignore attempts to 'add' a document with different data, we only
         // care about one, so it might as well be the one we have.
@@ -215,7 +208,32 @@ internal class ProjectState
             return this;
         }
 
-        var documents = Documents.Add(hostDocument.FilePath, DocumentState.Create(hostDocument, version: 1, loader));
+        var state = DocumentState.Create(hostDocument, version: 1, text, VersionStamp.Create());
+
+        return AddDocument(state);
+    }
+
+    public ProjectState AddDocument(HostDocument hostDocument, TextLoader textLoader)
+    {
+        ArgHelper.ThrowIfNull(hostDocument);
+        ArgHelper.ThrowIfNull(textLoader);
+
+        // Ignore attempts to 'add' a document with different data, we only
+        // care about one, so it might as well be the one we have.
+        if (Documents.ContainsKey(hostDocument.FilePath))
+        {
+            return this;
+        }
+
+        var state = DocumentState.Create(hostDocument, version: 1, textLoader);
+
+        return AddDocument(state);
+    }
+
+    private ProjectState AddDocument(DocumentState state)
+    {
+        var hostDocument = state.HostDocument;
+        var documents = Documents.Add(hostDocument.FilePath, state);
 
         // Compute the effect on the import map
         var importTargetPaths = GetImportDocumentTargetPaths(hostDocument);
@@ -231,8 +249,7 @@ internal class ProjectState
             }
         }
 
-        var state = new ProjectState(this, ProjectDifference.DocumentAdded, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
-        return state;
+        return new(this, ProjectDifference.DocumentAdded, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
     }
 
     public ProjectState WithRemovedHostDocument(HostDocument hostDocument)

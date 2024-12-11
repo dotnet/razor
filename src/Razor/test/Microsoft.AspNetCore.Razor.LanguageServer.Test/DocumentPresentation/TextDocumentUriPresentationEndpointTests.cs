@@ -36,8 +36,8 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject);
-            updater.DocumentAdded(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
-            updater.DocumentAdded(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });
 
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
@@ -96,8 +96,8 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject);
-            updater.DocumentAdded(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
-            updater.DocumentAdded(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });
 
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
@@ -161,8 +161,8 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject);
-            updater.DocumentAdded(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
-            updater.DocumentAdded(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });
 
         var droppedUri = new Uri("file:///c:/path/fetchdata.razor");
@@ -321,8 +321,8 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject);
-            updater.DocumentAdded(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
-            updater.DocumentAdded(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject.Key, hostDocument1, hostDocument1.CreateEmptyTextLoader());
+            updater.AddDocument(hostProject.Key, hostDocument2, hostDocument2.CreateEmptyTextLoader());
         });
 
         var droppedUri1 = new Uri("file:///c:/path/fetchdata.razor.cs");

@@ -132,7 +132,7 @@ internal sealed class FallbackProjectManager(
         var textLoader = new FileTextLoader(filePath, defaultEncoding: null);
 
         EnqueueProjectManagerUpdate(
-            updater => updater.DocumentAdded(projectKey, hostDocument, textLoader),
+            updater => updater.AddDocument(projectKey, hostDocument, textLoader),
             cancellationToken);
     }
 
