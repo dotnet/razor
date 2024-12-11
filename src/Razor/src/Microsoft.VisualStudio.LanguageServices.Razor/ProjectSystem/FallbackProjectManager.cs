@@ -23,17 +23,21 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 /// .razor or .cshtml files regardless.
 /// </summary>
 [Export(typeof(FallbackProjectManager))]
+[Export(typeof(IFallbackProjectManager))]
 [method: ImportingConstructor]
 internal sealed class FallbackProjectManager(
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
     IProjectSnapshotManager projectManager,
     IWorkspaceProvider workspaceProvider,
-    ITelemetryReporter telemetryReporter)
+    ITelemetryReporter telemetryReporter) : IFallbackProjectManager
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly IProjectSnapshotManager _projectManager = projectManager;
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
+
+    public bool IsFallbackProject(IProjectSnapshot project)
+        => project is ProjectSnapshot { HostProject: FallbackHostProject };
 
     internal void DynamicFileAdded(
         ProjectId projectId,
