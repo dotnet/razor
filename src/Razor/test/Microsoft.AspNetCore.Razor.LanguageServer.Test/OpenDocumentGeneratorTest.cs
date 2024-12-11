@@ -29,7 +29,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
     private readonly HostProject _hostProject2 = new("c:/Test2/Test2.csproj", "c:/Test2/obj", RazorConfiguration.Default, "TestRootNamespace");
 
     [Fact]
-    public async Task DocumentAdded_ProcessesOpenDocument()
+    public async Task AddDocument_ProcessesOpenDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager(new LspProjectEngineFactoryProvider(TestRazorLSPOptionsMonitor.Create()));
@@ -60,7 +60,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
     }
 
     [Fact]
-    public async Task DocumentAdded_IgnoresClosedDocument()
+    public async Task AddDocument_IgnoresClosedDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
@@ -81,7 +81,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
     }
 
     [Fact]
-    public async Task DocumentChanged_IgnoresClosedDocument()
+    public async Task UpdateDocumentText_IgnoresClosedDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
@@ -103,7 +103,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
     }
 
     [Fact]
-    public async Task DocumentChanged_ProcessesOpenDocument()
+    public async Task UpdateDocumentText_ProcessesOpenDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
@@ -128,7 +128,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
     }
 
     [Fact]
-    public async Task ProjectChanged_IgnoresClosedDocument()
+    public async Task UpdateProjectWorkspaceState_IgnoresClosedDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
@@ -151,7 +151,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
     }
 
     [Fact]
-    public async Task ProjectChanged_ProcessesOpenDocument()
+    public async Task UpdateProjectWorkspaceState_ProcessesOpenDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();

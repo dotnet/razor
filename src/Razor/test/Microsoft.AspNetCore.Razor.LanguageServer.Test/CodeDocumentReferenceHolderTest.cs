@@ -6,9 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -54,20 +54,20 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
     }
 
     [Fact]
-    public async Task UnrelatedDocumentChanged_ReferencesGeneratedCodeDocument()
+    public async Task UpdateUnrelatedDocumentText_ReferencesGeneratedCodeDocument()
     {
         // Arrange
         var documentSnapshot = await CreateDocumentSnapshotAsync();
         var unrelatedHostDocument = new HostDocument("C:/path/to/otherfile.razor", "otherfile.razor");
-        var unrelatedDocumentSnapshot = await _projectManager.UpdateAsync(updater =>
-        {
-            var unrelatedTextLoader = new SourceTextLoader("<p>Unrelated</p>", unrelatedHostDocument.FilePath);
-            updater.AddDocument(s_hostProject.Key, unrelatedHostDocument, unrelatedTextLoader);
-            var project = updater.GetLoadedProject(s_hostProject.Key);
 
-            return project.GetDocument(unrelatedHostDocument.FilePath);
+        await _projectManager.UpdateAsync(updater =>
+        {
+            updater.AddDocument(s_hostProject.Key, unrelatedHostDocument, TestMocks.CreateTextLoader("<p>Unrelated</p>"));
         });
 
+        var unrelatedDocumentSnapshot = _projectManager
+            .GetLoadedProject(s_hostProject.Key)
+            .GetDocument(unrelatedHostDocument.FilePath);
         Assert.NotNull(unrelatedDocumentSnapshot);
 
         var mainCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
@@ -87,7 +87,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
     }
 
     [Fact]
-    public async Task DocumentChanged_DereferencesGeneratedCodeDocument()
+    public async Task UpdateDocumentText_DereferencesGeneratedCodeDocument()
     {
         // Arrange
         var documentSnapshot = await CreateDocumentSnapshotAsync();
@@ -107,7 +107,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
     }
 
     [Fact]
-    public async Task DocumentRemoved_DereferencesGeneratedCodeDocument()
+    public async Task RemoveDocument_DereferencesGeneratedCodeDocument()
     {
         // Arrange
         var documentSnapshot = await CreateDocumentSnapshotAsync();
@@ -126,7 +126,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
     }
 
     [Fact]
-    public async Task ProjectChanged_DereferencesGeneratedCodeDocument()
+    public async Task UpdateProjectConfiguration_DereferencesGeneratedCodeDocument()
     {
         // Arrange
         var documentSnapshot = await CreateDocumentSnapshotAsync();
@@ -145,7 +145,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
     }
 
     [Fact]
-    public async Task ProjectRemoved_DereferencesGeneratedCodeDocument()
+    public async Task RemoveProject_DereferencesGeneratedCodeDocument()
     {
         // Arrange
         var documentSnapshot = await CreateDocumentSnapshotAsync();
@@ -168,8 +168,8 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         return _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            var textLoader = new SourceTextLoader("<p>Hello World</p>", s_hostDocument.FilePath);
-            updater.AddDocument(s_hostProject.Key, s_hostDocument, textLoader);
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, TestMocks.CreateTextLoader("<p>Hello World</p>"));
+
             var project = updater.GetLoadedProject(s_hostProject.Key);
             return project.GetDocument(s_hostDocument.FilePath).AssumeNotNull();
         });
@@ -190,16 +190,5 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
-    }
-
-    private sealed class SourceTextLoader(string content, string filePath) : TextLoader
-    {
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(
-            LoadTextOptions options, CancellationToken cancellationToken)
-            => Task.FromResult(
-                TextAndVersion.Create(
-                    SourceText.From(content),
-                    VersionStamp.Default,
-                    filePath));
     }
 }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
@@ -109,9 +108,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
                 filePath: "Three.csproj",
                 documents: [razorDocumentInfo]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj3\\Three.dll")));
 
-        _projectNumberOne = _solutionWithTwoProjects.GetProject(projectId1).AssumeNotNull();
-        _projectNumberTwo = _solutionWithTwoProjects.GetProject(projectId2).AssumeNotNull();
-        _projectNumberThree = _solutionWithOneProject.GetProject(projectId3).AssumeNotNull();
+        _projectNumberOne = _solutionWithTwoProjects.GetRequiredProject(projectId1);
+        _projectNumberTwo = _solutionWithTwoProjects.GetRequiredProject(projectId2);
+        _projectNumberThree = _solutionWithOneProject.GetRequiredProject(projectId3);
 
         _hostProjectOne = new HostProject("One.csproj", "obj1", FallbackRazorConfiguration.MVC_1_1, "One");
         _hostProjectTwo = new HostProject("Two.csproj", "obj2", FallbackRazorConfiguration.MVC_1_1, "Two");
@@ -480,8 +479,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         var solution = _solutionWithTwoProjects
             .WithDocumentText(_partialComponentClassDocumentId, sourceText)
             .WithDocumentSyntaxRoot(_partialComponentClassDocumentId, syntaxTreeRoot, PreservationMode.PreserveIdentity);
-        var document = solution.GetDocument(_partialComponentClassDocumentId);
-        Assert.NotNull(document);
+        var document = solution.GetRequiredDocument(_partialComponentClassDocumentId);
 
         // The change detector only operates when a semantic model / syntax tree is available.
         await document.GetSyntaxRootAsync();
@@ -568,8 +566,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         var solution = _solutionWithTwoProjects
             .WithDocumentText(_partialComponentClassDocumentId, sourceText)
             .WithDocumentSyntaxRoot(_partialComponentClassDocumentId, syntaxTreeRoot, PreservationMode.PreserveIdentity);
-        var document = solution.GetDocument(_partialComponentClassDocumentId);
-        Assert.NotNull(document);
+        var document = solution.GetRequiredDocument(_partialComponentClassDocumentId);
 
         // Initialize document
         await document.GetSyntaxRootAsync();
@@ -597,8 +594,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         var solution = _solutionWithTwoProjects
             .WithDocumentText(_partialComponentClassDocumentId, sourceText)
             .WithDocumentSyntaxRoot(_partialComponentClassDocumentId, syntaxTreeRoot, PreservationMode.PreserveIdentity);
-        var document = solution.GetDocument(_partialComponentClassDocumentId);
-        Assert.NotNull(document);
+        var document = solution.GetRequiredDocument(_partialComponentClassDocumentId);
 
         // Initialize document
         await document.GetSyntaxRootAsync();
@@ -626,8 +622,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         var solution = _solutionWithTwoProjects
             .WithDocumentText(_partialComponentClassDocumentId, sourceText)
             .WithDocumentSyntaxRoot(_partialComponentClassDocumentId, syntaxTreeRoot, PreservationMode.PreserveIdentity);
-        var document = solution.GetDocument(_partialComponentClassDocumentId);
-        Assert.NotNull(document);
+        var document = solution.GetRequiredDocument(_partialComponentClassDocumentId);
 
         // Act
         var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
@@ -651,8 +646,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         var solution = _solutionWithTwoProjects
             .WithDocumentText(_partialComponentClassDocumentId, sourceText)
             .WithDocumentSyntaxRoot(_partialComponentClassDocumentId, syntaxTreeRoot, PreservationMode.PreserveIdentity);
-        var document = solution.GetDocument(_partialComponentClassDocumentId);
-        Assert.NotNull(document);
+        var document = solution.GetRequiredDocument(_partialComponentClassDocumentId);
 
         await document.GetSyntaxRootAsync();
 
@@ -672,8 +666,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         var solution = _solutionWithTwoProjects
             .WithDocumentText(_partialComponentClassDocumentId, sourceText)
             .WithDocumentSyntaxRoot(_partialComponentClassDocumentId, syntaxTreeRoot, PreservationMode.PreserveIdentity);
-        var document = solution.GetDocument(_partialComponentClassDocumentId);
-        Assert.NotNull(document);
+        var document = solution.GetRequiredDocument(_partialComponentClassDocumentId);
 
         // Initialize document
         await document.GetSyntaxRootAsync();
@@ -705,8 +698,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         var solution = _solutionWithTwoProjects
             .WithDocumentText(_partialComponentClassDocumentId, sourceText)
             .WithDocumentSyntaxRoot(_partialComponentClassDocumentId, syntaxTreeRoot, PreservationMode.PreserveIdentity);
-        var document = solution.GetDocument(_partialComponentClassDocumentId);
-        Assert.NotNull(document);
+        var document = solution.GetRequiredDocument(_partialComponentClassDocumentId);
 
         // Initialize document
         await document.GetSyntaxRootAsync();
@@ -737,8 +729,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         var solution = _solutionWithTwoProjects
             .WithDocumentText(_partialComponentClassDocumentId, sourceText)
             .WithDocumentSyntaxRoot(_partialComponentClassDocumentId, syntaxTreeRoot, PreservationMode.PreserveIdentity);
-        var document = solution.GetDocument(_partialComponentClassDocumentId);
-        Assert.NotNull(document);
+        var document = solution.GetRequiredDocument(_partialComponentClassDocumentId);
 
         // Initialize document
         await document.GetSyntaxRootAsync();

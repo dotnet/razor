@@ -33,7 +33,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         targetPath: "/path/to/file1.razor");
 
     [UIFact]
-    public async Task ProjectManager_Changed_DocumentRemoved_RemovesDocument()
+    public async Task ProjectManager_Changed_RemoveDocument_RemovesDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
@@ -72,7 +72,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task ProjectManager_Changed_ProjectRemoved_RemovesAllDocuments()
+    public async Task ProjectManager_Changed_RemoveProject_RemovesAllDocuments()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
@@ -111,7 +111,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task ProjectManager_Changed_DocumentAdded_InvokesGetOrCreateDocument()
+    public async Task ProjectManager_Changed_AddDocument_InvokesGetOrCreateDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
@@ -151,7 +151,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task ProjectManager_Changed_OpenDocumentAdded_InvokesOnOpened()
+    public async Task ProjectManager_Changed_AddDocument_InvokesOnOpened()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();

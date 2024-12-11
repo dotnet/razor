@@ -50,7 +50,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void Dispose_MakesUpdateNoop()
+    public void Dispose_MakesUpdateIgnored()
     {
         // Arrange
         using var generator = new ProjectWorkspaceStateGenerator(

@@ -76,12 +76,10 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
 
         var project = testProjectManager.GetLoadedProject(hostProject.Key);
 
-        var openedDocument = project.GetDocument(openedHostDocument.FilePath).AssumeNotNull();
-        _openedDocument = openedDocument;
+        _openedDocument = project.GetDocument(openedHostDocument.FilePath).AssumeNotNull();
         _openedDocumentUri = new Uri("C:/project/open_document.cshtml");
 
-        var closedDocument = project.GetDocument(closedHostDocument.FilePath).AssumeNotNull();
-        _closedDocument = closedDocument;
+        _closedDocument = project.GetDocument(closedHostDocument.FilePath).AssumeNotNull();
 
         _projectManager = testProjectManager;
         _testCodeDocument = TestRazorCodeDocument.CreateEmpty();

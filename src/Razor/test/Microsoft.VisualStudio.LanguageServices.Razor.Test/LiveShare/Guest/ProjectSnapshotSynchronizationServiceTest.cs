@@ -143,7 +143,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
     }
 
     [UIFact]
-    public async Task UpdateGuestProjectManager_ProjectChanged_ConfigurationChange()
+    public async Task UpdateGuestProjectManager_ProjectChanged_UpdateProjectConfiguration()
     {
         // Arrange
         var oldHandle = new ProjectSnapshotHandleProxy(
@@ -187,7 +187,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
     }
 
     [UIFact]
-    public async Task UpdateGuestProjectManager_ProjectChanged_ProjectWorkspaceStateChange()
+    public async Task UpdateGuestProjectManager_ProjectChanged_UpdateProjectWorkspaceState()
     {
         // Arrange
         var oldHandle = new ProjectSnapshotHandleProxy(

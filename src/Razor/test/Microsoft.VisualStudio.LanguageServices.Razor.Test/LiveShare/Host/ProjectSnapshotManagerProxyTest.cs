@@ -101,13 +101,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         await projectManager.UpdateAsync(updater =>
         {
             // Change the project's configuration to force a changed event to be raised.
-            var project = updater.GetLoadedProject(_hostProject1.Key);
-            updater.UpdateProjectConfiguration(new(
-                project.FilePath,
-                project.IntermediateOutputPath,
-                FallbackRazorConfiguration.MVC_1_0,
-                project.RootNamespace,
-                project.DisplayName));
+            updater.UpdateProjectConfiguration(_hostProject1 with { Configuration = FallbackRazorConfiguration.MVC_1_0 });
         });
 
         await proxyAccessor.ProcessingChangedEventTestTask.AssumeNotNull().JoinAsync();
@@ -142,13 +136,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         await projectManager.UpdateAsync(updater =>
         {
             // Change the project's configuration to force a changed event to be raised.
-            var project = updater.GetLoadedProject(_hostProject1.Key);
-            updater.UpdateProjectConfiguration(new(
-                project.FilePath,
-                project.IntermediateOutputPath,
-                FallbackRazorConfiguration.MVC_1_0,
-                project.RootNamespace,
-                project.DisplayName));
+            updater.UpdateProjectConfiguration(_hostProject1 with { Configuration = FallbackRazorConfiguration.MVC_1_0 });
         });
 
         // Assert

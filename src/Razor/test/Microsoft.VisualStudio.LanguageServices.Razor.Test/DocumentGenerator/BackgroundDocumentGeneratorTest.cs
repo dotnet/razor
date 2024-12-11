@@ -259,7 +259,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
     }
 
     [UIFact]
-    public async Task DocumentChanged_ReparsesRelatedFiles()
+    public async Task UpdateDocumentText_ReparsesRelatedFiles()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
@@ -311,7 +311,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
     }
 
     [UIFact]
-    public async Task DocumentRemoved_ReparsesRelatedFiles()
+    public async Task RemoveDocument_ReparsesRelatedFiles()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();

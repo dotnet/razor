@@ -98,7 +98,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
     }
 
     [Fact]
-    public void UpdateLSPFileInfo_UnknownFile_Noops()
+    public void UpdateLSPFileInfo_UnknownFile_Ignored()
     {
         // Arrange
         _provider.Updated += (sender, args) => throw new XunitException("Should not have been called.");
@@ -135,7 +135,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
     }
 
     [Fact]
-    public async Task UpdateLSPFileInfo_ProjectRemoved_Noops()
+    public async Task UpdateLSPFileInfo_ProjectRemoved_Ignored()
     {
         // Arrange
         await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
