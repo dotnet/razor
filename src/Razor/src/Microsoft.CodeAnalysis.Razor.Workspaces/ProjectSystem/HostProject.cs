@@ -8,7 +8,7 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal record class HostProject
+internal sealed record class HostProject
 {
     public ProjectKey Key { get; }
 
@@ -47,7 +47,7 @@ internal record class HostProject
         Key = new(intermediateOutputPath);
     }
 
-    public virtual bool Equals(HostProject? other)
+    public bool Equals(HostProject? other)
     {
         if (ReferenceEquals(this, other))
         {
