@@ -343,7 +343,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         return _projectManager.UpdateAsync(
             updater =>
             {
-                if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
+                if (!_projectManager.TryGetProject(projectKey, out var project))
                 {
                     if (filePath is null)
                     {

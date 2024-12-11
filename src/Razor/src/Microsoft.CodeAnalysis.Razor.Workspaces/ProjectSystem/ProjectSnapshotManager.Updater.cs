@@ -18,8 +18,8 @@ internal partial class ProjectSnapshotManager
             => instance.GetProjects();
         public IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
             => instance.GetLoadedProject(projectKey);
-        public bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
-            => instance.TryGetLoadedProject(projectKey, out project);
+        public bool TryGetProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
+            => instance.TryGetProject(projectKey, out project);
 
         public bool IsDocumentOpen(string documentFilePath)
             => instance.IsDocumentOpen(documentFilePath);

@@ -139,7 +139,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         throw new InvalidOperationException($"No project snapshot exists with the key, '{projectKey}'");
     }
 
-    public bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
+    public bool TryGetProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
     {
         using (_readerWriterLock.DisposableRead())
         {

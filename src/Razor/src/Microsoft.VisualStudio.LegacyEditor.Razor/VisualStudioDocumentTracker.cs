@@ -155,7 +155,7 @@ internal sealed class VisualStudioDocumentTracker : IVisualStudioDocumentTracker
         var projectKeys = _projectManager.GetAllProjectKeys(projectPath);
 
         if (projectKeys.Length == 0 ||
-            !_projectManager.TryGetLoadedProject(projectKeys[0], out var project))
+            !_projectManager.TryGetProject(projectKeys[0], out var project))
         {
             return new EphemeralProjectSnapshot(_projectEngineFactoryProvider, projectPath);
         }
@@ -202,7 +202,7 @@ internal sealed class VisualStudioDocumentTracker : IVisualStudioDocumentTracker
             string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
         {
             // This will be the new snapshot unless the project was removed.
-            if (!_projectManager.TryGetLoadedProject(e.ProjectKey, out _projectSnapshot))
+            if (!_projectManager.TryGetProject(e.ProjectKey, out _projectSnapshot))
             {
                 _projectSnapshot = null;
             }

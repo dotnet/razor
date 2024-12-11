@@ -29,7 +29,7 @@ internal class GeneratedDocumentSynchronizer(
         }
 
         // If the document has been removed from the project, then don't do anything, or version numbers will be thrown off
-        if (!_projectManager.TryGetLoadedProject(document.Project.Key, out var project) ||
+        if (!_projectManager.TryGetProject(document.Project.Key, out var project) ||
             !project.ContainsDocument(filePath))
         {
             return;
