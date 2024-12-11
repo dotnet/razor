@@ -49,7 +49,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(_hostProject1.Key, _documents[0]);
+            updater.RemoveDocument(_hostProject1.Key, _documents[0].FilePath);
             updater.AddDocument(_hostProject2.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
         });
 

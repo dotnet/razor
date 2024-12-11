@@ -9,12 +9,6 @@ internal interface IUpdateProjectAction
 {
 }
 
-internal record RemoveDocumentAction(HostDocument OriginalDocument) : IUpdateProjectAction;
-
-internal record UpdateDocumentAction(HostDocument OriginalDocument, HostDocument NewDocument, TextLoader TextLoader) : IUpdateProjectAction;
-
-internal record MoveDocumentAction(IProjectSnapshot OriginalProject, IProjectSnapshot DestinationProject, HostDocument Document, TextLoader TextLoader) : IUpdateProjectAction;
-
 internal record HostProjectUpdatedAction(HostProject HostProject) : IUpdateProjectAction;
 
 internal record ProjectWorkspaceStateChangedAction(ProjectWorkspaceState WorkspaceState) : IUpdateProjectAction;

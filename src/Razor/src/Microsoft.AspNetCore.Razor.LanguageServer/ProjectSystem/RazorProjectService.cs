@@ -19,8 +19,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
@@ -270,7 +268,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                         {
                             _logger.LogInformation($"Removing document '{textDocumentPath}' from project '{projectSnapshot.Key}'.");
 
-                            updater.DocumentRemoved(projectSnapshot.Key, documentSnapshot.HostDocument);
+                            updater.RemoveDocument(projectSnapshot.Key, documentSnapshot.FilePath);
                         }
                     });
             },
@@ -464,7 +462,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 ? new DocumentSnapshotTextLoader(documentSnapshot)
                 : _remoteTextLoaderFactory.Create(newFilePath);
 
-            updater.DocumentRemoved(currentProjectKey, currentHostDocument);
+            updater.RemoveDocument(currentProjectKey, currentHostDocument.FilePath);
             updater.AddDocument(currentProjectKey, newHostDocument, textLoader);
         }
 
@@ -530,7 +528,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
         _logger.LogInformation($"Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.");
 
-        updater.DocumentRemoved(fromProject.Key, currentHostDocument);
+        updater.RemoveDocument(fromProject.Key, currentHostDocument.FilePath);
         updater.AddDocument(toProject.Key, newHostDocument, textLoader);
     }
 

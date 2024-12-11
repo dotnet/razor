@@ -406,7 +406,7 @@ public class GeneratedDocumentPublisherTest : LanguageServerTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_hostDocument);
+            updater.RemoveDocument(s_hostProject.Key, s_hostDocument.FilePath);
         });
 
         Assert.Equal(0, publisher.GetTestAccessor().PublishedCSharpDataCount);

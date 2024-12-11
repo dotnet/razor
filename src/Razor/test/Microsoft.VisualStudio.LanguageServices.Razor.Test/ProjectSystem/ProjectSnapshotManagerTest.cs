@@ -329,7 +329,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[1]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[1].FilePath);
         });
 
         // Assert
@@ -357,7 +357,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[0]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[0].FilePath);
         });
 
         // Assert
@@ -375,7 +375,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[0]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[0].FilePath);
         });
 
         // Assert
@@ -401,7 +401,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[1]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[1].FilePath);
         });
 
         // Assert
@@ -432,7 +432,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[1]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[1].FilePath);
         });
 
         // Assert
@@ -847,7 +847,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
             else if (args.Kind == ProjectChangeKind.DocumentChanged)
             {
                 _projectManager.UpdateAsync(updater =>
-                    updater.DocumentRemoved(s_hostProject.Key, s_documents[0])).Forget();
+                    updater.RemoveDocument(s_hostProject.Key, s_documents[0].FilePath)).Forget();
             }
         };
 

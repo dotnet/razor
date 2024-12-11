@@ -224,20 +224,16 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void DocumentRemoved(ProjectKey projectKey, HostDocument document)
+    private void RemoveDocument(ProjectKey projectKey, string documentFilePath)
     {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
+        if (TryUpdateProject(
             projectKey,
-            new RemoveDocumentAction(document),
-            out var oldSnapshot,
-            out var newSnapshot))
+            transformer: state => state.RemoveDocument(documentFilePath),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
         {
-            NotifyListeners(ProjectChangeEventArgs.DocumentRemoved(oldSnapshot, newSnapshot, document.FilePath, IsSolutionClosing));
+            NotifyListeners(ProjectChangeEventArgs.DocumentRemoved(oldProject, newProject, documentFilePath, isSolutionClosing));
         }
     }
 
@@ -578,9 +574,6 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
     {
         switch (action)
         {
-            case RemoveDocumentAction(var originalDocument):
-                return new Entry(originalEntry.State.WithRemovedHostDocument(originalDocument));
-
             case ProjectWorkspaceStateChangedAction(var workspaceState):
                 return new Entry(originalEntry.State.WithProjectWorkspaceState(workspaceState));
 

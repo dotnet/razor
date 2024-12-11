@@ -46,7 +46,7 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
                 var document = Documents[i];
                 await ProjectManager.UpdateAsync(updater => updater.AddDocument(HostProject.Key, document, TextLoaders[i % 4]), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
-                await ProjectManager.UpdateAsync(updater => updater.DocumentRemoved(HostProject.Key, document), CancellationToken.None).ConfigureAwait(false);
+                await ProjectManager.UpdateAsync(updater => updater.RemoveDocument(HostProject.Key, document.FilePath), CancellationToken.None).ConfigureAwait(false);
                 Thread.Sleep(0);
             }
 

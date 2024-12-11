@@ -331,7 +331,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         // Act & Assert
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject1.Key, TestProjectData.SomeProjectImportFile);
+            updater.RemoveDocument(s_hostProject1.Key, TestProjectData.SomeProjectImportFile.FilePath);
         });
 
         Assert.True(generator.HasPendingWork, "Queue should have a notification created during Enqueue");

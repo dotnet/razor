@@ -407,7 +407,7 @@ public class ProjectStateTest : WorkspaceTestBase
             .AddDocument(_documents[1], DocumentState.EmptyLoader);
 
         // Act
-        var state = original.WithRemovedHostDocument(_documents[1]);
+        var state = original.RemoveDocument(_documents[1].FilePath);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);
@@ -430,7 +430,7 @@ public class ProjectStateTest : WorkspaceTestBase
             .AddDocument(TestProjectData.AnotherProjectNestedFile4, DocumentState.EmptyLoader);
 
         // Act
-        var state = original.WithRemovedHostDocument(TestProjectData.SomeProjectNestedFile3);
+        var state = original.RemoveDocument(TestProjectData.SomeProjectNestedFile3.FilePath);
 
         // Assert
         Assert.Collection(
@@ -471,10 +471,10 @@ public class ProjectStateTest : WorkspaceTestBase
 
         // Act
         var state = original
-            .WithRemovedHostDocument(TestProjectData.SomeProjectFile1)
-            .WithRemovedHostDocument(TestProjectData.SomeProjectFile2)
-            .WithRemovedHostDocument(TestProjectData.SomeProjectNestedFile3)
-            .WithRemovedHostDocument(TestProjectData.AnotherProjectNestedFile4);
+            .RemoveDocument(TestProjectData.SomeProjectFile1.FilePath)
+            .RemoveDocument(TestProjectData.SomeProjectFile2.FilePath)
+            .RemoveDocument(TestProjectData.SomeProjectNestedFile3.FilePath)
+            .RemoveDocument(TestProjectData.AnotherProjectNestedFile4.FilePath);
 
         // Assert
         Assert.Empty(state.Documents);
@@ -494,7 +494,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
         // Act
-        var state = original.WithRemovedHostDocument(_documents[2]);
+        var state = original.RemoveDocument(_documents[2].FilePath);
 
         // Assert
         var actualTagHelpers = state.TagHelpers;
@@ -522,7 +522,7 @@ public class ProjectStateTest : WorkspaceTestBase
             .AddDocument(_documents[1], DocumentState.EmptyLoader);
 
         // Act
-        var state = original.WithRemovedHostDocument(_documents[0]);
+        var state = original.RemoveDocument(_documents[0].FilePath);
 
         // Assert
         Assert.Same(original, state);
@@ -976,7 +976,7 @@ public class ProjectStateTest : WorkspaceTestBase
         original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
         // Act
-        var state = original.WithRemovedHostDocument(document5);
+        var state = original.RemoveDocument(document5.FilePath);
 
         // Assert
         Assert.NotEqual(original.Version, state.Version);

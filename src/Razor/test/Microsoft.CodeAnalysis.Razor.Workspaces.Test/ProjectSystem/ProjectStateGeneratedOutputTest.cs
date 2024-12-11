@@ -133,7 +133,7 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument, DisposalToken);
 
         // Act
-        var state = original.WithRemovedHostDocument(TestProjectData.SomeProjectImportFile);
+        var state = original.RemoveDocument(TestProjectData.SomeProjectImportFile.FilePath);
 
         // Assert
         var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument, DisposalToken);

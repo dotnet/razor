@@ -62,7 +62,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_hostDocument);
+            updater.RemoveDocument(s_hostProject.Key, s_hostDocument.FilePath);
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();

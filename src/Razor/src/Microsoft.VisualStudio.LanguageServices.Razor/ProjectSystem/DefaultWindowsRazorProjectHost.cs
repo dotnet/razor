@@ -93,7 +93,7 @@ internal class DefaultWindowsRazorProjectHost(
 
                     for (var i = 0; i < changedDocuments.Length; i++)
                     {
-                        updater.DocumentRemoved(hostProject.Key, changedDocuments[i]);
+                        updater.RemoveDocument(hostProject.Key, changedDocuments[i].FilePath);
                     }
 
                     for (var i = 0; i < documents.Length; i++)

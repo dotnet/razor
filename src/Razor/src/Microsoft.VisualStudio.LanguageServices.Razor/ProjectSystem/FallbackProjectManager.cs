@@ -169,7 +169,7 @@ internal sealed class FallbackProjectManager(
         }
 
         EnqueueProjectManagerUpdate(
-            updater => updater.DocumentRemoved(projectKey, hostDocument),
+            updater => updater.RemoveDocument(projectKey, hostDocument.FilePath),
             cancellationToken);
     }
 

@@ -252,19 +252,18 @@ internal class ProjectState
         return new(this, ProjectDifference.DocumentAdded, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
     }
 
-    public ProjectState WithRemovedHostDocument(HostDocument hostDocument)
+    public ProjectState RemoveDocument(string documentFilePath)
     {
-        if (hostDocument is null)
-        {
-            throw new ArgumentNullException(nameof(hostDocument));
-        }
+        ArgHelper.ThrowIfNull(documentFilePath);
 
-        if (!Documents.ContainsKey(hostDocument.FilePath))
+        if (!Documents.TryGetValue(documentFilePath, out var state))
         {
             return this;
         }
 
-        var documents = Documents.Remove(hostDocument.FilePath);
+        var hostDocument = state.HostDocument;
+
+        var documents = Documents.Remove(documentFilePath);
 
         // First check if the updated document is an import - it's important that this happens
         // before updating the imports map.
@@ -280,8 +279,7 @@ internal class ProjectState
         var importTargetPaths = GetImportDocumentTargetPaths(hostDocument);
         var importsToRelatedDocuments = RemoveFromImportsToRelatedDocuments(ImportsToRelatedDocuments, hostDocument, importTargetPaths);
 
-        var state = new ProjectState(this, ProjectDifference.DocumentRemoved, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
-        return state;
+        return new(this, ProjectDifference.DocumentRemoved, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
     }
 
     public ProjectState WithDocumentText(string documentFilePath, SourceText text)
