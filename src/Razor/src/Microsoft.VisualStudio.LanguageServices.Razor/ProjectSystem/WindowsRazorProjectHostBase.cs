@@ -275,7 +275,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
         else
         {
-            updater.ProjectConfigurationChanged(project);
+            updater.UpdateProjectConfiguration(project);
         }
     }
 

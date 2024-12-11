@@ -640,7 +640,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(s_hostProjectWithConfigurationChange);
+            updater.UpdateProjectConfiguration(s_hostProjectWithConfigurationChange);
         });
 
         // Assert
@@ -663,7 +663,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(s_hostProjectWithConfigurationChange);
+            updater.UpdateProjectConfiguration(s_hostProjectWithConfigurationChange);
         });
 
         // Assert
@@ -686,7 +686,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(s_hostProjectWithConfigurationChange);
+            updater.UpdateProjectConfiguration(s_hostProjectWithConfigurationChange);
         });
 
         // Assert
@@ -703,7 +703,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(s_hostProject);
+            updater.UpdateProjectConfiguration(s_hostProject);
         });
 
         // Assert

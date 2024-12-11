@@ -114,7 +114,7 @@ internal class ProjectSnapshotSynchronizationService(
                 var guestIntermediateOutputPath = ResolveGuestPath(args.Newer.IntermediateOutputPath);
                 var hostProject = new HostProject(guestPath, guestIntermediateOutputPath, args.Newer.Configuration, args.Newer.RootNamespace);
                 await _projectManager.UpdateAsync(
-                    static (updater, hostProject) => updater.ProjectConfigurationChanged(hostProject),
+                    static (updater, hostProject) => updater.UpdateProjectConfiguration(hostProject),
                     state: hostProject,
                     CancellationToken.None);
             }

@@ -472,7 +472,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(_updatedHostProject);
+            updater.UpdateProjectConfiguration(_updatedHostProject);
         });
 
         // Assert

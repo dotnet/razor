@@ -53,8 +53,8 @@ internal partial class ProjectSnapshotManager
         public void RemoveProject(ProjectKey projectKey)
             => instance.RemoveProject(projectKey);
 
-        public void ProjectConfigurationChanged(HostProject project)
-            => instance.ProjectConfigurationChanged(project);
+        public void UpdateProjectConfiguration(HostProject project)
+            => instance.UpdateProjectConfiguration(project);
 
         public void UpdateProjectWorkspaceState(ProjectKey projectKey, ProjectWorkspaceState projectWorkspaceState)
             => instance.UpdateProjectWorkspaceState(projectKey, projectWorkspaceState);

@@ -394,7 +394,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 }
 
                 var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace, displayName);
-                updater.ProjectConfigurationChanged(hostProject);
+                updater.UpdateProjectConfiguration(hostProject);
             },
             cancellationToken);
     }

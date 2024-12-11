@@ -102,7 +102,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         {
             // Change the project's configuration to force a changed event to be raised.
             var project = updater.GetLoadedProject(_hostProject1.Key);
-            updater.ProjectConfigurationChanged(new(
+            updater.UpdateProjectConfiguration(new(
                 project.FilePath,
                 project.IntermediateOutputPath,
                 FallbackRazorConfiguration.MVC_1_0,
@@ -143,7 +143,7 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         {
             // Change the project's configuration to force a changed event to be raised.
             var project = updater.GetLoadedProject(_hostProject1.Key);
-            updater.ProjectConfigurationChanged(new(
+            updater.UpdateProjectConfiguration(new(
                 project.FilePath,
                 project.IntermediateOutputPath,
                 FallbackRazorConfiguration.MVC_1_0,

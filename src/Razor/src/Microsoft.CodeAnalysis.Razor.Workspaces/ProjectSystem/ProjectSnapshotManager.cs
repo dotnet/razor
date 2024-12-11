@@ -299,20 +299,16 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void ProjectConfigurationChanged(HostProject hostProject)
+    private void UpdateProjectConfiguration(HostProject hostProject)
     {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
+        if (TryUpdateProject(
             hostProject.Key,
-            new HostProjectUpdatedAction(hostProject),
-            out var oldSnapshot,
-            out var newSnapshot))
+            transformer: state => state.WithHostProject(hostProject),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
         {
-            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldSnapshot, newSnapshot, IsSolutionClosing));
+            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldProject, newProject, IsSolutionClosing));
         }
     }
 
@@ -527,55 +523,6 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         newProject = newEntry.GetSnapshot();
 
         return true;
-    }
-
-    private bool TryUpdate(
-        ProjectKey projectKey,
-        IUpdateProjectAction action,
-        [NotNullWhen(true)] out IProjectSnapshot? oldSnapshot,
-        [NotNullWhen(true)] out IProjectSnapshot? newSnapshot)
-    {
-        using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
-
-        if (_projectMap.TryGetValue(projectKey, out var entry))
-        {
-            // if the solution is closing we don't need to bother computing new state
-            if (_isSolutionClosing)
-            {
-                oldSnapshot = newSnapshot = entry.GetSnapshot();
-                return true;
-            }
-
-            // ... otherwise, compute a new entry and update if it's changed from the old state.
-            var newEntry = ComputeNewEntry(entry, action);
-
-            if (!ReferenceEquals(newEntry.State, entry.State))
-            {
-                upgradeableLock.EnterWrite();
-
-                _projectMap[projectKey] = newEntry;
-
-                oldSnapshot = entry.GetSnapshot();
-                newSnapshot = newEntry.GetSnapshot();
-
-                return true;
-            }
-        }
-
-        oldSnapshot = newSnapshot = null;
-        return false;
-    }
-
-    private static Entry ComputeNewEntry(Entry originalEntry, IUpdateProjectAction action)
-    {
-        switch (action)
-        {
-            case HostProjectUpdatedAction(var hostProject):
-                return new Entry(originalEntry.State.WithHostProject(hostProject));
-
-            default:
-                throw new InvalidOperationException($"Unexpected action type {action.GetType()}");
-        }
     }
 
     public Task UpdateAsync(Action<Updater> updater, CancellationToken cancellationToken)
