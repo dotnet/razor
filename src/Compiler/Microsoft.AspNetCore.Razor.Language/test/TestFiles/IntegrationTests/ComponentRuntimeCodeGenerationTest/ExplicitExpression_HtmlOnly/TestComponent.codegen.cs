@@ -18,44 +18,16 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line (1,3)-(3,5) "x:\dir\subdir\Test\TestComponent.cshtml"
-  
-    var x = "hello";  
-    
+#line (1,3)-(2,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
 
 #line default
 #line hidden
 #nullable disable
 
-            __builder.AddContent(0, 
+            __builder.AddMarkupContent(0, "<p></p>");
 #nullable restore
-#line (3,6)-(3,7) "x:\dir\subdir\Test\TestComponent.cshtml"
-x
-
-#line default
-#line hidden
-#nullable disable
-            );
-#nullable restore
-#line (3,7)-(3,21) "x:\dir\subdir\Test\TestComponent.cshtml"
- x = "world"; 
-
-#line default
-#line hidden
-#nullable disable
-
-            __builder.AddContent(1, 
-#nullable restore
-#line (3,22)-(3,23) "x:\dir\subdir\Test\TestComponent.cshtml"
-x
-
-#line default
-#line hidden
-#nullable disable
-            );
-#nullable restore
-#line (3,23)-(4,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-  
+#line (3,1)-(3,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 
 #line default
 #line hidden
