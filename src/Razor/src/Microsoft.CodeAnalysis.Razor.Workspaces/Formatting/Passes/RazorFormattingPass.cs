@@ -183,8 +183,9 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
         // @{
         //     var x = 1;
         // }
+        // Using LastOrDefault because runtime code-gen puts whitespace before the statement
         if (node is CSharpCodeBlockSyntax explicitCode &&
-            explicitCode.Children.FirstOrDefault() is CSharpStatementSyntax statement &&
+            explicitCode.Children.LastOrDefault() is CSharpStatementSyntax statement &&
             statement.Body is CSharpStatementBodySyntax csharpStatementBody)
         {
             var openBraceNode = csharpStatementBody.OpenBrace;
