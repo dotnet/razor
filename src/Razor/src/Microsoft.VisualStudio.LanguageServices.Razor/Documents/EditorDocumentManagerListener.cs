@@ -248,7 +248,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
                 {
                     var (document, fallbackProjectManager, telemetryReporter, cancellationToken) = state;
 
-                    if (updater.TryGetLoadedProject(document.ProjectKey, out var project) &&
+                    if (updater.TryGetProject(document.ProjectKey, out var project) &&
                         project is ProjectSnapshot projectSnapshot &&
                         fallbackProjectManager.IsFallbackProject(project))
                     {

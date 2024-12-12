@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Test.Common.TestProjectData;
@@ -105,7 +106,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         var documentFilePath = Assert.Single(project.DocumentFilePaths);
         Assert.Equal(SomeProjectFile1.FilePath, documentFilePath);
-        Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(documentFilePath)!.TargetPath);
+        Assert.Equal(SomeProjectFile1.TargetPath, project.GetRequiredDocument(documentFilePath).TargetPath);
     }
 
     [UIFact]
@@ -187,10 +188,12 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             f => Assert.Equal(SomeProjectFile2.FilePath, f),
             f => Assert.Equal(SomeProjectNestedComponentFile3.FilePath, f));
 
-        Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(SomeProjectFile1.FilePath)!.TargetPath);
-        Assert.Equal(SomeProjectFile2.TargetPath, project.GetDocument(SomeProjectFile2.FilePath)!.TargetPath);
+        Assert.Equal(SomeProjectFile1.TargetPath, project.GetRequiredDocument(SomeProjectFile1.FilePath).TargetPath);
+        Assert.Equal(SomeProjectFile2.TargetPath, project.GetRequiredDocument(SomeProjectFile2.FilePath).TargetPath);
         // The test data is created with a "\" so when the test runs on Linux, and direct string comparison wouldn't work
-        Assert.True(FilePathNormalizer.AreFilePathsEquivalent(SomeProjectNestedComponentFile3.TargetPath, project.GetDocument(SomeProjectNestedComponentFile3.FilePath)!.TargetPath));
+        Assert.True(FilePathNormalizer.AreFilePathsEquivalent(
+            SomeProjectNestedComponentFile3.TargetPath,
+            project.GetRequiredDocument(SomeProjectNestedComponentFile3.FilePath).TargetPath));
     }
 
     [UIFact]
@@ -233,7 +236,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         Assert.Single(project.DocumentFilePaths,
             filePath => filePath == SomeProjectFile1.FilePath);
 
-        Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(SomeProjectFile1.FilePath)!.TargetPath);
+        Assert.Equal(SomeProjectFile1.TargetPath, project.GetRequiredDocument(SomeProjectFile1.FilePath).TargetPath);
     }
 
     private Task WaitForProjectManagerUpdatesAsync()

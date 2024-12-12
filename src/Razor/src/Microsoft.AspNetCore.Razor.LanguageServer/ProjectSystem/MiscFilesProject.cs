@@ -37,7 +37,7 @@ internal static class MiscFilesProject
     }
 
     public static IProjectSnapshot GetMiscellaneousProject(this IProjectSnapshotManager projectManager)
-        => projectManager.GetLoadedProject(Key);
+        => projectManager.GetRequiredProject(Key);
 
     public static bool IsMiscellaneousProject(this IProjectSnapshot project)
         => project.Key == Key;
