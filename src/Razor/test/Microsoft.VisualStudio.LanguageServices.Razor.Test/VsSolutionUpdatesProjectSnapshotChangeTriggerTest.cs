@@ -154,7 +154,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
             updater.AddProject(s_someProject);
             updater.AddProject(s_someOtherProject);
 
-            return updater.GetLoadedProject(s_someProject.Key);
+            return updater.GetRequiredProject(s_someProject.Key);
         });
 
         var serviceProvider = VsMocks.CreateServiceProvider();
@@ -207,7 +207,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
             updater.AddProject(s_someProject);
             updater.AddProject(s_someOtherProject);
 
-            return updater.GetLoadedProject(s_someProject.Key);
+            return updater.GetRequiredProject(s_someProject.Key);
         });
 
         var serviceProvider = VsMocks.CreateServiceProvider();

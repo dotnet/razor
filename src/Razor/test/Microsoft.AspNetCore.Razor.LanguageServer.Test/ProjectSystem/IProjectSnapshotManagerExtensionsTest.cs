@@ -137,7 +137,7 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
             updater.AddProject(otherHostProject);
             updater.AddDocument(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
 
-            return updater.GetLoadedProject(hostProject.Key);
+            return updater.GetRequiredProject(hostProject.Key);
         });
 
         // Act
@@ -166,7 +166,7 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
             updater.AddDocument(miscFilesHostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
             updater.AddProject(hostProject);
 
-            return updater.GetLoadedProject(miscFilesHostProject.Key);
+            return updater.GetRequiredProject(miscFilesHostProject.Key);
         });
 
         // Act
@@ -191,7 +191,7 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
             updater.AddProject(hostProject);
             updater.AddDocument(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
 
-            return updater.GetLoadedProject(hostProject.Key);
+            return updater.GetRequiredProject(hostProject.Key);
         });
 
         // Act
@@ -210,7 +210,7 @@ public class IProjectSnapshotManagerExtensionsTest(ITestOutputHelper testOutput)
 
         // Act
         var project = projectManager.GetMiscellaneousProject();
-        var inManager = projectManager.GetLoadedProject(MiscFilesHostProject.Instance.Key);
+        var inManager = projectManager.GetRequiredProject(MiscFilesHostProject.Instance.Key);
 
         // Assert
         Assert.Same(inManager, project);

@@ -65,10 +65,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
             updater.AddDocument(s_hostProject.Key, unrelatedHostDocument, TestMocks.CreateTextLoader("<p>Unrelated</p>"));
         });
 
-        var unrelatedDocumentSnapshot = _projectManager
-            .GetLoadedProject(s_hostProject.Key)
-            .GetDocument(unrelatedHostDocument.FilePath);
-        Assert.NotNull(unrelatedDocumentSnapshot);
+            var unrelatedDocumentSnapshot = _projectManager.GetRequiredDocument(s_hostProject.Key, unrelatedHostDocument.FilePath);
 
         var mainCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
         var unrelatedCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(unrelatedDocumentSnapshot, DisposalToken);
@@ -170,8 +167,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
             updater.AddProject(s_hostProject);
             updater.AddDocument(s_hostProject.Key, s_hostDocument, TestMocks.CreateTextLoader("<p>Hello World</p>"));
 
-            var project = updater.GetLoadedProject(s_hostProject.Key);
-            return project.GetDocument(s_hostDocument.FilePath).AssumeNotNull();
+            return updater.GetRequiredDocument(s_hostProject.Key, s_hostDocument.FilePath);
         });
     }
 

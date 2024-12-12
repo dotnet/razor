@@ -26,8 +26,7 @@ public class GeneratedDocumentTextLoaderTest(ITestOutputHelper testOutput) : Wor
 
         var project = new ProjectSnapshot(state);
 
-        var document = project.GetDocument(_hostDocument.FilePath);
-        Assert.NotNull(document);
+        var document = project.GetRequiredDocument(_hostDocument.FilePath);
 
         var loader = new GeneratedDocumentTextLoader(document, "file.cshtml");
 

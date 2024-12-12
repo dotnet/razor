@@ -60,13 +60,13 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
 
     protected override async Task InitializeAsync()
     {
-        var testProjectManager = CreateProjectSnapshotManager();
+        var projectManager = CreateProjectSnapshotManager();
         var hostProject = new HostProject("C:/project/project.csproj", "C:/project/obj", RazorConfiguration.Default, "TestRootNamespace");
         var sourceText = SourceText.From(string.Empty);
         var openedHostDocument = new HostDocument("C:/project/open_document.cshtml", "C:/project/open_document.cshtml");
         var closedHostDocument = new HostDocument("C:/project/closed_document.cshtml", "C:/project/closed_document.cshtml");
 
-        await testProjectManager.UpdateAsync(updater =>
+        await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject);
             updater.AddDocument(hostProject.Key, openedHostDocument, sourceText);
@@ -74,14 +74,14 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
             updater.AddDocument(hostProject.Key, closedHostDocument, sourceText);
         });
 
-        var project = testProjectManager.GetLoadedProject(hostProject.Key);
+        var project = projectManager.GetRequiredProject(hostProject.Key);
 
-        _openedDocument = project.GetDocument(openedHostDocument.FilePath).AssumeNotNull();
+        _openedDocument = project.GetRequiredDocument(openedHostDocument.FilePath);
         _openedDocumentUri = new Uri("C:/project/open_document.cshtml");
 
-        _closedDocument = project.GetDocument(closedHostDocument.FilePath).AssumeNotNull();
+        _closedDocument = project.GetRequiredDocument(closedHostDocument.FilePath);
 
-        _projectManager = testProjectManager;
+        _projectManager = projectManager;
         _testCodeDocument = TestRazorCodeDocument.CreateEmpty();
     }
 

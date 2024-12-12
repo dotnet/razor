@@ -159,14 +159,14 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.AddProject(_hostProject);
         });
 
-        var e = ProjectChangeEventArgs.ProjectAdded(_projectManager.GetLoadedProject(_hostProject.Key), isSolutionClosing: false);
+        var e = ProjectChangeEventArgs.ProjectAdded(_projectManager.GetRequiredProject(_hostProject.Key), isSolutionClosing: false);
 
         var called = false;
         _documentTracker.ContextChanged += (sender, args) =>
         {
             called = true;
 
-            Assert.Same(_projectManager.GetLoadedProject(_hostProject.Key), _documentTracker.ProjectSnapshot);
+            Assert.Same(_projectManager.GetRequiredProject(_hostProject.Key), _documentTracker.ProjectSnapshot);
         };
 
         // Act
@@ -185,7 +185,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.AddProject(_hostProject);
         });
 
-        var project = _projectManager.GetLoadedProject(_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(_hostProject.Key);
         var e = ProjectChangeEventArgs.ProjectChanged(older: project, newer: project, isSolutionClosing: false);
 
         var called = false;
@@ -193,7 +193,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
         {
             called = true;
 
-            Assert.Same(_projectManager.GetLoadedProject(_hostProject.Key), _documentTracker.ProjectSnapshot);
+            Assert.Same(_projectManager.GetRequiredProject(_hostProject.Key), _documentTracker.ProjectSnapshot);
         };
 
         // Act
@@ -212,7 +212,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.AddProject(_hostProject);
         });
 
-        var project = _projectManager.GetLoadedProject(_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(_hostProject.Key);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -246,7 +246,7 @@ public class VisualStudioDocumentTrackerTest : VisualStudioWorkspaceTestBase
             updater.AddProject(_otherHostProject);
         });
 
-        var project = _projectManager.GetLoadedProject(_otherHostProject.Key);
+        var project = _projectManager.GetRequiredProject(_otherHostProject.Key);
         var e = ProjectChangeEventArgs.ProjectChanged(older: project, newer: project, isSolutionClosing: false);
 
         var called = false;
