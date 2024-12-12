@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -28,9 +27,7 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public static TestProjectSnapshot Create(string filePath, ProjectWorkspaceState? projectWorkspaceState = null)
     {
         var hostProject = TestHostProject.Create(filePath);
-        projectWorkspaceState ??= ProjectWorkspaceState.Default;
-
-        var state = ProjectState.Create(ProjectEngineFactories.DefaultProvider, RazorCompilerOptions.None, hostProject, projectWorkspaceState);
+        var state = ProjectState.Create(hostProject, projectWorkspaceState);
 
         return new TestProjectSnapshot(state);
     }

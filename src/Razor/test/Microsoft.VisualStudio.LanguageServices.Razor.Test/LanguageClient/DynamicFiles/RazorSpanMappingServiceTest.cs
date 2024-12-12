@@ -4,7 +4,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -29,7 +28,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 ");
 
         var state = ProjectState
-            .Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, ProjectWorkspaceState.Default)
+            .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
         var project = new ProjectSnapshot(state);
 
@@ -61,7 +60,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 ");
 
         var state = ProjectState
-            .Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, ProjectWorkspaceState.Default)
+            .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
         var project = new ProjectSnapshot(state);
 
@@ -94,7 +93,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 ");
 
         var state = ProjectState
-            .Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, ProjectWorkspaceState.Default)
+            .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
         var project = new ProjectSnapshot(state);
 
@@ -126,7 +125,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 ");
 
         var state = ProjectState
-            .Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, ProjectWorkspaceState.Default)
+            .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
         var project = new ProjectSnapshot(state);
 

@@ -35,7 +35,7 @@ internal class ProjectState
 
     private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments = ImmutableDictionary.Create<string, DocumentState>(FilePathNormalizingComparer.Instance);
     private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizingComparer.Instance);
-    private readonly object _lock;
+    private readonly object _lock = new();
 
     public HostProject HostProject { get; }
     public RazorCompilerOptions CompilerOptions { get; }
@@ -44,32 +44,22 @@ internal class ProjectState
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private RazorProjectEngine? _projectEngine;
 
-    public static ProjectState Create(
-        IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        RazorCompilerOptions compilerOptions,
-        HostProject hostProject,
-        ProjectWorkspaceState projectWorkspaceState)
-    {
-        return new ProjectState(projectEngineFactoryProvider, compilerOptions, hostProject, projectWorkspaceState);
-    }
-
     private ProjectState(
-        IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        RazorCompilerOptions compilerOptions,
         HostProject hostProject,
-        ProjectWorkspaceState projectWorkspaceState)
+        ProjectWorkspaceState projectWorkspaceState,
+        RazorCompilerOptions compilerOptions,
+        IProjectEngineFactoryProvider projectEngineFactoryProvider)
     {
-        _projectEngineFactoryProvider = projectEngineFactoryProvider;
-        CompilerOptions = compilerOptions;
         HostProject = hostProject;
         ProjectWorkspaceState = projectWorkspaceState;
+        CompilerOptions = compilerOptions;
+        _projectEngineFactoryProvider = projectEngineFactoryProvider;
+
         Documents = s_emptyDocuments;
         ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
         Version = VersionStamp.Create();
         ProjectWorkspaceStateVersion = Version;
         DocumentCollectionVersion = Version;
-
-        _lock = new object();
     }
 
     private ProjectState(
@@ -80,16 +70,15 @@ internal class ProjectState
         ImmutableDictionary<string, DocumentState> documents,
         ImmutableDictionary<string, ImmutableArray<string>> importsToRelatedDocuments)
     {
-        _projectEngineFactoryProvider = older._projectEngineFactoryProvider;
-        CompilerOptions = older.CompilerOptions;
-        Version = older.Version.GetNewerVersion();
-
         HostProject = hostProject;
+        CompilerOptions = older.CompilerOptions;
+        _projectEngineFactoryProvider = older._projectEngineFactoryProvider;
         ProjectWorkspaceState = projectWorkspaceState;
+
         Documents = documents;
         ImportsToRelatedDocuments = importsToRelatedDocuments;
 
-        _lock = new object();
+        Version = older.Version.GetNewerVersion();
 
         if ((difference & ClearDocumentCollectionVersionMask) == 0)
         {
@@ -131,6 +120,23 @@ internal class ProjectState
             ConfigurationVersion = Version;
         }
     }
+
+    public static ProjectState Create(
+        HostProject hostProject,
+        ProjectWorkspaceState? projectWorkspaceState = null,
+        RazorCompilerOptions compilerOptions = RazorCompilerOptions.None,
+        IProjectEngineFactoryProvider? projectEngineFactoryProvider = null)
+        => new(
+            hostProject,
+            projectWorkspaceState ?? ProjectWorkspaceState.Default,
+            compilerOptions,
+            projectEngineFactoryProvider ?? ProjectEngineFactories.DefaultProvider);
+
+    public static ProjectState Create(
+        HostProject hostProject,
+        RazorCompilerOptions compilerOptions,
+        IProjectEngineFactoryProvider? projectEngineFactoryProvider = null)
+        => Create(hostProject, ProjectWorkspaceState.Default, compilerOptions, projectEngineFactoryProvider);
 
     // Internal set for testing.
     public ImmutableDictionary<string, DocumentState> Documents { get; internal set; }

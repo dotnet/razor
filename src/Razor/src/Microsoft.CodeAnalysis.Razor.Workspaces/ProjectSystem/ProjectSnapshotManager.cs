@@ -371,11 +371,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
             return false;
         }
 
-        var state = ProjectState.Create(
-            _projectEngineFactoryProvider,
-            _compilerOptions,
-            hostProject,
-            ProjectWorkspaceState.Default);
+        var state = ProjectState.Create(hostProject, _compilerOptions, _projectEngineFactoryProvider);
 
         var newEntry = new Entry(state);
 

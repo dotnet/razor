@@ -3,7 +3,6 @@
 
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Xunit;
@@ -21,7 +20,7 @@ public class GeneratedDocumentTextLoaderTest(ITestOutputHelper testOutput) : Wor
     {
         // Arrange
         var state = ProjectState
-            .Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, ProjectWorkspaceState.Default)
+            .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
             .AddDocument(_hostDocument, TestMocks.CreateEmptyTextLoader());
 
         var project = new ProjectSnapshot(state);
