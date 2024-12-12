@@ -85,7 +85,12 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
     {
     }
 
-    [MemberNotNull(nameof(_hostServices), nameof(_workspace), nameof(_workspaceProvider), nameof(_projectEngineFactoryProvider), nameof(_languageServerFeatureOptions))]
+    [MemberNotNull(
+        nameof(_hostServices),
+        nameof(_workspace),
+        nameof(_workspaceProvider),
+        nameof(_projectEngineFactoryProvider),
+        nameof(_languageServerFeatureOptions))]
     private void EnsureInitialized()
     {
         if (_initialized)
@@ -98,10 +103,7 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
             return;
         }
 
-        _projectEngineFactoryProvider = new TestProjectEngineFactoryProvider()
-        {
-            Configure = ConfigureProjectEngine,
-        };
+        _projectEngineFactoryProvider = TestProjectEngineFactoryProvider.Instance.AddConfigure(ConfigureProjectEngine);
 
         _hostServices = MefHostServices.DefaultHost;
         _workspace = TestWorkspace.Create(_hostServices, ConfigureWorkspace);
