@@ -1147,6 +1147,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </div>
                     }
 
+                    @{
+                    <div class="FF"
+                        id="ERT">
+                        @{
+                    <div class="FF"
+                        id="ERT">
+                        asdf
+                        <div class="3"
+                            id="3">
+                                @if(true){<p></p>}
+                            </div>
+                    </div>
+                    }
+                    </div>
+                    }
+
                     @functions {
                             public class Foo
                         {
@@ -1187,6 +1203,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                     <p></p>
                                 }
                             </div>
+                        </div>
+                    }
+
+                    @{
+                        <div class="FF"
+                             id="ERT">
+                            @{
+                                <div class="FF"
+                                     id="ERT">
+                                    asdf
+                                    <div class="3"
+                                         id="3">
+                                        @if (true)
+                                        {
+                                            <p></p>
+                                        }
+                                    </div>
+                                </div>
+                            }
                         </div>
                     }
 
