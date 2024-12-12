@@ -16,6 +16,6 @@ internal class LspProjectSnapshotManager(
 {
     private static void AddMiscFilesProject(Updater updater)
     {
-        updater.ProjectAdded(MiscFilesProject.HostProject);
+        updater.AddProject(MiscFilesProject.HostProject);
     }
 }

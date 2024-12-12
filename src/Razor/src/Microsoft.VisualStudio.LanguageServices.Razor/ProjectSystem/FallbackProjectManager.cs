@@ -155,7 +155,7 @@ internal sealed class FallbackProjectManager : IFallbackProjectManager
         ImmutableInterlocked.Update(ref _fallbackProjects, set => set.Add(hostProject.Key));
 
         EnqueueProjectManagerUpdate(
-            updater => updater.ProjectAdded(hostProject),
+            updater => updater.AddProject(hostProject),
             cancellationToken);
 
         AddFallbackDocument(hostProject.Key, filePath, project.FilePath, cancellationToken);
@@ -172,7 +172,7 @@ internal sealed class FallbackProjectManager : IFallbackProjectManager
         var textLoader = new FileTextLoader(filePath, defaultEncoding: null);
 
         EnqueueProjectManagerUpdate(
-            updater => updater.DocumentAdded(projectKey, hostDocument, textLoader),
+            updater => updater.AddDocument(projectKey, hostDocument, textLoader),
             cancellationToken);
     }
 
@@ -209,7 +209,7 @@ internal sealed class FallbackProjectManager : IFallbackProjectManager
         }
 
         EnqueueProjectManagerUpdate(
-            updater => updater.DocumentRemoved(projectKey, hostDocument),
+            updater => updater.RemoveDocument(projectKey, hostDocument.FilePath),
             cancellationToken);
     }
 

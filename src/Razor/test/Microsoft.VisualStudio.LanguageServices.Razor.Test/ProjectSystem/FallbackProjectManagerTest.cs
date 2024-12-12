@@ -55,7 +55,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
         });
 
         var projectId = ProjectId.CreateNewId();
@@ -140,7 +140,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(hostProject);
+            updater.UpdateProjectConfiguration(hostProject);
         });
 
         project = Assert.Single(_projectManager.GetProjects());

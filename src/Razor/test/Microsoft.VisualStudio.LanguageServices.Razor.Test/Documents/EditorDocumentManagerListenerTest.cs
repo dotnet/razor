@@ -37,15 +37,15 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         x.IsFallbackProject(It.IsAny<IProjectSnapshot>()) == false);
 
     [UIFact]
-    public async Task ProjectManager_Changed_DocumentRemoved_RemovesDocument()
+    public async Task ProjectManager_Changed_RemoveDocument_RemovesDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();
@@ -66,7 +66,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_hostDocument);
+            updater.RemoveDocument(s_hostProject.Key, s_hostDocument.FilePath);
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -76,15 +76,15 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task ProjectManager_Changed_ProjectRemoved_RemovesAllDocuments()
+    public async Task ProjectManager_Changed_RemoveProject_RemovesAllDocuments()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();
@@ -105,7 +105,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectRemoved(s_hostProject.Key);
+            updater.RemoveProject(s_hostProject.Key);
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -115,14 +115,14 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task ProjectManager_Changed_DocumentAdded_InvokesGetOrCreateDocument()
+    public async Task ProjectManager_Changed_AddDocument_InvokesGetOrCreateDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();
@@ -145,7 +145,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -155,14 +155,14 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task ProjectManager_Changed_OpenDocumentAdded_InvokesOnOpened()
+    public async Task ProjectManager_Changed_AddDocument_InvokesOnOpened()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();
@@ -186,7 +186,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
