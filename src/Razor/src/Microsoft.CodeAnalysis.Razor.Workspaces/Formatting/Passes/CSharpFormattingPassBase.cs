@@ -164,8 +164,6 @@ internal abstract partial class CSharpFormattingPassBase(IDocumentMappingService
             }
         }
 
-        logger.LogTestOnly($"Significant locations:\r\n{string.Join(",", significantLocations)}");
-
         // Now, invoke the C# formatter to obtain the CSharpDesiredIndentation for all significant locations.
         var significantLocationIndentation = await CSharpFormatter.GetCSharpIndentationAsync(context, significantLocations, hostWorkspaceServices, cancellationToken).ConfigureAwait(false);
 
