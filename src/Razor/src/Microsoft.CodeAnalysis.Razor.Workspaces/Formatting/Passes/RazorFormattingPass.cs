@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -90,10 +91,29 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
         // {
         // }
         if (node is CSharpCodeBlockSyntax directiveCode &&
-            directiveCode.Children is [RazorDirectiveSyntax directive] &&
+            directiveCode.Children is [RazorDirectiveSyntax directive, ..] &&
             directive.DirectiveDescriptor?.Directive == SectionDirective.Directive.Directive &&
             directive.Body is RazorDirectiveBodySyntax { CSharpCode: { } code })
         {
+            // Section directives are really annoying in their implementation, and we have some code in the C# formatting pass
+            // to work around those annoyances, but if the section content has no C# mappings then that code won't get hit.
+            // Fortunately for a Html-only section block, the indentation is entirely handled by the Html formatter, and we
+            // just need to push it out one level, because the Html formatter will have pushed it back to position 0.
+            if (code.Children is [.., MarkupBlockSyntax block, RazorMetaCodeSyntax /* close brace */] &&
+                !context.CodeDocument.GetCSharpDocument().SourceMappings.Any(m => block.Span.Contains(m.OriginalSpan.AbsoluteIndex)))
+            {
+                // The Html formatter will have "collapsed" the @section block contents to 0 indent, so we push it back out
+                // again because we're opinionated about section blocks
+                var indentationString = context.GetIndentationLevelString(1);
+                var sourceText = context.CodeDocument.Source.Text;
+                var span = sourceText.GetLinePositionSpan(block.Span);
+                // The block starts with the newline after the open brace, so we start from the next line
+                for (var i = span.Start.Line + 1; i < span.End.Line; i++)
+                {
+                    changes.Add(new TextChange(new TextSpan(sourceText.Lines[i].Start, 0), indentationString));
+                }
+            }
+
             var children = code.Children;
             if (TryGetWhitespace(children, out var whitespaceBeforeSectionName, out var whitespaceAfterSectionName))
             {

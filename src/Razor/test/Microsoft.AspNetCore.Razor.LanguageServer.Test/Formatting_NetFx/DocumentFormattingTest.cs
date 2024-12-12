@@ -2972,6 +2972,103 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     }
 
     [FormattingTestFact]
+    public async Task Format_SectionDirectiveBlock8()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @functions {
+                     public class Foo{
+                    void Method() {  }
+                        }
+                    }
+
+                    @section Scripts {
+                    <p>this is a para</p>
+                    @if(true)
+                    {
+                    <p>and so is this</p>
+                    }
+                    <p>and finally this</p>
+                    }
+                    """,
+            expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method() { }
+                        }
+                    }
+
+                    @section Scripts {
+                        <p>this is a para</p>
+                        @if (true)
+                        {
+                            <p>and so is this</p>
+                        }
+                        <p>and finally this</p>
+                    }
+                    """,
+            fileKind: FileKinds.Legacy);
+    }
+
+    [FormattingTestFact]
+    public async Task Format_SectionDirectiveBlock9()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @functions {
+                     public class Foo{
+                    void Method() {  }
+                        }
+                    }
+
+                    @section Scripts {
+                    <p>this is a para</p>
+                    @if(true)
+                    {
+                    <p>and so is this</p>
+                    }
+                    <p>and finally this</p>
+                    }
+
+                    <p>I lied when I said finally</p>
+
+                    @functions {
+                     public class Foo2{
+                    void Method() {  }
+                        }
+                    }
+                    """,
+            expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method() { }
+                        }
+                    }
+
+                    @section Scripts {
+                        <p>this is a para</p>
+                        @if (true)
+                        {
+                            <p>and so is this</p>
+                        }
+                        <p>and finally this</p>
+                    }
+
+                    <p>I lied when I said finally</p>
+
+                    @functions {
+                        public class Foo2
+                        {
+                            void Method() { }
+                        }
+                    }
+                    """,
+            fileKind: FileKinds.Legacy);
+    }
+
+    [FormattingTestFact]
     public async Task Formats_CodeBlockDirectiveWithRazorComments()
     {
         await RunFormattingTestAsync(
