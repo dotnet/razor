@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDisposable
 {
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly RazorCompilerOptions _compilerOptions;
     private readonly Dispatcher _dispatcher;
     private readonly ILogger _logger;
     private readonly bool _initialized;
@@ -83,19 +82,19 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
     /// </summary>
     /// <param name="projectEngineFactoryProvider">The <see cref="IProjectEngineFactoryProvider"/> to
     /// use when creating <see cref="ProjectState"/>.</param>
-    /// <param name="languageServerFeatureOptions">The options that were used to start the language server</param>
+    /// <param name="compilerOptions">Options used to control Razor compilation.</param>
     /// <param name="loggerFactory">The <see cref="ILoggerFactory"/> to use.</param>
     /// <param name="initializer">An optional callback to set up the initial set of projects and documents.
     /// Note that this is called during construction, so it does not run on the dispatcher and notifications
     /// will not be sent.</param>
     public ProjectSnapshotManager(
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        RazorCompilerOptions compilerOptions,
         ILoggerFactory loggerFactory,
         Action<Updater>? initializer = null)
     {
         _projectEngineFactoryProvider = projectEngineFactoryProvider;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _compilerOptions = compilerOptions;
         _dispatcher = new(loggerFactory);
         _logger = loggerFactory.GetOrCreateLogger(GetType());
 
@@ -374,7 +373,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
 
         var state = ProjectState.Create(
             _projectEngineFactoryProvider,
-            _languageServerFeatureOptions,
+            _compilerOptions,
             hostProject,
             ProjectWorkspaceState.Default);
 

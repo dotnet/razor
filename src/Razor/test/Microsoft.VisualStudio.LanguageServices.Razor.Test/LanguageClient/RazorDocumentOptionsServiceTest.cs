@@ -97,7 +97,7 @@ public class RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput) : Wor
             Path.Combine(baseDirectory, "SomeProject", "File1.cshtml"), "File1.cshtml", FileKinds.Legacy);
 
         var project = new ProjectSnapshot(ProjectState
-            .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, hostProject, ProjectWorkspaceState.Default)
+            .Create(ProjectEngineFactoryProvider, CompilerOptions, hostProject, ProjectWorkspaceState.Default)
             .AddDocument(hostDocument, TestMocks.CreateTextLoader(sourceText)));
 
         var document = project.GetRequiredDocument(hostDocument.FilePath);

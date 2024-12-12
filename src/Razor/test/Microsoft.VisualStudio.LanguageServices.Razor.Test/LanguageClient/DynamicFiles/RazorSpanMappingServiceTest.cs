@@ -29,7 +29,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 ");
 
         var state = ProjectState
-            .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
+            .Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, ProjectWorkspaceState.Default)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
         var project = new ProjectSnapshot(state);
 
@@ -61,7 +61,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 ");
 
         var state = ProjectState
-            .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
+            .Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, ProjectWorkspaceState.Default)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
         var project = new ProjectSnapshot(state);
 
@@ -94,7 +94,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 ");
 
         var state = ProjectState
-            .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
+            .Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, ProjectWorkspaceState.Default)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
         var project = new ProjectSnapshot(state);
 
@@ -126,7 +126,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 ");
 
         var state = ProjectState
-            .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, ProjectWorkspaceState.Default)
+            .Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, ProjectWorkspaceState.Default)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
         var project = new ProjectSnapshot(state);
 

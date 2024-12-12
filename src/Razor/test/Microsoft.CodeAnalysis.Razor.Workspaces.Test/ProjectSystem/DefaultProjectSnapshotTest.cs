@@ -44,7 +44,7 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void ProjectSnapshot_CachesDocumentSnapshots()
     {
         // Arrange
-        var state = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, _projectWorkspaceState)
             .AddDocument(_documents[0], DocumentState.EmptyLoader)
             .AddDocument(_documents[1], DocumentState.EmptyLoader)
             .AddDocument(_documents[2], DocumentState.EmptyLoader);
@@ -65,7 +65,7 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void GetRelatedDocuments_NonImportDocument_ReturnsEmpty()
     {
         // Arrange
-        var state = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, _projectWorkspaceState)
             .AddDocument(_documents[0], DocumentState.EmptyLoader);
         var snapshot = new ProjectSnapshot(state);
 
@@ -82,7 +82,7 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void GetRelatedDocuments_ImportDocument_ReturnsRelated()
     {
         // Arrange
-        var state = ProjectState.Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, _hostProject, _projectWorkspaceState)
+        var state = ProjectState.Create(ProjectEngineFactoryProvider, CompilerOptions, _hostProject, _projectWorkspaceState)
             .AddDocument(_documents[0], DocumentState.EmptyLoader)
             .AddDocument(_documents[1], DocumentState.EmptyLoader)
             .AddDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);

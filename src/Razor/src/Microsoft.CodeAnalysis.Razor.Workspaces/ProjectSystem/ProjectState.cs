@@ -6,15 +6,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
@@ -38,27 +37,30 @@ internal class ProjectState
     private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizingComparer.Instance);
     private readonly object _lock;
 
+    public HostProject HostProject { get; }
+    public RazorCompilerOptions CompilerOptions { get; }
+    public ProjectWorkspaceState ProjectWorkspaceState { get; }
+
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private RazorProjectEngine? _projectEngine;
 
     public static ProjectState Create(
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        RazorCompilerOptions compilerOptions,
         HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState)
     {
-        return new ProjectState(projectEngineFactoryProvider, languageServerFeatureOptions, hostProject, projectWorkspaceState);
+        return new ProjectState(projectEngineFactoryProvider, compilerOptions, hostProject, projectWorkspaceState);
     }
 
     private ProjectState(
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        RazorCompilerOptions compilerOptions,
         HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState)
     {
         _projectEngineFactoryProvider = projectEngineFactoryProvider;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        CompilerOptions = compilerOptions;
         HostProject = hostProject;
         ProjectWorkspaceState = projectWorkspaceState;
         Documents = s_emptyDocuments;
@@ -79,7 +81,7 @@ internal class ProjectState
         ImmutableDictionary<string, ImmutableArray<string>> importsToRelatedDocuments)
     {
         _projectEngineFactoryProvider = older._projectEngineFactoryProvider;
-        _languageServerFeatureOptions = older._languageServerFeatureOptions;
+        CompilerOptions = older.CompilerOptions;
         Version = older.Version.GetNewerVersion();
 
         HostProject = hostProject;
@@ -136,12 +138,6 @@ internal class ProjectState
     // Internal set for testing.
     public ImmutableDictionary<string, ImmutableArray<string>> ImportsToRelatedDocuments { get; internal set; }
 
-    public HostProject HostProject { get; }
-
-    internal LanguageServerFeatureOptions LanguageServerFeatureOptions => _languageServerFeatureOptions;
-
-    public ProjectWorkspaceState ProjectWorkspaceState { get; }
-
     public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 
     public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState.CSharpLanguageVersion;
@@ -174,7 +170,7 @@ internal class ProjectState
             {
                 var configuration = HostProject.Configuration;
                 var rootDirectoryPath = Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull();
-                var useRoslynTokenizer = LanguageServerFeatureOptions.UseRoslynTokenizer;
+                var useRoslynTokenizer = CompilerOptions.IsFlagSet(RazorCompilerOptions.UseRoslynTokenizer);
 
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
