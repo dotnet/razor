@@ -19,8 +19,7 @@ using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-// Internal tracker for DefaultProjectSnapshot
-internal class ProjectState
+internal sealed class ProjectState
 {
     private const ProjectDifference ClearConfigurationVersionMask = ProjectDifference.ConfigurationChanged;
 
@@ -40,6 +39,9 @@ internal class ProjectState
     public HostProject HostProject { get; }
     public RazorCompilerOptions CompilerOptions { get; }
     public ProjectWorkspaceState ProjectWorkspaceState { get; }
+
+    public ImmutableDictionary<string, DocumentState> Documents { get; }
+    public ImmutableDictionary<string, ImmutableArray<string>> ImportsToRelatedDocuments { get; }
 
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private RazorProjectEngine? _projectEngine;
@@ -123,26 +125,28 @@ internal class ProjectState
 
     public static ProjectState Create(
         HostProject hostProject,
-        ProjectWorkspaceState? projectWorkspaceState = null,
-        RazorCompilerOptions compilerOptions = RazorCompilerOptions.None,
-        IProjectEngineFactoryProvider? projectEngineFactoryProvider = null)
-        => new(
-            hostProject,
-            projectWorkspaceState ?? ProjectWorkspaceState.Default,
-            compilerOptions,
-            projectEngineFactoryProvider ?? ProjectEngineFactories.DefaultProvider);
+        ProjectWorkspaceState projectWorkspaceState,
+        RazorCompilerOptions compilerOptions,
+        IProjectEngineFactoryProvider projectEngineFactoryProvider)
+        => new(hostProject, projectWorkspaceState, compilerOptions, projectEngineFactoryProvider);
+
+    public static ProjectState Create(HostProject hostProject, ProjectWorkspaceState projectWorkspaceState)
+        => new(hostProject, projectWorkspaceState, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider);
+
+    public static ProjectState Create(
+        HostProject hostProject,
+        ProjectWorkspaceState projectWorkspaceState,
+        IProjectEngineFactoryProvider projectEngineFactoryProvider)
+        => new(hostProject, projectWorkspaceState, RazorCompilerOptions.None, projectEngineFactoryProvider);
 
     public static ProjectState Create(
         HostProject hostProject,
         RazorCompilerOptions compilerOptions,
-        IProjectEngineFactoryProvider? projectEngineFactoryProvider = null)
-        => Create(hostProject, ProjectWorkspaceState.Default, compilerOptions, projectEngineFactoryProvider);
+        IProjectEngineFactoryProvider projectEngineFactoryProvider)
+        => new(hostProject, ProjectWorkspaceState.Default, compilerOptions, projectEngineFactoryProvider);
 
-    // Internal set for testing.
-    public ImmutableDictionary<string, DocumentState> Documents { get; internal set; }
-
-    // Internal set for testing.
-    public ImmutableDictionary<string, ImmutableArray<string>> ImportsToRelatedDocuments { get; internal set; }
+    public static ProjectState Create(HostProject hostProject)
+        => new(hostProject, ProjectWorkspaceState.Default, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider);
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 
@@ -197,6 +201,9 @@ internal class ProjectState
     public VersionStamp ProjectWorkspaceStateVersion { get; }
 
     public VersionStamp ConfigurationVersion { get; }
+
+    public ProjectState AddDocument(HostDocument hostDocument)
+        => AddDocument(hostDocument, DocumentState.EmptyLoader);
 
     public ProjectState AddDocument(HostDocument hostDocument, SourceText text)
     {

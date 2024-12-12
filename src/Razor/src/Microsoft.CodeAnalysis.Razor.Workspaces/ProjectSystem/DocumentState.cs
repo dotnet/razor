@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal partial class DocumentState
+internal sealed partial class DocumentState
 {
     private static readonly LoadTextOptions s_loadTextOptions = new(SourceHashAlgorithm.Sha256);
 
@@ -42,14 +42,7 @@ internal partial class DocumentState
         _textLoader = textLoader ?? EmptyLoader;
     }
 
-    // Internal for testing
-    internal DocumentState(HostDocument hostDocument, int version, SourceText text, VersionStamp textVersion)
-        : this(hostDocument, version, TextAndVersion.Create(text, textVersion), textLoader: null)
-    {
-    }
-
-    // Internal for testing
-    internal DocumentState(HostDocument hostDocument, int version, TextLoader loader)
+    private DocumentState(HostDocument hostDocument, int version, TextLoader loader)
         : this(hostDocument, version, textAndVersion: null, loader)
     {
     }
@@ -161,16 +154,13 @@ internal partial class DocumentState
         return false;
     }
 
-    public virtual DocumentState WithConfigurationChange()
+    public DocumentState WithConfigurationChange()
     {
-        var state = new DocumentState(HostDocument, Version + 1, _textAndVersion, _textLoader);
-
         // Do not cache computed state
-
-        return state;
+        return new(HostDocument, Version + 1, _textAndVersion, _textLoader);
     }
 
-    public virtual DocumentState WithImportsChange()
+    public DocumentState WithImportsChange()
     {
         var state = new DocumentState(HostDocument, Version + 1, _textAndVersion, _textLoader);
 
@@ -180,7 +170,7 @@ internal partial class DocumentState
         return state;
     }
 
-    public virtual DocumentState WithProjectWorkspaceStateChange()
+    public DocumentState WithProjectWorkspaceStateChange()
     {
         var state = new DocumentState(HostDocument, Version + 1, _textAndVersion, _textLoader);
 
@@ -190,18 +180,16 @@ internal partial class DocumentState
         return state;
     }
 
-    public virtual DocumentState WithText(SourceText text, VersionStamp textVersion)
+    public DocumentState WithText(SourceText text, VersionStamp textVersion)
     {
         // Do not cache the computed state
-
-        return new DocumentState(HostDocument, Version + 1, TextAndVersion.Create(text, textVersion), textLoader: null);
+        return new(HostDocument, Version + 1, TextAndVersion.Create(text, textVersion), textLoader: null);
     }
 
-    public virtual DocumentState WithTextLoader(TextLoader textLoader)
+    public DocumentState WithTextLoader(TextLoader textLoader)
     {
         // Do not cache the computed state
-
-        return new DocumentState(HostDocument, Version + 1, textAndVersion: null, textLoader);
+        return new(HostDocument, Version + 1, textAndVersion: null, textLoader);
     }
 
     internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
