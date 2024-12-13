@@ -4128,6 +4128,93 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
     [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
+    public async Task IfBlock_TopLevel_WithOtherCode2()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @{
+
+                        // foo
+
+                            // foo
+
+                    }
+
+                            @if (true)
+                    {
+                    }
+                    """,
+            expected: """
+                    @{
+
+                        // foo
+
+                        // foo
+
+                    }
+
+                    @if (true)
+                    {
+                    }
+                    """);
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
+    public async Task IfBlock_TopLevel_WithOtherCode3()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @{
+                        var x = 3;
+
+                        // foo
+                    }
+
+                            @if (true)
+                    {
+                    }
+                    """,
+            expected: """
+                    @{
+                        var x = 3;
+
+                        // foo
+                    }
+
+                    @if (true)
+                    {
+                    }
+                    """);
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
+    public async Task IfBlock_TopLevel_WithOtherCode4()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @{
+                        var x = 3;
+                    }
+
+                            @if (true)
+                    {
+                    }
+                    """,
+            expected: """
+                    @{
+                        var x = 3;
+                    }
+
+                    @if (true)
+                    {
+                    }
+                    """);
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
     public async Task IfBlock_Nested()
     {
         await RunFormattingTestAsync(
