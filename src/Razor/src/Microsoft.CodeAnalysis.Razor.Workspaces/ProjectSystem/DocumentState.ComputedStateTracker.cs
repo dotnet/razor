@@ -23,29 +23,6 @@ internal partial class DocumentState
 
         private ComputedOutput? _computedOutput;
 
-        public bool IsResultAvailable
-        {
-            get
-            {
-                if (_computedOutput?.TryGetCachedOutput(out _, out _) == true)
-                {
-                    return true;
-                }
-
-                if (_taskUnsafeReference is null)
-                {
-                    return false;
-                }
-
-                if (_taskUnsafeReference.TryGetTarget(out var taskUnsafe))
-                {
-                    return taskUnsafe.IsCompleted;
-                }
-
-                return false;
-            }
-        }
-
         public bool TryGetGeneratedOutputAndVersion(out (RazorCodeDocument Output, VersionStamp InputVersion) result)
         {
             if (_computedOutput?.TryGetCachedOutput(out var output, out var version) == true)
