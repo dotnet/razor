@@ -5,9 +5,9 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,26 +25,29 @@ internal partial class DocumentState
     public HostDocument HostDocument { get; }
     public int Version { get; }
 
-    private TextAndVersion? _textAndVersion;
     private readonly TextLoader _textLoader;
 
-    private ComputedStateTracker? _computedState;
+    private readonly SemaphoreSlim _textAndVersionLock = new(initialCount: 1);
+    private Task<TextAndVersion>? _cachedTextAndVersion;
+
+    private readonly SemaphoreSlim _generatedOutputAndVersionLock = new(initialCount: 1);
+    private Task<GeneratedOutputAndVersion>? _cachedGeneratedOutputAndVersion;
 
     private DocumentState(
         HostDocument hostDocument,
         int version,
-        TextAndVersion? textAndVersion,
+        Task<TextAndVersion>? textAndVersion,
         TextLoader? textLoader)
     {
         HostDocument = hostDocument;
         Version = version;
-        _textAndVersion = textAndVersion;
+        _cachedTextAndVersion = textAndVersion;
         _textLoader = textLoader ?? EmptyLoader;
     }
 
     // Internal for testing
     internal DocumentState(HostDocument hostDocument, int version, SourceText text, VersionStamp textVersion)
-        : this(hostDocument, version, TextAndVersion.Create(text, textVersion), textLoader: null)
+        : this(hostDocument, version, Task.FromResult(TextAndVersion.Create(text, textVersion)), textLoader: null)
     {
     }
 
@@ -56,7 +59,7 @@ internal partial class DocumentState
 
     public static DocumentState Create(HostDocument hostDocument, int version, SourceText text, VersionStamp textVersion)
     {
-        return new DocumentState(hostDocument, version, TextAndVersion.Create(text, textVersion), textLoader: null);
+        return new DocumentState(hostDocument, version, text, textVersion);
     }
 
     public static DocumentState Create(HostDocument hostDocument, int version, TextLoader loader)
@@ -69,20 +72,85 @@ internal partial class DocumentState
         return new DocumentState(hostDocument, version: 1, loader);
     }
 
-    private ComputedStateTracker ComputedState
-        => _computedState ??= InterlockedOperations.Initialize(ref _computedState, new ComputedStateTracker());
-
-    public bool TryGetGeneratedOutputAndVersion(out (RazorCodeDocument output, VersionStamp inputVersion) result)
+    public bool TryGetGeneratedOutputAndVersion([NotNullWhen(true)] out GeneratedOutputAndVersion? result)
     {
-        return ComputedState.TryGetGeneratedOutputAndVersion(out result);
+        if (_cachedGeneratedOutputAndVersion is not null)
+        {
+            result = _cachedGeneratedOutputAndVersion.VerifyCompleted();
+            return true;
+        }
+
+        result = null;
+        return false;
     }
 
-    public Task<GeneratedOutputAndVersion> GetGeneratedOutputAndVersionAsync(
+    public async Task<GeneratedOutputAndVersion> GetGeneratedOutputAndVersionAsync(
         ProjectSnapshot project,
         DocumentSnapshot document,
         CancellationToken cancellationToken)
     {
-        return ComputedState.GetGeneratedOutputAndVersionAsync(project, document, cancellationToken);
+        if (TryGetGeneratedOutputAndVersion(out var result))
+        {
+            return result;
+        }
+
+        using (await _generatedOutputAndVersionLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (_cachedGeneratedOutputAndVersion is not null)
+            {
+                return _cachedGeneratedOutputAndVersion.VerifyCompleted();
+            }
+
+            // We only need to produce the generated code if any of our inputs is newer than the
+            // previously cached output.
+            //
+            // First find the versions that are the inputs:
+            // - The project + computed state
+            // - The imports
+            // - This document
+            //
+            // All of these things are cached, so no work is wasted if we do need to generate the code.
+            var configurationVersion = project.ConfigurationVersion;
+            var projectWorkspaceStateVersion = project.ProjectWorkspaceStateVersion;
+            var documentCollectionVersion = project.DocumentCollectionVersion;
+            var importItems = await GetImportItemsAsync(document, project.GetProjectEngine(), cancellationToken).ConfigureAwait(false);
+            var documentVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            // OK now that have the previous output and all of the versions, we can see if anything
+            // has changed that would require regenerating the code.
+            var inputVersion = documentVersion;
+            if (inputVersion.GetNewerVersion(configurationVersion) == configurationVersion)
+            {
+                inputVersion = configurationVersion;
+            }
+
+            if (inputVersion.GetNewerVersion(projectWorkspaceStateVersion) == projectWorkspaceStateVersion)
+            {
+                inputVersion = projectWorkspaceStateVersion;
+            }
+
+            if (inputVersion.GetNewerVersion(documentCollectionVersion) == documentCollectionVersion)
+            {
+                inputVersion = documentCollectionVersion;
+            }
+
+            foreach (var import in importItems)
+            {
+                var importVersion = import.Version;
+                if (inputVersion.GetNewerVersion(importVersion) == importVersion)
+                {
+                    inputVersion = importVersion;
+                }
+            }
+
+            var forceRuntimeCodeGeneration = project.LanguageServerFeatureOptions.ForceRuntimeCodeGeneration;
+            var codeDocument = await GenerateCodeDocumentAsync(document, project.GetProjectEngine(), importItems, forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
+
+            result = new GeneratedOutputAndVersion(codeDocument, inputVersion);
+            _cachedGeneratedOutputAndVersion = Task.FromResult(result);
+
+            return result;
+        }
     }
 
     public ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
@@ -93,11 +161,20 @@ internal partial class DocumentState
 
         async ValueTask<TextAndVersion> LoadTextAndVersionAsync(TextLoader loader, CancellationToken cancellationToken)
         {
-            var textAndVersion = await loader
-                .LoadTextAndVersionAsync(s_loadTextOptions, cancellationToken)
-                .ConfigureAwait(false);
+            using (await _textAndVersionLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_cachedTextAndVersion is not null)
+                {
+                    return _cachedTextAndVersion.VerifyCompleted();
+                }
 
-            return InterlockedOperations.Initialize(ref _textAndVersion, textAndVersion);
+                var task = loader.LoadTextAndVersionAsync(s_loadTextOptions, cancellationToken);
+                var textAndVersion = await task.ConfigureAwait(false);
+
+                _cachedTextAndVersion = task;
+
+                return textAndVersion;
+            }
         }
     }
 
@@ -131,8 +208,14 @@ internal partial class DocumentState
 
     public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? result)
     {
-        result = _textAndVersion;
-        return result is not null;
+        if (_cachedTextAndVersion is not null)
+        {
+            result = _cachedTextAndVersion.VerifyCompleted();
+            return true;
+        }
+
+        result = null;
+        return false;
     }
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
@@ -161,44 +244,26 @@ internal partial class DocumentState
 
     public virtual DocumentState WithConfigurationChange()
     {
-        var state = new DocumentState(HostDocument, Version + 1, _textAndVersion, _textLoader);
-
-        // Do not cache computed state
-
-        return state;
+        return new DocumentState(HostDocument, Version + 1, _cachedTextAndVersion, _textLoader);
     }
 
     public virtual DocumentState WithImportsChange()
     {
-        var state = new DocumentState(HostDocument, Version + 1, _textAndVersion, _textLoader);
-
-        // Optimistically cache the computed state
-        state._computedState = new ComputedStateTracker(_computedState);
-
-        return state;
+        return new DocumentState(HostDocument, Version + 1, _cachedTextAndVersion, _textLoader);
     }
 
     public virtual DocumentState WithProjectWorkspaceStateChange()
     {
-        var state = new DocumentState(HostDocument, Version + 1, _textAndVersion, _textLoader);
-
-        // Optimistically cache the computed state
-        state._computedState = new ComputedStateTracker(_computedState);
-
-        return state;
+        return new DocumentState(HostDocument, Version + 1, _cachedTextAndVersion, _textLoader);
     }
 
     public virtual DocumentState WithText(SourceText text, VersionStamp textVersion)
     {
-        // Do not cache the computed state
-
-        return new DocumentState(HostDocument, Version + 1, TextAndVersion.Create(text, textVersion), textLoader: null);
+        return new DocumentState(HostDocument, Version + 1, Task.FromResult(TextAndVersion.Create(text, textVersion)), textLoader: null);
     }
 
     public virtual DocumentState WithTextLoader(TextLoader textLoader)
     {
-        // Do not cache the computed state
-
         return new DocumentState(HostDocument, Version + 1, textAndVersion: null, textLoader);
     }
 

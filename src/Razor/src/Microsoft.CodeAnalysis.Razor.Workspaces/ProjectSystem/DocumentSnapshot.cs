@@ -42,7 +42,7 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
     {
         if (_state.TryGetGeneratedOutputAndVersion(out var outputAndVersion))
         {
-            result = outputAndVersion.output;
+            result = outputAndVersion.GeneratedOutput;
             return true;
         }
 

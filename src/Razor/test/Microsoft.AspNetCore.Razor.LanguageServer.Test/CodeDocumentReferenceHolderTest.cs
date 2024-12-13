@@ -53,7 +53,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         Assert.True(codeDocumentReference.TryGetTarget(out _));
     }
 
-    [Fact]
+    [Fact(Skip = "Weak cache removed")]
     public async Task UpdateUnrelatedDocumentText_ReferencesGeneratedCodeDocument()
     {
         // Arrange
@@ -83,7 +83,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         Assert.False(unrelatedCodeDocumentReference.TryGetTarget(out _));
     }
 
-    [Fact]
+    [Fact(Skip = "Weak cache removed")]
     public async Task UpdateDocumentText_DereferencesGeneratedCodeDocument()
     {
         // Arrange
@@ -103,7 +103,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         Assert.False(codeDocumentReference.TryGetTarget(out _));
     }
 
-    [Fact]
+    [Fact(Skip = "Weak cache removed")]
     public async Task RemoveDocument_DereferencesGeneratedCodeDocument()
     {
         // Arrange
@@ -122,7 +122,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         Assert.False(codeDocumentReference.TryGetTarget(out _));
     }
 
-    [Fact]
+    [Fact(Skip = "Weak cache removed")]
     public async Task UpdateProjectConfiguration_DereferencesGeneratedCodeDocument()
     {
         // Arrange
@@ -141,7 +141,7 @@ public class CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput) : Lan
         Assert.False(codeDocumentReference.TryGetTarget(out _));
     }
 
-    [Fact]
+    [Fact(Skip = "Weak cache removed")]
     public async Task RemoveProject_DereferencesGeneratedCodeDocument()
     {
         // Arrange
