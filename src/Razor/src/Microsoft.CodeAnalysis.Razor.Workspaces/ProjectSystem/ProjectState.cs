@@ -10,17 +10,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal sealed class ProjectState
 {
+    private static readonly ObjectPool<Dictionary<string, ImmutableHashSet<string>.Builder>> s_importMapBuilderPool =
+        DictionaryPool<string, ImmutableHashSet<string>.Builder>.Create(FilePathNormalizingComparer.Instance);
+
     private const ProjectDifference ClearConfigurationVersionMask = ProjectDifference.ConfigurationChanged;
 
     private const ProjectDifference ClearProjectWorkspaceStateVersionMask =
@@ -32,8 +37,13 @@ internal sealed class ProjectState
         ProjectDifference.DocumentAdded |
         ProjectDifference.DocumentRemoved;
 
-    private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments = ImmutableDictionary.Create<string, DocumentState>(FilePathNormalizingComparer.Instance);
-    private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizingComparer.Instance);
+    private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments
+        = ImmutableDictionary.Create<string, DocumentState>(FilePathNormalizingComparer.Instance);
+    private static readonly ImmutableDictionary<string, ImmutableHashSet<string>> s_emptyImportsToRelatedDocuments
+        = ImmutableDictionary.Create<string, ImmutableHashSet<string>>(FilePathNormalizingComparer.Instance);
+    private static readonly ImmutableHashSet<string> s_emptyRelatedDocuments
+        = ImmutableHashSet.Create<string>(FilePathNormalizingComparer.Instance);
+
     private readonly object _lock = new();
 
     public HostProject HostProject { get; }
@@ -41,7 +51,7 @@ internal sealed class ProjectState
     public ProjectWorkspaceState ProjectWorkspaceState { get; }
 
     public ImmutableDictionary<string, DocumentState> Documents { get; }
-    public ImmutableDictionary<string, ImmutableArray<string>> ImportsToRelatedDocuments { get; }
+    public ImmutableDictionary<string, ImmutableHashSet<string>> ImportsToRelatedDocuments { get; }
 
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private RazorProjectEngine? _projectEngine;
@@ -70,7 +80,7 @@ internal sealed class ProjectState
         HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState,
         ImmutableDictionary<string, DocumentState> documents,
-        ImmutableDictionary<string, ImmutableArray<string>> importsToRelatedDocuments)
+        ImmutableDictionary<string, ImmutableHashSet<string>> importsToRelatedDocuments)
     {
         HostProject = hostProject;
         CompilerOptions = older.CompilerOptions;
@@ -245,18 +255,10 @@ internal sealed class ProjectState
         var documents = Documents.Add(hostDocument.FilePath, state);
 
         // Compute the effect on the import map
-        var importTargetPaths = GetImportDocumentTargetPaths(hostDocument);
-        var importsToRelatedDocuments = AddToImportsToRelatedDocuments(ImportsToRelatedDocuments, hostDocument.FilePath, importTargetPaths);
+        var importsToRelatedDocuments = AddToImportsToRelatedDocuments(hostDocument);
 
-        // Now check if the updated document is an import - it's important this this happens after
-        // updating the imports map.
-        if (importsToRelatedDocuments.TryGetValue(hostDocument.TargetPath, out var relatedDocuments))
-        {
-            foreach (var relatedDocument in relatedDocuments)
-            {
-                documents = documents.SetItem(relatedDocument, documents[relatedDocument].WithImportsChange());
-            }
-        }
+        // Then, if this is an import, update any related documents.
+        documents = UpdateRelatedDocuments(hostDocument, documents);
 
         return new(this, ProjectDifference.DocumentAdded, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
     }
@@ -274,19 +276,11 @@ internal sealed class ProjectState
 
         var documents = Documents.Remove(documentFilePath);
 
-        // First check if the updated document is an import - it's important that this happens
-        // before updating the imports map.
-        if (ImportsToRelatedDocuments.TryGetValue(hostDocument.TargetPath, out var relatedDocuments))
-        {
-            foreach (var relatedDocument in relatedDocuments)
-            {
-                documents = documents.SetItem(relatedDocument, documents[relatedDocument].WithImportsChange());
-            }
-        }
+        // If this is an import, update any related documents.
+        documents = UpdateRelatedDocuments(hostDocument, documents);
 
-        // Compute the effect on the import map
-        var importTargetPaths = GetImportDocumentTargetPaths(hostDocument);
-        var importsToRelatedDocuments = RemoveFromImportsToRelatedDocuments(ImportsToRelatedDocuments, hostDocument, importTargetPaths);
+        // Then, compute the effect on the import map
+        var importsToRelatedDocuments = RemoveFromImportsToRelatedDocuments(hostDocument);
 
         return new(this, ProjectDifference.DocumentRemoved, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
     }
@@ -331,123 +325,203 @@ internal sealed class ProjectState
         var documents = Documents.SetItem(hostDocument.FilePath, transformer(state));
 
         // If this document is an import, update its related documents.
-        if (ImportsToRelatedDocuments.TryGetValue(hostDocument.TargetPath, out var relatedDocuments))
-        {
-            foreach (var relatedDocument in relatedDocuments)
-            {
-                documents = documents.SetItem(relatedDocument, documents[relatedDocument].WithImportsChange());
-            }
-        }
+        documents = UpdateRelatedDocuments(hostDocument, documents);
 
         return new(this, ProjectDifference.DocumentChanged, HostProject, ProjectWorkspaceState, documents, ImportsToRelatedDocuments);
     }
 
     public ProjectState WithHostProject(HostProject hostProject)
     {
-        if (hostProject is null)
-        {
-            throw new ArgumentNullException(nameof(hostProject));
-        }
+        ArgHelper.ThrowIfNull(hostProject);
 
-        if (HostProject.Configuration.Equals(hostProject.Configuration) &&
+        if (HostProject.Configuration == hostProject.Configuration &&
             HostProject.RootNamespace == hostProject.RootNamespace)
         {
             return this;
         }
 
-        var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithConfigurationChange(), FilePathNormalizingComparer.Instance);
+        var documents = UpdateDocuments(static x => x.WithConfigurationChange());
 
         // If the host project has changed then we need to recompute the imports map
-        var importsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
+        var importsToRelatedDocuments = BuildImportsMap(documents.Values, ProjectEngine);
 
-        foreach (var document in documents)
-        {
-            var importTargetPaths = GetImportDocumentTargetPaths(document.Value.HostDocument);
-            importsToRelatedDocuments = AddToImportsToRelatedDocuments(importsToRelatedDocuments, document.Value.HostDocument.FilePath, importTargetPaths);
-        }
-
-        var state = new ProjectState(this, ProjectDifference.ConfigurationChanged, hostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
-        return state;
+        return new(this, ProjectDifference.ConfigurationChanged, hostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
     }
 
     public ProjectState WithProjectWorkspaceState(ProjectWorkspaceState projectWorkspaceState)
     {
         ArgHelper.ThrowIfNull(projectWorkspaceState);
 
-        if (ProjectWorkspaceState == projectWorkspaceState)
+        if (ProjectWorkspaceState == projectWorkspaceState ||
+            ProjectWorkspaceState.Equals(projectWorkspaceState))
         {
             return this;
         }
 
-        if (ProjectWorkspaceState.Equals(projectWorkspaceState))
-        {
-            return this;
-        }
-
-        var documents = Documents.ToImmutableDictionary(
-            kvp => kvp.Key,
-            kvp => kvp.Value.WithProjectWorkspaceStateChange(),
-            FilePathNormalizingComparer.Instance);
+        var documents = UpdateDocuments(static x => x.WithProjectWorkspaceStateChange());
 
         return new(this, ProjectDifference.ProjectWorkspaceStateChanged, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments);
     }
 
-    internal static ImmutableDictionary<string, ImmutableArray<string>> AddToImportsToRelatedDocuments(
-        ImmutableDictionary<string, ImmutableArray<string>> importsToRelatedDocuments,
-        string documentFilePath,
-        List<string> importTargetPaths)
+    private ImmutableDictionary<string, ImmutableHashSet<string>> AddToImportsToRelatedDocuments(HostDocument hostDocument)
     {
+        using var importTargetPaths = new PooledArrayBuilder<string>();
+        CollectImportDocumentTargetPaths(hostDocument, ProjectEngine, ref importTargetPaths.AsRef());
+
+        if (importTargetPaths.Count == 0)
+        {
+            return ImportsToRelatedDocuments;
+        }
+
+        using var _ = ListPool<KeyValuePair<string, ImmutableHashSet<string>>>.GetPooledObject(out var updates);
+
+        var importsToRelatedDocuments = ImportsToRelatedDocuments;
+
         foreach (var importTargetPath in importTargetPaths)
         {
             if (!importsToRelatedDocuments.TryGetValue(importTargetPath, out var relatedDocuments))
             {
-                relatedDocuments = ImmutableArray.Create<string>();
+                relatedDocuments = [];
             }
 
-            relatedDocuments = relatedDocuments.Add(documentFilePath);
-            importsToRelatedDocuments = importsToRelatedDocuments.SetItem(importTargetPath, relatedDocuments);
+            updates.Add(KeyValuePair.Create(importTargetPath, relatedDocuments.Add(hostDocument.FilePath)));
+        }
+
+        if (updates.Count > 0)
+        {
+            importsToRelatedDocuments = importsToRelatedDocuments.SetItems(updates);
         }
 
         return importsToRelatedDocuments;
     }
 
-    private static ImmutableDictionary<string, ImmutableArray<string>> RemoveFromImportsToRelatedDocuments(
-        ImmutableDictionary<string, ImmutableArray<string>> importsToRelatedDocuments,
-        HostDocument hostDocument,
-        List<string> importTargetPaths)
+    private ImmutableDictionary<string, ImmutableHashSet<string>> RemoveFromImportsToRelatedDocuments(HostDocument hostDocument)
     {
+        using var importTargetPaths = new PooledArrayBuilder<string>();
+        CollectImportDocumentTargetPaths(hostDocument, ProjectEngine, ref importTargetPaths.AsRef());
+
+        if (importTargetPaths.Count == 0)
+        {
+            return ImportsToRelatedDocuments;
+        }
+
+        using var _1 = ListPool<string>.GetPooledObject(out var removes);
+        using var _2 = ListPool<KeyValuePair<string, ImmutableHashSet<string>>>.GetPooledObject(out var updates);
+
+        var importsToRelatedDocuments = ImportsToRelatedDocuments;
+
         foreach (var importTargetPath in importTargetPaths)
         {
             if (importsToRelatedDocuments.TryGetValue(importTargetPath, out var relatedDocuments))
             {
-                relatedDocuments = relatedDocuments.Remove(hostDocument.FilePath);
-                importsToRelatedDocuments = relatedDocuments.Length > 0
-                    ? importsToRelatedDocuments.SetItem(importTargetPath, relatedDocuments)
-                    : importsToRelatedDocuments.Remove(importTargetPath);
+                if (relatedDocuments.Count == 1)
+                {
+                    removes.Add(importTargetPath);
+                }
+                else
+                {
+                    updates.Add(KeyValuePair.Create(importTargetPath, relatedDocuments.Remove(hostDocument.FilePath)));
+                }
             }
+        }
+
+        if (updates.Count > 0)
+        {
+            importsToRelatedDocuments = importsToRelatedDocuments.SetItems(updates);
+        }
+
+        if (removes.Count > 0)
+        {
+            importsToRelatedDocuments = importsToRelatedDocuments.RemoveRange(removes);
         }
 
         return importsToRelatedDocuments;
     }
 
-    public List<string> GetImportDocumentTargetPaths(HostDocument hostDocument)
+    public ImmutableArray<string> GetImportDocumentTargetPaths(HostDocument hostDocument)
     {
-        return GetImportDocumentTargetPaths(hostDocument.TargetPath, hostDocument.FileKind, ProjectEngine);
+        using var importTargetPaths = new PooledArrayBuilder<string>();
+        CollectImportDocumentTargetPaths(hostDocument, ProjectEngine, ref importTargetPaths.AsRef());
+
+        return importTargetPaths.DrainToImmutable();
     }
 
-    internal static List<string> GetImportDocumentTargetPaths(string targetPath, string fileKind, RazorProjectEngine projectEngine)
+    private ImmutableDictionary<string, DocumentState> UpdateDocuments(Func<DocumentState, DocumentState> transformer)
     {
-        var importFeatures = projectEngine.ProjectFeatures.OfType<IImportProjectFeature>();
-        var projectItem = projectEngine.FileSystem.GetItem(targetPath, fileKind);
-        var importItems = importFeatures.SelectMany(f => f.GetImports(projectItem)).Where(i => i.FilePath != null);
+        var updates = Documents.Select(x => KeyValuePair.Create(x.Key, transformer(x.Value)));
+        return Documents.SetItems(updates);
+    }
+
+    private ImmutableDictionary<string, DocumentState> UpdateRelatedDocuments(HostDocument hostDocument, ImmutableDictionary<string, DocumentState> documents)
+    {
+        if (!ImportsToRelatedDocuments.TryGetValue(hostDocument.TargetPath, out var relatedDocuments))
+        {
+            return documents;
+        }
+
+        var updates = relatedDocuments.Select(x => KeyValuePair.Create(x, documents[x].WithImportsChange()));
+        return documents.SetItems(updates);
+    }
+
+    private static ImmutableDictionary<string, ImmutableHashSet<string>> BuildImportsMap(IEnumerable<DocumentState> documents, RazorProjectEngine projectEngine)
+    {
+        using var _ = s_importMapBuilderPool.GetPooledObject(out var map);
+
+        using var importTargetPaths = new PooledArrayBuilder<string>();
+
+        foreach (var document in documents)
+        {
+            if (importTargetPaths.Count > 0)
+            {
+                importTargetPaths.Clear();
+            }
+
+            var hostDocument = document.HostDocument;
+
+            CollectImportDocumentTargetPaths(hostDocument, projectEngine, ref importTargetPaths.AsRef());
+
+            foreach (var importTargetPath in importTargetPaths)
+            {
+                if (!map.TryGetValue(importTargetPath, out var relatedDocuments))
+                {
+                    relatedDocuments = s_emptyRelatedDocuments.ToBuilder();
+                    map.Add(importTargetPath, relatedDocuments);
+                }
+
+                relatedDocuments.Add(hostDocument.FilePath);
+            }
+        }
+
+        return map
+            .Select(static x => KeyValuePair.Create(x.Key, x.Value.ToImmutable()))
+            .ToImmutableDictionary(FilePathNormalizingComparer.Instance);
+    }
+
+    private static void CollectImportDocumentTargetPaths(HostDocument hostDocument, RazorProjectEngine projectEngine, ref PooledArrayBuilder<string> targetPaths)
+    {
+        var targetPath = hostDocument.TargetPath;
+        var projectItem = projectEngine.FileSystem.GetItem(targetPath, hostDocument.FileKind);
+
+        using var importProjectItems = new PooledArrayBuilder<RazorProjectItem>();
+        CollectImportProjectItems(projectItem, projectEngine, ref importProjectItems.AsRef());
+
+        if (importProjectItems.Count == 0)
+        {
+            return;
+        }
 
         // Target path looks like `Foo\\Bar.cshtml`
-        var targetPaths = new List<string>();
-        foreach (var importItem in importItems)
-        {
-            var itemTargetPath = importItem.FilePath.Replace('/', '\\').TrimStart('\\');
 
-            if (FilePathNormalizingComparer.Instance.Equals(itemTargetPath, targetPath))
+        foreach (var importProjectItem in importProjectItems)
+        {
+            if (importProjectItem.FilePath is not string filePath)
+            {
+                continue;
+            }
+
+            var itemTargetPath = filePath.Replace('/', '\\').TrimStart('\\');
+
+            if (FilePathNormalizer.AreFilePathsEquivalent(filePath, targetPath))
             {
                 // We've normalized the original importItem.FilePath into the HostDocument.TargetPath. For instance, if the HostDocument.TargetPath
                 // was '/_Imports.razor' it'd be normalized down into '_Imports.razor'. The purpose of this method is to get the associated document
@@ -457,8 +531,20 @@ internal sealed class ProjectState
 
             targetPaths.Add(itemTargetPath);
         }
+    }
 
-        return targetPaths;
+    private static void CollectImportProjectItems(
+        RazorProjectItem projectItem,
+        RazorProjectEngine projectEngine,
+        ref PooledArrayBuilder<RazorProjectItem> importProjectItems)
+    {
+        foreach (var projectFeature in projectEngine.ProjectFeatures)
+        {
+            if (projectFeature is IImportProjectFeature importProjectFeature)
+            {
+                importProjectItems.AddRange(importProjectFeature.GetImports(projectItem));
+            }
+        }
     }
 
     private sealed class UpdatedTextLoader(DocumentState oldState, SourceText text) : TextLoader

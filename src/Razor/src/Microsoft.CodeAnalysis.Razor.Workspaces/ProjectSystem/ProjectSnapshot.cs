@@ -106,7 +106,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
 
         lock (_gate)
         {
-            using var builder = new PooledArrayBuilder<IDocumentSnapshot>(capacity: relatedDocuments.Length);
+            using var builder = new PooledArrayBuilder<IDocumentSnapshot>(capacity: relatedDocuments.Count);
 
             foreach (var relatedDocumentFilePath in relatedDocuments)
             {
