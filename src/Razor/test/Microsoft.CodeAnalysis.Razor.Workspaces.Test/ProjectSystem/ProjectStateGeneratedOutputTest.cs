@@ -227,13 +227,13 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         Assert.NotEqual(state.ProjectWorkspaceStateVersion, actualInputVersion);
     }
 
-    private static Task<(RazorCodeDocument, VersionStamp)> GetOutputAsync(ProjectState project, HostDocument hostDocument, CancellationToken cancellationToken)
+    private static Task<GeneratedOutputAndVersion> GetOutputAsync(ProjectState project, HostDocument hostDocument, CancellationToken cancellationToken)
     {
         var document = project.Documents[hostDocument.FilePath];
         return GetOutputAsync(project, document, cancellationToken);
     }
 
-    private static Task<(RazorCodeDocument, VersionStamp)> GetOutputAsync(ProjectState project, DocumentState document, CancellationToken cancellationToken)
+    private static Task<GeneratedOutputAndVersion> GetOutputAsync(ProjectState project, DocumentState document, CancellationToken cancellationToken)
     {
         var projectSnapshot = new ProjectSnapshot(project);
         var documentSnapshot = new DocumentSnapshot(projectSnapshot, document);

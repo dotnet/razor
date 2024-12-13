@@ -77,7 +77,7 @@ internal partial class DocumentState
         return ComputedState.TryGetGeneratedOutputAndVersion(out result);
     }
 
-    public Task<(RazorCodeDocument output, VersionStamp inputVersion)> GetGeneratedOutputAndVersionAsync(
+    public Task<GeneratedOutputAndVersion> GetGeneratedOutputAndVersionAsync(
         ProjectSnapshot project,
         DocumentSnapshot document,
         CancellationToken cancellationToken)

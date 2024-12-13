@@ -19,7 +19,7 @@ internal partial class DocumentState
 
         // We utilize a WeakReference here to avoid bloating committed memory. If pieces request document output inbetween GC collections
         // then we will provide the weak referenced task; otherwise we require any state requests to be re-computed.
-        private WeakReference<Task<(RazorCodeDocument, VersionStamp)>>? _taskUnsafeReference;
+        private WeakReference<Task<GeneratedOutputAndVersion>>? _taskUnsafeReference;
 
         private ComputedOutput? _computedOutput;
 
@@ -35,24 +35,24 @@ internal partial class DocumentState
             return false;
         }
 
-        public async Task<(RazorCodeDocument, VersionStamp)> GetGeneratedOutputAndVersionAsync(
+        public async Task<GeneratedOutputAndVersion> GetGeneratedOutputAndVersionAsync(
             ProjectSnapshot project,
             IDocumentSnapshot document,
             CancellationToken cancellationToken)
         {
             if (_computedOutput?.TryGetCachedOutput(out var cachedCodeDocument, out var cachedInputVersion) == true)
             {
-                return (cachedCodeDocument, cachedInputVersion);
+                return new(cachedCodeDocument, cachedInputVersion);
             }
 
             var (codeDocument, inputVersion) = await GetMemoizedGeneratedOutputAndVersionAsync(project, document, cancellationToken)
                 .ConfigureAwait(false);
 
             _computedOutput = new ComputedOutput(codeDocument, inputVersion);
-            return (codeDocument, inputVersion);
+            return new(codeDocument, inputVersion);
         }
 
-        private Task<(RazorCodeDocument, VersionStamp)> GetMemoizedGeneratedOutputAndVersionAsync(
+        private Task<GeneratedOutputAndVersion> GetMemoizedGeneratedOutputAndVersionAsync(
             ProjectSnapshot project,
             IDocumentSnapshot document,
             CancellationToken cancellationToken)
@@ -70,7 +70,7 @@ internal partial class DocumentState
             if (_taskUnsafeReference is null ||
                 !_taskUnsafeReference.TryGetTarget(out var taskUnsafe))
             {
-                TaskCompletionSource<(RazorCodeDocument, VersionStamp)>? tcs = null;
+                TaskCompletionSource<GeneratedOutputAndVersion>? tcs = null;
 
                 lock (_lock)
                 {
@@ -84,7 +84,7 @@ internal partial class DocumentState
 
                         tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
                         taskUnsafe = tcs.Task;
-                        _taskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp)>>(taskUnsafe);
+                        _taskUnsafeReference = new WeakReference<Task<GeneratedOutputAndVersion>>(taskUnsafe);
                     }
                 }
 
@@ -109,7 +109,7 @@ internal partial class DocumentState
                         static (task, state) =>
                         {
                             Assumes.NotNull(state);
-                            var tcs = (TaskCompletionSource<(RazorCodeDocument, VersionStamp)>)state;
+                            var tcs = (TaskCompletionSource<GeneratedOutputAndVersion>)state;
 
                             PropagateToTaskCompletionSource(task, tcs);
                         },
@@ -123,8 +123,8 @@ internal partial class DocumentState
             return taskUnsafe;
 
             static void PropagateToTaskCompletionSource(
-                Task<(RazorCodeDocument, VersionStamp)> targetTask,
-                TaskCompletionSource<(RazorCodeDocument, VersionStamp)> tcs)
+                Task<GeneratedOutputAndVersion> targetTask,
+                TaskCompletionSource<GeneratedOutputAndVersion> tcs)
             {
                 if (targetTask.Status == TaskStatus.RanToCompletion)
                 {
@@ -146,7 +146,7 @@ internal partial class DocumentState
             }
         }
 
-        private async Task<(RazorCodeDocument, VersionStamp)> ComputeGeneratedOutputAndVersionAsync(
+        private async Task<GeneratedOutputAndVersion> ComputeGeneratedOutputAndVersionAsync(
             ProjectSnapshot project,
             IDocumentSnapshot document,
             CancellationToken cancellationToken)
@@ -204,14 +204,14 @@ internal partial class DocumentState
                     {
                         _taskUnsafeReference = _older._taskUnsafeReference;
                         _older = null;
-                        return (olderOutput, olderInputVersion);
+                        return new(olderOutput, olderInputVersion);
                     }
                 }
             }
 
             var forceRuntimeCodeGeneration = project.LanguageServerFeatureOptions.ForceRuntimeCodeGeneration;
             var codeDocument = await GenerateCodeDocumentAsync(document, project.GetProjectEngine(), importItems, forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
-            return (codeDocument, inputVersion);
+            return new(codeDocument, inputVersion);
         }
 
         private class ComputedOutput
