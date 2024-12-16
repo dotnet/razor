@@ -7,53 +7,52 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem.Sources;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal sealed partial class DocumentState
 {
-    private static readonly LoadTextOptions s_loadTextOptions = new(SourceHashAlgorithm.Sha256);
-
     public HostDocument HostDocument { get; }
     public int Version { get; }
 
-    private TextAndVersion? _textAndVersion;
-    private readonly TextLoader _textLoader;
+    private readonly ITextAndVersionSource _textAndVersionSource;
 
     private ComputedStateTracker? _computedState;
 
     private DocumentState(
         HostDocument hostDocument,
-        TextAndVersion? textAndVersion,
-        TextLoader? textLoader)
+        ITextAndVersionSource textAndVersionSource)
     {
         HostDocument = hostDocument;
         Version = 1;
-
-        _textAndVersion = textAndVersion;
-        _textLoader = textLoader ?? EmptyTextLoader.Instance;
+        _textAndVersionSource = textAndVersionSource;
     }
 
     private DocumentState(
         DocumentState oldState,
-        TextAndVersion? textAndVersion,
-        TextLoader? textLoader,
+        ITextAndVersionSource textAndVersionSource,
         ComputedStateTracker? computedState = null)
     {
         HostDocument = oldState.HostDocument;
         Version = oldState.Version + 1;
+        _textAndVersionSource = textAndVersionSource;
 
-        _textAndVersion = textAndVersion;
-        _textLoader = textLoader ?? EmptyTextLoader.Instance;
         _computedState = computedState;
     }
 
     public static DocumentState Create(HostDocument hostDocument, SourceText text)
-        => new(hostDocument, TextAndVersion.Create(text, VersionStamp.Create()), textLoader: null);
+        => new(hostDocument, CreateTextAndVersionSource(text));
 
-    public static DocumentState Create(HostDocument hostDocument, TextLoader loader)
-        => new(hostDocument, textAndVersion: null, loader);
+    public static DocumentState Create(HostDocument hostDocument, TextLoader textLoader)
+        => new(hostDocument, CreateTextAndVersionSource(textLoader));
+
+    private static ConstantTextAndVersionSource CreateTextAndVersionSource(SourceText text, VersionStamp? version = null)
+        => new(text, version ?? VersionStamp.Create());
+
+    private static LoadableTextAndVersionSource CreateTextAndVersionSource(TextLoader textLoader)
+        => new(textLoader);
 
     private ComputedStateTracker ComputedState
         => _computedState ??= InterlockedOperations.Initialize(ref _computedState, new ComputedStateTracker());
@@ -71,20 +70,22 @@ internal sealed partial class DocumentState
         return ComputedState.GetGeneratedOutputAndVersionAsync(project, document, cancellationToken);
     }
 
+    public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? result)
+        => _textAndVersionSource.TryGetValue(out result);
+
     public ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
+        => _textAndVersionSource.GetValueAsync(cancellationToken);
+
+    public bool TryGetText([NotNullWhen(true)] out SourceText? result)
     {
-        return TryGetTextAndVersion(out var result)
-            ? new(result)
-            : LoadTextAndVersionAsync(_textLoader, cancellationToken);
-
-        async ValueTask<TextAndVersion> LoadTextAndVersionAsync(TextLoader loader, CancellationToken cancellationToken)
+        if (TryGetTextAndVersion(out var textAndVersion))
         {
-            var textAndVersion = await loader
-                .LoadTextAndVersionAsync(s_loadTextOptions, cancellationToken)
-                .ConfigureAwait(false);
-
-            return InterlockedOperations.Initialize(ref _textAndVersion, textAndVersion);
+            result = textAndVersion.Text;
+            return true;
         }
+
+        result = null;
+        return false;
     }
 
     public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
@@ -101,6 +102,18 @@ internal sealed partial class DocumentState
         }
     }
 
+    public bool TryGetTextVersion(out VersionStamp result)
+    {
+        if (TryGetTextAndVersion(out var textAndVersion))
+        {
+            result = textAndVersion.Version;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
     public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
     {
         return TryGetTextVersion(out var version)
@@ -115,50 +128,22 @@ internal sealed partial class DocumentState
         }
     }
 
-    public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? result)
-    {
-        result = _textAndVersion;
-        return result is not null;
-    }
-
-    public bool TryGetText([NotNullWhen(true)] out SourceText? result)
-    {
-        if (TryGetTextAndVersion(out var textAndVersion))
-        {
-            result = textAndVersion.Text;
-            return true;
-        }
-
-        result = null;
-        return false;
-    }
-
-    public bool TryGetTextVersion(out VersionStamp result)
-    {
-        if (TryGetTextAndVersion(out var textAndVersion))
-        {
-            result = textAndVersion.Version;
-            return true;
-        }
-
-        result = default;
-        return false;
-    }
-
     public DocumentState WithConfigurationChange()
-        => new(this, _textAndVersion, _textLoader, computedState: null);
+        => new(this, _textAndVersionSource, computedState: null);
 
     public DocumentState WithImportsChange()
-        => new(this, _textAndVersion, _textLoader, new ComputedStateTracker(_computedState));
+        => new(this, _textAndVersionSource, new(_computedState));
 
     public DocumentState WithProjectWorkspaceStateChange()
-        => new(this, _textAndVersion, _textLoader, new ComputedStateTracker(_computedState));
+        => new(this, _textAndVersionSource, new(_computedState));
 
     public DocumentState WithText(SourceText text, VersionStamp textVersion)
-        => new(this, TextAndVersion.Create(text, textVersion), textLoader: null, computedState: null);
+        => new(this, CreateTextAndVersionSource(text, textVersion), computedState: null);
 
     public DocumentState WithTextLoader(TextLoader textLoader)
-        => new(this, textAndVersion: null, textLoader, computedState: null);
+        => ReferenceEquals(textLoader, _textAndVersionSource.TextLoader)
+            ? this
+            : new(this, CreateTextAndVersionSource(textLoader), computedState: null);
 
     internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
         IDocumentSnapshot document,
