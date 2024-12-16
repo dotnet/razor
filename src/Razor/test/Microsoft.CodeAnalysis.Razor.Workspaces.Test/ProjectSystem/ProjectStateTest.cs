@@ -63,7 +63,7 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var state = ProjectState.Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider);
 
         // Act
-        var newState = state.AddDocument(SomeProjectFile1);
+        var newState = state.AddEmptyDocument(SomeProjectFile1);
 
         // Assert
         Assert.NotEqual(state.Version, newState.Version);
@@ -80,7 +80,7 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var state = ProjectState.Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider);
 
         // Act
-        var newState = state.AddDocument(SomeProjectFile1);
+        var newState = state.AddEmptyDocument(SomeProjectFile1);
 
         // Assert
         var text = await newState.Documents[SomeProjectFile1.FilePath].GetTextAsync(DisposalToken);
@@ -93,11 +93,11 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
-        var newState = state.AddDocument(SomeProjectFile1);
+        var newState = state.AddEmptyDocument(SomeProjectFile1);
 
         // Assert
         Assert.NotEqual(state.Version, newState.Version);
@@ -116,10 +116,10 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange & Act
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(SomeProjectNestedFile3)
-            .AddDocument(AnotherProjectNestedFile4);
+            .AddEmptyDocument(SomeProjectFile1)
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(SomeProjectNestedFile3)
+            .AddEmptyDocument(AnotherProjectNestedFile4);
 
         // Assert
         Assert.Collection(
@@ -154,13 +154,13 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(SomeProjectNestedFile3)
-            .AddDocument(AnotherProjectNestedFile4);
+            .AddEmptyDocument(SomeProjectFile1)
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(SomeProjectNestedFile3)
+            .AddEmptyDocument(AnotherProjectNestedFile4);
 
         // Act
-        var newState = state.AddDocument(AnotherProjectImportFile);
+        var newState = state.AddEmptyDocument(AnotherProjectImportFile);
 
         // Assert
         Assert.Collection(
@@ -195,11 +195,11 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
-        var newState = state.AddDocument(SomeProjectFile1);
+        var newState = state.AddEmptyDocument(SomeProjectFile1);
 
         // Assert
         Assert.Same(state.ProjectEngine, newState.ProjectEngine);
@@ -215,11 +215,11 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
-        var newState = state.AddDocument(new HostDocument(SomeProjectFile2.FilePath, "SomePath.cshtml"));
+        var newState = state.AddEmptyDocument(new HostDocument(SomeProjectFile2.FilePath, "SomePath.cshtml"));
 
         // Assert
         Assert.Same(state, newState);
@@ -231,8 +231,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithDocumentText(SomeProjectFile2.FilePath, s_textLoader);
@@ -252,8 +252,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithDocumentText(SomeProjectFile2.FilePath, s_text);
@@ -273,8 +273,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithDocumentText(SomeProjectFile2.FilePath, s_textLoader);
@@ -292,8 +292,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var original = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var state = original.WithDocumentText(SomeProjectFile2.FilePath, s_text);
@@ -311,8 +311,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithDocumentText(SomeProjectFile1.FilePath, s_textLoader);
@@ -327,8 +327,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithDocumentText(SomeProjectFile1.FilePath, s_text);
@@ -343,8 +343,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.RemoveDocument(SomeProjectFile2.FilePath);
@@ -364,10 +364,10 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(SomeProjectNestedFile3)
-            .AddDocument(AnotherProjectNestedFile4);
+            .AddEmptyDocument(SomeProjectFile1)
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(SomeProjectNestedFile3)
+            .AddEmptyDocument(AnotherProjectNestedFile4);
 
         // Act
         var newState = state.RemoveDocument(SomeProjectNestedFile3.FilePath);
@@ -403,10 +403,10 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(SomeProjectNestedFile3)
-            .AddDocument(AnotherProjectNestedFile4);
+            .AddEmptyDocument(SomeProjectFile1)
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(SomeProjectNestedFile3)
+            .AddEmptyDocument(AnotherProjectNestedFile4);
 
         // Act
         var newState = state
@@ -426,8 +426,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.RemoveDocument(AnotherProjectNestedFile3.FilePath);
@@ -445,8 +445,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.RemoveDocument(SomeProjectFile1.FilePath);
@@ -461,8 +461,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithHostProject(s_hostProject with { Configuration = FallbackRazorConfiguration.MVC_1_0 });
@@ -487,8 +487,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithHostProject(s_hostProject with { RootNamespace = "ChangedRootNamespace" });
@@ -504,8 +504,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithHostProject(s_hostProject);
@@ -520,8 +520,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(AnotherProjectNestedFile3);
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(AnotherProjectNestedFile3);
 
         var documentPathSet = state.Documents.Keys.ToHashSet(FilePathNormalizingComparer.Instance);
 
@@ -549,7 +549,7 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1);
+            .AddEmptyDocument(SomeProjectFile1);
 
         // Act
         var newState = state.WithHostProject(s_hostProject with { Configuration = FallbackRazorConfiguration.MVC_1_0 });
@@ -566,8 +566,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         var newWorkspaceState = ProjectWorkspaceState.Create(s_projectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
 
@@ -593,8 +593,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithProjectWorkspaceState(ProjectWorkspaceState.Default);
@@ -618,8 +618,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
     {
         // Arrange
         var state = ProjectState.Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(AnotherProjectNestedFile3)
-            .AddDocument(SomeProjectFile2);
+            .AddEmptyDocument(AnotherProjectNestedFile3)
+            .AddEmptyDocument(SomeProjectFile2);
 
         // Act
         var newState = state.WithProjectWorkspaceState(ProjectWorkspaceState.Create(state.TagHelpers, state.CSharpLanguageVersion));
@@ -634,8 +634,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(AnotherProjectNestedFile3);
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(AnotherProjectNestedFile3);
 
         var documentPathSet = state.Documents.Keys.ToHashSet(FilePathNormalizingComparer.Instance);
 
@@ -663,15 +663,15 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
     {
         // Arrange
         var state = ProjectState.Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(SomeProjectNestedFile3)
-            .AddDocument(AnotherProjectNestedFile4);
+            .AddEmptyDocument(SomeProjectFile1)
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(SomeProjectNestedFile3)
+            .AddEmptyDocument(AnotherProjectNestedFile4);
 
         var documentPathSet = state.Documents.Keys.ToHashSet(FilePathNormalizingComparer.Instance);
 
         // Act
-        var newState = state.AddDocument(AnotherProjectImportFile);
+        var newState = state.AddEmptyDocument(AnotherProjectImportFile);
 
         // Assert
         Assert.NotEqual(state.Version, newState.Version);
@@ -695,15 +695,15 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
     {
         // Arrange
         var state = ProjectState.Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(SomeProjectNestedFile3)
-            .AddDocument(AnotherProjectNestedFile4);
+            .AddEmptyDocument(SomeProjectFile1)
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(SomeProjectNestedFile3)
+            .AddEmptyDocument(AnotherProjectNestedFile4);
 
         var documentPathSet = state.Documents.Keys.ToHashSet(FilePathNormalizingComparer.Instance);
 
         // Act
-        var newState = state.AddDocument(AnotherProjectNestedImportFile);
+        var newState = state.AddEmptyDocument(AnotherProjectNestedImportFile);
 
         // Assert
         Assert.NotEqual(state.Version, newState.Version);
@@ -732,11 +732,11 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
     {
         // Arrange
         var state = ProjectState.Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(SomeProjectNestedFile3)
-            .AddDocument(AnotherProjectNestedFile4)
-            .AddDocument(AnotherProjectNestedImportFile);
+            .AddEmptyDocument(SomeProjectFile1)
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(SomeProjectNestedFile3)
+            .AddEmptyDocument(AnotherProjectNestedFile4)
+            .AddEmptyDocument(AnotherProjectNestedImportFile);
 
         var documentPathSet = state.Documents.Keys.ToHashSet(FilePathNormalizingComparer.Instance);
 
@@ -774,11 +774,11 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
     {
         // Arrange
         var state = ProjectState.Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(SomeProjectNestedFile3)
-            .AddDocument(AnotherProjectNestedFile4)
-            .AddDocument(AnotherProjectNestedImportFile);
+            .AddEmptyDocument(SomeProjectFile1)
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(SomeProjectNestedFile3)
+            .AddEmptyDocument(AnotherProjectNestedFile4)
+            .AddEmptyDocument(AnotherProjectNestedImportFile);
 
         var documentPathSet = state.Documents.Keys.ToHashSet(FilePathNormalizingComparer.Instance);
 
@@ -817,11 +817,11 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Arrange
         var state = ProjectState
             .Create(s_hostProject, s_projectWorkspaceState, s_projectEngineFactoryProvider)
-            .AddDocument(SomeProjectFile1)
-            .AddDocument(SomeProjectFile2)
-            .AddDocument(SomeProjectNestedFile3)
-            .AddDocument(AnotherProjectNestedFile4)
-            .AddDocument(AnotherProjectNestedImportFile);
+            .AddEmptyDocument(SomeProjectFile1)
+            .AddEmptyDocument(SomeProjectFile2)
+            .AddEmptyDocument(SomeProjectNestedFile3)
+            .AddEmptyDocument(AnotherProjectNestedFile4)
+            .AddEmptyDocument(AnotherProjectNestedImportFile);
 
         var documentPathSet = state.Documents.Keys.ToHashSet(FilePathNormalizingComparer.Instance);
         var relatedDocumentPaths = state.ImportsToRelatedDocuments[AnotherProjectNestedImportFile.TargetPath];

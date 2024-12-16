@@ -41,7 +41,8 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var span = new TextSpan(generated.GeneratedCode.IndexOf(symbol, StringComparison.Ordinal), symbol.Length);
 
         // Act
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out var mappedLinePositionSpan, out var mappedSpan);
+        var text = await document.GetTextAsync(DisposalToken);
+        var result = RazorSpanMappingService.TryGetMappedSpans(span, text, generated, out var mappedLinePositionSpan, out var mappedSpan);
 
         // Assert
         Assert.True(result);
@@ -53,15 +54,15 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
     public async Task TryGetMappedSpans_SpanMatchesSourceMappingAndPosition_ReturnsTrue()
     {
         // Arrange
-        var sourceText = SourceText.From(@"
+        var code = @"
 @SomeProperty
 @SomeProperty
 @SomeProperty
-");
+";
 
         var state = ProjectState
             .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
+            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(code));
         var project = new ProjectSnapshot(state);
 
         var document = project.GetRequiredDocument(_hostDocument.FilePath);
@@ -74,7 +75,8 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var span = new TextSpan(generated.GeneratedCode.IndexOf(symbol, generated.GeneratedCode.IndexOf(symbol, StringComparison.Ordinal) + symbol.Length, StringComparison.Ordinal), symbol.Length);
 
         // Act
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out var mappedLinePositionSpan, out var mappedSpan);
+        var text = await document.GetTextAsync(DisposalToken);
+        var result = RazorSpanMappingService.TryGetMappedSpans(span, text, generated, out var mappedLinePositionSpan, out var mappedSpan);
 
         // Assert
         Assert.True(result);
@@ -86,15 +88,15 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
     public async Task TryGetMappedSpans_SpanWithinSourceMapping_ReturnsTrue()
     {
         // Arrange
-        var sourceText = SourceText.From(@"
+        var code = @"
 @{
     var x = SomeClass.SomeProperty;
 }
-");
+";
 
         var state = ProjectState
             .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
+            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(code));
         var project = new ProjectSnapshot(state);
 
         var document = project.GetRequiredDocument(_hostDocument.FilePath);
@@ -106,7 +108,8 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var span = new TextSpan(generated.GeneratedCode.IndexOf(symbol, StringComparison.Ordinal), symbol.Length);
 
         // Act
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out var mappedLinePositionSpan, out var mappedSpan);
+        var text = await document.GetTextAsync(DisposalToken);
+        var result = RazorSpanMappingService.TryGetMappedSpans(span, text, generated, out var mappedLinePositionSpan, out var mappedSpan);
 
         // Assert
         Assert.True(result);
@@ -118,15 +121,15 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
     public async Task TryGetMappedSpans_SpanOutsideSourceMapping_ReturnsFalse()
     {
         // Arrange
-        var sourceText = SourceText.From(@"
+        var code = @"
 @{
     var x = SomeClass.SomeProperty;
 }
-");
+";
 
         var state = ProjectState
             .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(sourceText));
+            .AddDocument(_hostDocument, TestMocks.CreateTextLoader(code));
         var project = new ProjectSnapshot(state);
 
         var document = project.GetRequiredDocument(_hostDocument.FilePath);
@@ -138,7 +141,8 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
         var span = new TextSpan(generated.GeneratedCode.IndexOf(symbol, StringComparison.Ordinal), symbol.Length);
 
         // Act
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(DisposalToken), generated, out _, out _);
+        var text = await document.GetTextAsync(DisposalToken);
+        var result = RazorSpanMappingService.TryGetMappedSpans(span, text, generated, out _, out _);
 
         // Assert
         Assert.False(result);

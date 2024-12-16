@@ -12,20 +12,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 public class GeneratedDocumentTextLoaderTest(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {
-    private readonly HostProject _hostProject = TestProjectData.SomeProject;
-    private readonly HostDocument _hostDocument = TestProjectData.SomeProjectFile1;
+    private static readonly HostProject s_hostProject = TestProjectData.SomeProject;
+    private static readonly HostDocument s_hostDocument = TestProjectData.SomeProjectFile1;
 
     [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/7997")]
     public async Task LoadAsync_SpecifiesEncoding()
     {
         // Arrange
         var state = ProjectState
-            .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddDocument(_hostDocument, EmptyTextLoader.Instance);
+            .Create(s_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
+            .AddEmptyDocument(s_hostDocument);
 
         var project = new ProjectSnapshot(state);
 
-        var document = project.GetRequiredDocument(_hostDocument.FilePath);
+        var document = project.GetRequiredDocument(s_hostDocument.FilePath);
 
         var loader = new GeneratedDocumentTextLoader(document, "file.cshtml");
 
