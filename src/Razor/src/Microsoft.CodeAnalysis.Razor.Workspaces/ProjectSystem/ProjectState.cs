@@ -213,7 +213,7 @@ internal sealed class ProjectState
     public VersionStamp ConfigurationVersion { get; }
 
     public ProjectState AddDocument(HostDocument hostDocument)
-        => AddDocument(hostDocument, DocumentState.EmptyLoader);
+        => AddDocument(hostDocument, EmptyTextLoader.Instance);
 
     public ProjectState AddDocument(HostDocument hostDocument, SourceText text)
     {

@@ -45,9 +45,9 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     {
         // Arrange
         var state = ProjectState.Create(_hostProject, _projectWorkspaceState, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddDocument(_documents[0], DocumentState.EmptyLoader)
-            .AddDocument(_documents[1], DocumentState.EmptyLoader)
-            .AddDocument(_documents[2], DocumentState.EmptyLoader);
+            .AddDocument(_documents[0], EmptyTextLoader.Instance)
+            .AddDocument(_documents[1], EmptyTextLoader.Instance)
+            .AddDocument(_documents[2], EmptyTextLoader.Instance);
         var snapshot = new ProjectSnapshot(state);
 
         // Act
@@ -66,7 +66,7 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     {
         // Arrange
         var state = ProjectState.Create(_hostProject, _projectWorkspaceState, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddDocument(_documents[0], DocumentState.EmptyLoader);
+            .AddDocument(_documents[0], EmptyTextLoader.Instance);
         var snapshot = new ProjectSnapshot(state);
 
         var document = snapshot.GetRequiredDocument(_documents[0].FilePath);
@@ -83,9 +83,9 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     {
         // Arrange
         var state = ProjectState.Create(_hostProject, _projectWorkspaceState, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddDocument(_documents[0], DocumentState.EmptyLoader)
-            .AddDocument(_documents[1], DocumentState.EmptyLoader)
-            .AddDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
+            .AddDocument(_documents[0], EmptyTextLoader.Instance)
+            .AddDocument(_documents[1], EmptyTextLoader.Instance)
+            .AddDocument(TestProjectData.SomeProjectImportFile, EmptyTextLoader.Instance);
         var snapshot = new ProjectSnapshot(state);
 
         var document = snapshot.GetRequiredDocument(TestProjectData.SomeProjectImportFile.FilePath);

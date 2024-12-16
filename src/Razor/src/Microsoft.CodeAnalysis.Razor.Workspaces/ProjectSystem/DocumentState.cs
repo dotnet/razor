@@ -15,12 +15,6 @@ internal sealed partial class DocumentState
 {
     private static readonly LoadTextOptions s_loadTextOptions = new(SourceHashAlgorithm.Sha256);
 
-    private static readonly TextAndVersion s_emptyTextAndVersion = TextAndVersion.Create(
-        SourceText.From(string.Empty),
-        VersionStamp.Default);
-
-    public static readonly TextLoader EmptyLoader = TextLoader.From(s_emptyTextAndVersion);
-
     public HostDocument HostDocument { get; }
     public int Version { get; }
 
@@ -38,7 +32,7 @@ internal sealed partial class DocumentState
         Version = 1;
 
         _textAndVersion = textAndVersion;
-        _textLoader = textLoader ?? EmptyLoader;
+        _textLoader = textLoader ?? EmptyTextLoader.Instance;
     }
 
     private DocumentState(
@@ -51,7 +45,7 @@ internal sealed partial class DocumentState
         Version = oldState.Version + 1;
 
         _textAndVersion = textAndVersion;
-        _textLoader = textLoader ?? EmptyLoader;
+        _textLoader = textLoader ?? EmptyTextLoader.Instance;
         _computedState = computedState;
     }
 
