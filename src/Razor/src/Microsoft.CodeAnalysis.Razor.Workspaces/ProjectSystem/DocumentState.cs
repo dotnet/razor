@@ -32,35 +32,33 @@ internal sealed partial class DocumentState
 
     private DocumentState(
         HostDocument hostDocument,
-        int version,
         TextAndVersion? textAndVersion,
         TextLoader? textLoader)
     {
         HostDocument = hostDocument;
-        Version = version;
+        Version = 1;
+
         _textAndVersion = textAndVersion;
         _textLoader = textLoader ?? EmptyLoader;
     }
 
-    private DocumentState(HostDocument hostDocument, int version, TextLoader loader)
-        : this(hostDocument, version, textAndVersion: null, loader)
+    private DocumentState(
+        DocumentState oldState,
+        TextAndVersion? textAndVersion,
+        TextLoader? textLoader)
     {
+        HostDocument = oldState.HostDocument;
+        Version = oldState.Version + 1;
+
+        _textAndVersion = textAndVersion;
+        _textLoader = textLoader ?? EmptyLoader;
     }
 
-    public static DocumentState Create(HostDocument hostDocument, int version, SourceText text, VersionStamp textVersion)
-    {
-        return new DocumentState(hostDocument, version, TextAndVersion.Create(text, textVersion), textLoader: null);
-    }
-
-    public static DocumentState Create(HostDocument hostDocument, int version, TextLoader loader)
-    {
-        return new DocumentState(hostDocument, version, loader);
-    }
+    public static DocumentState Create(HostDocument hostDocument, SourceText text)
+        => new(hostDocument, TextAndVersion.Create(text, VersionStamp.Create()), textLoader: null);
 
     public static DocumentState Create(HostDocument hostDocument, TextLoader loader)
-    {
-        return new DocumentState(hostDocument, version: 1, loader);
-    }
+        => new(hostDocument, textAndVersion: null, loader);
 
     public bool IsGeneratedOutputResultAvailable => ComputedState.IsResultAvailable;
 
@@ -157,12 +155,12 @@ internal sealed partial class DocumentState
     public DocumentState WithConfigurationChange()
     {
         // Do not cache computed state
-        return new(HostDocument, Version + 1, _textAndVersion, _textLoader);
+        return new(this, _textAndVersion, _textLoader);
     }
 
     public DocumentState WithImportsChange()
     {
-        var state = new DocumentState(HostDocument, Version + 1, _textAndVersion, _textLoader);
+        var state = new DocumentState(this, _textAndVersion, _textLoader);
 
         // Optimistically cache the computed state
         state._computedState = new ComputedStateTracker(_computedState);
@@ -172,7 +170,7 @@ internal sealed partial class DocumentState
 
     public DocumentState WithProjectWorkspaceStateChange()
     {
-        var state = new DocumentState(HostDocument, Version + 1, _textAndVersion, _textLoader);
+        var state = new DocumentState(this, _textAndVersion, _textLoader);
 
         // Optimistically cache the computed state
         state._computedState = new ComputedStateTracker(_computedState);
@@ -183,13 +181,13 @@ internal sealed partial class DocumentState
     public DocumentState WithText(SourceText text, VersionStamp textVersion)
     {
         // Do not cache the computed state
-        return new(HostDocument, Version + 1, TextAndVersion.Create(text, textVersion), textLoader: null);
+        return new(this, TextAndVersion.Create(text, textVersion), textLoader: null);
     }
 
     public DocumentState WithTextLoader(TextLoader textLoader)
     {
         // Do not cache the computed state
-        return new(HostDocument, Version + 1, textAndVersion: null, textLoader);
+        return new(this, textAndVersion: null, textLoader);
     }
 
     internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(

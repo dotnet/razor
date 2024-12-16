@@ -227,7 +227,7 @@ internal sealed class ProjectState
             return this;
         }
 
-        var state = DocumentState.Create(hostDocument, version: 1, text, VersionStamp.Create());
+        var state = DocumentState.Create(hostDocument, text);
 
         return AddDocument(state);
     }
@@ -244,7 +244,7 @@ internal sealed class ProjectState
             return this;
         }
 
-        var state = DocumentState.Create(hostDocument, version: 1, textLoader);
+        var state = DocumentState.Create(hostDocument, textLoader);
 
         return AddDocument(state);
     }
