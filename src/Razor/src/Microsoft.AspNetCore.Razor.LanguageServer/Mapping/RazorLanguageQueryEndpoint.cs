@@ -7,19 +7,19 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorLanguageQueryEndpoint)]
-internal sealed class RazorLanguageQueryEndpoint(IRazorDocumentMappingService documentMappingService, IRazorLoggerFactory loggerFactory)
-    : IRazorRequestHandler<RazorLanguageQueryParams, RazorLanguageQueryResponse>
+internal sealed class RazorLanguageQueryEndpoint(IDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
+    : IRazorRequestHandler<RazorLanguageQueryParams, RazorLanguageQueryResponse?>
 {
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorLanguageQueryEndpoint>();
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorLanguageQueryEndpoint>();
 
     public bool MutatesSolutionState { get; } = false;
 
@@ -31,17 +31,20 @@ internal sealed class RazorLanguageQueryEndpoint(IRazorDocumentMappingService do
         };
     }
 
-    public async Task<RazorLanguageQueryResponse> HandleRequestAsync(RazorLanguageQueryParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    public async Task<RazorLanguageQueryResponse?> HandleRequestAsync(RazorLanguageQueryParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return null;
+        }
 
         var documentSnapshot = documentContext.Snapshot;
-        var documentVersion = documentContext.Version;
+        var documentVersion = documentContext.Snapshot.Version;
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-        var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-        var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+        var hostDocumentIndex = sourceText.GetPosition(request.Position);
         var responsePosition = request.Position;
 
         if (codeDocument.IsUnsupported())
@@ -58,7 +61,7 @@ internal sealed class RazorLanguageQueryEndpoint(IRazorDocumentMappingService do
 
         var responsePositionIndex = hostDocumentIndex;
 
-        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
+        var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
         if (languageKind == RazorLanguageKind.CSharp)
         {
             if (_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out Position? projectedPosition, out var projectedIndex))
@@ -78,8 +81,7 @@ internal sealed class RazorLanguageQueryEndpoint(IRazorDocumentMappingService do
             }
         }
 
-        _logger.LogInformation("Language query request for ({requestPositionLine}, {requestPositionCharacter}) = {languageKind} at ({responsePositionLine}, {responsePositionCharacter})",
-            request.Position.Line, request.Position.Character, languageKind, responsePosition.Line, responsePosition.Character);
+        _logger.LogInformation($"Language query request for ({request.Position.Line}, {request.Position.Character}) = {languageKind} at ({responsePosition.Line}, {responsePosition.Character})");
 
         return new RazorLanguageQueryResponse()
         {

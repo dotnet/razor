@@ -2,8 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -17,7 +19,7 @@ public sealed class DocumentPullDiagnosticsEndpointTest(ITestOutputHelper testOu
     public void ApplyCapabilities_AddsExpectedCapabilities()
     {
         // Arrange
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var documentMappingService = new LspDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
         var razorTranslate = new Mock<RazorTranslateDiagnosticsService>(MockBehavior.Strict,
             documentMappingService,
             LoggerFactory);

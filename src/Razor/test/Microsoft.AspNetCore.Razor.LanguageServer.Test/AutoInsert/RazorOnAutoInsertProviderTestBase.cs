@@ -6,15 +6,11 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,42 +25,32 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
 
     internal abstract IOnAutoInsertProvider CreateProvider();
 
-    protected void RunAutoInsertTest(string input, string expected, int tabSize = 4, bool insertSpaces = true, string fileKind = default, IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
+    protected void RunAutoInsertTest(string input, string expected, int tabSize = 4, bool insertSpaces = true, bool enableAutoClosingTags = true, string fileKind = default, IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
     {
         // Arrange
         TestFileMarkupParser.GetPosition(input, out input, out var location);
 
         var source = SourceText.From(input);
-        source.GetLineAndOffset(location, out var line, out var column);
-        var position = new Position(line, column);
+        var position = source.GetPosition(location);
 
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);
         var codeDocument = CreateCodeDocument(source, uri.AbsolutePath, tagHelpers, fileKind: fileKind);
-        var options = new FormattingOptions()
-        {
-            TabSize = tabSize,
-            InsertSpaces = insertSpaces,
-        };
 
         var provider = CreateProvider();
-        using var context = FormattingContext.Create(uri, Mock.Of<IDocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestAdhocWorkspaceFactory.Instance);
 
         // Act
-        if (!provider.TryResolveInsertion(position, context, out var edit, out _))
-        {
-            edit = null;
-        }
+        provider.TryResolveInsertion(position, codeDocument, enableAutoClosingTags: enableAutoClosingTags, out var edit);
 
         // Assert
-        var edited = edit is null ? source : ApplyEdit(source, edit);
+        var edited = edit is null ? source : ApplyEdit(source, edit.TextEdit);
         var actual = edited.ToString();
         Assert.Equal(expected, actual);
     }
 
     private static SourceText ApplyEdit(SourceText source, TextEdit edit)
     {
-        var change = edit.ToTextChange(source);
+        var change = source.GetTextChange(edit);
         return source.WithChanges(change);
     }
 

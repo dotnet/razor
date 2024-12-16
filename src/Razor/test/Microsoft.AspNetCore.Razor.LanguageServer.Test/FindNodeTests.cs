@@ -3,8 +3,8 @@
 
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -75,8 +75,9 @@ public class FindNodeTests(ITestOutputHelper testOutput) : ToolingTestBase(testO
     [InlineData(5, 20, SyntaxKind.MarkupTextLiteral, true)]
     [InlineData(20, 21, SyntaxKind.CSharpTransition, false)]
     [InlineData(20, 21, SyntaxKind.CSharpTransition, true)]
-    [InlineData(21, 43, SyntaxKind.CSharpStatementLiteral, false)]
-    [InlineData(21, 43, SyntaxKind.CSharpStatementLiteral, true)]
+    [InlineData(21, 41, SyntaxKind.CSharpStatementLiteral, false)]
+    [InlineData(21, 41, SyntaxKind.CSharpStatementLiteral, true)]
+    [InlineData(41, 43, SyntaxKind.RazorMetaCode, true)]
     [InlineData(43, 44, SyntaxKind.CSharpTransition, false)]
     [InlineData(43, 44, SyntaxKind.CSharpTransition, true)]
     [InlineData(44, 50, SyntaxKind.CSharpExpressionLiteral, false)]

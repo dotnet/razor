@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -28,11 +27,11 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
     private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters_WithoutSpace = RazorCommitCharacter.CreateArray([">"]);
 
     private readonly ITagHelperCompletionService _tagHelperCompletionService;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor;
 
     public TagHelperCompletionProvider(
         ITagHelperCompletionService tagHelperCompletionService,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+        RazorLSPOptionsMonitor optionsMonitor)
     {
         _tagHelperCompletionService = tagHelperCompletionService;
         _optionsMonitor = optionsMonitor;
@@ -49,7 +48,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
-            return ImmutableArray<RazorCompletionItem>.Empty;
+            return [];
         }
 
         owner = owner switch
@@ -57,6 +56,8 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             // This provider is trying to find the nearest Start or End tag. Most of the time, that's a level up, but if the index the user is typing at
             // is a token of a start or end tag directly, we already have the node we want.
             MarkupStartTagSyntax or MarkupEndTagSyntax or MarkupTagHelperStartTagSyntax or MarkupTagHelperEndTagSyntax or MarkupTagHelperAttributeSyntax => owner,
+            // Invoking completion in an empty file will give us RazorDocumentSyntax which always has null parent
+            RazorDocumentSyntax => owner,
             // Either the parent is a context we can handle, or it's not and we shouldn't show completions.
             _ => owner.Parent
         };
@@ -119,7 +120,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         }
 
         // Invalid location for TagHelper completions.
-        return ImmutableArray<RazorCompletionItem>.Empty;
+        return [];
     }
 
     private ImmutableArray<RazorCompletionItem> GetAttributeCompletions(

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -11,40 +12,37 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using SyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
-internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
+internal sealed class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 {
-    private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
-
-    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+    public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         var nameNotExistDiagnostics = context.Request.Context.Diagnostics.Any(d => d.Code == "CS0103");
         if (!nameNotExistDiagnostics)
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var owner = syntaxTree.Root.FindToken(context.Location.AbsoluteIndex).Parent;
-        Assumes.NotNull(owner);
+        var owner = syntaxTree.Root.FindToken(context.Location.AbsoluteIndex).Parent.AssumeNotNull();
 
         if (IsGenerateEventHandlerValid(owner, out var methodName, out var eventName))
         {
             var uri = context.Request.TextDocument.Uri;
-            var codeActions = new List<RazorVSInternalCodeAction>()
-            {
-                RazorCodeActionFactory.CreateGenerateMethod(uri, methodName, eventName),
-                RazorCodeActionFactory.CreateAsyncGenerateMethod(uri, methodName, eventName)
-            };
-            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
+            return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>(
+                [
+                    RazorCodeActionFactory.CreateGenerateMethod(uri, methodName, eventName),
+                    RazorCodeActionFactory.CreateAsyncGenerateMethod(uri, methodName, eventName)
+                ]);
         }
 
-        return s_emptyResult;
+        return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
     }
 
     private static bool IsGenerateEventHandlerValid(
@@ -74,7 +72,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return false;
         }
 
-        // MarkupTagHelperElement > MarkupTagHelperStartTag > MarkupTagHelperDirectiveAttribute 
+        // MarkupTagHelperElement > MarkupTagHelperStartTag > MarkupTagHelperDirectiveAttribute
         if (commonParent.Parent.Parent is not MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
         {
             return false;

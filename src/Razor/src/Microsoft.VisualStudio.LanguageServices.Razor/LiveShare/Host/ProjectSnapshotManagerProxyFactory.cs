@@ -4,13 +4,13 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.LiveShare.Razor.Serialization;
+using Microsoft.VisualStudio.LiveShare;
+using Microsoft.VisualStudio.Razor.LiveShare.Serialization;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
+namespace Microsoft.VisualStudio.Razor.LiveShare.Host;
 
 [ExportCollaborationService(
     typeof(IProjectSnapshotManagerProxy),
@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
 [method: ImportingConstructor]
 internal class ProjectSnapshotManagerProxyFactory(
     IProjectSnapshotManager projectManager,
-    ProjectSnapshotManagerDispatcher dispatcher,
     JoinableTaskContext joinableTaskContext) : ICollaborationServiceFactory
 {
     public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
@@ -29,7 +28,7 @@ internal class ProjectSnapshotManagerProxyFactory(
         serializer.Converters.RegisterRazorLiveShareConverters();
 
         var service = new ProjectSnapshotManagerProxy(
-            session, projectManager, dispatcher, joinableTaskContext.Factory);
+            session, projectManager, joinableTaskContext.Factory);
         return Task.FromResult<ICollaborationService>(service);
     }
 }

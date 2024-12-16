@@ -7,57 +7,48 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorProximityExpressionsEndpoint)]
-internal class RazorProximityExpressionsEndpoint : IRazorDocumentlessRequestHandler<RazorProximityExpressionsParams, RazorProximityExpressionsResponse?>, ITextDocumentIdentifierHandler<RazorProximityExpressionsParams, Uri>
+internal class RazorProximityExpressionsEndpoint(
+    IDocumentMappingService documentMappingService,
+    ILoggerFactory loggerFactory) : IRazorDocumentlessRequestHandler<RazorProximityExpressionsParams, RazorProximityExpressionsResponse?>, ITextDocumentIdentifierHandler<RazorProximityExpressionsParams, Uri>
 {
-    private readonly IRazorDocumentMappingService _documentMappingService;
-    private readonly ILogger _logger;
-
-    public RazorProximityExpressionsEndpoint(
-        IRazorDocumentMappingService documentMappingService,
-        IRazorLoggerFactory loggerFactory)
-    {
-        if (documentMappingService is null)
-        {
-            throw new ArgumentNullException(nameof(documentMappingService));
-        }
-
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _documentMappingService = documentMappingService;
-        _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
-    }
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorBreakpointSpanEndpoint>();
 
     public bool MutatesSolutionState => false;
 
     public Uri GetTextDocumentIdentifier(RazorProximityExpressionsParams request)
-    {
-        return request.Uri;
-    }
+        => request.Uri;
 
     public async Task<RazorProximityExpressionsResponse?> HandleRequestAsync(RazorProximityExpressionsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return null;
+        }
+
+        if (documentContext.Snapshot.Version != request.HostDocumentSyncVersion)
+        {
+            // Whether we are being asked about an old version of the C# document, or somehow a future one, we can't rely on the result.
+            return null;
+        }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-        var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+        var hostDocumentIndex = sourceText.GetPosition(request.Position);
 
         if (codeDocument.IsUnsupported())
         {
@@ -65,7 +56,7 @@ internal class RazorProximityExpressionsEndpoint : IRazorDocumentlessRequestHand
         }
 
         var projectedIndex = hostDocumentIndex;
-        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
+        var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
         // If we're in C#, then map to the right position in the generated document
         if (languageKind == RazorLanguageKind.CSharp &&
             !_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out _, out projectedIndex))
@@ -92,8 +83,7 @@ internal class RazorProximityExpressionsEndpoint : IRazorDocumentlessRequestHand
             return null;
         }
 
-        _logger.LogTrace("Proximity expressions request for ({Line}, {Character}) yielded {expressionsCount} results.",
-            request.Position.Line, request.Position.Character, expressions.Count);
+        _logger.LogTrace($"Proximity expressions request for ({request.Position.Line}, {request.Position.Character}) yielded {expressions.Count} results.");
 
         return new RazorProximityExpressionsResponse
         {

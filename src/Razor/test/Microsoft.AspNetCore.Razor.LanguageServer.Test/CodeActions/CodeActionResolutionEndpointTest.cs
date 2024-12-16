@@ -2,14 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -41,7 +43,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var request = new CodeAction()
         {
             Title = "Valid request",
-            Data = JToken.FromObject(requestParams)
+            Data = JsonSerializer.SerializeToElement(requestParams)
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -67,7 +69,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = "Test",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-            Data = JObject.FromObject(new CodeActionResolveParams()
+            Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
                 RazorFileIdentifier = new VSTextDocumentIdentifier
                 {
@@ -78,7 +80,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var request = new CodeAction()
         {
             Title = "Valid request",
-            Data = JToken.FromObject(requestParams)
+            Data = JsonSerializer.SerializeToElement(requestParams)
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -106,7 +108,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = "TestCSharp",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-            Data = JObject.FromObject(new CodeActionResolveParams()
+            Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
                 RazorFileIdentifier = new VSTextDocumentIdentifier
                 {
@@ -117,7 +119,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var request = new CodeAction()
         {
             Title = "Valid request",
-            Data = JToken.FromObject(requestParams)
+            Data = JsonSerializer.SerializeToElement(requestParams)
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -150,7 +152,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var request = new CodeAction()
         {
             Title = "Valid request",
-            Data = JToken.FromObject(requestParams)
+            Data = JsonSerializer.SerializeToElement(requestParams)
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -179,7 +181,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = "Test",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-            Data = JObject.FromObject(new CodeActionResolveParams()
+            Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
                 RazorFileIdentifier = new VSTextDocumentIdentifier
                 {
@@ -190,7 +192,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var request = new CodeAction()
         {
             Title = "Valid request",
-            Data = JToken.FromObject(requestParams)
+            Data = JsonSerializer.SerializeToElement(requestParams)
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -230,7 +232,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var request = new CodeAction()
         {
             Title = "Valid request",
-            Data = JToken.FromObject(requestParams)
+            Data = JsonSerializer.SerializeToElement(requestParams)
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -261,7 +263,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = "Test",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-            Data = JObject.FromObject(new CodeActionResolveParams()
+            Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
                 RazorFileIdentifier = new VSTextDocumentIdentifier
                 {
@@ -272,7 +274,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         var request = new CodeAction()
         {
             Title = "Valid request",
-            Data = JToken.FromObject(requestParams)
+            Data = JsonSerializer.SerializeToElement(requestParams)
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -305,7 +307,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = "A",
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
-            Data = JToken.FromObject(new AddUsingsCodeActionParams()
+            Data = JsonSerializer.SerializeToElement(new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
                 Uri = new Uri("C:/path/to/Page.razor")
@@ -336,7 +338,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = "B",
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
-            Data = JToken.FromObject(new AddUsingsCodeActionParams()
+            Data = JsonSerializer.SerializeToElement(new AddUsingsCodeActionParams()
             {
                 Namespace = "Test",
                 Uri = new Uri("C:/path/to/Page.razor")
@@ -367,7 +369,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = "A",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-            Data = JObject.FromObject(new CodeActionResolveParams()
+            Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
                 RazorFileIdentifier = new VSTextDocumentIdentifier
                 {
@@ -400,7 +402,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = "B",
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
-            Data = JObject.FromObject(new CodeActionResolveParams()
+            Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
                 RazorFileIdentifier = new VSTextDocumentIdentifier
                 {
@@ -436,7 +438,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = "D",
             Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-            Data = JObject.FromObject(new CodeActionResolveParams()
+            Data = JsonSerializer.SerializeToElement(new CodeActionResolveParams()
             {
                 RazorFileIdentifier = new VSTextDocumentIdentifier
                 {
@@ -467,13 +469,13 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
         {
             Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
-            Data = JToken.FromObject(new WorkspaceEdit())
+            Data = JsonSerializer.SerializeToElement(new WorkspaceEdit())
         };
 
         var request = new CodeAction()
         {
             Title = "Valid request",
-            Data = JToken.FromObject(requestParams)
+            Data = JsonSerializer.SerializeToElement(requestParams)
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
 
@@ -493,7 +495,7 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Action = action;
         }
 
-        public Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
+        public Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
         {
             return Task.FromResult<WorkspaceEdit?>(new WorkspaceEdit());
         }
@@ -508,9 +510,9 @@ public class CodeActionResolutionEndpointTest(ITestOutputHelper testOutput) : La
             Action = action;
         }
 
-        public  Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
+        public  Task<WorkspaceEdit?> ResolveAsync(JsonElement data, CancellationToken cancellationToken)
         {
-            return Task.FromResult<WorkspaceEdit?>(null);
+            return SpecializedTasks.Null<WorkspaceEdit>();
         }
     }
 

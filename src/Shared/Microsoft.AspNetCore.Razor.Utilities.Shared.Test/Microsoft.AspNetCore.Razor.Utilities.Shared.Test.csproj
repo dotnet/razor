@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>$(DefaultNetCoreTargetFrameworks)</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(DefaultNetFxTargetFramework)</TargetFrameworks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialPackageVersion)" />
+    <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
 </Project>

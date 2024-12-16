@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 
@@ -22,15 +23,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<ReferenceParams, VSInternalReferenceItem[]>, ICapabilitiesProvider
 {
     private readonly IFilePathService _filePathService;
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
 
     public FindAllReferencesEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory,
         IFilePathService filePathService)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<FindAllReferencesEndpoint>())
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<FindAllReferencesEndpoint>())
     {
         _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
@@ -56,19 +57,24 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
         // HTML doesn't need to do FAR
         if (positionInfo.LanguageKind != RazorLanguageKind.CSharp)
         {
-            return Task.FromResult<IDelegatedParams?>(null);
+            return SpecializedTasks.Null<IDelegatedParams>();
         }
 
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return SpecializedTasks.Null<IDelegatedParams>();
+        }
+
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
-                documentContext.Identifier,
-                positionInfo.Position,
-                positionInfo.LanguageKind));
+            documentContext.GetTextDocumentIdentifierAndVersion(),
+            positionInfo.Position,
+            positionInfo.LanguageKind));
     }
 
     protected override async Task<VSInternalReferenceItem[]> HandleDelegatedResponseAsync(VSInternalReferenceItem[] delegatedResponse, ReferenceParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        var remappedLocations = new List<VSInternalReferenceItem>();
+        using var remappedLocations = new PooledArrayBuilder<VSInternalReferenceItem>();
 
         foreach (var referenceItem in delegatedResponse)
         {
@@ -84,7 +90,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
 
             // Indicates the reference item is directly available in the code
             referenceItem.Origin = VSInternalItemOrigin.Exact;
-            
+
             if (!_filePathService.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
                 !_filePathService.IsVirtualHtmlFile(referenceItem.Location.Uri))
             {

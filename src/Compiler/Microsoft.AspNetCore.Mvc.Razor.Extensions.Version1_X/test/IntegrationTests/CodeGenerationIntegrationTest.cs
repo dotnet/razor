@@ -16,7 +16,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     private static readonly CSharpCompilation DefaultBaseCompilation = MvcShim.BaseCompilation.WithAssemblyName("AppCode");
 
     public CodeGenerationIntegrationTest()
-        : base(layer: TestProject.Layer.Compiler, generateBaselines: null, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X")
+        : base(layer: TestProject.Layer.Compiler, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X")
     {
         Configuration = new(RazorLanguageVersion.Version_1_1, "MVC-1.1", Extensions: []);
     }
@@ -66,7 +66,31 @@ public class MyService<TModel>
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
 
         // We expect this test to generate a bunch of errors.
-        Assert.True(compiled.CodeDocument.GetCSharpDocument().Diagnostics.Count > 0);
+        Assert.NotEmpty(compiled.CodeDocument.GetCSharpDocument().Diagnostics);
+    }
+
+    [Fact]
+    public void IncompleteDirectives_Runtime()
+    {
+        // Arrange
+        AddCSharpSyntaxTree(@"
+public class MyService<TModel>
+{
+    public string Html { get; set; }
+}");
+
+        var projectItem = CreateProjectItemFromFile();
+
+        // Act
+        var compiled = CompileToCSharp(projectItem, designTime: false);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentIntermediateNode());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
+
+        // We expect this test to generate a bunch of errors.
+        Assert.True(compiled.CodeDocument.GetCSharpDocument().Diagnostics.Length > 0);
     }
 
     [Fact]

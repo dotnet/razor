@@ -4,14 +4,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -48,20 +45,12 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
         var codeDocument = CreateCodeDocument(output);
         var razorFilePath = "C:/path/to/file.razor";
 
-        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath, multiTargetProject: false);
 
         var endpoint = new FindAllReferencesEndpoint(
             LanguageServerFeatureOptions, DocumentMappingService, languageServer, LoggerFactory, FilePathService);
 
-        var sourceText = codeDocument.GetSourceText();
-        sourceText.GetLineAndOffset(cursorPosition, out var line, out var offset);
-
-        var completedTokenSource = new CancellationTokenSource();
-        var progressToken = new ProgressWithCompletion<object>((val) =>
-        {
-            var results = Assert.IsType<VSInternalReferenceItem[]>(val);
-            completedTokenSource.CancelAfter(0);
-        });
+        var sourceText = codeDocument.Source.Text;
 
         var request = new ReferenceParams
         {
@@ -69,14 +58,13 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
             {
                 IncludeDeclaration = true
             },
-            PartialResultToken = progressToken,
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset)
+            Position = sourceText.GetPosition(cursorPosition)
         };
-        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument);
+        Assert.True(DocumentContextFactory.TryCreate(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -92,7 +80,7 @@ public class FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : Singl
         {
             Assert.Equal(new Uri(razorFilePath), referenceItem.Location.Uri);
 
-            var expectedRange = expectedSpans[i].ToRange(codeDocument.GetSourceText());
+            var expectedRange = codeDocument.Source.Text.GetRange(expectedSpans[i]);
             Assert.Equal(expectedRange, referenceItem.Location.Range);
 
             i++;

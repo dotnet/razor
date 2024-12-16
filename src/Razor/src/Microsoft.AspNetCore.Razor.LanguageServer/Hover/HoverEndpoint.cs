@@ -4,13 +4,13 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
@@ -23,10 +23,10 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
     public HoverEndpoint(
         IHoverService hoverService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<HoverEndpoint>())
+        ILoggerFactory loggerFactory)
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<HoverEndpoint>())
     {
         _hoverService = hoverService ?? throw new ArgumentNullException(nameof(hoverService));
     }
@@ -44,24 +44,45 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return SpecializedTasks.Null<IDelegatedParams>();
+        }
+
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
-                documentContext.Identifier,
-                positionInfo.Position,
-                positionInfo.LanguageKind));
+            documentContext.GetTextDocumentIdentifierAndVersion(),
+            positionInfo.Position,
+            positionInfo.LanguageKind));
     }
 
     protected override Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
-        => _hoverService.GetRazorHoverInfoAsync(
-            requestContext.GetRequiredDocumentContext(),
-            positionInfo,
-            request.Position,
-            cancellationToken);
+    {
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return SpecializedTasks.Null<VSInternalHover>();
+        }
+
+        return _hoverService.GetRazorHoverInfoAsync(
+                documentContext,
+                positionInfo,
+                request.Position,
+                cancellationToken);
+    }
 
     protected override Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
-        => _hoverService.TranslateDelegatedResponseAsync(
-            response,
-            requestContext.GetRequiredDocumentContext(),
-            positionInfo,
-            cancellationToken);
+    {
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return SpecializedTasks.Null<VSInternalHover>();
+        }
+
+        return _hoverService.TranslateDelegatedResponseAsync(
+                response,
+                documentContext,
+                positionInfo,
+                cancellationToken);
+    }
 }

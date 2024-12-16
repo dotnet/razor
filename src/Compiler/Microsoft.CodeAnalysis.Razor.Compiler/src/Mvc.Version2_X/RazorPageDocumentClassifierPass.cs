@@ -38,7 +38,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
 
     protected override bool IsMatch(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
-        return PageDirective.TryGetPageDirective(documentNode, out var pageDirective);
+        return PageDirective.TryGetPageDirective(documentNode, out _);
     }
 
     protected override void OnDocumentStructureCreated(
@@ -51,7 +51,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
 
         @namespace.Content = "AspNetCore";
 
-        @class.BaseType = "global::Microsoft.AspNetCore.Mvc.RazorPages.Page";
+        @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.RazorPages.Page");
 
         var filePath = codeDocument.Source.RelativePath ?? codeDocument.Source.FilePath;
         if (string.IsNullOrEmpty(filePath))

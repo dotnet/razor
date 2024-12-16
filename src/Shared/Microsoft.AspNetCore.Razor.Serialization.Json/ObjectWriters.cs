@@ -34,7 +34,9 @@ internal static class ObjectWriters
             : value.LanguageVersion.ToString();
 
         writer.Write(nameof(value.LanguageVersion), languageVersionText);
-        writer.Write(nameof(value.ForceRuntimeCodeGeneration), value.ForceRuntimeCodeGeneration);
+
+        writer.WriteIfNotFalse(nameof(value.SuppressAddComponentParameter), value.SuppressAddComponentParameter);
+        writer.WriteIfNotTrue(nameof(value.UseConsolidatedMvcViews), value.UseConsolidatedMvcViews);
 
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
     }
@@ -175,6 +177,7 @@ internal static class ObjectWriters
                 writer.WriteIfNotNull(nameof(value.IndexerNamePrefix), value.IndexerNamePrefix);
                 writer.WriteIfNotNull(nameof(value.IndexerTypeName), value.IndexerTypeName);
                 writer.WriteIfNotNull(nameof(value.DisplayName), value.DisplayName);
+                writer.WriteIfNotNull(nameof(value.ContainingType), value.ContainingType);
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
                 writer.WriteIfNotTrue(nameof(value.CaseSensitive), value.CaseSensitive);
                 writer.WriteIfNotFalse(nameof(value.IsEditorRequired), value.IsEditorRequired);
@@ -236,7 +239,7 @@ internal static class ObjectWriters
     public static void WriteProperties(JsonDataWriter writer, RazorProjectInfo value)
     {
         writer.Write(WellKnownPropertyNames.Version, SerializationFormat.Version);
-        writer.Write(nameof(value.SerializedFilePath), value.SerializedFilePath);
+        writer.Write(nameof(value.ProjectKey), value.ProjectKey.Id);
         writer.Write(nameof(value.FilePath), value.FilePath);
         writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);
         writer.WriteObject(nameof(value.ProjectWorkspaceState), value.ProjectWorkspaceState, WriteProperties);

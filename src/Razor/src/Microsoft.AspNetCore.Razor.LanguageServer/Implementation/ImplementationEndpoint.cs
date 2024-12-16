@@ -4,13 +4,13 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
@@ -21,14 +21,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 [RazorLanguageServerEndpoint(Methods.TextDocumentImplementationName)]
 internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, ImplementationResult>, ICapabilitiesProvider
 {
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
 
     public ImplementationEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        IRazorLoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.CreateLogger<ImplementationEndpoint>())
+        ILoggerFactory loggerFactory)
+        : base(languageServerFeatureOptions, documentMappingService, clientConnection, loggerFactory.GetOrCreateLogger<ImplementationEndpoint>())
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
@@ -46,11 +46,16 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return SpecializedTasks.Null<IDelegatedParams>();
+        }
+
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
-                documentContext.Identifier,
-                positionInfo.Position,
-                positionInfo.LanguageKind));
+            documentContext.GetTextDocumentIdentifierAndVersion(),
+            positionInfo.Position,
+            positionInfo.LanguageKind));
     }
 
     protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)

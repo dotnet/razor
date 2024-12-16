@@ -9,9 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -27,13 +29,13 @@ internal class DelegatedCompletionListProvider
             .Union(s_razorTriggerCharacters);
 
     private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _responseRewriters;
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
     private readonly IClientConnection _clientConnection;
     private readonly CompletionListCache _completionListCache;
 
     public DelegatedCompletionListProvider(
         IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         CompletionListCache completionListCache)
     {
@@ -50,7 +52,7 @@ internal class DelegatedCompletionListProvider
     public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
-        VersionedDocumentContext documentContext,
+        DocumentContext documentContext,
         VSInternalClientCapabilities clientCapabilities,
         Guid correlationId,
         CancellationToken cancellationToken)
@@ -76,7 +78,7 @@ internal class DelegatedCompletionListProvider
         var shouldIncludeSnippets = await ShouldIncludeSnippetsAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
         var delegatedParams = new DelegatedCompletionParams(
-            documentContext.Identifier,
+            documentContext.GetTextDocumentIdentifierAndVersion(),
             positionInfo.Position,
             positionInfo.LanguageKind,
             completionContext,
@@ -118,7 +120,7 @@ internal class DelegatedCompletionListProvider
         return rewrittenResponse;
     }
 
-    private async Task<bool> ShouldIncludeSnippetsAsync(VersionedDocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
+    private async Task<bool> ShouldIncludeSnippetsAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var tree = codeDocument.GetSyntaxTree();
@@ -181,7 +183,7 @@ internal class DelegatedCompletionListProvider
     }
 
     private async Task<ProvisionalCompletionInfo?> TryGetProvisionalCompletionInfoAsync(
-        VersionedDocumentContext documentContext,
+        DocumentContext documentContext,
         VSInternalCompletionContext completionContext,
         DocumentPositionInfo positionInfo,
         CancellationToken cancellationToken)
@@ -213,19 +215,11 @@ internal class DelegatedCompletionListProvider
 
         // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
         // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
-        var addProvisionalDot = new TextEdit()
-        {
-            Range = new Range()
-            {
-                Start = previousPosition,
-                End = previousPosition,
-            },
-            NewText = ".",
-        };
+        var addProvisionalDot = VsLspFactory.CreateTextEdit(previousPosition, ".");
 
         var provisionalPositionInfo = new DocumentPositionInfo(
             RazorLanguageKind.CSharp,
-            new Position(
+            VsLspFactory.CreatePosition(
                 previousPosition.Line,
                 previousPosition.Character + 1),
             previousCharacterPositionInfo.HostDocumentIndex + 1);

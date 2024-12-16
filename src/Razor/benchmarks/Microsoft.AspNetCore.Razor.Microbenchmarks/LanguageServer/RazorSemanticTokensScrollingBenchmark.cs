@@ -8,14 +8,13 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer.RazorSemanticTokensBenchmark;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
@@ -23,17 +22,13 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 {
     private IRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
-    private IDocumentVersionCache VersionCache { get; set; }
-
-    private VersionedDocumentContext DocumentContext { get; set; }
+    private DocumentContext DocumentContext { get; set; }
 
     private Uri DocumentUri => DocumentContext.Uri;
 
     private IDocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
     private Range Range { get; set; }
-
-    private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
     private string PagesDirectory { get; set; }
 
@@ -54,22 +49,12 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
         var documentUri = new Uri(filePath);
         var documentSnapshot = await GetDocumentSnapshotAsync(ProjectFilePath, filePath, TargetPath);
-        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version: 1);
+        DocumentContext = new DocumentContext(documentUri, documentSnapshot, projectContext: null);
 
         var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
-        Range = new Range
-        {
-            Start = new Position
-            {
-                Line = 0,
-                Character = 0
-            },
-            End = new Position
-            {
-                Line = text.Lines.Count - 1,
-                Character = 0
-            }
-        };
+        Range = VsLspFactory.CreateRange(
+            start: (0, 0),
+            end: (text.Lines.Count - 1, 0));
     }
 
     private const int WindowSize = 10;
@@ -78,9 +63,6 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
     public async Task RazorSemanticTokensRangeScrollingAsync()
     {
         var cancellationToken = CancellationToken.None;
-        var documentVersion = 1;
-
-        await UpdateDocumentAsync(documentVersion, DocumentSnapshot).ConfigureAwait(false);
 
         var documentLineCount = Range.End.Line;
 
@@ -100,19 +82,13 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         }
     }
 
-    private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot)
-    {
-        await ProjectSnapshotManagerDispatcher!.RunAsync(
-            () => VersionCache!.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None).ConfigureAwait(false);
-    }
-
     [GlobalCleanup]
     public async Task CleanupServerAsync()
     {
-        var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
+        var server = RazorLanguageServerHost.GetTestAccessor().Server;
 
-        await innerServer.ShutdownAsync();
-        await innerServer.ExitAsync();
+        await server.ShutdownAsync();
+        await server.ExitAsync();
     }
 
     protected internal override void Builder(IServiceCollection collection)
@@ -122,9 +98,6 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
     private void EnsureServicesInitialized()
     {
-        var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
-        VersionCache = languageServer.GetRequiredService<IDocumentVersionCache>();
-        ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
+        RazorSemanticTokenService = RazorLanguageServerHost.GetRequiredService<IRazorSemanticTokensInfoService>();
     }
 }

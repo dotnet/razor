@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -13,59 +14,42 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionProvider
+internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
 {
-    private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
-    private readonly ILogger _logger;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToCodeBehindCodeActionProvider>();
 
-    public ExtractToCodeBehindCodeActionProvider(IRazorLoggerFactory loggerFactory)
+    public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _logger = loggerFactory.CreateLogger<ExtractToCodeBehindCodeActionProvider>();
-    }
-
-    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
-    {
-        if (context is null)
-        {
-            return s_emptyResult;
-        }
-
         if (!context.SupportsFileCreation)
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (!FileKinds.IsComponent(context.CodeDocument.GetFileKind()))
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
         if (syntaxTree?.Root is null)
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex);
         if (owner is null)
         {
-            _logger.LogWarning("Owner should never be null.");
-            return s_emptyResult;
+            _logger.LogWarning($"Owner should never be null.");
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var directiveNode = owner?.Parent switch
+        var directiveNode = owner.Parent switch
         {
             // When the caret is '@code$$ {' or '@code$${' then tree is:
             // RazorDirective -> RazorDirectiveBody -> CSharpCodeBlock -> (MetaCode or TextLiteral)
@@ -77,42 +61,42 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
         };
         if (directiveNode is null)
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // Make sure we've found a @code or @functions
         if (directiveNode.DirectiveDescriptor != ComponentCodeDirective.Directive &&
             directiveNode.DirectiveDescriptor != FunctionsDirective.Directive)
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // No code action if malformed
         if (directiveNode.GetDiagnostics().Any(d => d.Severity == RazorDiagnosticSeverity.Error))
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var csharpCodeBlockNode = (directiveNode.Body as RazorDirectiveBodySyntax)?.CSharpCode;
         if (csharpCodeBlockNode is null)
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // Do not provide code action if the cursor is inside the code block
         if (context.Location.AbsoluteIndex > csharpCodeBlockNode.SpanStart)
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (HasUnsupportedChildren(csharpCodeBlockNode))
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (!TryGetNamespace(context.CodeDocument, out var @namespace))
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var actionParams = new ExtractToCodeBehindCodeActionParams()
@@ -133,9 +117,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
         };
 
         var codeAction = RazorCodeActionFactory.CreateExtractToCodeBehind(resolutionParams);
-        var codeActions = new List<RazorVSInternalCodeAction> { codeAction };
-
-        return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
+        return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
     private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
@@ -146,10 +128,5 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
 
     private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
-    {
-        return node.DescendantNodes().Any(n =>
-            n is MarkupBlockSyntax ||
-            n is CSharpTransitionSyntax ||
-            n is RazorCommentBlockSyntax);
-    }
+        => node.DescendantNodes().Any(n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
 }

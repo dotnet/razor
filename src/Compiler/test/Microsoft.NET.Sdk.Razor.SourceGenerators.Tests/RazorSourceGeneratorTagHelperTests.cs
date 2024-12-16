@@ -1520,4 +1520,102 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Pages_Index");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10186")]
+    public async Task EscapedIdentifierInRazorBlock()
+    {
+        var project = CreateTestProject(new(){
+            ["Views/Home/Index.cshtml"] = """
+                @using Demo
+                @addTagHelper *, TestProject
+
+                @{
+                    ViewData["Title"] = "Home page";
+                    int count = 0;
+                }
+                <div>
+                    <mytag myattr='Convert.ToInt32(@count)'></mytag>
+                </div>
+                """
+        }, new()
+        {
+            ["MyTagHelper.cs"] = """
+            using Microsoft.AspNetCore.Razor.TagHelpers;
+            using System;
+            namespace Demo
+            {
+                [HtmlTargetElement("mytag", Attributes = "myattr")]
+                public class MyTagHelper : TagHelper
+                {
+                    [HtmlAttributeName("myattr")]
+                    public int MyAttr { get; set; }
+
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.Attributes.SetAttribute("out", MyAttr.ToString());
+                    }
+                }
+            }
+            """
+        });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+        result.Diagnostics.Verify();
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10426")]
+    public async Task EscapedExpressions()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @using Demo
+                @addTagHelper *, TestProject
+
+                @{
+                    string x(string s) => "x:" + s;
+                }
+
+                <div>
+                    <mytag myattr='@new string("a, b")'></mytag>
+                    <mytag myattr='new string("a, b")'></mytag>
+                    <mytag myattr="@new string(@x("c, d"))"></mytag>
+                    <mytag myattr="new string(@x("c, d"))"></mytag>
+                </div>
+                """,
+        }, new()
+        {
+            ["MyTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+                using System;
+                namespace Demo
+                {
+                    [HtmlTargetElement("mytag", Attributes = "myattr")]
+                    public class MyTagHelper : TagHelper
+                    {
+                        [HtmlAttributeName("myattr")]
+                        public object? MyAttr { get; set; }
+
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                            output.Attributes.SetAttribute("out", MyAttr?.ToString());
+                        }
+                    }
+                }
+                """,
+        });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+        result.Diagnostics.Verify();
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
 }

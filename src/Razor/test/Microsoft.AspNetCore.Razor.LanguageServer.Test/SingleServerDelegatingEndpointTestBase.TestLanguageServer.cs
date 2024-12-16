@@ -6,23 +6,23 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
-using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Protocol.Diagnostics;
+using Microsoft.CodeAnalysis.Razor.Protocol.Folding;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location,
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
     Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
 using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -125,7 +125,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 _cancellationToken);
         }
 
-        private Task<SymbolInformation[]> HandleDocumentSymbolAsync<TParams>(TParams @params)
+        private Task<SumType<DocumentSymbol[], SymbolInformation[]>?> HandleDocumentSymbolAsync<TParams>(TParams @params)
         {
             Assert.IsType<DelegatedDocumentSymbolParams>(@params);
 
@@ -137,7 +137,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 },
             };
 
-            return _csharpServer.ExecuteRequestAsync<DocumentSymbolParams, SymbolInformation[]>(
+            return _csharpServer.ExecuteRequestAsync<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(
                 Methods.TextDocumentDocumentSymbolName,
                 delegatedRequest,
                 _cancellationToken);
@@ -216,17 +216,18 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
         private Task<VSInternalReferenceItem[]> HandleReferencesAsync<TParams>(TParams @params)
         {
             var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
-            var delegatedRequest = new TextDocumentPositionParams()
+            var delegatedRequest = new ReferenceParams()
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
                     Uri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
-                Position = delegatedParams.ProjectedPosition
+                Position = delegatedParams.ProjectedPosition,
+                Context = new ReferenceContext()
             };
 
-            return _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(
+            return _csharpServer.ExecuteRequestAsync<ReferenceParams, VSInternalReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
                 delegatedRequest,
                 _cancellationToken);

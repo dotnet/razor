@@ -7,17 +7,17 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
-[UseExportProvider]
 public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
 {
     [Fact]
@@ -63,36 +63,36 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
                 rootNamespace: "project"));
         });
 
-        var searchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
+        var searchEngine = new RazorComponentSearchEngine(projectManager, LoggerFactory);
+
+        var renameService = new RenameService(searchEngine, projectManager, LanguageServerFeatureOptions);
 
         var endpoint = new RenameEndpoint(
-            Dispatcher,
-            searchEngine,
-            projectManager,
+            renameService,
             LanguageServerFeatureOptions,
             DocumentMappingService,
+            EditMappingService,
             languageServer,
             LoggerFactory);
 
-        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
         var request = new RenameParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset),
+            Position = codeDocument.Source.Text.GetPosition(cursorPosition),
             NewName = newName
         };
-        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument);
+        Assert.True(DocumentContextFactory.TryCreate(request.TextDocument, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
-        var edits = result.DocumentChanges.Value.First.FirstOrDefault().Edits.Select(e => e.ToTextChange(codeDocument.GetSourceText()));
-        var newText = codeDocument.GetSourceText().WithChanges(edits).ToString();
+        var edits = result.DocumentChanges.Value.First.FirstOrDefault().Edits.Select(codeDocument.Source.Text.GetTextChange);
+        var newText = codeDocument.Source.Text.WithChanges(edits).ToString();
         Assert.Equal(expected, newText);
     }
 }

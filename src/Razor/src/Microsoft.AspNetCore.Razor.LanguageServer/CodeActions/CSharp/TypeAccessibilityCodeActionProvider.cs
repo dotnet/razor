@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -12,17 +13,17 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
 {
-    private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult =
-        Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(Array.Empty<RazorVSInternalCodeAction>());
-
     private static readonly IEnumerable<string> s_supportedDiagnostics = new[]
     {
         // `The type or namespace name 'type/namespace' could not be found
@@ -38,42 +39,32 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         "IDE1007"
     };
 
-    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+    public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(
         RazorCodeActionContext context,
-        IEnumerable<RazorVSInternalCodeAction> codeActions,
+        ImmutableArray<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (codeActions is null)
-        {
-            throw new ArgumentNullException(nameof(codeActions));
-        }
-
         if (context.Request?.Context?.Diagnostics is null)
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (codeActions is null || !codeActions.Any())
+        if (codeActions.IsEmpty)
         {
-            return s_emptyResult;
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var results = context.SupportsCodeActionResolve
             ? ProcessCodeActionsVS(context, codeActions)
             : ProcessCodeActionsVSCode(context, codeActions);
 
-        var orderedResults = results.OrderBy(codeAction => codeAction.Title).ToArray();
-        return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(orderedResults);
+        var orderedResults = results.Sort(static (x, y) => StringComparer.CurrentCulture.Compare(x.Title, y.Title));
+        return Task.FromResult(orderedResults);
     }
 
-    private static IEnumerable<RazorVSInternalCodeAction> ProcessCodeActionsVSCode(
+    private static ImmutableArray<RazorVSInternalCodeAction> ProcessCodeActionsVSCode(
         RazorCodeActionContext context,
-        IEnumerable<RazorVSInternalCodeAction> codeActions)
+        ImmutableArray<RazorVSInternalCodeAction> codeActions)
     {
         var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
             diagnostic is { Severity: DiagnosticSeverity.Error, Code: { } code } &&
@@ -82,22 +73,24 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
         if (diagnostics is null || !diagnostics.Any())
         {
-            return Array.Empty<RazorVSInternalCodeAction>();
+            return [];
         }
 
-        var typeAccessibilityCodeActions = new List<RazorVSInternalCodeAction>();
+        using var typeAccessibilityCodeActions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
         foreach (var diagnostic in diagnostics)
         {
             // Corner case handling for diagnostics which (momentarily) linger after
             // @code block is cleared out
-            if (diagnostic.Range.End.Line > context.SourceText.Lines.Count ||
-                diagnostic.Range.End.Character > context.SourceText.Lines[diagnostic.Range.End.Line].End)
+            var range = diagnostic.Range;
+            var end = range.End;
+            if (end.Line > context.SourceText.Lines.Count ||
+                end.Character > context.SourceText.Lines[end.Line].End)
             {
                 continue;
             }
 
-            var diagnosticSpan = diagnostic.Range.ToTextSpan(context.SourceText);
+            var diagnosticSpan = context.SourceText.GetTextSpan(range);
 
             // Based on how we compute `Range.AsTextSpan` it's possible to have a span
             // which goes beyond the end of the source text. Something likely changed
@@ -146,7 +139,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                 var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
                 typeAccessibilityCodeActions.Add(fqnCodeAction);
 
-                if (AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, context.Request.TextDocument.Uri, additionalEdit: null, out var @namespace, out var resolutionParams))
+                if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fqn, context.Request.TextDocument.Uri, additionalEdit: null, out var @namespace, out var resolutionParams))
                 {
                     var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, newTagName: null, resolutionParams);
                     typeAccessibilityCodeActions.Add(addUsingCodeAction);
@@ -154,14 +147,14 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             }
         }
 
-        return typeAccessibilityCodeActions;
+        return typeAccessibilityCodeActions.ToImmutable();
     }
 
-    private static IEnumerable<RazorVSInternalCodeAction> ProcessCodeActionsVS(
+    private static ImmutableArray<RazorVSInternalCodeAction> ProcessCodeActionsVS(
         RazorCodeActionContext context,
-        IEnumerable<RazorVSInternalCodeAction> codeActions)
+        ImmutableArray<RazorVSInternalCodeAction> codeActions)
     {
-        var typeAccessibilityCodeActions = new List<RazorVSInternalCodeAction>(1);
+        using var typeAccessibilityCodeActions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
         foreach (var codeAction in codeActions)
         {
@@ -199,7 +192,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             // For add using suggestions, the code action title is of the form:
             // `using System.Net;`
             else if (codeAction.Name is not null && codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
-                AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace, out var prefix))
+                AddUsingsHelper.TryExtractNamespace(codeAction.Title, out var @namespace, out var prefix))
             {
                 codeAction.Title = $"{prefix}@using {@namespace}";
                 typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCodeAction(context, LanguageServerConstants.CodeActions.Default));
@@ -211,7 +204,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             }
         }
 
-        return typeAccessibilityCodeActions;
+        return typeAccessibilityCodeActions.ToImmutable();
 
         static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode? owner)
         {
@@ -269,16 +262,12 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
     {
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
-        var fqnTextEdit = new TextEdit()
-        {
-            NewText = fullyQualifiedName,
-            Range = fqnDiagnostic.Range
-        };
+        var fqnTextEdit = VsLspFactory.CreateTextEdit(fqnDiagnostic.Range, fullyQualifiedName);
 
         var fqnWorkspaceEditDocumentChange = new TextDocumentEdit()
         {
             TextDocument = codeDocumentIdentifier,
-            Edits = new[] { fqnTextEdit },
+            Edits = [fqnTextEdit],
         };
 
         var fqnWorkspaceEdit = new WorkspaceEdit()

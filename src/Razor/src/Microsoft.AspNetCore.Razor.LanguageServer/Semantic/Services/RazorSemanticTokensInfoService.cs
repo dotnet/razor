@@ -9,11 +9,11 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal class RazorSemanticTokensInfoService(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ICSharpSemanticTokensProvider csharpSemanticTokensProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRazorLoggerFactory loggerFactory)
-    : AbstractRazorSemanticTokensInfoService(documentMappingService, semanticTokensLegendService, csharpSemanticTokensProvider, languageServerFeatureOptions, loggerFactory.CreateLogger<RazorSemanticTokensInfoService>())
+    ILoggerFactory loggerFactory)
+    : AbstractRazorSemanticTokensInfoService(documentMappingService, semanticTokensLegendService, csharpSemanticTokensProvider, languageServerFeatureOptions, loggerFactory.GetOrCreateLogger<RazorSemanticTokensInfoService>())
 {
 }

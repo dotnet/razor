@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
@@ -87,6 +86,23 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
             completions,
             completion => Assert.Equal("test1", completion.InsertText),
             completion => Assert.Equal("test2", completion.InsertText));
+    }
+
+    [Fact]
+    public void GetCompletionAt_InEmptyDocument_ReturnsEmptyCompletionArray()
+    {
+        // Arrange
+        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, TestRazorLSPOptionsMonitor.Create());
+        var context = CreateRazorCompletionContext(
+            "$$",
+            isRazorFile: true,
+            tagHelpers: DefaultTagHelpers);
+
+        // Act
+        var completions = service.GetCompletionItems(context);
+
+        // Assert
+        Assert.Empty(completions);
     }
 
     [Fact]

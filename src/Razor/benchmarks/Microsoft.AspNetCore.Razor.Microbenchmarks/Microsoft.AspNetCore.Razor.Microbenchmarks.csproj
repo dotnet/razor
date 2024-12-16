@@ -7,13 +7,9 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>false</IsPackable>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Using Alias="Range" Include="Microsoft.VisualStudio.LanguageServer.Protocol.Range" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
@@ -47,18 +43,20 @@
     <Compile Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Workspaces\TestWorkspaceServices.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
+    <Compile Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Mef\ExportProviderExtensions.cs">
+      <Link>TestServices\%(FileName)%(Extension)</Link>
+    </Compile>
 
     <None Remove=".gitignore" />
     <None Remove="BenchmarkDotNet.Artifacts\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetPackageVersion)" />
-    <PackageReference Include="Moq" Version="$(MoqPackageVersion)" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetPackageVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackageVersion)" />
-    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.DiaSymReader" />
   </ItemGroup>
 
   <Import Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.Serialization.Json\Microsoft.AspNetCore.Razor.Serialization.Json.projitems" Label="Shared" />

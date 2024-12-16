@@ -165,6 +165,51 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1954771")]
+    public async Task EmptyRootNamespace()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<Shared.Component1>(RenderMode.Static))
+                @(await Html.RenderComponentAsync<Component3>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = """
+                Component1 in Shared namespace
+                <Component2 />
+                <Component4 />
+                """,
+            ["Component2.razor"] = """
+                Component2 in global namespace
+                """,
+            ["Component3.razor"] = """
+                Component3 in global namespace
+                <Shared.Component1 />
+                """
+        }, new()
+        {
+            ["Component4.cs"] = """
+                using Microsoft.AspNetCore.Components;
+                public class Component4 : ComponentBase { }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RootNamespace"] = string.Empty;
+        });
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Equal(4, result.GeneratedSources.Length);
+        result.VerifyOutputsMatchBaseline();
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
     [Theory, CombinatorialData]
     public async Task AddComponentParameter(
         [CombinatorialValues("7.0", "8.0", "Latest")] string langVersion)
@@ -785,6 +830,34 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         }
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public async Task TextAfterCodeBlockInMarkupTransition()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = """
+                @{
+                    @:@{ <i>x y z </i> }
+                    <text>a b c</text>
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        result.Diagnostics.Verify();
+        Assert.Equal(2, result.GeneratedSources.Length);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/9381")]
     public async Task UnrecognizedComponentName()
     {
@@ -823,5 +896,88 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             Diagnostic("RZ10012").WithLocation(7, 1),
             Diagnostic("RZ10023").WithLocation(7, 18)); // Attribute '@rendermode' is only valid when used on a component.
         Assert.Single(result.GeneratedSources);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
+    public async Task ImplicitStringConversion_ParameterCasing(
+        [CombinatorialValues("StringParameter", "stringParameter")] string paramName,
+        [CombinatorialValues("7.0", "8.0", "Latest")] string langVersion)
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = $$"""
+                @{ var c = new MyClass(); }
+                <MyComponent {{paramName}}="@c" />
+                """,
+            ["Shared/MyComponent.razor"] = """
+                MyComponent: @StringParameter
+                @code {
+                    [Parameter]
+                    public string StringParameter { get; set; } = "";
+                }
+                """,
+        }, new()
+        {
+            ["Shared/MyClass.cs"] = """
+                namespace MyApp.Shared;
+                public class MyClass
+                {
+                    public static implicit operator string(MyClass c) => "c converted to string";
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = langVersion;
+        });
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
+    public async Task ImplicitStringConversion_ParameterCasing_Bind(
+        [CombinatorialValues("StringParameter", "stringParameter")] string paramName,
+        [CombinatorialValues("7.0", "8.0", "Latest")] string langVersion)
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = $$"""
+                @{ var s = "abc"; }
+                <MyComponent {{paramName}}="@s" />
+                """,
+            ["Shared/MyComponent.razor"] = """
+                MyComponent: @StringParameter
+                @code {
+                    [Parameter] public string StringParameter { get; set; } = "";
+                    [Parameter] public EventCallback<string> StringParameterChanged { get; set; }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = langVersion;
+        });
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 }

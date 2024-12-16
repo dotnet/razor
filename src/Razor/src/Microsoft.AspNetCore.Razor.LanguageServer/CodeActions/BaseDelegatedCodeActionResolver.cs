@@ -5,20 +5,16 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal abstract class BaseDelegatedCodeActionResolver : ICodeActionResolver
+internal abstract class BaseDelegatedCodeActionResolver(IClientConnection clientConnection) : ICodeActionResolver
 {
-    protected readonly IClientConnection ClientConnection;
-
-    public BaseDelegatedCodeActionResolver(IClientConnection clientConnection)
-    {
-        ClientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-    }
+    protected readonly IClientConnection ClientConnection = clientConnection;
 
     public abstract string Action { get; }
 

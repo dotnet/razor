@@ -7,11 +7,11 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,7 +20,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
-[UseExportProvider]
 public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 {
     private readonly TestDelegatedCompletionListProvider _provider;
@@ -70,7 +69,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var delegatedParameters = _provider.DelegatedParams;
         Assert.NotNull(delegatedParameters);
         Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
-        Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
+        Assert.Equal(VsLspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
         Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
         Assert.Equal(1337, delegatedParameters.Identifier.Version);
         Assert.Null(delegatedParameters.ProvisionalTextEdit);
@@ -97,7 +96,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var delegatedParameters = _provider.DelegatedParams;
         Assert.NotNull(delegatedParameters);
         Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
-        Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
+        Assert.Equal(VsLspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
         Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
         Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
         Assert.Equal(1337, delegatedParameters.Identifier.Version);
@@ -125,7 +124,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var delegatedParameters = _provider.DelegatedParams;
         Assert.NotNull(delegatedParameters);
         Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
-        Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
+        Assert.Equal(VsLspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
         Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
         Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
         Assert.Equal(1337, delegatedParameters.Identifier.Version);

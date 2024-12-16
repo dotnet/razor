@@ -6,23 +6,22 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.Editor.Razor.Settings;
+using Microsoft.VisualStudio.Razor.Extensions;
+using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
+namespace Microsoft.VisualStudio.Razor.Logging;
 
-[Export(typeof(IRazorLoggerProvider))]
+[ExportLoggerProvider]
 [method: ImportingConstructor]
 internal class OutputWindowLoggerProvider(
     // Anything this class imports would have a circular dependency if they tried to log anything,
     // or used anything that does logging, so make sure everything of ours is imported lazily
     Lazy<IClientSettingsManager> clientSettingsManager,
     JoinableTaskContext joinableTaskContext)
-    : IRazorLoggerProvider
+    : ILoggerProvider, IDisposable
 {
     private readonly Lazy<IClientSettingsManager> _clientSettingsManager = clientSettingsManager;
     private readonly OutputPane _outputPane = new OutputPane(joinableTaskContext);
@@ -50,25 +49,17 @@ internal class OutputWindowLoggerProvider(
             _clientSettingsManager = clientSettingsManager;
         }
 
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            return Scope.Instance;
-        }
-
         public bool IsEnabled(LogLevel logLevel)
         {
             return logLevel >= _clientSettingsManager.GetClientSettings().AdvancedSettings.LogLevel;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        public void Log(LogLevel logLevel, string message, Exception? exception)
         {
             if (IsEnabled(logLevel))
             {
-                _outputPane.WriteLine($"{DateTime.Now:h:mm:ss.fff} [{_categoryName}] {formatter(state, exception)}");
-                if (exception is not null)
-                {
-                    _outputPane.WriteLine(exception.ToString());
-                }
+                var formattedMessage = LogMessageFormatter.FormatMessage(message, _categoryName, exception);
+                _outputPane.WriteLine(formattedMessage);
             }
         }
     }

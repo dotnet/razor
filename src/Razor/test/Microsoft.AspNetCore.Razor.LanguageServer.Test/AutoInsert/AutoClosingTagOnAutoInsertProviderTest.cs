@@ -4,8 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.Extensions.Options;
-using Moq;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
@@ -14,8 +13,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
 public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput) : RazorOnAutoInsertProviderTestBase(testOutput)
 {
-    private RazorLSPOptions Options { get; set; } = RazorLSPOptions.Default;
-
     private static TagHelperDescriptor CatchAllTagHelper
     {
         get
@@ -105,19 +102,18 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
     public void OnTypeCloseAngle_ConflictingAutoClosingBehaviorsChoosesMostSpecific()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<test>$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <test>$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<test />
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { WithoutEndTagTagHelper, CatchAllTagHelper });
-
+                <test />
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { WithoutEndTagTagHelper, CatchAllTagHelper });
     }
 
     [Fact]
@@ -125,18 +121,18 @@ tagHelpers: new[] { WithoutEndTagTagHelper, CatchAllTagHelper });
     public void OnTypeCloseAngle_TagHelperAlreadyHasEndTag()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<test>$$<test></test></test>
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <test>$$<test></test></test>
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<test><test></test></test>
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                <test><test></test></test>
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -144,18 +140,18 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_VoidTagHelperHasEndTag_ShouldStillAutoClose()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<input>$$<input></input></input>
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <input>$$<input></input></input>
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<input /><input></input></input>
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { UnspecifiedInputTagHelper });
+                <input /><input></input></input>
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { UnspecifiedInputTagHelper });
     }
 
     [Fact]
@@ -163,12 +159,12 @@ tagHelpers: new[] { UnspecifiedInputTagHelper });
     public void OnTypeCloseAngle_TagAlreadyHasEndTag()
     {
         RunAutoInsertTest(
-input: @"
-<div>$$<div></div></div>
-",
-expected: @"
-<div><div></div></div>
-");
+            input: """
+                <div>$$<div></div></div>
+                """,
+            expected: """
+                <div><div></div></div>
+                """);
     }
 
     [Fact]
@@ -176,33 +172,33 @@ expected: @"
     public void OnTypeCloseAngle_TagDoesNotAutoCloseOutOfScope()
     {
         RunAutoInsertTest(
-input: @"
-<div>
-    @if (true)
-    {
-        <div>$$</div>
-    }
-",
-expected: @"
-<div>
-    @if (true)
-    {
-        <div></div>
-    }
-");
+            input: """
+                <div>
+                    @if (true)
+                    {
+                        <div>$$</div>
+                    }
+                """,
+            expected: """
+                <div>
+                    @if (true)
+                    {
+                        <div></div>
+                    }
+                """);
     }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
-    public void OnTypeCloseAngle_VoidTagHasEndTag_ShouldStillAutoClose()
+    public void OnTypeCloseAngle_VoidTagHasEndTag_ShouldStillClose()
     {
         RunAutoInsertTest(
-input: @"
-<input>$$<input></input></input>
-",
-expected: @"
-<input /><input></input></input>
-");
+            input: """
+                <input>$$<input></input></input>
+                """,
+            expected: """
+                <input /><input></input></input>
+                """);
     }
 
     [Fact]
@@ -210,18 +206,18 @@ expected: @"
     public void OnTypeCloseAngle_VoidElementMirroringTagHelper()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<Input>$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <Input>$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<Input>$0</Input>
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { UnspecifiedInputMirroringTagHelper });
+                <Input>$0</Input>
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { UnspecifiedInputMirroringTagHelper });
     }
 
     [Fact]
@@ -229,82 +225,82 @@ tagHelpers: new[] { UnspecifiedInputMirroringTagHelper });
     public void OnTypeCloseAngle_VoidHtmlElementCapitalized_SelfCloses()
     {
         RunAutoInsertTest(
-input: "<Input>$$",
-expected: "<Input />",
-fileKind: FileKinds.Legacy,
-tagHelpers: Array.Empty<TagHelperDescriptor>());
+            input: "<Input>$$",
+            expected: "<Input />",
+            fileKind: FileKinds.Legacy,
+            tagHelpers: Array.Empty<TagHelperDescriptor>());
     }
 
     [Fact]
     public void OnTypeCloseAngle_NormalOrSelfClosingStructureOverridesVoidTagBehavior()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<input>$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <input>$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<input>$0</input>
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfclosingInputTagHelper });
+                <input>$0</input>
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfclosingInputTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_UnspeccifiedStructureInheritsVoidTagBehavior()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<input>$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <input>$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<input />
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { UnspecifiedInputTagHelper });
+                <input />
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { UnspecifiedInputTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_UnspeccifiedTagHelperTagStructure()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<test>$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <test>$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<test>$0</test>
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { UnspecifiedTagHelper });
+                <test>$0</test>
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { UnspecifiedTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_NormalOrSelfClosingTagHelperTagStructure()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<test>$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <test>$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<test>$0</test>
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                <test>$0</test>
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -312,24 +308,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test>$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><test>$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test>$0</test></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @if (true)
+                {
+                <div><test>$0</test></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -337,24 +333,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithAttribute()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><a target=""_blank"">$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><a target=""_blank"">$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><a target=""_blank"">$0</a></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @if (true)
+                {
+                <div><a target=""_blank"">$0</a></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -362,24 +358,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><a target=""_blank"" >$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><a target=""_blank"" >$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><a target=""_blank"" >$0</a></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @if (true)
+                {
+                <div><a target=""_blank"" >$0</a></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -387,24 +383,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithMinimalizedAttribute()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><form novalidate>$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><form novalidate>$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><form novalidate>$0</form></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @if (true)
+                {
+                <div><form novalidate>$0</form></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -412,24 +408,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithMinimalizedAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><form novalidate >$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><form novalidate >$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><form novalidate >$0</form></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @if (true)
+                {
+                <div><form novalidate >$0</form></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -437,24 +433,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithAttribute()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test attribute=""value"">$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><test attribute=""value"">$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test attribute=""value"">$0</test></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @if (true)
+                {
+                <div><test attribute=""value"">$0</test></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -462,24 +458,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test attribute=""value"" >$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><test attribute=""value"" >$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test attribute=""value"" >$0</test></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @if (true)
+                {
+                <div><test attribute=""value"" >$0</test></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -487,24 +483,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithMinimalizedAttribute()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test bool-val>$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><test bool-val>$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test bool-val>$0</test></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @if (true)
+                {
+                <div><test bool-val>$0</test></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -512,24 +508,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithMinimalizedAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test bool-val >$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><test bool-val >$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test bool-val >$0</test></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @if (true)
+                {
+                <div><test bool-val >$0</test></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
@@ -537,24 +533,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     public void OnTypeCloseAngle_TagHelperInTagHelper_NestedStatement()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<test><input>$$</test>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <test><input>$$</test>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<test><input /></test>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
+                @if (true)
+                {
+                <test><input /></test>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
     }
 
     [Fact]
@@ -562,24 +558,24 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
     public void OnTypeCloseAngle_TagHelperNextToVoidTagHelper_NestedStatement()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<test>$$<input />
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <test>$$<input />
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<test>$0</test><input />
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
+                @if (true)
+                {
+                <test>$0</test><input />
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
     }
 
     [Fact]
@@ -587,64 +583,64 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
     public void OnTypeCloseAngle_TagHelperNextToTagHelper_NestedStatement()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<test>$$<input></input>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <test>$$<input></input>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<test>$0</test><input></input>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper, NormalOrSelfclosingInputTagHelper });
+                @if (true)
+                {
+                <test>$0</test><input></input>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper, NormalOrSelfclosingInputTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_NormalOrSelfClosingTagHelperTagStructure_CodeBlock()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@{
-    <test>$$
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @{
+                    <test>$$
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@{
-    <test>$0</test>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                @{
+                    <test>$0</test>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_WithSlash_WithoutEndTagTagHelperTagStructure()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<test />$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <test />$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<test />
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { WithoutEndTagTagHelper });
+                <test />
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { WithoutEndTagTagHelper });
     }
 
     [Fact]
@@ -652,130 +648,130 @@ tagHelpers: new[] { WithoutEndTagTagHelper });
     public void OnTypeCloseAngle_NestedStatement()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test />$$</div>
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @if (true)
+                {
+                <div><test />$$</div>
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@if (true)
-{
-<div><test /></div>
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { WithoutEndTagTagHelper });
+                @if (true)
+                {
+                <div><test /></div>
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { WithoutEndTagTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_WithSpace_WithoutEndTagTagHelperTagStructure()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<test >$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <test >$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<test />
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { WithoutEndTagTagHelper });
+                <test />
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { WithoutEndTagTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_WithoutEndTagTagHelperTagStructure()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<test>$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <test>$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<test />
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { WithoutEndTagTagHelper });
+                <test />
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { WithoutEndTagTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_WithoutEndTagTagHelperTagStructure_CodeBlock()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-@{
-    <test>$$
-}
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                @{
+                    <test>$$
+                }
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-@{
-    <test />
-}
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { WithoutEndTagTagHelper });
+                @{
+                    <test />
+                }
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { WithoutEndTagTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_MultipleApplicableTagHelperTagStructures()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<test>$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <test>$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<test>$0</test>
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { UnspecifiedTagHelper, NormalOrSelfClosingTagHelper, WithoutEndTagTagHelper });
+                <test>$0</test>
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { UnspecifiedTagHelper, NormalOrSelfClosingTagHelper, WithoutEndTagTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_EscapedTagTagHelperAutoCompletesWithEscape()
     {
         RunAutoInsertTest(
-input: @"
-@addTagHelper *, TestAssembly
+            input: """
+                @addTagHelper *, TestAssembly
 
-<!test>$$
-",
-expected: @"
-@addTagHelper *, TestAssembly
+                <!test>$$
+                """,
+            expected: """
+                @addTagHelper *, TestAssembly
 
-<!test>$0</!test>
-",
-fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+                <!test>$0</!test>
+                """,
+            fileKind: FileKinds.Legacy,
+            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
     }
 
     [Fact]
     public void OnTypeCloseAngle_AlwaysClosesStandardHTMLTag()
     {
         RunAutoInsertTest(
-input: @"
-    <div><div>$$</div>
-",
-expected: @"
-    <div><div>$0</div></div>
-");
+            input: """
+                   <div><div>$$</div>
+                   """,
+            expected: """
+                    <div><div>$0</div></div>
+                    """);
     }
 
     [Fact]
@@ -783,18 +779,18 @@ expected: @"
     public void OnTypeCloseAngle_ClosesStandardHTMLTag_NestedStatement()
     {
         RunAutoInsertTest(
-input: @"
-@if (true)
-{
-    <div><p>$$</div>
-}
-",
-expected: @"
-@if (true)
-{
-    <div><p>$0</p></div>
-}
-");
+            input: """
+                @if (true)
+                {
+                    <div><p>$$</div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div><p>$0</p></div>
+                }
+                """);
     }
 
     [Fact]
@@ -802,18 +798,18 @@ expected: @"
     public void OnTypeCloseAngle_TagNextToTag_NestedStatement()
     {
         RunAutoInsertTest(
-input: @"
-@if (true)
-{
-    <p>$$<div></div>
-}
-",
-expected: @"
-@if (true)
-{
-    <p>$0</p><div></div>
-}
-");
+            input: """
+                @if (true)
+                {
+                    <p>$$<div></div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <p>$0</p><div></div>
+                }
+                """);
     }
 
     [Fact]
@@ -821,58 +817,58 @@ expected: @"
     public void OnTypeCloseAngle_TagNextToVoidTag_NestedStatement()
     {
         RunAutoInsertTest(
-input: @"
-@if (true)
-{
-    <p>$$<input />
-}
-",
-expected: @"
-@if (true)
-{
-    <p>$0</p><input />
-}
-");
+            input: """
+                @if (true)
+                {
+                    <p>$$<input />
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <p>$0</p><input />
+                }
+                """);
     }
 
     [Fact]
     public void OnTypeCloseAngle_ClosesStandardHTMLTag()
     {
         RunAutoInsertTest(
-input: @"
-    <div>$$
-",
-expected: @"
-    <div>$0</div>
-");
+            input: """
+                    <div>$$
+                    """,
+            expected: """
+                    <div>$0</div>
+                    """);
     }
 
     [Fact]
     public void OnTypeCloseAngle_ClosesStandardHTMLTag_CodeBlock()
     {
         RunAutoInsertTest(
-input: @"
-@{
-    <div>$$
-}
-",
-expected: @"
-@{
-    <div>$0</div>
-}
-");
+            input: """
+                @{
+                    <div>$$
+                }
+                """,
+            expected: """
+                @{
+                    <div>$0</div>
+                }
+                """);
     }
 
     [Fact]
     public void OnTypeCloseAngle_ClosesVoidHTMLTag()
     {
         RunAutoInsertTest(
-input: @"
-    <input>$$
-",
-expected: @"
-    <input />
-");
+            input: """
+                   <input>$$
+                   """,
+            expected: """
+                    <input />
+                    """);
     }
 
     [Fact]
@@ -880,79 +876,73 @@ expected: @"
     public void OnTypeCloseAngle_ClosesVoidHTMLTag_NestedStatement()
     {
         RunAutoInsertTest(
-input: @"
-@if (true)
-{
-    <strong><input>$$</strong>
-}
-",
-expected: @"
-@if (true)
-{
-    <strong><input /></strong>
-}
-");
+            input: """
+                @if (true)
+                {
+                    <strong><input>$$</strong>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <strong><input /></strong>
+                }
+                """);
     }
 
     [Fact]
     public void OnTypeCloseAngle_ClosesVoidHTMLTag_CodeBlock()
     {
         RunAutoInsertTest(
-input: @"
-@{
-    <input>$$
-}
-",
-expected: @"
-@{
-    <input />
-}
-");
+            input: """
+                @{
+                    <input>$$
+                }
+                """,
+            expected: """
+                @{
+                    <input />
+                }
+                """);
     }
 
     [Fact]
     public void OnTypeCloseAngle_WithSlash_ClosesVoidHTMLTag()
     {
         RunAutoInsertTest(
-input: @"
-    <input />$$
-",
-expected: @"
-    <input />
-");
+            input: """
+                <input />$$
+                """,
+            expected: """
+                <input />
+                """);
     }
 
     [Fact]
     public void OnTypeCloseAngle_WithSpace_ClosesVoidHTMLTag()
     {
         RunAutoInsertTest(
-input: @"
-    <input >$$
-",
-expected: @"
-    <input />
-");
+            input: """
+                <input >$$
+                """,
+            expected: """
+                <input />
+                """);
     }
 
     [Fact]
     public void OnTypeCloseAngle_AutoInsertDisabled_Noops()
     {
-        Options = RazorLSPOptions.Default with { AutoClosingTags = false };
         RunAutoInsertTest(
-input: @"
-    <div>$$
-",
-expected: @"
-    <div>
-");
+            input: """
+                <div>$$
+                """,
+            expected: """
+                <div>
+                """,
+            enableAutoClosingTags: false);
     }
 
     internal override IOnAutoInsertProvider CreateProvider()
-    {
-        var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
-        optionsMonitor.SetupGet(o => o.CurrentValue).Returns(Options);
-
-        var provider = new AutoClosingTagOnAutoInsertProvider(optionsMonitor.Object, LoggerFactory);
-        return provider;
-    }
+        => new AutoClosingTagOnAutoInsertProvider();
 }

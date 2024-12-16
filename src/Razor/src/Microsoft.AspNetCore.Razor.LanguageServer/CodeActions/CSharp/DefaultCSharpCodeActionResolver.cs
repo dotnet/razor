@@ -8,52 +8,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
+internal sealed class DefaultCSharpCodeActionResolver(
+    IDocumentContextFactory documentContextFactory,
+    IClientConnection clientConnection,
+    IRazorFormattingService razorFormattingService) : CSharpCodeActionResolver(clientConnection)
 {
-    // Usually when we need to format code, we utilize the formatting options provided
-    // by the platform. However, we aren't provided such options in the case of code actions
-    // so we use a default (and commonly used) configuration.
-    private static readonly FormattingOptions s_defaultFormattingOptions = new FormattingOptions()
-    {
-        TabSize = 4,
-        InsertSpaces = true,
-        OtherOptions = new Dictionary<string, object>
-        {
-            { "trimTrailingWhitespace", true },
-            { "insertFinalNewline", true },
-            { "trimFinalNewlines", true },
-        },
-    };
-
-    private readonly IDocumentContextFactory _documentContextFactory;
-    private readonly IRazorFormattingService _razorFormattingService;
-
-    public DefaultCSharpCodeActionResolver(
-        IDocumentContextFactory documentContextFactory,
-        IClientConnection clientConnection,
-        IRazorFormattingService razorFormattingService)
-        : base(clientConnection)
-    {
-        if (documentContextFactory is null)
-        {
-            throw new ArgumentNullException(nameof(documentContextFactory));
-        }
-
-        if (razorFormattingService is null)
-        {
-            throw new ArgumentNullException(nameof(razorFormattingService));
-        }
-
-        _documentContextFactory = documentContextFactory;
-        _razorFormattingService = razorFormattingService;
-    }
+    private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
+    private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
 
     public override string Action => LanguageServerConstants.CodeActions.Default;
 
@@ -62,23 +32,12 @@ internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
-        if (csharpParams is null)
-        {
-            throw new ArgumentNullException(nameof(csharpParams));
-        }
-
-        if (codeAction is null)
-        {
-            throw new ArgumentNullException(nameof(codeAction));
-        }
-
-        var documentContext = _documentContextFactory.TryCreateForOpenDocument(csharpParams.RazorFileIdentifier);
-        if (documentContext is null)
+        if (!_documentContextFactory.TryCreate(csharpParams.RazorFileIdentifier, out var documentContext))
         {
             return codeAction;
         }
 
-        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileIdentifier, documentContext.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
+        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileIdentifier, documentContext.Snapshot.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
         if (resolvedCodeAction?.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action
@@ -102,25 +61,23 @@ internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var csharpTextEdits = textDocumentEdit.Edits;
+        var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var csharpTextChanges = textDocumentEdit.Edits.SelectAsArray(csharpSourceText.GetTextChange);
 
         // Remaps the text edits from the generated C# to the razor file,
         // as well as applying appropriate formatting.
-        var formattedEdits = await _razorFormattingService.FormatCodeActionAsync(
+        var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(
             documentContext,
-            RazorLanguageKind.CSharp,
-            csharpTextEdits,
-            s_defaultFormattingOptions,
+            csharpTextChanges,
+            new RazorFormattingOptions(),
             cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var documentVersion = documentContext.Version;
-
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
         {
-            Uri = csharpParams.RazorFileIdentifier.Uri,
-            Version = documentVersion,
+            Uri = csharpParams.RazorFileIdentifier.Uri
         };
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {
@@ -128,7 +85,7 @@ internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
                 new TextDocumentEdit()
                 {
                     TextDocument = codeDocumentIdentifier,
-                    Edits = formattedEdits,
+                    Edits = formattedChange is { } change ? [sourceText.GetTextEdit(change)] : [],
                 }
             }
         };

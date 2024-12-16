@@ -12,12 +12,12 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
@@ -35,21 +35,20 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
     [GlobalSetup]
     public async Task SetupAsync()
     {
-        var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-
-        var razorCompletionListProvider = languageServer.GetRequiredService<RazorCompletionListProvider>();
-        var lspServices = languageServer.GetLspServices();
+        var razorCompletionListProvider = RazorLanguageServerHost.GetRequiredService<RazorCompletionListProvider>();
+        var lspServices = RazorLanguageServerHost.GetRequiredService<ILspServices>();
         var responseRewriters = lspServices.GetRequiredServices<DelegatedCompletionResponseRewriter>();
-        var documentMappingService = lspServices.GetRequiredService<IRazorDocumentMappingService>();
+        var documentMappingService = lspServices.GetRequiredService<IDocumentMappingService>();
         var clientConnection = lspServices.GetRequiredService<IClientConnection>();
         var completionListCache = lspServices.GetRequiredService<CompletionListCache>();
-        var loggerFactory = lspServices.GetRequiredService<IRazorLoggerFactory>();
+        var loggerFactory = lspServices.GetRequiredService<ILoggerFactory>();
 
         var delegatedCompletionListProvider = new TestDelegatedCompletionListProvider(responseRewriters, documentMappingService, clientConnection, completionListCache);
         var completionListProvider = new CompletionListProvider(razorCompletionListProvider, delegatedCompletionListProvider);
-        var optionsMonitor = new BenchmarkOptionsMonitor<RazorLSPOptions>(RazorLSPOptions.Default);
+        var configurationService = new DefaultRazorConfigurationService(clientConnection, loggerFactory);
+        var optionsMonitor = new RazorLSPOptionsMonitor(configurationService, RazorLSPOptions.Default);
 
-        CompletionEndpoint = new RazorCompletionEndpoint(completionListProvider, telemetryReporter: null, optionsMonitor, loggerFactory);
+        CompletionEndpoint = new RazorCompletionEndpoint(completionListProvider, telemetryReporter: null, optionsMonitor);
 
         var clientCapabilities = new VSInternalClientCapabilities
         {
@@ -78,16 +77,10 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync();
 
-        RazorPosition = ToPosition(razorCodeActionIndex);
+        RazorPosition = DocumentText.GetPosition(razorCodeActionIndex);
 
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, 1);
-        RazorRequestContext = new RazorRequestContext(documentContext, languageServer.GetLspServices(), "lsp/method", uri: null);
-
-        Position ToPosition(int index)
-        {
-            DocumentText.GetLineAndOffset(index, out var line, out var offset);
-            return new Position(line, offset);
-        }
+        var documentContext = new DocumentContext(DocumentUri, DocumentSnapshot, projectContext: null);
+        RazorRequestContext = new RazorRequestContext(documentContext, RazorLanguageServerHost.GetRequiredService<ILspServices>(), "lsp/method", uri: null);
     }
 
     private static string GetFileContents()
@@ -148,12 +141,12 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
 
     private class TestDelegatedCompletionListProvider : DelegatedCompletionListProvider
     {
-        public TestDelegatedCompletionListProvider(IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters, IRazorDocumentMappingService documentMappingService, IClientConnection clientConnection, CompletionListCache completionListCache)
+        public TestDelegatedCompletionListProvider(IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters, IDocumentMappingService documentMappingService, IClientConnection clientConnection, CompletionListCache completionListCache)
             : base(responseRewriters, documentMappingService, clientConnection, completionListCache)
         {
         }
 
-        public override Task<VSInternalCompletionList?> GetCompletionListAsync(int absoluteIndex, VSInternalCompletionContext completionContext, VersionedDocumentContext documentContext, VSInternalClientCapabilities clientCapabilities, Guid correlationId, CancellationToken cancellationToken)
+        public override Task<VSInternalCompletionList?> GetCompletionListAsync(int absoluteIndex, VSInternalCompletionContext completionContext, DocumentContext documentContext, VSInternalClientCapabilities clientCapabilities, Guid correlationId, CancellationToken cancellationToken)
         {
             return Task.FromResult<VSInternalCompletionList?>(
                 new VSInternalCompletionList

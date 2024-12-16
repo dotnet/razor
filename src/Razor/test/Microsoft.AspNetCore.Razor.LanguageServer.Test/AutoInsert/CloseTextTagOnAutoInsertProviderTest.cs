@@ -1,8 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.Options;
-using Moq;
+using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,36 +13,30 @@ public class CloseTextTagOnAutoInsertProviderTest(ITestOutputHelper testOutput) 
     public void OnTypeCloseAngle_ClosesTextTag()
     {
         RunAutoInsertTest(
-input: @"
-@{
-    <text>$$
-}
-",
-expected: @"
-@{
-    <text>$0</text>
-}
-");
+            input: """
+            @{
+                <text>$$
+            }
+            """,
+            expected: """
+            @{
+                <text>$0</text>
+            }
+            """);
     }
 
     [Fact]
     public void OnTypeCloseAngle_OutsideRazorBlock_DoesNotCloseTextTag()
     {
         RunAutoInsertTest(
-input: @"
-    <text>$$
-",
-expected: @"
-    <text>
-");
+            input: """
+                <text>$$
+                """,
+            expected: """
+                <text>
+                """);
     }
 
-    internal override IOnAutoInsertProvider CreateProvider()
-    {
-        var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
-        optionsMonitor.SetupGet(o => o.CurrentValue).Returns(RazorLSPOptions.Default);
-        var provider = new CloseTextTagOnAutoInsertProvider(optionsMonitor.Object, LoggerFactory);
-
-        return provider;
-    }
+    internal override IOnAutoInsertProvider CreateProvider() =>
+        new CloseTextTagOnAutoInsertProvider();
 }

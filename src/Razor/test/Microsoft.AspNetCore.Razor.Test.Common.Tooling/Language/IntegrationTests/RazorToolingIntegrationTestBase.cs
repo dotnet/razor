@@ -10,10 +10,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
@@ -23,7 +21,6 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
-[UseExportProvider]
 public class RazorToolingIntegrationTestBase : ToolingTestBase
 {
     internal const string ArbitraryWindowsPath = "x:\\dir\\subdir\\Test";
@@ -37,24 +34,10 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
     static RazorToolingIntegrationTestBase()
     {
-        var referenceAssemblyRoots = new[]
-        {
-            typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
-            typeof(Enumerable).Assembly, // Other .NET fundamental types
-            typeof(System.Linq.Expressions.Expression).Assembly,
-            typeof(ComponentBase).Assembly,
-        };
-
-        var referenceAssemblies = referenceAssemblyRoots
-            .SelectMany(assembly => assembly.GetReferencedAssemblies().Concat(new[] { assembly.GetName() }))
-            .Distinct()
-            .Select(Assembly.Load)
-            .Select(assembly => MetadataReference.CreateFromFile(assembly.Location))
-            .ToList();
         DefaultBaseCompilation = CSharpCompilation.Create(
             "TestAssembly",
             Array.Empty<SyntaxTree>(),
-            referenceAssemblies,
+            ReferenceUtil.AspNetLatestAll,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         CSharpParseOptions = new CSharpParseOptions(LanguageVersion.Preview);
@@ -131,7 +114,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
             if (LineEnding != null)
             {
-                b.Phases.Insert(0, new ForceLineEndingPhase(LineEnding));
+                b.Features.Add(new SetNewLineOptionFeature(LineEnding));
             }
 
             b.Features.Add(new DefaultTypeNameFeature());
@@ -388,6 +371,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
     private class CompilationFailedException : XunitException
     {
         public CompilationFailedException(Compilation compilation)
+            :base("Compilation failed")
         {
             Compilation = compilation;
         }
@@ -443,20 +427,13 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         }
     }
 
-    private class ForceLineEndingPhase : RazorEnginePhaseBase
+    private sealed class SetNewLineOptionFeature(string newLine) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
-        public ForceLineEndingPhase(string lineEnding)
-        {
-            LineEnding = lineEnding;
-        }
+        public int Order { get; }
 
-        public string LineEnding { get; }
-
-        protected override void ExecuteCore(RazorCodeDocument codeDocument)
+        public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
-            var field = typeof(CodeRenderingContext).GetField("NewLineString", BindingFlags.Static | BindingFlags.NonPublic);
-            var key = field.GetValue(null);
-            codeDocument.Items[key] = LineEnding;
+            options.NewLine = newLine;
         }
     }
 

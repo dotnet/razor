@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.Logging;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 ///   test thread as the main thread.</item>
 ///   <item>A <see cref="CancellationToken"/> that signals when the test has finished running
 ///   and xUnit disposes the test class.</item>
-///   <item>An <see cref="IRazorLoggerFactory"/> implementation that writes to an xUnit
+///   <item>An <see cref="ILoggerFactory"/> implementation that writes to an xUnit
 ///   <see cref="ITestOutputHelper"/>.</item>
 ///   <item>An easy way to register <see cref="IDisposable"/> objects that should be disposed
 ///   when the test completes.</item>
@@ -47,8 +45,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     private readonly CancellationTokenSource _disposalTokenSource;
     private List<IDisposable>? _disposables;
     private List<IAsyncDisposable>? _asyncDisposables;
-    private IErrorReporter? _errorReporter;
-    private ProjectSnapshotManagerDispatcher? _dispatcher;
 
     /// <summary>
     ///  A common context within which joinable tasks may be created and interact to avoid
@@ -69,21 +65,23 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     protected CancellationToken DisposalToken { get; }
 
     /// <summary>
-    ///  An <see cref="IRazorLoggerFactory"/> that creates <see cref="ILogger"/> instances that
+    ///  An <see cref="ILoggerFactory"/> that creates <see cref="ILogger"/> instances that
     ///  write to xUnit's <see cref="ITestOutputHelper"/> for the currently running test.
     /// </summary>
-    internal IRazorLoggerFactory LoggerFactory { get; }
+    internal ILoggerFactory LoggerFactory { get; }
+
+    /// <summary>
+    /// An <see cref="ITestOutputHelper"/> that the currently running test can use to write
+    /// though using <see cref="LoggerFactory"/> is probably preferred.
+    /// </summary>
+    internal ITestOutputHelper TestOutputHelper { get; }
 
     private ILogger? _logger;
 
     /// <summary>
     ///  An <see cref="ILogger"/> for the currently running test.
     /// </summary>
-    private protected ILogger Logger => _logger ??= LoggerFactory.CreateLogger(GetType().Name);
-
-    private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
-
-    private protected ProjectSnapshotManagerDispatcher Dispatcher => _dispatcher ??= CreateDispatcher();
+    private protected ILogger Logger => _logger ??= LoggerFactory.GetOrCreateLogger(GetType().Name);
 
     protected ToolingTestBase(ITestOutputHelper testOutput)
     {
@@ -94,6 +92,7 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
         _disposalTokenSource = new();
         DisposalToken = _disposalTokenSource.Token;
 
+        TestOutputHelper = testOutput;
         LoggerFactory = new TestOutputLoggerFactory(testOutput);
 
         // Give this thread a name, so it's easier to find in the VS Threads window.
@@ -145,7 +144,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
             _disposalTokenSource.Dispose();
         }
 
-        LoggerFactory.Dispose();
         JoinableTaskContext.Dispose();
     }
 
@@ -159,15 +157,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     /// </summary>
     protected virtual Task DisposeAsync() => Task.CompletedTask;
 
-    private protected virtual ProjectSnapshotManagerDispatcher CreateDispatcher()
-        => throw new NotSupportedException($"Override {nameof(CreateDispatcher)} in order to use the {nameof(Dispatcher)} property in this test.");
-
-    protected Task RunOnDispatcherAsync(Action action)
-        => Dispatcher.RunAsync(action, DisposalToken);
-
-    protected Task<T> RunOnDispatcherAsync<T>(Func<T> func)
-        => Dispatcher.RunAsync(func, DisposalToken);
-
     /// <summary>
     ///  Register an <see cref="IDisposable"/> instance to be disposed when the test completes.
     /// </summary>
@@ -175,6 +164,16 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     {
         _disposables ??= [];
         _disposables.Add(disposable);
+    }
+
+    /// <summary>
+    ///  Register an <see cref="IDisposable"/> instance to be disposed when the test completes.
+    /// </summary>
+    protected T AddDisposable<T>(T disposable)
+        where T : IDisposable
+    {
+        AddDisposable((IDisposable)disposable);
+        return disposable;
     }
 
     /// <summary>

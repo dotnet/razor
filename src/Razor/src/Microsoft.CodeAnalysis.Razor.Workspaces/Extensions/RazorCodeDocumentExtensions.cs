@@ -2,97 +2,97 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class RazorCodeDocumentExtensions
 {
-    private static readonly object s_cSharpSourceTextKey = new();
+    private static readonly object s_csharpSourceTextKey = new();
     private static readonly object s_htmlSourceTextKey = new();
-
-    public static SourceText GetSourceText(this RazorCodeDocument document)
-    {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        return document.Source.Text;
-    }
 
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        var sourceTextObj = document.Items[s_cSharpSourceTextKey];
-        if (sourceTextObj is null)
+        if (!document.Items.TryGetValue(s_csharpSourceTextKey, out SourceText? sourceText))
         {
             var csharpDocument = document.GetCSharpDocument();
-            var sourceText = SourceText.From(csharpDocument.GeneratedCode);
-            document.Items[s_cSharpSourceTextKey] = sourceText;
+            sourceText = SourceText.From(csharpDocument.GeneratedCode);
+            document.Items[s_csharpSourceTextKey] = sourceText;
 
             return sourceText;
         }
 
-        return (SourceText)sourceTextObj;
+        return sourceText.AssumeNotNull();
     }
 
     public static SourceText GetHtmlSourceText(this RazorCodeDocument document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        var sourceTextObj = document.Items[s_htmlSourceTextKey];
-        if (sourceTextObj is null)
+        if (!document.Items.TryGetValue(s_htmlSourceTextKey, out SourceText? sourceText))
         {
             var htmlDocument = document.GetHtmlDocument();
-            var sourceText = SourceText.From(htmlDocument.GeneratedCode);
+            sourceText = SourceText.From(htmlDocument.GeneratedCode);
             document.Items[s_htmlSourceTextKey] = sourceText;
 
             return sourceText;
         }
 
-        return (SourceText)sourceTextObj;
+        return sourceText.AssumeNotNull();
+    }
+
+    public static bool TryGetGeneratedDocument(
+        this RazorCodeDocument codeDocument,
+        Uri generatedDocumentUri,
+        IFilePathService filePathService,
+        [NotNullWhen(true)] out IRazorGeneratedDocument? generatedDocument)
+    {
+        if (filePathService.IsVirtualCSharpFile(generatedDocumentUri))
+        {
+            generatedDocument = codeDocument.GetCSharpDocument();
+            return true;
+        }
+
+        if (filePathService.IsVirtualHtmlFile(generatedDocumentUri))
+        {
+            generatedDocument = codeDocument.GetHtmlDocument();
+            return true;
+        }
+
+        generatedDocument = null;
+        return false;
     }
 
     public static SourceText GetGeneratedSourceText(this RazorCodeDocument document, IRazorGeneratedDocument generatedDocument)
-    {
-        if (generatedDocument is RazorCSharpDocument)
+        => generatedDocument switch
         {
-            return GetCSharpSourceText(document);
-        }
-        else if (generatedDocument is RazorHtmlDocument)
-        {
-            return GetHtmlSourceText(document);
-        }
-
-        throw new InvalidOperationException("Unknown generated document type");
-    }
+            RazorCSharpDocument => document.GetCSharpSourceText(),
+            RazorHtmlDocument => document.GetHtmlSourceText(),
+            _ => ThrowHelper.ThrowInvalidOperationException<SourceText>("Unknown generated document type"),
+        };
 
     public static IRazorGeneratedDocument GetGeneratedDocument(this RazorCodeDocument document, RazorLanguageKind languageKind)
-      => languageKind switch
-      {
-          RazorLanguageKind.CSharp => document.GetCSharpDocument(),
-          RazorLanguageKind.Html => document.GetHtmlDocument(),
-          _ => throw new System.InvalidOperationException(),
-      };
+        => languageKind switch
+        {
+            RazorLanguageKind.CSharp => document.GetCSharpDocument(),
+            RazorLanguageKind.Html => document.GetHtmlDocument(),
+            _ => ThrowHelper.ThrowInvalidOperationException<IRazorGeneratedDocument>($"Unexpected language kind: {languageKind}"),
+        };
 
     public static bool TryGetMinimalCSharpRange(this RazorCodeDocument codeDocument, LinePositionSpan razorRange, out LinePositionSpan csharpRange)
     {
         SourceSpan? minGeneratedSpan = null;
         SourceSpan? maxGeneratedSpan = null;
 
-        var sourceText = codeDocument.GetSourceText();
-        var textSpan = razorRange.ToTextSpan(sourceText);
+        var sourceText = codeDocument.Source.Text;
+        var textSpan = sourceText.GetTextSpan(razorRange);
         var csharpDoc = codeDocument.GetCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
@@ -119,8 +119,8 @@ internal static class RazorCodeDocumentExtensions
         if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
         {
             var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var startRange = minGeneratedSpan.Value.ToLinePositionSpan(csharpSourceText);
-            var endRange = maxGeneratedSpan.Value.ToLinePositionSpan(csharpSourceText);
+            var startRange = csharpSourceText.GetLinePositionSpan(minGeneratedSpan.Value);
+            var endRange = csharpSourceText.GetLinePositionSpan(maxGeneratedSpan.Value);
 
             csharpRange = new LinePositionSpan(startRange.Start, endRange.End);
             Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");
@@ -130,5 +130,153 @@ internal static class RazorCodeDocumentExtensions
 
         csharpRange = default;
         return false;
+    }
+
+    public static bool ComponentNamespaceMatches(this RazorCodeDocument razorCodeDocument, string fullyQualifiedNamespace)
+    {
+        var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
+            .GetDocumentIntermediateNode()
+            .FindDescendantNodes<IntermediateNode>()
+            .First(static n => n is NamespaceDeclarationIntermediateNode);
+
+        return namespaceNode.Content == fullyQualifiedNamespace;
+    }
+
+    public static RazorLanguageKind GetLanguageKind(this RazorCodeDocument codeDocument, int hostDocumentIndex, bool rightAssociative)
+    {
+        var classifiedSpans = GetClassifiedSpans(codeDocument);
+        var tagHelperSpans = GetTagHelperSpans(codeDocument);
+        var documentLength = codeDocument.Source.Text.Length;
+
+        return GetLanguageKindCore(classifiedSpans, tagHelperSpans, hostDocumentIndex, documentLength, rightAssociative);
+    }
+
+    private static ImmutableArray<ClassifiedSpanInternal> GetClassifiedSpans(RazorCodeDocument document)
+    {
+        // Since this service is called so often, we get a good performance improvement by caching these values
+        // for this code document. If the document changes, as the user types, then the document instance will be
+        // different, so we don't need to worry about invalidating the cache.
+        if (!document.Items.TryGetValue(typeof(ClassifiedSpanInternal), out ImmutableArray<ClassifiedSpanInternal> classifiedSpans))
+        {
+            var syntaxTree = document.GetSyntaxTree();
+            classifiedSpans = syntaxTree.GetClassifiedSpans();
+
+            document.Items[typeof(ClassifiedSpanInternal)] = classifiedSpans;
+        }
+
+        return classifiedSpans;
+    }
+
+    private static ImmutableArray<TagHelperSpanInternal> GetTagHelperSpans(RazorCodeDocument document)
+    {
+        // Since this service is called so often, we get a good performance improvement by caching these values
+        // for this code document. If the document changes, as the user types, then the document instance will be
+        // different, so we don't need to worry about invalidating the cache.
+        if (!document.Items.TryGetValue(typeof(TagHelperSpanInternal), out ImmutableArray<TagHelperSpanInternal> tagHelperSpans))
+        {
+            var syntaxTree = document.GetSyntaxTree();
+            tagHelperSpans = syntaxTree.GetTagHelperSpans();
+
+            document.Items[typeof(TagHelperSpanInternal)] = tagHelperSpans;
+        }
+
+        return tagHelperSpans;
+    }
+
+    private static RazorLanguageKind GetLanguageKindCore(
+        ImmutableArray<ClassifiedSpanInternal> classifiedSpans,
+        ImmutableArray<TagHelperSpanInternal> tagHelperSpans,
+        int hostDocumentIndex,
+        int hostDocumentLength,
+        bool rightAssociative)
+    {
+        var length = classifiedSpans.Length;
+        for (var i = 0; i < length; i++)
+        {
+            var classifiedSpan = classifiedSpans[i];
+            var span = classifiedSpan.Span;
+
+            if (span.AbsoluteIndex <= hostDocumentIndex)
+            {
+                var end = span.AbsoluteIndex + span.Length;
+                if (end >= hostDocumentIndex)
+                {
+                    if (end == hostDocumentIndex)
+                    {
+                        // We're at an edge.
+
+                        if (classifiedSpan.SpanKind is SpanKindInternal.MetaCode or SpanKindInternal.Transition)
+                        {
+                            // If we're on an edge of a transition of some kind (MetaCode representing an open or closing piece of syntax such as <|,
+                            // and Transition representing an explicit transition to/from razor syntax, such as @|), prefer to classify to the span
+                            // to the right to better represent where the user clicks
+                            continue;
+                        }
+
+                        // If we're right associative, then we don't want to use the classification that we're at the end
+                        // of, if we're also at the start of the next one
+                        if (rightAssociative)
+                        {
+                            if (i < classifiedSpans.Length - 1 && classifiedSpans[i + 1].Span.AbsoluteIndex == hostDocumentIndex)
+                            {
+                                // If we're at the start of the next span, then use that span
+                                return GetLanguageFromClassifiedSpan(classifiedSpans[i + 1]);
+                            }
+
+                            // Otherwise, we did not find a match using right associativity, so check for tag helpers
+                            break;
+                        }
+                    }
+
+                    return GetLanguageFromClassifiedSpan(classifiedSpan);
+                }
+            }
+        }
+
+        foreach (var tagHelperSpan in tagHelperSpans)
+        {
+            var span = tagHelperSpan.Span;
+
+            if (span.AbsoluteIndex <= hostDocumentIndex)
+            {
+                var end = span.AbsoluteIndex + span.Length;
+                if (end >= hostDocumentIndex)
+                {
+                    if (end == hostDocumentIndex)
+                    {
+                        // We're at an edge. TagHelper spans never own their edge and aren't represented by marker spans
+                        continue;
+                    }
+
+                    // Found intersection
+                    return RazorLanguageKind.Html;
+                }
+            }
+        }
+
+        // Use the language of the last classified span if we're at the end
+        // of the document.
+        if (classifiedSpans.Length != 0 && hostDocumentIndex == hostDocumentLength)
+        {
+            var lastClassifiedSpan = classifiedSpans.Last();
+            return GetLanguageFromClassifiedSpan(lastClassifiedSpan);
+        }
+
+        // Default to Razor
+        return RazorLanguageKind.Razor;
+
+        static RazorLanguageKind GetLanguageFromClassifiedSpan(ClassifiedSpanInternal classifiedSpan)
+        {
+            // Overlaps with request
+            return classifiedSpan.SpanKind switch
+            {
+                SpanKindInternal.Markup => RazorLanguageKind.Html,
+                SpanKindInternal.Code => RazorLanguageKind.CSharp,
+
+                // Content type was non-C# or Html or we couldn't find a classified span overlapping the request position.
+                // All other classified span kinds default back to Razor
+                _ => RazorLanguageKind.Razor,
+            };
+        }
     }
 }

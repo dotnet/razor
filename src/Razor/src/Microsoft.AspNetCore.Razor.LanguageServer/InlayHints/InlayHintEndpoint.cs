@@ -3,18 +3,17 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentInlayHintName)]
-internal sealed class InlayHintEndpoint(LanguageServerFeatureOptions featureOptions, IInlayHintService inlayHintService, IClientConnection clientConnection)
+internal sealed class InlayHintEndpoint(IInlayHintService inlayHintService, IClientConnection clientConnection)
     : IRazorRequestHandler<InlayHintParams, InlayHint[]?>, ICapabilitiesProvider
 {
-    private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
     private readonly IInlayHintService _inlayHintService = inlayHintService;
     private readonly IClientConnection _clientConnection = clientConnection;
 
@@ -30,7 +29,12 @@ internal sealed class InlayHintEndpoint(LanguageServerFeatureOptions featureOpti
 
     public Task<InlayHint[]?> HandleRequestAsync(InlayHintParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
-        var documentContext = context.GetRequiredDocumentContext();
+        var documentContext = context.DocumentContext;
+        if (documentContext is null)
+        {
+            return SpecializedTasks.Null<InlayHint[]>();
+        }
+
         return _inlayHintService.GetInlayHintsAsync(_clientConnection, documentContext, request.Range, cancellationToken);
     }
 }

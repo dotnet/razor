@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -13,8 +15,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location,
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
     Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
@@ -25,17 +27,17 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
     public async Task Handle_SingleServer_CSharp_Method()
     {
         var input = """
-                <div></div>
-                @{
-                    var x = Ge$$tX();
-                }
-                @functions
+            <div></div>
+            @{
+                var x = Ge$$tX();
+            }
+            @functions
+            {
+                void [|GetX|]()
                 {
-                    void [|GetX|]()
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
         await VerifyCSharpGoToDefinitionAsync(input);
     }
@@ -44,19 +46,19 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
     public async Task Handle_SingleServer_CSharp_Local()
     {
         var input = """
-                <div></div>
-                @{
-                    var x = GetX();
-                }
-                @functions
+            <div></div>
+            @{
+                var x = GetX();
+            }
+            @functions
+            {
+                private string [|_name|];
+                string GetX()
                 {
-                    private string [|_name|];
-                    string GetX()
-                    {
-                        return _na$$me;
-                    }
+                    return _na$$me;
                 }
-                """;
+            }
+            """;
 
         await VerifyCSharpGoToDefinitionAsync(input);
     }
@@ -65,12 +67,12 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
     public async Task Handle_SingleServer_CSharp_MetadataReference()
     {
         var input = """
-                <div></div>
-                @functions
-                {
-                    private stri$$ng _name;
-                }
-                """;
+            <div></div>
+            @functions
+            {
+                private stri$$ng _name;
+            }
+            """;
 
         // Arrange
         TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
@@ -88,12 +90,11 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
         Assert.EndsWith("String.cs", location.Uri.ToString());
 
         // Note: The location is in a generated C# "metadata-as-source" file, which has a different
-        // number of using directives in .NET Framework vs. .NET Core. So, the line numbers are different.
-#if NETFRAMEWORK
-        Assert.Equal(24, location.Range.Start.Line);
-#else
-        Assert.Equal(21, location.Range.Start.Line);
-#endif
+        // number of using directives in .NET Framework vs. .NET Core, so rather than relying on line
+        // numbers we do some vague notion of actual navigation and test the actual source line that
+        // the user would see.
+        var line = File.ReadLines(location.Uri.LocalPath).ElementAt(location.Range.Start.Line);
+        Assert.Contains("public sealed class String", line);
     }
 
     [Theory]
@@ -103,15 +104,15 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
     public async Task Handle_SingleServer_Attribute_SameFile(string method)
     {
         var input = $$"""
-                <button @onclick="{{method}}"></div>
+            <button @onclick="{{method}}"></div>
 
-                @code
+            @code
+            {
+                void [|IncrementCount|]()
                 {
-                    void [|IncrementCount|]()
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
         await VerifyCSharpGoToDefinitionAsync(input, "test.razor");
     }
@@ -145,30 +146,30 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
     public async Task Handle_SingleServer_ComponentAttribute_OtherRazorFile(string attribute)
     {
         var input = $$"""
-                <SurveyPrompt {{attribute}}="InputValue" />
+            <SurveyPrompt {{attribute}}="InputValue" />
 
-                @code
+            @code
+            {
+                private string? InputValue { get; set; }
+
+                private void BindAfter()
                 {
-                    private string? InputValue { get; set; }
-
-                    private void BindAfter()
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
         // Need to put this in the right namespace, to match the tag helper defined in our test json
         var surveyPrompt = """
-                @namespace BlazorApp1.Shared
+            @namespace BlazorApp1.Shared
 
-                <div></div>
+            <div></div>
 
-                @code
-                {
-                    [Parameter]
-                    public string [|Title|] { get; set; }
-                }
-                """;
+            @code
+            {
+                [Parameter]
+                public string [|Title|] { get; set; }
+            }
+            """;
 
         TestFileMarkupParser.GetSpan(surveyPrompt, out surveyPrompt, out var expectedSpan);
         var additionalRazorDocuments = new[]
@@ -196,7 +197,7 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
 
         // We can still expect the character to be correct, even if the line won't match
         var surveyPromptSourceText = SourceText.From(surveyPrompt);
-        var range = expectedSpan.ToRange(surveyPromptSourceText);
+        var range = surveyPromptSourceText.GetRange(expectedSpan);
         Assert.Equal(range.Start.Character, location.Range.Start.Character);
     }
 
@@ -217,7 +218,7 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
         var location = Assert.Single(locations);
         Assert.Equal(new Uri(razorFilePath), location.Uri);
 
-        var expectedRange = expectedSpan.ToRange(codeDocument.GetSourceText());
+        var expectedRange = codeDocument.Source.Text.GetRange(expectedSpan);
         Assert.Equal(expectedRange, location.Range);
     }
 
@@ -236,22 +237,22 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
                 rootNamespace: "project"));
         });
 
-        var searchEngine = new DefaultRazorComponentSearchEngine(projectManager, LoggerFactory);
+        var componentSearchEngine = new RazorComponentSearchEngine(projectManager, LoggerFactory);
+        var componentDefinitionService = new RazorComponentDefinitionService(componentSearchEngine, DocumentMappingService, LoggerFactory);
 
         var razorUri = new Uri(razorFilePath);
-        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(razorUri);
+        Assert.True(DocumentContextFactory.TryCreate(razorUri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
-        var endpoint = new DefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, languageServer, LoggerFactory);
+        var endpoint = new DefinitionEndpoint(componentDefinitionService, DocumentMappingService, LanguageServerFeatureOptions, languageServer, LoggerFactory);
 
-        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
         var request = new TextDocumentPositionParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = new Uri(razorFilePath)
             },
-            Position = new Position(line, offset)
+            Position = codeDocument.Source.Text.GetPosition(cursorPosition)
         };
 
         return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);

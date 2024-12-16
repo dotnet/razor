@@ -2,30 +2,44 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.CodeAnalysis;
 
 internal static class SolutionExtensions
 {
-    internal static Project GetRequiredProject(this Solution solution, ProjectId projectId)
+    public static ImmutableArray<DocumentId> GetDocumentIdsWithUri(this Solution solution, Uri uri)
+        => solution.GetDocumentIdsWithFilePath(uri.GetDocumentFilePath());
+
+    public static bool TryGetRazorDocument(this Solution solution, Uri razorDocumentUri, [NotNullWhen(true)] out TextDocument? razorDocument)
     {
-        if (solution is null)
+        var razorDocumentId = solution.GetDocumentIdsWithUri(razorDocumentUri).FirstOrDefault();
+
+        // If we couldn't locate the .razor file, just return the generated file.
+        if (razorDocumentId is null ||
+            solution.GetAdditionalDocument(razorDocumentId) is not TextDocument document)
         {
-            throw new ArgumentNullException(nameof(solution));
+            razorDocument = null;
+            return false;
         }
 
-        if (projectId is null)
-        {
-            throw new ArgumentNullException(nameof(projectId));
-        }
+        razorDocument = document;
+        return true;
+    }
 
-        var project = solution.GetProject(projectId);
+    public static Project GetRequiredProject(this Solution solution, ProjectId projectId)
+    {
+        return solution.GetProject(projectId)
+            ?? ThrowHelper.ThrowInvalidOperationException<Project>($"The projectId {projectId} did not exist in {solution}.");
+    }
 
-        if (project is null)
-        {
-            throw new InvalidOperationException($"The projectId {projectId} did not exist in {solution}.");
-        }
-
-        return project;
+    public static Document GetRequiredDocument(this Solution solution, DocumentId documentId)
+    {
+        return solution.GetDocument(documentId)
+            ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {solution.FilePath ?? "solution"}.");
     }
 }

@@ -8,10 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,8 +24,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
 {
-    private readonly RazorVSInternalCodeAction[] _supportedCodeActions;
-    private readonly RazorVSInternalCodeAction[] _supportedImplicitExpressionCodeActions;
+    private readonly ImmutableArray<RazorVSInternalCodeAction> _supportedCodeActions;
+    private readonly ImmutableArray<RazorVSInternalCodeAction> _supportedImplicitExpressionCodeActions;
 
     public DefaultCSharpCodeActionProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -32,12 +33,12 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         _supportedCodeActions = DefaultCSharpCodeActionProvider
             .SupportedDefaultCodeActionNames
             .Select(name => new RazorVSInternalCodeAction { Name = name })
-            .ToArray();
+            .ToImmutableArray();
 
         _supportedImplicitExpressionCodeActions = DefaultCSharpCodeActionProvider
             .SupportedImplicitExpressionCodeActionNames
             .Select(name => new RazorVSInternalCodeAction { Name = name })
-            .ToArray();
+            .ToImmutableArray();
     }
 
     [Fact]
@@ -51,7 +52,7 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -65,8 +66,7 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
-        Assert.NotNull(providedCodeActions);
-        Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
+        Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedCodeActions.Select(action => action.Name);
         Assert.Equal(expectedNames, providedNames);
@@ -83,7 +83,7 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -97,7 +97,6 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
-        Assert.NotNull(providedCodeActions);
         Assert.Empty(providedCodeActions);
     }
 
@@ -112,7 +111,7 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -126,8 +125,7 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
-        Assert.NotNull(providedCodeActions);
-        Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
+        Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedCodeActions.Select(action => action.Name);
         Assert.Equal(expectedNames, providedNames);
@@ -146,7 +144,7 @@ $$Path;
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -160,8 +158,7 @@ $$Path;
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
-        Assert.NotNull(providedCodeActions);
-        Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
+        Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedCodeActions.Select(action => action.Name);
         Assert.Equal(expectedNames, providedNames);
@@ -181,7 +178,7 @@ $$Path;
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -195,8 +192,7 @@ $$Path;
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
-        Assert.NotNull(providedCodeActions);
-        Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
+        Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Length);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedCodeActions.Select(action => action.Name);
         Assert.Equal(expectedNames, providedNames);
@@ -213,7 +209,7 @@ $$Path;
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -223,20 +219,19 @@ $$Path;
 
         var provider = new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
 
-        var codeActions = new RazorVSInternalCodeAction[]
-        {
+        ImmutableArray<RazorVSInternalCodeAction> codeActions =
+        [
            new RazorVSInternalCodeAction()
            {
                Title = "Do something not really supported in razor",
                Name = "Non-existant name"
            }
-        };
+        ];
 
         // Act
         var providedCodeActions = await provider.ProvideAsync(context, codeActions, default);
 
         // Assert
-        Assert.NotNull(providedCodeActions);
         Assert.Empty(providedCodeActions);
     }
 
@@ -251,7 +246,7 @@ $$Path;
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -262,20 +257,19 @@ $$Path;
         var options = new ConfigurableLanguageServerFeatureOptions(new[] { $"--{nameof(ConfigurableLanguageServerFeatureOptions.ShowAllCSharpCodeActions)}" });
         var provider = new DefaultCSharpCodeActionProvider(options);
 
-        var codeActions = new RazorVSInternalCodeAction[]
-        {
+        ImmutableArray<RazorVSInternalCodeAction> codeActions =
+        [
            new RazorVSInternalCodeAction()
            {
                Title = "Do something not really supported in razor",
                Name = "Non-existant name"
            }
-        };
+        ];
 
         // Act
         var providedCodeActions = await provider.ProvideAsync(context, codeActions, default);
 
         // Assert
-        Assert.NotNull(providedCodeActions);
         Assert.NotEmpty(providedCodeActions);
     }
 
@@ -298,7 +292,7 @@ $$Path;
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -312,8 +306,7 @@ $$Path;
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
-        Assert.NotNull(providedCodeActions);
-        Assert.Equal(_supportedImplicitExpressionCodeActions.Length, providedCodeActions.Count);
+        Assert.Equal(_supportedImplicitExpressionCodeActions.Length, providedCodeActions.Length);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedImplicitExpressionCodeActions.Select(action => action.Name);
         Assert.Equal(expectedNames, providedNames);
@@ -333,15 +326,15 @@ $$Path;
         var projectEngine = RazorProjectEngine.Create(builder => builder.AddTagHelpers(tagHelpers));
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
 
-        var cSharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetCSharpDocument();
         var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", "diagnostic", RazorDiagnosticSeverity.Error);
         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, componentSourceSpan);
-        var cSharpDocumentWithDiagnostic = RazorCSharpDocument.Create(codeDocument, cSharpDocument.GeneratedCode, cSharpDocument.Options, new[] { diagnostic });
-        codeDocument.SetCSharpDocument(cSharpDocumentWithDiagnostic);
+        var csharpDocumentWithDiagnostic = new RazorCSharpDocument(codeDocument, csharpDocument.GeneratedCode, csharpDocument.Options, [diagnostic]);
+        codeDocument.SetCSharpDocument(csharpDocumentWithDiagnostic);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()) &&
+            document.GetGeneratedOutputAsync(It.IsAny<bool>()) == Task.FromResult(codeDocument) &&
+            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text) &&
             document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers), MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);

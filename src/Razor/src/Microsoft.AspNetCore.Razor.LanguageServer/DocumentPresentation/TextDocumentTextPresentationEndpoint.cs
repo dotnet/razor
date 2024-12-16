@@ -3,21 +3,23 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.DocumentPresentation;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
 internal class TextDocumentTextPresentationEndpoint(
-    IRazorDocumentMappingService razorDocumentMappingService,
+    IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     IFilePathService filePathService,
-    IRazorLoggerFactory loggerFactory)
-    : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>(razorDocumentMappingService, clientConnection, filePathService, loggerFactory.CreateLogger<TextDocumentTextPresentationEndpoint>()), ITextDocumentTextPresentationHandler
+    ILoggerFactory loggerFactory)
+    : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>(documentMappingService, clientConnection, filePathService, loggerFactory.GetOrCreateLogger<TextDocumentTextPresentationEndpoint>()), ITextDocumentTextPresentationHandler
 {
     public override string EndpointName => CustomMessageNames.RazorTextPresentationEndpoint;
 
@@ -45,6 +47,6 @@ internal class TextDocumentTextPresentationEndpoint(
         CancellationToken cancellationToken)
     {
         // We don't do anything special with text
-        return Task.FromResult<WorkspaceEdit?>(null);
+        return SpecializedTasks.Null<WorkspaceEdit>();
     }
 }

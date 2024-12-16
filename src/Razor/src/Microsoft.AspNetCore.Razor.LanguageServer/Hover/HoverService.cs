@@ -12,30 +12,31 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
-using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
+using MarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
-internal sealed class HoverService(
+internal sealed partial class HoverService(
     LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
     VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
-    IRazorDocumentMappingService mappingService,
+    IDocumentMappingService documentMappingService,
     IClientCapabilitiesService clientCapabilitiesService) : IHoverService
 {
     private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
     private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
-    private readonly IRazorDocumentMappingService _mappingService = mappingService;
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
 
-    public async Task<VSInternalHover?> GetRazorHoverInfoAsync(VersionedDocumentContext documentContext, DocumentPositionInfo positionInfo, Position position, CancellationToken cancellationToken)
+    public async Task<VSInternalHover?> GetRazorHoverInfoAsync(DocumentContext documentContext, DocumentPositionInfo positionInfo, Position position, CancellationToken cancellationToken)
     {
         // HTML can still sometimes be handled by razor. For example hovering over
         // a component tag like <Counter /> will still be in an html context
@@ -48,7 +49,7 @@ internal sealed class HoverService(
 
         // Sometimes what looks like a html attribute can actually map to C#, in which case its better to let Roslyn try to handle this.
         // We can only do this if we're in single server mode though, otherwise we won't be delegating to Roslyn at all
-        if (_mappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out _, out _))
+        if (_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out _, out _))
         {
             return null;
         }
@@ -57,7 +58,7 @@ internal sealed class HoverService(
         return await GetHoverInfoAsync(documentContext.FilePath, codeDocument, location, _clientCapabilitiesService.ClientCapabilities, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<VSInternalHover?> TranslateDelegatedResponseAsync(VSInternalHover? response, VersionedDocumentContext documentContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    public async Task<VSInternalHover?> TranslateDelegatedResponseAsync(VSInternalHover? response, DocumentContext documentContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         if (response?.Range is null)
         {
@@ -72,11 +73,11 @@ internal sealed class HoverService(
         if (RazorSyntaxFacts.TryGetFullAttributeNameSpan(codeDocument, positionInfo.HostDocumentIndex, out var originalAttributeRange))
         {
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            response.Range = originalAttributeRange.ToRange(sourceText);
+            response.Range = sourceText.GetRange(originalAttributeRange);
         }
         else if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {
-            if (_mappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), response.Range, out var projectedRange))
+            if (_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), response.Range, out var projectedRange))
             {
                 response.Range = projectedRange;
             }
@@ -94,15 +95,13 @@ internal sealed class HoverService(
         return response;
     }
 
-    public TestAccessor GetTestAccessor() => new(this);
-
-    public async Task<VSInternalHover?> GetHoverInfoAsync(string documentFilePath, RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+    private async Task<VSInternalHover?> GetHoverInfoAsync(
+        string documentFilePath,
+        RazorCodeDocument codeDocument,
+        SourceLocation location,
+        VSInternalClientCapabilities clientCapabilities,
+        CancellationToken cancellationToken)
     {
-        if (codeDocument is null)
-        {
-            throw new ArgumentNullException(nameof(codeDocument));
-        }
-
         var syntaxTree = codeDocument.GetSyntaxTree();
 
         var owner = syntaxTree.Root.FindInnermostNode(location.AbsoluteIndex);
@@ -120,7 +119,6 @@ internal sealed class HoverService(
             owner = owner.Parent;
         }
 
-        var position = new Position(location.LineIndex, location.CharacterIndex);
         var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
         // We want to find the parent tag, but looking up ancestors in the tree can find other things,
@@ -344,16 +342,10 @@ internal sealed class HoverService(
         return hover;
     }
 
-    private static VisualStudioMarkupKind GetHoverContentFormat(ClientCapabilities clientCapabilities)
+    private static MarkupKind GetHoverContentFormat(ClientCapabilities clientCapabilities)
     {
         var hoverContentFormat = clientCapabilities.TextDocument?.Hover?.ContentFormat;
-        var hoverKind = hoverContentFormat?.Contains(VisualStudioMarkupKind.Markdown) == true ? VisualStudioMarkupKind.Markdown : VisualStudioMarkupKind.PlainText;
+        var hoverKind = hoverContentFormat?.Contains(MarkupKind.Markdown) == true ? MarkupKind.Markdown : MarkupKind.PlainText;
         return hoverKind;
-    }
-
-    public class TestAccessor(HoverService service)
-    {
-        public Task<VSInternalHover?> GetHoverInfoAsync(string documentFilePath, RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => service.GetHoverInfoAsync(documentFilePath, codeDocument, location, clientCapabilities, cancellationToken);
     }
 }

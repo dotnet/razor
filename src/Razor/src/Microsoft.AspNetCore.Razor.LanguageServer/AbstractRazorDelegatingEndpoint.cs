@@ -5,13 +5,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -21,13 +22,13 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
    where TRequest : ITextDocumentPositionParams
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
     private readonly IClientConnection _clientConnection;
     protected readonly ILogger Logger;
 
     protected AbstractRazorDelegatingEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IRazorDocumentMappingService documentMappingService,
+        IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
         ILogger logger)
     {
@@ -82,7 +83,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// will be used in <see cref="HandleRequestAsync(TRequest, RazorRequestContext, CancellationToken)"/>
     /// </summary>
     protected virtual Task<TResponse?> TryHandleAsync(TRequest request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
-        => Task.FromResult<TResponse?>(default);
+        => SpecializedTasks.Default<TResponse>();
 
     /// <summary>
     /// Returns true if the configuration supports this operation being handled, otherwise returns false. Use to
@@ -112,11 +113,13 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             return default;
         }
 
-        var positionInfo = await DocumentPositionInfoStrategy.TryGetPositionInfoAsync(_documentMappingService, documentContext, request.Position, Logger, cancellationToken).ConfigureAwait(false);
-        if (positionInfo is null)
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        if (!codeDocument.Source.Text.TryGetAbsoluteIndex(request.Position, out var absoluteIndex))
         {
             return default;
         }
+
+        var positionInfo = DocumentPositionInfoStrategy.GetPositionInfo(_documentMappingService, codeDocument, absoluteIndex);
 
         var response = await TryHandleAsync(request, requestContext, positionInfo, cancellationToken).ConfigureAwait(false);
         if (response is not null && response is not ISumType { Value: null })
@@ -140,7 +143,6 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             // Sometimes Html can actually be mapped to C#, like for example component attributes, which map to
             // C# properties, even though they appear entirely in a Html context. Since remapping is pretty cheap
             // it's easier to just try mapping, and see what happens, rather than checking for specific syntax nodes.
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out Position? csharpPosition, out _))
             {
                 // We're just gonna pretend this mapped perfectly normally onto C#. Moving this logic to the actual position info
@@ -168,7 +170,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         }
         catch (RemoteInvocationException e)
         {
-            Logger.LogError(e, "Error calling delegate server for {method}", CustomMessageTarget);
+            Logger.LogError(e, $"Error calling delegate server for {CustomMessageTarget}");
             requestContext.GetRequiredService<ITelemetryReporter>().ReportFault(e, "Error calling delegate server for {method}", CustomMessageTarget);
             throw;
         }

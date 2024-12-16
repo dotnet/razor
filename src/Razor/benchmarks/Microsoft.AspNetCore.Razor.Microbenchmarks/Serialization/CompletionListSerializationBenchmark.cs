@@ -2,15 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.IO;
-using System.Text;
+using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 
@@ -18,16 +18,14 @@ public class CompletionListSerializationBenchmark
 {
     private readonly byte[] _completionListBuffer;
 
-    private readonly JsonSerializer _serializer;
     private readonly CompletionList _completionList;
 
     public CompletionListSerializationBenchmark()
     {
         var completionService = new LspTagHelperCompletionService();
-        var optionsMonitor = new BenchmarkOptionsMonitor<RazorLSPOptions>(RazorLSPOptions.Default);
+        var configurationService = new BenchmarkConfigurationSyncService();
+        var optionsMonitor = new RazorLSPOptionsMonitor(configurationService, RazorLSPOptions.Default);
         var tagHelperCompletionProvider = new TagHelperCompletionProvider(completionService, optionsMonitor);
-
-        _serializer = JsonSerializer.Create();
 
         var documentContent = "<";
         var queryIndex = 1;
@@ -41,17 +39,15 @@ public class CompletionListSerializationBenchmark
         // Serialize back to json.
         MemoryStream originalStream;
         using (originalStream = new MemoryStream())
-        using (var writer = new StreamWriter(originalStream, Encoding.UTF8, bufferSize: 4096))
         {
-            _serializer.Serialize(writer, _completionList);
+            JsonSerializer.Serialize(originalStream, _completionList);
         }
 
         CompletionList deserializedCompletions;
         var stream = new MemoryStream(originalStream.GetBuffer());
         using (stream)
-        using (var reader = new JsonTextReader(new StreamReader(stream)))
         {
-            deserializedCompletions = _serializer.Deserialize<CompletionList>(reader).AssumeNotNull();
+            deserializedCompletions = JsonSerializer.Deserialize<CompletionList>(stream).AssumeNotNull();
         }
     }
 
@@ -59,8 +55,7 @@ public class CompletionListSerializationBenchmark
     public void ComponentElement_CompletionList_Serialization()
     {
         using var stream = new MemoryStream();
-        using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096);
-        _serializer.Serialize(writer, _completionList);
+        JsonSerializer.Serialize(stream, _completionList);
     }
 
     [Benchmark(Description = "Component Completion List Deserialization")]
@@ -68,9 +63,8 @@ public class CompletionListSerializationBenchmark
     {
         // Deserialize from json file.
         using var stream = new MemoryStream(_completionListBuffer);
-        using var reader = new JsonTextReader(new StreamReader(stream));
         CompletionList deserializedCompletions;
-        deserializedCompletions = _serializer.Deserialize<CompletionList>(reader).AssumeNotNull();
+        deserializedCompletions = JsonSerializer.Deserialize<CompletionList>(stream).AssumeNotNull();
     }
 
     private CompletionList GenerateCompletionList(string documentContent, int queryIndex, TagHelperCompletionProvider componentCompletionProvider)
@@ -109,8 +103,7 @@ public class CompletionListSerializationBenchmark
     private byte[] GenerateBuffer(CompletionList completionList)
     {
         using var stream = new MemoryStream();
-        using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096);
-        _serializer.Serialize(writer, completionList);
+        JsonSerializer.Serialize(stream, completionList);
         var buffer = stream.GetBuffer();
 
         return buffer;

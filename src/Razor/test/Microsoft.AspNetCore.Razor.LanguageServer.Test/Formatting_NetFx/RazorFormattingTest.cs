@@ -5,13 +5,16 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestBase(testOutput)
+[Collection(HtmlFormattingCollection.Name)]
+public class RazorFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput) : FormattingTestBase(fixture.Service, testOutput)
 {
     [Fact]
     public async Task Section_BraceOnNextLine()
@@ -49,8 +52,8 @@ public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestB
             fileKind: FileKinds.Legacy);
     }
 
-    [Fact]
-    public async Task CodeBlock_SpansMultipleLines()
+    [Theory, CombinatorialData]
+    public async Task CodeBlock_SpansMultipleLines(bool inGlobalNamespace)
     {
         await RunFormattingTestAsync(
             input: """
@@ -74,11 +77,12 @@ public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestB
                             currentCount++;
                         }
                     }
-                    """);
+                    """,
+            inGlobalNamespace: inGlobalNamespace);
     }
 
-    [Fact]
-    public async Task CodeBlock_IndentedBlock_MaintainsIndent()
+    [Theory, CombinatorialData]
+    public async Task CodeBlock_IndentedBlock_MaintainsIndent(bool inGlobalNamespace)
     {
         await RunFormattingTestAsync(
             input: """
@@ -106,7 +110,8 @@ public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestB
                             }
                         }
                     </boo>
-                    """);
+                    """,
+            inGlobalNamespace: inGlobalNamespace);
     }
 
     [Fact]
@@ -698,6 +703,31 @@ public class RazorFormattingTest(ITestOutputHelper testOutput) : FormattingTestB
                     """,
             expected: """
                     @page "MyPage"
+                    """,
+            fileKind: FileKinds.Legacy);
+    }
+
+    [Fact]
+    public async Task MultiLineComment_WithinHtml ()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <div>
+                    @* <div>
+                    This comment's opening at-star will be aligned, and the
+                    indentation of the rest of its lines will be preserved.
+                            </div>
+                        *@
+                    </div>
+                    """,
+            expected: """
+                    <div>
+                        @* <div>
+                    This comment's opening at-star will be aligned, and the
+                    indentation of the rest of its lines will be preserved.
+                            </div>
+                        *@
+                    </div>
                     """,
             fileKind: FileKinds.Legacy);
     }

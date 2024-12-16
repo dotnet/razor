@@ -2,11 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal interface IDocumentContextFactory
 {
-    DocumentContext? TryCreate(Uri documentUri, VSProjectContext? projectContext, bool versioned);
+    bool TryCreate(
+        Uri documentUri,
+        VSProjectContext? projectContext,
+        [NotNullWhen(true)] out DocumentContext? context);
 }

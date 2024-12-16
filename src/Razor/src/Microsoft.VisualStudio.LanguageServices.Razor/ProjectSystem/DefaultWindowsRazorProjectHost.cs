@@ -12,13 +12,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Item = System.Collections.Generic.KeyValuePair<string, System.Collections.Immutable.IImmutableDictionary<string, string>>;
+using Rules = Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 // This class is responsible for initializing the Razor ProjectSnapshotManager for cases where
 // MSBuild provides configuration support (>= 2.1).
@@ -43,9 +47,8 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         IUnconfiguredProjectCommonServices commonServices,
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IProjectSnapshotManager projectManager,
-        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(commonServices, serviceProvider, projectManager, projectConfigurationFilePathStore)
+        : base(commonServices, serviceProvider, projectManager)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
     }
@@ -54,7 +57,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
     protected override async Task HandleProjectChangeAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
-        if (TryGetConfiguration(update.Value.CurrentState, _languageServerFeatureOptions.ForceRuntimeCodeGeneration, out var configuration) &&
+        if (TryGetConfiguration(update.Value.CurrentState, _languageServerFeatureOptions.ToLanguageServerFlags(), out var configuration) &&
             TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
@@ -67,7 +70,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
                 await UpdateAsync(
                     updater =>
                     {
-                        var beforeProjectKey = ProjectKey.FromString(beforeIntermediateOutputPath);
+                        var beforeProjectKey = new ProjectKey(beforeIntermediateOutputPath);
                         updater.ProjectRemoved(beforeProjectKey);
                     },
                     CancellationToken.None)
@@ -93,9 +96,6 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
                         : projectFileName;
 
                     var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName);
-
-                var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
 
                     UpdateProject(updater, hostProject);
 
@@ -134,7 +134,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     // Internal for testing
     internal static bool TryGetConfiguration(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
-        bool forceRuntimeCodeGeneration,
+        LanguageServerFlags? languageServerFlags,
         [NotNullWhen(returnValue: true)] out RazorConfiguration? configuration)
     {
         if (!TryGetDefaultConfiguration(state, out var defaultConfiguration))
@@ -162,7 +162,12 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             return false;
         }
 
-        configuration = new(languageVersion, configurationItem.Key, extensions, ForceRuntimeCodeGeneration: forceRuntimeCodeGeneration);
+        configuration = new(
+            languageVersion,
+            configurationItem.Key,
+            extensions,
+            LanguageServerFlags: languageServerFlags);
+
         return true;
     }
 

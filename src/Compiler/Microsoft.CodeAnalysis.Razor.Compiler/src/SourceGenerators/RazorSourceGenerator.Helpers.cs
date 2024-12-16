@@ -74,7 +74,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             // the tagHelperFeature will have its Engine property set as part of adding it to the engine, which is used later when doing the actual discovery
             var discoveryProjectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, new VirtualRazorProjectFileSystem(), b =>
             {
-                b.Features.Add(new DefaultMetadataReferenceFeature { References = compilation.References.ToImmutableArray() });
                 b.Features.Add(tagHelperFeature);
                 b.Features.Add(new DefaultTagHelperDescriptorProvider());
 
@@ -88,8 +87,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         private static SourceGeneratorProjectEngine GetGenerationProjectEngine(
             SourceGeneratorProjectItem item,
             IEnumerable<SourceGeneratorProjectItem> imports,
-            RazorSourceGenerationOptions razorSourceGeneratorOptions,
-            bool isAddComponentParameterAvailable)
+            RazorSourceGenerationOptions razorSourceGeneratorOptions)
         {
             var fileSystem = new VirtualRazorProjectFileSystem();
             fileSystem.Add(item);
@@ -108,7 +106,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     options.SuppressMetadataSourceChecksumAttributes = !razorSourceGeneratorOptions.GenerateMetadataSourceChecksumAttributes;
                     options.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                     options.SuppressUniqueIds = razorSourceGeneratorOptions.TestSuppressUniqueIds;
-                    options.SuppressAddComponentParameter = !isAddComponentParameterAvailable;
+                    options.SuppressAddComponentParameter = razorSourceGeneratorOptions.Configuration.SuppressAddComponentParameter;
                 }));
 
                 CompilerFeatures.Register(b);

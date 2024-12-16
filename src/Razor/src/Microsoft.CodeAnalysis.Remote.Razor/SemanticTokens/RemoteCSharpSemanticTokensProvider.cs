@@ -4,10 +4,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,12 +24,14 @@ internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathServi
     private readonly IFilePathService _filePathService = filePathService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
-    public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(VersionedDocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, Guid correlationId, CancellationToken cancellationToken)
+    public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(DocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, Guid correlationId, CancellationToken cancellationToken)
     {
         using var _ = _telemetryReporter.TrackLspRequest(nameof(SemanticTokensRange.GetSemanticTokensAsync), Constants.ExternalAccessServerName, correlationId);
 
         // We have a razor document, lets find the generated C# document
-        var generatedDocument = GetGeneratedDocument(documentContext);
+        Debug.Assert(documentContext is RemoteDocumentContext, "This method only works on document snapshots created in the OOP process");
+        var snapshot = (RemoteDocumentSnapshot)documentContext.Snapshot;
+        var generatedDocument = await snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
 
         var data = await SemanticTokensRange.GetSemanticTokensAsync(
             generatedDocument,
@@ -39,20 +40,5 @@ internal class RemoteCSharpSemanticTokensProvider(IFilePathService filePathServi
             cancellationToken).ConfigureAwait(false);
 
         return data;
-    }
-
-    private Document GetGeneratedDocument(VersionedDocumentContext documentContext)
-    {
-        var snapshot = (RemoteDocumentSnapshot)documentContext.Snapshot;
-        var razorDocument = snapshot.TextDocument;
-        var solution = razorDocument.Project.Solution;
-
-        // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
-
-        var projectKey = ProjectKey.From(razorDocument.Project);
-        var generatedFilePath = _filePathService.GetRazorCSharpFilePath(projectKey, razorDocument.FilePath.AssumeNotNull());
-        var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == razorDocument.Project.Id);
-        var generatedDocument = solution.GetDocument(generatedDocumentId).AssumeNotNull();
-        return generatedDocument;
     }
 }

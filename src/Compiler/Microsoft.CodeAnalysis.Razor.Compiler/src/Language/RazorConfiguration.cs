@@ -11,22 +11,25 @@ public sealed record class RazorConfiguration(
     RazorLanguageVersion LanguageVersion,
     string ConfigurationName,
     ImmutableArray<RazorExtension> Extensions,
-    bool UseConsolidatedMvcViews = false,
-    bool ForceRuntimeCodeGeneration = false)
+    bool UseConsolidatedMvcViews = true,
+    bool SuppressAddComponentParameter = false,
+    LanguageServerFlags? LanguageServerFlags = null)
 {
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
         ConfigurationName: "unnamed",
         Extensions: [],
-        UseConsolidatedMvcViews: false,
-        ForceRuntimeCodeGeneration: false);
+        UseConsolidatedMvcViews: true,
+        SuppressAddComponentParameter: false,
+        LanguageServerFlags: null);
 
     public bool Equals(RazorConfiguration? other)
         => other is not null &&
            LanguageVersion == other.LanguageVersion &&
            ConfigurationName == other.ConfigurationName &&
+           SuppressAddComponentParameter == other.SuppressAddComponentParameter &&
+           LanguageServerFlags == other.LanguageServerFlags &&
            UseConsolidatedMvcViews == other.UseConsolidatedMvcViews &&
-           ForceRuntimeCodeGeneration == other.ForceRuntimeCodeGeneration &&
            Extensions.SequenceEqual(other.Extensions);
 
     public override int GetHashCode()
@@ -35,8 +38,9 @@ public sealed record class RazorConfiguration(
         hash.Add(LanguageVersion);
         hash.Add(ConfigurationName);
         hash.Add(Extensions);
+        hash.Add(SuppressAddComponentParameter);
         hash.Add(UseConsolidatedMvcViews);
-        hash.Add(ForceRuntimeCodeGeneration);
+        hash.Add(LanguageServerFlags);
         return hash;
     }
 }

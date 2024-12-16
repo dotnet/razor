@@ -2,21 +2,23 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,30 +29,20 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
     private static readonly CodeAction s_defaultResolvedCodeAction = new()
     {
         Title = "ResolvedCodeAction",
-        Data = JToken.FromObject(new object()),
+        Data = JsonSerializer.SerializeToElement(new object()),
         Edit = new WorkspaceEdit()
         {
             DocumentChanges = new TextDocumentEdit[] {
-                new TextDocumentEdit()
+                new()
                 {
-                    Edits = [
-                        new TextEdit()
-                        {
-                            NewText = "Generated C# Based Edit"
-                        }
-                    ]
+                    Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), "Generated C# Based Edit")]
                 }
             }
         }
     };
 
-    private static readonly TextEdit[] s_defaultFormattedEdits =
-    [
-        new TextEdit()
-        {
-            NewText = "Remapped & Formatted Edit"
-        }
-    ];
+    private static readonly TextEdit s_defaultFormattedEdit = VsLspFactory.CreateTextEdit(position: (0, 0), "Remapped & Formatted Edit");
+    private static readonly TextChange s_defaultFormattedChange = new TextChange(new TextSpan(0, 0), s_defaultFormattedEdit.NewText);
 
     private static readonly CodeAction s_defaultUnresolvedCodeAction = new CodeAction()
     {
@@ -74,7 +66,8 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         var returnedEdits = returnedCodeAction.Edit.DocumentChanges.Value;
         Assert.True(returnedEdits.TryGetFirst(out var textDocumentEdits));
         var returnedTextDocumentEdit = Assert.Single(textDocumentEdits[0].Edits);
-        Assert.Equal(s_defaultFormattedEdits.First(), returnedTextDocumentEdit);
+        Assert.Equal(s_defaultFormattedEdit.NewText, returnedTextDocumentEdit.NewText);
+        Assert.Equal(s_defaultFormattedEdit.Range, returnedTextDocumentEdit.Range);
     }
 
     [Fact]
@@ -84,7 +77,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         var resolvedCodeAction = new CodeAction()
         {
             Title = "ResolvedCodeAction",
-            Data = JToken.FromObject(new object()),
+            Data = JsonSerializer.SerializeToElement(new object()),
             Edit = new WorkspaceEdit()
             {
                 DocumentChanges = null
@@ -109,29 +102,20 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         var resolvedCodeAction = new CodeAction()
         {
             Title = "ResolvedCodeAction",
-            Data = JToken.FromObject(new object()),
+            Data = JsonSerializer.SerializeToElement(new object()),
             Edit = new WorkspaceEdit()
             {
-                DocumentChanges = new TextDocumentEdit[] {
-                        new TextDocumentEdit()
-                        {
-                            Edits = new TextEdit[] {
-                                new TextEdit()
-                                {
-                                    NewText = "1. Generated C# Based Edit"
-                                }
-                            }
-                        },
-                        new TextDocumentEdit()
-                        {
-                            Edits = new TextEdit[] {
-                                new TextEdit()
-                                {
-                                    NewText = "2. Generated C# Based Edit"
-                                }
-                            }
-                        }
+                DocumentChanges = new TextDocumentEdit[]
+                {
+                    new TextDocumentEdit()
+                    {
+                        Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), "1. Generated C# Based Edit")]
+                    },
+                    new TextDocumentEdit()
+                    {
+                        Edits = [VsLspFactory.CreateTextEdit(position: (0, 0), "2. Generated C# Based Edit")]
                     }
+                }
             }
         };
 
@@ -153,7 +137,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
         var resolvedCodeAction = new CodeAction()
         {
             Title = "ResolvedCodeAction",
-            Data = JToken.FromObject(new object()),
+            Data = JsonSerializer.SerializeToElement(new object()),
             Edit = new WorkspaceEdit()
             {
                 DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] {
@@ -189,7 +173,7 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
 
         codeActionParams = new CodeActionResolveParams()
         {
-            Data = new JObject(),
+            Data = new JsonElement(),
             RazorFileIdentifier = new VSTextDocumentIdentifier
             {
                 Uri = documentUri
@@ -208,12 +192,11 @@ public class DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput) :
     private static IRazorFormattingService CreateRazorFormattingService(Uri documentUri)
     {
         var razorFormattingService = Mock.Of<IRazorFormattingService>(
-                        rfs => rfs.FormatCodeActionAsync(
+                        rfs => rfs.TryGetCSharpCodeActionEditAsync(
                             It.Is<DocumentContext>(c => c.Uri == documentUri),
-                            RazorLanguageKind.CSharp,
-                            It.IsAny<TextEdit[]>(),
-                            It.IsAny<FormattingOptions>(),
-                            It.IsAny<CancellationToken>()) == Task.FromResult(s_defaultFormattedEdits), MockBehavior.Strict);
+                            It.IsAny<ImmutableArray<TextChange>>(),
+                            It.IsAny<RazorFormattingOptions>(),
+                            It.IsAny<CancellationToken>()) == Task.FromResult<TextChange?>(s_defaultFormattedChange), MockBehavior.Strict);
         return razorFormattingService;
     }
 

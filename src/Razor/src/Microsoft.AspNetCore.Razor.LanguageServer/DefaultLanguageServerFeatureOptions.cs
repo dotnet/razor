@@ -13,13 +13,9 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool SupportsFileManipulation => true;
 
-    public override string ProjectConfigurationFileName => LanguageServerConstants.DefaultProjectConfigurationFile;
-
     public override string CSharpVirtualDocumentSuffix => DefaultCSharpVirtualDocumentSuffix;
 
     public override string HtmlVirtualDocumentSuffix => DefaultHtmlVirtualDocumentSuffix;
-
-    public override bool SingleServerCompletionSupport => false;
 
     public override bool SingleServerSupport => false;
 
@@ -37,8 +33,6 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
     public override bool IncludeProjectKeyInGeneratedFilePath => false;
 
     public override bool UsePreciseSemanticTokenRanges => false;
-
-    public override bool MonitorWorkspaceFolderForConfigurationFiles => true;
 
     public override bool UseRazorCohostServer => false;
 

@@ -18,7 +18,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     private static readonly CSharpCompilation DefaultBaseCompilation = MvcShim.BaseCompilation.WithAssemblyName("AppCode");
 
     public CodeGenerationIntegrationTest()
-        : base(layer: TestProject.Layer.Compiler, generateBaselines: null, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X")
+        : base(layer: TestProject.Layer.Compiler, projectDirectoryHint: "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X")
     {
         Configuration = new(RazorLanguageVersion.Version_2_0, "MVC-2.1", Extensions: []);
     }
@@ -85,7 +85,7 @@ public class MyService<TModel>
         AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
 
         // We expect this test to generate a bunch of errors.
-        Assert.True(compiled.CodeDocument.GetCSharpDocument().Diagnostics.Count > 0);
+        Assert.NotEmpty(compiled.CodeDocument.GetCSharpDocument().Diagnostics);
     }
 
     [Fact]
@@ -536,7 +536,7 @@ public class MyService<TModel>
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
 
         // We expect this test to generate a bunch of errors.
-        Assert.True(compiled.CodeDocument.GetCSharpDocument().Diagnostics.Count > 0);
+        Assert.NotEmpty(compiled.CodeDocument.GetCSharpDocument().Diagnostics);
     }
 
     [Fact]

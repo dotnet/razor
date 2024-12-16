@@ -4,9 +4,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol.Debugging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -15,12 +15,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
 public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
 {
-    private readonly IRazorDocumentMappingService _mappingService;
+    private readonly IDocumentMappingService _mappingService;
 
     public RazorProximityExpressionsEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _mappingService = new RazorDocumentMappingService(
+        _mappingService = new LspDocumentMappingService(
             FilePathService,
             new TestDocumentContextFactory(),
             LoggerFactory);
@@ -39,7 +39,8 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var request = new RazorProximityExpressionsParams()
         {
             Uri = documentPath,
-            Position = new Position(1, 0),
+            Position = VsLspFactory.CreatePosition(1, 0),
+            HostDocumentSyncVersion = 0,
         };
         codeDocument.SetUnsupported();
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -64,7 +65,8 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var request = new RazorProximityExpressionsParams()
         {
             Uri = documentPath,
-            Position = new Position(1, 8),
+            Position = VsLspFactory.CreatePosition(1, 8),
+            HostDocumentSyncVersion = 0,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -89,7 +91,8 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var request = new RazorProximityExpressionsParams()
         {
             Uri = documentPath,
-            Position = new Position(1, 0),
+            Position = VsLspFactory.CreatePosition(1, 0),
+            HostDocumentSyncVersion = 0,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -114,7 +117,8 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var request = new RazorProximityExpressionsParams()
         {
             Uri = documentPath,
-            Position = new Position(1, 0),
+            Position = VsLspFactory.CreatePosition(1, 0),
+            HostDocumentSyncVersion = 0,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -141,7 +145,8 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var request = new RazorProximityExpressionsParams()
         {
             Uri = documentPath,
-            Position = new Position(0, 0),
+            Position = VsLspFactory.DefaultPosition,
+            HostDocumentSyncVersion = 0,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 

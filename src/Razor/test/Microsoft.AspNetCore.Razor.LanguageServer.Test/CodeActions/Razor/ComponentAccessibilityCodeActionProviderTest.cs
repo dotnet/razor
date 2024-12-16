@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -35,7 +35,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 1), End = new Position(0, 1), },
+            Range = VsLspFactory.CreateZeroWidthRange(0, 1),
             Context = new VSInternalCodeActionContext()
         };
 
@@ -48,7 +48,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range(),
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -78,7 +78,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -107,7 +107,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer);
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -136,7 +136,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -172,7 +171,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -185,7 +184,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -223,7 +221,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -236,7 +234,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -266,7 +263,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -279,7 +276,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -315,7 +311,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -328,7 +324,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         var command = Assert.Single(commandOrCodeActionContainer);
         Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
@@ -347,7 +342,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -360,7 +355,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         var command = Assert.Single(commandOrCodeActionContainer);
         Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
@@ -379,7 +373,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -392,7 +386,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Empty(commandOrCodeActionContainer);
     }
 
@@ -409,7 +402,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var request = new VSCodeActionParams()
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
-            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Range = VsLspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
 
@@ -422,7 +415,6 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
-        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -444,16 +436,20 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var shortComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.Component", "TestAssembly");
         shortComponent.CaseSensitive = true;
         shortComponent.TagMatchingRule(rule => rule.TagName = "Component");
+        shortComponent.SetMetadata(CommonMetadata.TypeNamespace("Fully.Qualified"));
         var fullyQualifiedComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.Component", "TestAssembly");
         fullyQualifiedComponent.CaseSensitive = true;
         fullyQualifiedComponent.TagMatchingRule(rule => rule.TagName = "Fully.Qualified.Component");
+        fullyQualifiedComponent.SetMetadata(CommonMetadata.TypeNamespace("Fully.Qualified"));
 
         var shortGenericComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.GenericComponent<T>", "TestAssembly");
         shortGenericComponent.CaseSensitive = true;
         shortGenericComponent.TagMatchingRule(rule => rule.TagName = "GenericComponent");
+        shortGenericComponent.SetMetadata(CommonMetadata.TypeNamespace("Fully.Qualified"));
         var fullyQualifiedGenericComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.GenericComponent<T>", "TestAssembly");
         fullyQualifiedGenericComponent.CaseSensitive = true;
         fullyQualifiedGenericComponent.TagMatchingRule(rule => rule.TagName = "Fully.Qualified.GenericComponent");
+        fullyQualifiedGenericComponent.SetMetadata(CommonMetadata.TypeNamespace("Fully.Qualified"));
 
         var tagHelpers = ImmutableArray.Create(shortComponent.Build(), fullyQualifiedComponent.Build(), shortGenericComponent.Build(), fullyQualifiedGenericComponent.Build());
 
@@ -461,20 +457,20 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var projectEngine = RazorProjectEngine.Create(builder => builder.AddTagHelpers(tagHelpers));
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
 
-        var cSharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetCSharpDocument();
         var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", "diagnostic", RazorDiagnosticSeverity.Error);
         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, componentSourceSpan);
-        var cSharpDocumentWithDiagnostic = RazorCSharpDocument.Create(codeDocument, cSharpDocument.GeneratedCode, cSharpDocument.Options, new[] { diagnostic });
-        codeDocument.SetCSharpDocument(cSharpDocumentWithDiagnostic);
+        var csharpDocumentWithDiagnostic = new RazorCSharpDocument(codeDocument, csharpDocument.GeneratedCode, csharpDocument.Options, [diagnostic]);
+        codeDocument.SetCSharpDocument(csharpDocumentWithDiagnostic);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()) &&
+            document.GetGeneratedOutputAsync(It.IsAny<bool>()) == Task.FromResult(codeDocument) &&
+            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text) &&
             document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers), MockBehavior.Strict);
 
         var sourceText = SourceText.From(text);
 
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve: true);
+        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
 
         return context;
     }

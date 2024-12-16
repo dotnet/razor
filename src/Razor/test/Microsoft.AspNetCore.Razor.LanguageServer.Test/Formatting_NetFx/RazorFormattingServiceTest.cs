@@ -3,11 +3,10 @@
 
 #nullable disable
 
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,36 +15,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class RazorFormattingServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
-    public void MergeEdits_ReturnsSingleEditAsExpected()
+    public void MergeChanges_ReturnsSingleEditAsExpected()
     {
         // Arrange
-        var source = @"
-@code {
-public class Foo{}
-}
-";
-        var sourceText = SourceText.From(source);
-        var edits = new[]
-        {
-            new TextEdit()
-            {
-                NewText = "Bar",
-                Range = new Range{ Start = new Position(2, 13), End = new Position(2, 16) }
-            },
-            new TextEdit()
-            {
-                NewText = "    ",
-                Range = new Range{Start = new Position(2, 0),End = new Position(2, 0)}
-            },
-        };
+        TestCode source = """
+            @code {
+            [||]public class [|Foo|]{}
+            }
+            """;
+        var sourceText = SourceText.From(source.Text);
+        var changes = ImmutableArray.CreateRange(
+        [
+            new TextChange(source.Spans[0], "    "),
+            new TextChange(source.Spans[1], "Bar")
+        ]);
 
         // Act
-        var collapsedEdit = RazorFormattingService.MergeEdits(edits, sourceText);
+        var collapsedEdit = RazorFormattingService.MergeChanges(changes, sourceText);
 
         // Assert
-        var multiEditChange = sourceText.WithChanges(edits.Select(e => e.ToTextChange(sourceText)));
-        var singleEditChange = sourceText.WithChanges(collapsedEdit.ToTextChange(sourceText));
+        var multiEditChange = sourceText.WithChanges(changes);
+        var singleEditChange = sourceText.WithChanges(collapsedEdit);
 
         Assert.Equal(multiEditChange.ToString(), singleEditChange.ToString());
+    }
+
+    [Fact]
+    public void AllTriggerCharacters_IncludesCSharpTriggerCharacters()
+    {
+        foreach (var character in RazorFormattingService.TestAccessor.GetCSharpTriggerCharacterSet())
+        {
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet);
+        }
+    }
+
+    [Fact]
+    public void AllTriggerCharacters_IncludesHtmlTriggerCharacters()
+    {
+        foreach (var character in RazorFormattingService.TestAccessor.GetHtmlTriggerCharacterSet())
+        {
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet);
+        }
     }
 }

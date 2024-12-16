@@ -6,12 +6,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,68 +20,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
-    public async Task Execute_LanguageKindCSharp_Noops()
-    {
-        // Arrange
-        var source = SourceText.From(@"
-@code {
-    public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var input = new FormattingResult(Array.Empty<TextEdit>(), RazorLanguageKind.CSharp);
-        var pass = GetPass();
-
-        // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
-
-        // Assert
-        Assert.Equal(input, result);
-    }
-
-    [Fact]
-    public async Task Execute_LanguageKindHtml_Noops()
-    {
-        // Arrange
-        var source = SourceText.From(@"
-@code {
-    public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var input = new FormattingResult(Array.Empty<TextEdit>(), RazorLanguageKind.Html);
-        var pass = GetPass();
-
-        // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
-
-        // Assert
-        Assert.Equal(input, result);
-    }
-
-    [Fact]
     public async Task Execute_NonDestructiveEdit_Allowed()
     {
         // Arrange
-        var source = SourceText.From(@"
-@code {
-public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var edits = new[]
-        {
-            new TextEdit()
-            {
-                NewText = "    ",
-                Range = new Range{ Start = new Position(2, 0), End = new Position(2, 0) }
+        TestCode source = """
+            @code {
+            [||]public class Foo { }
             }
-        };
-        var input = new FormattingResult(edits, RazorLanguageKind.Razor);
+            """;
+        var context = CreateFormattingContext(source);
+        var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
+        var input = edits;
         var pass = GetPass();
 
         // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
+        var result = await pass.ExecuteAsync(context, edits, DisposalToken);
 
         // Assert
         Assert.Equal(input, result);
@@ -92,36 +44,26 @@ public class Foo { }
     public async Task Execute_DestructiveEdit_Rejected()
     {
         // Arrange
-        var source = SourceText.From(@"
-@code {
-public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var edits = new[]
-        {
-            new TextEdit()
-            {
-                NewText = "    ",
-                Range = new Range{ Start = new Position(2, 0), End = new Position(3, 0) } // Nukes a line
-            }
-        };
-        var input = new FormattingResult(edits, RazorLanguageKind.Razor);
+        TestCode source = """
+            @code {
+            [|public class Foo { }
+            |]}
+            """;
+        var context = CreateFormattingContext(source);
+        var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
+        var input = edits;
         var pass = GetPass();
 
         // Act
         var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
         // Assert
-        Assert.Empty(result.Edits);
+        Assert.Empty(result);
     }
 
     private FormattingContentValidationPass GetPass()
     {
-        var mappingService = new RazorDocumentMappingService(FilePathService, new TestDocumentContextFactory(), LoggerFactory);
-
-        var clientConnection = Mock.Of<IClientConnection>(MockBehavior.Strict);
-        var pass = new FormattingContentValidationPass(mappingService, clientConnection, LoggerFactory)
+        var pass = new FormattingContentValidationPass(LoggerFactory)
         {
             DebugAssertsEnabled = false
         };
@@ -129,18 +71,23 @@ public class Foo { }
         return pass;
     }
 
-    private static FormattingContext CreateFormattingContext(SourceText source, int tabSize = 4, bool insertSpaces = true, string? fileKind = null)
+    private static FormattingContext CreateFormattingContext(TestCode input, int tabSize = 4, bool insertSpaces = true, string? fileKind = null)
     {
+        var source = SourceText.From(input.Text);
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, fileKind: fileKind);
-        var options = new FormattingOptions()
+        var options = new RazorFormattingOptions()
         {
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
 
-        var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, TestAdhocWorkspaceFactory.Instance);
+        var context = FormattingContext.Create(
+            documentSnapshot,
+            codeDocument,
+            options,
+            new LspFormattingCodeDocumentProvider());
         return context;
     }
 
@@ -154,7 +101,7 @@ public class Foo { }
 
         var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync())
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>()))
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.TargetPath)

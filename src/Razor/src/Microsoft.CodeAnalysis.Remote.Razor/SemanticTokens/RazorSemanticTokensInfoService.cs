@@ -7,23 +7,22 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 [Export(typeof(IRazorSemanticTokensInfoService)), Shared]
 [method: ImportingConstructor]
 internal class RazorSemanticTokensInfoService(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ICSharpSemanticTokensProvider csharpSemanticTokensProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRazorLoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory)
     : AbstractRazorSemanticTokensInfoService(
         documentMappingService,
         semanticTokensLegendService,
-csharpSemanticTokensProvider,
+        csharpSemanticTokensProvider,
         languageServerFeatureOptions,
-        loggerFactory.CreateLogger<RemoteDocumentMappingService>())
+        loggerFactory.GetOrCreateLogger<RemoteDocumentMappingService>())
 {
 }

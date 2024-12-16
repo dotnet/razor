@@ -8,25 +8,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
+[RazorLanguageServerEndpoint(Methods.TextDocumentCompletionName)]
 internal class RazorCompletionEndpoint(
     CompletionListProvider completionListProvider,
     ITelemetryReporter? telemetryReporter,
-    IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-    IRazorLoggerFactory loggerFactory)
-    : IVSCompletionEndpoint
+    RazorLSPOptionsMonitor optionsMonitor)
+    : IRazorRequestHandler<CompletionParams, VSInternalCompletionList?>, ICapabilitiesProvider
 {
     private readonly CompletionListProvider _completionListProvider = completionListProvider;
     private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor = optionsMonitor;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
 
     private VSInternalClientCapabilities? _clientCapabilities;
 
@@ -40,7 +36,11 @@ internal class RazorCompletionEndpoint(
         {
             ResolveProvider = true,
             TriggerCharacters = _completionListProvider.AggregateTriggerCharacters.ToArray(),
-            AllCommitCharacters = new[] { ":", ">", " ", "=" },
+            // This is the intersection of C# and HTML commit characters.
+            // We need to specify it so that platform can correctly calculate ApplicableToSpan in
+            // https://devdiv.visualstudio.com/DevDiv/_git/VSLanguageServerClient?path=/src/product/RemoteLanguage/Impl/Features/Completion/AsyncCompletionSource.cs&version=GBdevelop&line=855&lineEnd=855&lineStartColumn=9&lineEndColumn=49&lineStyle=plain&_a=contents
+            // This is needed to fix https://github.com/dotnet/razor/issues/10787 in particular
+            AllCommitCharacters = [" ", ">", ";", "="]
         };
     }
 
@@ -59,7 +59,7 @@ internal class RazorCompletionEndpoint(
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+        if (!sourceText.TryGetAbsoluteIndex(request.Position, out var hostDocumentIndex))
         {
             return null;
         }

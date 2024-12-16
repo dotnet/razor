@@ -3,8 +3,8 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.Editor.Razor.Documents;
+using Microsoft.VisualStudio.Razor;
+using Microsoft.VisualStudio.Razor.Documents;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -40,7 +40,9 @@ internal sealed class SourceMappingAdornmentTaggerProvider : IViewTaggerProvider
         }
 
         if (buffer != textView.TextBuffer)
+        {
             return null;
+        }
 
         return SourceMappingAdornmentTagger.GetTagger(
             (IWpfTextView)textView,

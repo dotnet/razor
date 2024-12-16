@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
-using SR = Microsoft.AspNetCore.Razor.Serialization.Json.Internal.SR;
+using SR = Microsoft.AspNetCore.Razor.Serialization.Json.Internal.Strings;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
@@ -42,7 +42,8 @@ internal static partial class ObjectReaders
     {
         var configurationName = reader.ReadNonNullString(nameof(RazorConfiguration.ConfigurationName));
         var languageVersionText = reader.ReadNonNullString(nameof(RazorConfiguration.LanguageVersion));
-        var forceRuntimeCodeGeneration = reader.ReadBooleanOrFalse(nameof(RazorConfiguration.ForceRuntimeCodeGeneration));
+        var suppressAddComponentParameter = reader.ReadBooleanOrFalse(nameof(RazorConfiguration.SuppressAddComponentParameter));
+        var useConsolidatedMvcViews = reader.ReadBooleanOrTrue(nameof(RazorConfiguration.UseConsolidatedMvcViews));
         var extensions = reader.ReadImmutableArrayOrEmpty(nameof(RazorConfiguration.Extensions),
             static r =>
             {
@@ -54,7 +55,7 @@ internal static partial class ObjectReaders
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return new(languageVersion, configurationName, extensions, ForceRuntimeCodeGeneration: forceRuntimeCodeGeneration);
+        return new(languageVersion, configurationName, extensions, SuppressAddComponentParameter: suppressAddComponentParameter);
     }
 
     public static RazorDiagnostic ReadDiagnostic(JsonDataReader reader)
@@ -216,6 +217,7 @@ internal static partial class ObjectReaders
                 var indexerNamePrefix = reader.ReadStringOrNull(nameof(BoundAttributeDescriptor.IndexerNamePrefix));
                 var indexerTypeName = reader.ReadStringOrNull(nameof(BoundAttributeDescriptor.IndexerTypeName));
                 var displayName = reader.ReadNonNullString(nameof(BoundAttributeDescriptor.DisplayName));
+                var containingType = reader.ReadStringOrNull(nameof(BoundAttributeDescriptor.ContainingType));
                 var documentationObject = ReadDocumentationObject(reader, nameof(BoundAttributeDescriptor.Documentation));
                 var caseSensitive = reader.ReadBooleanOrTrue(nameof(BoundAttributeDescriptor.CaseSensitive));
                 var isEditorRequired = reader.ReadBooleanOrFalse(nameof(BoundAttributeDescriptor.IsEditorRequired));
@@ -227,8 +229,8 @@ internal static partial class ObjectReaders
                 return new BoundAttributeDescriptor(
                     Cached(kind), Cached(name)!, Cached(typeName), isEnum,
                     hasIndexer, Cached(indexerNamePrefix), Cached(indexerTypeName),
-                    documentationObject, Cached(displayName), caseSensitive, isEditorRequired,
-                    parameters, metadata, diagnostics);
+                    documentationObject, Cached(displayName), Cached(containingType),
+                    caseSensitive, isEditorRequired, parameters, metadata, diagnostics);
             }
         }
 
@@ -342,7 +344,7 @@ internal static partial class ObjectReaders
             throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        var serializedFilePath = reader.ReadNonNullString(nameof(RazorProjectInfo.SerializedFilePath));
+        var projectKeyId = reader.ReadNonNullString(nameof(RazorProjectInfo.ProjectKey));
         var filePath = reader.ReadNonNullString(nameof(RazorProjectInfo.FilePath));
         var configuration = reader.ReadObject(nameof(RazorProjectInfo.Configuration), ReadConfigurationFromProperties) ?? RazorConfiguration.Default;
         var projectWorkspaceState = reader.ReadObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties) ?? ProjectWorkspaceState.Default;
@@ -351,7 +353,7 @@ internal static partial class ObjectReaders
 
         var displayName = Path.GetFileNameWithoutExtension(filePath);
 
-        return new RazorProjectInfo(serializedFilePath, filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
+        return new RazorProjectInfo(new ProjectKey(projectKeyId), filePath, configuration, rootNamespace, displayName, projectWorkspaceState, documents);
     }
 
     public static Checksum ReadChecksum(JsonDataReader reader)

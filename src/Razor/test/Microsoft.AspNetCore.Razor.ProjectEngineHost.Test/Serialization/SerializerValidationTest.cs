@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
 using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Language;
@@ -11,15 +12,16 @@ using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Xunit;
 using Xunit.Abstractions;
+using MessagePackSerializationFormat = Microsoft.AspNetCore.Razor.Serialization.MessagePack.SerializationFormat;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test.Serialization;
 
 public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    [Theory(Skip = "https://github.com/dotnet/razor/issues/8202")]
+    [Theory]
     [InlineData("Kendo.Mvc.Examples.project.razor.json")]
     [InlineData("project.razor.json")]
     public void VerifyMessagePack_RazorProjectInfo(string resourceName)
@@ -40,12 +42,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         var actualProjectInfo = MessagePackConvert.Deserialize<RazorProjectInfo>(bytes, options);
 
         // Assert
-        Assert.Equal(originalProjectInfo.SerializedFilePath, actualProjectInfo.SerializedFilePath);
-        Assert.Equal(originalProjectInfo.FilePath, actualProjectInfo.FilePath);
-        Assert.Equal(originalProjectInfo.Configuration, actualProjectInfo.Configuration);
-        Assert.Equal(originalProjectInfo.RootNamespace, actualProjectInfo.RootNamespace);
-        Assert.Equal(originalProjectInfo.ProjectWorkspaceState, actualProjectInfo.ProjectWorkspaceState);
-        Assert.Equal<DocumentSnapshotHandle>(originalProjectInfo.Documents, actualProjectInfo.Documents);
+        Assert.Equal(originalProjectInfo, actualProjectInfo);
     }
 
     [Theory]
@@ -93,7 +90,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : ToolingTes
         Assert.NotNull(actualProjectInfo);
 
         // Assert
-        Assert.Equal(originalProjectInfo.SerializedFilePath, actualProjectInfo.SerializedFilePath);
+        Assert.Equal(originalProjectInfo.ProjectKey, actualProjectInfo.ProjectKey);
         Assert.Equal(originalProjectInfo.FilePath, actualProjectInfo.FilePath);
         Assert.Equal(originalProjectInfo.Configuration, actualProjectInfo.Configuration);
         Assert.Equal(originalProjectInfo.RootNamespace, actualProjectInfo.RootNamespace);

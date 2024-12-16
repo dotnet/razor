@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
@@ -18,8 +19,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
@@ -29,14 +28,14 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
     public RazorLanguageServerBenchmarkBase()
     {
         var (_, serverStream) = FullDuplexStream.CreatePair();
-        Logger = new NoopLogger();
-        var razorLoggerFactory = new NoopLoggerFactory();
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(
+        var razorLoggerFactory = EmptyLoggerFactory.Instance;
+        Logger = razorLoggerFactory.GetOrCreateLogger(GetType());
+        RazorLanguageServerHost = RazorLanguageServerHost.Create(
             serverStream,
             serverStream,
             razorLoggerFactory,
             NoOpTelemetryReporter.Instance,
-            configure: (collection) =>
+            configureServices: (collection) =>
             {
                 collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
                 collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
@@ -54,9 +53,9 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         return null;
     }
 
-    private protected RazorLanguageServerWrapper RazorLanguageServer { get; }
+    private protected RazorLanguageServerHost RazorLanguageServerHost { get; }
 
-    private protected NoopLogger Logger { get; }
+    private protected ILogger Logger { get; }
 
     internal async Task<IDocumentSnapshot> GetDocumentSnapshotAsync(string projectFilePath, string filePath, string targetPath)
     {
@@ -87,7 +86,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     private class NoopClientNotifierService : IClientConnection, IOnInitialized
     {
-        public Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }
@@ -105,61 +104,6 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         public Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
-        }
-    }
-
-    internal class NoopLoggerFactory() : AbstractRazorLoggerFactory([new NoopLoggerProvider()]);
-
-    internal class NoopLoggerProvider : IRazorLoggerProvider
-    {
-        public ILogger CreateLogger(string categoryName)
-        {
-            return new NoopLogger();
-        }
-
-        public void Dispose()
-        {
-        }
-    }
-
-    internal class NoopLogger : ILogger, ILspLogger
-    {
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return true;
-        }
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-        }
-
-        public void LogEndContext(string message, params object[] @params)
-        {
-        }
-
-        public void LogError(string message, params object[] @params)
-        {
-        }
-
-        public void LogException(Exception exception, string message = null, params object[] @params)
-        {
-        }
-
-        public void LogInformation(string message, params object[] @params)
-        {
-        }
-
-        public void LogStartContext(string message, params object[] @params)
-        {
-        }
-
-        public void LogWarning(string message, params object[] @params)
-        {
         }
     }
 }

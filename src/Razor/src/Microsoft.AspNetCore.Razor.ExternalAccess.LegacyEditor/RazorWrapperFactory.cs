@@ -8,9 +8,9 @@ using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.LegacyEditor.Razor;
 using Microsoft.VisualStudio.LegacyEditor.Razor.Parsing;
+using Microsoft.VisualStudio.Razor.Settings;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
@@ -53,26 +53,6 @@ internal static partial class RazorWrapperFactory
         foreach (var item in array)
         {
             builder.Add(createWrapper(item));
-        }
-
-        return builder.DrainToImmutable();
-    }
-
-    private static ImmutableArray<TResult> WrapAll<TInner, TResult>(IReadOnlyList<TInner> list, Func<TInner, TResult> createWrapper)
-        where TInner : class
-        where TResult : class
-    {
-        var count = list.Count;
-        if (count == 0)
-        {
-            return ImmutableArray<TResult>.Empty;
-        }
-
-        using var builder = new PooledArrayBuilder<TResult>(capacity: count);
-
-        for (var i = 0; i < count; i++)
-        {
-            builder.Add(createWrapper(list[i]));
         }
 
         return builder.DrainToImmutable();

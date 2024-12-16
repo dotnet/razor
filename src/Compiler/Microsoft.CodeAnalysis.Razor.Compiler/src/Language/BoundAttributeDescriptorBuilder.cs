@@ -39,6 +39,7 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
     private string _kind;
     private DocumentationObject _documentationObject;
     private MetadataHolder _metadata;
+    private bool? _caseSensitive;
 
     private BoundAttributeDescriptorBuilder()
     {
@@ -67,6 +68,8 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
 
     public string? DisplayName { get; set; }
 
+    public string? ContainingType { get; set; }
+
     public IDictionary<string, string?> Metadata => _metadata.MetadataDictionary;
 
     public void SetMetadata(MetadataCollection metadata) => _metadata.SetMetadataCollection(metadata);
@@ -74,7 +77,11 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
     public bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
         => _metadata.TryGetMetadataValue(key, out value);
 
-    internal bool CaseSensitive => _parent.CaseSensitive;
+    internal bool CaseSensitive
+    {
+        get => _caseSensitive ?? _parent.CaseSensitive;
+        set => _caseSensitive = value;
+    }
 
     private TagHelperObjectBuilderCollection<BoundAttributeParameterDescriptor, BoundAttributeParameterDescriptorBuilder> Parameters { get; }
         = new(BoundAttributeParameterDescriptorBuilder.Pool);
@@ -113,6 +120,7 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
             IndexerValueTypeName,
             _documentationObject,
             GetDisplayName(),
+            ContainingType,
             CaseSensitive,
             IsEditorRequired,
             Parameters.ToImmutable(),

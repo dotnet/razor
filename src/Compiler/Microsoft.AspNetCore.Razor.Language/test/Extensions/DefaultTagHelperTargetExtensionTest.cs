@@ -370,7 +370,7 @@ EndAddHtmlAttributeValues(__tagHelperExecutionContext);
         extension.RenderTagHelperAttributeInline(context, node, new CSharpCodeIntermediateNode(), expectedLocation);
 
         // Assert
-        var diagnostic = Assert.Single(context.Diagnostics);
+        var diagnostic = Assert.Single(context.GetDiagnostics());
         Assert.Equal(expectedDiagnostic, diagnostic);
     }
 
@@ -392,7 +392,7 @@ EndAddHtmlAttributeValues(__tagHelperExecutionContext);
         extension.RenderTagHelperAttributeInline(context, node, new TemplateIntermediateNode(), expectedLocation);
 
         // Assert
-        var diagnostic = Assert.Single(context.Diagnostics);
+        var diagnostic = Assert.Single(context.GetDiagnostics());
         Assert.Equal(expectedDiagnostic, diagnostic);
     }
 
@@ -416,7 +416,7 @@ EndAddHtmlAttributeValues(__tagHelperExecutionContext);
         extension.RenderTagHelperAttributeInline(context, node, new TemplateIntermediateNode(), expectedLocation);
 
         // Assert
-        var diagnostic = Assert.Single(context.Diagnostics);
+        var diagnostic = Assert.Single(context.GetDiagnostics());
         Assert.Equal(expectedDiagnostic, diagnostic);
     }
 
@@ -1148,25 +1148,7 @@ private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeMana
 
     private static void Push(CodeRenderingContext context, TagHelperIntermediateNode node)
     {
-        ((DefaultCodeRenderingContext)context).AncestorsInternal.Push(node);
-    }
-
-    private static DocumentIntermediateNode Lower(RazorCodeDocument codeDocument, RazorProjectEngine engine)
-    {
-        foreach (var phase in engine.Phases)
-        {
-            phase.Execute(codeDocument);
-
-            if (phase is IRazorIntermediateNodeLoweringPhase)
-            {
-                break;
-            }
-        }
-
-        var irDocument = codeDocument.GetDocumentIntermediateNode();
-        Assert.NotNull(irDocument);
-
-        return irDocument;
+        context.PushAncestor(node);
     }
 
     private static TagHelperDescriptor CreateTagHelperDescriptor(

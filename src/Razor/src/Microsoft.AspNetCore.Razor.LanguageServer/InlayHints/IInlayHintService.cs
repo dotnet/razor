@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -10,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.InlayHints;
 
 internal interface IInlayHintService
 {
-    Task<InlayHint[]?> GetInlayHintsAsync(IClientConnection clientConnection, VersionedDocumentContext documentContext, Range range, CancellationToken cancellationToken);
+    Task<InlayHint[]?> GetInlayHintsAsync(IClientConnection clientConnection, DocumentContext documentContext, Range range, CancellationToken cancellationToken);
 
     Task<InlayHint?> ResolveInlayHintAsync(IClientConnection clientConnection, InlayHint inlayHint, CancellationToken cancellationToken);
 }

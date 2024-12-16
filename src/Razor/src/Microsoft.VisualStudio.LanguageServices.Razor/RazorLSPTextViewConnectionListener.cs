@@ -5,20 +5,20 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Settings;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.Editor.Razor.Settings;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Razor.Extensions;
+using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using IServiceProvider = System.IServiceProvider;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor;
+namespace Microsoft.VisualStudio.Razor;
 
 // The entire purpose of this class is to workaround quirks in Visual Studio's core editor handling. In Razor scenarios
 // we can have a multitude of content types that represents a Razor file:
@@ -40,10 +40,11 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-    private readonly LSPEditorFeatureDetector _editorFeatureDetector;
+    private readonly ILspEditorFeatureDetector _editorFeatureDetector;
     private readonly IEditorOptionsFactoryService _editorOptionsFactory;
     private readonly IClientSettingsManager _editorSettingsManager;
-    private readonly IVsTextManager4 _textManager;
+    private readonly JoinableTaskContext _joinableTaskContext;
+    private IVsTextManager4? _textManager;
 
     /// <summary>
     /// Protects concurrent modifications to _activeTextViews and _textBuffer's
@@ -61,18 +62,29 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
     public RazorLSPTextViewConnectionListener(
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactory,
-        LSPEditorFeatureDetector editorFeatureDetector,
+        ILspEditorFeatureDetector editorFeatureDetector,
         IEditorOptionsFactoryService editorOptionsFactory,
-        IClientSettingsManager editorSettingsManager)
+        IClientSettingsManager editorSettingsManager,
+        JoinableTaskContext joinableTaskContext)
     {
         _serviceProvider = serviceProvider;
         _editorAdaptersFactory = editorAdaptersFactory;
         _editorFeatureDetector = editorFeatureDetector;
         _editorOptionsFactory = editorOptionsFactory;
         _editorSettingsManager = editorSettingsManager;
-        _textManager = (IVsTextManager4)serviceProvider.GetService(typeof(SVsTextManager));
+        _joinableTaskContext = joinableTaskContext;
+    }
 
-        Assumes.Present(_textManager);
+    /// <summary>
+    /// Gets instance of <see cref="IVsTextManager4"/>. This accesses COM object and requires to be called on the UI thread.
+    /// </summary>
+    private IVsTextManager4 TextManager
+    {
+        get
+        {
+            _joinableTaskContext.AssertUIThread();
+            return _textManager ??= (IVsTextManager4)_serviceProvider.GetService(typeof(SVsTextManager));
+        }
     }
 
     public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
@@ -95,7 +107,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
         if (!_editorFeatureDetector.IsRemoteClient())
         {
             vsTextView.GetBuffer(out var vsBuffer);
-            vsBuffer.SetLanguageServiceID(RazorVisualStudioWindowsConstants.RazorLanguageServiceGuid);
+            vsBuffer.SetLanguageServiceID(RazorConstants.RazorLanguageServiceGuid);
         }
 
         RazorLSPTextViewFilter.CreateAndRegister(vsTextView);
@@ -134,7 +146,8 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 
                 // Initialize TextView options. We only need to do this once per TextView, as the options should
                 // automatically update and they aren't options we care about keeping track of.
-                InitializeRazorTextViewOptions(_textManager, optionsTracker);
+                Assumes.Present(TextManager);
+                InitializeRazorTextViewOptions(TextManager, optionsTracker);
 
                 // A change in Tools->Options settings only kicks off an options changed event in the view
                 // and not the buffer, i.e. even if we listened for TextBuffer option changes, we would never
@@ -202,7 +215,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 
         // Retrieve current space/tabs settings from from Tools->Options and update options in
         // the actual editor.
-        (ClientSpaceSettings ClientSpaceSettings, ClientCompletionSettings ClientCompletionSettings) settings = UpdateRazorEditorOptions(_textManager, optionsTracker);
+        (ClientSpaceSettings ClientSpaceSettings, ClientCompletionSettings ClientCompletionSettings) settings = UpdateRazorEditorOptions(TextManager, optionsTracker);
 
         // Keep track of accurate settings on the client side so we can easily retrieve the
         // options later when the server sends us a workspace/configuration request.
@@ -212,7 +225,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 
     private static void InitializeRazorTextViewOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
     {
-        var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorVisualStudioWindowsConstants.RazorLanguageServiceGuid } };
+        var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorConstants.RazorLanguageServiceGuid } };
         if (VSConstants.S_OK != textManager.GetUserPreferences4(null, langPrefs3, null))
         {
             return;
@@ -258,7 +271,7 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
         var insertSpaces = true;
         var tabSize = 4;
 
-        var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorVisualStudioWindowsConstants.RazorLanguageServiceGuid } };
+        var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorConstants.RazorLanguageServiceGuid } };
         if (VSConstants.S_OK != textManager.GetUserPreferences4(null, langPrefs3, null))
         {
             return (new ClientSpaceSettings(IndentWithTabs: !insertSpaces, tabSize), ClientCompletionSettings.Default);

@@ -62,12 +62,13 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         ClassDeclarationIntermediateNode @class,
         MethodDeclarationIntermediateNode method)
     {
-        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var computedNamespace, out var computedNamespaceSpan) ||
-            !TryComputeClassName(codeDocument, out var computedClass))
+        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var computedNamespace, out var computedNamespaceSpan))
         {
-            // If we can't compute a nice namespace (no relative path) then just generate something
-            // mangled.
             computedNamespace = FallbackRootNamespace;
+        }
+
+        if (!TryComputeClassName(codeDocument, out var computedClass))
+        {
             var checksum = ChecksumUtilities.BytesToString(codeDocument.Source.Text.GetChecksum());
             computedClass = $"AspNetCore_{checksum}";
         }
@@ -98,7 +99,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         {
             // We don't want component imports to be considered as real component.
             // But we still want to generate code for it so we can get diagnostics.
-            @class.BaseType = typeof(object).FullName;
+            @class.BaseType = new BaseTypeWithModel(typeof(object).FullName);
 
             method.ReturnType = "void";
             method.MethodName = "Execute";
@@ -109,7 +110,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         }
         else
         {
-            @class.BaseType = "global::" + ComponentsApi.ComponentBase.FullTypeName;
+            @class.BaseType = new BaseTypeWithModel("global::" + ComponentsApi.ComponentBase.FullTypeName);
 
             // Constrained type parameters are only supported in Razor language versions v6.0
             var razorLanguageVersion = codeDocument.GetParserOptions()?.Version ?? RazorLanguageVersion.Latest;

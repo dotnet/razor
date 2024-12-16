@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Xunit.Abstractions;
 
@@ -61,15 +61,7 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
         => CreateProjectSnapshotManager(ProjectEngineFactoryProvider);
 
     private protected TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(projectEngineFactoryProvider, Dispatcher, DisposalToken);
-
-    protected virtual void ConfigureWorkspaceServices(List<IWorkspaceService> services)
-    {
-    }
-
-    protected virtual void ConfigureLanguageServices(List<ILanguageService> services)
-    {
-    }
+        => new(projectEngineFactoryProvider, LoggerFactory, DisposalToken);
 
     protected virtual void ConfigureWorkspace(AdhocWorkspace workspace)
     {
@@ -96,13 +88,7 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
             Configure = ConfigureProjectEngine,
         };
 
-        var workspaceServices = new List<IWorkspaceService>();
-        ConfigureWorkspaceServices(workspaceServices);
-
-        var languageServices = new List<ILanguageService>();
-        ConfigureLanguageServices(languageServices);
-
-        _hostServices = TestServices.Create(workspaceServices, languageServices);
+        _hostServices = MefHostServices.DefaultHost;
         _workspace = TestWorkspace.Create(_hostServices, ConfigureWorkspace);
         AddDisposable(_workspace);
         _workspaceProvider = new TestWorkspaceProvider(_workspace);

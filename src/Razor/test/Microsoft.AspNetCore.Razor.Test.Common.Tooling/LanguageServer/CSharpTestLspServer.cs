@@ -2,8 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -12,7 +14,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
-using Newtonsoft.Json;
 using StreamJsonRpc;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
@@ -21,14 +22,13 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 public sealed class CSharpTestLspServer : IAsyncDisposable
 {
     private readonly AdhocWorkspace _testWorkspace;
-    private readonly IRazorLanguageServerTarget _languageServer;
+    private readonly ExportProvider _exportProvider;
 
     private readonly JsonRpc _clientRpc;
     private readonly JsonRpc _serverRpc;
 
-    private readonly JsonMessageFormatter _clientMessageFormatter;
-    private readonly JsonMessageFormatter _serverMessageFormatter;
-
+    private readonly SystemTextJsonFormatter _clientMessageFormatter;
+    private readonly SystemTextJsonFormatter _serverMessageFormatter;
     private readonly HeaderDelimitedMessageHandler _clientMessageHandler;
     private readonly HeaderDelimitedMessageHandler _serverMessageHandler;
 
@@ -41,20 +41,21 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
         CancellationToken cancellationToken)
     {
         _testWorkspace = testWorkspace;
+        _exportProvider = exportProvider;
         _cancellationToken = cancellationToken;
 
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-        var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
+        var languageServerFactory = exportProvider.GetExportedValue<AbstractRazorLanguageServerFactoryWrapper>();
 
-        _serverMessageFormatter = CreateJsonMessageFormatter(languageServerFactory);
+        _serverMessageFormatter = CreateSystemTextJsonMessageFormatter(languageServerFactory);
         _serverMessageHandler = new HeaderDelimitedMessageHandler(serverStream, serverStream, _serverMessageFormatter);
         _serverRpc = new JsonRpc(_serverMessageHandler)
         {
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
 
-        _clientMessageFormatter = CreateJsonMessageFormatter(languageServerFactory);
+        _clientMessageFormatter = CreateSystemTextJsonMessageFormatter(languageServerFactory);
         _clientMessageHandler = new HeaderDelimitedMessageHandler(clientStream, clientStream, _clientMessageFormatter);
         _clientRpc = new JsonRpc(_clientMessageHandler)
         {
@@ -67,33 +68,36 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         _clientRpc.StartListening();
 
-        _languageServer = CreateLanguageServer(_serverRpc, testWorkspace, languageServerFactory, exportProvider, serverCapabilities);
+        _ = CreateLanguageServer(_serverRpc, _serverMessageFormatter.JsonSerializerOptions, testWorkspace, languageServerFactory, exportProvider, serverCapabilities);
 
-        static JsonMessageFormatter CreateJsonMessageFormatter(IRazorLanguageServerFactoryWrapper languageServerFactory)
+        static SystemTextJsonFormatter CreateSystemTextJsonMessageFormatter(AbstractRazorLanguageServerFactoryWrapper languageServerFactory)
         {
-            var messageFormatter = new JsonMessageFormatter();
-            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
+            var messageFormatter = new SystemTextJsonFormatter();
 
             // Roslyn has its own converters since it doesn't use MS.VS.LS.Protocol
-            languageServerFactory.AddJsonConverters(messageFormatter.JsonSerializer);
+            languageServerFactory.AddJsonConverters(messageFormatter.JsonSerializerOptions);
+
+            // In its infinite wisdom, the LSP client has a public method that takes Newtonsoft.Json types, but an internal method that takes System.Text.Json types.
+            typeof(VSInternalExtensionUtilities).GetMethod("AddVSInternalExtensionConverters", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, [messageFormatter.JsonSerializerOptions]);
 
             return messageFormatter;
         }
 
         static IRazorLanguageServerTarget CreateLanguageServer(
             JsonRpc serverRpc,
+            JsonSerializerOptions options,
             Workspace workspace,
-            IRazorLanguageServerFactoryWrapper languageServerFactory,
+            AbstractRazorLanguageServerFactoryWrapper languageServerFactory,
             ExportProvider exportProvider,
             VSInternalServerCapabilities serverCapabilities)
         {
-            var capabilitiesProvider = new RazorTestCapabilitiesProvider(serverCapabilities);
+            var capabilitiesProvider = new RazorTestCapabilitiesProvider(serverCapabilities, options);
 
             var registrationService = exportProvider.GetExportedValue<RazorTestWorkspaceRegistrationService>();
             registrationService.Register(workspace);
 
             var hostServices = workspace.Services.HostServices;
-            var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, capabilitiesProvider, hostServices);
+            var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, options, capabilitiesProvider, hostServices);
 
             serverRpc.StartListening();
             return languageServer;
@@ -143,6 +147,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         _testWorkspace.Dispose();
+        _exportProvider.Dispose();
 
         _clientRpc.Dispose();
         _clientMessageFormatter.Dispose();
@@ -200,15 +205,16 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
     #endregion
 
-    private class RazorTestCapabilitiesProvider(VSInternalServerCapabilities serverCapabilities) : IRazorTestCapabilitiesProvider
+    private class RazorTestCapabilitiesProvider(VSInternalServerCapabilities serverCapabilities, JsonSerializerOptions options) : IRazorTestCapabilitiesProvider
     {
         private readonly VSInternalServerCapabilities _serverCapabilities = serverCapabilities;
+        private readonly JsonSerializerOptions _options = options;
 
         public string GetServerCapabilitiesJson(string clientCapabilitiesJson)
         {
             // To avoid exposing types from VS.LSP.Protocol across the Razor <-> Roslyn API boundary, and therefore
             // requiring us to agree on dependency versions, we use JSON as a transport mechanism.
-            return JsonConvert.SerializeObject(_serverCapabilities);
+            return JsonSerializer.Serialize(_serverCapabilities, _options);
         }
     }
 

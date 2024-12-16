@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 
@@ -18,9 +20,9 @@ internal sealed class RazorMapToDocumentRangesEndpoint :
     IRazorDocumentlessRequestHandler<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse?>,
     ITextDocumentIdentifierHandler<RazorMapToDocumentRangesParams, Uri>
 {
-    private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly IDocumentMappingService _documentMappingService;
 
-    public RazorMapToDocumentRangesEndpoint(IRazorDocumentMappingService documentMappingService)
+    public RazorMapToDocumentRangesEndpoint(IDocumentMappingService documentMappingService)
     {
         _documentMappingService = documentMappingService;
     }
@@ -39,7 +41,11 @@ internal sealed class RazorMapToDocumentRangesEndpoint :
             throw new ArgumentNullException(nameof(request));
         }
 
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = requestContext.DocumentContext;
+        if (documentContext is null)
+        {
+            return null;
+        }
 
         if (request.Kind != RazorLanguageKind.CSharp)
         {
@@ -47,7 +53,7 @@ internal sealed class RazorMapToDocumentRangesEndpoint :
             return new RazorMapToDocumentRangesResponse()
             {
                 Ranges = request.ProjectedRanges,
-                HostDocumentVersion = documentContext.Version,
+                HostDocumentVersion = documentContext.Snapshot.Version,
             };
         }
 
@@ -60,7 +66,7 @@ internal sealed class RazorMapToDocumentRangesEndpoint :
                 !_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, request.MappingBehavior, out var originalRange))
             {
                 // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
-                ranges[i] = RangeExtensions.UndefinedRange;
+                ranges[i] = VsLspFactory.UndefinedRange;
                 continue;
             }
 
@@ -70,7 +76,7 @@ internal sealed class RazorMapToDocumentRangesEndpoint :
         return new RazorMapToDocumentRangesResponse()
         {
             Ranges = ranges,
-            HostDocumentVersion = documentContext.Version,
+            HostDocumentVersion = documentContext.Snapshot.Version,
         };
     }
 }

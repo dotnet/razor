@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -19,23 +18,20 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-[UseExportProvider]
-public abstract partial class SingleServerDelegatingEndpointTestBase : LanguageServerTestBase
+public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     private protected IDocumentContextFactory? DocumentContextFactory { get; private set; }
     private protected LanguageServerFeatureOptions? LanguageServerFeatureOptions { get; private set; }
-    private protected IRazorDocumentMappingService? DocumentMappingService { get; private set; }
+    private protected IDocumentMappingService? DocumentMappingService { get; private set; }
+    private protected IEditMappingService? EditMappingService { get; private set; }
 
-    protected SingleServerDelegatingEndpointTestBase(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
-    [MemberNotNull(nameof(DocumentContextFactory), nameof(LanguageServerFeatureOptions), nameof(DocumentMappingService))]
+    [MemberNotNull(nameof(DocumentContextFactory), nameof(LanguageServerFeatureOptions), nameof(DocumentMappingService), nameof(EditMappingService))]
     private protected async Task<TestLanguageServer> CreateLanguageServerAsync(
         RazorCodeDocument codeDocument,
         string razorFilePath,
-        IEnumerable<(string, string)>? additionalRazorDocuments = null)
+        IEnumerable<(string, string)>? additionalRazorDocuments = null,
+        bool multiTargetProject = true,
+        Action<VSInternalClientCapabilities>? capabilitiesUpdater = null)
     {
         var projectKey = TestProjectKey.Create("");
         var csharpSourceText = codeDocument.GetCSharpSourceText();
@@ -58,7 +54,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase : LanguageS
             }
         }
 
-        DocumentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
+        DocumentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument);
 
         LanguageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
             options.SupportsFileManipulation == true &&
@@ -67,7 +63,8 @@ public abstract partial class SingleServerDelegatingEndpointTestBase : LanguageS
             options.HtmlVirtualDocumentSuffix == DefaultLanguageServerFeatureOptions.DefaultHtmlVirtualDocumentSuffix,
             MockBehavior.Strict);
 
-        DocumentMappingService = new RazorDocumentMappingService(FilePathService, DocumentContextFactory, LoggerFactory);
+        DocumentMappingService = new LspDocumentMappingService(FilePathService, DocumentContextFactory, LoggerFactory);
+        EditMappingService = new LspEditMappingService(DocumentMappingService, FilePathService, DocumentContextFactory);
 
         var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
             csharpFiles,
@@ -76,6 +73,8 @@ public abstract partial class SingleServerDelegatingEndpointTestBase : LanguageS
                 SupportsDiagnosticRequests = true,
             },
             razorSpanMappingService: null,
+            multiTargetProject,
+            capabilitiesUpdater,
             DisposalToken);
 
         AddDisposable(csharpServer);

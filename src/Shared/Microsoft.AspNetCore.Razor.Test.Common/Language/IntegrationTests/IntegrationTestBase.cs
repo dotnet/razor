@@ -3,19 +3,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
@@ -31,32 +33,16 @@ public abstract class IntegrationTestBase
 
     static IntegrationTestBase()
     {
-        var referenceAssemblyRoots = new[]
-        {
-            typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
-        };
-
-        var referenceAssemblies = referenceAssemblyRoots
-            .SelectMany(assembly => assembly.GetReferencedAssemblies().Concat(new[] { assembly.GetName() }))
-            .Distinct()
-            .Select(Assembly.Load)
-            .Select(assembly => MetadataReference.CreateFromFile(assembly.Location))
-            .ToList();
         DefaultBaseCompilation = CSharpCompilation.Create(
             "TestAssembly",
             Array.Empty<SyntaxTree>(),
-            referenceAssemblies,
+            ReferenceUtil.AspNetLatestAll,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
-    protected IntegrationTestBase(TestProject.Layer layer, bool? generateBaselines = null, string? projectDirectoryHint = null)
+    protected IntegrationTestBase(TestProject.Layer layer, string? projectDirectoryHint = null)
     {
         TestProjectRoot = projectDirectoryHint == null ? TestProject.GetProjectDirectory(GetType(), layer) : TestProject.GetProjectDirectory(projectDirectoryHint, layer);
-
-        if (generateBaselines.HasValue)
-        {
-            GenerateBaselines = generateBaselines.Value;
-        }
     }
 
     /// <summary>
@@ -86,6 +72,12 @@ public abstract class IntegrationTestBase
 
     protected virtual bool DesignTime { get; } = false;
 
+    protected bool SkipVerifyingCSharpDiagnostics { get; set; }
+
+    protected bool NullableEnable { get; set; }
+
+    protected Dictionary<SourceLocation, string>? ExpectedMissingSourceMappings { get; set; }
+
     /// <summary>
     /// Gets the
     /// </summary>
@@ -98,15 +90,9 @@ public abstract class IntegrationTestBase
     /// </summary>
     protected virtual string LineEnding { get; } = "\r\n";
 
-#if GENERATE_BASELINES
-    protected bool GenerateBaselines { get; } = true;
-#else
-    protected bool GenerateBaselines { get; } = false;
-#endif
-
     protected string TestProjectRoot { get; }
 
-    public virtual string GetTestFileName(string? testName)
+    public virtual string GetTestFileName([CallerMemberName] string? testName = null)
     {
         return $"TestFiles/IntegrationTests/{this.GetType().Name}/{testName}";
     }
@@ -179,7 +165,6 @@ public abstract class IntegrationTestBase
             throw new XunitException($"The resource {sourceFileName} was not found.");
         }
         var fileContent = testFile.ReadAllText();
-        var normalizedContent = NormalizeNewLines(fileContent);
 
         var workingDirectory = Path.GetDirectoryName(fileName);
         var fullPath = sourceFileName;
@@ -237,10 +222,10 @@ public abstract class IntegrationTestBase
         return CompileToAssembly(compiled, throwOnFailure: throwOnFailure);
     }
 
-    protected CompiledAssembly CompileToAssembly(CompiledCSharpCode code, bool throwOnFailure = true)
+    protected CompiledAssembly CompileToAssembly(CompiledCSharpCode code, bool throwOnFailure = true, bool ignoreRazorDiagnostics = false)
     {
         var cSharpDocument = code.CodeDocument.GetCSharpDocument();
-        if (cSharpDocument.Diagnostics.Any())
+        if (!ignoreRazorDiagnostics && cSharpDocument.Diagnostics.Any())
         {
             var diagnosticsLog = string.Join(Environment.NewLine, cSharpDocument.Diagnostics.Select(d => d.ToString()).ToArray());
             throw new InvalidOperationException($"Aborting compilation to assembly because RazorCompiler returned nonempty diagnostics: {diagnosticsLog}");
@@ -278,6 +263,13 @@ public abstract class IntegrationTestBase
             {
                 throw new CompilationFailedException(compilation, diagnostics);
             }
+            else if (diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
+            {
+                return new CompiledAssembly(compilation, code.CodeDocument, assembly: null)
+                {
+                    EmitDiagnostics = diagnostics.ToImmutableArray(),
+                };
+            }
 
             return new CompiledAssembly(compilation, code.CodeDocument, Assembly.Load(peStream.ToArray()));
         }
@@ -306,7 +298,7 @@ public abstract class IntegrationTestBase
     {
         return RazorProjectEngine.Create(configuration, FileSystem, b =>
         {
-            b.Phases.Insert(0, new ConfigureCodeRenderingPhase(LineEnding));
+            b.Features.Add(new ConfigureCodeGenerationOptionsFeature(LineEnding));
 
             b.RegisterExtensions();
 
@@ -338,7 +330,7 @@ public abstract class IntegrationTestBase
     {
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".ir.txt");
 
-        if (GenerateBaselines)
+        if (GenerateBaselines.ShouldGenerate)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
             File.WriteAllText(baselineFullPath, IntermediateNodeSerializer.Serialize(document), _baselineEncoding);
@@ -359,7 +351,7 @@ public abstract class IntegrationTestBase
     {
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".codegen.html");
 
-        if (GenerateBaselines)
+        if (GenerateBaselines.ShouldGenerate)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
             File.WriteAllText(baselineFullPath, htmlDocument.GeneratedCode, _baselineEncoding);
@@ -385,7 +377,7 @@ public abstract class IntegrationTestBase
         var baselineFileName = Path.ChangeExtension(fileName, ".codegen.cs");
         var baselineDiagnosticsFileName = Path.ChangeExtension(fileName, ".diagnostics.txt");
 
-        if (GenerateBaselines)
+        if (GenerateBaselines.ShouldGenerate)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
             File.WriteAllText(baselineFullPath, cSharpDocument.GeneratedCode, _baselineEncoding);
@@ -435,7 +427,7 @@ public abstract class IntegrationTestBase
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".mappings.txt");
         var serializedMappings = SourceMappingsSerializer.Serialize(csharpDocument, codeDocument.Source);
 
-        if (GenerateBaselines)
+        if (GenerateBaselines.ShouldGenerate)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
             File.WriteAllText(baselineFullPath, serializedMappings, _baselineEncoding);
@@ -516,12 +508,32 @@ public abstract class IntegrationTestBase
                 }
             }
 
-            if (!found)
+            if (ExpectedMissingSourceMappings?.TryGetValue(SourceLocation.FromSpan(sourceSpan), out var expectedMissingSpan) == true)
+            {
+                if (found)
+                {
+                    throw new XunitException($"Remove {sourceSpan} from {nameof(ExpectedMissingSourceMappings)}.");
+                }
+                else if (expectedSpan != expectedMissingSpan)
+                {
+                    throw new XunitException($"Missing span {sourceSpan} has different content '{EscapeWhitespace(expectedSpan)}' " +
+                        $"than expected '{EscapeWhitespace(expectedMissingSpan)}'.");
+                }
+
+                ExpectedMissingSourceMappings.Remove(SourceLocation.FromSpan(sourceSpan));
+            }
+            else if (!found)
             {
                 throw new XunitException(
                     $"Could not find the span {sourceSpan} - containing '{EscapeWhitespace(expectedSpan)}' " +
                     $"in the output.");
             }
+        }
+
+        if (ExpectedMissingSourceMappings?.Count > 0)
+        {
+            throw new XunitException($"Found unused {nameof(ExpectedMissingSourceMappings)} ({ExpectedMissingSourceMappings.Count}), " +
+                $"for example {ExpectedMissingSourceMappings.First()}.");
         }
     }
 
@@ -533,7 +545,7 @@ public abstract class IntegrationTestBase
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".html.mappings.txt");
         var serializedMappings = SourceMappingsSerializer.Serialize(htmlDocument, codeDocument.Source);
 
-        if (GenerateBaselines)
+        if (GenerateBaselines.ShouldGenerate)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
             File.WriteAllText(baselineFullPath, serializedMappings, _baselineEncoding);
@@ -630,6 +642,80 @@ public abstract class IntegrationTestBase
         }
     }
 
+    protected void AssertCSharpDiagnosticsMatchBaseline(RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")
+    {
+        if (SkipVerifyingCSharpDiagnostics)
+        {
+            return;
+        }
+
+        var fileName = GetTestFileName(testName);
+        var baselineFileName = Path.ChangeExtension(fileName, ".cs-diagnostics.txt");
+
+        var compilation = BaseCompilation.AddSyntaxTrees(CSharpSyntaxTrees);
+
+        if (NullableEnable)
+        {
+            compilation = compilation.WithOptions(compilation.Options
+                .WithNullableContextOptions(NullableContextOptions.Enable));
+        }
+
+        var compiled = CompileToAssembly(
+            new CompiledCSharpCode(compilation, codeDocument),
+            ignoreRazorDiagnostics: true,
+            throwOnFailure: false);
+        var cSharpAllDiagnostics = !compiled.EmitDiagnostics.IsDefault
+            ? compiled.EmitDiagnostics
+            : compiled.Compilation.GetDiagnostics();
+        var cSharpDiagnostics = cSharpAllDiagnostics.Where(d => d.Severity != DiagnosticSeverity.Hidden);
+        var actualDiagnosticsText = getActualDiagnosticsText(cSharpDiagnostics);
+
+        if (GenerateBaselines.ShouldGenerate)
+        {
+            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
+            if (!string.IsNullOrWhiteSpace(actualDiagnosticsText))
+            {
+                File.WriteAllText(baselineFullPath, actualDiagnosticsText, _baselineEncoding);
+            }
+            else if (File.Exists(baselineFullPath))
+            {
+                File.Delete(baselineFullPath);
+            }
+
+            return;
+        }
+
+        var baselineDiagnostics = string.Empty;
+        var diagnosticsFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        if (diagnosticsFile.Exists())
+        {
+            baselineDiagnostics = diagnosticsFile.ReadAllText();
+        }
+
+        AssertEx.EqualOrDiff(baselineDiagnostics, NormalizeNewLines(actualDiagnosticsText));
+
+        static string getActualDiagnosticsText(IEnumerable<Diagnostic> diagnostics)
+        {
+            var assertText = DiagnosticDescription.GetAssertText(
+            expected: [],
+            actual: diagnostics,
+            unmatchedExpected: [],
+            unmatchedActual: diagnostics);
+            var startAnchor = "Actual:" + Environment.NewLine;
+            var endAnchor = "Diff:" + Environment.NewLine;
+            var start = assertText.IndexOf(startAnchor, StringComparison.Ordinal) + startAnchor.Length;
+            var end = assertText.IndexOf(endAnchor, start, StringComparison.Ordinal);
+            var result = assertText[start..end];
+            return removeIndentation(result);
+        }
+
+        static string removeIndentation(string text)
+        {
+            var spaces = new string(' ', 16);
+            return text.Trim().Replace(Environment.NewLine + spaces, Environment.NewLine);
+        }
+    }
+
     private class CodeSpanVisitor : SyntaxRewriter
     {
         public List<Syntax.SyntaxNode> CodeSpans { get; } = new List<Syntax.SyntaxNode>();
@@ -695,26 +781,14 @@ public abstract class IntegrationTestBase
         return Regex.Replace(content, "(?<!\r)\n", lineEnding, RegexOptions.None, TimeSpan.FromSeconds(10));
     }
 
-    // This is to prevent you from accidentally checking in with GenerateBaselines = true
-    [Fact]
-    public void GenerateBaselinesMustBeFalse()
+    private sealed class ConfigureCodeGenerationOptionsFeature(string lineEnding) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
-        Assert.False(GenerateBaselines, "GenerateBaselines should be set back to false before you check in!");
-    }
+        public int Order { get; }
 
-    private class ConfigureCodeRenderingPhase : RazorEnginePhaseBase
-    {
-        public ConfigureCodeRenderingPhase(string lineEnding)
+        public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
-            LineEnding = lineEnding;
-        }
-
-        public string LineEnding { get; }
-
-        protected override void ExecuteCore(RazorCodeDocument codeDocument)
-        {
-            codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = "test";
-            codeDocument.Items[CodeRenderingContext.NewLineString] = LineEnding;
+            options.NewLine = lineEnding;
+            options.SuppressUniqueIds = "__UniqueIdSuppressedForTesting__";
         }
     }
 

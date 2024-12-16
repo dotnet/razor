@@ -5,31 +5,33 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions languageServerFeatureOptions, IClientConnection clientConnection, IRazorLoggerFactory loggerFactory) : ICSharpSemanticTokensProvider
+internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions languageServerFeatureOptions, IClientConnection clientConnection, ILoggerFactory loggerFactory) : ICSharpSemanticTokensProvider
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IClientConnection _clientConnection = clientConnection;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<LSPCSharpSemanticTokensProvider>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<LSPCSharpSemanticTokensProvider>();
 
     public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(
-            VersionedDocumentContext documentContext,
+            DocumentContext documentContext,
             ImmutableArray<LinePositionSpan> csharpSpans,
             Guid correlationId,
             CancellationToken cancellationToken)
     {
-        var documentVersion = documentContext.Version;
+        var documentVersion = documentContext.Snapshot.Version;
 
         using var _ = ListPool<Range>.GetPooledObject(out var csharpRangeList);
         foreach (var span in csharpSpans)
@@ -39,7 +41,12 @@ internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions lang
 
         var csharpRanges = csharpRangeList.ToArray();
 
-        var parameter = new ProvideSemanticTokensRangesParams(documentContext.Identifier.TextDocumentIdentifier, documentVersion, csharpRanges, correlationId);
+        var parameter = new ProvideSemanticTokensRangesParams(
+            documentContext.GetTextDocumentIdentifierAndVersion().TextDocumentIdentifier,
+            documentVersion,
+            csharpRanges,
+            correlationId);
+
         ProvideSemanticTokensResponse? csharpResponse;
         if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
         {
@@ -48,11 +55,7 @@ internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions lang
             // Likely the server doesn't support the new endpoint, fallback to the original one
             if (csharpResponse?.Tokens is null && csharpRanges.Length > 1)
             {
-                var minimalRange = new Range
-                {
-                    Start = csharpRanges[0].Start,
-                    End = csharpRanges[^1].End
-                };
+                var minimalRange = VsLspFactory.CreateRange(csharpRanges[0].Start, csharpRanges[^1].End);
 
                 var newParams = new ProvideSemanticTokensRangesParams(
                     parameter.TextDocument,
@@ -81,15 +84,15 @@ internal class LSPCSharpSemanticTokensProvider(LanguageServerFeatureOptions lang
             // Once C# syncs up they'll send a refresh notification.
             if (csharpVersion == -1)
             {
-                _logger.LogWarning("Didn't get C# tokens because the virtual document wasn't found, or other problem. We were wanting {documentVersion} but C# could not get any version.", documentVersion);
+                _logger.LogWarning($"Didn't get C# tokens because the virtual document wasn't found, or other problem. We were wanting {documentVersion} but C# could not get any version.");
             }
             else if (csharpVersion < documentVersion)
             {
-                _logger.LogDebug("Didn't wait for Roslyn to get the C# version we were expecting. We are wanting {documentVersion} but C# is at {csharpVersion}.", documentVersion, csharpVersion);
+                _logger.LogDebug($"Didn't wait for Roslyn to get the C# version we were expecting. We are wanting {documentVersion} but C# is at {csharpVersion}.");
             }
             else
             {
-                _logger.LogWarning("We are behind the C# version which is surprising. Could be an old request that wasn't cancelled, but if not, expect most future requests to fail. We were wanting {documentVersion} but C# is at {csharpVersion}.", documentVersion, csharpVersion);
+                _logger.LogWarning($"We are behind the C# version which is surprising. Could be an old request that wasn't cancelled, but if not, expect most future requests to fail. We were wanting {documentVersion} but C# is at {csharpVersion}.");
             }
 
             return null;

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -20,9 +19,9 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
     public override Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, IMethodHandler methodHandler, TRequestParams @params, CancellationToken cancellationToken)
     {
-        var logger = _lspServices.GetRequiredService<IRazorLoggerFactory>().CreateLogger<RazorRequestContextFactory>();
+        var logger = _lspServices.GetRequiredService<ILoggerFactory>().GetOrCreateLogger<RazorRequestContextFactory>();
 
-        VersionedDocumentContext? documentContext = null;
+        DocumentContext? documentContext = null;
         var textDocumentHandler = methodHandler as ITextDocumentIdentifierHandler;
 
         Uri? uri = null;
@@ -34,17 +33,17 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
                 var textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
                 uri = textDocumentIdentifier.Uri;
 
-                logger.LogDebug("Trying to create DocumentContext for {methodName} for {projectContext} for {uri}", queueItem.MethodName, textDocumentIdentifier.GetProjectContext()?.Id ?? "(no project context)", uri);
+                logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName} for {textDocumentIdentifier.GetProjectContext()?.Id ?? "(no project context)"} for {uri}");
 
-                documentContext = documentContextFactory.TryCreateForOpenDocument(textDocumentIdentifier);
+                documentContextFactory.TryCreate(textDocumentIdentifier, out documentContext);
             }
             else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
             {
                 uri = uriHandler.GetTextDocumentIdentifier(@params);
 
-                logger.LogDebug("Trying to create DocumentContext for {methodName}, with no project context, for {uri}", queueItem.MethodName, uri);
+                logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName}, with no project context, for {uri}");
 
-                documentContext = documentContextFactory.TryCreateForOpenDocument(uri);
+                documentContextFactory.TryCreate(uri, out documentContext);
             }
             else
             {
@@ -53,7 +52,7 @@ internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRe
 
             if (documentContext is null)
             {
-                logger.LogWarning("Could not create a document context for {methodName} for {uri}. Endpoint may crash later if it calls GetRequiredDocumentContext.", queueItem.MethodName, uri);
+                logger.LogWarning($"Could not create a document context for {queueItem.MethodName} for {uri}. Endpoint may crash later if it calls GetRequiredDocumentContext.");
             }
         }
 

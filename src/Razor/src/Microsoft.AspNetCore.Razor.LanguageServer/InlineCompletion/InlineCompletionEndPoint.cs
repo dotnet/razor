@@ -10,25 +10,27 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 
 [RazorLanguageServerEndpoint(VSInternalMethods.TextDocumentInlineCompletionName)]
 internal sealed class InlineCompletionEndpoint(
-    IRazorDocumentMappingService documentMappingService,
+    IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
-    IAdhocWorkspaceFactory adhocWorkspaceFactory,
-    IRazorLoggerFactory loggerFactory)
+    IFormattingCodeDocumentProvider formattingCodeDocumentProvider,
+    RazorLSPOptionsMonitor optionsMonitor,
+    ILoggerFactory loggerFactory)
     : IRazorRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>, ICapabilitiesProvider
 {
     private static readonly ImmutableHashSet<string> s_cSharpKeywords = ImmutableHashSet.Create(
@@ -36,10 +38,11 @@ internal sealed class InlineCompletionEndpoint(
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    private readonly IRazorDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-    private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-    private readonly IAdhocWorkspaceFactory _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
-    private readonly ILogger _logger = loggerFactory.CreateLogger<InlineCompletionEndpoint>();
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IClientConnection _clientConnection = clientConnection;
+    private readonly IFormattingCodeDocumentProvider _formattingCodeDocumentProvider = formattingCodeDocumentProvider;
+    private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();
 
     public bool MutatesSolutionState => false;
 
@@ -58,12 +61,9 @@ internal sealed class InlineCompletionEndpoint(
 
     public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgHelper.ThrowIfNull(request);
 
-        _logger.LogInformation("Starting request for {textDocumentUri} at {position}.", request.TextDocument.Uri, request.Position);
+        _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
 
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
@@ -78,16 +78,15 @@ internal sealed class InlineCompletionEndpoint(
         }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-        var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+        var hostDocumentIndex = sourceText.GetPosition(request.Position);
 
-        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
+        var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
 
         // Map to the location in the C# document.
         if (languageKind != RazorLanguageKind.CSharp ||
             !_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out Position? projectedPosition, out _))
         {
-            _logger.LogInformation("Unsupported location for {textDocumentUri}.", request.TextDocument.Uri);
+            _logger.LogInformation($"Unsupported location for {request.TextDocument.Uri}.");
             return null;
         }
 
@@ -107,23 +106,27 @@ internal sealed class InlineCompletionEndpoint(
             cancellationToken).ConfigureAwait(false);
         if (list is null || !list.Items.Any())
         {
-            _logger.LogInformation("Did not get any inline completions from delegation.");
+            _logger.LogInformation($"Did not get any inline completions from delegation.");
             return null;
         }
 
-        var items = new List<VSInternalInlineCompletionItem>();
+        using var items = new PooledArrayBuilder<VSInternalInlineCompletionItem>(list.Items.Length);
         foreach (var item in list.Items)
         {
-            var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
-            var range = item.Range ?? new Range { Start = projectedPosition, End = projectedPosition };
+            var range = item.Range ?? projectedPosition.ToZeroWidthRange();
 
             if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
             {
-                _logger.LogWarning("Could not remap projected range {range} to razor document", range);
+                _logger.LogWarning($"Could not remap projected range {range} to razor document");
                 continue;
             }
 
-            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, documentContext.Snapshot, codeDocument, request.Options, _adhocWorkspaceFactory);
+            var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
+            var formattingContext = FormattingContext.Create(
+                documentContext.Snapshot,
+                codeDocument,
+                options,
+                _formattingCodeDocumentProvider);
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;
@@ -141,11 +144,11 @@ internal sealed class InlineCompletionEndpoint(
 
         if (items.Count == 0)
         {
-            _logger.LogInformation("Could not format / map the items from delegation.");
+            _logger.LogInformation($"Could not format / map the items from delegation.");
             return null;
         }
 
-        _logger.LogInformation("Returning {itemsCount} items.", items.Count);
+        _logger.LogInformation($"Returning {items.Count} items.");
         return new VSInternalInlineCompletionList
         {
             Items = items.ToArray()
