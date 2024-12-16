@@ -10,25 +10,61 @@ namespace Microsoft.AspNetCore.Razor;
 
 internal static class Assumed
 {
+    [DebuggerStepThrough]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void NonNull<T>(
+        [NotNull] this T value,
+        [CallerArgumentExpression(nameof(value))] string? valueExpression = null,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        where T : class?
+    {
+        if (value is null)
+        {
+            ThrowInvalidOperation($"Expected '{valueExpression}' to be non-null.", path, line);
+        }
+    }
+
+    [DebuggerStepThrough]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void NonNull<T>(
+        [NotNull] this T? value,
+        [CallerArgumentExpression(nameof(value))] string? valueExpression = null,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        where T : struct
+    {
+        if (value is null)
+        {
+            ThrowInvalidOperation($"Expected '{valueExpression}' to be non-null.", path, line);
+        }
+    }
+
+    [DebuggerStepThrough]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void False(
         [DoesNotReturnIf(true)] bool condition,
+        string? message = null,
         [CallerFilePath] string? path = null,
         [CallerLineNumber] int line = 0)
     {
         if (condition)
         {
-            ThrowInvalidOperation(SR.Expected_condition_to_be_false, path, line);
+            ThrowInvalidOperation(message ?? SR.Expected_condition_to_be_false, path, line);
         }
     }
 
+    [DebuggerStepThrough]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void True(
         [DoesNotReturnIf(false)] bool condition,
+        string? message = null,
         [CallerFilePath] string? path = null,
         [CallerLineNumber] int line = 0)
     {
         if (!condition)
         {
-            ThrowInvalidOperation(SR.Expected_condition_to_be_true, path, line);
+            ThrowInvalidOperation(message ?? SR.Expected_condition_to_be_true, path, line);
         }
     }
 
