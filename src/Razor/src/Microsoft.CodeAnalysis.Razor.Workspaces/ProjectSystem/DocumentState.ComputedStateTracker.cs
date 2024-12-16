@@ -164,7 +164,7 @@ internal partial class DocumentState
             var configurationVersion = project.ConfigurationVersion;
             var projectWorkspaceStateVersion = project.ProjectWorkspaceStateVersion;
             var documentCollectionVersion = project.DocumentCollectionVersion;
-            var importItems = await GetImportItemsAsync(document, project.GetProjectEngine(), cancellationToken).ConfigureAwait(false);
+            var importItems = await ImportHelpers.GetImportItemsAsync(document, project.GetProjectEngine(), cancellationToken).ConfigureAwait(false);
             var documentVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // OK now that have the previous output and all of the versions, we can see if anything
