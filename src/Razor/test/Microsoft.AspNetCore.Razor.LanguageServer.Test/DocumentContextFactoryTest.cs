@@ -99,7 +99,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject);
-            updater.AddDocument(hostProject.Key, hostDocument, new EmptyTextLoader(filePath));
+            updater.AddDocument(hostProject.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
         // Act

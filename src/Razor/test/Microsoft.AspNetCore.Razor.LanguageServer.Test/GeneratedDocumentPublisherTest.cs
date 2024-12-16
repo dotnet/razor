@@ -36,7 +36,7 @@ public class GeneratedDocumentPublisherTest : LanguageServerTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.AddDocument(s_hostProject.Key, s_hostDocument, new EmptyTextLoader(s_hostDocument.FilePath));
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, EmptyTextLoader.Instance);
         });
     }
 
@@ -370,7 +370,7 @@ public class GeneratedDocumentPublisherTest : LanguageServerTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject2);
-            updater.AddDocument(s_hostProject2.Key, s_hostDocument, new EmptyTextLoader(s_hostDocument.FilePath));
+            updater.AddDocument(s_hostProject2.Key, s_hostDocument, EmptyTextLoader.Instance);
         });
 
         publisher.PublishCSharp(s_hostProject2.Key, s_hostDocument.FilePath, changedSourceText, 124);

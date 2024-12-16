@@ -40,7 +40,7 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
-            updater.AddDocument(s_hostProject.Key, s_hostDocument, new EmptyTextLoader(s_hostDocument.FilePath));
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, EmptyTextLoader.Instance);
         });
     }
 
