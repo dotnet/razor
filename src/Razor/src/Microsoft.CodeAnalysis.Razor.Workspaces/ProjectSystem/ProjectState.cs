@@ -321,8 +321,15 @@ internal sealed class ProjectState
 
     private ProjectState WithDocumentText(DocumentState state, Func<DocumentState, DocumentState> transformer)
     {
+        var newState = transformer(state);
+
+        if (ReferenceEquals(this, newState))
+        {
+            return this;
+        }
+
         var hostDocument = state.HostDocument;
-        var documents = Documents.SetItem(hostDocument.FilePath, transformer(state));
+        var documents = Documents.SetItem(hostDocument.FilePath, newState);
 
         // If this document is an import, update its related documents.
         documents = UpdateRelatedDocuments(hostDocument, documents);
