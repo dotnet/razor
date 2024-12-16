@@ -14,32 +14,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 internal static class TestMocks
 {
-    public static TextLoader CreateEmptyTextLoader()
-    {
-        return CreateTextLoader(string.Empty, VersionStamp.Create());
-    }
-
     public static TextLoader CreateTextLoader(string text)
-    {
-        return CreateTextLoader(text, VersionStamp.Create());
-    }
-
-    public static TextLoader CreateTextLoader(string filePath, string text)
-    {
-        return CreateTextLoader(filePath, SourceText.From(text));
-    }
-
-    public static TextLoader CreateTextLoader(string filePath, SourceText text)
-    {
-        var mock = new StrictMock<TextLoader>();
-
-        var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create(), filePath);
-
-        mock.Setup(x => x.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(textAndVersion);
-
-        return mock.Object;
-    }
+        => CreateTextLoader(text, VersionStamp.Create());
 
     public static TextLoader CreateTextLoader(string text, VersionStamp version)
         => CreateTextLoader(SourceText.From(text), version);

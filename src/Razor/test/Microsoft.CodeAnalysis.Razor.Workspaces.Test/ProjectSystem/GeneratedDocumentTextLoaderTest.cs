@@ -21,7 +21,7 @@ public class GeneratedDocumentTextLoaderTest(ITestOutputHelper testOutput) : Wor
         // Arrange
         var state = ProjectState
             .Create(_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddDocument(_hostDocument, TestMocks.CreateEmptyTextLoader());
+            .AddDocument(_hostDocument, EmptyTextLoader.Instance);
 
         var project = new ProjectSnapshot(state);
 

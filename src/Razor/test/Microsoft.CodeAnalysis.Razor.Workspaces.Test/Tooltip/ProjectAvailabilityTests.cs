@@ -57,7 +57,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
         {
             updater.AddProject(hostProject);
             updater.UpdateProjectWorkspaceState(hostProject.Key, projectWorkspaceState);
-            updater.AddDocument(hostProject.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
+            updater.AddDocument(hostProject.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
         var solutionQueryOperations = projectManager.GetQueryOperations();
@@ -102,11 +102,11 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
         {
             updater.AddProject(hostProject1);
             updater.UpdateProjectWorkspaceState(hostProject1.Key, projectWorkspaceState);
-            updater.AddDocument(hostProject1.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
+            updater.AddDocument(hostProject1.Key, hostDocument, EmptyTextLoader.Instance);
 
             updater.AddProject(hostProject2);
             updater.UpdateProjectWorkspaceState(hostProject2.Key, projectWorkspaceState);
-            updater.AddDocument(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
+            updater.AddDocument(hostProject2.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
         var solutionQueryOperations = projectManager.GetQueryOperations();
@@ -151,10 +151,10 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
         {
             updater.AddProject(hostProject1);
             updater.UpdateProjectWorkspaceState(hostProject1.Key, projectWorkspaceState);
-            updater.AddDocument(hostProject1.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
+            updater.AddDocument(hostProject1.Key, hostDocument, EmptyTextLoader.Instance);
 
             updater.AddProject(hostProject2);
-            updater.AddDocument(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
+            updater.AddDocument(hostProject2.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
         var solutionQueryOperations = projectManager.GetQueryOperations();
@@ -195,10 +195,10 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(hostProject1);
-            updater.AddDocument(hostProject1.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
+            updater.AddDocument(hostProject1.Key, hostDocument, EmptyTextLoader.Instance);
 
             updater.AddProject(hostProject2);
-            updater.AddDocument(hostProject2.Key, hostDocument, TestMocks.CreateTextLoader(hostDocument.FilePath, text: ""));
+            updater.AddDocument(hostProject2.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
         var solutionQueryOperations = projectManager.GetQueryOperations();
