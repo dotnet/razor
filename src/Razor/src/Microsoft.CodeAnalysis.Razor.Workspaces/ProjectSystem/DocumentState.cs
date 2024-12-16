@@ -45,13 +45,15 @@ internal sealed partial class DocumentState
     private DocumentState(
         DocumentState oldState,
         TextAndVersion? textAndVersion,
-        TextLoader? textLoader)
+        TextLoader? textLoader,
+        ComputedStateTracker? computedState = null)
     {
         HostDocument = oldState.HostDocument;
         Version = oldState.Version + 1;
 
         _textAndVersion = textAndVersion;
         _textLoader = textLoader ?? EmptyLoader;
+        _computedState = computedState;
     }
 
     public static DocumentState Create(HostDocument hostDocument, SourceText text)
@@ -151,42 +153,19 @@ internal sealed partial class DocumentState
     }
 
     public DocumentState WithConfigurationChange()
-    {
-        // Do not cache computed state
-        return new(this, _textAndVersion, _textLoader);
-    }
+        => new(this, _textAndVersion, _textLoader, computedState: null);
 
     public DocumentState WithImportsChange()
-    {
-        var state = new DocumentState(this, _textAndVersion, _textLoader);
-
-        // Optimistically cache the computed state
-        state._computedState = new ComputedStateTracker(_computedState);
-
-        return state;
-    }
+        => new(this, _textAndVersion, _textLoader, new ComputedStateTracker(_computedState));
 
     public DocumentState WithProjectWorkspaceStateChange()
-    {
-        var state = new DocumentState(this, _textAndVersion, _textLoader);
-
-        // Optimistically cache the computed state
-        state._computedState = new ComputedStateTracker(_computedState);
-
-        return state;
-    }
+        => new(this, _textAndVersion, _textLoader, new ComputedStateTracker(_computedState));
 
     public DocumentState WithText(SourceText text, VersionStamp textVersion)
-    {
-        // Do not cache the computed state
-        return new(this, TextAndVersion.Create(text, textVersion), textLoader: null);
-    }
+        => new(this, TextAndVersion.Create(text, textVersion), textLoader: null, computedState: null);
 
     public DocumentState WithTextLoader(TextLoader textLoader)
-    {
-        // Do not cache the computed state
-        return new(this, textAndVersion: null, textLoader);
-    }
+        => new(this, textAndVersion: null, textLoader, computedState: null);
 
     internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
         IDocumentSnapshot document,
