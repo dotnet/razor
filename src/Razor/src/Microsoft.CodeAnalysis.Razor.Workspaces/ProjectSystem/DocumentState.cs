@@ -60,8 +60,6 @@ internal sealed partial class DocumentState
     public static DocumentState Create(HostDocument hostDocument, TextLoader loader)
         => new(hostDocument, textAndVersion: null, loader);
 
-    public bool IsGeneratedOutputResultAvailable => ComputedState.IsResultAvailable;
-
     private ComputedStateTracker ComputedState
         => _computedState ??= InterlockedOperations.Initialize(ref _computedState, new ComputedStateTracker());
 
