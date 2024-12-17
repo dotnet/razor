@@ -67,8 +67,6 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public string DisplayName => _project.Name;
 
-    public VersionStamp Version => _project.Version;
-
     public Project Project => _project;
 
     public LanguageVersion CSharpLanguageVersion => ((CSharpParseOptions)_project.ParseOptions.AssumeNotNull()).LanguageVersion;

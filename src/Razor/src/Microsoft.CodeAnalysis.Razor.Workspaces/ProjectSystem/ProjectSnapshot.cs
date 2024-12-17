@@ -33,15 +33,10 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
     public string IntermediateOutputPath => _state.HostProject.IntermediateOutputPath;
     public string? RootNamespace => _state.HostProject.RootNamespace;
     public string DisplayName => _state.HostProject.DisplayName;
-    public VersionStamp Version => _state.Version;
     public LanguageVersion CSharpLanguageVersion => _state.CSharpLanguageVersion;
     public ProjectWorkspaceState ProjectWorkspaceState => _state.ProjectWorkspaceState;
 
     public int DocumentCount => _state.Documents.Count;
-
-    public VersionStamp ConfigurationVersion => _state.ConfigurationVersion;
-    public VersionStamp ProjectWorkspaceStateVersion => _state.ProjectWorkspaceStateVersion;
-    public VersionStamp DocumentCollectionVersion => _state.DocumentCollectionVersion;
 
     public RazorProjectEngine GetProjectEngine()
         => _state.ProjectEngine;

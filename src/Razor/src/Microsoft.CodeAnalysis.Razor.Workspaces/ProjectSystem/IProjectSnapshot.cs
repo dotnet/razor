@@ -31,7 +31,6 @@ internal interface IProjectSnapshot
 
     string? RootNamespace { get; }
     string DisplayName { get; }
-    VersionStamp Version { get; }
     LanguageVersion CSharpLanguageVersion { get; }
     ProjectWorkspaceState ProjectWorkspaceState { get; }
 
