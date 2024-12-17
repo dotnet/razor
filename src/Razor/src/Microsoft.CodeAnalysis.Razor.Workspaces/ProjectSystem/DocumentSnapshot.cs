@@ -5,29 +5,25 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal sealed class DocumentSnapshot : IDocumentSnapshot, IDesignTimeCodeGenerator
+internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState state) : IDocumentSnapshot, IDesignTimeCodeGenerator, ILegacyDocumentSnapshot
 {
-    public ProjectSnapshot Project { get; }
+    public ProjectSnapshot Project { get; } = project;
 
-    private readonly DocumentState _state;
-
-    public DocumentSnapshot(ProjectSnapshot project, DocumentState state)
-    {
-        Project = project;
-        _state = state;
-    }
+    private readonly DocumentState _state = state;
 
     public HostDocument HostDocument => _state.HostDocument;
 
     public string FileKind => _state.HostDocument.FileKind;
     public string FilePath => _state.HostDocument.FilePath;
     public string TargetPath => _state.HostDocument.TargetPath;
-    IProjectSnapshot IDocumentSnapshot.Project => Project;
     public int Version => _state.Version;
+
+    IProjectSnapshot IDocumentSnapshot.Project => Project;
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
         => _state.TryGetText(out result);
@@ -73,4 +69,10 @@ internal sealed class DocumentSnapshot : IDocumentSnapshot, IDesignTimeCodeGener
             .GenerateDesignTimeCodeDocumentAsync(this, Project.GetProjectEngine(), importItems, cancellationToken)
             .ConfigureAwait(false);
     }
+
+    #region ILegacyDocumentSnapshot support
+
+    string ILegacyDocumentSnapshot.FileKind => FileKind;
+
+    #endregion
 }

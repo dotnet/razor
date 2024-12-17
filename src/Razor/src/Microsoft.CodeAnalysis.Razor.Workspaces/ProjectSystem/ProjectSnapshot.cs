@@ -11,11 +11,12 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
+internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, ILegacyProjectSnapshot
 {
     private readonly ProjectState _state = state;
 
@@ -64,7 +65,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
         }
     }
 
-    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out DocumentSnapshot? document)
     {
         lock (_gate)
         {
@@ -89,6 +90,18 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
             document = snapshot;
             return true;
         }
+    }
+
+    bool IProjectSnapshot.TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    {
+        if (TryGetDocument(filePath, out var result))
+        {
+            document = result;
+            return true;
+        }
+
+        document = null;
+        return false;
     }
 
     /// <summary>
@@ -178,4 +191,22 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
 
         return importItems.DrainToImmutable();
     }
+
+    #region ILegacyProjectSnapshot support
+
+    RazorConfiguration ILegacyProjectSnapshot.Configuration => Configuration;
+    string ILegacyProjectSnapshot.FilePath => FilePath;
+    string? ILegacyProjectSnapshot.RootNamespace => RootNamespace;
+    LanguageVersion ILegacyProjectSnapshot.CSharpLanguageVersion => CSharpLanguageVersion;
+    ImmutableArray<TagHelperDescriptor> ILegacyProjectSnapshot.TagHelpers => ProjectWorkspaceState.TagHelpers;
+
+    RazorProjectEngine ILegacyProjectSnapshot.GetProjectEngine()
+        => _state.ProjectEngine;
+
+    ILegacyDocumentSnapshot? ILegacyProjectSnapshot.GetDocument(string filePath)
+        => TryGetDocument(filePath, out var document)
+            ? document
+            : null;
+
+    #endregion
 }
