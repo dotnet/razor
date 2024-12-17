@@ -80,7 +80,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot, IDesignTimeCod
 
     private async Task<RazorCodeDocument> ComputeGeneratedOutputAsync(CancellationToken cancellationToken)
     {
-        var projectEngine = await ProjectSnapshot.GetProjectEngine_CohostOnlyAsync(cancellationToken).ConfigureAwait(false);
+        var projectEngine = await ProjectSnapshot.GetProjectEngineAsync(cancellationToken).ConfigureAwait(false);
         var compilerOptions = ProjectSnapshot.SolutionSnapshot.SnapshotManager.CompilerOptions;
 
         return await CompilationHelpers
@@ -90,7 +90,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot, IDesignTimeCod
 
     public async Task<RazorCodeDocument> GenerateDesignTimeOutputAsync(CancellationToken cancellationToken)
     {
-        var projectEngine = await ProjectSnapshot.GetProjectEngine_CohostOnlyAsync(cancellationToken).ConfigureAwait(false);
+        var projectEngine = await ProjectSnapshot.GetProjectEngineAsync(cancellationToken).ConfigureAwait(false);
 
         return await CompilationHelpers
             .GenerateDesignTimeCodeDocumentAsync(this, projectEngine, cancellationToken)

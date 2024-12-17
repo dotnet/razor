@@ -352,8 +352,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
             .Setup(d => d.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(tagHelpers);
         snapshotMock
-            .Setup(d => d.Project.GetProjectEngine())
-            .Returns(projectEngine);
+            .Setup(d => d.Project.GetProjectEngineAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(projectEngine);
         snapshotMock
             .Setup(d => d.FileKind)
             .Returns(fileKind);

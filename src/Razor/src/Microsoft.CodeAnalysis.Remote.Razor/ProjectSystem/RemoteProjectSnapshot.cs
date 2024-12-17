@@ -162,14 +162,18 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         return false;
     }
 
-    public RazorProjectEngine GetProjectEngine() => throw new InvalidOperationException("Should not be called for cohosted projects.");
-
     /// <summary>
-    /// NOTE: To be called only from CohostDocumentSnapshot.GetGeneratedOutputAsync(). Will be removed when that method uses the source generator directly.
+    /// NOTE: This will be removed when that method uses the source generator directly.
     /// </summary>
-    /// <returns></returns>
-    internal Task<RazorProjectEngine> GetProjectEngine_CohostOnlyAsync(CancellationToken cancellationToken)
-        => _lazyProjectEngine.GetValueAsync(cancellationToken);
+    public ValueTask<RazorProjectEngine> GetProjectEngineAsync(CancellationToken cancellationToken)
+    {
+        if (_lazyProjectEngine.TryGetValue(out var result))
+        {
+            return new(result);
+        }
+
+        return new(_lazyProjectEngine.GetValueAsync(cancellationToken));
+    }
 
     private async Task<RazorConfiguration> ComputeConfigurationAsync(CancellationToken cancellationToken)
     {
