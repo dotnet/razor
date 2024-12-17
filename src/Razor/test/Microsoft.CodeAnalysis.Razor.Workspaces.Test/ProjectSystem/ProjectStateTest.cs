@@ -70,7 +70,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         var documentState = Assert.Single(newState.Documents.Values);
         Assert.Same(SomeProjectFile1, documentState.HostDocument);
-        Assert.NotEqual(state.DocumentCollectionVersion, newState.DocumentCollectionVersion);
     }
 
     [Fact]
@@ -107,7 +106,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
             d => Assert.Same(AnotherProjectNestedFile3, d.Value.HostDocument),
             d => Assert.Same(SomeProjectFile1, d.Value.HostDocument),
             d => Assert.Same(SomeProjectFile2, d.Value.HostDocument));
-        Assert.NotEqual(state.DocumentCollectionVersion, newState.DocumentCollectionVersion);
     }
 
     [Fact]
@@ -242,8 +240,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         var text = await newState.Documents[SomeProjectFile2.FilePath].GetTextAsync(DisposalToken);
         Assert.Same(s_text, text);
-
-        Assert.Equal(state.DocumentCollectionVersion, newState.DocumentCollectionVersion);
     }
 
     [Fact]
@@ -263,8 +259,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         var text = await newState.Documents[SomeProjectFile2.FilePath].GetTextAsync(DisposalToken);
         Assert.Same(s_text, text);
-
-        Assert.Equal(state.DocumentCollectionVersion, newState.DocumentCollectionVersion);
     }
 
     [Fact]
@@ -354,8 +348,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         var documentState = Assert.Single(newState.Documents.Values);
         Assert.Same(AnotherProjectNestedFile3, documentState.HostDocument);
-
-        Assert.NotEqual(state.DocumentCollectionVersion, newState.DocumentCollectionVersion);
     }
 
     [Fact]
@@ -477,8 +469,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         Assert.NotSame(state.Documents[SomeProjectFile2.FilePath], newState.Documents[SomeProjectFile2.FilePath]);
         Assert.NotSame(state.Documents[AnotherProjectNestedFile3.FilePath], newState.Documents[AnotherProjectNestedFile3.FilePath]);
-
-        Assert.NotEqual(state.DocumentCollectionVersion, newState.DocumentCollectionVersion);
     }
 
     [Fact]

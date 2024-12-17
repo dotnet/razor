@@ -32,11 +32,6 @@ internal sealed class ProjectState
         ProjectDifference.ConfigurationChanged |
         ProjectDifference.ProjectWorkspaceStateChanged;
 
-    private const ProjectDifference ClearDocumentCollectionVersionMask =
-        ProjectDifference.ConfigurationChanged |
-        ProjectDifference.DocumentAdded |
-        ProjectDifference.DocumentRemoved;
-
     private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments
         = ImmutableDictionary.Create<string, DocumentState>(FilePathNormalizingComparer.Instance);
     private static readonly ImmutableDictionary<string, ImmutableHashSet<string>> s_emptyImportsToRelatedDocuments
@@ -71,7 +66,6 @@ internal sealed class ProjectState
         ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
         Version = VersionStamp.Create();
         ProjectWorkspaceStateVersion = Version;
-        DocumentCollectionVersion = Version;
     }
 
     private ProjectState(
@@ -91,16 +85,6 @@ internal sealed class ProjectState
         ImportsToRelatedDocuments = importsToRelatedDocuments;
 
         Version = older.Version.GetNewerVersion();
-
-        if ((difference & ClearDocumentCollectionVersionMask) == 0)
-        {
-            // Document collection hasn't changed
-            DocumentCollectionVersion = older.DocumentCollectionVersion;
-        }
-        else
-        {
-            DocumentCollectionVersion = Version;
-        }
 
         if ((difference & ClearConfigurationVersionMask) == 0 && older._projectEngine != null)
         {
@@ -167,13 +151,6 @@ internal sealed class ProjectState
     /// incremented for each new <see cref="ProjectState"/> instance created.
     /// </summary>
     public VersionStamp Version { get; }
-
-    /// <summary>
-    /// Gets the version of this project, NOT INCLUDING computed or content changes. The
-    /// <see cref="DocumentCollectionVersion"/> is incremented each time the configuration changes or
-    /// a document is added or removed.
-    /// </summary>
-    public VersionStamp DocumentCollectionVersion { get; }
 
     public RazorProjectEngine ProjectEngine
     {
