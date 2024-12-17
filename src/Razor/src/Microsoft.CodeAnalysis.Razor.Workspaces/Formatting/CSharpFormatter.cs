@@ -262,11 +262,17 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
 
         using var changes = new PooledArrayBuilder<TextChange>();
 
+        var syntaxTree = CSharpSyntaxTree.ParseText(context.CSharpSourceText, cancellationToken: cancellationToken);
+        var root = syntaxTree.GetRoot(cancellationToken);
+
         var previousMarkerOffset = 0;
         foreach (var projectedDocumentIndex in projectedDocumentLocations)
         {
-            var useMarker = char.IsWhiteSpace(context.CSharpSourceText[projectedDocumentIndex]);
-            if (useMarker)
+            var token = root.FindToken(projectedDocumentIndex, findInsideTrivia: true);
+
+            // We use a marker if the projected location is in trivia, because we can't add annotations to a specific piece of trivia
+            var isInTrivia = projectedDocumentIndex < token.SpanStart || projectedDocumentIndex >= token.Span.End;
+            if (isInTrivia)
             {
                 // We want to add a marker here because the location points to a whitespace
                 // which will not get preserved during formatting.
@@ -299,8 +305,7 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
         }
 
         var changedText = context.CSharpSourceText.WithChanges(changes.ToImmutable());
-        var syntaxTree = CSharpSyntaxTree.ParseText(changedText, cancellationToken: cancellationToken);
-        return (indentationMap, syntaxTree);
+        return (indentationMap, syntaxTree.WithChangedText(changedText));
     }
 
     private static SyntaxNode AttachAnnotations(
