@@ -53,7 +53,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.Empty(state.Documents);
-        Assert.NotEqual(VersionStamp.Default, state.Version);
     }
 
     [Fact]
@@ -66,8 +65,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.AddEmptyDocument(SomeProjectFile1);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
-
         var documentState = Assert.Single(newState.Documents.Values);
         Assert.Same(SomeProjectFile1, documentState.HostDocument);
     }
@@ -99,8 +96,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.AddEmptyDocument(SomeProjectFile1);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
-
         Assert.Collection(
             newState.Documents.OrderBy(static kvp => kvp.Key),
             d => Assert.Same(AnotherProjectNestedFile3, d.Value.HostDocument),
@@ -202,7 +197,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Assert
         Assert.Same(state.ProjectEngine, newState.ProjectEngine);
         AssertSameTagHelpers(state.TagHelpers, newState.TagHelpers);
-        Assert.Equal(state.ProjectWorkspaceStateVersion, newState.ProjectWorkspaceStateVersion);
         Assert.Same(state.Documents[SomeProjectFile2.FilePath], newState.Documents[SomeProjectFile2.FilePath]);
         Assert.Same(state.Documents[AnotherProjectNestedFile3.FilePath], newState.Documents[AnotherProjectNestedFile3.FilePath]);
     }
@@ -236,8 +230,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.WithDocumentText(SomeProjectFile2.FilePath, s_textLoader);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
-
         var text = await newState.Documents[SomeProjectFile2.FilePath].GetTextAsync(DisposalToken);
         Assert.Same(s_text, text);
     }
@@ -255,8 +247,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.WithDocumentText(SomeProjectFile2.FilePath, s_text);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
-
         var text = await newState.Documents[SomeProjectFile2.FilePath].GetTextAsync(DisposalToken);
         Assert.Same(s_text, text);
     }
@@ -276,7 +266,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Assert
         Assert.Same(state.ProjectEngine, newState.ProjectEngine);
         AssertSameTagHelpers(state.TagHelpers, newState.TagHelpers);
-        Assert.Equal(state.ProjectWorkspaceStateVersion, newState.ProjectWorkspaceStateVersion);
         Assert.NotSame(state.Documents[SomeProjectFile2.FilePath], newState.Documents[SomeProjectFile2.FilePath]);
     }
 
@@ -295,7 +284,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Assert
         Assert.Same(original.ProjectEngine, state.ProjectEngine);
         AssertSameTagHelpers(original.TagHelpers, state.TagHelpers);
-        Assert.Equal(original.ProjectWorkspaceStateVersion, state.ProjectWorkspaceStateVersion);
         Assert.NotSame(original.Documents[SomeProjectFile2.FilePath], state.Documents[SomeProjectFile2.FilePath]);
     }
 
@@ -344,8 +332,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.RemoveDocument(SomeProjectFile2.FilePath);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
-
         var documentState = Assert.Single(newState.Documents.Values);
         Assert.Same(AnotherProjectNestedFile3, documentState.HostDocument);
     }
@@ -427,7 +413,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Assert
         Assert.Same(state.ProjectEngine, newState.ProjectEngine);
         AssertSameTagHelpers(state.TagHelpers, newState.TagHelpers);
-        Assert.Equal(state.ProjectWorkspaceStateVersion, newState.ProjectWorkspaceStateVersion);
         Assert.Same(state.Documents[SomeProjectFile2.FilePath], newState.Documents[SomeProjectFile2.FilePath]);
     }
 
@@ -460,12 +445,10 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.WithHostProject(s_hostProject with { Configuration = FallbackRazorConfiguration.MVC_1_0 });
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
         Assert.Same(FallbackRazorConfiguration.MVC_1_0, newState.HostProject.Configuration);
 
         Assert.NotSame(state.ProjectEngine, newState.ProjectEngine);
         AssertSameTagHelpers(state.TagHelpers, newState.TagHelpers);
-        Assert.NotEqual(state.ConfigurationVersion, newState.ConfigurationVersion);
 
         Assert.NotSame(state.Documents[SomeProjectFile2.FilePath], newState.Documents[SomeProjectFile2.FilePath]);
         Assert.NotSame(state.Documents[AnotherProjectNestedFile3.FilePath], newState.Documents[AnotherProjectNestedFile3.FilePath]);
@@ -519,7 +502,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.WithHostProject(s_hostProject with { Configuration = FallbackRazorConfiguration.MVC_1_0 });
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
         Assert.Equal(FallbackRazorConfiguration.MVC_1_0, newState.HostProject.Configuration);
 
         // all documents were updated
@@ -565,13 +547,11 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.WithProjectWorkspaceState(newWorkspaceState);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
         Assert.Same(newWorkspaceState, newState.ProjectWorkspaceState);
 
         // The C# language version changed, and the tag helpers didn't change
         Assert.NotSame(state.ProjectEngine, newState.ProjectEngine);
         AssertSameTagHelpers(state.TagHelpers, newState.TagHelpers);
-        Assert.NotEqual(state.ProjectWorkspaceStateVersion, newState.ProjectWorkspaceStateVersion);
 
         Assert.NotSame(state.Documents[SomeProjectFile2.FilePath], newState.Documents[SomeProjectFile2.FilePath]);
         Assert.NotSame(state.Documents[AnotherProjectNestedFile3.FilePath], newState.Documents[AnotherProjectNestedFile3.FilePath]);
@@ -590,15 +570,11 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.WithProjectWorkspaceState(ProjectWorkspaceState.Default);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
         Assert.Same(ProjectWorkspaceState.Default, newState.ProjectWorkspaceState);
 
         // The configuration didn't change, but the tag helpers did
         Assert.Same(state.ProjectEngine, newState.ProjectEngine);
         Assert.NotEqual<TagHelperDescriptor>(state.TagHelpers, newState.TagHelpers);
-        Assert.NotEqual(state.ProjectWorkspaceStateVersion, newState.ProjectWorkspaceStateVersion);
-        Assert.Equal(newState.Version, newState.ProjectWorkspaceStateVersion);
-
         Assert.NotSame(state.Documents[SomeProjectFile2.FilePath], newState.Documents[SomeProjectFile2.FilePath]);
         Assert.NotSame(state.Documents[AnotherProjectNestedFile3.FilePath], newState.Documents[AnotherProjectNestedFile3.FilePath]);
     }
@@ -633,7 +609,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.WithProjectWorkspaceState(ProjectWorkspaceState.Default);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
         Assert.NotEqual(state.ProjectWorkspaceState, newState.ProjectWorkspaceState);
         Assert.Same(ProjectWorkspaceState.Default, newState.ProjectWorkspaceState);
 
@@ -664,7 +639,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.AddEmptyDocument(AnotherProjectImportFile);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
 
         // related documents were updated
         var relatedDocumentPaths = newState.ImportsToRelatedDocuments[AnotherProjectImportFile.TargetPath];
@@ -696,7 +670,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.AddEmptyDocument(AnotherProjectNestedImportFile);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
 
         // related documents were updated
         var relatedDocumentPaths = newState.ImportsToRelatedDocuments[AnotherProjectNestedImportFile.TargetPath];
@@ -734,7 +707,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.WithDocumentText(AnotherProjectNestedImportFile.FilePath, s_textLoader);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
 
         // document was updated
         AssertDocumentUpdated(AnotherProjectNestedImportFile.FilePath, state, newState);
@@ -776,7 +748,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.WithDocumentText(AnotherProjectNestedImportFile.FilePath, s_text);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
 
         // document was updated
         AssertDocumentUpdated(AnotherProjectNestedImportFile.FilePath, state, newState);
@@ -820,7 +791,6 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var newState = state.RemoveDocument(AnotherProjectNestedImportFile.FilePath);
 
         // Assert
-        Assert.NotEqual(state.Version, newState.Version);
 
         // document was removed
         Assert.False(newState.Documents.ContainsKey(AnotherProjectNestedImportFile.FilePath));

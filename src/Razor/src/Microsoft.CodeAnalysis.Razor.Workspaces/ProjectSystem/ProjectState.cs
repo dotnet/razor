@@ -26,12 +26,6 @@ internal sealed class ProjectState
     private static readonly ObjectPool<Dictionary<string, ImmutableHashSet<string>.Builder>> s_importMapBuilderPool =
         DictionaryPool<string, ImmutableHashSet<string>.Builder>.Create(FilePathNormalizingComparer.Instance);
 
-    private const ProjectDifference ClearConfigurationVersionMask = ProjectDifference.ConfigurationChanged;
-
-    private const ProjectDifference ClearProjectWorkspaceStateVersionMask =
-        ProjectDifference.ConfigurationChanged |
-        ProjectDifference.ProjectWorkspaceStateChanged;
-
     private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments
         = ImmutableDictionary.Create<string, DocumentState>(FilePathNormalizingComparer.Instance);
     private static readonly ImmutableDictionary<string, ImmutableHashSet<string>> s_emptyImportsToRelatedDocuments
@@ -64,17 +58,15 @@ internal sealed class ProjectState
 
         Documents = s_emptyDocuments;
         ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
-        Version = VersionStamp.Create();
-        ProjectWorkspaceStateVersion = Version;
     }
 
     private ProjectState(
         ProjectState older,
-        ProjectDifference difference,
         HostProject hostProject,
         ProjectWorkspaceState projectWorkspaceState,
         ImmutableDictionary<string, DocumentState> documents,
-        ImmutableDictionary<string, ImmutableHashSet<string>> importsToRelatedDocuments)
+        ImmutableDictionary<string, ImmutableHashSet<string>> importsToRelatedDocuments,
+        bool retainProjectEngine)
     {
         HostProject = hostProject;
         CompilerOptions = older.CompilerOptions;
@@ -84,36 +76,9 @@ internal sealed class ProjectState
         Documents = documents;
         ImportsToRelatedDocuments = importsToRelatedDocuments;
 
-        Version = older.Version.GetNewerVersion();
-
-        if ((difference & ClearConfigurationVersionMask) == 0 && older._projectEngine != null)
+        if (retainProjectEngine)
         {
-            // Optimistically cache the RazorProjectEngine.
-            _projectEngine = older.ProjectEngine;
-            ConfigurationVersion = older.ConfigurationVersion;
-        }
-        else
-        {
-            ConfigurationVersion = Version;
-        }
-
-        if ((difference & ClearProjectWorkspaceStateVersionMask) == 0 ||
-            ProjectWorkspaceState == older.ProjectWorkspaceState ||
-            ProjectWorkspaceState.Equals(older.ProjectWorkspaceState))
-        {
-            ProjectWorkspaceStateVersion = older.ProjectWorkspaceStateVersion;
-        }
-        else
-        {
-            ProjectWorkspaceStateVersion = Version;
-        }
-
-        if ((difference & ClearProjectWorkspaceStateVersionMask) != 0 &&
-            CSharpLanguageVersion != older.CSharpLanguageVersion)
-        {
-            // C# language version changed. This impacts the ProjectEngine, reset it.
-            _projectEngine = null;
-            ConfigurationVersion = Version;
+            _projectEngine = older._projectEngine;
         }
     }
 
@@ -146,12 +111,6 @@ internal sealed class ProjectState
 
     public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState.CSharpLanguageVersion;
 
-    /// <summary>
-    /// Gets the version of this project, INCLUDING content changes. The <see cref="Version"/> is
-    /// incremented for each new <see cref="ProjectState"/> instance created.
-    /// </summary>
-    public VersionStamp Version { get; }
-
     public RazorProjectEngine ProjectEngine
     {
         get
@@ -179,15 +138,6 @@ internal sealed class ProjectState
             }
         }
     }
-
-    /// <summary>
-    /// Gets the version of this project based on the project workspace state, NOT INCLUDING content
-    /// changes. The computed state is guaranteed to change when the configuration or tag helpers
-    /// change.
-    /// </summary>
-    public VersionStamp ProjectWorkspaceStateVersion { get; }
-
-    public VersionStamp ConfigurationVersion { get; }
 
     public ProjectState AddEmptyDocument(HostDocument hostDocument)
         => AddDocument(hostDocument, EmptyTextLoader.Instance);
@@ -237,7 +187,7 @@ internal sealed class ProjectState
         // Then, if this is an import, update any related documents.
         documents = UpdateRelatedDocuments(hostDocument, documents);
 
-        return new(this, ProjectDifference.DocumentAdded, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
+        return new(this, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments, retainProjectEngine: true);
     }
 
     public ProjectState RemoveDocument(string documentFilePath)
@@ -259,7 +209,7 @@ internal sealed class ProjectState
         // Then, compute the effect on the import map
         var importsToRelatedDocuments = RemoveFromImportsToRelatedDocuments(hostDocument);
 
-        return new(this, ProjectDifference.DocumentRemoved, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
+        return new(this, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments, retainProjectEngine: true);
     }
 
     public ProjectState WithDocumentText(string documentFilePath, SourceText text)
@@ -311,7 +261,7 @@ internal sealed class ProjectState
         // If this document is an import, update its related documents.
         documents = UpdateRelatedDocuments(hostDocument, documents);
 
-        return new(this, ProjectDifference.DocumentChanged, HostProject, ProjectWorkspaceState, documents, ImportsToRelatedDocuments);
+        return new(this, HostProject, ProjectWorkspaceState, documents, ImportsToRelatedDocuments, retainProjectEngine: true);
     }
 
     public ProjectState WithHostProject(HostProject hostProject)
@@ -329,7 +279,7 @@ internal sealed class ProjectState
         // If the host project has changed then we need to recompute the imports map
         var importsToRelatedDocuments = BuildImportsMap(documents.Values, ProjectEngine);
 
-        return new(this, ProjectDifference.ConfigurationChanged, hostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments);
+        return new(this, hostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments, retainProjectEngine: false);
     }
 
     public ProjectState WithProjectWorkspaceState(ProjectWorkspaceState projectWorkspaceState)
@@ -344,7 +294,10 @@ internal sealed class ProjectState
 
         var documents = UpdateDocuments(static x => x.WithProjectWorkspaceStateChange());
 
-        return new(this, ProjectDifference.ProjectWorkspaceStateChanged, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments);
+        // If the C# language version changed, we need a new project engine.
+        var retainProjectEngine = ProjectWorkspaceState.CSharpLanguageVersion == projectWorkspaceState.CSharpLanguageVersion;
+
+        return new(this, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments, retainProjectEngine);
     }
 
     private ImmutableDictionary<string, ImmutableHashSet<string>> AddToImportsToRelatedDocuments(HostDocument hostDocument)
