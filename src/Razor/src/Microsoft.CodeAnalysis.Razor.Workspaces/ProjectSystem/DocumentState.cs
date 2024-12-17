@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -144,32 +143,4 @@ internal sealed partial class DocumentState
         => ReferenceEquals(textLoader, _textAndVersionSource.TextLoader)
             ? this
             : new(this, CreateTextAndVersionSource(textLoader), computedState: null);
-
-    internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
-        IDocumentSnapshot document,
-        RazorProjectEngine projectEngine,
-        bool forceRuntimeCodeGeneration,
-        CancellationToken cancellationToken)
-    {
-        var importItems = await ImportHelpers.GetImportItemsAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
-
-        return await GenerateCodeDocumentAsync(
-            document, projectEngine, importItems, forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
-    }
-
-    private static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
-        IDocumentSnapshot document,
-        RazorProjectEngine projectEngine,
-        ImmutableArray<ImportItem> imports,
-        bool forceRuntimeCodeGeneration,
-        CancellationToken cancellationToken)
-    {
-        var importSources = ImportHelpers.GetImportSources(imports, projectEngine);
-        var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var source = await ImportHelpers.GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
-
-        return forceRuntimeCodeGeneration
-            ? projectEngine.Process(source, document.FileKind, importSources, tagHelpers)
-            : projectEngine.ProcessDesignTime(source, document.FileKind, importSources, tagHelpers);
-    }
 }
