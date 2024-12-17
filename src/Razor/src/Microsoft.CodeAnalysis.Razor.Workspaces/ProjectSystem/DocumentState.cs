@@ -4,7 +4,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem.Sources;
 using Microsoft.CodeAnalysis.Text;
@@ -17,28 +16,22 @@ internal sealed partial class DocumentState
     public int Version { get; }
 
     private readonly ITextAndVersionSource _textAndVersionSource;
+    private readonly GeneratedOutputSource _generatedOutputSource;
 
-    private ComputedStateTracker? _computedState;
-
-    private DocumentState(
-        HostDocument hostDocument,
-        ITextAndVersionSource textAndVersionSource)
+    private DocumentState(HostDocument hostDocument, ITextAndVersionSource textAndVersionSource)
     {
         HostDocument = hostDocument;
         Version = 1;
         _textAndVersionSource = textAndVersionSource;
+        _generatedOutputSource = new();
     }
 
-    private DocumentState(
-        DocumentState oldState,
-        ITextAndVersionSource textAndVersionSource,
-        ComputedStateTracker? computedState = null)
+    private DocumentState(DocumentState oldState, ITextAndVersionSource textAndVersionSource)
     {
         HostDocument = oldState.HostDocument;
         Version = oldState.Version + 1;
         _textAndVersionSource = textAndVersionSource;
-
-        _computedState = computedState;
+        _generatedOutputSource = new();
     }
 
     public static DocumentState Create(HostDocument hostDocument, SourceText text)
@@ -53,21 +46,11 @@ internal sealed partial class DocumentState
     private static LoadableTextAndVersionSource CreateTextAndVersionSource(TextLoader textLoader)
         => new(textLoader);
 
-    private ComputedStateTracker ComputedState
-        => _computedState ??= InterlockedOperations.Initialize(ref _computedState, new ComputedStateTracker());
+    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+        => _generatedOutputSource.TryGetValue(out result);
 
-    public bool TryGetGeneratedOutputAndVersion(out (RazorCodeDocument output, VersionStamp inputVersion) result)
-    {
-        return ComputedState.TryGetGeneratedOutputAndVersion(out result);
-    }
-
-    public Task<(RazorCodeDocument output, VersionStamp inputVersion)> GetGeneratedOutputAndVersionAsync(
-        ProjectSnapshot project,
-        DocumentSnapshot document,
-        CancellationToken cancellationToken)
-    {
-        return ComputedState.GetGeneratedOutputAndVersionAsync(project, document, cancellationToken);
-    }
+    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(DocumentSnapshot document, CancellationToken cancellationToken)
+        => _generatedOutputSource.GetValueAsync(document, cancellationToken);
 
     public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? result)
         => _textAndVersionSource.TryGetValue(out result);
@@ -128,19 +111,19 @@ internal sealed partial class DocumentState
     }
 
     public DocumentState WithConfigurationChange()
-        => new(this, _textAndVersionSource, computedState: null);
+        => new(this, _textAndVersionSource);
 
     public DocumentState WithImportsChange()
-        => new(this, _textAndVersionSource, new(_computedState));
+        => new(this, _textAndVersionSource);
 
     public DocumentState WithProjectWorkspaceStateChange()
-        => new(this, _textAndVersionSource, new(_computedState));
+        => new(this, _textAndVersionSource);
 
     public DocumentState WithText(SourceText text, VersionStamp textVersion)
-        => new(this, CreateTextAndVersionSource(text, textVersion), computedState: null);
+        => new(this, CreateTextAndVersionSource(text, textVersion));
 
     public DocumentState WithTextLoader(TextLoader textLoader)
         => ReferenceEquals(textLoader, _textAndVersionSource.TextLoader)
             ? this
-            : new(this, CreateTextAndVersionSource(textLoader), computedState: null);
+            : new(this, CreateTextAndVersionSource(textLoader));
 }

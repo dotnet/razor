@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,7 +21,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -33,9 +33,8 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     private readonly Project _project;
     private readonly AsyncLazy<RazorConfiguration> _lazyConfiguration;
     private readonly AsyncLazy<RazorProjectEngine> _lazyProjectEngine;
+    private readonly AsyncLazy<ImmutableArray<TagHelperDescriptor>> _lazyTagHelpers;
     private readonly Dictionary<TextDocument, RemoteDocumentSnapshot> _documentMap = [];
-
-    private ImmutableArray<TagHelperDescriptor> _tagHelpers;
 
     public RemoteProjectSnapshot(Project project, RemoteSolutionSnapshot solutionSnapshot)
     {
@@ -48,23 +47,9 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         SolutionSnapshot = solutionSnapshot;
         Key = _project.ToProjectKey();
 
-        _lazyConfiguration = new AsyncLazy<RazorConfiguration>(CreateRazorConfigurationAsync, joinableTaskFactory: null);
-        _lazyProjectEngine = new AsyncLazy<RazorProjectEngine>(async () =>
-        {
-            var configuration = await _lazyConfiguration.GetValueAsync();
-            var useRoslynTokenizer = SolutionSnapshot.SnapshotManager.LanguageServerFeatureOptions.UseRoslynTokenizer;
-            return ProjectEngineFactories.DefaultProvider.Create(
-                configuration,
-                rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
-                configure: builder =>
-                {
-                    builder.SetRootNamespace(RootNamespace);
-                    builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
-                    builder.SetSupportLocalizedComponentNames();
-                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, CSharpParseOptions.Default));
-                });
-        },
-        joinableTaskFactory: null);
+        _lazyConfiguration = AsyncLazy.Create(ComputeConfigurationAsync);
+        _lazyProjectEngine = AsyncLazy.Create(ComputeProjectEngineAsync);
+        _lazyTagHelpers = AsyncLazy.Create(ComputeTagHelpersAsync);
     }
 
     public RazorConfiguration Configuration => throw new InvalidOperationException("Should not be called for cohosted projects.");
@@ -90,20 +75,12 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
     {
-        return !_tagHelpers.IsDefault
-            ? new(_tagHelpers)
-            : GetTagHelpersCoreAsync(cancellationToken);
-
-        async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersCoreAsync(CancellationToken cancellationToken)
+        if (_lazyTagHelpers.TryGetValue(out var result))
         {
-            var projectEngine = await _lazyProjectEngine.GetValueAsync(cancellationToken);
-            var telemetryReporter = SolutionSnapshot.SnapshotManager.TelemetryReporter;
-            var computedTagHelpers = await _project.GetTagHelpersAsync(projectEngine, telemetryReporter, cancellationToken);
-
-            ImmutableInterlocked.InterlockedInitialize(ref _tagHelpers, computedTagHelpers);
-
-            return _tagHelpers;
+            return new(result);
         }
+
+        return new(_lazyTagHelpers.GetValueAsync(cancellationToken));
     }
 
     public ProjectWorkspaceState ProjectWorkspaceState => throw new InvalidOperationException("Should not be called for cohosted projects.");
@@ -193,9 +170,10 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     /// NOTE: To be called only from CohostDocumentSnapshot.GetGeneratedOutputAsync(). Will be removed when that method uses the source generator directly.
     /// </summary>
     /// <returns></returns>
-    internal Task<RazorProjectEngine> GetProjectEngine_CohostOnlyAsync(CancellationToken cancellationToken) => _lazyProjectEngine.GetValueAsync(cancellationToken);
+    internal Task<RazorProjectEngine> GetProjectEngine_CohostOnlyAsync(CancellationToken cancellationToken)
+        => _lazyProjectEngine.GetValueAsync(cancellationToken);
 
-    private async Task<RazorConfiguration> CreateRazorConfigurationAsync()
+    private async Task<RazorConfiguration> ComputeConfigurationAsync(CancellationToken cancellationToken)
     {
         // See RazorSourceGenerator.RazorProviders.cs
 
@@ -211,7 +189,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
-        var compilation = await _project.GetCompilationAsync().ConfigureAwait(false);
+        var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
         var suppressAddComponentParameter = compilation is not null && !compilation.HasAddComponentParameter();
 
@@ -221,5 +199,31 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
             Extensions: [],
             UseConsolidatedMvcViews: true,
             suppressAddComponentParameter);
+    }
+
+    private async Task<RazorProjectEngine> ComputeProjectEngineAsync(CancellationToken cancellationToken)
+    {
+        var configuration = await _lazyConfiguration.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+        var useRoslynTokenizer = SolutionSnapshot.SnapshotManager.CompilerOptions.IsFlagSet(RazorCompilerOptions.UseRoslynTokenizer);
+
+        return ProjectEngineFactories.DefaultProvider.Create(
+            configuration,
+            rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
+            configure: builder =>
+            {
+                builder.SetRootNamespace(RootNamespace);
+                builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                builder.SetSupportLocalizedComponentNames();
+                builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, CSharpParseOptions.Default));
+            });
+    }
+
+    private async Task<ImmutableArray<TagHelperDescriptor>> ComputeTagHelpersAsync(CancellationToken cancellationToken)
+    {
+        var projectEngine = await _lazyProjectEngine.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        var telemetryReporter = SolutionSnapshot.SnapshotManager.TelemetryReporter;
+
+        return await _project.GetTagHelpersAsync(projectEngine, telemetryReporter, cancellationToken).ConfigureAwait(false);
     }
 }

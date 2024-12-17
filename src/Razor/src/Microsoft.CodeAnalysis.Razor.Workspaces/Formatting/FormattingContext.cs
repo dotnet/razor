@@ -226,7 +226,8 @@ internal sealed class FormattingContext
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
         // Formatting always uses design time document
-        var codeDocument = await changedSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: true, cancellationToken).ConfigureAwait(false);
+        var generator = (IDesignTimeCodeGenerator)changedSnapshot;
+        var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 

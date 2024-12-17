@@ -48,7 +48,7 @@ public class DefaultDocumentSnapshotTest : WorkspaceTestBase
         _nestedComponentDocument = new DocumentSnapshot(project, documentState);
     }
 
-    [Fact]
+    [Fact(Skip = "Weak cache removed")]
     public async Task GCCollect_OutputIsNoLongerCached()
     {
         // Arrange

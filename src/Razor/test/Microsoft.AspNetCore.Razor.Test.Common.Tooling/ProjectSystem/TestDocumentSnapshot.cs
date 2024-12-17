@@ -65,12 +65,10 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     public IProjectSnapshot Project => RealSnapshot.Project;
     public int Version => RealSnapshot.Version;
 
-    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(
-        bool forceDesignTimeGeneratedOutput,
-        CancellationToken cancellationToken)
+    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(CancellationToken cancellationToken)
     {
         return _codeDocument is null
-            ? RealSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput, cancellationToken)
+            ? RealSnapshot.GetGeneratedOutputAsync(cancellationToken)
             : new(_codeDocument);
     }
 
@@ -88,7 +86,7 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     {
         return _codeDocument is null
             ? RealSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken)
-            : new(DocumentSnapshot.GetOrParseCSharpSyntaxTree(_codeDocument, cancellationToken));
+            : new(_codeDocument.GetOrParseCSharpSyntaxTree(cancellationToken));
     }
 
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
