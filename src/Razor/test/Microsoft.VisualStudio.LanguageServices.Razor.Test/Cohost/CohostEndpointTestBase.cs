@@ -204,7 +204,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         var snapshotManager = _exportProvider.AssumeNotNull().GetExportedValue<RemoteSnapshotManager>();
         var snapshot = snapshotManager.GetSnapshot(razorDocument);
         // Compile the Razor file
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false, DisposalToken);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(DisposalToken);
         // Update the generated doc contents
         var generatedDocumentIds = solution.GetDocumentIdsWithFilePath(documentFilePath + CSharpVirtualDocumentSuffix);
         solution = solution.WithDocumentText(generatedDocumentIds, codeDocument.GetCSharpSourceText());

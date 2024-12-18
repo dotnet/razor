@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -226,7 +227,8 @@ internal sealed class FormattingContext
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
         // Formatting always uses design time document
-        var codeDocument = await changedSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: true, cancellationToken).ConfigureAwait(false);
+        var generator = (IDesignTimeCodeGenerator)changedSnapshot;
+        var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 
