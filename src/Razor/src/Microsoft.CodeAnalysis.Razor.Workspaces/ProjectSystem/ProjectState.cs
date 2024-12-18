@@ -185,7 +185,7 @@ internal sealed class ProjectState
         var importsToRelatedDocuments = AddToImportsToRelatedDocuments(hostDocument);
 
         // Then, if this is an import, update any related documents.
-        documents = UpdateRelatedDocuments(hostDocument, documents);
+        documents = UpdateRelatedDocumentsIfNecessary(hostDocument, documents);
 
         return new(this, HostProject, ProjectWorkspaceState, documents, importsToRelatedDocuments, retainProjectEngine: true);
     }
@@ -204,7 +204,7 @@ internal sealed class ProjectState
         var documents = Documents.Remove(documentFilePath);
 
         // If this is an import, update any related documents.
-        documents = UpdateRelatedDocuments(hostDocument, documents);
+        documents = UpdateRelatedDocumentsIfNecessary(hostDocument, documents);
 
         // Then, compute the effect on the import map
         var importsToRelatedDocuments = RemoveFromImportsToRelatedDocuments(hostDocument);
@@ -259,7 +259,7 @@ internal sealed class ProjectState
         var documents = Documents.SetItem(hostDocument.FilePath, newState);
 
         // If this document is an import, update its related documents.
-        documents = UpdateRelatedDocuments(hostDocument, documents);
+        documents = UpdateRelatedDocumentsIfNecessary(hostDocument, documents);
 
         return new(this, HostProject, ProjectWorkspaceState, documents, ImportsToRelatedDocuments, retainProjectEngine: true);
     }
@@ -389,7 +389,7 @@ internal sealed class ProjectState
         return Documents.SetItems(updates);
     }
 
-    private ImmutableDictionary<string, DocumentState> UpdateRelatedDocuments(HostDocument hostDocument, ImmutableDictionary<string, DocumentState> documents)
+    private ImmutableDictionary<string, DocumentState> UpdateRelatedDocumentsIfNecessary(HostDocument hostDocument, ImmutableDictionary<string, DocumentState> documents)
     {
         if (!ImportsToRelatedDocuments.TryGetValue(hostDocument.TargetPath, out var relatedDocuments))
         {
