@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 
@@ -12,21 +11,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal static class CompilationHelpers
 {
-    internal static RazorCodeDocument GenerateCodeDocument(
-        RazorProjectEngine projectEngine,
-        RazorCompilerOptions compilerOptions,
-        RazorSourceDocument source,
-        string fileKind,
-        ImmutableArray<RazorSourceDocument> importSources,
-        ImmutableArray<TagHelperDescriptor> tagHelpers)
-    {
-        var forceRuntimeCodeGeneration = compilerOptions.IsFlagSet(RazorCompilerOptions.ForceRuntimeCodeGeneration);
-
-        return forceRuntimeCodeGeneration
-            ? projectEngine.Process(source, fileKind, importSources, tagHelpers)
-            : projectEngine.ProcessDesignTime(source, fileKind, importSources, tagHelpers);
-    }
-
     internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
         IDocumentSnapshot document,
         RazorProjectEngine projectEngine,
