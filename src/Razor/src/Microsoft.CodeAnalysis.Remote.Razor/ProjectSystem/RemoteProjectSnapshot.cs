@@ -52,8 +52,6 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         _lazyTagHelpers = AsyncLazy.Create(ComputeTagHelpersAsync);
     }
 
-    public RazorConfiguration Configuration => throw new InvalidOperationException("Should not be called for cohosted projects.");
-
     public IEnumerable<string> DocumentFilePaths
         => _project.AdditionalDocuments
             .Where(static d => d.IsRazorDocument())

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
@@ -75,7 +76,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -94,7 +98,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -115,7 +122,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -134,7 +144,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -153,7 +166,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -180,7 +196,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());

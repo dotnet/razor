@@ -33,7 +33,6 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public HostProject HostProject => RealSnapshot.HostProject;
 
     public ProjectKey Key => RealSnapshot.Key;
-    public RazorConfiguration Configuration => RealSnapshot.Configuration;
     public IEnumerable<string> DocumentFilePaths => RealSnapshot.DocumentFilePaths;
     public string FilePath => RealSnapshot.FilePath;
     public string IntermediateOutputPath => RealSnapshot.IntermediateOutputPath;

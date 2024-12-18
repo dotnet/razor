@@ -344,9 +344,6 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
             .Setup(d => d.TargetPath)
             .Returns(path);
         snapshotMock
-            .Setup(d => d.Project.Configuration)
-            .Returns(projectEngine.Configuration);
-        snapshotMock
             .Setup(d => d.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument.Source.Text);
         snapshotMock
