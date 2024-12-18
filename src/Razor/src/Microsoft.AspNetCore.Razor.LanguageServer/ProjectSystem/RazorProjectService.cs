@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 /// <summary>
-/// Maintains the language server's <see cref="IProjectSnapshotManager"/> with the semantics of Razor's project model.
+/// Maintains the language server's <see cref="ProjectSnapshotManager"/> with the semantics of Razor's project model.
 /// </summary>
 /// <remarks>
 /// This service implements <see cref="IRazorStartupService"/> to ensure it is created early so it can begin
@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 internal partial class RazorProjectService : IRazorProjectService, IRazorProjectInfoListener, IRazorStartupService, IDisposable
 {
     private readonly IRazorProjectInfoDriver _projectInfoDriver;
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
     private readonly ILogger _logger;
 
@@ -40,7 +40,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
     private readonly Task _initializeTask;
 
     public RazorProjectService(
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         IRazorProjectInfoDriver projectInfoDriver,
         RemoteTextLoaderFactory remoteTextLoaderFactory,
         ILoggerFactory loggerFactory)
@@ -296,7 +296,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             .ConfigureAwait(false);
     }
 
-    private void ActOnDocumentInMultipleProjects(string filePath, Action<IProjectSnapshot, string> action)
+    private void ActOnDocumentInMultipleProjects(string filePath, Action<ProjectSnapshot, string> action)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
         if (!_projectManager.TryResolveAllProjects(textDocumentPath, out var projects))
@@ -499,11 +499,11 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
     private void MoveDocument(
         ProjectSnapshotManager.Updater updater,
         string documentFilePath,
-        IProjectSnapshot fromProject,
-        IProjectSnapshot toProject)
+        ProjectSnapshot fromProject,
+        ProjectSnapshot toProject)
     {
-        Debug.Assert(fromProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
-        Debug.Assert(!toProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
+        Debug.Assert(fromProject.ContainsDocument(documentFilePath));
+        Debug.Assert(!toProject.ContainsDocument(documentFilePath));
 
         if (fromProject.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
         {

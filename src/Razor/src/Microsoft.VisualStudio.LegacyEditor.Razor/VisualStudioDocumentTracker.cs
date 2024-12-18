@@ -27,7 +27,7 @@ internal sealed class VisualStudioDocumentTracker : IVisualStudioDocumentTracker
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly string _filePath;
     private readonly string _projectPath;
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly IWorkspaceEditorSettings _workspaceEditorSettings;
     private readonly ITextBuffer _textBuffer;
     private readonly IImportDocumentManager _importDocumentManager;
@@ -44,7 +44,7 @@ internal sealed class VisualStudioDocumentTracker : IVisualStudioDocumentTracker
         JoinableTaskContext joinableTaskContext,
         string filePath,
         string projectPath,
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         IWorkspaceEditorSettings workspaceEditorSettings,
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         ITextBuffer textBuffer,

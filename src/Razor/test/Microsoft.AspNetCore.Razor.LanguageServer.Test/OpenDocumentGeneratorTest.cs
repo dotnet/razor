@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -176,7 +175,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
     }
 
     private OpenDocumentGenerator CreateOpenDocumentGenerator(
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         params IDocumentProcessedListener[] listeners)
     {
         return new OpenDocumentGenerator(listeners, projectManager, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
@@ -206,7 +205,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             return _tcs.Task;
         }
 
-        public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
+        public void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
         {
             _tcs.SetResult(document);
         }

@@ -249,7 +249,7 @@ public class RazorProjectInfoDriverTest(ITestOutputHelper testOutput) : Language
     }
 
     private async Task<(RazorProjectInfoDriver, AbstractRazorProjectInfoDriver.TestAccessor)> CreateDriverAndInitializeAsync(
-        IProjectSnapshotManager projectManager)
+        ProjectSnapshotManager projectManager)
     {
         var driver = new RazorProjectInfoDriver(projectManager, LoggerFactory, delay: TimeSpan.FromMilliseconds(5));
         AddDisposable(driver);

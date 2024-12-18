@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // (language version, extensions, named configuration).
 //
 // The implementation will create a ProjectSnapshot for each HostProject.
-internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDisposable
+internal partial class ProjectSnapshotManager : IDisposable
 {
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
     private readonly RazorCompilerOptions _compilerOptions;
@@ -120,11 +120,11 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    public ImmutableArray<IProjectSnapshot> GetProjects()
+    public ImmutableArray<ProjectSnapshot> GetProjects()
     {
         using (_readerWriterLock.DisposableRead())
         {
-            using var builder = new PooledArrayBuilder<IProjectSnapshot>(_projectMap.Count);
+            using var builder = new PooledArrayBuilder<ProjectSnapshot>(_projectMap.Count);
 
             foreach (var (_, entry) in _projectMap)
             {
@@ -151,7 +151,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    public bool TryGetProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
+    public bool TryGetProject(ProjectKey projectKey, [NotNullWhen(true)] out ProjectSnapshot? project)
     {
         using (_readerWriterLock.DisposableRead())
         {
@@ -353,7 +353,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private bool TryAddProject(HostProject hostProject, [NotNullWhen(true)] out IProjectSnapshot? newProject, out bool isSolutionClosing)
+    private bool TryAddProject(HostProject hostProject, [NotNullWhen(true)] out ProjectSnapshot? newProject, out bool isSolutionClosing)
     {
         if (_initialized)
         {
@@ -382,7 +382,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         return true;
     }
 
-    private bool TryRemoveProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? oldProject, out bool isSolutionClosing)
+    private bool TryRemoveProject(ProjectKey projectKey, [NotNullWhen(true)] out ProjectSnapshot? oldProject, out bool isSolutionClosing)
     {
         if (_initialized)
         {
@@ -410,8 +410,8 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
     private bool TryUpdateProject(
         ProjectKey projectKey,
         Func<ProjectState, ProjectState> transformer,
-        [NotNullWhen(true)] out IProjectSnapshot? oldProject,
-        [NotNullWhen(true)] out IProjectSnapshot? newProject,
+        [NotNullWhen(true)] out ProjectSnapshot? oldProject,
+        [NotNullWhen(true)] out ProjectSnapshot? newProject,
         out bool isSolutionClosing)
         => TryUpdateProject(projectKey, transformer, onAfterUpdate: null, out oldProject, out newProject, out isSolutionClosing);
 
@@ -419,8 +419,8 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         ProjectKey projectKey,
         Func<ProjectState, ProjectState> transformer,
         Action? onAfterUpdate,
-        [NotNullWhen(true)] out IProjectSnapshot? oldProject,
-        [NotNullWhen(true)] out IProjectSnapshot? newProject,
+        [NotNullWhen(true)] out ProjectSnapshot? oldProject,
+        [NotNullWhen(true)] out ProjectSnapshot? newProject,
         out bool isSolutionClosing)
     {
         if (_initialized)

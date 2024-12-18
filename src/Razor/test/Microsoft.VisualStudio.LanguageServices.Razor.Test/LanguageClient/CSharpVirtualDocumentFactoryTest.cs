@@ -78,7 +78,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             _textDocumentFactoryService,
             uriProvider,
             _filePathService,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             TestLanguageServerFeatureOptions.Instance,
             LoggerFactory,
             telemetryReporter: null!);
@@ -105,7 +105,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             _textDocumentFactoryService,
             uriProvider,
             _filePathService,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             TestLanguageServerFeatureOptions.Instance,
             LoggerFactory,
             telemetryReporter: null!);

@@ -104,7 +104,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
     /// that include directives specified by the provided document. Otherwise returns an empty
     /// list.
     /// </summary>
-    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
+    public ImmutableArray<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
     {
         var targetPath = document.TargetPath;
 
@@ -115,7 +115,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
 
         lock (_gate)
         {
-            using var builder = new PooledArrayBuilder<IDocumentSnapshot>(capacity: relatedDocuments.Count);
+            using var builder = new PooledArrayBuilder<DocumentSnapshot>(capacity: relatedDocuments.Count);
 
             foreach (var relatedDocumentFilePath in relatedDocuments)
             {

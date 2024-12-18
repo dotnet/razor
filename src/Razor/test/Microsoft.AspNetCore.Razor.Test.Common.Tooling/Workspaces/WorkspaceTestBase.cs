@@ -75,7 +75,7 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
         => CreateProjectSnapshotManager(ProjectEngineFactoryProvider, LanguageServerFeatureOptions);
 
     private protected override TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => base.CreateProjectSnapshotManager(projectEngineFactoryProvider, LanguageServerFeatureOptions);
+        => CreateProjectSnapshotManager(projectEngineFactoryProvider, LanguageServerFeatureOptions);
 
     protected virtual void ConfigureWorkspace(AdhocWorkspace workspace)
     {

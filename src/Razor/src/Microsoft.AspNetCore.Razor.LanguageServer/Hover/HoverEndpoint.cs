@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentHoverName)]
 internal sealed class HoverEndpoint(
-    IProjectSnapshotManager projectManager,
+    ProjectSnapshotManager projectManager,
     IClientCapabilitiesService clientCapabilitiesService,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IDocumentMappingService documentMappingService,
@@ -34,7 +34,7 @@ internal sealed class HoverEndpoint(
         clientConnection,
         loggerFactory.GetOrCreateLogger<HoverEndpoint>()), ICapabilitiesProvider
 {
-    private readonly IProjectSnapshotManager _projectManager = projectManager;
+    private readonly ProjectSnapshotManager _projectManager = projectManager;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)

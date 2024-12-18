@@ -19,13 +19,13 @@ internal class RazorCompletionResolveEndpoint
 {
     private readonly AggregateCompletionItemResolver _completionItemResolver;
     private readonly CompletionListCache _completionListCache;
-    private readonly IProjectSnapshotManager _projectSnapshotManager;
+    private readonly ProjectSnapshotManager _projectSnapshotManager;
     private VSInternalClientCapabilities? _clientCapabilities;
 
     public RazorCompletionResolveEndpoint(
         AggregateCompletionItemResolver completionItemResolver,
         CompletionListCache completionListCache,
-        IProjectSnapshotManager projectSnapshotManager)
+        ProjectSnapshotManager projectSnapshotManager)
     {
         _completionItemResolver = completionItemResolver;
         _completionListCache = completionListCache;

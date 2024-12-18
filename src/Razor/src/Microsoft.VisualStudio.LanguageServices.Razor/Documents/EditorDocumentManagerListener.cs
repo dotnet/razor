@@ -40,7 +40,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(10);
 
     private readonly IEditorDocumentManager _documentManager;
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly IFallbackProjectManager _fallbackProjectManager;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITelemetryReporter _telemetryReporter;
@@ -56,7 +56,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
     [ImportingConstructor]
     public EditorDocumentManagerListener(
         IEditorDocumentManager documentManager,
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         IFallbackProjectManager fallbackProjectManager,
         JoinableTaskContext joinableTaskContext,
         ITelemetryReporter telemetryReporter)
@@ -249,7 +249,6 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
                     var (document, fallbackProjectManager, telemetryReporter, cancellationToken) = state;
 
                     if (updater.TryGetProject(document.ProjectKey, out var project) &&
-                        project is ProjectSnapshot projectSnapshot &&
                         fallbackProjectManager.IsFallbackProject(project))
                     {
                         // The user is opening a document that is part of a fallback project. This is a scenario we are very interested in knowing more about
@@ -259,7 +258,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
                         telemetryReporter.ReportEvent(
                             "fallbackproject/documentopen",
                             Severity.Normal,
-                            new Property("document.count", projectSnapshot.DocumentCount),
+                            new Property("document.count", project.DocumentCount),
                             new Property("taghelper.count", tagHelpers.Length));
                     }
 

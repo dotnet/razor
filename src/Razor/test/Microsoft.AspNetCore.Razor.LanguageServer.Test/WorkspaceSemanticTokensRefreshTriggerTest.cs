@@ -59,6 +59,6 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
 
     private class TestWorkspaceSemanticTokensRefreshTrigger(
         IWorkspaceSemanticTokensRefreshNotifier publisher,
-        IProjectSnapshotManager projectManager)
+        ProjectSnapshotManager projectManager)
         : WorkspaceSemanticTokensRefreshTrigger(publisher, projectManager);
 }

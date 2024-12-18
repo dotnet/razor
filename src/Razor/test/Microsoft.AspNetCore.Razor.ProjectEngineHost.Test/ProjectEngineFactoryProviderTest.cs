@@ -20,12 +20,12 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 public class ProjectEngineFactoryProviderTest : ToolingTestBase
 {
     private readonly ImmutableArray<IProjectEngineFactory> _customFactories;
-    private readonly IProjectSnapshot _snapshot_For_1_0;
-    private readonly IProjectSnapshot _snapshot_For_1_1;
-    private readonly IProjectSnapshot _snapshot_For_2_0;
-    private readonly IProjectSnapshot _snapshot_For_2_1;
-    private readonly IProjectSnapshot _snapshot_For_3_0;
-    private readonly IProjectSnapshot _snapshot_For_UnknownConfiguration;
+    private readonly ProjectSnapshot _snapshot_For_1_0;
+    private readonly ProjectSnapshot _snapshot_For_1_1;
+    private readonly ProjectSnapshot _snapshot_For_2_0;
+    private readonly ProjectSnapshot _snapshot_For_2_1;
+    private readonly ProjectSnapshot _snapshot_For_3_0;
+    private readonly ProjectSnapshot _snapshot_For_UnknownConfiguration;
 
     public ProjectEngineFactoryProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
