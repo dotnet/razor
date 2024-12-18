@@ -244,7 +244,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
         try
         {
             return _projectManager.UpdateAsync(
-                static async (updater, state) =>
+                static (updater, state) =>
                 {
                     var (document, fallbackProjectManager, telemetryReporter, cancellationToken) = state;
 
@@ -254,12 +254,11 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
                         // The user is opening a document that is part of a fallback project. This is a scenario we are very interested in knowing more about
                         // so fire some telemetry. We can't log details about the project, for PII reasons, but we can use document count and tag helper count
                         // as some kind of measure of complexity.
-                        var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
                         telemetryReporter.ReportEvent(
                             "fallbackproject/documentopen",
                             Severity.Normal,
                             new Property("document.count", project.DocumentCount),
-                            new Property("taghelper.count", tagHelpers.Length));
+                            new Property("taghelper.count", project.ProjectWorkspaceState.TagHelpers.Length));
                     }
 
                     updater.OpenDocument(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);

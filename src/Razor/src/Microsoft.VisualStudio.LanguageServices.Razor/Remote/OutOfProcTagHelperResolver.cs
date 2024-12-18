@@ -174,12 +174,9 @@ internal class OutOfProcTagHelperResolver(
         return checksums;
     }
 
-    protected virtual async ValueTask<ImmutableArray<TagHelperDescriptor>> ResolveTagHelpersInProcessAsync(
+    protected virtual ValueTask<ImmutableArray<TagHelperDescriptor>> ResolveTagHelpersInProcessAsync(
         Project project,
         ProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
-    {
-        var projectEngine = await projectSnapshot.GetProjectEngineAsync(cancellationToken).ConfigureAwait(false);
-        return await project.GetTagHelpersAsync(projectEngine, _telemetryReporter, cancellationToken).ConfigureAwait(false);
-    }
+        => project.GetTagHelpersAsync(projectSnapshot.ProjectEngine, _telemetryReporter, cancellationToken);
 }

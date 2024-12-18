@@ -42,9 +42,6 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public LanguageVersion CSharpLanguageVersion => RealSnapshot.CSharpLanguageVersion;
     public ProjectWorkspaceState ProjectWorkspaceState => RealSnapshot.ProjectWorkspaceState;
 
-    public ValueTask<RazorProjectEngine> GetProjectEngineAsync(CancellationToken cancellationToken)
-        => RealSnapshot.GetProjectEngineAsync(cancellationToken);
-
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
         => RealSnapshot.GetTagHelpersAsync(cancellationToken);
 

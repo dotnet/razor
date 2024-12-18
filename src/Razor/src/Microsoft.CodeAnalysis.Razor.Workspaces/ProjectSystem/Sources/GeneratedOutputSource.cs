@@ -30,7 +30,7 @@ internal sealed class GeneratedOutputSource
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             var project = document.Project;
-            var projectEngine = await project.GetProjectEngineAsync(cancellationToken).ConfigureAwait(false);
+            var projectEngine = project.ProjectEngine;
             var compilerOptions = project.CompilerOptions;
 
             var importItems = await project.GetImportItemsAsync(document.HostDocument, cancellationToken).ConfigureAwait(false);

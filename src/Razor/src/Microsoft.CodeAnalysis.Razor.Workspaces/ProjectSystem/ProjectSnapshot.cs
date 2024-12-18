@@ -38,8 +38,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
 
     public int DocumentCount => _state.Documents.Count;
 
-    public ValueTask<RazorProjectEngine> GetProjectEngineAsync(CancellationToken cancellationToken)
-        => new(_state.ProjectEngine);
+    public RazorProjectEngine ProjectEngine => _state.ProjectEngine;
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
         => new(_state.TagHelpers);
@@ -138,7 +137,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
 
     public async Task<ImmutableArray<ImportItem>> GetImportItemsAsync(HostDocument hostDocument, CancellationToken cancellationToken)
     {
-        var projectEngine = await GetProjectEngineAsync(cancellationToken).ConfigureAwait(false);
+        var projectEngine = ProjectEngine;
 
         var projectItem = projectEngine.FileSystem.GetItem(hostDocument.FilePath, hostDocument.FileKind);
 

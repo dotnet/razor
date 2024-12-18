@@ -300,7 +300,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         });
 
         var project = _projectManager.GetRequiredProject(s_hostProject.Key);
-        var projectEngine = await project.GetProjectEngineAsync(DisposalToken);
+        var projectEngine = project.ProjectEngine;
 
         // Act
         await _projectManager.UpdateAsync(updater =>
@@ -309,9 +309,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         });
 
         // Assert
-        var newProjectEngine = await _projectManager
-            .GetRequiredProject(s_hostProject.Key)
-            .GetProjectEngineAsync(DisposalToken);
+        var newProjectEngine = _projectManager.GetRequiredProject(s_hostProject.Key).ProjectEngine;
 
         Assert.Same(projectEngine, newProjectEngine);
     }
@@ -435,7 +433,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         });
 
         var project = _projectManager.GetRequiredProject(s_hostProject.Key);
-        var projectEngine = await project.GetProjectEngineAsync(DisposalToken);
+        var projectEngine = project.ProjectEngine;
 
         // Act
         await _projectManager.UpdateAsync(updater =>
@@ -444,9 +442,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         });
 
         // Assert
-        var newProjectEngine = await _projectManager
-            .GetRequiredProject(s_hostProject.Key)
-            .GetProjectEngineAsync(DisposalToken);
+        var newProjectEngine = _projectManager.GetRequiredProject(s_hostProject.Key).ProjectEngine;
 
         Assert.Same(projectEngine, newProjectEngine);
     }
@@ -687,7 +683,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         });
 
         var project = _projectManager.GetRequiredProject(s_hostProject.Key);
-        var projectEngine = await project.GetProjectEngineAsync(DisposalToken);
+        var projectEngine = project.ProjectEngine;
 
         // Act
         await _projectManager.UpdateAsync(updater =>
@@ -696,9 +692,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         });
 
         // Assert
-        var newProjectEngine = await _projectManager
-            .GetRequiredProject(s_hostProjectWithConfigurationChange.Key)
-            .GetProjectEngineAsync(DisposalToken);
+        var newProjectEngine = _projectManager.GetRequiredProject(s_hostProjectWithConfigurationChange.Key).ProjectEngine;
 
         Assert.NotSame(projectEngine, newProjectEngine);
     }

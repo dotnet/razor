@@ -34,7 +34,6 @@ internal interface IProjectSnapshot
     LanguageVersion CSharpLanguageVersion { get; }
     ProjectWorkspaceState ProjectWorkspaceState { get; }
 
-    ValueTask<RazorProjectEngine> GetProjectEngineAsync(CancellationToken cancellationToken);
     ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken);
 
     bool ContainsDocument(string filePath);

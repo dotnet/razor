@@ -33,7 +33,6 @@ internal static partial class RazorEditHelper
         ITelemetryReporter telemetryReporter,
         CancellationToken cancellationToken)
     {
-
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         using var textChangeBuilder = new TextChangeBuilder(documentMappingService);
 
