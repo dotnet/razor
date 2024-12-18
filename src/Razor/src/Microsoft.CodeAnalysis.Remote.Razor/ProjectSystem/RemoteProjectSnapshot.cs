@@ -159,7 +159,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     }
 
     /// <summary>
-    /// NOTE: This will be removed when that method uses the source generator directly.
+    /// NOTE: This will be removed when the source generator is used directly.
     /// </summary>
     public ValueTask<RazorProjectEngine> GetProjectEngineAsync(CancellationToken cancellationToken)
     {
