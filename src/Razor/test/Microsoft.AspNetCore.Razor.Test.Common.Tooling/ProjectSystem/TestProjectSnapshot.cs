@@ -40,7 +40,6 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public string? RootNamespace => RealSnapshot.RootNamespace;
     public string DisplayName => RealSnapshot.DisplayName;
     public LanguageVersion CSharpLanguageVersion => RealSnapshot.CSharpLanguageVersion;
-    public ProjectWorkspaceState ProjectWorkspaceState => RealSnapshot.ProjectWorkspaceState;
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
         => RealSnapshot.GetTagHelpersAsync(cancellationToken);

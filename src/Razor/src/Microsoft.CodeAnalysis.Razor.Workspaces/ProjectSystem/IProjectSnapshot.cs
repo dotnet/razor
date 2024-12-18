@@ -32,7 +32,6 @@ internal interface IProjectSnapshot
     string? RootNamespace { get; }
     string DisplayName { get; }
     LanguageVersion CSharpLanguageVersion { get; }
-    ProjectWorkspaceState ProjectWorkspaceState { get; }
 
     ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken);
 

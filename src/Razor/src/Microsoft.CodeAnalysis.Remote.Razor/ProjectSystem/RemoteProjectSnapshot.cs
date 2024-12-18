@@ -81,8 +81,6 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         return new(_lazyTagHelpers.GetValueAsync(cancellationToken));
     }
 
-    public ProjectWorkspaceState ProjectWorkspaceState => throw new InvalidOperationException("Should not be called for cohosted projects.");
-
     public RemoteDocumentSnapshot GetDocument(DocumentId documentId)
     {
         var document = _project.GetRequiredDocument(documentId);
