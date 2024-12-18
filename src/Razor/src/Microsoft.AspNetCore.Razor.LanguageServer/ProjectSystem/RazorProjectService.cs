@@ -246,7 +246,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                             return;
                         }
 
-                        if (projectSnapshot.GetDocument(textDocumentPath) is not DocumentSnapshot documentSnapshot)
+                        if (!projectSnapshot.TryGetDocument(textDocumentPath, out var documentSnapshot))
                         {
                             _logger.LogError($"Containing project does not contain document '{textDocumentPath}'");
                             return;
@@ -438,7 +438,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 continue;
             }
 
-            if (project.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
+            if (!project.TryGetDocument(documentFilePath, out var documentSnapshot))
             {
                 continue;
             }
@@ -505,7 +505,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         Debug.Assert(fromProject.ContainsDocument(documentFilePath));
         Debug.Assert(!toProject.ContainsDocument(documentFilePath));
 
-        if (fromProject.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
+        if (!fromProject.TryGetDocument(documentFilePath, out var documentSnapshot))
         {
             return;
         }
