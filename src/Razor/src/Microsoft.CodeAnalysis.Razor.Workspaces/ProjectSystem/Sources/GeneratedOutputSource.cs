@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Sources;
 internal sealed class GeneratedOutputSource
 {
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
+
     private RazorCodeDocument? _output;
 
     public bool TryGetValue([NotNullWhen(true)] out RazorCodeDocument? result)
@@ -29,6 +30,11 @@ internal sealed class GeneratedOutputSource
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
+            if (TryGetValue(out result))
+            {
+                return result;
+            }
+
             var project = document.Project;
             var projectEngine = project.ProjectEngine;
             var compilerOptions = project.CompilerOptions;
