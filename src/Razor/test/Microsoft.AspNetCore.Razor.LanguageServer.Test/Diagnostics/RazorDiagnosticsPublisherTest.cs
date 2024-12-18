@@ -55,7 +55,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         </div>
         """);
 
-    private static readonly SourceText s_razorTextWithError = SourceText.From("""
+    private static readonly TestCode s_razorTestCodeWithError = """
         @using Microsoft.AspNetCore.Components.Forms;
         
         @code {
@@ -67,18 +67,18 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 <InputSelect @bind-Value="_id">
                     @if (true)
                     {
-                        <option>goo</opti>
+                        <[|option|]>goo</opti>
                     }
                 </InputSelect>
             </div>
         </div>
-        """);
+        """;
+
+    private static readonly SourceText s_razorTextWithError = SourceText.From(s_razorTestCodeWithError.Text);
 
     private static readonly RazorDiagnostic[] s_singleRazorDiagnostic =
     [
-        RazorDiagnosticFactory.CreateParsing_MissingEndTag(
-            new SourceSpan(s_openHostDocument.FilePath, absoluteIndex: 216, lineIndex: 11, characterIndex: 17, length: 6, lineCount: 1, endCharacterIndex: 0),
-            "option")
+        RazorDiagnosticFactory.CreateParsing_MissingEndTag(GetErrorSpan(s_openHostDocument.FilePath, s_razorTextWithError, s_razorTestCodeWithError), "option")
     ];
 
     private static readonly Diagnostic[] s_singleCSharpDiagnostic =
@@ -110,6 +110,14 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
             updater.OpenDocument(s_hostProject.Key, s_openHostDocument.FilePath, s_razorText);
             updater.AddDocument(s_hostProject.Key, s_closedHostDocument, EmptyTextLoader.Instance);
         });
+    }
+
+    private static SourceSpan GetErrorSpan(string filePath, SourceText text, TestCode testCode)
+    {
+        var span = testCode.Span;
+        var location = new SourceLocation(filePath, span.Start, text.GetLinePosition(span.Start));
+
+        return new SourceSpan(location, span.Length);
     }
 
     private Task UpdateWithErrorTextAsync()
