@@ -178,7 +178,8 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
         var projectWorkspaceState = ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp7);
 
         var state = ProjectState
-            .Create(hostProject, projectWorkspaceState, CompilerOptions, ProjectEngineFactoryProvider)
+            .Create(hostProject, CompilerOptions, ProjectEngineFactoryProvider)
+            .WithProjectWorkspaceState(projectWorkspaceState)
             .AddDocument(_hostDocument, TestMocks.CreateTextLoader("@DateTime.Now", VersionStamp.Default));
 
         var output = await GetGeneratedOutputAsync(state, _hostDocument);

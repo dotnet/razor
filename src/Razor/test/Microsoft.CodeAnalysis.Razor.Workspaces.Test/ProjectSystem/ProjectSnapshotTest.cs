@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -12,28 +11,19 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-public class DefaultProjectSnapshotTest : WorkspaceTestBase
+public class ProjectSnapshotTest(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {
-    private readonly HostDocument[] _documents;
-    private readonly HostProject _hostProject;
-    private readonly ProjectWorkspaceState _projectWorkspaceState;
+    private static readonly HostProject s_hostProject = TestProjectData.SomeProject with { Configuration = FallbackRazorConfiguration.MVC_2_0 };
+    private static readonly ProjectWorkspaceState s_projectWorkspaceState = ProjectWorkspaceState.Create([TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()]);
 
-    public DefaultProjectSnapshotTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _hostProject = TestProjectData.SomeProject with { Configuration = FallbackRazorConfiguration.MVC_2_0 };
-        _projectWorkspaceState = ProjectWorkspaceState.Create(ImmutableArray.Create(
-            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()));
+    private static readonly HostDocument[] s_documents =
+    [
+        TestProjectData.SomeProjectFile1,
+        TestProjectData.SomeProjectFile2,
 
-        _documents =
-        [
-            TestProjectData.SomeProjectFile1,
-            TestProjectData.SomeProjectFile2,
-
-            // linked file
-            TestProjectData.AnotherProjectNestedFile3,
-        ];
-    }
+        // linked file
+        TestProjectData.AnotherProjectNestedFile3,
+    ];
 
     protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
     {
@@ -44,10 +34,12 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void ProjectSnapshot_CachesDocumentSnapshots()
     {
         // Arrange
-        var state = ProjectState.Create(_hostProject, _projectWorkspaceState, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddEmptyDocument(_documents[0])
-            .AddEmptyDocument(_documents[1])
-            .AddEmptyDocument(_documents[2]);
+        var state = ProjectState.Create(s_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
+            .WithProjectWorkspaceState(s_projectWorkspaceState)
+            .AddEmptyDocument(s_documents[0])
+            .AddEmptyDocument(s_documents[1])
+            .AddEmptyDocument(s_documents[2]);
+
         var snapshot = new ProjectSnapshot(state);
 
         // Act
@@ -65,11 +57,13 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void GetRelatedDocuments_NonImportDocument_ReturnsEmpty()
     {
         // Arrange
-        var state = ProjectState.Create(_hostProject, _projectWorkspaceState, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddEmptyDocument(_documents[0]);
+        var state = ProjectState.Create(s_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
+            .WithProjectWorkspaceState(s_projectWorkspaceState)
+            .AddEmptyDocument(s_documents[0]);
+
         var snapshot = new ProjectSnapshot(state);
 
-        var document = snapshot.GetRequiredDocument(_documents[0].FilePath);
+        var document = snapshot.GetRequiredDocument(s_documents[0].FilePath);
 
         // Act
         var documents = snapshot.GetRelatedDocuments(document);
@@ -82,10 +76,12 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     public void GetRelatedDocuments_ImportDocument_ReturnsRelated()
     {
         // Arrange
-        var state = ProjectState.Create(_hostProject, _projectWorkspaceState, CompilerOptions, ProjectEngineFactoryProvider)
-            .AddEmptyDocument(_documents[0])
-            .AddEmptyDocument(_documents[1])
+        var state = ProjectState.Create(s_hostProject, CompilerOptions, ProjectEngineFactoryProvider)
+            .WithProjectWorkspaceState(s_projectWorkspaceState)
+            .AddEmptyDocument(s_documents[0])
+            .AddEmptyDocument(s_documents[1])
             .AddEmptyDocument(TestProjectData.SomeProjectImportFile);
+
         var snapshot = new ProjectSnapshot(state);
 
         var document = snapshot.GetRequiredDocument(TestProjectData.SomeProjectImportFile.FilePath);
@@ -96,7 +92,7 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
         // Assert
         Assert.Collection(
             documents.OrderBy(d => d.FilePath),
-            d => Assert.Equal(_documents[0].FilePath, d.FilePath),
-            d => Assert.Equal(_documents[1].FilePath, d.FilePath));
+            d => Assert.Equal(s_documents[0].FilePath, d.FilePath),
+            d => Assert.Equal(s_documents[1].FilePath, d.FilePath));
     }
 }

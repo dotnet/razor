@@ -47,12 +47,11 @@ internal sealed class ProjectState
 
     private ProjectState(
         HostProject hostProject,
-        ProjectWorkspaceState projectWorkspaceState,
         RazorCompilerOptions compilerOptions,
         IProjectEngineFactoryProvider projectEngineFactoryProvider)
     {
         HostProject = hostProject;
-        ProjectWorkspaceState = projectWorkspaceState;
+        ProjectWorkspaceState = ProjectWorkspaceState.Default;
         CompilerOptions = compilerOptions;
         _projectEngineFactoryProvider = projectEngineFactoryProvider;
 
@@ -84,28 +83,9 @@ internal sealed class ProjectState
 
     public static ProjectState Create(
         HostProject hostProject,
-        ProjectWorkspaceState projectWorkspaceState,
         RazorCompilerOptions compilerOptions,
         IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(hostProject, projectWorkspaceState, compilerOptions, projectEngineFactoryProvider);
-
-    public static ProjectState Create(HostProject hostProject, ProjectWorkspaceState projectWorkspaceState)
-        => new(hostProject, projectWorkspaceState, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider);
-
-    public static ProjectState Create(
-        HostProject hostProject,
-        ProjectWorkspaceState projectWorkspaceState,
-        IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(hostProject, projectWorkspaceState, RazorCompilerOptions.None, projectEngineFactoryProvider);
-
-    public static ProjectState Create(
-        HostProject hostProject,
-        RazorCompilerOptions compilerOptions,
-        IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(hostProject, ProjectWorkspaceState.Default, compilerOptions, projectEngineFactoryProvider);
-
-    public static ProjectState Create(HostProject hostProject)
-        => new(hostProject, ProjectWorkspaceState.Default, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider);
+        => new(hostProject, compilerOptions, projectEngineFactoryProvider);
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 

@@ -49,12 +49,12 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
             projectFilePath, intermediateOutputPath,
             new(RazorLanguageVersion.Version_2_1, "Random-0.1", Extensions: []), rootNamespace: null);
 
-        _snapshot_For_1_0 = new ProjectSnapshot(ProjectState.Create(hostProject_For_1_0));
-        _snapshot_For_1_1 = new ProjectSnapshot(ProjectState.Create(hostProject_For_1_1));
-        _snapshot_For_2_0 = new ProjectSnapshot(ProjectState.Create(hostProject_For_2_0));
-        _snapshot_For_2_1 = new ProjectSnapshot(ProjectState.Create(hostProject_For_2_1));
-        _snapshot_For_3_0 = new ProjectSnapshot(ProjectState.Create(hostProject_For_3_0));
-        _snapshot_For_UnknownConfiguration = new ProjectSnapshot(ProjectState.Create(hostProject_For_UnknownConfiguration));
+        _snapshot_For_1_0 = new ProjectSnapshot(ProjectState.Create(hostProject_For_1_0, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_1_1 = new ProjectSnapshot(ProjectState.Create(hostProject_For_1_1, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_2_0 = new ProjectSnapshot(ProjectState.Create(hostProject_For_2_0, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_2_1 = new ProjectSnapshot(ProjectState.Create(hostProject_For_2_1, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_3_0 = new ProjectSnapshot(ProjectState.Create(hostProject_For_3_0, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_UnknownConfiguration = new ProjectSnapshot(ProjectState.Create(hostProject_For_UnknownConfiguration, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
 
         _customFactories =
         [
