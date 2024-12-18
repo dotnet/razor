@@ -436,8 +436,6 @@ internal sealed class ProjectState
                 continue;
             }
 
-            var itemTargetPath = filePath.Replace('/', '\\').TrimStart('\\');
-
             if (FilePathNormalizer.AreFilePathsEquivalent(filePath, targetPath))
             {
                 // We've normalized the original importItem.FilePath into the HostDocument.TargetPath. For instance, if the HostDocument.TargetPath
@@ -445,6 +443,8 @@ internal sealed class ProjectState
                 // paths for a given import file (_Imports.razor / _ViewImports.cshtml); therefore, an import importing itself doesn't make sense.
                 continue;
             }
+
+            var itemTargetPath = filePath.Replace('/', '\\').TrimStart('\\');
 
             targetPaths.Add(itemTargetPath);
         }
