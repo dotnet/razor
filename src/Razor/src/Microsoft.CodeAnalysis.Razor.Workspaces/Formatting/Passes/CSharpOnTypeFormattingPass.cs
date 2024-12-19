@@ -87,7 +87,12 @@ internal sealed class CSharpOnTypeFormattingPass(
             }
         }
 
+        _logger.LogTestOnly($"Original C#:\r\n{csharpText}");
+
         var normalizedChanges = csharpText.MinimizeTextChanges(changes, out var originalTextWithChanges);
+
+        _logger.LogTestOnly($"Formatted C#:\r\n{originalTextWithChanges}");
+
         var mappedChanges = RemapTextChanges(codeDocument, normalizedChanges);
         var filteredChanges = FilterCSharpTextChanges(context, mappedChanges);
         if (filteredChanges.Length == 0)
@@ -104,6 +109,8 @@ internal sealed class CSharpOnTypeFormattingPass(
         // Find the lines that were affected by these edits.
         var originalText = codeDocument.Source.Text;
         _logger.LogTestOnly($"Original text:\r\n{originalText}");
+
+        _logger.LogTestOnly($"Source Mappings:\r\n{RenderSourceMappings(context.CodeDocument)}");
 
         // Apply the format on type edits sent over by the client.
         var formattedText = ApplyChangesAndTrackChange(originalText, filteredChanges, out _, out var spanAfterFormatting);
