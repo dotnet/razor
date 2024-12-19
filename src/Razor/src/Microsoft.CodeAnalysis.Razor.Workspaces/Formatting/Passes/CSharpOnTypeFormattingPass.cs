@@ -233,7 +233,36 @@ internal sealed class CSharpOnTypeFormattingPass(
 
     private static ImmutableArray<TextChange> FilterCSharpTextChanges(FormattingContext context, ImmutableArray<TextChange> changes)
     {
-        return changes.WhereAsArray(e => ShouldFormat(context, e.Span, allowImplicitStatements: false));
+        var indent = context.GetIndentationLevelString(1);
+
+        using var filteredChanges = new PooledArrayBuilder<TextChange>();
+
+        foreach (var change in changes)
+        {
+            if (!ShouldFormat(context, change.Span, allowImplicitStatements: false))
+            {
+                continue;
+            }
+
+            // One extra bit of filtering we do here, is to guard against quirks in runtime code-gen, where source mappings
+            // end after whitespace, rather than design time where they end before. This results in the C# formatter wanting
+            // to insert an indent in what ends up being the middle of a line of Razor code. Since there is no reason to ever
+            // insert anything but a single space in the middle of a line, it's easy to filter them out.
+            if (change.Span.Length == 0 &&
+                change.NewText == indent)
+            {
+                var linePosition = context.SourceText.GetLinePosition(change.Span.Start);
+                var first = context.SourceText.Lines[linePosition.Line].GetFirstNonWhitespaceOffset();
+                if (linePosition.Character > first)
+                {
+                    continue;
+                }
+            }
+
+            filteredChanges.Add(change);
+        }
+
+        return filteredChanges.ToImmutable();
     }
 
     private static int LineDelta(SourceText text, IEnumerable<TextChange> changes, out int firstLine, out int lastLine)
