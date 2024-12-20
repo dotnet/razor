@@ -225,10 +225,9 @@ internal static class IServiceCollectionExtensions
         }
 
         services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
-        services.AddSingleton<IDocumentProcessedListener, CodeDocumentReferenceHolder>();
 
         // Add project snapshot manager
         services.AddSingleton<IProjectEngineFactoryProvider, LspProjectEngineFactoryProvider>();
-        services.AddSingleton<IProjectSnapshotManager, LspProjectSnapshotManager>();
+        services.AddSingleton<ProjectSnapshotManager, LspProjectSnapshotManager>();
     }
 }
