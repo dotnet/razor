@@ -40,4 +40,8 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Razor.IntegrationTests" Key="$(RazorKey)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Formatting\" />
+  </ItemGroup>
+
 </Project>
