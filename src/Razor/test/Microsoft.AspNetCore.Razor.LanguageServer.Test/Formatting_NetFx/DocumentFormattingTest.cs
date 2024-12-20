@@ -4045,6 +4045,100 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     }
 
     [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11325")]
+    public async Task CodeBlock_CollectionExpression1()
+    {
+        // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+        // just verifies we don't regress things and start moving code around.
+        await RunFormattingTestAsync(
+            input: """
+                    @code {
+                        private void M()
+                        {
+                            List<string> entries = [
+                                "a",
+                                "b",
+                                "c"
+                            ];
+                        }
+                    }
+                    """,
+            expected: """
+                    @code {
+                        private void M()
+                        {
+                            List<string> entries = [
+                                "a",
+                                "b",
+                                "c"
+                            ];
+                        }
+                    }
+                    """);
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11325")]
+    public async Task CodeBlock_CollectionExpression2()
+    {
+        // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+        // just verifies we don't regress things and start moving code around.
+        await RunFormattingTestAsync(
+            input: """
+                    @code {
+                        private void M()
+                        {
+                            List<string> entries = [
+                                    "a",
+                            "b",
+                                "c"
+                            ];
+                        }
+                    }
+                    """,
+            expected: """
+                    @code {
+                        private void M()
+                        {
+                            List<string> entries = [
+                                    "a",
+                            "b",
+                                "c"
+                            ];
+                        }
+                    }
+                    """);
+    }
+
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11325")]
+    public async Task CodeBlock_CollectionExpression3()
+    {
+        // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+        // just verifies we don't regress things and start moving code around.
+        await RunFormattingTestAsync(
+            input: """
+                    @code {
+                        private void M()
+                        {
+                            List<string> entries = [
+                            ];
+                        }
+                    }
+                    """,
+            expected: """
+                    @code {
+                        private void M()
+                        {
+                            List<string> entries = [
+                            ];
+                        }
+                    }
+                    """);
+    }
+
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5618")]
     public async Task CodeBlock_EmptyObjectCollectionInitializers()
     {
