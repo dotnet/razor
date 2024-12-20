@@ -16,9 +16,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class CohostFindAllReferencesEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
 {
-    [Theory]
+    [FuseTheory]
     [CombinatorialData]
     public Task FindCSharpMember(bool supportsVSExtensions)
         => VerifyFindAllReferencesAsync("""
@@ -37,7 +37,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
             """,
             supportsVSExtensions);
 
-    [Theory]
+    [FuseTheory]
     [CombinatorialData]
     public async Task ComponentAttribute(bool supportsVSExtensions)
     {
@@ -139,7 +139,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
             (FilePath("SurveyPrompt.razor.g.cs"), surveyPromptGeneratedCode));
     }
 
-    [Theory]
+    [FuseTheory]
     [CombinatorialData]
     public async Task OtherCSharpFile(bool supportsVSExtensions)
     {
@@ -171,6 +171,8 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
 
     private async Task VerifyFindAllReferencesAsync(TestCode input, bool supportsVSExtensions, params (string fileName, TestCode testCode)[]? additionalFiles)
     {
+        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
+
         UpdateClientLSPInitializationOptions(c =>
         {
             c.ClientCapabilities.SupportsVisualStudioExtensions = supportsVSExtensions;

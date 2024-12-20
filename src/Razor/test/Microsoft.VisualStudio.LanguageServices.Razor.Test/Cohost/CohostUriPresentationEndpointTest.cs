@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -11,9 +12,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class CohostUriPresentationEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
 {
-    [Fact]
+    [FuseFact]
     public async Task RandomFile()
     {
         await VerifyUriPresentationAsync(
@@ -32,7 +33,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: null);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task HtmlResponse_TranslatesVirtualDocumentUri()
     {
         var siteCssFileUriString = "file:///C:/path/to/site.css";
@@ -66,7 +67,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: htmlTag);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Component()
     {
         await VerifyUriPresentationAsync(
@@ -95,7 +96,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: "<Component />");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ImportsFile()
     {
         await VerifyUriPresentationAsync(
@@ -115,7 +116,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: null);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Html_IntoCSharp_NoTag()
     {
         var siteCssFileUriString = "file:///C:/path/to/site.css";
@@ -150,7 +151,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: null);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Component_IntoCSharp_NoTag()
     {
         await VerifyUriPresentationAsync(
@@ -178,7 +179,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: null);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Component_WithChildFile()
     {
         await VerifyUriPresentationAsync(
@@ -209,7 +210,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: "<Component />");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Component_WithChildFile_RazorNotFirst()
     {
         await VerifyUriPresentationAsync(
@@ -240,7 +241,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: "<Component />");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Component_RequiredParameter()
     {
         await VerifyUriPresentationAsync(
@@ -277,6 +278,8 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
 
     private async Task VerifyUriPresentationAsync(string input, Uri[] uris, string? expected, WorkspaceEdit? htmlResponse = null, (string fileName, string contents)[]? additionalFiles = null)
     {
+        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
+
         TestFileMarkupParser.GetSpan(input, out input, out var span);
         var document = await CreateProjectAndRazorDocumentAsync(input, additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
