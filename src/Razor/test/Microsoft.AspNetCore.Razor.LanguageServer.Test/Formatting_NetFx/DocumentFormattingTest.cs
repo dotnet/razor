@@ -1930,6 +1930,68 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: FileKinds.Component); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
+    [FormattingTestFact(SkipFlipLineEnding = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/6001")]
+    public async Task FormatNestedCascadingValue6()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1!= null)
+                    {
+                        <CascadingValue Value="Variable1">
+                        <div>
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                            </div>
+                    </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+            expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1 != null)
+                    {
+                        <CascadingValue Value="Variable1">
+                            <div>
+                                <SurveyPrompt />
+                                @if (VarBool)
+                                {
+                                    <div class="mb-16">
+                                        <SurveyPrompt />
+                                        <SurveyPrompt />
+                                    </div>
+                                }
+                            </div>
+                        </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+            fileKind: FileKinds.Component); // tracked by https://github.com/dotnet/razor/issues/10836
+    }
+
     [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/5676")]
     public async Task FormatInputSelect()
