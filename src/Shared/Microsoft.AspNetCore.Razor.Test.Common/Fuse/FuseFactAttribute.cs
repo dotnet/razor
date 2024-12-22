@@ -11,4 +11,5 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 [XunitTestCaseDiscoverer($"Microsoft.AspNetCore.Razor.Test.Common.{nameof(FuseFactDiscoverer)}", "Microsoft.AspNetCore.Razor.Test.Common")]
 internal sealed class FuseFactAttribute : FactAttribute
 {
+    public string? SkipFuse { get; set; }
 }

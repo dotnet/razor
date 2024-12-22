@@ -37,6 +37,11 @@ internal sealed class FuseTestCase : XunitTestCase
             return "Language server cannot run FUSE tests";
         }
 
+        if (_forceRuntimeCodeGeneration && factAttribute.GetNamedArgument<string>("SkipFuse") is { } skipReason)
+        {
+            return $"Skipping FUSE run: {skipReason}";
+        }
+
         return base.GetSkipReason(factAttribute);
     }
 

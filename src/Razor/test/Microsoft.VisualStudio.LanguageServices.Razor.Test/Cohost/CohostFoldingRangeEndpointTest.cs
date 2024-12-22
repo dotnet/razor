@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
 {
-    [FuseFact]
+    [FuseFact(SkipFuse = "https://github.com/dotnet/razor/issues/10860")]
     public Task IfStatements()
         => VerifyFoldingRangesAsync("""
             <div>
@@ -54,7 +54,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             }|]
             """);
 
-    [FuseFact]
+    [FuseFact(SkipFuse = "https://github.com/dotnet/razor/issues/10860")]
     public Task IfElseStatements()
         => VerifyFoldingRangesAsync("""
             <div>
