@@ -79,15 +79,6 @@ public class CohostRenameEndpointTest(FuseTestContext context, ITestOutputHelper
                 The end.
                 """,
             additionalFiles: [
-                // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
-                (FilePath("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
-                // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
                 (FilePath("Component.razor"), "")
             ],
             newName: "DifferentName",
@@ -136,15 +127,6 @@ public class CohostRenameEndpointTest(FuseTestContext context, ITestOutputHelper
                 The end.
                 """,
             additionalFiles: [
-                // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
-                (FilePath("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
-                // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
                 (FilePath("Component.razor"), "")
             ],
             newName: "DifferentName",
@@ -179,15 +161,6 @@ public class CohostRenameEndpointTest(FuseTestContext context, ITestOutputHelper
                 The end.
                 """,
            additionalFiles: [
-               // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
-               (FilePath("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
-                // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
                 (FilePath("Component.razor"), "")
            ],
            newName: "DifferentName",
