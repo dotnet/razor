@@ -89,6 +89,31 @@ public class CohostSemanticTokensRangeEndpointTest(FuseTestContext context, ITes
         await VerifySemanticTokensAsync(input, colorBackground, precise, fileKind: FileKinds.Legacy);
     }
 
+    [FuseTheory]
+    [CombinatorialData]
+    public async Task Legacy_Compatibility(bool colorBackground, bool precise)
+    {
+        // Same test as above, but with only the things that work in FUSE and non-FUSE, to prevent regressions
+
+        var input = """
+            @page "/"
+            @using System
+
+            <div>This is some HTML</div>
+
+            <component type="typeof(Component)" render-mode="ServerPrerendered" />
+
+            @functions
+            {
+                public void M()
+                {
+                }
+            }
+            """;
+
+        await VerifySemanticTokensAsync(input, colorBackground, precise, fileKind: FileKinds.Legacy);
+    }
+
     private async Task VerifySemanticTokensAsync(string input, bool colorBackground, bool precise, string? fileKind = null, [CallerMemberName] string? testName = null)
     {
         UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
