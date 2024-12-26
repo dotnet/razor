@@ -43,13 +43,14 @@ public abstract class RazorEnginePhaseBase : IRazorEnginePhase
     }
 
     protected T GetRequiredFeature<T>()
+        where T : class, IRazorEngineFeature
     {
         if (Engine == null)
         {
             throw new InvalidOperationException(Resources.FormatFeatureMustBeInitialized(nameof(Engine)));
         }
 
-        var feature = Engine.Features.OfType<T>().FirstOrDefault();
+        var feature = Engine.GetFeatures<T>().FirstOrDefault();
         ThrowForMissingFeatureDependency<T>(feature);
 
         return feature;
