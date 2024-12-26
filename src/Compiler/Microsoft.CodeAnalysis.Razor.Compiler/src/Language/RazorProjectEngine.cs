@@ -136,7 +136,7 @@ public class RazorProjectEngine
             importItems.AddRange(importProjectFeature.GetImports(projectItem));
         }
 
-        var importSources = GetImportSourceDocuments(importItems.DrainToImmutable());
+        var importSources = GetImportSourceDocuments(in importItems);
 
         return CreateCodeDocumentCore(
             sourceDocument, projectItem.FileKind, importSources, tagHelpers: null, cssScope: projectItem.CssScope, configureParser, configureCodeGeneration);
@@ -197,7 +197,7 @@ public class RazorProjectEngine
             importItems.AddRange(importProjectFeature.GetImports(projectItem));
         }
 
-        var importSourceDocuments = GetImportSourceDocuments(importItems.DrainToImmutable(), suppressExceptions: true);
+        var importSourceDocuments = GetImportSourceDocuments(in importItems, suppressExceptions: true);
         return CreateCodeDocumentDesignTimeCore(sourceDocument, projectItem.FileKind, importSourceDocuments, tagHelpers: null, configureParser, configureCodeGeneration);
     }
 
@@ -440,10 +440,10 @@ public class RazorProjectEngine
 
     // Internal for testing
     internal static ImmutableArray<RazorSourceDocument> GetImportSourceDocuments(
-        ImmutableArray<RazorProjectItem> importItems,
+        ref readonly PooledArrayBuilder<RazorProjectItem> importItems,
         bool suppressExceptions = false)
     {
-        using var imports = new PooledArrayBuilder<RazorSourceDocument>(importItems.Length);
+        using var imports = new PooledArrayBuilder<RazorSourceDocument>(importItems.Count);
 
         foreach (var importItem in importItems)
         {
