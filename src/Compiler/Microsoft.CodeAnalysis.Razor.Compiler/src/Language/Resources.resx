@@ -373,11 +373,14 @@
   <data name="ParserContext_NoCurrentBlock" xml:space="preserve">
     <value>Cannot finish span, there is no current block. Call StartBlock at least once before finishing a span</value>
   </data>
+  <data name="PhaseAlreadyInitialized" xml:space="preserve">
+    <value>The phase is already initialized.</value>
+  </data>
   <data name="PhaseDependencyMissing" xml:space="preserve">
     <value>The '{0}' phase requires a '{1}' provided by the '{2}'.</value>
   </data>
   <data name="PhaseMustBeInitialized" xml:space="preserve">
-    <value>The phase must be initialized by setting the '{0}' property.</value>
+    <value>The phase must be initialized.</value>
   </data>
   <data name="RazorProject_PathMustStartWithForwardSlash" xml:space="preserve">
     <value>Path must begin with a forward slash '/'.</value>

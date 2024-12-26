@@ -27,7 +27,7 @@ public sealed class RazorEngine
 
         foreach (var phase in phases)
         {
-            phase.Engine = this;
+            phase.Initialize(this);
         }
     }
 
