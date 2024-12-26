@@ -28,16 +28,13 @@ public sealed class RazorEngine
         }
     }
 
-    public void Process(RazorCodeDocument document)
+    public void Process(RazorCodeDocument codeDocument)
     {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgHelper.ThrowIfNull(codeDocument);
 
         foreach (var phase in Phases)
         {
-            phase.Execute(document);
+            phase.Execute(codeDocument);
         }
     }
 
