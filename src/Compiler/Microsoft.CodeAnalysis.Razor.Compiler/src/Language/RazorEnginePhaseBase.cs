@@ -17,10 +17,7 @@ public abstract class RazorEnginePhaseBase : IRazorEnginePhase
         get { return _engine; }
         set
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            ArgHelper.ThrowIfNull(value);
 
             _engine = value;
             OnInitialized();
@@ -29,10 +26,7 @@ public abstract class RazorEnginePhaseBase : IRazorEnginePhase
 
     public void Execute(RazorCodeDocument codeDocument)
     {
-        if (codeDocument == null)
-        {
-            throw new ArgumentNullException(nameof(codeDocument));
-        }
+        ArgHelper.ThrowIfNull(codeDocument);
 
         if (Engine == null)
         {
