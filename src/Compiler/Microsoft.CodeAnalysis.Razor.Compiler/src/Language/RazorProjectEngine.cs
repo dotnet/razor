@@ -127,19 +127,11 @@ public class RazorProjectEngine
         Action<RazorParserOptionsBuilder>? configureParser = null,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
     {
-        var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
-
-        using var importItems = new PooledArrayBuilder<RazorProjectItem>();
-
-        foreach (var importProjectFeature in GetFeatures<IImportProjectFeature>())
-        {
-            importItems.AddRange(importProjectFeature.GetImports(projectItem));
-        }
-
-        var importSources = GetImportSourceDocuments(in importItems);
+        var source = RazorSourceDocument.ReadFrom(projectItem);
+        var importSources = GetImportSources(projectItem, designTime: false);
 
         return CreateCodeDocumentCore(
-            sourceDocument, projectItem.FileKind, importSources, tagHelpers: null, cssScope: projectItem.CssScope, configureParser, configureCodeGeneration);
+            source, projectItem.FileKind, importSources, tagHelpers: null, cssScope: projectItem.CssScope, configureParser, configureCodeGeneration);
     }
 
     private RazorCodeDocument CreateCodeDocumentCore(
@@ -188,23 +180,16 @@ public class RazorProjectEngine
         Action<RazorParserOptionsBuilder>? configureParser = null,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
     {
-        var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
+        var source = RazorSourceDocument.ReadFrom(projectItem);
+        var importSources = GetImportSources(projectItem, designTime: true);
 
-        using var importItems = new PooledArrayBuilder<RazorProjectItem>();
-
-        foreach (var importProjectFeature in GetFeatures<IImportProjectFeature>())
-        {
-            importItems.AddRange(importProjectFeature.GetImports(projectItem));
-        }
-
-        var importSourceDocuments = GetImportSourceDocuments(in importItems, suppressExceptions: true);
-        return CreateCodeDocumentDesignTimeCore(sourceDocument, projectItem.FileKind, importSourceDocuments, tagHelpers: null, configureParser, configureCodeGeneration);
+        return CreateCodeDocumentDesignTimeCore(source, projectItem.FileKind, importSources, tagHelpers: null, configureParser, configureCodeGeneration);
     }
 
     private RazorCodeDocument CreateCodeDocumentDesignTimeCore(
         RazorSourceDocument sourceDocument,
         string fileKind,
-        ImmutableArray<RazorSourceDocument> importSourceDocuments,
+        ImmutableArray<RazorSourceDocument> importSources,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers,
         Action<RazorParserOptionsBuilder>? configureParser,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
@@ -216,13 +201,14 @@ public class RazorProjectEngine
             ConfigureDesignTimeParserOptions(builder);
             configureParser?.Invoke(builder);
         });
+
         var codeGenerationOptions = GetRequiredFeature<IRazorCodeGenerationOptionsFactoryProjectFeature>().Create(builder =>
         {
             ConfigureDesignTimeCodeGenerationOptions(builder);
             configureCodeGeneration?.Invoke(builder);
         });
 
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, importSourceDocuments, parserOptions, codeGenerationOptions);
+        var codeDocument = RazorCodeDocument.Create(sourceDocument, importSources, parserOptions, codeGenerationOptions);
 
         codeDocument.SetTagHelpers(tagHelpers);
         codeDocument.SetFileKind(fileKind);
@@ -436,6 +422,19 @@ public class RazorProjectEngine
         builder.Features.Add(new ComponentMarkupDiagnosticPass());
         builder.Features.Add(new ComponentMarkupBlockPass(razorLanguageVersion));
         builder.Features.Add(new ComponentMarkupEncodingPass(razorLanguageVersion));
+    }
+
+    private ImmutableArray<RazorSourceDocument> GetImportSources(RazorProjectItem projectItem, bool designTime)
+    {
+        using var importItems = new PooledArrayBuilder<RazorProjectItem>();
+
+        foreach (var importProjectFeature in GetFeatures<IImportProjectFeature>())
+        {
+            importItems.AddRange(importProjectFeature.GetImports(projectItem));
+        }
+
+        // Suppress exceptions for design-time requests.
+        return GetImportSourceDocuments(in importItems, suppressExceptions: designTime);
     }
 
     // Internal for testing
