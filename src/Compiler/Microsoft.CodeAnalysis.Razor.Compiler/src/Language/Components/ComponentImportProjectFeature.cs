@@ -11,7 +11,7 @@ using System.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentImportProjectFeature : IImportProjectFeature
+internal class ComponentImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
 {
     // Using explicit newlines here to avoid fooling our baseline tests
     private const string DefaultUsingImportContent =
@@ -21,8 +21,6 @@ internal class ComponentImportProjectFeature : IImportProjectFeature
         "@using global::System.Linq\r\n" +
         "@using global::System.Threading.Tasks\r\n" +
         "@using global::" + ComponentsApi.RenderFragment.Namespace + "\r\n"; // Microsoft.AspNetCore.Components
-
-    public RazorProjectEngine ProjectEngine { get; set; }
 
     public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
     {

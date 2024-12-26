@@ -519,7 +519,7 @@ public class RazorIntegrationTestBase
         }
     }
 
-    private class TestImportProjectFeature : IImportProjectFeature
+    private class TestImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
     {
         private readonly List<RazorProjectItem> _imports;
 
@@ -527,8 +527,6 @@ public class RazorIntegrationTestBase
         {
             _imports = imports;
         }
-
-        public RazorProjectEngine? ProjectEngine { get; set; }
 
         public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
         {

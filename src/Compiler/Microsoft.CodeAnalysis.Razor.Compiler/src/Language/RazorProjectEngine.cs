@@ -37,7 +37,7 @@ public class RazorProjectEngine
 
         foreach (var projectFeature in features)
         {
-            projectFeature.ProjectEngine = this;
+            projectFeature.Initialize(this);
         }
     }
 
