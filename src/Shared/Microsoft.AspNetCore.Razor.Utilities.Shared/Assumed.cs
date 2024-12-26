@@ -16,6 +16,7 @@ internal static partial class Assumed
         [CallerArgumentExpression(nameof(value))] string? valueExpression = null,
         [CallerFilePath] string? path = null,
         [CallerLineNumber] int line = 0)
+        where T : class
     {
         if (value is null)
         {
@@ -28,6 +29,34 @@ internal static partial class Assumed
         [InterpolatedStringHandlerArgument(nameof(value))] ThrowIfNullInterpolatedStringHandler<T> message,
         [CallerFilePath] string? path = null,
         [CallerLineNumber] int line = 0)
+        where T : class
+    {
+        if (value is null)
+        {
+            ThrowInvalidOperation(message.GetFormattedText(), path, line);
+        }
+    }
+
+    public static void NotNull<T>(
+        [NotNull] this T? value,
+        string? message = null,
+        [CallerArgumentExpression(nameof(value))] string? valueExpression = null,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        where T : struct
+    {
+        if (value is null)
+        {
+            ThrowInvalidOperation(message ?? SR.FormatExpected_0_to_be_non_null(valueExpression), path, line);
+        }
+    }
+
+    public static void NotNull<T>(
+        [NotNull] this T? value,
+        [InterpolatedStringHandlerArgument(nameof(value))] ThrowIfNullInterpolatedStringHandler<T> message,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        where T : struct
     {
         if (value is null)
         {
