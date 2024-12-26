@@ -122,7 +122,23 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
-    private protected RazorCodeDocument CreateCodeDocumentCore(
+    internal RazorCodeDocument CreateCodeDocument(RazorProjectItem projectItem, bool designTime)
+    {
+        ArgHelper.ThrowIfNull(projectItem);
+
+        return designTime
+            ? CreateCodeDocumentDesignTimeCore(projectItem)
+            : CreateCodeDocumentCore(projectItem);
+    }
+
+    internal RazorCodeDocument CreateCodeDocument(RazorSourceDocument source, string fileKind)
+    {
+        ArgHelper.ThrowIfNull(source);
+
+        return CreateCodeDocumentCore(source, fileKind, importSources: default, tagHelpers: null, cssScope: null, configureParser: null, configureCodeGeneration: null);
+    }
+
+    private RazorCodeDocument CreateCodeDocumentCore(
         RazorProjectItem projectItem,
         Action<RazorParserOptionsBuilder>? configureParser = null,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
@@ -168,14 +184,7 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
-    internal RazorCodeDocument CreateCodeDocument(RazorSourceDocument source, string fileKind)
-    {
-        ArgHelper.ThrowIfNull(source);
-
-        return CreateCodeDocumentCore(source, fileKind, importSources: default, tagHelpers: null, cssScope: null, configureParser: null, configureCodeGeneration: null);
-    }
-
-    private protected RazorCodeDocument CreateCodeDocumentDesignTimeCore(
+    private RazorCodeDocument CreateCodeDocumentDesignTimeCore(
         RazorProjectItem projectItem,
         Action<RazorParserOptionsBuilder>? configureParser = null,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
