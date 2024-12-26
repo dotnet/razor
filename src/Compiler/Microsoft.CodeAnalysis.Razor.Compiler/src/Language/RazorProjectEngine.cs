@@ -56,7 +56,7 @@ public class RazorProjectEngine
         ArgHelper.ThrowIfNull(source);
         ArgHelper.ThrowIfNull(fileKind);
 
-        var codeDocument = CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
+        var codeDocument = CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, cssScope: null, configureParser: null, configureCodeGeneration: null);
         ProcessCore(codeDocument);
         return codeDocument;
     }
@@ -78,12 +78,12 @@ public class RazorProjectEngine
         RazorSourceDocument source,
         string fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor> tagHelpers)
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers)
     {
         ArgHelper.ThrowIfNull(source);
         ArgHelper.ThrowIfNull(fileKind);
 
-        var codeDocument = CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: (builder) =>
+        var codeDocument = CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, cssScope: null, configureParser: null, configureCodeGeneration: (builder) =>
         {
             builder.SuppressPrimaryMethodBody = true;
         });
@@ -132,35 +132,34 @@ public class RazorProjectEngine
             }
         }
 
-        var importSourceDocuments = GetImportSourceDocuments(importItems.DrainToImmutable());
+        var importSources = GetImportSourceDocuments(importItems.DrainToImmutable());
 
         return CreateCodeDocumentCore(
-            sourceDocument, projectItem.FileKind, importSourceDocuments, tagHelpers: null, configureParser, configureCodeGeneration, cssScope: projectItem.CssScope);
+            sourceDocument, projectItem.FileKind, importSources, tagHelpers: null, cssScope: projectItem.CssScope, configureParser, configureCodeGeneration);
     }
 
-    internal RazorCodeDocument CreateCodeDocumentCore(
-        RazorSourceDocument sourceDocument,
+    private RazorCodeDocument CreateCodeDocumentCore(
+        RazorSourceDocument source,
         string fileKind,
-        ImmutableArray<RazorSourceDocument> importSourceDocuments = default,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
-        Action<RazorParserOptionsBuilder>? configureParser = null,
-        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null,
-        string? cssScope = null)
+        ImmutableArray<RazorSourceDocument> importSources,
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        string? cssScope,
+        Action<RazorParserOptionsBuilder>? configureParser,
+        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
     {
-        ArgHelper.ThrowIfNull(sourceDocument);
-
         var parserOptions = GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(fileKind, builder =>
         {
             ConfigureParserOptions(builder);
             configureParser?.Invoke(builder);
         });
+
         var codeGenerationOptions = GetRequiredFeature<IRazorCodeGenerationOptionsFactoryProjectFeature>().Create(builder =>
         {
             ConfigureCodeGenerationOptions(builder);
             configureCodeGeneration?.Invoke(builder);
         });
 
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, importSourceDocuments, parserOptions, codeGenerationOptions);
+        var codeDocument = RazorCodeDocument.Create(source, importSources, parserOptions, codeGenerationOptions);
 
         codeDocument.SetTagHelpers(tagHelpers);
         codeDocument.SetFileKind(fileKind);
@@ -171,6 +170,13 @@ public class RazorProjectEngine
         }
 
         return codeDocument;
+    }
+
+    internal RazorCodeDocument CreateCodeDocument(RazorSourceDocument source, string fileKind)
+    {
+        ArgHelper.ThrowIfNull(source);
+
+        return CreateCodeDocumentCore(source, fileKind, importSources: default, tagHelpers: null, cssScope: null, configureParser: null, configureCodeGeneration: null);
     }
 
     private protected RazorCodeDocument CreateCodeDocumentDesignTimeCore(
