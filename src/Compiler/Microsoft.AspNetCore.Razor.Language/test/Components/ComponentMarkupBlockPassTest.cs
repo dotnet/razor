@@ -16,7 +16,6 @@ public class ComponentMarkupBlockPassTest
 {
     public ComponentMarkupBlockPassTest()
     {
-        Pass = new ComponentMarkupBlockPass(RazorLanguageVersion.Latest);
         ProjectEngine = RazorProjectEngine.Create(
             RazorConfiguration.Default,
             RazorProjectFileSystem.Create(Environment.CurrentDirectory),
@@ -29,7 +28,10 @@ public class ComponentMarkupBlockPassTest
             });
         Engine = ProjectEngine.Engine;
 
-        Pass.Engine = Engine;
+        Pass = new ComponentMarkupBlockPass(RazorLanguageVersion.Latest)
+        {
+            Engine = Engine
+        };
     }
 
     private RazorProjectEngine ProjectEngine { get; }
@@ -469,17 +471,5 @@ public class ComponentMarkupBlockPassTest
         Engine.GetFeatures<ComponentDocumentClassifierPass>().Single().Execute(codeDocument, document);
         Engine.GetFeatures<ComponentMarkupDiagnosticPass>().Single().Execute(codeDocument, document);
         return document;
-    }
-
-    private class StaticTagHelperFeature : ITagHelperFeature
-    {
-        public RazorEngine Engine { get; set; }
-
-        public List<TagHelperDescriptor> TagHelpers { get; set; }
-
-        public IReadOnlyList<TagHelperDescriptor> GetDescriptors()
-        {
-            return TagHelpers;
-        }
     }
 }

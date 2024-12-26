@@ -192,8 +192,7 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
         Assert.Empty(engine.Engine.GetFeatures<MvcLatest.ViewComponentTagHelperPass>());
     }
 
-    private class MyCoolNewFeature : IRazorEngineFeature
+    private class MyCoolNewFeature : RazorEngineFeatureBase
     {
-        public RazorEngine Engine { get; set; }
     }
 }

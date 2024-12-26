@@ -28,7 +28,10 @@ public class ComponentMarkupEncodingPassTest
             });
         Engine = ProjectEngine.Engine;
 
-        Pass.Engine = Engine;
+        Pass = new ComponentMarkupEncodingPass(RazorLanguageVersion.Latest)
+        {
+            Engine = Engine
+        };
     }
 
     private RazorProjectEngine ProjectEngine { get; }

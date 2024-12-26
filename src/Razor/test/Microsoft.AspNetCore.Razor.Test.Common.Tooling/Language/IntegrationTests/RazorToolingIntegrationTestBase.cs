@@ -159,7 +159,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         };
     }
 
-    protected CompileToCSharpResult CompileToCSharp(string cshtmlContent, bool throwOnFailure=true)
+    protected CompileToCSharpResult CompileToCSharp(string cshtmlContent, bool throwOnFailure = true)
     {
         return CompileToCSharp(DefaultFileName, cshtmlContent, throwOnFailure);
     }
@@ -346,7 +346,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
     private class CompilationFailedException : XunitException
     {
         public CompilationFailedException(Compilation compilation)
-            :base("Compilation failed")
+            : base("Compilation failed")
         {
             Compilation = compilation;
         }
@@ -390,11 +390,9 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         }
     }
 
-    private class SuppressChecksum : IConfigureRazorCodeGenerationOptionsFeature
+    private class SuppressChecksum : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
         public int Order => 0;
-
-        public RazorEngine Engine { get; set; }
 
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {

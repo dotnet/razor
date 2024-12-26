@@ -212,11 +212,14 @@
   <data name="ErrorComponent_Newline" xml:space="preserve">
     <value>line break</value>
   </data>
+  <data name="FeatureAlreadyInitialized" xml:space="preserve">
+    <value>The feature is already initialized.</value>
+  </data>
   <data name="FeatureDependencyMissing" xml:space="preserve">
     <value>The '{0}' feature requires a '{1}' provided by the '{2}'.</value>
   </data>
   <data name="FeatureMustBeInitialized" xml:space="preserve">
-    <value>The feature must be initialized by setting the '{0}' property.</value>
+    <value>The feature must be initialized.</value>
   </data>
   <data name="FunctionsDirective_Description" xml:space="preserve">
     <value>Specify a C# code block.</value>

@@ -17,20 +17,22 @@ public class ComponentDuplicateAttributeDiagnosticPassTest
 {
     public ComponentDuplicateAttributeDiagnosticPassTest()
     {
-        Pass = new ComponentMarkupDiagnosticPass();
         ProjectEngine = RazorProjectEngine.Create(
             RazorConfiguration.Default,
             RazorProjectFileSystem.Create(Environment.CurrentDirectory),
             b =>
             {
-                    // Don't run the markup mutating passes.
-                    b.Features.Remove(b.Features.OfType<ComponentMarkupDiagnosticPass>().Single());
+                // Don't run the markup mutating passes.
+                b.Features.Remove(b.Features.OfType<ComponentMarkupDiagnosticPass>().Single());
                 b.Features.Remove(b.Features.OfType<ComponentMarkupBlockPass>().Single());
                 b.Features.Remove(b.Features.OfType<ComponentMarkupEncodingPass>().Single());
             });
         Engine = ProjectEngine.Engine;
 
-        Pass.Engine = Engine;
+        Pass = new ComponentMarkupDiagnosticPass()
+        {
+            Engine = Engine
+        };
     }
 
     private RazorProjectEngine ProjectEngine { get; }
@@ -180,17 +182,5 @@ public class ComponentDuplicateAttributeDiagnosticPassTest
         var document = codeDocument.GetDocumentIntermediateNode();
         Engine.GetFeatures<ComponentDocumentClassifierPass>().Single().Execute(codeDocument, document);
         return document;
-    }
-
-    private class StaticTagHelperFeature : ITagHelperFeature
-    {
-        public RazorEngine Engine { get; set; }
-
-        public List<TagHelperDescriptor> TagHelpers { get; set; }
-
-        public IReadOnlyList<TagHelperDescriptor> GetDescriptors()
-        {
-            return TagHelpers;
-        }
     }
 }

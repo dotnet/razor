@@ -22,7 +22,7 @@ public sealed class RazorEngine
 
         foreach (var feature in features)
         {
-            feature.Engine = this;
+            feature.Initialize(this);
         }
 
         foreach (var phase in phases)
