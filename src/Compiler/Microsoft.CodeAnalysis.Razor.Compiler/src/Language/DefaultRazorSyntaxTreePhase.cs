@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -14,7 +15,7 @@ internal class DefaultRazorSyntaxTreePhase : RazorEnginePhaseBase, IRazorSyntaxT
         Passes = Engine.GetFeatures<IRazorSyntaxTreePass>().OrderByAsArray(static x => x.Order);
     }
 
-    protected override void ExecuteCore(RazorCodeDocument codeDocument)
+    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);

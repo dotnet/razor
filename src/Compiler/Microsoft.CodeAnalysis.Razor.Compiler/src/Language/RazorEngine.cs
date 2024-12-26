@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -31,13 +32,16 @@ public sealed class RazorEngine
         }
     }
 
-    public void Process(RazorCodeDocument codeDocument)
+    public void Process(RazorCodeDocument codeDocument, CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(codeDocument);
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         foreach (var phase in Phases)
         {
-            phase.Execute(codeDocument);
+            phase.Execute(codeDocument, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 

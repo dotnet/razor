@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -45,12 +46,12 @@ public class RazorProjectEngine
         where TFeature : class, IRazorProjectEngineFeature
         => _featureCache.GetFeatures<TFeature>();
 
-    public RazorCodeDocument Process(RazorProjectItem projectItem)
+    public RazorCodeDocument Process(RazorProjectItem projectItem, CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(projectItem);
 
         var codeDocument = CreateCodeDocumentCore(projectItem);
-        ProcessCore(codeDocument);
+        ProcessCore(codeDocument, cancellationToken);
         return codeDocument;
     }
 
@@ -58,17 +59,18 @@ public class RazorProjectEngine
         RazorSourceDocument source,
         string fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers)
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(source);
         ArgHelper.ThrowIfNull(fileKind);
 
         var codeDocument = CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, cssScope: null, configureParser: null, configureCodeGeneration: null);
-        ProcessCore(codeDocument);
+        ProcessCore(codeDocument, cancellationToken);
         return codeDocument;
     }
 
-    public RazorCodeDocument ProcessDeclarationOnly(RazorProjectItem projectItem)
+    public RazorCodeDocument ProcessDeclarationOnly(RazorProjectItem projectItem, CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(projectItem);
 
@@ -77,7 +79,7 @@ public class RazorProjectEngine
             builder.SuppressPrimaryMethodBody = true;
         });
 
-        ProcessCore(codeDocument);
+        ProcessCore(codeDocument, cancellationToken);
         return codeDocument;
     }
 
@@ -85,7 +87,8 @@ public class RazorProjectEngine
         RazorSourceDocument source,
         string fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers)
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(source);
         ArgHelper.ThrowIfNull(fileKind);
@@ -95,16 +98,16 @@ public class RazorProjectEngine
             builder.SuppressPrimaryMethodBody = true;
         });
 
-        ProcessCore(codeDocument);
+        ProcessCore(codeDocument, cancellationToken);
         return codeDocument;
     }
 
-    public RazorCodeDocument ProcessDesignTime(RazorProjectItem projectItem)
+    public RazorCodeDocument ProcessDesignTime(RazorProjectItem projectItem, CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(projectItem);
 
         var codeDocument = CreateCodeDocumentDesignTimeCore(projectItem);
-        ProcessCore(codeDocument);
+        ProcessCore(codeDocument, cancellationToken);
         return codeDocument;
     }
 
@@ -112,13 +115,14 @@ public class RazorProjectEngine
         RazorSourceDocument source,
         string fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers)
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(source);
         ArgHelper.ThrowIfNull(fileKind);
 
         var codeDocument = CreateCodeDocumentDesignTimeCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
-        ProcessCore(codeDocument);
+        ProcessCore(codeDocument, cancellationToken);
         return codeDocument;
     }
 
@@ -225,11 +229,11 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
-    private void ProcessCore(RazorCodeDocument codeDocument)
+    private void ProcessCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
         ArgHelper.ThrowIfNull(codeDocument);
 
-        Engine.Process(codeDocument);
+        Engine.Process(codeDocument, cancellationToken);
     }
 
     private TFeature GetRequiredFeature<TFeature>()

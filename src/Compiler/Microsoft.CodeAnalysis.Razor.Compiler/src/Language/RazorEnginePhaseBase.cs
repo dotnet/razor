@@ -29,12 +29,12 @@ public abstract class RazorEnginePhaseBase : IRazorEnginePhase
         OnInitialized();
     }
 
-    public void Execute(RazorCodeDocument codeDocument)
+    public void Execute(RazorCodeDocument codeDocument, CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(codeDocument);
         Assumed.NotNull(_engine, Resources.PhaseMustBeInitialized);
 
-        ExecuteCore(codeDocument);
+        ExecuteCore(codeDocument, cancellationToken);
     }
 
     protected T GetRequiredFeature<T>()
@@ -62,5 +62,5 @@ public abstract class RazorEnginePhaseBase : IRazorEnginePhase
     {
     }
 
-    protected abstract void ExecuteCore(RazorCodeDocument codeDocument);
+    protected abstract void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken);
 }
