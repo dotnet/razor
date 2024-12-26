@@ -18,7 +18,7 @@ public class RazorProjectEngine
     public RazorProjectFileSystem FileSystem { get; }
     public RazorEngine Engine { get; }
     public ImmutableArray<IRazorEnginePhase> Phases => Engine.Phases;
-    public ImmutableArray<IRazorProjectEngineFeature> ProjectFeatures { get; }
+    public ImmutableArray<IRazorProjectEngineFeature> Features { get; }
 
     private readonly FeatureCache<IRazorProjectEngineFeature> _featureCache;
 
@@ -26,16 +26,16 @@ public class RazorProjectEngine
         RazorConfiguration configuration,
         RazorEngine engine,
         RazorProjectFileSystem fileSystem,
-        ImmutableArray<IRazorProjectEngineFeature> projectFeatures)
+        ImmutableArray<IRazorProjectEngineFeature> features)
     {
         Configuration = configuration;
         Engine = engine;
         FileSystem = fileSystem;
-        ProjectFeatures = projectFeatures;
+        Features = features;
 
-        _featureCache = new(projectFeatures);
+        _featureCache = new(features);
 
-        foreach (var projectFeature in projectFeatures)
+        foreach (var projectFeature in features)
         {
             projectFeature.ProjectEngine = this;
         }

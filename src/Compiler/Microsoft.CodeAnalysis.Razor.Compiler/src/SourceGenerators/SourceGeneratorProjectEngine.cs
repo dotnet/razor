@@ -17,7 +17,7 @@ internal sealed class SourceGeneratorProjectEngine : RazorProjectEngine
     private readonly int _rewritePhaseIndex = -1;
 
     public SourceGeneratorProjectEngine(RazorProjectEngine projectEngine)
-        : base(projectEngine.Configuration, projectEngine.Engine, projectEngine.FileSystem, projectEngine.ProjectFeatures)
+        : base(projectEngine.Configuration, projectEngine.Engine, projectEngine.FileSystem, projectEngine.Features)
     {
         var phases = Engine.Phases;
 
