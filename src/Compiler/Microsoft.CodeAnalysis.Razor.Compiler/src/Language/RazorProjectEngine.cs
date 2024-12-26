@@ -21,6 +21,8 @@ public class RazorProjectEngine
     public ImmutableArray<IRazorEnginePhase> Phases => Engine.Phases;
     public ImmutableArray<IRazorProjectEngineFeature> ProjectFeatures { get; }
 
+    private readonly FeatureCache<IRazorProjectEngineFeature> _featureCache;
+
     internal RazorProjectEngine(
         RazorConfiguration configuration,
         RazorEngine engine,
@@ -32,11 +34,17 @@ public class RazorProjectEngine
         FileSystem = fileSystem;
         ProjectFeatures = projectFeatures;
 
+        _featureCache = new(projectFeatures);
+
         foreach (var projectFeature in projectFeatures)
         {
             projectFeature.ProjectEngine = this;
         }
     }
+
+    public ImmutableArray<TFeature> GetFeatures<TFeature>()
+        where TFeature : class, IRazorProjectEngineFeature
+        => _featureCache.GetFeatures<TFeature>();
 
     public RazorCodeDocument Process(RazorProjectItem projectItem)
     {
@@ -124,12 +132,9 @@ public class RazorProjectEngine
 
         using var importItems = new PooledArrayBuilder<RazorProjectItem>();
 
-        foreach (var feature in ProjectFeatures)
+        foreach (var importProjectFeature in GetFeatures<IImportProjectFeature>())
         {
-            if (feature is IImportProjectFeature importProjectFeature)
-            {
-                importItems.AddRange(importProjectFeature.GetImports(projectItem));
-            }
+            importItems.AddRange(importProjectFeature.GetImports(projectItem));
         }
 
         var importSources = GetImportSourceDocuments(importItems.DrainToImmutable());
@@ -188,12 +193,9 @@ public class RazorProjectEngine
 
         using var importItems = new PooledArrayBuilder<RazorProjectItem>();
 
-        foreach (var feature in ProjectFeatures)
+        foreach (var importProjectFeature in GetFeatures<IImportProjectFeature>())
         {
-            if (feature is IImportProjectFeature importProjectFeature)
-            {
-                importItems.AddRange(importProjectFeature.GetImports(projectItem));
-            }
+            importItems.AddRange(importProjectFeature.GetImports(projectItem));
         }
 
         var importSourceDocuments = GetImportSourceDocuments(importItems.DrainToImmutable(), suppressExceptions: true);
@@ -237,14 +239,11 @@ public class RazorProjectEngine
     }
 
     private TFeature GetRequiredFeature<TFeature>()
-        where TFeature : IRazorProjectEngineFeature
+        where TFeature : class, IRazorProjectEngineFeature
     {
-        foreach (var projectFeature in ProjectFeatures)
+        if (GetFeatures<TFeature>() is [var feature, ..])
         {
-            if (projectFeature is TFeature result)
-            {
-                return result;
-            }
+            return feature;
         }
 
         throw new InvalidOperationException(
