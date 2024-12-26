@@ -17,7 +17,6 @@ public class RazorProjectEngine
     public RazorConfiguration Configuration { get; }
     public RazorProjectFileSystem FileSystem { get; }
     public RazorEngine Engine { get; }
-    public ImmutableArray<IRazorEngineFeature> EngineFeatures => Engine.Features;
     public ImmutableArray<IRazorEnginePhase> Phases => Engine.Phases;
     public ImmutableArray<IRazorProjectEngineFeature> ProjectFeatures { get; }
 

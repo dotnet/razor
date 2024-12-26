@@ -47,7 +47,7 @@ public class RazorProjectEngineTest
 
     private static void AssertDefaultFeatures(RazorProjectEngine engine)
     {
-        var features = engine.EngineFeatures.OrderBy(f => f.GetType().Name).ToArray();
+        var features = engine.Engine.Features.OrderByAsArray(static x => x.GetType().Name);
         Assert.Collection(
             features,
             feature => Assert.IsType<AttributeDirectivePass>(feature),
@@ -96,7 +96,7 @@ public class RazorProjectEngineTest
 
     private static void AssertDefaultDirectives(RazorProjectEngine engine)
     {
-        var feature = engine.EngineFeatures.OfType<IRazorDirectiveFeature>().FirstOrDefault();
+        var feature = engine.Engine.GetFeatures<IRazorDirectiveFeature>().FirstOrDefault();
         Assert.NotNull(feature);
         Assert.Collection(
             feature.Directives,
@@ -109,7 +109,7 @@ public class RazorProjectEngineTest
 
     private static void AssertDefaultTargetExtensions(RazorProjectEngine engine)
     {
-        var feature = engine.EngineFeatures.OfType<IRazorTargetExtensionFeature>().FirstOrDefault();
+        var feature = engine.Engine.GetFeatures<IRazorTargetExtensionFeature>().FirstOrDefault();
         Assert.NotNull(feature);
 
         var extensions = feature.TargetExtensions.OrderBy(f => f.GetType().Name).ToArray();
