@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -118,6 +120,43 @@ internal static class FormattingUtilities
         }
 
         return AddIndentationToMethod(method, tabSize, insertSpaces, startingIndent);
+    }
+
+    public static int GetIndentationLevel(TextLine line, int firstNonWhitespaceCharacterPosition, bool insertSpaces, int tabSize, out string additionalIndentation)
+    {
+        if (firstNonWhitespaceCharacterPosition > line.End)
+        {
+            throw new ArgumentOutOfRangeException(nameof(firstNonWhitespaceCharacterPosition), "The first non-whitespace character position must be within the line.");
+        }
+
+        // For spaces, the actual indentation needs to be divided by the tab size to get the level, and additional is the remainder
+        var indentation = firstNonWhitespaceCharacterPosition - line.Start;
+        if (insertSpaces)
+        {
+            var indent = indentation / tabSize;
+            additionalIndentation = new string(' ', indentation % tabSize);
+            return indent;
+        }
+
+        // For tabs, we just count the tabs, and additional is any spaces at the end.
+        var tabCount = 0;
+        var text = line.Text.AssumeNotNull();
+        for (var i = line.Start; i < firstNonWhitespaceCharacterPosition; i++)
+        {
+            if (text[i] == '\t')
+            {
+                tabCount++;
+            }
+            else
+            {
+                Debug.Assert(text[i] == ' ');
+                additionalIndentation = text.GetSubTextString(TextSpan.FromBounds(i, firstNonWhitespaceCharacterPosition));
+                return tabCount;
+            }
+        }
+
+        additionalIndentation = "";
+        return tabCount;
     }
 
     /// <summary>
