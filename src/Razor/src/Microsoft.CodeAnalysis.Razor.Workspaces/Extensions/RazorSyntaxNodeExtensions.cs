@@ -4,6 +4,8 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,6 +28,69 @@ internal static class RazorSyntaxNodeExtensions
         }
 
         children = default;
+        return false;
+    }
+
+    internal static bool IsConstrainedTypeParamDirective(this SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? typeParamNode, [NotNullWhen(true)] out SyntaxNode? conditionsNode)
+    {
+        // Returns try for "@typeparam T where T : IDisposable"
+        if (node is RazorDirectiveSyntax { DirectiveDescriptor: { } descriptor, Body: RazorDirectiveBodySyntax body } &&
+            descriptor.Directive == ComponentConstrainedTypeParamDirective.Directive.Directive &&
+            descriptor.Tokens.Any(t => t.Name == ComponentResources.TypeParamDirective_Constraint_Name) &&
+            // Children is the " T where T : IDisposable" part of the directive
+            body.CSharpCode.Children is [_ /* whitespace */, { } typeParam, _ /* whitespace */, { } conditions, ..])
+        {
+            typeParamNode = typeParam;
+            conditionsNode = conditions;
+            return true;
+        }
+
+        typeParamNode = null;
+        conditionsNode = null;
+        return false;
+    }
+
+    internal static bool IsAttributeDirective(this SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? attributeNode)
+    {
+        if (node is RazorDirectiveSyntax { DirectiveDescriptor: { } descriptor, Body: RazorDirectiveBodySyntax body } &&
+            descriptor.Directive == AttributeDirective.Directive.Directive &&
+            body.CSharpCode.Children is [_, { } attribute, ..])
+        {
+            attributeNode = attribute;
+            return true;
+        }
+
+        attributeNode = null;
+        return false;
+    }
+
+    internal static bool IsCodeDirective(this SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? openBraceNode)
+    {
+        if (node is RazorDirectiveSyntax { DirectiveDescriptor: { } descriptor, Body: RazorDirectiveBodySyntax body } &&
+            descriptor.Directive == ComponentCodeDirective.Directive.Directive &&
+            body.CSharpCode is { Children: { Count: > 0 } children } &&
+            children.TryGetOpenBraceToken(out var openBrace))
+        {
+            openBraceNode = openBrace;
+            return true;
+        }
+
+        openBraceNode = null;
+        return false;
+    }
+
+    internal static bool IsFunctionsDirective(this SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? openBraceNode)
+    {
+        if (node is RazorDirectiveSyntax { DirectiveDescriptor: { } descriptor, Body: RazorDirectiveBodySyntax body } &&
+            descriptor.Directive == FunctionsDirective.Directive.Directive &&
+            body.CSharpCode is { Children: { Count: > 0 } children } &&
+            children.TryGetOpenBraceToken(out var openBrace))
+        {
+            openBraceNode = openBrace;
+            return true;
+        }
+
+        openBraceNode = null;
         return false;
     }
 
