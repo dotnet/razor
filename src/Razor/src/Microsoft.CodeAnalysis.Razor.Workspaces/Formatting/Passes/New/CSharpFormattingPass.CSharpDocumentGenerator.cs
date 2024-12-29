@@ -1,0 +1,514 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Text;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.Razor.Formatting.New;
+
+using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using SyntaxToken = AspNetCore.Razor.Language.Syntax.SyntaxToken;
+
+internal partial class CSharpFormattingPass
+{
+    /// <summary>
+    /// Generates a C# document in order to get Roslyn formatting behaviour on a Razor document
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The general theory is to take a Razor syntax tree and convert it to something that looks to Roslyn like a C#
+    /// document, in a way that accurately represents the indentation constructs that a Razor user is expressing when
+    /// they write the Razor code.
+    /// </para>
+    /// <para>
+    /// For example, given the following Razor file:
+    /// <code>
+    /// &lt;div&gt;
+    ///     @if (true)
+    ///     {
+    ///         // Some code
+    ///     }
+    /// &lt;/div&gt;
+    ///
+    /// @code {
+    ///     private string Name { get; set; }
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// The generator will go through that syntax tree and produce the following C# document:
+    /// <code>
+    /// // &lt;div&gt;
+    ///     @if (true)
+    ///     {
+    ///         // Some code
+    ///     }
+    /// // &lt;/div&gt;
+    ///
+    /// class F
+    /// {
+    ///     private string Name { get; set; }
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// The class definition is clearly not present in the source Razor document, but it represents the intended
+    /// indentation that the user would expect to see for the property declaration. Additionally the indentation
+    /// of the @if block is recorded, so that after formatting the C#, which Roslyn will set back to column 0, we
+    /// reapply it so we end up with the C# indentation and Html indentation combined.
+    /// </para>
+    /// <para>
+    /// For more complete examples, the full test log for every formatting test includes the generated C# document.
+    /// </para>
+    /// <para>
+    /// A final important note about this class, whilst it is a SyntaxVisitor, it is not intended to be a general
+    /// purpose one, and things won't work as expected if the Visit method is called on arbitrary nodes. The visit
+    /// methods are implemented with the assumption they will only see a node if it is the first one on a line of
+    /// a Razor file.
+    /// </para>
+    /// </remarks>
+    private sealed class CSharpDocumentGenerator(RazorSyntaxTree razorSyntaxTree, bool insertSpaces, int tabSize, ILogger logger) : SyntaxVisitor<LineInfo>
+    {
+        private readonly SyntaxNode _root = razorSyntaxTree.Root;
+        private readonly SourceText _sourceText = razorSyntaxTree.Source.Text;
+        private readonly bool _insertSpaces = insertSpaces;
+        private readonly int _tabSize = tabSize;
+        private readonly ILogger _logger = logger;
+
+        private TextLine _currentLine;
+        private int _currentFirstNonWhitespacePosition;
+
+        // These are set in GetCSharpDocumentContents so will never be observably null
+        private StringBuilder _builder = null!;
+        private SyntaxToken _currentToken = null!;
+
+        /// <summary>
+        /// The line number of the last line of the current element, if we're inside one.
+        /// </summary>
+        /// <remarks>
+        /// This is used to track if the syntax node at the start of each line is parented by an element node, without
+        /// having to do lots of tree traversal.
+        /// </remarks>
+        private int? _elementEndLine;
+
+        public ImmutableArray<LineInfo> LineInfo { get; private set; }
+
+        [Obsolete("Don't call this method directly. Call the GetCSharpDocumentContents method instead", error: true)]
+        public new LineInfo Visit(SyntaxNode node)
+        {
+            throw new InvalidOperationException("This visitor should not be used on arbitrary nodes. Call the GetCSharpDocumentContents method instead.");
+        }
+
+        public SourceText GetCSharpDocumentContents()
+        {
+            using var builder = StringBuilderPool.GetPooledObject();
+            _builder = builder.Object;
+
+            using var _lineInfo = new PooledArrayBuilder<LineInfo>(capacity: _sourceText.Lines.Count);
+
+            foreach (var line in _sourceText.Lines)
+            {
+                if (line.GetFirstNonWhitespacePosition() is { } firstNonWhitespacePosition)
+                {
+                    _currentLine = line;
+                    _currentFirstNonWhitespacePosition = firstNonWhitespacePosition;
+                    _currentToken = _root.FindToken(firstNonWhitespacePosition);
+
+                    var length = _builder.Length;
+                    _lineInfo.Add(base.Visit(_currentToken.Parent));
+                    Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
+                }
+                else
+                {
+                    _builder.AppendLine();
+                    _lineInfo.Add(CreateLineInfo(processIndentation: false));
+                }
+
+                // If we're inside an element that ends on this line, clear the field that tracks it.
+                if (_elementEndLine is { } endLine &&
+                    endLine == line.LineNumber)
+                {
+                    _elementEndLine = null;
+                }
+            }
+
+            LineInfo = _lineInfo.DrainToImmutable();
+
+            return SourceText.From(_builder.ToString());
+        }
+
+        protected override LineInfo DefaultVisit(SyntaxNode node)
+        {
+            return EmitCurrentLineAsCSharp();
+        }
+
+        public override LineInfo VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
+        {
+            // If we get here we have a line of code which starts in C#, but Razor being Razor means we can't assume it
+            // is entirely C#. For example it could be:
+            //
+            // Render(@<div></div>);
+            //
+            // In these situations we simply stop at the transition away from C# and output the line as C#. The only
+            // interesting thing we have to do is tell the formatter that we've done that, so it doesn't expect the
+            // line contents to match the original line entirely. The Html formatter will have dealt with the bits after
+            // the transition anyway.
+            //
+            // The final quirk is that the node in question can span multiple lines, but the transition can only
+            // possibly be on the last line.
+            Debug.Assert(node.LiteralTokens.Count > 0);
+            if (node.LiteralTokens[^1].GetNextToken() is { Kind: SyntaxKind.Transition } token &&
+                GetLineNumber(token) == GetLineNumber(_currentToken))
+            {
+                // We can't use node.Span because it can contain newlines from the line before.
+                var span = TextSpan.FromBounds(_currentFirstNonWhitespacePosition, node.EndPosition);
+                _builder.AppendLine(_sourceText.ToString(span));
+                // Putting a semi-colon on the end might make for invalid C#, but it means this line won't cause indentation,
+                // which is all we need.
+                _builder.AppendLine(";");
+
+                return CreateLineInfo(
+                    skipNextLine: true,
+                    formattedLength: span.Length,
+                    processFormatting: true,
+                    // We turn off check for new lines because that only works if the content doesn't change from the original,
+                    // but we're deliberately leaving out a bunch of the original file because it would confuse the Roslyn formatter.
+                    checkForNewLines: false);
+            }
+
+            return EmitCurrentLineAsCSharp();
+        }
+
+        public override LineInfo VisitMarkupStartTag(MarkupStartTagSyntax node)
+        {
+            // If this is an element at the root level, we want to record where it ends. We can't rely on the Visit method
+            // for it, because it might not be at the start of a line.
+            if (_elementEndLine is null)
+            {
+                var element = (MarkupElementSyntax)node.Parent;
+                _elementEndLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle);
+            }
+
+            _builder.AppendLine($"// {_currentLine}");
+            return CreateLineInfo();
+        }
+
+        public override LineInfo VisitMarkupEndTag(MarkupEndTagSyntax node)
+        {
+            // Since this visitor only sees nodes at the start of a line, an end tag always means de-dent.
+            //return new("}");
+            _builder.AppendLine($"// {_currentLine}");
+            return CreateLineInfo();
+        }
+
+        public override LineInfo VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
+        {
+            // If this is an element at the root level, we want to record where it ends. We can't rely on the Visit method
+            // for it, because it might not be at the start of a line.
+            if (_elementEndLine is null)
+            {
+                var element = (MarkupTagHelperElementSyntax)node.Parent;
+                _elementEndLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle);
+            }
+
+            _builder.AppendLine($"// {_currentLine}");
+            return CreateLineInfo();
+        }
+
+        public override LineInfo VisitRazorMetaCode(RazorMetaCodeSyntax node)
+        {
+            // Meta code is a few things, and mostly they're valid C#, but one case we have to specifically handle is
+            // bound attributes that start on their own line, eg the second line of:
+            //
+            // <Thing foo="bar"
+            //        @bind-value="baz" />
+            if (node.MetaCode is [{ Kind: SyntaxKind.Transition }, ..])
+            {
+                // This is not C# so we just need to avoid the default visit
+                _builder.AppendLine($"// {_currentLine}");
+                return CreateLineInfo();
+            }
+
+            return EmitCurrentLineAsCSharp();
+        }
+
+        public override LineInfo VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
+        {
+            // For markup text literal, we always want to honour the Html formatter, so we supply the Html indent.
+            // Normally that would only happen if we were inside a markup element
+            _builder.AppendLine($"// {_currentLine}");
+            return CreateLineInfo(
+                htmlIndentLevel: FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out var additionalIndentation),
+                additionalIndentation: additionalIndentation);
+        }
+
+        public override LineInfo VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
+        {
+            // Since this visitor only sees nodes at the start of a line, an end tag always means de-dent.
+            //return new("}");
+            _builder.AppendLine($"// {_currentLine}");
+            return CreateLineInfo();
+        }
+
+        public override LineInfo VisitMarkupTransition(MarkupTransitionSyntax node)
+        {
+            // A transition to Html is treated the same as Html, which is to say nothing interesting
+            _builder.AppendLine($"// {_currentLine}");
+            return CreateLineInfo();
+        }
+
+        public override LineInfo VisitRazorCommentBlock(RazorCommentBlockSyntax node)
+        {
+            // Every line of a multiline Razor comment will hit this method, but we have two different ways to handle it.
+            // For the start comment, we output a C# comment, so it gets indented as normal. For all of the other lines,
+            // we just tell the formatter to completely skip this line. The Html formatter also skips comment lines, so
+            // they will be left exactly as the user wrote them.
+            if (_currentToken.Kind == SyntaxKind.RazorCommentTransition)
+            {
+                _builder.AppendLine($"// {_currentLine}");
+                return CreateLineInfo();
+            }
+
+            // Do nothing for any lines inside the comment
+            _builder.AppendLine();
+            return CreateLineInfo(processIndentation: false);
+        }
+
+        public override LineInfo VisitCSharpTransition(CSharpTransitionSyntax node)
+        {
+            // Empty transition we just emit as nothing interesting
+            if (node.Parent is null)
+            {
+                _builder.AppendLine($"// {_currentLine}");
+                return CreateLineInfo();
+            }
+
+            // Other transitions, we decide based on the parent
+            return base.Visit(node.Parent);
+        }
+
+        public override LineInfo VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
+        {
+            // TODO: Just return // {currentLine}
+
+            // Matches things like @DateTime.Now, so skip the first character, but output as C# otherwise.
+            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
+            // We append a semicolon on the following line, so formatting doesn't see this as a the start of a long expression
+            _builder.AppendLine(";");
+            return CreateLineInfo(
+                skipNextLine: true,
+                processFormatting: true,
+                checkForNewLines: false,
+                originOffset: 1,
+                formattedOffset: 0);
+        }
+
+        public override LineInfo VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
+        {
+            // TODO: Just return // {currentLine} for single line expressions
+
+            // Matches things like @(DateTime.Now), so skip the first character, but output as C# otherwise.
+
+            // If this is a single line expression, we append a semicolon on the following line, so
+            // formatting doesn't see this as a the start of a long expression
+            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
+            var closeParen = ((CSharpExplicitExpressionBodySyntax)node.Body).CloseParen;
+            var skipNextLine = false;
+            if (GetLineNumber(closeParen) == GetLineNumber(node))
+            {
+                skipNextLine = true;
+                _builder.AppendLine(";");
+            }
+
+            return CreateLineInfo(
+                processFormatting: true,
+                checkForNewLines: false,
+                skipNextLine: skipNextLine,
+                originOffset: 1,
+                formattedOffset: 0);
+        }
+
+        public override LineInfo VisitCSharpCodeBlock(CSharpCodeBlockSyntax node)
+        {
+            // Matches things like @if, so skip the first character, but output as C# otherwise
+            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
+
+            return CreateLineInfo(
+                processFormatting: true,
+                checkForNewLines: true,
+                originOffset: 1,
+                formattedOffset: 0);
+        }
+
+        public override LineInfo VisitCSharpStatement(CSharpStatementSyntax node)
+        {
+            // Matches @{, output just a brace so we get indentation
+            // We don't need to worry about formatting, or offsetting, because the RazorFormattingPass will
+            // have ensured this node is followed by a newline, and if there was a space between the "@" and "{"
+            // then it wouldn't be a CSharpStatementSyntax so we wouldn't be here!
+            _builder.AppendLine("{");
+            return CreateLineInfo();
+        }
+
+        public override LineInfo VisitRazorDirective(RazorDirectiveSyntax node)
+        {
+            // Unfortunately the Razor syntax tree doesn't distinguish different directives with different syntax node types,
+            // so this method is handles way more cases that ideally it would. Sorry! I've split it up into separate methods
+            // so we can pretend, for readability of those methods, if not this one.
+
+            if (node.IsUsingDirective(out _))
+            {
+                return VisitUsingDirective(node);
+            }
+
+            if (node.IsAttributeDirective(out var attribute))
+            {
+                return VisitAttributeDirective(node, attribute);
+            }
+
+            if (node.IsConstrainedTypeParamDirective(out var typeParam, out var conditions))
+            {
+                return VisitTypeParamDirective(node, typeParam, conditions);
+            }
+
+            if (node.IsCodeDirective(out var openBrace))
+            {
+                return VisitCodeOrFunctionsDirective(openBrace);
+            }
+
+            if (node.IsFunctionsDirective(out var functionsOpenBrace))
+            {
+                return VisitCodeOrFunctionsDirective(functionsOpenBrace);
+            }
+
+            // All other directives that have braces are handled here
+            if (node.Body is RazorDirectiveBodySyntax body &&
+                body.CSharpCode is CSharpCodeBlockSyntax code &&
+                code.Children.TryGetOpenBraceToken(out var brace) &&
+                // If the open brace is on the same line as the directive, then we need to ensure the contents are indented.
+                GetLineNumber(brace) == GetLineNumber(_currentToken))
+            {
+                _builder.AppendLine("{");
+                return CreateLineInfo();
+            }
+
+            // If the brace is on a different line, then we don't need to do anything, as the brace will be output when
+            // processing the next line.
+            _builder.AppendLine($"// {_currentLine}");
+            return CreateLineInfo();
+        }
+
+        private LineInfo VisitCodeOrFunctionsDirective(SyntaxNode openBrace)
+        {
+            // If the open brace is on the same line as the directive, then we need to ensure the contents are indented
+            if (GetLineNumber(openBrace) == GetLineNumber(_currentToken))
+            {
+                // If its an @code or @functions we want to wrap the contents in a class
+                // so that access modifiers are valid, and will be formatted as appropriate.
+                _builder.AppendLine("class F");
+                _builder.AppendLine("{");
+
+                return CreateLineInfo(skipNextLine: true);
+            }
+
+            // If the braces are on different lines, then we can do nothing, unless its an @code or @functions
+            // in which case we need to use a class. Note we don't output an open brace, as the next line of
+            // the original file will have one.
+            _builder.AppendLine("class F");
+            return CreateLineInfo();
+        }
+
+        private LineInfo VisitUsingDirective(RazorDirectiveSyntax node)
+        {
+            // For @using we just skip over the @ and format as a C# using directive
+            // "@using System" to "using System"
+            // Roslyn's parser is smart enough to not care about missing semicolons.
+            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
+            return CreateLineInfo(
+                processFormatting: true,
+                originOffset: 1,
+                formattedOffset: 0);
+        }
+
+        private LineInfo VisitTypeParamDirective(RazorDirectiveSyntax node, SyntaxNode typeParam, SyntaxNode conditions)
+        {
+            // For @typeparam we just need C# to format things after the "where", so we construct a local function that looks right
+            // "@typeparam T where T : IDisposable" to "void F<T>() where T : IDisposable"
+            // This is one of the weirder ones.
+            var methodDef = $"void F<{typeParam.GetContent()}>() ";
+            _builder.Append(methodDef);
+            _builder.AppendLine(conditions.GetContent());
+            _builder.AppendLine("=> null");
+
+            return CreateLineInfo(
+                skipNextLine: true,
+                processFormatting: true,
+                originOffset: conditions.SpanStart - node.SpanStart,
+                formattedOffset: methodDef.Length);
+        }
+
+        private LineInfo VisitAttributeDirective(RazorDirectiveSyntax node, SyntaxNode attribute)
+        {
+            // For @attribute we skip over the directive itself and Roslyn can handle the rest
+            // "@attribute [AttributeUsage(AttributeTargets.All)]" to "[AttributeUsage(AttributeTargets.All)]"
+            // Roslyn's parser doesn't care whether the attribute is on a valid member, at least for formatting purposes
+            _builder.AppendLine(attribute.GetContent());
+            return CreateLineInfo(
+                processFormatting: true,
+                originOffset: attribute.SpanStart - node.SpanStart,
+                formattedOffset: 0);
+        }
+
+        private int GetLineNumber(SyntaxNode node)
+            => _sourceText.Lines.GetLineFromPosition(node.Position).LineNumber;
+
+        private LineInfo EmitCurrentLineAsCSharp()
+        {
+            _builder.AppendLine(_currentLine.ToString());
+            return CreateLineInfo(processFormatting: true, checkForNewLines: true);
+        }
+
+        private LineInfo CreateLineInfo(
+            bool processIndentation = true,
+            bool processFormatting = false,
+            bool checkForNewLines = false,
+            bool skipNextLine = false,
+            int htmlIndentLevel = 0,
+            int originOffset = 0,
+            int formattedOffset = 0,
+            int formattedLength = 0,
+            string? additionalIndentation = null)
+        {
+            // We want to honour the indentation that the Html formatter supplied, but annoyingly it only actually indents
+            // the contents of elements, not anything which is not contained in an element. This makes sense from the point
+            // of view of Html, as it would expect the <html> element to always be present, but that is not true in Razor.
+            // So we have to check if we're inside an element before we record the indentation, otherwise we could be
+            // recording incorrect information.
+            if (additionalIndentation is null &&
+                htmlIndentLevel == 0 &&
+                _elementEndLine is { } endLine &&
+                endLine >= _currentLine.LineNumber)
+            {
+                htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out additionalIndentation);
+            }
+
+            return new(
+                ProcessIndentation: processIndentation,
+                ProcessFormatting: processFormatting,
+                CheckForNewLines: checkForNewLines,
+                SkipNextLine: skipNextLine,
+                HtmlIndentLevel: htmlIndentLevel,
+                OriginOffset: originOffset,
+                FormattedOffset: formattedOffset,
+                FormattedLength: formattedLength,
+                AdditionalIndentation: additionalIndentation);
+        }
+    }
+}
