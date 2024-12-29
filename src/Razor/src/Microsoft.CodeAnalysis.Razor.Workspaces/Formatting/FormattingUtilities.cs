@@ -122,6 +122,60 @@ internal static class FormattingUtilities
         return AddIndentationToMethod(method, tabSize, insertSpaces, startingIndent);
     }
 
+    public static int CountNonWhitespaceChars(SourceText text, int start, int end)
+    {
+        var count = 0;
+        for (var i = start; i < end; i++)
+        {
+            if (!char.IsWhiteSpace(text[i]))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    public static bool ContentEqualIgnoringWhitespace(SourceText originalText, int originalStart, int originalEnd, SourceText formattedText, int formattedStart, int formattedEnd)
+    {
+        var iOriginal = originalStart;
+        var iFormatted = formattedStart;
+
+        while (iOriginal < originalEnd && iFormatted < formattedEnd)
+        {
+            while (iOriginal < originalEnd && char.IsWhiteSpace(originalText[iOriginal]))
+            {
+                iOriginal++;
+            }
+
+            while (iFormatted < formattedEnd && char.IsWhiteSpace(formattedText[iFormatted]))
+            {
+                iFormatted++;
+            }
+
+            if (iOriginal < originalEnd && iFormatted < formattedEnd)
+            {
+                if (originalText[iOriginal] != formattedText[iFormatted])
+                    return false;
+
+                iOriginal++;
+                iFormatted++;
+            }
+        }
+
+        while (iOriginal < originalEnd && char.IsWhiteSpace(originalText[iOriginal]))
+        {
+            iOriginal++;
+        }
+
+        while (iFormatted < formattedEnd && char.IsWhiteSpace(formattedText[iFormatted]))
+        {
+            iFormatted++;
+        }
+
+        return iOriginal == originalEnd && iFormatted == formattedEnd;
+    }
+
     public static int GetIndentationLevel(TextLine line, int firstNonWhitespaceCharacterPosition, bool insertSpaces, int tabSize, out string additionalIndentation)
     {
         if (firstNonWhitespaceCharacterPosition > line.End)

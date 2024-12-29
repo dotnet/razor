@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -46,5 +47,62 @@ public class FormattingUtilitiesTest
         Assert.Equal(level, actual);
         Assert.Equal(additional, additionalIndentation.Length);
         Assert.All(additionalIndentation, c => Assert.Equal(' ', c));
+    }
+
+    [Theory]
+    [InlineData("0123456789")]
+    [InlineData("0 1 2 3 4  56789")]
+    [InlineData("01234\r\n    56789")]
+    [InlineData("012345\n    6789")]
+    [InlineData("\t\t\t012345\r\n\t\t\t6789       ")]
+    public void CountNonWhitespaceCharacters(string input)
+    {
+        Assert.Equal(10, FormattingUtilities.CountNonWhitespaceChars(SourceText.From(input), 0, input.Length));
+    }
+
+    [Fact]
+    public void ContentEqualIgnoringWhitespace()
+    {
+        TestCode input1 = """
+            public class C
+            {
+                [|public void M() { }|]
+            }
+            """;
+
+        TestCode input2 = """
+            public class C
+            {
+                [|public void M()
+                {
+                }|]
+            }
+            """;
+
+        Assert.True(FormattingUtilities.ContentEqualIgnoringWhitespace(
+            SourceText.From(input1.Text), input1.Span.Start, input1.Span.End,
+            SourceText.From(input2.Text), input2.Span.Start, input2.Span.End));
+    }
+
+    [Fact]
+    public void ContentEqualIgnoringWhitespace_ChangedCode()
+    {
+        TestCode input1 = """
+            public class C
+            {
+                [|public void M() { }|]
+            }
+            """;
+
+        TestCode input2 = """
+            public class C
+            {
+                [|public void M()|]
+            }
+            """;
+
+        Assert.False(FormattingUtilities.ContentEqualIgnoringWhitespace(
+            SourceText.From(input1.Text), input1.Span.Start, input1.Span.End,
+            SourceText.From(input2.Text), input2.Span.Start, input2.Span.End));
     }
 }
