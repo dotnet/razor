@@ -447,7 +447,19 @@ internal partial class CSharpFormattingPass
 
         public override LineInfo VisitCSharpStatement(CSharpStatementSyntax node)
         {
-            // Matches @{, output just a brace so we get indentation
+            // Matches "@{".
+            // Logically we can just output an open brace, but there is one quirk we have to handle, which is if there is nothing but
+            // whitespace between the open and close braces, then we have to check if they're on the same line. Otherwise we'd output
+            // and open brace and there would be no matching close. Fortunately in this situation we don't actually have to do anything
+            // because an empty set of braces has no flow on effects. If we wanted to be opinionated and shrink the whitespace down
+            // to a single space, that would be a job for the RazorFormattingPass.
+            var body = (CSharpStatementBodySyntax)node.Body;
+            if (GetLineNumber(body.OpenBrace) == GetLineNumber(body.CloseBrace))
+            {
+                _builder.AppendLine($"// {_currentLine}");
+                return CreateLineInfo();
+            }
+
             // We don't need to worry about formatting, or offsetting, because the RazorFormattingPass will
             // have ensured this node is followed by a newline, and if there was a space between the "@" and "{"
             // then it wouldn't be a CSharpStatementSyntax so we wouldn't be here!
