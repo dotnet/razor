@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -29,7 +28,7 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
 
         // To format C# code we generate a C# document that represents the indentation semantics the user would be
         // expecting in their Razor file. See the doc comments on CSharpDocumentGenerator for more info
-        var generator = new CSharpDocumentGenerator(changedContext.CodeDocument.GetSyntaxTree(), context.Options.InsertSpaces, context.Options.TabSize, _logger);
+        var generator = new CSharpDocumentGenerator(changedContext.CodeDocument, context.Options.InsertSpaces, context.Options.TabSize);
 
         var generatedCSharpText = generator.GetCSharpDocumentContents();
         _logger.LogTestOnly($"Generated C# document:\r\n{generatedCSharpText}");
@@ -76,11 +75,12 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
                         ? originalLine.End - originalStart
                         : lineInfo.FormattedLength;
                     var formattedStart = formattedLine.Start + formattedIndentation + lineInfo.FormattedOffset;
-                    formattingChanges.Add(new TextChange(new TextSpan(originalStart, length), formattedCSharpText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End))));
+                    formattingChanges.Add(new TextChange(new TextSpan(originalStart, length), formattedCSharpText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End - lineInfo.FormattedOffsetFromEndOfLine))));
 
                     if (lineInfo.CheckForNewLines)
                     {
                         Debug.Assert(lineInfo.FormattedLength == 0, "Can't have a FormattedLength if we're looking for new lines. The logic is incompatible.");
+                        Debug.Assert(lineInfo.FormattedOffsetFromEndOfLine == 0, "Can't have a FormattedOffsetFromEndOfLine if we're looking for new lines. The logic is incompatible.");
 
                         // We assume Roslyn won't change anything but whitespace, so we can just apply the changes directly, but
                         // it could very well be adding whitespace in the form of newlines, for example taking "if (true) {" and
