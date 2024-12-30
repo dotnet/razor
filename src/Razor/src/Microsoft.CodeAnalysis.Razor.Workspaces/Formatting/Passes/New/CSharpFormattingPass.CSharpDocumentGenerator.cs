@@ -109,11 +109,15 @@ internal partial class CSharpFormattingPass
         public SourceText GetCSharpDocumentContents()
         {
             using var builder = StringBuilderPool.GetPooledObject();
+            using var additionalLinesBuilder = StringBuilderPool.GetPooledObject();
             _builder = builder.Object;
+            _additionalLinesBuilder = additionalLinesBuilder.Object;
 
             using var _lineInfo = new PooledArrayBuilder<LineInfo>(capacity: _sourceText.Lines.Count);
 
             var root = _codeDocument.GetSyntaxTree().Root;
+            var sourceMappings = _codeDocument.GetCSharpDocument().SourceMappings;
+            var iMapping = 0;
             foreach (var line in _sourceText.Lines)
             {
                 if (line.GetFirstNonWhitespacePosition() is { } firstNonWhitespacePosition)
@@ -125,6 +129,38 @@ internal partial class CSharpFormattingPass
                     var length = _builder.Length;
                     _lineInfo.Add(base.Visit(_currentToken.Parent));
                     Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
+
+                    // If there are C# mappings on this line, we want to output additional lines that represent the C# blocks.
+                    while (iMapping < sourceMappings.Length)
+                    {
+                        var originalSpan = sourceMappings[iMapping].OriginalSpan;
+                        if (originalSpan.AbsoluteIndex < _currentFirstNonWhitespacePosition)
+                        {
+                            iMapping++;
+                        }
+                        else if (originalSpan.AbsoluteIndex > _currentFirstNonWhitespacePosition &&
+                            (originalSpan.AbsoluteIndex + originalSpan.Length) <= line.Span.End)
+                        {
+                            // We've found a span mapping that means there is some C# on this line, so if its an explicit or implicit expression
+                            // we need to format it, but separately to the rest of the document.
+                            var node = root.FindInnermostNode(originalSpan.AbsoluteIndex);
+                            if (node is { Parent.Parent: CSharpExplicitExpressionBodySyntax or CSharpImplicitExpressionBodySyntax })
+                            {
+                                // Rather than bother to store more data about the formatted file, since we don't actually know where
+                                // these will end up in that file once it's all said and done, we are just going to use a simple comment
+                                // format that we can easily parse.
+                                _additionalLinesBuilder.AppendLine(GetAdditionalLineComment(originalSpan));
+                                _additionalLinesBuilder.AppendLine(_sourceText.GetSubTextString(originalSpan.ToTextSpan()));
+                                _additionalLinesBuilder.AppendLine(";");
+                            }
+
+                            iMapping++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                 }
                 else
                 {
@@ -142,7 +178,32 @@ internal partial class CSharpFormattingPass
 
             LineInfo = _lineInfo.DrainToImmutable();
 
+            _builder.AppendLine();
+            _builder.AppendLine(_additionalLinesBuilder.ToString());
+
             return SourceText.From(_builder.ToString());
+        }
+
+        private static string GetAdditionalLineComment(SourceSpan originalSpan)
+        {
+            // IMPORTANT: The format here needs to match the parse method below
+            return $"// {originalSpan.AbsoluteIndex} {originalSpan.Length}";
+        }
+
+        public static (int start, int length) ParseAdditionalLineComment(string comment)
+        {
+            var span = comment.AsSpan();
+            var toParse = span.Slice(span.IndexOf(' ') + 1);
+            var space = toParse.IndexOf(' ');
+
+#if NET8_0_OR_GREATER
+            var start = int.Parse(toParse[..space]);
+            var length = int.Parse(toParse[(space + 1)..]);
+#else
+            var start = int.Parse(toParse.Slice(0, space).ToString());
+            var length = int.Parse(toParse.Slice(space + 1).ToString());
+#endif
+            return (start, length);
         }
 
         protected override LineInfo DefaultVisit(SyntaxNode node)
