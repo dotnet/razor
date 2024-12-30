@@ -44,15 +44,16 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
         // one side entirely.
 
         using var formattingChanges = new PooledArrayBuilder<TextChange>();
-        for (int i = 0, j = 0; i < changedText.Lines.Count; i++, j++)
+        var iFormatted = 0;
+        for (var iOriginal = 0; iOriginal < changedText.Lines.Count; iOriginal++, iFormatted++)
         {
-            var lineInfo = generator.LineInfo[i];
+            var lineInfo = generator.LineInfo[iOriginal];
 
-            var formattedLine = formattedCSharpText.Lines[j];
+            var formattedLine = formattedCSharpText.Lines[iFormatted];
             if (lineInfo.ProcessIndentation &&
                 formattedLine.GetFirstNonWhitespaceOffset() is { } formattedIndentation)
             {
-                var originalLine = changedText.Lines[i];
+                var originalLine = changedText.Lines[iOriginal];
                 Debug.Assert(originalLine.GetFirstNonWhitespaceOffset().HasValue);
 
                 var originalLineOffset = originalLine.GetFirstNonWhitespaceOffset().GetValueOrDefault();
@@ -94,8 +95,8 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
                                 FormattingUtilities.CountNonWhitespaceChars(changedText, originalStart, originalLine.End) >= FormattingUtilities.CountNonWhitespaceChars(formattedCSharpText, formattedStart, formattedLine.End),
                                 "Infinite loop in formatting! A bug in our visitor, or has Roslyn changed a non-whitespace char?");
 
-                            j++;
-                            formattedLine = formattedCSharpText.Lines[j];
+                            iFormatted++;
+                            formattedLine = formattedCSharpText.Lines[iFormatted];
                             formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), htmlIndentString + formattedCSharpText.ToString(formattedLine.SpanIncludingLineBreak)));
                         }
                     }
@@ -104,7 +105,22 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
 
             if (lineInfo.SkipNextLine)
             {
-                j++;
+                iFormatted++;
+            }
+        }
+
+        // We're finished processing the original file, which means we've done all of the indentation for the file, and we've done
+        // the formatting changes for lines that are entirely C#, or start with C#, and lines that are Html or Razor. Now we process
+        // the "additional changes", which is formatting for C# that is inside Html, via implicit or explicit expressions.
+        for (; iFormatted < formattedCSharpText.Lines.Count; iFormatted++)
+        {
+            var formattedLine = formattedCSharpText.Lines[iFormatted];
+            if (formattedLine.Span.Length > 3 &&
+                formattedLine.ToString() is ['/', '/', ' ', ..] line)
+            {
+                var (start, length) = CSharpDocumentGenerator.ParseAdditionalLineComment(line);
+                iFormatted++;
+                formattingChanges.Add(new TextChange(new TextSpan(start, length), formattedCSharpText.Lines[iFormatted].ToString()));
             }
         }
 
