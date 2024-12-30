@@ -3752,6 +3752,78 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     }
 
     [FormattingTestFact]
+    public async Task Formats_ExplicitStatements1()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                   @{
+                    <text>Hello</text>
+                   }
+
+                   @{ <text>Hello</text> }
+
+                   <div></div>
+
+                   @{ }
+
+                   <div></div>
+                   """,
+            expected: """
+                    @{
+                        <text>Hello</text>
+                    }
+                    
+                    @{
+                        <text>Hello</text>
+                    }
+                    
+                    <div></div>
+                    
+                    @{ }
+                    
+                    <div></div>
+                    """);
+    }
+
+    [FormattingTestFact]
+    public async Task Formats_ExplicitStatements2()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                   <div>
+                   @{
+                    <text>Hello</text>
+                   }
+
+                   @{ <text>Hello</text> }
+
+                   <div></div>
+
+                   @{ }
+
+                   <div></div>
+                   </div>
+                   """,
+            expected: """
+                    <div>
+                        @{
+                            <text>Hello</text>
+                        }
+                    
+                        @{
+                            <text>Hello</text>
+                        }
+                    
+                        <div></div>
+                    
+                        @{ }
+                    
+                        <div></div>
+                    </div>
+                    """);
+    }
+
+    [FormattingTestFact]
     public async Task DoesNotFormat_CodeBlockDirective_NotInSelectedRange()
     {
         await RunFormattingTestAsync(
