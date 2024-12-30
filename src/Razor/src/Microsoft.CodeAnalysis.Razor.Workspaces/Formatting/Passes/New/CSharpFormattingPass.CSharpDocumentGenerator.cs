@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting.New;
@@ -74,19 +74,19 @@ internal partial class CSharpFormattingPass
     /// a Razor file.
     /// </para>
     /// </remarks>
-    private sealed class CSharpDocumentGenerator(RazorSyntaxTree razorSyntaxTree, bool insertSpaces, int tabSize, ILogger logger) : SyntaxVisitor<LineInfo>
+    private sealed class CSharpDocumentGenerator(RazorCodeDocument codeDocument, bool insertSpaces, int tabSize) : SyntaxVisitor<LineInfo>
     {
-        private readonly SyntaxNode _root = razorSyntaxTree.Root;
-        private readonly SourceText _sourceText = razorSyntaxTree.Source.Text;
+        private readonly SourceText _sourceText = codeDocument.Source.Text;
+        private readonly RazorCodeDocument _codeDocument = codeDocument;
         private readonly bool _insertSpaces = insertSpaces;
         private readonly int _tabSize = tabSize;
-        private readonly ILogger _logger = logger;
 
         private TextLine _currentLine;
         private int _currentFirstNonWhitespacePosition;
 
         // These are set in GetCSharpDocumentContents so will never be observably null
         private StringBuilder _builder = null!;
+        private StringBuilder _additionalLinesBuilder = null!;
         private SyntaxToken _currentToken = null!;
 
         /// <summary>
@@ -113,13 +113,14 @@ internal partial class CSharpFormattingPass
 
             using var _lineInfo = new PooledArrayBuilder<LineInfo>(capacity: _sourceText.Lines.Count);
 
+            var root = _codeDocument.GetSyntaxTree().Root;
             foreach (var line in _sourceText.Lines)
             {
                 if (line.GetFirstNonWhitespacePosition() is { } firstNonWhitespacePosition)
                 {
                     _currentLine = line;
                     _currentFirstNonWhitespacePosition = firstNonWhitespacePosition;
-                    _currentToken = _root.FindToken(firstNonWhitespacePosition);
+                    _currentToken = root.FindToken(firstNonWhitespacePosition);
 
                     var length = _builder.Length;
                     _lineInfo.Add(base.Visit(_currentToken.Parent));
@@ -149,7 +150,19 @@ internal partial class CSharpFormattingPass
             return EmitCurrentLineAsCSharp();
         }
 
+        public override LineInfo VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
+        {
+            Debug.Assert(node.LiteralTokens.Count > 0);
+            return VisitCSharpLiteral(node, node.LiteralTokens[^1]);
+        }
+
         public override LineInfo VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
+        {
+            Debug.Assert(node.LiteralTokens.Count > 0);
+            return VisitCSharpLiteral(node, node.LiteralTokens[^1]);
+        }
+
+        private LineInfo VisitCSharpLiteral(SyntaxNode node, SyntaxToken lastToken)
         {
             // If we get here we have a line of code which starts in C#, but Razor being Razor means we can't assume it
             // is entirely C#. For example it could be:
@@ -163,20 +176,31 @@ internal partial class CSharpFormattingPass
             //
             // The final quirk is that the node in question can span multiple lines, but the transition can only
             // possibly be on the last line.
-            Debug.Assert(node.LiteralTokens.Count > 0);
-            if (node.LiteralTokens[^1].GetNextToken() is { Kind: SyntaxKind.Transition } token &&
+            if (lastToken.GetNextToken() is { Kind: SyntaxKind.Transition } token &&
                 GetLineNumber(token) == GetLineNumber(_currentToken))
             {
                 // We can't use node.Span because it can contain newlines from the line before.
+                // Emit the whitespace, so user spacing is honoured if possible
+                _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
+                // Now emit the contents
                 var span = TextSpan.FromBounds(_currentFirstNonWhitespacePosition, node.EndPosition);
-                _builder.AppendLine(_sourceText.ToString(span));
+                _builder.Append(_sourceText.ToString(span));
+                // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but we know it isn't.
+                _builder.AppendLine(" //");
+
                 // Putting a semi-colon on the end might make for invalid C#, but it means this line won't cause indentation,
-                // which is all we need.
-                _builder.AppendLine(";");
+                // which is all we need. If we're in an explicit expression body though, we don't want to do this, as the
+                // close paren of the expression will do the same job (and the semi-colon would confuse that).
+                var emitSemiColon = node.Parent.Parent is not CSharpExplicitExpressionBodySyntax;
+                if (emitSemiColon)
+                {
+                    _builder.AppendLine(";");
+                }
 
                 return CreateLineInfo(
-                    skipNextLine: true,
+                    skipNextLine: emitSemiColon,
                     formattedLength: span.Length,
+                    formattedOffsetFromEndOfLine: 3,
                     processFormatting: true,
                     // We turn off check for new lines because that only works if the content doesn't change from the original,
                     // but we're deliberately leaving out a bunch of the original file because it would confuse the Roslyn formatter.
@@ -296,41 +320,54 @@ internal partial class CSharpFormattingPass
 
         public override LineInfo VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
         {
-            // TODO: Just return // {currentLine}
+            // This matches like @DateTime.Now, which you would think we want to format as C#, but there can be multiple of them
+            // on the same line, and they don't have to be the first thing on the line. We handle these above in GetCSharpDocumentContents,
+            // so we can actually just emit these lines as a comment so the indentation is correct, and then let the code above
+            // handle them. Essentially, whether these are at the start or int he middle of a line is irrelevant.
 
-            // Matches things like @DateTime.Now, so skip the first character, but output as C# otherwise.
-            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
-            // We append a semicolon on the following line, so formatting doesn't see this as a the start of a long expression
-            _builder.AppendLine(";");
-            return CreateLineInfo(
-                skipNextLine: true,
-                processFormatting: true,
-                checkForNewLines: false,
-                originOffset: 1,
-                formattedOffset: 0);
+            _builder.AppendLine($"// {_currentLine}");
+            return CreateLineInfo();
         }
 
         public override LineInfo VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
         {
-            // TODO: Just return // {currentLine} for single line expressions
-
-            // Matches things like @(DateTime.Now), so skip the first character, but output as C# otherwise.
-
-            // If this is a single line expression, we append a semicolon on the following line, so
-            // formatting doesn't see this as a the start of a long expression
-            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
-            var closeParen = ((CSharpExplicitExpressionBodySyntax)node.Body).CloseParen;
-            var skipNextLine = false;
+            // If this is a single line expression, we handle it like we do for implicit expressions, irrelevant
+            // of whether its at the start or in the middle of the line.
+            var body = (CSharpExplicitExpressionBodySyntax)node.Body;
+            var closeParen = body.CloseParen;
             if (GetLineNumber(closeParen) == GetLineNumber(node))
             {
-                skipNextLine = true;
-                _builder.AppendLine(";");
+                _builder.AppendLine($"// {_currentLine}");
+                return CreateLineInfo();
             }
 
+            // If this spans multiple lines however, the indentation of this line will affect the next, so we handle it in the
+            // same way we handle a C# literal syntax. That includes checking if the C# doesn't go to the end of the line.
+            // If the whole explicit expression is C#, then the children will be a single CSharpExpressionLiteral. If not, there
+            // will be multiple children, and the second one is not C#, so thats the one we need to exclude from the generated
+            // document.
+            if (body.CSharpCode.Children is [_, { } secondChild, ..] &&
+                GetLineNumber(secondChild) == GetLineNumber(node))
+            {
+                var span = TextSpan.FromBounds(_currentFirstNonWhitespacePosition + 1, secondChild.Position);
+                _builder.Append(_sourceText.ToString(span));
+                // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but we know it isn't.
+                _builder.AppendLine(" //");
+
+                return CreateLineInfo(
+                   formattedLength: span.Length,
+                   formattedOffsetFromEndOfLine: 3,
+                   originOffset: 1,
+                   processFormatting: true,
+                   // We turn off check for new lines because that only works if the content doesn't change from the original,
+                   // but we're deliberately leaving out a bunch of the original file because it would confuse the Roslyn formatter.
+                   checkForNewLines: false);
+            }
+
+            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
             return CreateLineInfo(
                 processFormatting: true,
                 checkForNewLines: false,
-                skipNextLine: skipNextLine,
                 originOffset: 1,
                 formattedOffset: 0);
         }
@@ -482,8 +519,9 @@ internal partial class CSharpFormattingPass
             bool skipNextLine = false,
             int htmlIndentLevel = 0,
             int originOffset = 0,
-            int formattedOffset = 0,
             int formattedLength = 0,
+            int formattedOffset = 0,
+            int formattedOffsetFromEndOfLine = 0,
             string? additionalIndentation = null)
         {
             // We want to honour the indentation that the Html formatter supplied, but annoyingly it only actually indents
@@ -506,8 +544,9 @@ internal partial class CSharpFormattingPass
                 SkipNextLine: skipNextLine,
                 HtmlIndentLevel: htmlIndentLevel,
                 OriginOffset: originOffset,
-                FormattedOffset: formattedOffset,
                 FormattedLength: formattedLength,
+                FormattedOffset: formattedOffset,
+                FormattedOffsetFromEndOfLine: formattedOffsetFromEndOfLine,
                 AdditionalIndentation: additionalIndentation);
         }
     }

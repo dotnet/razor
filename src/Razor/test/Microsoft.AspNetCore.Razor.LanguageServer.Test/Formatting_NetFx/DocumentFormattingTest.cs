@@ -2642,7 +2642,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
     [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6110")]
-    public async Task FormatExplicitCSharpInsideHtml()
+    public async Task FormatExplicitCSharpInsideHtml1()
     {
         await RunFormattingTestAsync(
             input: """
@@ -2730,6 +2730,78 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             C M(Func<string, C> a) => this;
                         }
                     }
+                    """,
+            fileKind: FileKinds.Legacy);
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/6110")]
+    public async Task FormatExplicitCSharpInsideHtml2()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <div>
+                         @(   Html.DisplayNameFor (@<text>
+                            <p >
+                            <h2 ></h2>
+                            </p>
+                            </text>)
+                            .ToString())
+
+                         @(   Html.DisplayNameFor (@<div></div>,
+                            1,   3,    4))
+
+                         @(   Html.DisplayNameFor (@<div></div>,
+                            1,   3, @<div></div>,
+                            2, 4))
+
+                         @(   Html.DisplayNameFor (
+                            1,   3, @<div></div>,
+                            2, 4))
+
+                         @(   Html.DisplayNameFor (
+                            1,   3,
+                            2,  4))
+
+                         @(   Html.DisplayNameFor (
+                            2, 4,
+                            1,   3, @<div></div>,
+                            2, 4,
+                            1,   3, @<div></div>,
+                            4))
+                    </div>
+                    """,
+            expected: """
+                    <div>
+                        @(Html.DisplayNameFor(@<text>
+                            <p>
+                                <h2></h2>
+                            </p>
+                        </text>)
+                            .ToString())
+
+                        @(Html.DisplayNameFor(@<div></div>,
+                            1, 3, 4))
+                    
+                        @(Html.DisplayNameFor(@<div></div>,
+                            1, 3, @<div></div>,
+                            2, 4))
+
+                        @(Html.DisplayNameFor(
+                            1, 3, @<div></div>,
+                            2, 4))
+
+                        @(Html.DisplayNameFor(
+                            1, 3,
+                            2, 4))
+                    
+                        @(Html.DisplayNameFor(
+                            2, 4,
+                            1, 3, @<div></div>,
+                            2, 4,
+                            1, 3, @<div></div>,
+                            4))
+                    </div>
                     """,
             fileKind: FileKinds.Legacy);
     }
