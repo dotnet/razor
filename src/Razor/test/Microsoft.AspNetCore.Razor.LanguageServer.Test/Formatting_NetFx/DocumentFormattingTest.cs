@@ -4412,19 +4412,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             expected: """
                     @code {
                         private object _x = new()
+                        {
+                            Name = "One",
+                            Goo = new
                             {
-                                Name = "One",
-                                Goo = new
-                                {
-                                    First = 1,
-                                    Second = 2
-                                },
-                                Bar = new string[]
+                                First = 1,
+                                Second = 2
+                            },
+                            Bar = new string[]
                                 {
                                     "Hello",
                                     "There"
                                 },
-                            };
+                        };
                     }
                     """);
     }
@@ -4518,17 +4518,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             };
 
                             object gridOptions = new()
+                            {
+                                Columns = new GridColumn<WorkOrderModel>[]
                                 {
-                                    Columns = new GridColumn<WorkOrderModel>[]
-                                    {
-                                        new TextColumn<WorkOrderModel>(e => e.Name) { Label = "Work Order #" },
-                                        new TextColumn<WorkOrderModel>(e => e.PartNumber) { Label = "Part #" },
-                                        new TextColumn<WorkOrderModel>(e => e.Lot) { Label = "Lot #" },
-                                                new DateTimeColumn<WorkOrderModel>(e => e.TargetStartOn) { Label = "Target Start" },
-                                    },
-                                    Data = Model.WorkOrders,
-                                    Title = "Work Orders"
-                                };
+                                    new TextColumn<WorkOrderModel>(e => e.Name) { Label = "Work Order #" },
+                                    new TextColumn<WorkOrderModel>(e => e.PartNumber) { Label = "Part #" },
+                                    new TextColumn<WorkOrderModel>(e => e.Lot) { Label = "Lot #" },
+                                            new DateTimeColumn<WorkOrderModel>(e => e.TargetStartOn) { Label = "Target Start" },
+                                },
+                                Data = Model.WorkOrders,
+                                Title = "Work Orders"
+                            };
                         }
                     }
                     """,
@@ -4546,17 +4546,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             };
                     
                             object gridOptions = new()
+                            {
+                                Columns = new GridColumn<WorkOrderModel>[]
                                 {
-                                    Columns = new GridColumn<WorkOrderModel>[]
-                                    {
-                                        new TextColumn<WorkOrderModel>(e => e.Name) { Label = "Work Order #" },
-                                        new TextColumn<WorkOrderModel>(e => e.PartNumber) { Label = "Part #" },
-                                        new TextColumn<WorkOrderModel>(e => e.Lot) { Label = "Lot #" },
-                                                new DateTimeColumn<WorkOrderModel>(e => e.TargetStartOn) { Label = "Target Start" },
-                                    },
-                                    Data = Model.WorkOrders,
-                                    Title = "Work Orders"
-                                };
+                                    new TextColumn<WorkOrderModel>(e => e.Name) { Label = "Work Order #" },
+                                    new TextColumn<WorkOrderModel>(e => e.PartNumber) { Label = "Part #" },
+                                    new TextColumn<WorkOrderModel>(e => e.Lot) { Label = "Lot #" },
+                                            new DateTimeColumn<WorkOrderModel>(e => e.TargetStartOn) { Label = "Target Start" },
+                                },
+                                Data = Model.WorkOrders,
+                                Title = "Work Orders"
+                            };
                         }
                     }
                     """);
@@ -4664,10 +4664,10 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         private void M()
                         {
                             object entries = new()
-                                {
-                                    First = 1,
-                                    Second = 2
-                                };
+                            {
+                                First = 1,
+                                Second = 2
+                            };
                         }
                     }
                     """,
@@ -4676,10 +4676,10 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         private void M()
                         {
                             object entries = new()
-                                {
-                                    First = 1,
-                                    Second = 2
-                                };
+                            {
+                                First = 1,
+                                Second = 2
+                            };
                         }
                     }
                     """);
