@@ -86,7 +86,6 @@ internal partial class CSharpFormattingPass
 
         // These are set in GetCSharpDocumentContents so will never be observably null
         private StringBuilder _builder = null!;
-        private StringBuilder _additionalLinesBuilder = null!;
         private SyntaxToken _currentToken = null!;
 
         /// <summary>
@@ -109,9 +108,8 @@ internal partial class CSharpFormattingPass
         public SourceText GetCSharpDocumentContents()
         {
             using var builder = StringBuilderPool.GetPooledObject();
-            using var additionalLinesBuilder = StringBuilderPool.GetPooledObject();
             _builder = builder.Object;
-            _additionalLinesBuilder = additionalLinesBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var additionalLinesBuilder);
 
             using var _lineInfo = new PooledArrayBuilder<LineInfo>(capacity: _sourceText.Lines.Count);
 
@@ -149,9 +147,9 @@ internal partial class CSharpFormattingPass
                                 // Rather than bother to store more data about the formatted file, since we don't actually know where
                                 // these will end up in that file once it's all said and done, we are just going to use a simple comment
                                 // format that we can easily parse.
-                                _additionalLinesBuilder.AppendLine(GetAdditionalLineComment(originalSpan));
-                                _additionalLinesBuilder.AppendLine(_sourceText.GetSubTextString(originalSpan.ToTextSpan()));
-                                _additionalLinesBuilder.AppendLine(";");
+                                additionalLinesBuilder.AppendLine(GetAdditionalLineComment(originalSpan));
+                                additionalLinesBuilder.AppendLine(_sourceText.GetSubTextString(originalSpan.ToTextSpan()));
+                                additionalLinesBuilder.AppendLine(";");
                             }
 
                             iMapping++;
@@ -179,7 +177,7 @@ internal partial class CSharpFormattingPass
             LineInfo = _lineInfo.DrainToImmutable();
 
             _builder.AppendLine();
-            _builder.AppendLine(_additionalLinesBuilder.ToString());
+            _builder.AppendLine(additionalLinesBuilder.ToString());
 
             return SourceText.From(_builder.ToString());
         }
@@ -281,16 +279,14 @@ internal partial class CSharpFormattingPass
                 _elementEndLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle);
             }
 
-            _builder.AppendLine($"// {_currentLine}");
-            return CreateLineInfo();
+            return EmitCurrentLineAsComment();
         }
 
         public override LineInfo VisitMarkupEndTag(MarkupEndTagSyntax node)
         {
             // Since this visitor only sees nodes at the start of a line, an end tag always means de-dent.
             //return new("}");
-            _builder.AppendLine($"// {_currentLine}");
-            return CreateLineInfo();
+            return EmitCurrentLineAsComment();
         }
 
         public override LineInfo VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
@@ -303,8 +299,7 @@ internal partial class CSharpFormattingPass
                 _elementEndLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle);
             }
 
-            _builder.AppendLine($"// {_currentLine}");
-            return CreateLineInfo();
+            return EmitCurrentLineAsComment();
         }
 
         public override LineInfo VisitRazorMetaCode(RazorMetaCodeSyntax node)
@@ -317,8 +312,7 @@ internal partial class CSharpFormattingPass
             if (node.MetaCode is [{ Kind: SyntaxKind.Transition }, ..])
             {
                 // This is not C# so we just need to avoid the default visit
-                _builder.AppendLine($"// {_currentLine}");
-                return CreateLineInfo();
+                return EmitCurrentLineAsComment();
             }
 
             return EmitCurrentLineAsCSharp();
@@ -328,7 +322,11 @@ internal partial class CSharpFormattingPass
         {
             // For markup text literal, we always want to honour the Html formatter, so we supply the Html indent.
             // Normally that would only happen if we were inside a markup element
+#if DEBUG
             _builder.AppendLine($"// {_currentLine}");
+#else
+            _builder.AppendLine($"//");
+#endif
             return CreateLineInfo(
                 htmlIndentLevel: FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out var additionalIndentation),
                 additionalIndentation: additionalIndentation);
@@ -338,15 +336,13 @@ internal partial class CSharpFormattingPass
         {
             // Since this visitor only sees nodes at the start of a line, an end tag always means de-dent.
             //return new("}");
-            _builder.AppendLine($"// {_currentLine}");
-            return CreateLineInfo();
+            return EmitCurrentLineAsComment();
         }
 
         public override LineInfo VisitMarkupTransition(MarkupTransitionSyntax node)
         {
             // A transition to Html is treated the same as Html, which is to say nothing interesting
-            _builder.AppendLine($"// {_currentLine}");
-            return CreateLineInfo();
+            return EmitCurrentLineAsComment();
         }
 
         public override LineInfo VisitRazorCommentBlock(RazorCommentBlockSyntax node)
@@ -357,8 +353,7 @@ internal partial class CSharpFormattingPass
             // they will be left exactly as the user wrote them.
             if (_currentToken.Kind == SyntaxKind.RazorCommentTransition)
             {
-                _builder.AppendLine($"// {_currentLine}");
-                return CreateLineInfo();
+                return EmitCurrentLineAsComment();
             }
 
             // Do nothing for any lines inside the comment
@@ -371,8 +366,7 @@ internal partial class CSharpFormattingPass
             // Empty transition we just emit as nothing interesting
             if (node.Parent is null)
             {
-                _builder.AppendLine($"// {_currentLine}");
-                return CreateLineInfo();
+                return EmitCurrentLineAsComment();
             }
 
             // Other transitions, we decide based on the parent
@@ -386,8 +380,7 @@ internal partial class CSharpFormattingPass
             // so we can actually just emit these lines as a comment so the indentation is correct, and then let the code above
             // handle them. Essentially, whether these are at the start or int he middle of a line is irrelevant.
 
-            _builder.AppendLine($"// {_currentLine}");
-            return CreateLineInfo();
+            return EmitCurrentLineAsComment();
         }
 
         public override LineInfo VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
@@ -398,8 +391,7 @@ internal partial class CSharpFormattingPass
             var closeParen = body.CloseParen;
             if (GetLineNumber(closeParen) == GetLineNumber(node))
             {
-                _builder.AppendLine($"// {_currentLine}");
-                return CreateLineInfo();
+                return EmitCurrentLineAsComment();
             }
 
             // If this spans multiple lines however, the indentation of this line will affect the next, so we handle it in the
@@ -456,8 +448,7 @@ internal partial class CSharpFormattingPass
             var body = (CSharpStatementBodySyntax)node.Body;
             if (GetLineNumber(body.OpenBrace) == GetLineNumber(body.CloseBrace))
             {
-                _builder.AppendLine($"// {_currentLine}");
-                return CreateLineInfo();
+                return EmitCurrentLineAsComment();
             }
 
             // We don't need to worry about formatting, or offsetting, because the RazorFormattingPass will
@@ -511,8 +502,7 @@ internal partial class CSharpFormattingPass
 
             // If the brace is on a different line, then we don't need to do anything, as the brace will be output when
             // processing the next line.
-            _builder.AppendLine($"// {_currentLine}");
-            return CreateLineInfo();
+            return EmitCurrentLineAsComment();
         }
 
         private LineInfo VisitCodeOrFunctionsDirective(SyntaxNode openBrace)
@@ -583,6 +573,16 @@ internal partial class CSharpFormattingPass
         {
             _builder.AppendLine(_currentLine.ToString());
             return CreateLineInfo(processFormatting: true, checkForNewLines: true);
+        }
+
+        private LineInfo EmitCurrentLineAsComment()
+        {
+#if DEBUG
+            _builder.AppendLine($"// {_currentLine}");
+#else
+            _builder.AppendLine($"//");
+#endif
+            return CreateLineInfo();
         }
 
         private LineInfo CreateLineInfo(
