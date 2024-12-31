@@ -1448,7 +1448,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """);
     }
 
-    [FormattingTestFact(SkipFlipLineEnding = true)]
+    [FormattingTestFact(SkipFlipLineEnding = true)] // tracked by https://github.com/dotnet/razor/issues/10836
     public async Task FormatsShortBlock()
     {
         await RunFormattingTestAsync(
@@ -1459,7 +1459,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     @{
                         <p></p>
                     }
-                    """); // tracked by https://github.com/dotnet/razor/issues/10836
+                    """);
     }
 
     [FormattingTestFact]
@@ -2080,7 +2080,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact(SkipFlipLineEnding = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue2()
     {
@@ -2198,7 +2198,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact(SkipFlipLineEnding = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue4()
     {
@@ -2247,10 +2247,10 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component); // tracked by https://github.com/dotnet/razor/issues/10836
+            fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact(SkipFlipLineEnding = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue5()
     {
@@ -2305,10 +2305,10 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component); // tracked by https://github.com/dotnet/razor/issues/10836
+            fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact(SkipFlipLineEnding = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue6()
     {
@@ -2367,7 +2367,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component); // tracked by https://github.com/dotnet/razor/issues/10836
+            fileKind: FileKinds.Component);
     }
 
     [FormattingTestFact]
