@@ -3109,8 +3109,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </section>
                     <section class="section">
                         <div class="container">
-                            @foreach (var item in Model.Images)
-                            {
+                    @foreach (var item in Model.Images)
+                    {
                                 <div>
                                     <div>
                                         }
