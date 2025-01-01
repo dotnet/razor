@@ -442,6 +442,25 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
+    public async Task HtmlAttributeNamesAndTagHelpersCompletion_EndOfDocument()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <EditForm $$
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Explicit,
+                 TriggerCharacter = null,
+                 TriggerKind = RoslynCompletionTriggerKind.Invoked
+             },
+             expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."],
+             delegatedItemLabels: ["style", "dir"]);
+    }
+
+    [Fact]
     public async Task TagHelperAttributes_NoAutoInsertQuotes_Completion()
     {
         await VerifyCompletionListAsync(
@@ -469,7 +488,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         string[]? unexpectedItemLabels = null,
         string[]? delegatedItemLabels = null,
         string[]? delegatedItemCommitCharacters = null,
-        string[]? snippetLabels = null,
         bool autoInsertAttributeQuotes = true,
         bool commitElementsWithSpace = true,
         bool fuse = false)
