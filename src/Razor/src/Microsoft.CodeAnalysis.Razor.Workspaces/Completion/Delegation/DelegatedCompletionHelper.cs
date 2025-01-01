@@ -207,6 +207,15 @@ internal static class DelegatedCompletionHelper
         var tree = razorCodeDocument.GetSyntaxTree();
 
         var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: false);
+        if (token.Kind == SyntaxKind.EndOfFile &&
+            absoluteIndex > 0)
+        {
+            // If we're at the end of the file, we check if the previous token is an open angle (ie, we're in <$$[EOF])
+            // because even though the tree won't match our expectations for an incomplete start tag, thats what it is.
+            token = tree.Root.FindToken(absoluteIndex - 1, includeWhitespace: false);
+            return token.Kind is not SyntaxKind.OpenAngle;
+        }
+
         var node = token.Parent;
         var startOrEndTag = node?.FirstAncestorOrSelf<SyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n));
 

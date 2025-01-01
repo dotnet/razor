@@ -270,6 +270,26 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
+    public async Task HtmlElementNamesAndTagHelpersCompletion_EndOfDocument()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <$$
+                """,
+             completionContext: new RoslynVSInternalCompletionContext()
+             {
+                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                 TriggerCharacter = "<",
+                 TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
+             },
+             expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"],
+             delegatedItemLabels: ["div", "h1"],
+             unexpectedItemLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
     public async Task HtmlElementDoNotCommitWithSpace()
     {
         await VerifyCompletionListAsync(
