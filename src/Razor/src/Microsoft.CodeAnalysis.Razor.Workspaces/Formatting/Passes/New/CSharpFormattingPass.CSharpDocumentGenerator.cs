@@ -417,7 +417,7 @@ internal partial class CSharpFormattingPass
                    checkForNewLines: false);
             }
 
-            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
+            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
             return CreateLineInfo(
                 processFormatting: true,
                 checkForNewLines: false,
@@ -428,7 +428,7 @@ internal partial class CSharpFormattingPass
         public override LineInfo VisitCSharpCodeBlock(CSharpCodeBlockSyntax node)
         {
             // Matches things like @if, so skip the first character, but output as C# otherwise
-            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
+            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
 
             return CreateLineInfo(
                 processFormatting: true,
@@ -530,7 +530,7 @@ internal partial class CSharpFormattingPass
             // For @using we just skip over the @ and format as a C# using directive
             // "@using System" to "using System"
             // Roslyn's parser is smart enough to not care about missing semicolons.
-            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart + 1, _currentLine.End)));
+            _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
             return CreateLineInfo(
                 processFormatting: true,
                 originOffset: 1,
@@ -550,7 +550,7 @@ internal partial class CSharpFormattingPass
             return CreateLineInfo(
                 skipNextLine: true,
                 processFormatting: true,
-                originOffset: conditions.SpanStart - node.SpanStart,
+                originOffset: conditions.SpanStart - _currentToken.Position,
                 formattedOffset: methodDef.Length);
         }
 
@@ -562,7 +562,7 @@ internal partial class CSharpFormattingPass
             _builder.AppendLine(attribute.GetContent());
             return CreateLineInfo(
                 processFormatting: true,
-                originOffset: attribute.SpanStart - node.SpanStart,
+                originOffset: attribute.SpanStart - _currentToken.Position,
                 formattedOffset: 0);
         }
 
