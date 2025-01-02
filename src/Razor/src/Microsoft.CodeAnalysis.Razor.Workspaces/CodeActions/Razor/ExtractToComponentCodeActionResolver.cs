@@ -58,12 +58,7 @@ internal class ExtractToComponentCodeActionResolver(
             ? '/' + componentPath
             : componentPath;
 
-        var newComponentUri = new UriBuilder
-        {
-            Scheme = Uri.UriSchemeFile,
-            Path = componentPath,
-            Host = string.Empty,
-        }.Uri;
+        var newComponentUri = VsLspFactory.CreateFilePathUri(componentPath);
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
