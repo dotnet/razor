@@ -26,6 +26,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
+    private const string HtmlSnippet1 = "snippet1";
+    private const string HtmlSnippet2 = "snippet2";
+
     [Theory]
     [CombinatorialData]
     public async Task CSharpInEmptyExplicitStatement(bool fuse)
@@ -286,7 +289,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
              },
              expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"],
              delegatedItemLabels: ["div", "h1"],
-             unexpectedItemLabels: ["snippet1", "snippet2"]);
+             unexpectedItemLabels: [HtmlSnippet1, HtmlSnippet2]);
     }
 
     [Fact]
@@ -329,7 +332,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = null,
                  TriggerKind = RoslynCompletionTriggerKind.Invoked
              },
-             expectedItemLabels: ["snippet1", "snippet2"]);
+             expectedItemLabels: [HtmlSnippet1, HtmlSnippet2]);
     }
 
     [Fact]
@@ -350,7 +353,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
              expectedItemLabels: ["style", "dir"],
-             unexpectedItemLabels: ["snippet1", "snippet2"],
+             unexpectedItemLabels: [HtmlSnippet1, HtmlSnippet2],
              delegatedItemLabels: ["style", "dir"]);
     }
 
@@ -521,8 +524,8 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
         snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, [
-            new SnippetInfo("snippet1", "snippet1", "snippet1", string.Empty, SnippetLanguage.Html),
-            new SnippetInfo("snippet2", "snippet2", "snippet2", string.Empty, SnippetLanguage.Html)]);
+            new SnippetInfo(HtmlSnippet1, "snippet1", "snippet1", string.Empty, SnippetLanguage.Html),
+            new SnippetInfo(HtmlSnippet2, "snippet2", "snippet2", string.Empty, SnippetLanguage.Html)]);
 
         var endpoint = new CohostDocumentCompletionEndpoint(
             RemoteServiceInvoker,
