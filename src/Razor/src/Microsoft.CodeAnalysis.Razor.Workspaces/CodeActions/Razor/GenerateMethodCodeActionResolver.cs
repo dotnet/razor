@@ -10,7 +10,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -93,7 +92,7 @@ internal class GenerateMethodCodeActionResolver(
 
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = codeBehindUri };
 
-        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
+        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodSignature,
@@ -128,7 +127,7 @@ internal class GenerateMethodCodeActionResolver(
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
+        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
         var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, options);
 
         // If there are 3 edits, this means that there is no existing @code block, so we have an edit for '@code {', the method stub, and '}'.
@@ -203,7 +202,7 @@ internal class GenerateMethodCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static async Task<string> PopulateMethodSignatureAsync(DocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
+    private static string PopulateMethodSignature(GenerateMethodCodeActionParams actionParams)
     {
         var templateWithMethodSignature = s_generateMethodTemplate.Replace(MethodName, actionParams.MethodName);
 
