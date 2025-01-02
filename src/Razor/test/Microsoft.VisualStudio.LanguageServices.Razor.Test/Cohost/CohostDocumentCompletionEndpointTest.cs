@@ -185,7 +185,8 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = "<",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["text", "EditForm", "InputDate"]);
+             expectedItemLabels: ["text", "EditForm", "InputDate", "div"],
+             delegatedItemLabels: ["div"]);
     }
 
     [Fact]
@@ -245,7 +246,8 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = "<",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["LayoutView", "EditForm", "ValidationMessage"]);
+             expectedItemLabels: ["LayoutView", "EditForm", "ValidationMessage", "div"],
+             delegatedItemLabels: ["div"]);
     }
 
     [Fact]
@@ -330,6 +332,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerKind = RoslynCompletionTriggerKind.Invoked
              },
              expectedItemLabels: ["snippet1", "snippet2"],
+             delegatedItemLabels: [],
              snippetLabels: ["snippet1", "snippet2"]);
     }
 
@@ -479,7 +482,8 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = " ",
                  TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
              },
-             expectedItemLabels: ["FormName", "OnValidSubmit", "@..."],
+             expectedItemLabels: ["FormName", "OnValidSubmit", "@...", "style"],
+             delegatedItemLabels: ["style"],
              autoInsertAttributeQuotes: false);
     }
 
@@ -490,6 +494,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         string[]? unexpectedItemLabels = null,
         string[]? delegatedItemLabels = null,
         string[]? delegatedItemCommitCharacters = null,
+        string[]? snippetLabels = null,
         bool autoInsertAttributeQuotes = true,
         bool commitElementsWithSpace = true,
         bool fuse = false)
@@ -502,31 +507,30 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         var clientSettingsManager = new ClientSettingsManager([], null, null);
         clientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = autoInsertAttributeQuotes, CommitElementsWithSpace = commitElementsWithSpace });
 
-        VSInternalCompletionList? response = null;
-        if (delegatedItemLabels is not null)
+        const string InvalidLabel = "_INVALID_";
+
+        // If delegatedItemLabels wasn't supplied, supply our own to ensure delegation isn't happening and causing a false positive result
+        delegatedItemLabels ??= [InvalidLabel];
+        var response = new VSInternalCompletionList()
         {
-            response = new VSInternalCompletionList()
+            Items = delegatedItemLabels.Select((label) => new VSInternalCompletionItem()
             {
-                Items = delegatedItemLabels.Select((label) => new VSInternalCompletionItem()
-                {
-                    Label = label,
-                    CommitCharacters = delegatedItemCommitCharacters,
-                    // If test specifies not to commit with space, set kind to element since we remove space
-                    // commit from elements only. Otherwise test doesn't care, so set to None
-                    Kind = !commitElementsWithSpace ? CompletionItemKind.Element : CompletionItemKind.None,
-                }).ToArray(),
-                IsIncomplete = true
-            };
-        }
+                Label = label,
+                CommitCharacters = delegatedItemCommitCharacters,
+                // If test specifies not to commit with space, set kind to element since we remove space
+                // commit from elements only. Otherwise test doesn't care, so set to None
+                Kind = !commitElementsWithSpace ? CompletionItemKind.Element : CompletionItemKind.None,
+            }).ToArray(),
+            IsIncomplete = true
+        };
 
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentCompletionName, response)]);
 
         var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
-        if (snippetLabels is not null)
-        {
-            var snippetInfos = snippetLabels.Select(label => new SnippetInfo(label, label, label, string.Empty, SnippetLanguage.Html)).ToImmutableArray();
-            snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
-        }
+        // If snippetLabels wasn't supplied, supply our own to ensure snippets aren't being requested and causing a false positive result
+        snippetLabels ??= [InvalidLabel];
+        var snippetInfos = snippetLabels.Select(label => new SnippetInfo(label, label, label, string.Empty, SnippetLanguage.Html)).ToImmutableArray();
+        snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
 
         var endpoint = new CohostDocumentCompletionEndpoint(
             RemoteServiceInvoker,
@@ -552,6 +556,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         using var _ = HashSetPool<string>.GetPooledObject(out var labelSet);
         labelSet.AddRange(result.Items.Select((item) => item.Label));
+
+        Assert.DoesNotContain(InvalidLabel, labelSet);
+
         foreach (var expectedItemLabel in expectedItemLabels)
         {
             Assert.Contains(expectedItemLabel, labelSet);
