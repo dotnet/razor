@@ -64,14 +64,10 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 
         // We want to get MarkupTagHelperDirectiveAttribute since this has information about the event name.
         // Hierarchy:
-        // MarkupTagHelperDirectiveAttribute > MarkupTextLiteral
+        // MarkupTagHelper[Directive]Attribute > MarkupTextLiteral
         // or
-        // MarkupTagHelperDirectiveAttribute > MarkupTagHelperAttributeValue > CSharpExpressionLiteral
+        // MarkupTagHelper[Directive]Attribute > MarkupTagHelperAttributeValue > CSharpExpressionLiteral
         var commonParent = owner.Kind == SyntaxKind.CSharpExpressionLiteral ? owner.Parent.Parent : owner.Parent;
-        if (commonParent is not MarkupTagHelperDirectiveAttributeSyntax markupTagHelperDirectiveAttribute)
-        {
-            return false;
-        }
 
         // MarkupTagHelperElement > MarkupTagHelperStartTag > MarkupTagHelperDirectiveAttribute
         if (commonParent.Parent.Parent is not MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
@@ -79,6 +75,21 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return false;
         }
 
+        return commonParent switch
+        {
+            MarkupTagHelperDirectiveAttributeSyntax markupTagHelperDirectiveAttribute => TryGetEventNameAndMethodName(markupTagHelperDirectiveAttribute, binding, out methodName, out eventName),
+            _ => false
+        };
+    }
+
+    private static bool TryGetEventNameAndMethodName(
+        MarkupTagHelperDirectiveAttributeSyntax markupTagHelperDirectiveAttribute,
+        TagHelperBinding binding,
+        [NotNullWhen(true)] out string? methodName,
+        [NotNullWhen(true)] out string? eventName)
+    {
+        methodName = null;
+        eventName = null;
         foreach (var tagHelperDescriptor in binding.Descriptors)
         {
             foreach (var attribute in tagHelperDescriptor.BoundAttributes)
