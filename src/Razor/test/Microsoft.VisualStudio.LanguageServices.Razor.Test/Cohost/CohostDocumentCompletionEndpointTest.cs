@@ -329,7 +329,8 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                  TriggerCharacter = null,
                  TriggerKind = RoslynCompletionTriggerKind.Invoked
              },
-             expectedItemLabels: ["snippet1", "snippet2"]);
+             expectedItemLabels: ["snippet1", "snippet2"],
+             snippetLabels: ["snippet1", "snippet2"]);
     }
 
     [Fact]
@@ -351,7 +352,8 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
              },
              expectedItemLabels: ["style", "dir"],
              unexpectedItemLabels: ["snippet1", "snippet2"],
-             delegatedItemLabels: ["style", "dir"]);
+             delegatedItemLabels: ["style", "dir"],
+             snippetLabels: ["snippet1", "snippet2"]);
     }
 
     // Tests HTML attributes and DirectiveAttributeTransitionCompletionItemProvider
@@ -520,9 +522,11 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentCompletionName, response)]);
 
         var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
-        snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, [
-            new SnippetInfo("snippet1", "snippet1", "snippet1", string.Empty, SnippetLanguage.Html),
-            new SnippetInfo("snippet2", "snippet2", "snippet2", string.Empty, SnippetLanguage.Html)]);
+        if (snippetLabels is not null)
+        {
+            var snippetInfos = snippetLabels.Select(label => new SnippetInfo(label, label, label, string.Empty, SnippetLanguage.Html)).ToImmutableArray();
+            snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
+        }
 
         var endpoint = new CohostDocumentCompletionEndpoint(
             RemoteServiceInvoker,
