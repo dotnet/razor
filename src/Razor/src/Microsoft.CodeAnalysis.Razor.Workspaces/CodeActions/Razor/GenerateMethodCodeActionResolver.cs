@@ -210,12 +210,9 @@ internal class GenerateMethodCodeActionResolver(
         var returnType = actionParams.IsAsync ? "global::System.Threading.Tasks.Task" : "void";
         templateWithMethodSignature = templateWithMethodSignature.Replace(ReturnType, returnType);
 
-        var tagHelpers = await documentContext.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var eventTagHelper = tagHelpers
-            .FirstOrDefault(th => th.Name == actionParams.EventName && th.IsEventHandlerTagHelper() && th.GetEventArgsType() is not null);
-        var eventArgsType = eventTagHelper is null
+        var eventArgsType = actionParams.EventParameterType is null
             ? string.Empty // Couldn't find the params, generate no params instead.
-            : $"global::{eventTagHelper.GetEventArgsType()} e";
+            : $"global::{actionParams.EventParameterType} e";
 
         return templateWithMethodSignature.Replace(EventArgs, eventArgsType);
     }
