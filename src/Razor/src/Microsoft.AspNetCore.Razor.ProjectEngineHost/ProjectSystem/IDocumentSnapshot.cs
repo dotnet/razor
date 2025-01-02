@@ -5,9 +5,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 internal interface IDocumentSnapshot
 {
@@ -20,9 +21,7 @@ internal interface IDocumentSnapshot
 
     ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken);
     ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken);
-    ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(
-        bool forceDesignTimeGeneratedOutput,
-        CancellationToken cancellationToken);
+    ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(CancellationToken cancellationToken);
 
     /// <summary>
     ///  Gets the Roslyn syntax tree for the generated C# for this Razor document
