@@ -56,7 +56,7 @@ public class CohostOnTypeFormattingEndpointTest(FuseTestContext context, HtmlFor
             triggerCharacter: '\n');
     }
 
-    [Fact]
+    [FuseFact]
     public async Task CSharp()
     {
         await VerifyOnTypeFormattingAsync(
