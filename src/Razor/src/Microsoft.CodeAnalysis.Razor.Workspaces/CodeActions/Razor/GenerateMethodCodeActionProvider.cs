@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
@@ -80,6 +82,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         return commonParent switch
         {
             MarkupTagHelperDirectiveAttributeSyntax markupTagHelperDirectiveAttribute => TryGetEventNameAndMethodName(markupTagHelperDirectiveAttribute, binding, out methodName, out eventName, out eventParameterType),
+            MarkupTagHelperAttributeSyntax markupTagHelperAttribute => TryGetEventNameAndMethodName(markupTagHelperAttribute, binding, out methodName, out eventName, out eventParameterType),
             _ => false
         };
     }
@@ -124,6 +127,51 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 
         // The TagHelperAttributeInfo Name property includes the '@' in the beginning so exclude it.
         eventName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name[1..];
+
+        var content = markupTagHelperDirectiveAttribute.Value.GetContent();
+        if (!SyntaxFacts.IsValidIdentifier(content))
+        {
+            return false;
+        }
+
+        methodName = content;
+        return true;
+    }
+
+    private static bool TryGetEventNameAndMethodName(
+        MarkupTagHelperAttributeSyntax markupTagHelperDirectiveAttribute,
+        TagHelperBinding binding,
+        [NotNullWhen(true)] out string? methodName,
+        [NotNullWhen(true)] out string? eventName,
+        out string? eventParameterType)
+    {
+        methodName = null;
+        eventName = null;
+        eventParameterType = null;
+
+        foreach (var tagHelperDescriptor in binding.Descriptors)
+        {
+            foreach (var attribute in tagHelperDescriptor.BoundAttributes)
+            {
+                if (attribute.Name == markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name)
+                {
+                    if (!attribute.IsEventCallbackProperty())
+                    {
+                        return false;
+                    }
+
+                    // TypeName is something like "EventCallback<System.String>", so we need to parse out the parameter type.
+                    if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(attribute.TypeName.AsMemory(), out var argument))
+                    {
+                        eventParameterType = argument.ToString();
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        eventName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name;
 
         var content = markupTagHelperDirectiveAttribute.Value.GetContent();
         if (!SyntaxFacts.IsValidIdentifier(content))
