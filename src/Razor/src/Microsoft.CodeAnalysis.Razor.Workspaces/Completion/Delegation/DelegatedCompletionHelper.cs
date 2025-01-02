@@ -208,12 +208,13 @@ internal static class DelegatedCompletionHelper
 
         var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: false);
         if (token.Kind == SyntaxKind.EndOfFile &&
-            absoluteIndex > 0)
+            token.GetPreviousToken()?.Parent is { } parent &&
+            parent.FirstAncestorOrSelf<SyntaxNode>(RazorSyntaxFacts.IsAnyStartTag) is not null)
         {
-            // If we're at the end of the file, we check if the previous token is an open angle (ie, we're in <$$[EOF])
-            // because even though the tree won't match our expectations for an incomplete start tag, thats what it is.
-            token = tree.Root.FindToken(absoluteIndex - 1, includeWhitespace: false);
-            return token.Kind is not SyntaxKind.OpenAngle;
+            // If we're at the end of the file, we check if the previous token is part of a start tag, because the parser
+            // treats whitespace at the end different. eg with "<$$[EOF]" or "<div $$", the EndOfFile won't be seen as being
+            // in the tag, so without this special casing snippets would be shown.
+            return false;
         }
 
         var node = token.Parent;
