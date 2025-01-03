@@ -96,8 +96,9 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 
         var attributeName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name;
 
-        // Annoyingly, for @bind-XX:after etc. the attribute name actually includes the parameter, so we have to parse it
-        // out ourself in order to find the attribute tag helper properly.
+        // For attributes with a parameter, the attribute name actually includes the parameter, so we have to parse it
+        // out ourself in order to find the attribute tag helper properly. We only do this for parameters that are valid
+        // places to put C# method names.
         if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName is "after" or "set")
         {
             attributeName = attributeName[..attributeName.IndexOf(':')];
@@ -115,20 +116,11 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
                     if (tagHelperDescriptor.IsEventHandlerTagHelper())
                     {
                         // An event handler like "@onclick"
-
-                        if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName is not null)
-                        {
-                            // An event parameter is being set instead of the event handler e.g.
-                            // <button @onclick:preventDefault=SomeValue/>, this is not a generate event handler scenario.
-                            return false;
-                        }
-
                         eventParameterType = tagHelperDescriptor.GetEventArgsType() ?? "";
                     }
                     else if (tagHelperDescriptor.IsBindTagHelper())
                     {
-                        // A bind tag helper, so either @bind-XX:after or @bind-XX:set
-
+                        // A bind tag helper, so either @bind-XX:after or @bind-XX:set, the latter of which has a parameter
                         if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName == "set" &&
                             ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(attribute.TypeName.AsMemory(), out var argument))
                         {
@@ -150,6 +142,11 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             {
                 break;
             }
+        }
+
+        if (!found)
+        {
+            return false;
         }
 
         var content = markupTagHelperDirectiveAttribute.Value.GetContent();
