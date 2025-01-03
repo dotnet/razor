@@ -466,17 +466,17 @@ internal partial class CSharpFormattingPass
 
             if (node.IsUsingDirective(out _))
             {
-                return VisitUsingDirective(node);
+                return VisitUsingDirective();
             }
 
             if (node.IsAttributeDirective(out var attribute))
             {
-                return VisitAttributeDirective(node, attribute);
+                return VisitAttributeDirective(attribute);
             }
 
             if (node.IsConstrainedTypeParamDirective(out var typeParam, out var conditions))
             {
-                return VisitTypeParamDirective(node, typeParam, conditions);
+                return VisitTypeParamDirective(typeParam, conditions);
             }
 
             if (node.IsCodeDirective(out var openBrace))
@@ -525,7 +525,7 @@ internal partial class CSharpFormattingPass
             return CreateLineInfo();
         }
 
-        private LineInfo VisitUsingDirective(RazorDirectiveSyntax node)
+        private LineInfo VisitUsingDirective()
         {
             // For @using we just skip over the @ and format as a C# using directive
             // "@using System" to "using System"
@@ -537,7 +537,7 @@ internal partial class CSharpFormattingPass
                 formattedOffset: 0);
         }
 
-        private LineInfo VisitTypeParamDirective(RazorDirectiveSyntax node, SyntaxNode typeParam, SyntaxNode conditions)
+        private LineInfo VisitTypeParamDirective(SyntaxNode typeParam, SyntaxNode conditions)
         {
             // For @typeparam we just need C# to format things after the "where", so we construct a local function that looks right
             // "@typeparam T where T : IDisposable" to "void F<T>() where T : IDisposable"
@@ -554,7 +554,7 @@ internal partial class CSharpFormattingPass
                 formattedOffset: methodDef.Length);
         }
 
-        private LineInfo VisitAttributeDirective(RazorDirectiveSyntax node, SyntaxNode attribute)
+        private LineInfo VisitAttributeDirective(SyntaxNode attribute)
         {
             // For @attribute we skip over the directive itself and Roslyn can handle the rest
             // "@attribute [AttributeUsage(AttributeTargets.All)]" to "[AttributeUsage(AttributeTargets.All)]"
