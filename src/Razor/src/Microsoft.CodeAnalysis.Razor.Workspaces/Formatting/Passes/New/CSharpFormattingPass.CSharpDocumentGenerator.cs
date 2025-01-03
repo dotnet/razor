@@ -142,7 +142,7 @@ internal partial class CSharpFormattingPass
                             // We've found a span mapping that means there is some C# on this line, so if its an explicit or implicit expression
                             // we need to format it, but separately to the rest of the document.
                             var node = root.FindInnermostNode(originalSpan.AbsoluteIndex);
-                            if (node is { Parent.Parent: CSharpExplicitExpressionBodySyntax or CSharpImplicitExpressionBodySyntax })
+                            if (node is CSharpExpressionLiteralSyntax)
                             {
                                 // Rather than bother to store more data about the formatted file, since we don't actually know where
                                 // these will end up in that file once it's all said and done, we are just going to use a simple comment
