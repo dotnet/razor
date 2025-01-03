@@ -29,7 +29,9 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
     // Types that will not contribute to fault bucketing. Fully qualified name is
     // required in order to match correctly.
     private static readonly FrozenSet<string> s_faultIgnoredTypeNames = new string[] {
-        "Microsoft.AspNetCore.Razor.NullableExtensions"
+        "Microsoft.AspNetCore.Razor.Assumed",
+        "Microsoft.AspNetCore.Razor.NullableExtensions",
+        "Microsoft.AspNetCore.Razor.ThrowHelper"
     }.ToFrozenSet();
 
     private TelemetrySessionManager? _manager;

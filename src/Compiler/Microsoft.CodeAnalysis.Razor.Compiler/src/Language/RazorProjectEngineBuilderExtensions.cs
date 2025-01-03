@@ -374,7 +374,7 @@ public static class RazorProjectEngineBuilderExtensions
         }
     }
 
-    private class ConfigureRootNamespaceFeature : IConfigureRazorCodeGenerationOptionsFeature
+    private class ConfigureRootNamespaceFeature : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
         private readonly string _rootNamespace;
 
@@ -384,8 +384,6 @@ public static class RazorProjectEngineBuilderExtensions
         }
 
         public int Order { get; set; }
-
-        public RazorEngine Engine { get; set; }
 
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
