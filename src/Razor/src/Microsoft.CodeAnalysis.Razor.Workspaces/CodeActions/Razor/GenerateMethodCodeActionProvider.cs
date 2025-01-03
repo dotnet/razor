@@ -94,31 +94,62 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         methodName = null;
         eventParameterType = null;
 
+        var attributeName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name;
+
+        // Annoyingly, for @bind-XX:after etc. the attribute name actually includes the parameter, so we have to parse it
+        // out ourself in order to find the attribute tag helper properly.
+        if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName is "after" or "set")
+        {
+            attributeName = attributeName[..attributeName.IndexOf(':')];
+        }
+
+        var found = false;
         foreach (var tagHelperDescriptor in binding.Descriptors)
         {
             foreach (var attribute in tagHelperDescriptor.BoundAttributes)
             {
-                if (attribute.Name == markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name)
+                if (attribute.Name == attributeName)
                 {
                     // We found the attribute that matches the directive attribute, now we need to check if the
                     // tag helper it's bound to is an event handler. This filters out things like @ref and @rendermode
-                    if (!tagHelperDescriptor.IsEventHandlerTagHelper())
+                    if (tagHelperDescriptor.IsEventHandlerTagHelper())
+                    {
+                        // An event handler like "@onclick"
+
+                        if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName is not null)
+                        {
+                            // An event parameter is being set instead of the event handler e.g.
+                            // <button @onclick:preventDefault=SomeValue/>, this is not a generate event handler scenario.
+                            return false;
+                        }
+
+                        eventParameterType = tagHelperDescriptor.GetEventArgsType() ?? "";
+                    }
+                    else if (tagHelperDescriptor.IsBindTagHelper())
+                    {
+                        // A bind tag helper, so either @bind-XX:after or @bind-XX:set
+
+                        if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName == "set" &&
+                            ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(attribute.TypeName.AsMemory(), out var argument))
+                        {
+                            // Set has a parameter
+                            eventParameterType = argument.ToString();
+                        }
+                    }
+                    else
                     {
                         return false;
                     }
 
-                    eventParameterType = tagHelperDescriptor.GetEventArgsType() ?? "";
-
+                    found = true;
                     break;
                 }
             }
-        }
 
-        if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName is not null)
-        {
-            // An event parameter is being set instead of the event handler e.g.
-            // <button @onclick:preventDefault=SomeValue/>, this is not a generate event handler scenario.
-            return false;
+            if (found)
+            {
+                break;
+            }
         }
 
         var content = markupTagHelperDirectiveAttribute.Value.GetContent();

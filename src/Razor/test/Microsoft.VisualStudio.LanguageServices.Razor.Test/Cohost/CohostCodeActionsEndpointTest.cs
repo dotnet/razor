@@ -560,6 +560,62 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
+    public async Task GenerateEventHandler_BindSet()
+    {
+        var input = """
+            <InputText @bind-Value="Text" @bind-Value:set="{|CS0103:Does[||]NotExist|}" />
+
+            @code
+            {
+                private string Text { get; set; }
+            }
+            """;
+
+        var expected = """
+            <InputText @bind-Value="Text" @bind-Value:set="DoesNotExist" />
+
+            @code
+            {
+                private string Text { get; set; }
+                private void DoesNotExist(string e)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [Fact]
+    public async Task GenerateEventHandler_BindAfter()
+    {
+        var input = """
+            <InputText @bind-Value="Text" @bind-Value:after="{|CS0103:Does[||]NotExist|}" />
+
+            @code
+            {
+                private string Text { get; set; }
+            }
+            """;
+
+        var expected = """
+            <InputText @bind-Value="Text" @bind-Value:after="DoesNotExist" />
+
+            @code
+            {
+                private string Text { get; set; }
+                private void DoesNotExist()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [Fact]
     public async Task GenerateEventHandler_Callback()
     {
         var input = """
