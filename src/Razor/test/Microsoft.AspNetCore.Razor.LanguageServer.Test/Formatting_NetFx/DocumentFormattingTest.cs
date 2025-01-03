@@ -2597,6 +2597,121 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     }
 
     [FormattingTestFact]
+    public async Task FormatEventHandlerAttributes()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <p>Current count: @currentCount</p>
+
+                    <button @onclick="IncrementCount">Increment</button>
+                    <button @onclick="@(e=>currentCount=4)">Update to 4</button>
+                    <button @onclick="e=>currentCount=5">Update to 5</button>
+
+                    @code {
+                        private int currentCount=0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+            expected: """
+                    <p>Current count: @currentCount</p>
+
+                    <button @onclick="IncrementCount">Increment</button>
+                    <button @onclick="@(e => currentCount = 4)">Update to 4</button>
+                    <button @onclick="e => currentCount = 5">Update to 5</button>
+
+                    @code {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+            fileKind: FileKinds.Component);
+    }
+
+    [FormattingTestFact]
+    public async Task FormatEventCallbackAttributes()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <p>Current count: @currentCount</p>
+
+                    <InputText ValueChanged="IncrementCount">Increment</InputText>
+                    <InputText ValueChanged="@(e=>currentCount=4)">Update to 4</InputText>
+                    <InputText ValueChanged="e=>currentCount=5">Update to 5</InputText>
+
+                    @code {
+                        private int currentCount=0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+            expected: """
+                    <p>Current count: @currentCount</p>
+
+                    <InputText ValueChanged="IncrementCount">Increment</InputText>
+                    <InputText ValueChanged="@(e => currentCount = 4)">Update to 4</InputText>
+                    <InputText ValueChanged="e => currentCount = 5">Update to 5</InputText>
+
+                    @code {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+            fileKind: FileKinds.Component);
+    }
+
+    [FormattingTestFact]
+    public async Task FormatBindAttributes()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <p>Current count: @currentCount</p>
+
+                    <InputText @bind-Value="currentCount" @bind-Value:after="IncrementCount">Increment</InputText>
+                    <InputText @bind-Value="currentCount" @bind-Value:after="e=>currentCount=5">Update to 5</InputText>
+
+                    @code {
+                        private int currentCount=0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+            expected: """
+                    <p>Current count: @currentCount</p>
+
+                    <InputText @bind-Value="currentCount" @bind-Value:after="IncrementCount">Increment</InputText>
+                    <InputText @bind-Value="currentCount" @bind-Value:after="e => currentCount = 5">Update to 5</InputText>
+
+                    @code {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+            fileKind: FileKinds.Component);
+    }
+
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/9337")]
     public async Task FormatMinimizedTagHelperAttributes()
     {
@@ -4822,7 +4937,6 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     """);
     }
-
 
     [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/11325")]
