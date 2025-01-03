@@ -35,13 +35,13 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
         var owner = syntaxTree.Root.FindToken(context.StartAbsoluteIndex).Parent.AssumeNotNull();
 
-        if (IsGenerateEventHandlerValid(owner, out var methodName, out var eventName, out var eventParameterType))
+        if (IsGenerateEventHandlerValid(owner, out var methodName, out var eventParameterType))
         {
             var textDocument = context.Request.TextDocument;
             return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>(
                 [
-                    RazorCodeActionFactory.CreateGenerateMethod(textDocument, context.DelegatedDocumentUri, methodName, eventName, eventParameterType),
-                    RazorCodeActionFactory.CreateAsyncGenerateMethod(textDocument, context.DelegatedDocumentUri, methodName, eventName, eventParameterType)
+                    RazorCodeActionFactory.CreateGenerateMethod(textDocument, context.DelegatedDocumentUri, methodName,  eventParameterType),
+                    RazorCodeActionFactory.CreateAsyncGenerateMethod(textDocument, context.DelegatedDocumentUri, methodName, eventParameterType)
                 ]);
         }
 
@@ -51,11 +51,9 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
     private static bool IsGenerateEventHandlerValid(
         SyntaxNode owner,
         [NotNullWhen(true)] out string? methodName,
-        [NotNullWhen(true)] out string? eventName,
         out string? eventParameterType)
     {
         methodName = null;
-        eventName = null;
         eventParameterType = null;
 
         // The owner should have a SyntaxKind of CSharpExpressionLiteral or MarkupTextLiteral.
@@ -81,8 +79,8 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 
         return commonParent switch
         {
-            MarkupTagHelperDirectiveAttributeSyntax markupTagHelperDirectiveAttribute => TryGetEventNameAndMethodName(markupTagHelperDirectiveAttribute, binding, out methodName, out eventName, out eventParameterType),
-            MarkupTagHelperAttributeSyntax markupTagHelperAttribute => TryGetEventNameAndMethodName(markupTagHelperAttribute, binding, out methodName, out eventName, out eventParameterType),
+            MarkupTagHelperDirectiveAttributeSyntax markupTagHelperDirectiveAttribute => TryGetEventNameAndMethodName(markupTagHelperDirectiveAttribute, binding, out methodName, out eventParameterType),
+            MarkupTagHelperAttributeSyntax markupTagHelperAttribute => TryGetEventNameAndMethodName(markupTagHelperAttribute, binding, out methodName, out eventParameterType),
             _ => false
         };
     }
@@ -91,11 +89,9 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         MarkupTagHelperDirectiveAttributeSyntax markupTagHelperDirectiveAttribute,
         TagHelperBinding binding,
         [NotNullWhen(true)] out string? methodName,
-        [NotNullWhen(true)] out string? eventName,
         out string? eventParameterType)
     {
         methodName = null;
-        eventName = null;
         eventParameterType = null;
 
         foreach (var tagHelperDescriptor in binding.Descriptors)
@@ -125,9 +121,6 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return false;
         }
 
-        // The TagHelperAttributeInfo Name property includes the '@' in the beginning so exclude it.
-        eventName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name[1..];
-
         var content = markupTagHelperDirectiveAttribute.Value.GetContent();
         if (!SyntaxFacts.IsValidIdentifier(content))
         {
@@ -142,11 +135,9 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         MarkupTagHelperAttributeSyntax markupTagHelperDirectiveAttribute,
         TagHelperBinding binding,
         [NotNullWhen(true)] out string? methodName,
-        [NotNullWhen(true)] out string? eventName,
         out string? eventParameterType)
     {
         methodName = null;
-        eventName = null;
         eventParameterType = null;
 
         foreach (var tagHelperDescriptor in binding.Descriptors)
@@ -170,8 +161,6 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
                 }
             }
         }
-
-        eventName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name;
 
         var content = markupTagHelperDirectiveAttribute.Value.GetContent();
         if (!SyntaxFacts.IsValidIdentifier(content))
