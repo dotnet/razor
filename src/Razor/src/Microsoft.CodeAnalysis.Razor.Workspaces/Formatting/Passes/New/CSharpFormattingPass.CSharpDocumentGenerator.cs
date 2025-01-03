@@ -341,8 +341,22 @@ internal partial class CSharpFormattingPass
 
         public override LineInfo VisitMarkupTransition(MarkupTransitionSyntax node)
         {
-            // A transition to Html is treated the same as Html, which is to say nothing interesting
-            return EmitCurrentLineAsComment();
+            // A transition to Html is treated the same as Html, which is to say nothing interesting.
+            // We could emit as a comment, so C# indentation is handled, but it is often that a markup transition
+            // appears after assigning a RenderFragment, eg
+            //
+            // RenderFragment f =
+            //     @<div>
+            //          <p>Some text</p>
+            //     </div>;
+            //
+            // If we just emit a comment there, the C# formatter will not indent it, and it will leave a hanging
+            // expression which affects future indentation. So instead we emit some fake C# just to make sure
+            // nothing is left open. A single semi-colon will suffice.
+            // Emit the whitespace, so user spacing is honoured if possible
+            _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
+            _builder.AppendLine(";");
+            return CreateLineInfo();
         }
 
         public override LineInfo VisitRazorCommentBlock(RazorCommentBlockSyntax node)
