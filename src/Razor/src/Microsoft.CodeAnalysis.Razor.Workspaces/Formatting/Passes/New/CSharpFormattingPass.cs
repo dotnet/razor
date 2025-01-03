@@ -88,7 +88,7 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
                         // making it run over two lines, or even "string Prop { get" and making it span three lines.
                         // Since we assume Roslyn won't change anything non-whitespace, we just keep inserting the formatted lines
                         // of C# until we match the original line contents.
-                        while (!FormattingUtilities.ContentEqualIgnoringWhitespace(changedText, originalStart, originalLine.End, formattedCSharpText, formattedStart, formattedLine.End))
+                        while (!changedText.NonWhitespaceContentEquals(formattedCSharpText, originalStart, originalLine.End, formattedStart, formattedLine.End))
                         {
                             // Sanity check: Because we're looking ahead through lines until the original line content is fully matches, we could loop forever if there is a bug somewhere
                             Debug.Assert(
@@ -114,6 +114,9 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
         // the "additional changes", which is formatting for C# that is inside Html, via implicit or explicit expressions.
         for (; iFormatted < formattedCSharpText.Lines.Count; iFormatted++)
         {
+            // Any C# that is in the middle of a line of Html/Razor will be emitted at the end of the generated document, with a
+            // comment above it that encodes where it came from in the original file. We just look for the comment, and then apply
+            // the next line as formatted content.
             var formattedLine = formattedCSharpText.Lines[iFormatted];
             if (formattedLine.Span.Length > 3 &&
                 formattedLine.ToString() is ['/', '/', ' ', ..] line)

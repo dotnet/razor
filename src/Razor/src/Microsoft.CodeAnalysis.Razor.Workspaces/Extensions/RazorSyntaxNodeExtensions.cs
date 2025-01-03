@@ -33,7 +33,7 @@ internal static class RazorSyntaxNodeExtensions
 
     internal static bool IsConstrainedTypeParamDirective(this SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? typeParamNode, [NotNullWhen(true)] out SyntaxNode? conditionsNode)
     {
-        // Returns try for "@typeparam T where T : IDisposable"
+        // Returns true for "@typeparam T where T : IDisposable", but not "@typeparam T"
         if (node is RazorDirectiveSyntax { DirectiveDescriptor: { } descriptor, Body: RazorDirectiveBodySyntax body } &&
             descriptor.Directive == ComponentConstrainedTypeParamDirective.Directive.Directive &&
             descriptor.Tokens.Any(t => t.Name == ComponentResources.TypeParamDirective_Constraint_Name) &&
