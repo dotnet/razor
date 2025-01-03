@@ -211,9 +211,9 @@ internal class GenerateMethodCodeActionResolver(
 
         var eventArgsType = actionParams.EventParameterType is null
             ? string.Empty // Couldn't find the params, generate no params instead.
-            : $"global::{actionParams.EventParameterType} e";
 
         return templateWithMethodSignature.Replace(EventArgs, eventArgsType);
+            : $"global::{actionParams.EventParameterType} args";
     }
 
     private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(string csharpContent, string razorNamespace, string razorClassName)
