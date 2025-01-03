@@ -79,9 +79,9 @@ public class FormattingUtilitiesTest
             }
             """;
 
-        Assert.True(FormattingUtilities.ContentEqualIgnoringWhitespace(
-            SourceText.From(input1.Text), input1.Span.Start, input1.Span.End,
-            SourceText.From(input2.Text), input2.Span.Start, input2.Span.End));
+        Assert.True(SourceText.From(input1.Text).NonWhitespaceContentEquals(SourceText.From(input2.Text),
+            input1.Span.Start, input1.Span.End,
+            input2.Span.Start, input2.Span.End));
     }
 
     [Fact]
@@ -101,8 +101,8 @@ public class FormattingUtilitiesTest
             }
             """;
 
-        Assert.False(FormattingUtilities.ContentEqualIgnoringWhitespace(
-            SourceText.From(input1.Text), input1.Span.Start, input1.Span.End,
-            SourceText.From(input2.Text), input2.Span.Start, input2.Span.End));
+        Assert.False(SourceText.From(input1.Text).NonWhitespaceContentEquals(SourceText.From(input2.Text),
+            input1.Span.Start, input1.Span.End,
+            input2.Span.Start, input2.Span.End));
     }
 }

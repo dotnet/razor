@@ -136,46 +136,6 @@ internal static class FormattingUtilities
         return count;
     }
 
-    public static bool ContentEqualIgnoringWhitespace(SourceText originalText, int originalStart, int originalEnd, SourceText formattedText, int formattedStart, int formattedEnd)
-    {
-        var iOriginal = originalStart;
-        var iFormatted = formattedStart;
-
-        while (iOriginal < originalEnd && iFormatted < formattedEnd)
-        {
-            while (iOriginal < originalEnd && char.IsWhiteSpace(originalText[iOriginal]))
-            {
-                iOriginal++;
-            }
-
-            while (iFormatted < formattedEnd && char.IsWhiteSpace(formattedText[iFormatted]))
-            {
-                iFormatted++;
-            }
-
-            if (iOriginal < originalEnd && iFormatted < formattedEnd)
-            {
-                if (originalText[iOriginal] != formattedText[iFormatted])
-                    return false;
-
-                iOriginal++;
-                iFormatted++;
-            }
-        }
-
-        while (iOriginal < originalEnd && char.IsWhiteSpace(originalText[iOriginal]))
-        {
-            iOriginal++;
-        }
-
-        while (iFormatted < formattedEnd && char.IsWhiteSpace(formattedText[iFormatted]))
-        {
-            iFormatted++;
-        }
-
-        return iOriginal == originalEnd && iFormatted == formattedEnd;
-    }
-
     public static int GetIndentationLevel(TextLine line, int firstNonWhitespaceCharacterPosition, bool insertSpaces, int tabSize, out string additionalIndentation)
     {
         if (firstNonWhitespaceCharacterPosition > line.End)
