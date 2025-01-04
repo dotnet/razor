@@ -2640,6 +2640,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     {
         await RunFormattingTestAsync(
             input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
                     <p>Current count: @currentCount</p>
 
                     <InputText ValueChanged="IncrementCount">Increment</InputText>
@@ -2656,6 +2658,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     """,
             expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
                     <p>Current count: @currentCount</p>
 
                     <InputText ValueChanged="IncrementCount">Increment</InputText>
@@ -2679,6 +2683,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     {
         await RunFormattingTestAsync(
             input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
                     <p>Current count: @currentCount</p>
 
                     <InputText @bind-Value="currentCount" @bind-Value:after="IncrementCount">Increment</InputText>
@@ -2694,6 +2700,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     """,
             expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
                     <p>Current count: @currentCount</p>
 
                     <InputText @bind-Value="currentCount" @bind-Value:after="IncrementCount">Increment</InputText>
