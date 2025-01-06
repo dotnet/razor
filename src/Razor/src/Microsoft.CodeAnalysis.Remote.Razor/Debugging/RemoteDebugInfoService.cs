@@ -52,4 +52,105 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
         return null;
     }
+
+    public ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            documentId,
+            context => ResolveBreakpointRangeAsync(context, position, cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RemoteDocumentContext context, LinePosition position, CancellationToken cancellationToken)
+    {
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var hostDocumentIndex = sourceText.GetPosition(position);
+
+        if (!TryGetUsableProjectedIndex(codeDocument, hostDocumentIndex, out var projectedIndex))
+        {
+            return null;
+        }
+
+        // Now ask Roslyn to adjust the breakpoint to a valid location in the code
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await generatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        if (syntaxTree is null)
+        {
+            return null;
+        }
+
+        if (!RazorBreakpointSpans.TryGetBreakpointSpan(syntaxTree, projectedIndex, cancellationToken, out var csharpBreakpointSpan))
+        {
+            return null;
+        }
+
+        var csharpText = codeDocument.GetCSharpSourceText();
+        var projectedRange = csharpText.GetLinePositionSpan(csharpBreakpointSpan);
+
+        // Inclusive mapping means we are lenient to portions of the breakpoint that might be outside of use code in the Razor file
+        if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, MappingBehavior.Inclusive, out var hostDocumentRange))
+        {
+            return null;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return hostDocumentRange;
+    }
+
+
+    public ValueTask<string[]?> ResolveProximityExpressionsAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            documentId,
+            context => ResolveProximityExpressionsAsync(context, position, cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<string[]?> ResolveProximityExpressionsAsync(RemoteDocumentContext context, LinePosition position, CancellationToken cancellationToken)
+    {
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var hostDocumentIndex = sourceText.GetPosition(position);
+
+        if (!TryGetUsableProjectedIndex(codeDocument, hostDocumentIndex, out var projectedIndex))
+        {
+            return null;
+        }
+
+        // Now ask Roslyn to adjust the breakpoint to a valid location in the code
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await generatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        if (syntaxTree is null)
+        {
+            return null;
+        }
+
+        var result = RazorCSharpProximityExpressionResolverService.GetProximityExpressions(syntaxTree, projectedIndex, cancellationToken);
+
+        return result?.ToArray();
+    }
+
+    private bool TryGetUsableProjectedIndex(RazorCodeDocument codeDocument, int hostDocumentIndex, out int projectedIndex)
+    {
+        projectedIndex = 0;
+        var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
+        // For C#, we just map
+        if (languageKind == RazorLanguageKind.CSharp &&
+            !_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out _, out projectedIndex))
+        {
+            return false;
+        }
+        // Otherwise see if there is more C# on the line to map to. This is for situations like "$$<p>@DateTime.Now</p>"
+        else if (languageKind == RazorLanguageKind.Html &&
+            !_documentMappingService.TryMapToGeneratedDocumentOrNextCSharpPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out _, out projectedIndex))
+        {
+            return false;
+        }
+        else if (languageKind == RazorLanguageKind.Razor)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

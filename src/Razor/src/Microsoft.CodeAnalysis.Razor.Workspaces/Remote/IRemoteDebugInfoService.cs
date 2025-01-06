@@ -10,6 +10,18 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteDebugInfoService
 {
+    ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(
+        RazorPinnedSolutionInfoWrapper solutionInfo,
+        DocumentId documentId,
+        LinePosition position,
+        CancellationToken cancellationToken);
+
+    ValueTask<string[]?> ResolveProximityExpressionsAsync(
+        RazorPinnedSolutionInfoWrapper solutionInfo,
+        DocumentId documentId,
+        LinePosition position,
+        CancellationToken cancellationToken);
+
     ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId documentId,
