@@ -10,8 +10,8 @@ internal sealed class GenerateMethodCodeActionParams
     [JsonPropertyName("methodName")]
     public required string MethodName { get; set; }
 
-    [JsonPropertyName("eventName")]
-    public required string EventName { get; set; }
+    [JsonPropertyName("eventParameterType")]
+    public string? EventParameterType { get; set; }
 
     [JsonPropertyName("isAsync")]
     public required bool IsAsync { get; set; }
