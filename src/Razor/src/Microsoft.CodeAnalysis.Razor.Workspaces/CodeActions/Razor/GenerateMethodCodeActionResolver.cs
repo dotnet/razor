@@ -10,7 +10,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,15 +35,7 @@ internal class GenerateMethodCodeActionResolver(
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly IFileSystem _fileSystem = fileSystem;
 
-    private const string ReturnType = "$$ReturnType$$";
-    private const string MethodName = "$$MethodName$$";
-    private const string EventArgs = "$$EventArgs$$";
     private const string BeginningIndents = $"{FormattingUtilities.InitialIndent}{FormattingUtilities.Indent}";
-    private static readonly string s_generateMethodTemplate =
-        $"{BeginningIndents}private {ReturnType} {MethodName}({EventArgs}){Environment.NewLine}" +
-        BeginningIndents + "{" + Environment.NewLine +
-        $"{BeginningIndents}{FormattingUtilities.Indent}throw new global::System.NotImplementedException();{Environment.NewLine}" +
-        BeginningIndents + "}";
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
@@ -89,16 +80,11 @@ internal class GenerateMethodCodeActionResolver(
                 cancellationToken).ConfigureAwait(false);
         }
 
-        var codeBehindUri = new UriBuilder
-        {
-            Scheme = Uri.UriSchemeFile,
-            Path = codeBehindPath,
-            Host = string.Empty,
-        }.Uri;
+        var codeBehindUri = VsLspFactory.CreateFilePathUri(codeBehindPath);
 
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = codeBehindUri };
 
-        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
+        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodSignature,
@@ -133,7 +119,7 @@ internal class GenerateMethodCodeActionResolver(
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
+        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
         var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, options);
 
         // If there are 3 edits, this means that there is no existing @code block, so we have an edit for '@code {', the method stub, and '}'.
@@ -208,21 +194,22 @@ internal class GenerateMethodCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static async Task<string> PopulateMethodSignatureAsync(DocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
+    private static string PopulateMethodSignature(GenerateMethodCodeActionParams actionParams)
     {
-        var templateWithMethodSignature = s_generateMethodTemplate.Replace(MethodName, actionParams.MethodName);
+        var returnType = actionParams.IsAsync
+            ? "global::System.Threading.Tasks.Task"
+            : "void";
 
-        var returnType = actionParams.IsAsync ? "global::System.Threading.Tasks.Task" : "void";
-        templateWithMethodSignature = templateWithMethodSignature.Replace(ReturnType, returnType);
-
-        var tagHelpers = await documentContext.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var eventTagHelper = tagHelpers
-            .FirstOrDefault(th => th.Name == actionParams.EventName && th.IsEventHandlerTagHelper() && th.GetEventArgsType() is not null);
-        var eventArgsType = eventTagHelper is null
+        var parameters = actionParams.EventParameterType is null
             ? string.Empty // Couldn't find the params, generate no params instead.
-            : $"global::{eventTagHelper.GetEventArgsType()} e";
+            : $"global::{actionParams.EventParameterType} args";
 
-        return templateWithMethodSignature.Replace(EventArgs, eventArgsType);
+        return $$"""
+            {{BeginningIndents}}private {{returnType}} {{actionParams.MethodName}}({{parameters}})
+            {{BeginningIndents}}{
+            {{BeginningIndents}}{{FormattingUtilities.Indent}}throw new global::System.NotImplementedException();
+            {{BeginningIndents}}}
+            """;
     }
 
     private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(string csharpContent, string razorNamespace, string razorClassName)

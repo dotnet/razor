@@ -13,9 +13,12 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+
+#if !FORMAT_FUSE
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+#endif
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
@@ -226,9 +229,13 @@ internal sealed class FormattingContext
     {
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
+#if !FORMAT_FUSE
         // Formatting always uses design time document
         var generator = (IDesignTimeCodeGenerator)changedSnapshot;
         var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
+#else
+        var codeDocument = await changedSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 

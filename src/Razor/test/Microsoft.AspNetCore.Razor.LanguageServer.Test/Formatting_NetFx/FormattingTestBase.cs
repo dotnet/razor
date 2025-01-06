@@ -64,17 +64,9 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         bool codeBlockBraceOnNextLine = false,
         bool inGlobalNamespace = false)
     {
-        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
-        Assert.False(_context.ForceRuntimeCodeGeneration, "ForceRuntimeGeneration does not currently work in the language server. Creating tests for it is a false positive");
+        (input, expected) = ProcessFormattingContext(input, expected);
 
         var razorLSPOptions = RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine };
-
-        if (_context.ShouldFlipLineEndings)
-        {
-            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
-            input = _context.FlipLineEndings(input);
-            expected = _context.FlipLineEndings(expected);
-        }
 
         await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace);
     }
@@ -137,6 +129,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         RazorLSPOptions? razorLSPOptions = null,
         bool inGlobalNamespace = false)
     {
+        (input, expected) = ProcessFormattingContext(input, expected);
+
         // Arrange
         fileKind ??= FileKinds.Component;
 
@@ -196,6 +190,21 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
             var delta = lastLine - firstLine + changes.Count(e => e.NewText.Contains(Environment.NewLine));
             Assert.Equal(expectedChangedLines.Value, delta + 1);
         }
+    }
+
+    private (string input, string expected) ProcessFormattingContext(string input, string expected)
+    {
+        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
+        Assert.False(_context.ForceRuntimeCodeGeneration, "ForceRuntimeGeneration does not currently work in the language server. Creating tests for it is a false positive");
+
+        if (_context.ShouldFlipLineEndings)
+        {
+            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
+            input = _context.FlipLineEndings(input);
+            expected = _context.FlipLineEndings(expected);
+        }
+
+        return (input, expected);
     }
 
     protected async Task RunCodeActionFormattingTestAsync(
@@ -369,10 +378,12 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                     path, fileKind, codeDocument, projectEngine, imports, importDocuments, tagHelpers, inGlobalNamespace);
             });
 
+#if !FORMAT_FUSE
         var generatorMock = snapshotMock.As<IDesignTimeCodeGenerator>();
         generatorMock
             .Setup(x => x.GenerateDesignTimeOutputAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
+#endif
 
         return snapshotMock.Object;
     }

@@ -63,8 +63,13 @@ internal class RazorFormattingService : IRazorFormattingService
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
+#if !FORMAT_FUSE
+        // Formatting always uses design time document
         var generator = (IDesignTimeCodeGenerator)documentContext.Snapshot;
         var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
+#else
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -116,8 +121,14 @@ internal class RazorFormattingService : IRazorFormattingService
     public async Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
     {
         var documentSnapshot = documentContext.Snapshot;
+
+#if !FORMAT_FUSE
+        // Formatting always uses design time document
         var generator = (IDesignTimeCodeGenerator)documentSnapshot;
         var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
+#else
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
         return await ApplyFormattedChangesAsync(
                 documentSnapshot,
@@ -135,8 +146,14 @@ internal class RazorFormattingService : IRazorFormattingService
     public async Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(DocumentContext documentContext, ImmutableArray<TextChange> htmlChanges, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
     {
         var documentSnapshot = documentContext.Snapshot;
+
+#if !FORMAT_FUSE
+        // Formatting always uses design time document
         var generator = (IDesignTimeCodeGenerator)documentSnapshot;
         var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
+#else
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
         return await ApplyFormattedChangesAsync(
                 documentSnapshot,

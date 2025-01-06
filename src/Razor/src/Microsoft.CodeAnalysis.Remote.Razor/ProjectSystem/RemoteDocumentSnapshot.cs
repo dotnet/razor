@@ -15,7 +15,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot, IDesignTimeCodeGenerator
+internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
+#if !FORMAT_FUSE
+    , IDesignTimeCodeGenerator
+#endif
 {
     public TextDocument TextDocument { get; }
     public RemoteProjectSnapshot ProjectSnapshot { get; }
@@ -89,6 +92,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot, IDesignTimeCod
             .ConfigureAwait(false);
     }
 
+#if !FORMAT_FUSE
     public async Task<RazorCodeDocument> GenerateDesignTimeOutputAsync(CancellationToken cancellationToken)
     {
         var projectEngine = await ProjectSnapshot.GetProjectEngineAsync(cancellationToken).ConfigureAwait(false);
@@ -97,6 +101,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot, IDesignTimeCod
             .GenerateDesignTimeCodeDocumentAsync(this, projectEngine, cancellationToken)
             .ConfigureAwait(false);
     }
+#endif
 
     private async Task<Document> HACK_ComputeDocumentAsync(CancellationToken cancellationToken)
     {
