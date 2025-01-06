@@ -36,12 +36,10 @@ public sealed class RazorEngine
     {
         ArgHelper.ThrowIfNull(codeDocument);
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         foreach (var phase in Phases)
         {
-            phase.Execute(codeDocument, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
+            phase.Execute(codeDocument, cancellationToken);
         }
     }
 
