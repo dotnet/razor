@@ -45,14 +45,9 @@ internal class RazorBreakpointResolver(
     private readonly MemoryCache<CacheKey, Range> _cache = new(sizeLimit: 4);
 
     public Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
-    {
-        if (_languageServerFeatureOptions.UseRazorCohostServer)
-        {
-            return TryResolveBreakpointRangeViaCohostingAsync(textBuffer, lineIndex, characterIndex, cancellationToken);
-        }
-
-        return TryResolveBreakpointRangeViaLspAsync(textBuffer, lineIndex, characterIndex, cancellationToken);
-    }
+        => _languageServerFeatureOptions.UseRazorCohostServer
+            ? TryResolveBreakpointRangeViaCohostingAsync(textBuffer, lineIndex, characterIndex, cancellationToken)
+            : TryResolveBreakpointRangeViaLspAsync(textBuffer, lineIndex, characterIndex, cancellationToken);
 
     private async Task<Range?> TryResolveBreakpointRangeViaCohostingAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
     {
@@ -62,7 +57,7 @@ internal class RazorBreakpointResolver(
             return null;
         }
 
-        if (razorDocument!.TryGetTextVersion(out var version))
+        if (razorDocument.TryGetTextVersion(out var version))
         {
             version = await razorDocument.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -76,12 +71,12 @@ internal class RazorBreakpointResolver(
         }
 
         var response = await _remoteServiceInvoker
-           .TryInvokeAsync<IRemoteDebugInfoService, LinePositionSpan?>(
-               razorDocument.Project.Solution,
-               (service, solutionInfo, cancellationToken) =>
-                   service.ResolveBreakpointRangeAsync(solutionInfo, razorDocument.Id, new(lineIndex, characterIndex), cancellationToken),
-               cancellationToken)
-           .ConfigureAwait(false);
+            .TryInvokeAsync<IRemoteDebugInfoService, LinePositionSpan?>(
+                razorDocument.Project.Solution,
+                (service, solutionInfo, cancellationToken) =>
+                    service.ResolveBreakpointRangeAsync(solutionInfo, razorDocument.Id, new(lineIndex, characterIndex), cancellationToken),
+                cancellationToken)
+            .ConfigureAwait(false);
 
         if (response is not { } responseSpan)
         {

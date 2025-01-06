@@ -43,15 +43,9 @@ internal class RazorProximityExpressionResolver(
     private readonly MemoryCache<CacheKey, IReadOnlyList<string>> _cache = new(sizeLimit: 10);
 
     public Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
-    {
-        if (_languageServerFeatureOptions.UseRazorCohostServer)
-        {
-            return TryResolveProximityExpressionsViaCohostingAsync(textBuffer, lineIndex, characterIndex, cancellationToken);
-        }
-
-        return TryResolveProximityExpressionsViaLspAsync(textBuffer, lineIndex, characterIndex, cancellationToken);
-
-    }
+        => _languageServerFeatureOptions.UseRazorCohostServer
+            ? TryResolveProximityExpressionsViaCohostingAsync(textBuffer, lineIndex, characterIndex, cancellationToken)
+            : TryResolveProximityExpressionsViaLspAsync(textBuffer, lineIndex, characterIndex, cancellationToken);
 
     private async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsViaCohostingAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
     {
@@ -61,7 +55,7 @@ internal class RazorProximityExpressionResolver(
             return null;
         }
 
-        if (razorDocument!.TryGetTextVersion(out var version))
+        if (razorDocument.TryGetTextVersion(out var version))
         {
             version = await razorDocument.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -75,12 +69,12 @@ internal class RazorProximityExpressionResolver(
         }
 
         var response = await _remoteServiceInvoker
-           .TryInvokeAsync<IRemoteDebugInfoService, string[]?>(
-               razorDocument.Project.Solution,
-               (service, solutionInfo, cancellationToken) =>
-                   service.ResolveProximityExpressionsAsync(solutionInfo, razorDocument.Id, new(lineIndex, characterIndex), cancellationToken),
-               cancellationToken)
-           .ConfigureAwait(false);
+            .TryInvokeAsync<IRemoteDebugInfoService, string[]?>(
+                razorDocument.Project.Solution,
+                (service, solutionInfo, cancellationToken) =>
+                    service.ResolveProximityExpressionsAsync(solutionInfo, razorDocument.Id, new(lineIndex, characterIndex), cancellationToken),
+                cancellationToken)
+            .ConfigureAwait(false);
 
         if (response is null)
         {
