@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting.New;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal sealed class HtmlFormattingPass(ILoggerFactory loggerFactory) : IFormattingPass
 {

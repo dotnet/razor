@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting.New;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 using SyntaxToken = AspNetCore.Razor.Language.Syntax.SyntaxToken;
