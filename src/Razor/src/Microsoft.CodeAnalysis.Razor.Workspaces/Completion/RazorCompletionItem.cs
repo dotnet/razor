@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
@@ -12,6 +11,19 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
 {
+    public RazorCompletionItemKind Kind { get; }
+    public string DisplayText { get; }
+    public string InsertText { get; }
+
+    /// <summary>
+    /// A string that is used to alphabetically sort the completion item.
+    /// </summary>
+    public string SortText { get; }
+
+    public object? DescriptionInfo { get; }
+    public ImmutableArray<RazorCommitCharacter> CommitCharacters { get; }
+    public bool IsSnippet { get; }
+
     /// <summary>
     /// Creates a new Razor completion item
     /// </summary>
@@ -44,47 +56,21 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
         IsSnippet = isSnippet;
     }
 
-    public string DisplayText { get; }
-
-    public string InsertText { get; }
-
-    public bool IsSnippet { get; }
-
-    /// <summary>
-    /// A string that is used to alphabetically sort the completion item.
-    /// </summary>
-    public string SortText { get; }
-
-    public RazorCompletionItemKind Kind { get; }
-
-    public ImmutableArray<RazorCommitCharacter> CommitCharacters { get; }
-
-    public object? DescriptionInfo { get; }
-
     public override bool Equals(object? obj)
         => Equals(obj as RazorCompletionItem);
 
     public bool Equals(RazorCompletionItem? other)
     {
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
         return other is not null &&
                DisplayText == other.DisplayText &&
                InsertText == other.InsertText &&
                Kind == other.Kind &&
-               BothNullOrEqual(CommitCharacters, other.CommitCharacters);
-
-        static bool BothNullOrEqual<T>(IEnumerable<T>? first, IEnumerable<T>? second)
-        {
-            if (first is null)
-            {
-                return second is null;
-            }
-            else if (second is null)
-            {
-                return false;
-            }
-
-            return first.SequenceEqual(second);
-        }
+               CommitCharacters.SequenceEqual(other.CommitCharacters);
     }
 
     public override int GetHashCode()
