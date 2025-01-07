@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.Razor.Formatting.CSharpFormattingPassBase;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting.New;
 

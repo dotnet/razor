@@ -112,7 +112,7 @@ internal class RazorFormattingService : IRazorFormattingService
 
         var filteredChanges = range is not { } linePositionSpan
             ? result
-            : result.Where(e => linePositionSpan.LineOverlapsWith(sourceText.GetLinePositionSpan(e.Span))).ToImmutableArray();
+            : [.. result.Where(e => linePositionSpan.LineOverlapsWith(sourceText.GetLinePositionSpan(e.Span)))];
 
         var normalizedChanges = NormalizeLineEndings(originalText, filteredChanges);
         return originalText.MinimizeTextChanges(normalizedChanges);
@@ -245,7 +245,7 @@ internal class RazorFormattingService : IRazorFormattingService
         };
     }
 
-    private async Task<ImmutableArray<TextChange>> ApplyFormattedChangesAsync(
+    private static async Task<ImmutableArray<TextChange>> ApplyFormattedChangesAsync(
         IDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument,
         ImmutableArray<TextChange> generatedDocumentChanges,

@@ -95,7 +95,7 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
         if (node is CSharpCodeBlockSyntax directiveCode &&
             directiveCode.Children is [RazorDirectiveSyntax directive, ..] &&
             directive.DirectiveDescriptor?.Directive == SectionDirective.Directive.Directive &&
-            directive.Body is RazorDirectiveBodySyntax { CSharpCode: { Children: var children } })
+            directive.Body is RazorDirectiveBodySyntax { CSharpCode.Children: var children })
         {
             if (TryGetWhitespace(children, out var whitespaceBeforeSectionName, out var whitespaceAfterSectionName))
             {
@@ -427,86 +427,6 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
             var hasBeenModified = changes.Any(e => e.Span.End == endIndex);
 
             return hasBeenModified;
-        }
-
-        static int GetAdditionalIndentationLevel(FormattingContext context, LinePositionSpan range, RazorSyntaxNode openBraceNode, RazorSyntaxNode codeNode)
-        {
-            if (!context.TryGetIndentationLevel(codeNode.Position, out var desiredIndentationLevel))
-            {
-                // If for some reason we don't match a particular span use the indentation for the whole line
-                var indentations = context.GetIndentations();
-                var indentation = indentations[range.Start.Line];
-                desiredIndentationLevel = indentation.HtmlIndentationLevel + indentation.RazorIndentationLevel;
-            }
-
-            var desiredIndentationOffset = context.GetIndentationOffsetForLevel(desiredIndentationLevel);
-            var currentIndentationOffset = GetTrailingWhitespaceLength(openBraceNode, context) + GetLeadingWhitespaceLength(codeNode, context);
-
-            return desiredIndentationOffset - currentIndentationOffset;
-
-            static int GetLeadingWhitespaceLength(RazorSyntaxNode node, FormattingContext context)
-            {
-                var tokens = node.GetTokens();
-                var whitespaceLength = 0;
-
-                foreach (var token in tokens)
-                {
-                    if (token.IsWhitespace())
-                    {
-                        if (token.Kind == SyntaxKind.NewLine)
-                        {
-                            // We need to reset when we move to a new line.
-                            whitespaceLength = 0;
-                        }
-                        else if (token.IsSpace())
-                        {
-                            whitespaceLength++;
-                        }
-                        else if (token.IsTab())
-                        {
-                            whitespaceLength += (int)context.Options.TabSize;
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                return whitespaceLength;
-            }
-
-            static int GetTrailingWhitespaceLength(RazorSyntaxNode node, FormattingContext context)
-            {
-                var tokens = node.GetTokens();
-                var whitespaceLength = 0;
-
-                for (var i = tokens.Count - 1; i >= 0; i--)
-                {
-                    var token = tokens[i];
-                    if (token.IsWhitespace())
-                    {
-                        if (token.Kind == SyntaxKind.NewLine)
-                        {
-                            whitespaceLength = 0;
-                        }
-                        else if (token.IsSpace())
-                        {
-                            whitespaceLength++;
-                        }
-                        else if (token.IsTab())
-                        {
-                            whitespaceLength += (int)context.Options.TabSize;
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                return whitespaceLength;
-            }
         }
     }
 
