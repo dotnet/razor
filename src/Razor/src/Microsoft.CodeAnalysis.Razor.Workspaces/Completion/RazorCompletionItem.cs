@@ -69,6 +69,11 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
         ImmutableArray<RazorCommitCharacter> commitCharacters)
         => new(displayText, insertText, RazorCompletionItemKind.DirectiveAttribute, description, sortText: null, commitCharacters, isSnippet: false);
 
+    public static RazorCompletionItem CreateDirectiveAttributeParameter(
+        string displayText, string insertText,
+        AggregateBoundAttributeDescription description)
+        => new(displayText, insertText, RazorCompletionItemKind.DirectiveAttributeParameter, description, sortText: null, commitCharacters: [], isSnippet: false);
+
     public static RazorCompletionItem CreateMarkupTransition(
         string displayText, string insertText,
         MarkupTransitionCompletionDescription description,

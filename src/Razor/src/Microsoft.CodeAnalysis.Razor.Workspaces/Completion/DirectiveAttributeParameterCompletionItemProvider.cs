@@ -114,20 +114,19 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
 
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
 
-        foreach (var completion in attributeCompletions)
+        foreach (var (displayText, value) in attributeCompletions)
         {
-            if (string.Equals(completion.Key, parameterName, StringComparison.Ordinal))
+            if (string.Equals(displayText, parameterName, StringComparison.Ordinal))
             {
                 // This completion is identical to the selected parameter, don't provide for completions for what's already
                 // present in the document.
                 continue;
             }
 
-            var razorCompletionItem = new RazorCompletionItem(
-                completion.Key,
-                completion.Key,
-                RazorCompletionItemKind.DirectiveAttributeParameter,
-                descriptionInfo: new AggregateBoundAttributeDescription([.. completion.Value]));
+            var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(
+                displayText: displayText,
+                insertText: displayText,
+                description: new([.. value]));
 
             completionItems.Add(razorCompletionItem);
         }
