@@ -190,12 +190,11 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
 
             var attributeDescriptions = boundAttributes.SelectAsArray(boundAttribute => BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer));
 
-            var razorCompletionItem = new RazorCompletionItem(
+            var razorCompletionItem = RazorCompletionItem.CreateTagHelperAttribute(
                 displayText: displayText,
                 insertText: insertText,
                 sortText: sortText,
-                kind: RazorCompletionItemKind.TagHelperAttribute,
-                descriptionInfo: new AggregateBoundAttributeDescription(attributeDescriptions),
+                description: new(attributeDescriptions),
                 commitCharacters: attributeCommitCharacters,
                 isSnippet: isSnippet);
 

@@ -86,6 +86,12 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
         ImmutableArray<RazorCommitCharacter> commitCharacters)
         => new(displayText, insertText, RazorCompletionItemKind.TagHelperElement, description, sortText: null, commitCharacters, isSnippet: false);
 
+    public static RazorCompletionItem CreateTagHelperAttribute(
+        string displayText, string insertText, string? sortText,
+        AggregateBoundAttributeDescription description,
+        ImmutableArray<RazorCommitCharacter> commitCharacters, bool isSnippet)
+        => new(displayText, insertText, RazorCompletionItemKind.TagHelperAttribute, description, sortText, commitCharacters, isSnippet);
+
     public override bool Equals(object? obj)
         => Equals(obj as RazorCompletionItem);
 

@@ -173,7 +173,14 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperAttribute, _attributeDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateTagHelperAttribute(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            sortText: null,
+            _attributeDescription,
+            commitCharacters: [],
+            isSnippet: false);
+
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -251,7 +258,14 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperAttribute, _attributeDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateTagHelperAttribute(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            sortText: null,
+            _attributeDescription,
+            commitCharacters: [],
+            isSnippet: false);
+
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 

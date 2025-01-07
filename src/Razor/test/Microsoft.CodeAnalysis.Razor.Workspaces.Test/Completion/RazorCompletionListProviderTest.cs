@@ -299,7 +299,13 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             new BoundAttributeDescriptionInfo("System.Boolean", "Stuff", "format", "SomeDocs")
         ]);
 
-        var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperAttribute, attributeCompletionDescription);
+        var completionItem = RazorCompletionItem.CreateTagHelperAttribute(
+            displayText: "format",
+            insertText: "format",
+            sortText: null,
+            description: attributeCompletionDescription,
+            commitCharacters: [],
+            isSnippet: false);
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -320,7 +326,13 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_TagHelperAttribute_ForHtml_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, AggregateBoundAttributeDescription.Empty, isSnippet: true);
+        var completionItem = RazorCompletionItem.CreateTagHelperAttribute(
+            displayText: "format",
+            insertText: "format=\"$0\"",
+            sortText: null,
+            description: AggregateBoundAttributeDescription.Empty,
+            commitCharacters: [],
+            isSnippet: true);
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -341,7 +353,13 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_TagHelperAttribute_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
+        var completionItem = RazorCompletionItem.CreateTagHelperAttribute(
+            displayText: "format",
+            insertText: "format=\"$0\"",
+            sortText: null,
+            description: null!,
+            commitCharacters: [],
+            isSnippet: true);
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
