@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
@@ -16,26 +17,20 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 public class DirectiveCompletionItemProviderTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private static readonly Action<RazorCompletionItem>[] s_mvcDirectiveCollectionVerifiers;
-    private static readonly Action<RazorCompletionItem>[] s_componentDirectiveCollectionVerifiers;
+    private static readonly Action<RazorCompletionItem>[] s_mvcDirectiveCollectionVerifiers = GetDirectiveVerifies(DirectiveCompletionItemProvider.MvcDefaultDirectives);
+    private static readonly Action<RazorCompletionItem>[] s_componentDirectiveCollectionVerifiers = GetDirectiveVerifies(DirectiveCompletionItemProvider.ComponentDefaultDirectives);
 
-    static DirectiveCompletionItemProviderTest()
+    private static Action<RazorCompletionItem>[] GetDirectiveVerifies(ImmutableArray<DirectiveDescriptor> directiveDescriptors)
     {
-        s_mvcDirectiveCollectionVerifiers = GetDirectiveVerifies(DirectiveCompletionItemProvider.MvcDefaultDirectives);
-        s_componentDirectiveCollectionVerifiers = GetDirectiveVerifies(DirectiveCompletionItemProvider.ComponentDefaultDirectives);
-    }
-
-    private static Action<RazorCompletionItem>[] GetDirectiveVerifies(IEnumerable<DirectiveDescriptor> directiveDescriptors)
-    {
-        var directiveList = new List<Action<RazorCompletionItem>>(directiveDescriptors.Count() * 2);
+        using var builder = new PooledArrayBuilder<Action<RazorCompletionItem>>(directiveDescriptors.Length * 2);
 
         foreach (var directive in directiveDescriptors)
         {
-            directiveList.Add(item => AssertRazorCompletionItem(directive, item, isSnippet: false));
-            directiveList.Add(item => AssertRazorCompletionItem(directive, item, isSnippet: true));
+            builder.Add(item => AssertRazorCompletionItem(directive, item, isSnippet: false));
+            builder.Add(item => AssertRazorCompletionItem(directive, item, isSnippet: true));
         }
 
-        return directiveList.ToArray();
+        return builder.ToArray();
     }
 
     [Fact]

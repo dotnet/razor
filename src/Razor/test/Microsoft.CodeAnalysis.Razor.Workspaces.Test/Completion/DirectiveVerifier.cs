@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 
@@ -17,7 +16,7 @@ internal static class DirectiveVerifier
 
     static DirectiveVerifier()
     {
-        var defaultDirectiveVerifierList = new List<Action<CompletionItem>>(DirectiveCompletionItemProvider.MvcDefaultDirectives.Count() * 2);
+        var defaultDirectiveVerifierList = new List<Action<CompletionItem>>(DirectiveCompletionItemProvider.MvcDefaultDirectives.Length * 2);
 
         foreach (var directive in DirectiveCompletionItemProvider.MvcDefaultDirectives)
         {

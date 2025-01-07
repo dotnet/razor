@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -133,10 +131,9 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             isSnippet: false);
 
         // Act
-        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
 
         // Assert
-        Assert.True(result);
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal(completionItem.InsertText, converted.InsertText);
         Assert.Equal(completionItem.DisplayText, converted.FilterText);
@@ -181,10 +178,9 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
 
         // Act
-        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
 
         // Assert
-        Assert.True(result);
         Assert.False(converted.Preselect);
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal(completionItem.InsertText, converted.InsertText);
@@ -202,10 +198,9 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
 
         // Act
-        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
 
         // Assert
-        Assert.True(result);
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal(completionItem.InsertText, converted.InsertText);
         Assert.Equal(completionItem.DisplayText, converted.FilterText);
@@ -237,10 +232,9 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             commitCharacters: RazorCommitCharacter.CreateArray(["=", ":"]));
 
         // Act
-        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
 
         // Assert
-        Assert.True(result);
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal(completionItem.InsertText, converted.InsertText);
         Assert.Equal(completionItem.InsertText, converted.FilterText);
@@ -258,10 +252,9 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var completionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(displayText: "format", insertText: "format", descriptionInfo: null!);
 
         // Act
-        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
 
         // Assert
-        Assert.True(result);
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal(completionItem.InsertText, converted.InsertText);
         Assert.Equal(completionItem.InsertText, converted.FilterText);
@@ -278,10 +271,9 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var completionItem = RazorCompletionItem.CreateTagHelperElement(displayText: "format", insertText: "format", descriptionInfo: null!, commitCharacters: []);
 
         // Act
-        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
 
         // Assert
-        Assert.True(result);
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal(completionItem.InsertText, converted.InsertText);
         Assert.Equal(completionItem.InsertText, converted.FilterText);
@@ -308,10 +300,9 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             isSnippet: false);
 
         // Act
-        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
 
         // Assert
-        Assert.True(result);
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal("format", converted.InsertText);
         Assert.Equal(InsertTextFormat.Plaintext, converted.InsertTextFormat);
@@ -335,10 +326,9 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             isSnippet: true);
 
         // Act
-        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
 
         // Assert
-        Assert.True(result);
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal("format=\"$0\"", converted.InsertText);
         Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
@@ -362,10 +352,9 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             isSnippet: true);
 
         // Act
-        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
 
         // Assert
-        Assert.True(result);
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal("format=\"$0\"", converted.InsertText);
         Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
@@ -401,6 +390,8 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Assert
 
+        Assert.NotNull(completionList);
+
         // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
         Assert.Collection(completionList.Items,
             DirectiveVerifier.DefaultDirectiveCollectionVerifiers
@@ -426,6 +417,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
+        Assert.NotNull(completionList);
 
         // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
         Assert.Contains(completionList.Items, item => item.InsertText == "addTagHelper");
@@ -458,6 +450,8 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
+        Assert.NotNull(completionList);
+
         Assert.Collection(completionList.Items,
             DirectiveVerifier.DefaultDirectiveCollectionVerifiers
         );
@@ -487,6 +481,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
+        Assert.NotNull(completionList);
         Assert.Empty(completionList.Items);
     }
 
@@ -515,6 +510,8 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
+        Assert.NotNull(completionList);
+
         Assert.Collection(completionList.Items,
             DirectiveVerifier.DefaultDirectiveCollectionVerifiers
         );
@@ -541,6 +538,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             absoluteIndex: 1, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
+        Assert.NotNull(completionList);
         Assert.Contains(completionList.Items, item => item.InsertText == "Test");
     }
 
@@ -571,6 +569,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             absoluteIndex: 6, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions, DisposalToken);
 
         // Assert
+        Assert.NotNull(completionList);
         Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=\"$0\"");
     }
 
@@ -605,6 +604,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             absoluteIndex: 6, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, razorCompletionOptions, DisposalToken);
 
         // Assert
+        Assert.NotNull(completionList);
         Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=$0");
     }
 
