@@ -56,6 +56,13 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
         IsSnippet = isSnippet;
     }
 
+    public static RazorCompletionItem CreateMarkupTransition(
+        string displayText,
+        string insertText,
+        MarkupTransitionCompletionDescription description,
+        ImmutableArray<RazorCommitCharacter> commitCharacters)
+        => new(displayText, insertText, RazorCompletionItemKind.MarkupTransition, description, sortText: null, commitCharacters);
+
     public override bool Equals(object? obj)
         => Equals(obj as RazorCompletionItem);
 

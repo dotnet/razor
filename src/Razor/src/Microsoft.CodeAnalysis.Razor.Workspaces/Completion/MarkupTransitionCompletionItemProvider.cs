@@ -13,19 +13,17 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProvider
 {
-    private static readonly ImmutableArray<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.CreateArray([">"]);
-
     private static RazorCompletionItem? s_markupTransitionCompletionItem;
+
     public static RazorCompletionItem MarkupTransitionCompletionItem
     {
         get
         {
-            return s_markupTransitionCompletionItem ??= new RazorCompletionItem(
+            return s_markupTransitionCompletionItem ??= RazorCompletionItem.CreateMarkupTransition(
                 displayText: SyntaxConstants.TextTagName,
                 insertText: SyntaxConstants.TextTagName,
-                RazorCompletionItemKind.MarkupTransition,
-                descriptionInfo: new MarkupTransitionCompletionDescription(CodeAnalysisResources.MarkupTransition_Description),
-                commitCharacters: s_elementCommitCharacters);
+                description: new(CodeAnalysisResources.MarkupTransition_Description),
+                commitCharacters: RazorCommitCharacter.CreateArray([">"]));
         }
     }
 

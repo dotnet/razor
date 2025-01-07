@@ -85,7 +85,8 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("@...", "@", RazorCompletionItemKind.MarkupTransition, new MarkupTransitionCompletionDescription("Test description"));
+        var descriptionText = "Test description";
+        var razorCompletionItem = RazorCompletionItem.CreateMarkupTransition("@...", "@", new MarkupTransitionCompletionDescription(descriptionText), commitCharacters: []);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -94,7 +95,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
             completionItem, completionList, CreateCompletionResolveContext(razorCompletionItem), _defaultClientCapability, _solutionQueryOperations, DisposalToken);
 
         // Assert
-        Assert.NotNull(resolvedCompletionItem.Documentation);
+        Assert.Equal(descriptionText, resolvedCompletionItem.Documentation);
     }
 
     [Fact]
