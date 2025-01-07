@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal class RazorFormattingService : IRazorFormattingService
 {
-    public static bool UseOldFormattingEngine = false;
-
     public static readonly string FirstTriggerCharacter = "}";
     public static readonly ImmutableArray<string> MoreTriggerCharacters = [";", "\n", "{"];
     public static readonly FrozenSet<string> AllTriggerCharacterSet = FrozenSet.ToFrozenSet([FirstTriggerCharacter, .. MoreTriggerCharacters], StringComparer.Ordinal);
@@ -49,26 +47,13 @@ internal class RazorFormattingService : IRazorFormattingService
             new FormattingDiagnosticValidationPass(loggerFactory),
             new FormattingContentValidationPass(loggerFactory)
         ];
-        if (UseOldFormattingEngine)
-        {
-            _documentFormattingPasses =
-            [
-                new HtmlFormattingPass(loggerFactory),
-                new RazorFormattingPass(loggerFactory),
-                new CSharpFormattingPass(documentMappingService, hostServicesProvider, loggerFactory),
-                .. _validationPasses
-            ];
-        }
-        else
-        {
-            _documentFormattingPasses =
-            [
-                new New.HtmlFormattingPass(loggerFactory),
-                new RazorFormattingPass(loggerFactory),
-                new New.CSharpFormattingPass(hostServicesProvider, loggerFactory),
-            .. _validationPasses
-            ];
-        }
+        _documentFormattingPasses =
+        [
+            new New.HtmlFormattingPass(loggerFactory),
+            new RazorFormattingPass(loggerFactory),
+            new New.CSharpFormattingPass(hostServicesProvider, loggerFactory),
+        .. _validationPasses
+        ];
     }
 
     public async Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(

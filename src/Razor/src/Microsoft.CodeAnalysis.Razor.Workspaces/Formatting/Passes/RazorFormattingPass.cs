@@ -97,29 +97,6 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
             directive.DirectiveDescriptor?.Directive == SectionDirective.Directive.Directive &&
             directive.Body is RazorDirectiveBodySyntax { CSharpCode: { Children: var children } })
         {
-            // This doesn't cause any harm with the new engine, but its a waste of effort.
-            if (RazorFormattingService.UseOldFormattingEngine)
-            {
-                // Section directives are really annoying in their implementation, and we have some code in the C# formatting pass
-                // to work around those annoyances, but if the section content has no C# mappings then that code won't get hit.
-                // Fortunately for a Html-only section block, the indentation is entirely handled by the Html formatter, and we
-                // just need to push it out one level, because the Html formatter will have pushed it back to position 0.
-                if (children is [.., MarkupBlockSyntax block, RazorMetaCodeSyntax /* close brace */] &&
-                    !context.CodeDocument.GetCSharpDocument().SourceMappings.Any(m => block.Span.Contains(m.OriginalSpan.AbsoluteIndex)))
-                {
-                    // The Html formatter will have "collapsed" the @section block contents to 0 indent, so we push it back out
-                    // again because we're opinionated about section blocks
-                    var indentationString = context.GetIndentationLevelString(1);
-                    var sourceText = context.CodeDocument.Source.Text;
-                    var span = sourceText.GetLinePositionSpan(block.Span);
-                    // The block starts with the newline after the open brace, so we start from the next line
-                    for (var i = span.Start.Line + 1; i < span.End.Line; i++)
-                    {
-                        changes.Add(new TextChange(new TextSpan(sourceText.Lines[i].Start, 0), indentationString));
-                    }
-                }
-            }
-
             if (TryGetWhitespace(children, out var whitespaceBeforeSectionName, out var whitespaceAfterSectionName))
             {
                 // For whitespace we normalize it differently depending on if its multi-line or not
@@ -392,39 +369,23 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
         }
 
         var additionalIndentation = "";
-        if (!RazorFormattingService.UseOldFormattingEngine)
+        // It's important with the new formatting engine that we maintain the indentation that the Html formatter would have applied,
+        // if the Razor formatting pass had happened first. This is only applicable inside an element, as that is the only place that
+        // the Html formatter will do anything.
+        // TODO: Rather than ascend up the tree, this could be smarter as this class already descends down the tree
+        if (openBraceNode.AncestorsAndSelf().Any(n => n is MarkupTagHelperElementSyntax or MarkupElementSyntax))
         {
-            // It's important with the new formatting engine that we maintain the indentation that the Html formatter would have applied,
-            // if the Razor formatting pass had happened first. This is only applicable inside an element, as that is the only place that
-            // the Html formatter will do anything.
-            // TODO: Rather than ascend up the tree, this could be smarter as this class already descends down the tree
-            if (openBraceNode.AncestorsAndSelf().Any(n => n is MarkupTagHelperElementSyntax or MarkupElementSyntax))
-            {
-                var openBraceLineNumber = openBraceNode.GetLinePositionSpan(source).Start.Line;
-                var openBraceLine = source.Text.Lines[openBraceLineNumber];
-                Debug.Assert(openBraceLine.GetFirstNonWhitespacePosition().HasValue);
-                additionalIndentation = source.Text.GetSubTextString(TextSpan.FromBounds(openBraceLine.Start, openBraceLine.GetFirstNonWhitespacePosition().GetValueOrDefault()));
-            }
+            var openBraceLineNumber = openBraceNode.GetLinePositionSpan(source).Start.Line;
+            var openBraceLine = source.Text.Lines[openBraceLineNumber];
+            Debug.Assert(openBraceLine.GetFirstNonWhitespacePosition().HasValue);
+            additionalIndentation = source.Text.GetSubTextString(TextSpan.FromBounds(openBraceLine.Start, openBraceLine.GetFirstNonWhitespacePosition().GetValueOrDefault()));
         }
 
         if (openBraceNode.TryGetLinePositionSpanWithoutWhitespace(source, out var openBraceRange) &&
             openBraceRange.End.Line == codeRange.Start.Line &&
             !RangeHasBeenModified(ref changes, source.Text, codeRange))
         {
-            var end = codeRange.Start;
-            if (RazorFormattingService.UseOldFormattingEngine)
-            {
-                // This logic is harmful in the new formatting engine, because it is interpreted as being the result of the Html formatter
-                end = openBraceRange.End;
-                var additionalIndentationLevel = GetAdditionalIndentationLevel(context, openBraceRange, openBraceNode, codeNode);
-                if (additionalIndentationLevel > 0)
-                {
-                    additionalIndentation = FormattingUtilities.GetIndentationString(additionalIndentationLevel, context.Options.InsertSpaces, context.Options.TabSize);
-                }
-            }
-
-            var newText = context.NewLineString + additionalIndentation;
-            changes.Add(new TextChange(source.Text.GetTextSpan(openBraceRange.End, end), newText));
+            changes.Add(new TextChange(source.Text.GetTextSpan(openBraceRange.End, codeRange.Start), context.NewLineString + additionalIndentation));
             didFormat = true;
         }
 
@@ -451,10 +412,7 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
                 // In the new formatter, we have to make sure there is no extra whitespace on the new line, or it will be
                 // kept when recording Html indentation. This probably wouldn't be an issue in the old engine, but I'm being
                 // cautious.
-                var start = RazorFormattingService.UseOldFormattingEngine
-                    ? codeRange.End
-                    : closeBraceRange.Start;
-                changes.Add(new TextChange(source.Text.GetTextSpan(codeRange.End, start), context.NewLineString + additionalIndentation));
+                changes.Add(new TextChange(source.Text.GetTextSpan(codeRange.End, closeBraceRange.Start), context.NewLineString + additionalIndentation));
                 didFormat = true;
             }
         }
