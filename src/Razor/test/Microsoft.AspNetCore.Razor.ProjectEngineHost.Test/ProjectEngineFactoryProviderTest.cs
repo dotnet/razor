@@ -4,10 +4,9 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
@@ -22,12 +21,12 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 public class ProjectEngineFactoryProviderTest : ToolingTestBase
 {
     private readonly ImmutableArray<IProjectEngineFactory> _customFactories;
-    private readonly IProjectSnapshot _snapshot_For_1_0;
-    private readonly IProjectSnapshot _snapshot_For_1_1;
-    private readonly IProjectSnapshot _snapshot_For_2_0;
-    private readonly IProjectSnapshot _snapshot_For_2_1;
-    private readonly IProjectSnapshot _snapshot_For_3_0;
-    private readonly IProjectSnapshot _snapshot_For_UnknownConfiguration;
+    private readonly ProjectSnapshot _snapshot_For_1_0;
+    private readonly ProjectSnapshot _snapshot_For_1_1;
+    private readonly ProjectSnapshot _snapshot_For_2_0;
+    private readonly ProjectSnapshot _snapshot_For_2_1;
+    private readonly ProjectSnapshot _snapshot_For_3_0;
+    private readonly ProjectSnapshot _snapshot_For_UnknownConfiguration;
 
     public ProjectEngineFactoryProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -50,12 +49,12 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
             projectFilePath, intermediateOutputPath,
             new(RazorLanguageVersion.Version_2_1, "Random-0.1", Extensions: []), rootNamespace: null);
 
-        _snapshot_For_1_0 = new ProjectSnapshot(ProjectState.Create(ProjectEngineFactories.DefaultProvider, TestLanguageServerFeatureOptions.Instance, hostProject_For_1_0, ProjectWorkspaceState.Default));
-        _snapshot_For_1_1 = new ProjectSnapshot(ProjectState.Create(ProjectEngineFactories.DefaultProvider, TestLanguageServerFeatureOptions.Instance, hostProject_For_1_1, ProjectWorkspaceState.Default));
-        _snapshot_For_2_0 = new ProjectSnapshot(ProjectState.Create(ProjectEngineFactories.DefaultProvider, TestLanguageServerFeatureOptions.Instance, hostProject_For_2_0, ProjectWorkspaceState.Default));
-        _snapshot_For_2_1 = new ProjectSnapshot(ProjectState.Create(ProjectEngineFactories.DefaultProvider, TestLanguageServerFeatureOptions.Instance, hostProject_For_2_1, ProjectWorkspaceState.Default));
-        _snapshot_For_3_0 = new ProjectSnapshot(ProjectState.Create(ProjectEngineFactories.DefaultProvider, TestLanguageServerFeatureOptions.Instance, hostProject_For_3_0, ProjectWorkspaceState.Default));
-        _snapshot_For_UnknownConfiguration = new ProjectSnapshot(ProjectState.Create(ProjectEngineFactories.DefaultProvider, TestLanguageServerFeatureOptions.Instance, hostProject_For_UnknownConfiguration, ProjectWorkspaceState.Default));
+        _snapshot_For_1_0 = new ProjectSnapshot(ProjectState.Create(hostProject_For_1_0, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_1_1 = new ProjectSnapshot(ProjectState.Create(hostProject_For_1_1, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_2_0 = new ProjectSnapshot(ProjectState.Create(hostProject_For_2_0, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_2_1 = new ProjectSnapshot(ProjectState.Create(hostProject_For_2_1, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_3_0 = new ProjectSnapshot(ProjectState.Create(hostProject_For_3_0, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
+        _snapshot_For_UnknownConfiguration = new ProjectSnapshot(ProjectState.Create(hostProject_For_UnknownConfiguration, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider));
 
         _customFactories =
         [
@@ -77,7 +76,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -96,7 +98,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -117,7 +122,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -136,7 +144,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -155,7 +166,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
@@ -182,7 +196,10 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
 
         // Act
         var factory = provider.GetFactory(snapshot.Configuration);
-        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var engine = factory.Create(
+            snapshot.Configuration,
+            RazorProjectFileSystem.Create(Path.GetDirectoryName(snapshot.FilePath)),
+            b => b.Features.Add(new MyCoolNewFeature()));
 
         // Assert
         Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());

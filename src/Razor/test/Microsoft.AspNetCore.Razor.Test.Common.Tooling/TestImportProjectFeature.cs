@@ -10,12 +10,11 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 public class TestImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
 {
+    public static IImportProjectFeature Instance { get; } = new TestImportProjectFeature();
+
     public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
     {
-        if (projectItem is null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+        ArgHelper.ThrowIfNull(projectItem);
 
         var imports = new List<RazorProjectItem>();
         AddHierarchicalImports(projectItem, imports);

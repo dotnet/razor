@@ -8,7 +8,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.Razor.Documents;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor;
@@ -94,7 +94,7 @@ internal sealed class ImportDocumentManager(IFileChangeTrackerFactory fileChange
         }
     }
 
-    private static IEnumerable<RazorProjectItem> GetPhysicalImportItems(string filePath, IProjectSnapshot projectSnapshot)
+    private static IEnumerable<RazorProjectItem> GetPhysicalImportItems(string filePath, ILegacyProjectSnapshot projectSnapshot)
     {
         var projectEngine = projectSnapshot.GetProjectEngine();
         var documentSnapshot = projectSnapshot.GetDocument(filePath);
