@@ -20,6 +20,8 @@ internal class LspServices : ILspServices
     {
         serviceCollection.AddSingleton<ILspServices>(this);
         _serviceProvider = serviceCollection.BuildServiceProvider();
+        // Create all startup services
+        _serviceProvider.GetServices<IRazorStartupService>();
     }
 
     public ImmutableArray<Type> GetRegisteredServices()
