@@ -126,7 +126,7 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
             var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(
                 displayText: displayText,
                 insertText: displayText,
-                description: new([.. value]));
+                descriptionInfo: new([.. value]));
 
             completionItems.Add(razorCompletionItem);
         }

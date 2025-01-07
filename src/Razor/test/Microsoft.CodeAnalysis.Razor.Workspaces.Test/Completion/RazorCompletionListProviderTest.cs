@@ -128,7 +128,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             displayText: "testDisplay",
             insertText: "testInsert",
             sortText: null,
-            description: new("Something"),
+            descriptionInfo: new("Something"),
             commitCharacters: [],
             isSnippet: false);
 
@@ -153,7 +153,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             displayText: "testDisplay",
             insertText: "testInsert",
             sortText: null,
-            description: new("Something"),
+            descriptionInfo: new("Something"),
             commitCharacters: [],
             isSnippet: false);
 
@@ -233,7 +233,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var completionItem = RazorCompletionItem.CreateDirectiveAttribute(
             displayText: "@testDisplay",
             insertText: "testInsert",
-            description: null!,
+            descriptionInfo: null!,
             commitCharacters: RazorCommitCharacter.CreateArray(["=", ":"]));
 
         // Act
@@ -255,7 +255,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_DirectiveAttributeParameter_ReturnsTrue()
     {
         // Arrange
-        var completionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(displayText: "format", insertText: "format", description: null!);
+        var completionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(displayText: "format", insertText: "format", descriptionInfo: null!);
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -275,7 +275,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_TagHelperElement_ReturnsTrue()
     {
         // Arrange
-        var completionItem = RazorCompletionItem.CreateTagHelperElement(displayText: "format", insertText: "format", description: null!, commitCharacters: []);
+        var completionItem = RazorCompletionItem.CreateTagHelperElement(displayText: "format", insertText: "format", descriptionInfo: null!, commitCharacters: []);
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -303,7 +303,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             displayText: "format",
             insertText: "format",
             sortText: null,
-            description: attributeCompletionDescription,
+            descriptionInfo: attributeCompletionDescription,
             commitCharacters: [],
             isSnippet: false);
 
@@ -330,7 +330,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             displayText: "format",
             insertText: "format=\"$0\"",
             sortText: null,
-            description: AggregateBoundAttributeDescription.Empty,
+            descriptionInfo: AggregateBoundAttributeDescription.Empty,
             commitCharacters: [],
             isSnippet: true);
 
@@ -357,7 +357,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             displayText: "format",
             insertText: "format=\"$0\"",
             sortText: null,
-            description: null!,
+            descriptionInfo: null!,
             commitCharacters: [],
             isSnippet: true);
 

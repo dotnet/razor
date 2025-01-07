@@ -24,7 +24,7 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
             displayText: "displayText1",
             insertText: "insertText1",
             sortText: null,
-            description: null!,
+            descriptionInfo: null!,
             commitCharacters: [],
             isSnippet: false);
 
@@ -36,7 +36,7 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
             displayText: "displayText2",
             insertText: "insertText2",
             sortText: null,
-            description: null!,
+            descriptionInfo: null!,
             commitCharacters: [],
             isSnippet: false);
 

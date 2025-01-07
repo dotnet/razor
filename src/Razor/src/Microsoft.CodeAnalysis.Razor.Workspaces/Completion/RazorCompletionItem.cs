@@ -21,76 +21,76 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
     /// </summary>
     public string SortText { get; }
 
-    public object? DescriptionInfo { get; }
+    public object DescriptionInfo { get; }
     public ImmutableArray<RazorCommitCharacter> CommitCharacters { get; }
     public bool IsSnippet { get; }
 
     /// <summary>
     /// Creates a new Razor completion item
     /// </summary>
+    /// <param name="kind">The type of completion item this is. Used for icons and resolving extra information like tooltip text.</param>
     /// <param name="displayText">The text to display in the completion list.</param>
     /// <param name="insertText">Content to insert when completion item is committed.</param>
-    /// <param name="kind">The type of completion item this is. Used for icons and resolving extra information like tooltip text.</param>
-    /// <param name="descriptionInfo">An object that provides description information for this completion item.</param>
     /// <param name="sortText">A string that is used to alphabetically sort the completion item. If omitted defaults to <paramref name="displayText"/>.</param>
+    /// <param name="descriptionInfo">An object that provides description information for this completion item.</param>
     /// <param name="commitCharacters">Characters that can be used to commit the completion item.</param>
     /// <param name="isSnippet">Indicates whether the completion item's <see cref="InsertText"/> is an LSP snippet or not.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="displayText"/> or <paramref name="insertText"/> are <see langword="null"/>.</exception>
-    public RazorCompletionItem(
+    private RazorCompletionItem(
+        RazorCompletionItemKind kind,
         string displayText,
         string insertText,
-        RazorCompletionItemKind kind,
-        object? descriptionInfo = null,
-        string? sortText = null,
-        ImmutableArray<RazorCommitCharacter> commitCharacters = default,
-        bool isSnippet = false)
+        string? sortText,
+        object descriptionInfo,
+        ImmutableArray<RazorCommitCharacter> commitCharacters,
+        bool isSnippet)
     {
         ArgHelper.ThrowIfNull(displayText);
         ArgHelper.ThrowIfNull(insertText);
 
+        Kind = kind;
         DisplayText = displayText;
         InsertText = insertText;
-        Kind = kind;
+        SortText = sortText ?? displayText;
         DescriptionInfo = descriptionInfo;
         CommitCharacters = commitCharacters.NullToEmpty();
-        SortText = sortText ?? displayText;
         IsSnippet = isSnippet;
     }
 
     public static RazorCompletionItem CreateDirective(
         string displayText, string insertText, string? sortText,
-        DirectiveCompletionDescription description,
+        DirectiveCompletionDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters, bool isSnippet)
-        => new(displayText, insertText, RazorCompletionItemKind.Directive, description, sortText, commitCharacters, isSnippet);
+        => new(RazorCompletionItemKind.Directive, displayText, insertText, sortText, descriptionInfo, commitCharacters, isSnippet);
 
     public static RazorCompletionItem CreateDirectiveAttribute(
         string displayText, string insertText,
-        AggregateBoundAttributeDescription description,
+        AggregateBoundAttributeDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters)
-        => new(displayText, insertText, RazorCompletionItemKind.DirectiveAttribute, description, sortText: null, commitCharacters, isSnippet: false);
+        => new(RazorCompletionItemKind.DirectiveAttribute, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet: false);
 
     public static RazorCompletionItem CreateDirectiveAttributeParameter(
         string displayText, string insertText,
-        AggregateBoundAttributeDescription description)
-        => new(displayText, insertText, RazorCompletionItemKind.DirectiveAttributeParameter, description, sortText: null, commitCharacters: [], isSnippet: false);
+        AggregateBoundAttributeDescription descriptionInfo)
+        => new(RazorCompletionItemKind.DirectiveAttributeParameter, displayText, insertText, sortText: null, descriptionInfo, commitCharacters: [], isSnippet: false);
 
     public static RazorCompletionItem CreateMarkupTransition(
         string displayText, string insertText,
-        MarkupTransitionCompletionDescription description,
+        MarkupTransitionCompletionDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters)
-        => new(displayText, insertText, RazorCompletionItemKind.MarkupTransition, description, sortText: null, commitCharacters, isSnippet: false);
+        => new(RazorCompletionItemKind.MarkupTransition, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet: false);
 
     public static RazorCompletionItem CreateTagHelperElement(
         string displayText, string insertText,
-        AggregateBoundElementDescription description,
+        AggregateBoundElementDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters)
-        => new(displayText, insertText, RazorCompletionItemKind.TagHelperElement, description, sortText: null, commitCharacters, isSnippet: false);
+        => new(RazorCompletionItemKind.TagHelperElement, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet: false);
 
     public static RazorCompletionItem CreateTagHelperAttribute(
         string displayText, string insertText, string? sortText,
-        AggregateBoundAttributeDescription description,
+        AggregateBoundAttributeDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters, bool isSnippet)
-        => new(displayText, insertText, RazorCompletionItemKind.TagHelperAttribute, description, sortText, commitCharacters, isSnippet);
+        => new(RazorCompletionItemKind.TagHelperAttribute, displayText, insertText, sortText, descriptionInfo, commitCharacters, isSnippet);
 
     public override bool Equals(object? obj)
         => Equals(obj as RazorCompletionItem);

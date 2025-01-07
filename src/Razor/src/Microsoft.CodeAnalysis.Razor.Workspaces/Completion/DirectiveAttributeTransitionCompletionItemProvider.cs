@@ -21,7 +21,7 @@ internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAtt
                 displayText: "@...",
                 insertText: "@",
                 sortText: null,
-                description: new(SR.Blazor_directive_attributes),
+                descriptionInfo: new(SR.Blazor_directive_attributes),
 
                 // We specify these three commit characters to work around a Visual Studio interaction where
                 // completion items that get "soft selected" will cause completion to re-trigger if a user

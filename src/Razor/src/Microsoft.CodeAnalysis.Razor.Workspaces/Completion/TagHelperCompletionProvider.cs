@@ -194,7 +194,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
                 displayText: displayText,
                 insertText: insertText,
                 sortText: sortText,
-                description: new(attributeDescriptions),
+                descriptionInfo: new(attributeDescriptions),
                 commitCharacters: attributeCommitCharacters,
                 isSnippet: isSnippet);
 
@@ -250,7 +250,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
             var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
                 displayText: displayText,
                 insertText: displayText,
-                description: new(tagHelperDescriptions),
+                descriptionInfo: new(tagHelperDescriptions),
                 commitCharacters: commitChars);
 
             completionItems.Add(razorCompletionItem);

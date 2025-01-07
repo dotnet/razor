@@ -152,7 +152,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttribute(
                 displayText,
                 insertText,
-                description: new([.. attributeDescriptionInfos]),
+                descriptionInfo: new([.. attributeDescriptionInfos]),
                 commitCharacters: razorCommitCharacters.DrainToImmutable());
 
             completionItems.Add(razorCompletionItem);

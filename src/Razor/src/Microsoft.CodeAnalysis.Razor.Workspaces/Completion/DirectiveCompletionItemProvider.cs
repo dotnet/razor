@@ -156,7 +156,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
                 // with the same display text in the combined completion list, they will be sorted below
                 // our items.
                 sortText: completionDisplayText,
-                description: new(directive.Description),
+                descriptionInfo: new(directive.Description),
                 commitCharacters,
                 isSnippet: false);
 
@@ -171,7 +171,7 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
                     insertText: snippetTexts.InsertText,
                     // Use the same sort text here as the directive completion item so both items are grouped together
                     sortText: completionDisplayText,
-                    description: new(snippetDescription),
+                    descriptionInfo: new(snippetDescription),
                     commitCharacters,
                     isSnippet: true);
 

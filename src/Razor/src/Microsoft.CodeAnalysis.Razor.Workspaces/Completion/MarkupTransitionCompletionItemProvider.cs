@@ -22,7 +22,7 @@ internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProv
             return s_markupTransitionCompletionItem ??= RazorCompletionItem.CreateMarkupTransition(
                 displayText: SyntaxConstants.TextTagName,
                 insertText: SyntaxConstants.TextTagName,
-                description: new(CodeAnalysisResources.MarkupTransition_Description),
+                descriptionInfo: new(CodeAnalysisResources.MarkupTransition_Description),
                 commitCharacters: RazorCommitCharacter.CreateArray([">"]));
         }
     }

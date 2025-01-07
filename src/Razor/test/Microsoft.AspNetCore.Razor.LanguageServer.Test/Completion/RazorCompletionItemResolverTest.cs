@@ -73,7 +73,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
             displayText: "TestItem",
             insertText: "TestItem",
             sortText: null,
-            description: new(descriptionText),
+            descriptionInfo: new(descriptionText),
             commitCharacters: [],
             isSnippet: false);
 
