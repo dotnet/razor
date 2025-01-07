@@ -98,10 +98,9 @@ public class RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput) : Wor
 
         var project = new ProjectSnapshot(ProjectState
             .Create(ProjectEngineFactoryProvider, LanguageServerFeatureOptions, hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
+            .AddDocument(hostDocument, TestMocks.CreateTextLoader(sourceText)));
 
-        var documentSnapshot = project.GetDocument(hostDocument.FilePath);
-        Assert.NotNull(documentSnapshot);
+        var document = project.GetRequiredDocument(hostDocument.FilePath);
 
         var solution = Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
             ProjectId.CreateNewId(Path.GetFileNameWithoutExtension(hostDocument.FilePath)),
@@ -114,9 +113,8 @@ public class RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput) : Wor
         solution = solution.AddDocument(
             DocumentId.CreateNewId(solution.ProjectIds.Single(), hostDocument.FilePath),
             hostDocument.FilePath,
-            new GeneratedDocumentTextLoader(documentSnapshot, hostDocument.FilePath));
+            new GeneratedDocumentTextLoader(document, hostDocument.FilePath));
 
-        var document = solution.Projects.Single().Documents.Single();
-        return document;
+        return solution.Projects.Single().Documents.Single();
     }
 }

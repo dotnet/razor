@@ -41,6 +41,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
 
     private readonly IEditorDocumentManager _documentManager;
     private readonly IProjectSnapshotManager _projectManager;
+    private readonly IFallbackProjectManager _fallbackProjectManager;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ITelemetryReporter _telemetryReporter;
 
@@ -56,11 +57,13 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
     public EditorDocumentManagerListener(
         IEditorDocumentManager documentManager,
         IProjectSnapshotManager projectManager,
+        IFallbackProjectManager fallbackProjectManager,
         JoinableTaskContext joinableTaskContext,
         ITelemetryReporter telemetryReporter)
     {
         _documentManager = documentManager;
         _projectManager = projectManager;
+        _fallbackProjectManager = fallbackProjectManager;
         _joinableTaskContext = joinableTaskContext;
         _telemetryReporter = telemetryReporter;
 
@@ -102,7 +105,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
         }
 
         // Don't do any work if the solution is closing
-        if (work is DocumentAdded && e.SolutionIsClosing)
+        if (work is DocumentAdded && e.IsSolutionClosing)
         {
             return;
         }
@@ -184,7 +187,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
         try
         {
             return _projectManager.UpdateAsync(
-                static (updater, document) => updater.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.TextLoader),
+                static (updater, document) => updater.UpdateDocumentText(document.ProjectKey, document.DocumentFilePath, document.TextLoader),
                 state: document,
                 cancellationToken);
         }
@@ -214,7 +217,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
             // However, due to accessing the project snapshot manager, we need to switch to
             // running on the project snapshot manager's specialized thread.
             return _projectManager.UpdateAsync(
-                static (updater, document) => updater.DocumentChanged(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText),
+                static (updater, document) => updater.UpdateDocumentText(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText),
                 state: (EditorDocument)sender,
                 cancellationToken);
         }
@@ -243,10 +246,11 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
             return _projectManager.UpdateAsync(
                 static async (updater, state) =>
                 {
-                    var (document, telemetryReporter, cancellationToken) = state;
+                    var (document, fallbackProjectManager, telemetryReporter, cancellationToken) = state;
 
-                    if (updater.TryGetLoadedProject(document.ProjectKey, out var project) &&
-                        project is ProjectSnapshot { HostProject: FallbackHostProject } projectSnapshot)
+                    if (updater.TryGetProject(document.ProjectKey, out var project) &&
+                        project is ProjectSnapshot projectSnapshot &&
+                        fallbackProjectManager.IsFallbackProject(project))
                     {
                         // The user is opening a document that is part of a fallback project. This is a scenario we are very interested in knowing more about
                         // so fire some telemetry. We can't log details about the project, for PII reasons, but we can use document count and tag helper count
@@ -259,9 +263,9 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
                             new Property("taghelper.count", tagHelpers.Length));
                     }
 
-                    updater.DocumentOpened(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
+                    updater.OpenDocument(document.ProjectKey, document.DocumentFilePath, document.EditorTextContainer!.CurrentText);
                 },
-                state: (document: (EditorDocument)sender, _telemetryReporter, cancellationToken),
+                state: (document: (EditorDocument)sender, _fallbackProjectManager, _telemetryReporter, cancellationToken),
                 cancellationToken);
         }
         catch (Exception ex)
@@ -287,7 +291,7 @@ internal partial class EditorDocumentManagerListener : IRazorStartupService, IDi
         try
         {
             return _projectManager.UpdateAsync(
-                static (updater, document) => updater.DocumentClosed(document.ProjectKey, document.DocumentFilePath, document.TextLoader),
+                static (updater, document) => updater.CloseDocument(document.ProjectKey, document.DocumentFilePath, document.TextLoader),
                 state: (EditorDocument)sender,
                 cancellationToken);
         }

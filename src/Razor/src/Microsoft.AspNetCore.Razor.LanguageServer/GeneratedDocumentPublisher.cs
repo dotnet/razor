@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -101,7 +100,10 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
             ProjectKeyId = projectKey.Id,
             Changes = textChanges.Select(static t => t.ToRazorTextChange()).ToArray(),
             HostDocumentVersion = hostDocumentVersion,
-            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
+            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0,
+            Checksum = Convert.ToBase64String(sourceText.GetChecksum().ToArray()),
+            ChecksumAlgorithm = sourceText.ChecksumAlgorithm,
+            SourceEncodingCodePage = sourceText.Encoding?.CodePage
         };
 
         _clientConnection.SendNotificationAsync(CustomMessageNames.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None).Forget();
@@ -145,7 +147,10 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
             ProjectKeyId = projectKey.Id,
             Changes = textChanges.Select(static t => t.ToRazorTextChange()).ToArray(),
             HostDocumentVersion = hostDocumentVersion,
-            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
+            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0,
+            Checksum = Convert.ToBase64String(sourceText.GetChecksum().ToArray()),
+            ChecksumAlgorithm = sourceText.ChecksumAlgorithm,
+            SourceEncodingCodePage = sourceText.Encoding?.CodePage
         };
 
         _clientConnection.SendNotificationAsync(CustomMessageNames.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None).Forget();
@@ -154,7 +159,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
-        if (args.SolutionIsClosing)
+        if (args.IsSolutionClosing)
         {
             return;
         }

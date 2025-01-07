@@ -1,21 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
+#if COHOSTING
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+#else
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+#endif
 
 [Collection(HtmlFormattingCollection.Name)]
-public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
-    : FormattingTestBase(fixture.Service, testOutput)
+public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
+    : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
 {
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task FormatsIfStatementInComponent()
     {
         await RunOnTypeFormattingTestAsync(
@@ -42,7 +45,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task FormatsIfStatementInComponent2()
     {
         await RunOnTypeFormattingTestAsync(
@@ -68,7 +71,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_Class_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -86,7 +89,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             expectedChangedLines: 1);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_Class_SingleLine_UseTabsAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -105,7 +108,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             expectedChangedLines: 1);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_Class_SingleLine_AdjustTabSizeAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -124,7 +127,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             expectedChangedLines: 1);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_Class_MultiLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -145,7 +148,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             expectedChangedLines: 3);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_Method_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -163,7 +166,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             expectedChangedLines: 1);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_Method_MultiLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -184,7 +187,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             expectedChangedLines: 3);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_Property_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -201,7 +204,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_Property_MultiLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -222,7 +225,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_Property_StartOfBlockAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -238,7 +241,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task Semicolon_ClassField_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -255,7 +258,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task Semicolon_ClassField_MultiLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -274,7 +277,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task Semicolon_MethodVariableAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -297,7 +300,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27135")]
     public async Task Semicolon_Fluent_CallAsync()
     {
@@ -331,7 +334,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task ClosingBrace_MatchesCSharpIndentationAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -379,7 +382,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task ClosingBrace_DoesntMatchCSharpIndentationAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -427,7 +430,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
     public async Task CodeBlock_SemiColon_SingleLine1Async()
     {
@@ -447,7 +450,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
     public async Task CodeBlock_SemiColon_SingleLine2Async()
     {
@@ -467,7 +470,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
     public async Task CodeBlock_SemiColon_SingleLine3Async()
     {
@@ -487,7 +490,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
     public async Task CodeBlock_SemiColon_MultiLineAsync()
     {
@@ -509,7 +512,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
     public async Task Switch_Statment_NestedHtml_NestedCodeBlock()
     {
@@ -551,7 +554,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
     public async Task NestedHtml_NestedCodeBlock()
     {
@@ -663,7 +666,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
     public async Task Semicolon_NoDocumentChanges()
     {
@@ -681,7 +684,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
         await RunOnTypeFormattingTestAsync(input, input.Replace("$$", ""), triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
     public async Task Semicolon_NoDocumentChanges2()
     {
@@ -723,7 +726,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             expectedChangedLines: 1);
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5693")]
     public async Task IfStatementInsideLambda()
     {
@@ -761,7 +764,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task ComponentInCSharp1()
     {
         await RunOnTypeFormattingTestAsync(
@@ -798,7 +801,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task ComponentInCSharp2()
     {
         await RunOnTypeFormattingTestAsync(
@@ -835,7 +838,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: ';');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6158")]
     public async Task Format_NestedLambdas()
     {
@@ -893,7 +896,7 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
             triggerCharacter: '}');
     }
 
-    [Fact]
+    [FormattingTestFact(SkipFlipLineEnding = true)]
     public async Task CloseCurly_UnrelatedEdit_DoesNothing()
     {
         await RunOnTypeFormattingTestAsync(
@@ -923,5 +926,202 @@ public class CodeDirectiveOnTypeFormattingTest(HtmlFormattingFixture fixture, IT
                     """,
             triggerCharacter: '}',
             insertSpaces: false);
+    }
+
+    [FormattingTestFact(SkipFlipLineEnding = true)]
+    public async Task CloseCurly_IfBlock_SingleLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @{
+                     if(true){}$$
+                    }
+                    """,
+            expected: """
+                    @{
+                        if (true) { }
+                    }
+                    """,
+            triggerCharacter: '}');
+    }
+
+    [FormattingTestTheory(SkipFlipLineEnding = true)]
+    [CombinatorialData]
+    public async Task CloseCurly_IfBlock_MultiLineAsync(bool inGlobalNamespace)
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @{
+                     if(true)
+                    {
+                     }$$
+                    }
+                    """,
+            expected: """
+                    @{
+                        if (true)
+                        {
+                        }
+                    }
+                    """,
+            triggerCharacter: '}',
+            inGlobalNamespace: inGlobalNamespace);
+    }
+
+    [FormattingTestTheory(SkipFlipLineEnding = true)]
+    [CombinatorialData]
+    public async Task CloseCurly_MultipleStatementBlocksAsync(bool inGlobalNamespace)
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    <div>
+                        @{
+                          if(true) { }
+                        }
+                    </div>
+
+                    @{
+                     if(true)
+                    {
+                     }$$
+                    }
+                    """,
+            expected: """
+                    <div>
+                        @{
+                            if(true) { }
+                        }
+                    </div>
+
+                    @{
+                        if (true)
+                        {
+                        }
+                    }
+                    """,
+            triggerCharacter: '}',
+            inGlobalNamespace: inGlobalNamespace);
+    }
+
+    [FormattingTestFact(SkipFlipLineEnding = true)]
+    public async Task Semicolon_Variable_SingleLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @{
+                     var x = 'foo';$$
+                    }
+                    """,
+            expected: """
+                    @{
+                        var x = 'foo';
+                    }
+                    """,
+            triggerCharacter: ';');
+    }
+
+    [FormattingTestFact(SkipFlipLineEnding = true)]
+    public async Task Semicolon_Variable_MultiLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @{
+                     var x = @"
+                    foo";$$
+                    }
+                    """,
+            expected: """
+                    @{
+                        var x = @"
+                    foo";
+                    }
+                    """,
+            triggerCharacter: ';');
+    }
+
+    [FormattingTestFact(SkipFlipLineEnding = true)]
+    public async Task Semicolon_PropertyGet()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @code {
+                     private string Name {get;$$}
+                    }
+                    """,
+            expected: """
+                    @code {
+                        private string Name { get; }
+                    }
+                    """,
+            triggerCharacter: ';');
+    }
+
+    [FormattingTestFact(SkipFlipLineEnding = true)]
+    public async Task Semicolon_AddsLineAtEndOfDocument()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @{ var x = new HtmlString("sdf");$$ }
+                    """,
+            expected: """
+                    @{
+                        var x = new HtmlString("sdf"); 
+                    }
+                    """,
+            triggerCharacter: ';');
+    }
+
+    [FormattingTestFact(SkipFlipLineEnding = true)]
+    public async Task FormatsSimpleHtmlTag_OnType()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    <html>
+                    <head>
+                        <title>Hello</title>
+                            <script>
+                                var x = 2;$$
+                            </script>
+                    </head>
+                    </html>
+                    """,
+            expected: """
+                    <html>
+                    <head>
+                        <title>Hello</title>
+                        <script>
+                            var x = 2;
+                        </script>
+                    </head>
+                    </html>
+                    """,
+            triggerCharacter: ';',
+            fileKind: FileKinds.Legacy);
+    }
+
+    [FormattingTestFact(SkipFlipLineEnding = true)]
+    public async Task OnTypeFormatting_Enabled()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+            @functions {
+            	private int currentCount = 0;
+            
+            	private void IncrementCount (){
+            		currentCount++;
+            	}$$
+            }
+            """,
+            expected: """
+            @functions {
+                private int currentCount = 0;
+            
+                private void IncrementCount()
+                {
+                    currentCount++;
+                }
+            }
+            """,
+            triggerCharacter: '}');
     }
 }

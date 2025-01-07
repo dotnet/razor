@@ -60,31 +60,28 @@ public class RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput) : Langu
 
     protected override async Task InitializeAsync()
     {
-        var testProjectManager = CreateProjectSnapshotManager();
+        var projectManager = CreateProjectSnapshotManager();
         var hostProject = new HostProject("C:/project/project.csproj", "C:/project/obj", RazorConfiguration.Default, "TestRootNamespace");
         var sourceText = SourceText.From(string.Empty);
-        var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default);
         var openedHostDocument = new HostDocument("C:/project/open_document.cshtml", "C:/project/open_document.cshtml");
         var closedHostDocument = new HostDocument("C:/project/closed_document.cshtml", "C:/project/closed_document.cshtml");
 
-        await testProjectManager.UpdateAsync(updater =>
+        await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
-            updater.DocumentAdded(hostProject.Key, openedHostDocument, TextLoader.From(textAndVersion));
-            updater.DocumentOpened(hostProject.Key, openedHostDocument.FilePath, sourceText);
-            updater.DocumentAdded(hostProject.Key, closedHostDocument, TextLoader.From(textAndVersion));
+            updater.AddProject(hostProject);
+            updater.AddDocument(hostProject.Key, openedHostDocument, sourceText);
+            updater.OpenDocument(hostProject.Key, openedHostDocument.FilePath, sourceText);
+            updater.AddDocument(hostProject.Key, closedHostDocument, sourceText);
         });
 
-        var project = testProjectManager.GetLoadedProject(hostProject.Key);
+        var project = projectManager.GetRequiredProject(hostProject.Key);
 
-        var openedDocument = project.GetDocument(openedHostDocument.FilePath).AssumeNotNull();
-        _openedDocument = openedDocument;
+        _openedDocument = project.GetRequiredDocument(openedHostDocument.FilePath);
         _openedDocumentUri = new Uri("C:/project/open_document.cshtml");
 
-        var closedDocument = project.GetDocument(closedHostDocument.FilePath).AssumeNotNull();
-        _closedDocument = closedDocument;
+        _closedDocument = project.GetRequiredDocument(closedHostDocument.FilePath);
 
-        _projectManager = testProjectManager;
+        _projectManager = projectManager;
         _testCodeDocument = TestRazorCodeDocument.CreateEmpty();
     }
 

@@ -34,16 +34,22 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class FormattingTestBase : RazorToolingIntegrationTestBase
+public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 {
     private readonly HtmlFormattingService _htmlFormattingService;
+    private readonly FormattingTestContext _context;
 
-    internal FormattingTestBase(HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
+    internal sealed override bool UseTwoPhaseCompilation => true;
+
+    internal sealed override bool DesignTime => true;
+
+    private protected FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
         : base(testOutput)
     {
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
 
         _htmlFormattingService = htmlFormattingService;
+        _context = context;
     }
 
     private protected async Task RunFormattingTestAsync(
@@ -54,22 +60,14 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         string? fileKind = null,
         ImmutableArray<TagHelperDescriptor> tagHelpers = default,
         bool allowDiagnostics = false,
-        RazorLSPOptions? razorLSPOptions = null,
-        bool inGlobalNamespace = false,
-        bool skipFlipLineEndingTest = false)
+        bool codeBlockBraceOnNextLine = false,
+        bool inGlobalNamespace = false)
     {
-        // Run with and without forceRuntimeCodeGeneration
+        (input, expected) = ProcessFormattingContext(input, expected);
+
+        var razorLSPOptions = RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine };
+
         await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace);
-
-        // some tests are failing, skip for now, tracked by https://github.com/dotnet/razor/issues/10836
-        if (!skipFlipLineEndingTest)
-        {
-            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
-            input = FlipLineEndings(input);
-            expected = FlipLineEndings(expected);
-
-            await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace);
-        }
     }
 
     private async Task RunFormattingTestInternalAsync(string input, string expected, int tabSize, bool insertSpaces, string? fileKind, ImmutableArray<TagHelperDescriptor> tagHelpers, bool allowDiagnostics, RazorLSPOptions? razorLSPOptions, bool inGlobalNamespace)
@@ -130,6 +128,8 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         RazorLSPOptions? razorLSPOptions = null,
         bool inGlobalNamespace = false)
     {
+        (input, expected) = ProcessFormattingContext(input, expected);
+
         // Arrange
         fileKind ??= FileKinds.Component;
 
@@ -189,6 +189,21 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             var delta = lastLine - firstLine + changes.Count(e => e.NewText.Contains(Environment.NewLine));
             Assert.Equal(expectedChangedLines.Value, delta + 1);
         }
+    }
+
+    private (string input, string expected) ProcessFormattingContext(string input, string expected)
+    {
+        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
+        Assert.False(_context.ForceRuntimeCodeGeneration, "ForceRuntimeGeneration does not currently work in the language server. Creating tests for it is a false positive");
+
+        if (_context.ShouldFlipLineEndings)
+        {
+            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
+            input = _context.FlipLineEndings(input);
+            expected = _context.FlipLineEndings(expected);
+        }
+
+        return (input, expected);
     }
 
     protected async Task RunCodeActionFormattingTestAsync(
@@ -357,27 +372,5 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
                 return CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument, inGlobalNamespace: inGlobalNamespace);
             });
         return documentSnapshot.Object;
-    }
-
-    private static string FlipLineEndings(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-        {
-            return input;
-        }
-
-        var hasCRLF = input.Contains("\r\n");
-        var hasLF = !hasCRLF && input.Contains("\n");
-
-        if (hasCRLF)
-        {
-            return input.Replace("\r\n", "\n");
-        }
-        else if (hasLF)
-        {
-            return input.Replace("\n", "\r\n");
-        }
-
-        return input;
     }
 }

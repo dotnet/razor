@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -14,9 +15,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class CohostDocumentPullDiagnosticsTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
 {
-    [Fact]
+    [FuseFact]
     public Task CSharp()
         => VerifyDiagnosticsAsync("""
             <div></div>
@@ -30,7 +31,7 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
             }
             """);
 
-    [Fact]
+    [FuseFact]
     public Task Razor()
         => VerifyDiagnosticsAsync("""
             <div>
@@ -40,7 +41,7 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
             </div>
             """);
 
-    [Fact]
+    [FuseFact]
     public Task Html()
     {
         TestCode input = """
@@ -65,7 +66,48 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
             }]);
     }
 
-    [Fact]
+    [FuseFact]
+    public Task FilterEscapedAtFromCss()
+    {
+        TestCode input = """
+            <div>
+
+            <style>
+              @@media (max-width: 600px) {
+                body {
+                  background-color: lightblue;
+                }
+              }
+
+              {|CSS002:f|}oo
+              {
+                bar: baz;
+              }
+            </style>
+
+            </div>
+            """;
+
+        return VerifyDiagnosticsAsync(input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new Diagnostic
+                    {
+                        Code = CSSErrorCodes.UnrecognizedBlockType,
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("@@") + 1, 1))
+                    },
+                    new Diagnostic
+                    {
+                        Code = CSSErrorCodes.UnrecognizedBlockType,
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("f"), 1))
+                    }
+                ]
+            }]);
+    }
+
+    [FuseFact]
     public Task CombinedAndNestedDiagnostics()
         => VerifyDiagnosticsAsync("""
             @using System.Threading.Tasks;
@@ -95,6 +137,8 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
 
     private async Task VerifyDiagnosticsAsync(TestCode input, VSInternalDiagnosticReport[]? htmlResponse = null)
     {
+        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
+
         var document = await CreateProjectAndRazorDocumentAsync(input.Text, createSeparateRemoteAndLocalWorkspaces: true);
         var inputText = await document.GetTextAsync(DisposalToken);
 

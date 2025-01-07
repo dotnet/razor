@@ -50,7 +50,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public void Dispose_MakesUpdateNoop()
+    public void Dispose_MakesUpdateIgnored()
     {
         // Arrange
         using var generator = new ProjectWorkspaceStateGenerator(
@@ -119,8 +119,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_projectSnapshot.HostProject);
-            updater.ProjectWorkspaceStateChanged(_projectSnapshot.Key, _projectWorkspaceStateWithTagHelpers);
+            updater.AddProject(_projectSnapshot.HostProject);
+            updater.UpdateProjectWorkspaceState(_projectSnapshot.Key, _projectWorkspaceStateWithTagHelpers);
         });
 
         // Act
@@ -130,8 +130,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
         await Task.Run(() => generatorAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
         // Assert
-        var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);
-        Assert.NotNull(newProjectSnapshot);
+        var newProjectSnapshot = _projectManager.GetRequiredProject(_projectSnapshot.Key);
+
         Assert.Empty(await newProjectSnapshot.GetTagHelpersAsync(DisposalToken));
     }
 
@@ -147,7 +147,7 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(_projectSnapshot.HostProject);
+            updater.AddProject(_projectSnapshot.HostProject);
         });
 
         // Act
@@ -157,8 +157,8 @@ public class ProjectWorkspaceStateGeneratorTest : VisualStudioWorkspaceTestBase
         await Task.Run(() => generatorAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
         // Assert
-        var newProjectSnapshot = _projectManager.GetLoadedProject(_projectSnapshot.Key);
-        Assert.NotNull(newProjectSnapshot);
+        var newProjectSnapshot = _projectManager.GetRequiredProject(_projectSnapshot.Key);
+
         Assert.Equal<TagHelperDescriptor>(_tagHelperResolver.TagHelpers, await newProjectSnapshot.GetTagHelpersAsync(DisposalToken));
     }
 }

@@ -52,7 +52,7 @@ internal class ProjectSnapshotSynchronizationService(
                 {
                     try
                     {
-                        updater.ProjectRemoved(project.Key);
+                        updater.RemoveProject(project.Key);
                     }
                     catch (Exception ex)
                     {
@@ -81,11 +81,11 @@ internal class ProjectSnapshotSynchronizationService(
             await _projectManager.UpdateAsync(
                 static (updater, state) =>
                 {
-                    updater.ProjectAdded(state.hostProject);
+                    updater.AddProject(state.hostProject);
 
                     if (state.projectWorkspaceState != null)
                     {
-                        updater.ProjectWorkspaceStateChanged(state.hostProject.Key, state.projectWorkspaceState);
+                        updater.UpdateProjectWorkspaceState(state.hostProject.Key, state.projectWorkspaceState);
                     }
                 },
                 state: (hostProject, projectWorkspaceState: args.Newer.ProjectWorkspaceState),
@@ -97,10 +97,10 @@ internal class ProjectSnapshotSynchronizationService(
             await _projectManager.UpdateAsync(
                 static (updater, guestPath) =>
                 {
-                    var projectKeys = updater.GetAllProjectKeys(guestPath);
+                    var projectKeys = updater.GetProjectKeysWithFilePath(guestPath);
                     foreach (var projectKey in projectKeys)
                     {
-                        updater.ProjectRemoved(projectKey);
+                        updater.RemoveProject(projectKey);
                     }
                 },
                 state: guestPath,
@@ -114,7 +114,7 @@ internal class ProjectSnapshotSynchronizationService(
                 var guestIntermediateOutputPath = ResolveGuestPath(args.Newer.IntermediateOutputPath);
                 var hostProject = new HostProject(guestPath, guestIntermediateOutputPath, args.Newer.Configuration, args.Newer.RootNamespace);
                 await _projectManager.UpdateAsync(
-                    static (updater, hostProject) => updater.ProjectConfigurationChanged(hostProject),
+                    static (updater, hostProject) => updater.UpdateProjectConfiguration(hostProject),
                     state: hostProject,
                     CancellationToken.None);
             }
@@ -125,11 +125,11 @@ internal class ProjectSnapshotSynchronizationService(
                 await _projectManager.UpdateAsync(
                     static (updater, state) =>
                     {
-                        var projectKeys = updater.GetAllProjectKeys(state.guestPath);
+                        var projectKeys = updater.GetProjectKeysWithFilePath(state.guestPath);
 
                         foreach (var projectKey in projectKeys)
                         {
-                            updater.ProjectWorkspaceStateChanged(projectKey, state.projectWorkspaceState);
+                            updater.UpdateProjectWorkspaceState(projectKey, state.projectWorkspaceState);
                         }
                     },
                     state: (guestPath, projectWorkspaceState: args.Newer.ProjectWorkspaceState),
@@ -148,11 +148,11 @@ internal class ProjectSnapshotSynchronizationService(
             await _projectManager.UpdateAsync(
                 static (updater, state) =>
                 {
-                    updater.ProjectAdded(state.hostProject);
+                    updater.AddProject(state.hostProject);
 
                     if (state.projectWorkspaceState is not null)
                     {
-                        updater.ProjectWorkspaceStateChanged(state.hostProject.Key, state.projectWorkspaceState);
+                        updater.UpdateProjectWorkspaceState(state.hostProject.Key, state.projectWorkspaceState);
                     }
                 },
                 state: (hostProject, projectWorkspaceState: projectHandle.ProjectWorkspaceState),

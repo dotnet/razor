@@ -78,10 +78,10 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject_For_2_0);
+            updater.AddProject(s_hostProject_For_2_0);
         });
 
-        var projectSnapshot = _projectManager.GetLoadedProject(s_hostProject_For_2_0.Key);
+        var projectSnapshot = _projectManager.GetRequiredProject(s_hostProject_For_2_0.Key);
 
         var calledOutOfProcess = false;
 
@@ -110,10 +110,10 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject_For_NonSerializableConfiguration);
+            updater.AddProject(s_hostProject_For_NonSerializableConfiguration);
         });
 
-        var projectSnapshot = _projectManager.GetLoadedProject(s_hostProject_For_2_0.Key);
+        var projectSnapshot = _projectManager.GetRequiredProject(s_hostProject_For_2_0.Key);
 
         var calledInProcess = false;
 
@@ -142,10 +142,10 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject_For_2_0);
+            updater.AddProject(s_hostProject_For_2_0);
         });
 
-        var projectSnapshot = _projectManager.GetLoadedProject(s_hostProject_For_2_0.Key);
+        var projectSnapshot = _projectManager.GetRequiredProject(s_hostProject_For_2_0.Key);
 
         var calledOutOfProcess = false;
         var calledInProcess = false;

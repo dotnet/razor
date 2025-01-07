@@ -151,10 +151,10 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
 
         var expectedProjectSnapshot = await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_someProject);
-            updater.ProjectAdded(s_someOtherProject);
+            updater.AddProject(s_someProject);
+            updater.AddProject(s_someOtherProject);
 
-            return updater.GetLoadedProject(s_someProject.Key);
+            return updater.GetRequiredProject(s_someProject.Key);
         });
 
         var serviceProvider = VsMocks.CreateServiceProvider();
@@ -184,7 +184,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         await projectManager.UpdateAsync(updater =>
         {
             updater.SolutionClosed();
-            updater.ProjectRemoved(s_someProject.Key);
+            updater.RemoveProject(s_someProject.Key);
         });
 
         var update = Assert.Single(workspaceStateGenerator.Updates);
@@ -204,10 +204,10 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
 
         var expectedProjectSnapshot = await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_someProject);
-            updater.ProjectAdded(s_someOtherProject);
+            updater.AddProject(s_someProject);
+            updater.AddProject(s_someOtherProject);
 
-            return updater.GetLoadedProject(s_someProject.Key);
+            return updater.GetRequiredProject(s_someProject.Key);
         });
 
         var serviceProvider = VsMocks.CreateServiceProvider();
@@ -258,7 +258,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(
+            updater.AddProject(
                 new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path"));
         });
 
